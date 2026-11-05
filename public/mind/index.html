@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#05070d">
+<title>המוח השני</title>
+<link rel="manifest" href="/mind/manifest.webmanifest">
+<link rel="icon" href="/mind/icon-64.png">
+<link rel="apple-touch-icon" href="/mind/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="המוח השני">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- "המוח השני" - Shlomi's second brain (his ask, 2026-11-04): everything in his head + every Claude Code session on his
+     computers, one page. Data only through the mind function (techietech-api/mind.js) with his private code - the same
+     one as /backstage/ and /all/ (localStorage owner-key). Sessions report through hooks + the MCP server (setup/). -->
+<style>
+:root {
+  --gapB: 0px;
+  --bg: #f4f6fb; --card: #ffffff; --card2: #f8fafd; --line: #e6eaf2; --line2: #eef1f7;
+  --ink: #0f172a; --ink2: #475569; --ink3: #94a3b8;
+  --brand: #2563eb; --brand2: #1d4ed8; --brandSoft: #eaf1ff;
+  --top: #0f1b33; --topInk: #ffffff;
+  --red: #e5484d; --redSoft: #fdecec; --green: #12a150; --greenSoft: #e7f7ee; --amber: #e8a317; --amberSoft: #fdf4e1;
+  --blue: #2563eb; --blueSoft: #eaf1ff; --violet: #7c5cff; --violetSoft: #f1edff; --gray: #94a3b8; --graySoft: #f1f4f9;
+  --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.05);
+  --shadow2: 0 10px 40px rgba(15,23,42,.18);
+  --r: 14px; --side: 264px; --panel: 470px;
+  --safeB: env(safe-area-inset-bottom, 0px); --safeT: env(safe-area-inset-top, 0px);
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  --bg: #0b0f17; --card: #141a25; --card2: #182030; --line: #232c3c; --line2: #1c2433;
+  --ink: #e8edf6; --ink2: #a3afc2; --ink3: #6b778c;
+  --brand: #4c8dff; --brand2: #3b7cf5; --brandSoft: #17264a;
+  --top: #0b111c;
+  --red: #ff6369; --redSoft: #3a1a1f; --green: #3ccf7e; --greenSoft: #12301f; --amber: #f5b83d; --amberSoft: #352a12;
+  --blue: #4c8dff; --blueSoft: #17264a; --violet: #9d86ff; --violetSoft: #251f45; --gray: #7c879b; --graySoft: #1c2433;
+  --shadow: 0 1px 2px rgba(0,0,0,.3); --shadow2: 0 10px 40px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body { font: 15px/1.5 Heebo, system-ui, -apple-system, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--ink); overflow: hidden; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+svg.i { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hidden { display: none !important; }
+* { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+
+/* ---------- gate ---------- */
+#gate { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); display: grid; place-items: center; background: #05070d; color: #fff; padding: 24px; z-index: 50; }
+#gate form { width: min(360px, 100%); text-align: center; }
+#gate img { width: min(300px, 80vw); height: auto; margin-bottom: 6px; }
+#gate h1 { margin: 18px 0 2px; font-size: 28px; } #gate p { margin: 0 0 22px; color: #9fb0cc; }
+#gate input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid #2a3a5c; background: #16243f; color: #fff; text-align: center; font-size: 18px; letter-spacing: 2px; }
+#gate button { margin-top: 12px; width: 100%; padding: 13px; border-radius: 12px; background: var(--brand); color: #fff; font-weight: 700; font-size: 16px; }
+#gate .err { color: #ff8a8a; min-height: 22px; margin-top: 10px; font-size: 14px; }
+
+/* ---------- layout ---------- */
+#app { display: flex; height: 100%; }
+.side { width: var(--side); flex: none; background: var(--card); border-inline-start: 1px solid var(--line); display: flex; flex-direction: column; padding: 16px 14px 12px; overflow-y: auto; scrollbar-width: none; }
+.side::-webkit-scrollbar { display: none; }
+.brand { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 6px 12px; }
+.brand img { width: 176px; height: auto; }
+.brand b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -.2px; } .brand small { color: var(--ink3); font-size: 12.5px; }
+.cap-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--brand); color: #fff; font-weight: 700; border-radius: 12px; padding: 12px; box-shadow: 0 6px 18px rgba(37,99,235,.28); }
+.cap-btn:hover { background: var(--brand2); }
+.cap-btn kbd { font: 11px Heebo; opacity: .75; border: 1px solid rgba(255,255,255,.4); border-radius: 5px; padding: 0 5px; }
+.nav { margin-top: 12px; display: grid; gap: 1px; }
+.nav button, .qf button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px 11px; border-radius: 10px; color: var(--ink2); font-weight: 500; text-align: start; }
+.nav button:hover, .qf button:hover { background: var(--card2); }
+.nav button.on { background: var(--brandSoft); color: var(--brand); font-weight: 700; }
+.nav .n, .qf .n { margin-inline-start: auto; font-size: 12px; font-weight: 700; min-width: 24px; text-align: center; padding: 1px 7px; border-radius: 20px; background: var(--graySoft); color: var(--ink2); }
+.nav .n.hot, .qf .n.hot { background: var(--red); color: #fff; }
+.side h4 { margin: 14px 11px 4px; font-size: 12px; font-weight: 600; color: var(--ink3); letter-spacing: .3px; }
+.qf { display: grid; gap: 0; } .qf button { padding: 5px 11px; font-size: 14px; }
+.qf button.on { background: var(--card2); color: var(--ink); font-weight: 700; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.side .foot { margin-top: auto; padding-top: 10px; }
+
+main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.top { display: flex; align-items: center; gap: 14px; padding: 14px 28px; background: var(--top); color: var(--topInk); }
+.search { flex: 1; max-width: 560px; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1); border-radius: 11px; padding: 8px 13px; color: #b9c6dd; }
+.search input { flex: 1; background: none; border: 0; outline: 0; color: #fff; min-width: 0; }
+.search input::placeholder { color: #8394b3; }
+.top .live { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9fb0cc; white-space: nowrap; }
+.top .live i { width: 8px; height: 8px; border-radius: 50%; background: #3ccf7e; box-shadow: 0 0 0 3px rgba(60,207,126,.18); }
+.top .live.off i { background: #f5b83d; box-shadow: 0 0 0 3px rgba(245,184,61,.18); }
+.top .ic { color: #b9c6dd; padding: 6px; border-radius: 8px; } .top .ic:hover { background: rgba(255,255,255,.08); color: #fff; }
+.top .mlogo { display: none; }
+#view { flex: 1; overflow-y: auto; padding: 26px 28px 60px; }
+.wrap { max-width: 1280px; margin: 0 auto; }
+
+/* ---------- home ---------- */
+.hello h1 { margin: 0; font-size: 27px; font-weight: 800; letter-spacing: -.3px; }
+.hello p { margin: 2px 0 0; color: var(--ink2); } .hello p b { color: var(--red); }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 20px 0 24px; }
+.tile { display: flex; align-items: center; gap: 14px; text-align: start; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s; }
+.tile:hover { transform: translateY(-1px); box-shadow: 0 8px 26px rgba(15,23,42,.08); }
+.tile .ti { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+.tile .ti svg { width: 22px; height: 22px; }
+.tile b { display: block; font-size: 28px; line-height: 1.05; font-weight: 800; } .tile span { color: var(--ink2); font-size: 13.5px; }
+.t-red .ti { background: var(--redSoft); color: var(--red); } .t-red b { color: var(--red); }
+.t-green .ti { background: var(--greenSoft); color: var(--green); }
+.t-blue .ti { background: var(--blueSoft); color: var(--blue); }
+.t-violet .ti { background: var(--violetSoft); color: var(--violet); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+.card > header { display: flex; align-items: center; gap: 10px; padding: 15px 18px 11px; }
+.card > header h3 { margin: 0; font-size: 16.5px; font-weight: 700; }
+.card > header .cnt { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 20px; background: var(--graySoft); color: var(--ink2); }
+.card > header .cnt.hot { background: var(--red); color: #fff; }
+.card > header .more { margin-inline-start: auto; color: var(--brand); font-size: 13.5px; font-weight: 600; }
+.empty { padding: 22px 18px 26px; color: var(--ink3); text-align: center; font-size: 14px; }
+.empty b { display: block; color: var(--ink2); font-size: 15px; margin-bottom: 2px; }
+
+/* rows (items) */
+.rows { display: flex; flex-direction: column; }
+.row { display: flex; align-items: center; gap: 12px; padding: 11px 18px; border-top: 1px solid var(--line2); cursor: pointer; text-align: start; width: 100%; position: relative; }
+.row:hover { background: var(--card2); }
+.row.sel { background: var(--brandSoft); }
+.row .bar { position: absolute; inset-inline-end: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; }
+.row .star { color: var(--ink3); padding: 3px; border-radius: 6px; } .row .star:hover { color: var(--amber); }
+.star.on { color: var(--amber) !important; } .star.on svg { fill: currentColor; }
+.row .main { flex: 1 1 220px; min-width: 0; }
+.row .ttl { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .ttl.done { text-decoration: line-through; color: var(--ink3); }
+.row .sub { color: var(--ink3); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .meta { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; }
+.ago { color: var(--ink3); font-size: 12.5px; white-space: nowrap; min-width: 62px; text-align: end; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; padding: 2px 9px; border-radius: 7px; white-space: nowrap; line-height: 1.6; }
+.chip svg { width: 13px; height: 13px; }
+.proj { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink2); white-space: nowrap; }
+.who { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink2); background: var(--card2); border: 1px solid var(--line); border-radius: 7px; padding: 1px 7px; max-width: 150px; min-width: 0; }
+.who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who svg { width: 13px; height: 13px; }
+.st-open { background: var(--graySoft); color: var(--ink2); } .st-active { background: var(--blueSoft); color: var(--blue); }
+.st-waiting { background: var(--redSoft); color: var(--red); } .st-done { background: var(--greenSoft); color: var(--green); }
+.st-parked { background: var(--graySoft); color: var(--ink3); }
+
+/* session cards */
+.sess { display: grid; gap: 10px; padding: 4px 14px 14px; }
+.sess.grid { grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); gap: 14px; padding: 0; }
+.sess > *, .sess.grid > * { min-width: 0; }
+.sc .q { overflow-wrap: anywhere; }
+.sc { display: block; width: 100%; text-align: start; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.sess.grid .sc { background: var(--card); box-shadow: var(--shadow); padding: 15px 16px; }
+.sc:hover { border-color: var(--brand); }
+.sc .h { display: flex; align-items: center; gap: 10px; }
+.av { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 15px; flex: none; }
+.sc .nm { flex: 1; min-width: 0; }
+.sc .nm b { display: block; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc .nm small { color: var(--ink3); font-size: 12.5px; }
+.sc .said { margin-top: 8px; color: var(--ink2); font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sc .q { margin-top: 8px; background: var(--redSoft); color: var(--ink); border-radius: 8px; padding: 6px 10px; font-size: 13.5px; }
+.sc .ft { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: var(--ink3); font-size: 12.5px; }
+.state { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.state i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.s-working { color: var(--green); } .s-working i { box-shadow: 0 0 0 3px var(--greenSoft); animation: pulse 1.6s infinite; }
+.s-waiting { color: var(--blue); } .s-needs { color: var(--red); } .s-stuck { color: var(--amber); }
+.s-done { color: var(--green); } .s-ended, .s-idle, .s-new { color: var(--gray); }
+@keyframes pulse { 50% { opacity: .45; } }
+
+/* feed */
+.feed { padding: 2px 18px 16px; }
+.fe { display: flex; gap: 12px; padding: 9px 0; position: relative; cursor: pointer; }
+.fe:not(:last-child)::after { content: ""; position: absolute; inset-inline-start: 4px; top: 24px; bottom: -9px; width: 2px; background: var(--line2); }
+.fe > i { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; flex: none; }
+.fe .c { flex: 1; min-width: 0; } .fe .c b { font-size: 14px; unicode-bidi: isolate; } .fe .c small { color: var(--ink3); margin-inline-start: 8px; unicode-bidi: isolate; display: inline-block; }
+.fe .c p { margin: 1px 0 0; color: var(--ink2); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* items view toolbar */
+.vh { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.vh h2 { margin: 0; font-size: 24px; font-weight: 800; }
+.seg { display: inline-flex; background: var(--card); border: 1px solid var(--line); border-radius: 11px; padding: 3px; gap: 2px; overflow-x: auto; max-width: 100%; }
+.seg button { padding: 6px 12px; border-radius: 8px; color: var(--ink2); font-weight: 600; font-size: 13.5px; white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
+.seg button.on { background: var(--brand); color: #fff; }
+.seg button .n { font-size: 11.5px; opacity: .75; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 20px; border: 1px solid var(--line); background: var(--card); color: var(--ink2); font-size: 13px; font-weight: 600; }
+.fchip.on { border-color: currentColor; }
+.fchip svg { width: 14px; height: 14px; }
+.sel-in { padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink2); font-size: 13px; }
+
+/* ---------- panel (item / session) ---------- */
+.panel { position: fixed; z-index: 25; top: 5vh; left: 50%; transform: translateX(-50%); width: min(780px, calc(100% - 32px)); max-height: 90vh; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow2); display: flex; flex-direction: column; overflow: hidden; }
+.pscrim { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); z-index: 24; background: rgba(5,8,15,.66); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.pb { min-height: 0; }
+.panel .ph { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line2); }
+.panel .ph .id { color: var(--ink3); font-size: 13px; font-weight: 600; direction: ltr; }
+.panel .ph .sp { flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--ink2); font-weight: 600; font-size: 13.5px; white-space: nowrap; }
+.btn:hover { background: var(--card2); } .btn.pri { background: var(--brand); border-color: var(--brand); color: #fff; } .btn.pri:hover { background: var(--brand2); }
+.btn.ok { background: var(--greenSoft); color: var(--green); border-color: transparent; } .btn.danger:hover { color: var(--red); }
+.btn.icon { padding: 7px; }
+.pb { flex: 1; overflow-y: auto; padding: 18px 20px 20px; }
+.ttl-in { width: 100%; border: 0; outline: 0; resize: none; background: none; font-size: 22px; font-weight: 800; line-height: 1.3; padding: 0; overflow: hidden; }
+.props { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; align-items: center; }
+.pchip { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 9px; font-size: 13px; font-weight: 600; border: 1px solid transparent; }
+.pchip svg.dn { width: 13px; height: 13px; transform: rotate(-90deg); opacity: .7; }
+.picker { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 16px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card2); }
+.picker .tsel.on { box-shadow: 0 0 0 2px currentColor inset; }
+.pchip select, .pchip input[type=date] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.pchip.plain { border-color: var(--line); color: var(--ink2); background: var(--card); }
+.proj-in { border: 1px solid var(--line); background: var(--card); border-radius: 9px; padding: 4px 10px; font-size: 13px; width: 140px; outline: 0; }
+.lbl { font-size: 12.5px; font-weight: 700; color: var(--ink3); margin: 18px 0 7px; }
+.pacts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--line2); }
+.body-in { resize: none; width: 100%; min-height: 60px; max-height: 420px; font-size: 16px; line-height: 1.65; border: 1px solid transparent; border-radius: 11px; padding: 8px 10px; margin-inline: -10px; width: calc(100% + 20px); background: transparent; color: var(--ink); }
+.body-in:hover { background: var(--card2); }
+.body-in:focus { background: var(--card2); border-color: var(--brand); }
+.body-in-old { background: var(--card2); outline: 0; resize: vertical; line-height: 1.55; }
+.body-in:focus, .proj-in:focus { border-color: var(--brand); }
+.tl { position: relative; }
+.tle { display: flex; gap: 11px; padding: 8px 0; position: relative; }
+.tle:not(:last-child)::after { content: ""; position: absolute; inset-inline-start: 13px; top: 36px; bottom: -8px; width: 2px; background: var(--line2); }
+.tle .av { width: 28px; height: 28px; font-size: 12px; border-radius: 50%; }
+.tle .c { flex: 1; min-width: 0; } .tle .c b { font-size: 13.5px; unicode-bidi: isolate; } .tle .c small { color: var(--ink3); font-size: 12px; margin-inline-start: 8px; unicode-bidi: isolate; display: inline-block; }
+.tle .c p { margin: 2px 0 0; font-size: 14px; color: var(--ink2); white-space: pre-wrap; word-break: break-word; }
+.pf { display: flex; gap: 8px; padding: 12px 16px calc(12px + var(--safeB)); border-top: 1px solid var(--line2); align-items: flex-end; }
+.pf textarea { flex: 1; resize: none; border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; background: var(--card2); outline: 0; max-height: 140px; }
+.pf textarea:focus { border-color: var(--brand); }
+.rbtn { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--brand); color: #fff; flex: none; }
+.rbtn.mic { background: var(--card2); color: var(--ink2); border: 1px solid var(--line); }
+.rbtn.mic.rec { background: var(--red); color: #fff; border-color: var(--red); width: auto; min-width: 40px; padding: 0 9px; }
+.rbtn.mic.rec::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; margin-inline-end: 6px; animation: pulse 1s infinite; }
+.rbtn.mic.rec { display: flex; align-items: center; }
+.rbtn .rt { font: 700 13px Heebo; direction: ltr; } .rbtn .dots { font-weight: 800; letter-spacing: 1px; animation: pulse 1s infinite; }
+.box { background: var(--card2); border: 1px solid var(--line); border-radius: 11px; padding: 10px 12px; font-size: 14px; color: var(--ink2); white-space: pre-wrap; word-break: break-word; }
+.box.q { background: var(--redSoft); border-color: transparent; color: var(--ink); }
+.box.clamp { max-height: 220px; overflow-y: auto; }
+.code { display: flex; align-items: center; gap: 8px; background: #0f172a; color: #cbd5e1; border-radius: 10px; padding: 9px 12px; font: 12.5px/1.5 ui-monospace, Consolas, monospace; direction: ltr; text-align: left; }
+.code span { flex: 1; overflow-x: auto; white-space: nowrap; }
+.code button { color: #94a3b8; } .code button:hover { color: #fff; }
+
+/* ---------- modal / sheet ---------- */
+.scrim { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); background: rgba(8,12,22,.45); z-index: 30; display: grid; place-items: start center; padding: 9vh 16px 16px; }
+.sheet { width: min(620px, 100%); background: var(--card); border-radius: 18px; box-shadow: var(--shadow2); overflow: hidden; display: flex; flex-direction: column; max-height: 84vh; }
+.sheet > header { display: flex; align-items: center; gap: 10px; padding: 16px 20px 6px; }
+.sheet > header h3 { margin: 0; font-size: 19px; font-weight: 800; flex: 1; }
+.sheet .sb { padding: 8px 20px 18px; overflow-y: auto; }
+.sheet > footer { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 20px calc(16px + var(--safeB)); border-top: 1px solid var(--line2); align-items: center; }
+.cap-area { position: relative; }
+.cap-area textarea { width: 100%; min-height: 120px; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 14px 56px; background: var(--card2); outline: 0; resize: none; font-size: 17px; line-height: 1.5; }
+.cap-area textarea:focus { border-color: var(--brand); }
+.cap-area .rbtn { position: absolute; left: 10px; bottom: 10px; }
+.typesel { display: flex; flex-wrap: wrap; gap: 8px; }
+.tsel { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--card); font-weight: 600; font-size: 14px; color: var(--ink2); }
+.tsel.on { color: var(--ink); }
+.tsel svg { width: 16px; height: 16px; }
+.hint { color: var(--ink3); font-size: 12.5px; }
+.auto { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink2); cursor: pointer; }
+.auto input { width: 16px; height: 16px; accent-color: var(--brand); }
+.set-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; }
+.set-row input[type=text] { flex: 1; border: 1px solid var(--line); border-radius: 9px; padding: 7px 10px; background: var(--card2); outline: 0; min-width: 0; }
+.set-row input[type=color] { width: 36px; height: 34px; border: 1px solid var(--line); border-radius: 9px; padding: 2px; background: var(--card); }
+.iconpick { display: flex; flex-wrap: wrap; gap: 4px; }
+.iconpick button { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--ink2); border: 1px solid transparent; }
+.iconpick button.on { border-color: var(--brand); color: var(--brand); background: var(--brandSoft); }
+.set-sec { border-top: 1px solid var(--line2); padding-top: 14px; margin-top: 14px; }
+.set-sec h4 { margin: 0 0 8px; font-size: 15px; }
+.home { max-width: 920px; }
+.home .hello { margin-bottom: 16px; }
+.qc { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 6px 6px 8px; box-shadow: var(--shadow); }
+.qc:focus-within { border-color: var(--brand); }
+.qc input { flex: 1; border: 0; outline: 0; background: none; padding: 10px 10px; font-size: 16px; min-width: 0; }
+.qmic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; color: var(--ink2); flex: none; }
+.qmic:hover { background: var(--card2); }
+.qmic.rec { background: var(--red); color: #fff; width: auto; padding: 0 10px; display: flex; align-items: center; }
+.qmic.rec::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; margin-inline-end: 6px; }
+.chips { display: flex; gap: 8px; margin: 16px 0 12px; overflow-x: auto; scrollbar-width: none; }
+.chips button { padding: 7px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--card); color: var(--ink2); font-weight: 600; font-size: 14px; white-space: nowrap; }
+.chips button.on { background: var(--brandSoft); border-color: var(--brand); color: var(--brand); }
+.chips button svg { width: 13px; height: 13px; vertical-align: -2px; }
+.table { display: flex; flex-direction: column; gap: 8px; }
+.trow { position: relative; display: flex; align-items: center; gap: 14px; padding: 13px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; cursor: pointer; transition: transform .15s; }
+.trow:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.trow.k-ask, .trow.k-askItem { background: color-mix(in srgb, var(--red) 9%, var(--card)); border-color: color-mix(in srgb, var(--red) 35%, var(--line)); }
+.trow.k-note .tm b, .trow.k-idea .tm b { font-weight: 600; }
+.trow.new { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand), 0 6px 20px color-mix(in srgb, var(--brand) 22%, transparent); }
+.trow.new .te::before { content: "חדש"; font-size: 11px; font-weight: 800; color: #fff; background: var(--brand); border-radius: 6px; padding: 1px 7px; }
+.trow.new.k-ask, .trow.new.k-askItem { box-shadow: 0 0 0 1px var(--brand), 0 6px 20px color-mix(in srgb, var(--red) 20%, transparent); }
+.newcount { color: #fff; background: var(--brand); border-radius: 8px; padding: 1px 9px; font-weight: 800; }
+.seenall { color: var(--brand); font-weight: 700; margin-inline-start: 6px; text-decoration: underline; text-underline-offset: 3px; }
+.trow.k-note { background: var(--card2); }
+.tk { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: none; width: 52px; }
+.tk em { font-style: normal; font-size: 11px; font-weight: 600; color: var(--ink3); white-space: nowrap; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+.t-pink { background: color-mix(in srgb, #ec4899 16%, var(--card)); color: #ec4899; }
+.tic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; flex: none; }
+.tic svg { width: 20px; height: 20px; }
+.t-red { background: var(--redSoft); color: var(--red); } .t-blue { background: var(--blueSoft); color: var(--blue); } .t-violet { background: var(--violetSoft); color: var(--violet); }
+.t-green { background: var(--greenSoft); color: var(--green); } .t-amber { background: var(--amberSoft); color: var(--amber); } .t-gray { background: var(--graySoft); color: var(--ink2); }
+.tick { width: 40px; height: 40px; flex: none; display: grid; place-items: center; }
+.tick svg { width: 24px; height: 24px; padding: 3px; border: 2px solid var(--ink3); border-radius: 50%; color: transparent; stroke-width: 3; }
+.tick:hover svg { border-color: var(--green); color: var(--green); }
+.tm { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tm b { font-size: 15.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tm b small { font-weight: 500; color: var(--ink3); font-size: 13px; }
+.tm b, .tm span { unicode-bidi: plaintext; text-align: right; }
+.tm span { color: var(--ink2); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pinmark { color: var(--amber); display: inline-flex; vertical-align: -2px; margin-inline-end: 5px; } .pinmark svg { width: 15px; height: 15px; fill: currentColor; }
+.te { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: none; min-width: 74px; }
+.te small { color: var(--ink3); font-size: 12px; white-space: nowrap; }
+.tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.tag svg { width: 14px; height: 14px; }
+.tag.red { color: var(--red); } .tag.green { color: var(--green); } .tag.violet { color: var(--violet); }
+.tag .live { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.6s infinite; }
+.due { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; color: var(--ink2); background: var(--graySoft); border-radius: 7px; padding: 1px 8px; }
+.due svg { width: 13px; height: 13px; } .due.hot { color: var(--red); background: var(--redSoft); }
+.ta { display: flex; gap: 2px; opacity: 0; transition: opacity .12s; }
+.trow:hover .ta { opacity: 1; }
+.ta button { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: var(--ink3); }
+.ta button:hover { background: var(--card2); color: var(--ink); }
+.ta button[data-done]:hover, .ta button[data-sdone]:hover { color: var(--green); } .ta button[data-park]:hover, .ta button[data-shide]:hover { color: var(--red); }
+.ta button.on { color: var(--amber); } .ta button.on svg { fill: currentColor; }
+.ta svg { width: 17px; height: 17px; }
+.trow.sw-done { box-shadow: inset -6px 0 0 var(--green); } .trow.sw-off { box-shadow: inset 6px 0 0 var(--red); }
+.swipehint { display: none; text-align: center; margin-top: 14px; }
+#toast.act { pointer-events: auto; display: flex; align-items: center; gap: 14px; }
+#toast button { color: #8fb4ff; font-weight: 800; }
+.recs { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); z-index: 40; background: #070b14; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; padding-top: calc(24px + var(--safeT)); }
+.recs .rx { position: absolute; top: calc(16px + var(--safeT)); left: 16px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #9fb0cc; background: rgba(255,255,255,.06); }
+.recs .rx svg { width: 22px; height: 22px; }
+.rbig { width: 168px; height: 168px; border-radius: 50%; background: #e5484d; color: #fff; display: grid; place-items: center; transition: box-shadow .08s; box-shadow: 0 0 0 0 rgba(229,72,77,.3); }
+.rbig svg { width: 64px; height: 64px; }
+.rbig.stop svg { display: none; } .rbig.stop::after { content: ""; width: 46px; height: 46px; border-radius: 10px; background: #fff; }
+.rbig.wait { background: #1d2a44; animation: pulse 1.2s infinite; }
+.rtime { margin-top: 26px; font: 800 34px Heebo; direction: ltr; letter-spacing: 1px; }
+.rmsg { margin-top: 6px; color: #9fb0cc; font-size: 17px; text-align: center; max-width: 340px; }
+.rres { width: min(460px, 100%); display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.rres .trow { background: #121a2b; border-color: #22304a; color: #fff; cursor: default; }
+.rres .tm span { color: #9fb0cc; }
+.racts { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
+.rchg { display: flex; gap: 6px; align-items: center; color: #4ade80; font-weight: 700; font-size: 14px; margin: 4px 4px -4px; }
+.rchg svg { width: 15px; height: 15px; flex: none; }
+.rreply { width: min(460px, 100%); color: #fff; font-size: 19px; line-height: 1.6; font-weight: 500; white-space: pre-wrap; margin-bottom: 18px; max-height: 55vh; overflow: auto; }
+.recs { overflow-y: auto; }
+.racts button { padding: 13px 22px; border-radius: 14px; font-weight: 700; font-size: 16px; background: rgba(255,255,255,.08); color: #fff; display: inline-flex; gap: 8px; align-items: center; }
+.racts button.pri { background: #e5484d; }
+#toast { position: fixed; bottom: calc(26px + var(--safeB) - var(--gapB)); left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 600; opacity: 0; transition: .2s; z-index: 60; pointer-events: none; white-space: nowrap; }
+#toast.on { opacity: 1; transform: translateX(-50%); }
+
+/* ---------- mobile ---------- */
+.tabs, .fab { display: none; }
+.grid2 .row, .panel .row { flex-wrap: wrap; gap: 4px 10px; }
+.grid2 .row .meta, .panel .row .meta { width: 100%; padding-inline-start: 34px; flex-wrap: wrap; }
+.grid2 .row .meta .ago, .panel .row .meta .ago { margin-inline-start: auto; min-width: 0; }
+.who { flex-shrink: 0; }
+@media (max-width: 1180px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 980px) { .grid2 { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  html { background: var(--card); }   /* any strip iOS leaves under the page takes the bar's colour */
+  body { font-size: 15.5px; }
+  .ta { display: none; } .swipehint { display: block; }
+  .trow.new .ta { display: flex; opacity: 1; } .trow.new .ta button:not([data-park]):not([data-shide]) { display: none; }
+  .trow { padding: 12px; gap: 11px; } .te { min-width: 0; } .tm b small { display: none; }
+  .tm b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
+  .side { display: none; }
+  .top { padding: calc(10px + var(--safeT)) 16px 10px; gap: 10px; }
+  .top .mlogo { display: block; width: 58px; height: auto; flex: none; }
+  .top .live span { display: none; }
+  .search { padding: 7px 11px; }
+  #view { padding: 18px 14px calc(150px + var(--safeB)); }
+  .hello h1 { font-size: 24px; }
+  .tiles { gap: 10px; margin: 16px 0 18px; }
+  .tile { padding: 11px 12px; gap: 10px; }
+  .tile .ti { width: 36px; height: 36px; border-radius: 10px; } .tile .ti svg { width: 19px; height: 19px; }
+  .tile b { font-size: 23px; } .tile span { font-size: 12.5px; line-height: 1.25; display: block; }
+  .sheet footer .hint { display: none; }
+  .row { padding: 12px 14px; flex-wrap: wrap; gap: 6px 10px; }
+  .row .meta { width: 100%; padding-inline-start: 34px; flex-wrap: wrap; }
+  .row .meta .ago { margin-inline-start: auto; min-width: 0; }
+  .sess.grid { grid-template-columns: 1fr; }
+  .panel { width: 100%; inset: 0; top: 0; left: 0; transform: none; max-height: none; border: 0; border-radius: 0; bottom: calc(0px - var(--gapB)); }
+  .panel .ph { padding-inline: 16px; gap: 12px; } .panel .pb { padding: 20px 20px 28px; } .ttl-in { font-size: 24px; }
+  .panel .ph { padding-top: calc(10px + var(--safeT)); }
+  .tabs { display: flex; position: fixed; bottom: calc(0px - var(--gapB)); inset-inline: 0; background: var(--card); border-top: 1px solid var(--line); padding: 6px 6px calc(6px + var(--safeB)); z-index: 15; }
+  .tabs button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11.5px; color: var(--ink3); font-weight: 600; padding: 4px 0; position: relative; }
+  .tabs button.on { color: var(--brand); }
+  .tabs button svg { width: 23px; height: 23px; }
+  .tabs .gap { flex: 1; }
+  .tabs b { position: absolute; top: 0; left: calc(50% - 20px); background: var(--red); color: #fff; font-size: 10.5px; min-width: 17px; height: 17px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px; }
+  .fab { display: grid; place-items: center; position: fixed; bottom: calc(18px + var(--safeB) - var(--gapB)); left: 50%; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 50%; background: var(--brand); color: #fff; box-shadow: 0 8px 24px rgba(37,99,235,.45); z-index: 16; }
+  .fab svg { width: 28px; height: 28px; stroke-width: 2.4; }
+  .scrim { padding: 0; place-items: end stretch; }
+  .sheet { width: 100%; max-height: 92vh; border-radius: 20px 20px 0 0; }
+  .sheet::before { content: ""; display: block; width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 8px auto 0; }
+  .vh h2 { font-size: 22px; }
+  .cap-btn kbd { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="gate" class="hidden">
+  <form id="gf">
+    <img src="/mind/logo-512.png" alt="המוח השני">
+    <p>כל מה שבראש, במקום אחד</p>
+    <input id="gi" type="password" inputmode="numeric" autocomplete="current-password" placeholder="הקוד שלך">
+    <button>כניסה</button>
+    <div class="err" id="ge"></div>
+  </form>
+</div>
+
+<div id="app" class="hidden">
+  <aside class="side">
+    <div class="brand"><img src="/mind/logo-512.png" alt="המוח השני"><small>כל מה שבראש, במקום אחד</small></div>
+    <button class="cap-btn" data-act="capture"><svg class="i"><use href="#i-plus"/></svg>לכידה חדשה <kbd>N</kbd></button>
+    <nav class="nav" id="nav"></nav>
+    <h4>פרויקטים</h4><div class="qf" id="projs"></div>
+    <div class="foot nav"><button data-act="settings"><svg class="i"><use href="#i-settings"/></svg>הגדרות</button></div>
+  </aside>
+  <main>
+    <div class="top">
+      <img class="mlogo" src="/mind/logo-200.png" alt="המוח השני">
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" placeholder="חיפוש בכל מה שבראש... ( / )" autocomplete="off"></label>
+      <div class="live" id="live"><i></i><span>מחובר</span></div>
+      <button class="ic" data-act="theme" title="מראה"><svg class="i"><use href="#i-moon"/></svg></button>
+    </div>
+    <section id="view"></section>
+  </main>
+  <div class="pscrim hidden" id="pscrim" data-act="close"></div>
+  <div class="panel hidden" id="panel" role="dialog"></div>
+  <nav class="tabs" id="tabs"></nav>
+  <button class="fab" data-act="recscreen" aria-label="להקליט"><svg class="i"><use href="#i-mic"/></svg></button>
+</div>
+<div id="modal"></div>
+<div id="recscreen" class="recs hidden"></div>
+<div id="toast"></div>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13.5h.01M15 13.5h.01M2 14h2M20 14h2"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-task" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21.5h4M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.7v.5h6V16c0-.7.3-1.3.8-1.7A6.5 6.5 0 0 0 12 2.5z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5.5A3 3 0 0 0 6.2 4.6 3 3 0 0 0 4 9.6a3.4 3.4 0 0 0 .7 5.8A3.2 3.2 0 0 0 9 19.6a3 3 0 0 0 3-1.6zM12 5.5a3 3 0 0 1 5.8-.9 3 3 0 0 1 2.2 5 3.4 3.4 0 0 1-.7 5.8 3.2 3.2 0 0 1-4.3 4.2 3 3 0 0 1-3-1.6M12 5.5V18"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 2.5h12M6 21.5h12M7.5 2.5c0 4.5 4.5 5.5 4.5 9.5s-4.5 5-4.5 9.5M16.5 2.5c0 4.5-4.5 5.5-4.5 9.5s4.5 5 4.5 9.5"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 22V3.5M5 4h12l-2.5 4.5L17 13H5"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="8" width="10" height="13" rx="5"/><path d="M12 8v13M9.5 4.5 11 6.5M14.5 4.5 13 6.5M3 13h4M17 13h4M4 19l3-2M20 19l-3-2M4 7l3 2M20 7l-3 2"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M21.5 16.6v3a2 2 0 0 1-2.2 2 19.6 19.6 0 0 1-8.5-3 19.3 19.3 0 0 1-6-6A19.6 19.6 0 0 1 1.8 4.1 2 2 0 0 1 3.8 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L7.8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.5 1.7z"/></symbol>
+  <symbol id="i-money" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19.5 13.6c1.4-1.4 2.5-3 2.5-5.1A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.1 1.1 3.7 2.5 5.1L12 21z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 12 0v1M16 3.1a4 4 0 0 1 0 7.8M22 21v-1a6 6 0 0 0-4-5.6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="11" rx="2"/><path d="M2 19.5h20"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M3 11.5 21 3l-8.5 18-2.2-7.3z"/><path d="M21 3 10.3 13.7"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6M12 19h8"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M6.5 4.5v15l13-7.5z"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L22 7H6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1"/><rect x="14" y="4.5" width="4" height="15" rx="1"/></symbol>
+  <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 2l20 20M10.6 6.1A10.4 10.4 0 0 1 12 6c6 0 10 6 10 6a17.6 17.6 0 0 1-3 3.6M6.6 6.6A17.4 17.4 0 0 0 2 12s4 6 10 6a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+</svg>
+
+<script>
+'use strict';
+const API = /^(localhost|127\.)/.test(location.hostname) ? 'https://europe-west1-boostmind-b052c.cloudfunctions.net/mind/api' : '/mind/api';
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = (n, cls = '') => `<svg class="i ${cls}"><use href="#i-${n}"/></svg>`;
+const ICONS = ['bulb', 'task', 'bell', 'gear', 'brain', 'hourglass', 'flag', 'bug', 'phone', 'money', 'heart', 'users', 'rocket', 'book', 'cart', 'star', 'clock', 'link', 'edit', 'play', 'dot'];
+const STATUS = { open: 'פתוח', active: 'בטיפול', waiting: 'מחכה לך', done: 'בוצע', parked: 'בהקפאה' };
+const SSTATE = { working: 'עובד עכשיו', waiting: 'תורך', needs: 'צריך אישור', stuck: 'תקוע', done: 'סיים', ended: 'נסגר', idle: 'רדום', new: 'נפתח' };
+const PALETTE = ['#2563eb', '#7c5cff', '#e5484d', '#12a150', '#e8a317', '#0ea5e9', '#d946ef', '#f97316', '#14b8a6', '#64748b'];
+
+// ---------- key ----------
+function ownerKey() {
+  const m = location.hash.match(/[#&]k=([^&]+)/);
+  try {
+    if (m) { localStorage.setItem('owner-key', decodeURIComponent(m[1])); history.replaceState(null, '', location.pathname + location.hash.replace(/[#&]?k=[^&]+/, '')); }
+    return localStorage.getItem('owner-key');
+  } catch (e) { return null; }
+}
+async function api(op, body = {}) {
+  const r = await fetch(API, { method: 'POST', headers: { authorization: 'Key ' + ownerKey(), 'content-type': 'application/json' }, body: JSON.stringify({ op, ...body }) });
+  if (r.status === 401) { try { localStorage.removeItem('owner-key'); } catch (e) {} showGate('הקוד לא נכון'); throw new Error('key'); }
+  if (r.status === 429) { showGate('יותר מדי ניסיונות. נסה שוב בעוד שעה'); throw new Error('429'); }
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.status);
+  return j;
+}
+function showGate(err) { $('#gate').classList.remove('hidden'); $('#app').classList.add('hidden'); $('#ge').textContent = err || ''; setTimeout(() => $('#gi').focus(), 50); }
+$('#gf').onsubmit = (e) => { e.preventDefault(); const v = $('#gi').value.trim(); if (!v) return; try { localStorage.setItem('owner-key', v); } catch (err) {} $('#gate').classList.add('hidden'); boot(); };
+
+// ---------- state ----------
+const S = { items: [], sessions: [], config: { types: [], projects: {}, machines: {} }, now: Date.now(), loaded: false,
+  view: 'home', f: { status: 'live', type: '', project: '', q: '', pin: false }, sf: 'all', open: null, sig: '' };
+const LS = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem('mind-' + k)); localStorage.setItem('mind-' + k, JSON.stringify(v)); } catch (e) { return null; } };
+
+// ---------- helpers ----------
+const H = 36e5;
+function ago(t) {
+  if (!t) return '';
+  const m = Math.max(0, Math.round((Date.now() - t) / 6e4));
+  if (m < 1) return 'עכשיו'; if (m < 60) return `לפני ${m} דק׳`;
+  const h = Math.round(m / 60); if (h < 24) return h === 1 ? 'לפני שעה' : `לפני ${h} שע׳`;
+  const d = Math.round(h / 24); if (d === 1) return 'אתמול'; if (d < 7) return `לפני ${d} ימים`;
+  return new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' });
+}
+const clock = (t) => new Date(t).toLocaleString('he-IL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const typeOf = (id) => S.config.types.find((t) => t.id === id) || { id, name: id || 'ללא סוג', color: '#64748b', icon: 'dot' };
+function hashColor(s) { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
+const projColor = (p) => S.config.projects?.[p]?.color || hashColor((p || '').toLowerCase());
+const projName = (p) => S.config.projects?.[p]?.name || p;
+const machine = (m) => S.config.machines?.[m] || m || '';
+const soft = (hex, a = .14) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const typeChip = (id) => { const t = typeOf(id); return `<span class="chip" style="background:${soft(t.color)};color:${t.color}">${ic(t.icon)}${esc(t.name)}</span>`; };
+const statusChip = (s) => `<span class="chip st-${s}">${STATUS[s] || s}</span>`;
+const projTag = (p) => p ? `<span class="proj"><i class="dot" style="background:${projColor(p)}"></i>${esc(projName(p))}</span>` : '';
+const plain = (t) => String(t || '').replace(/<([a-z_-]+)[^>]*>[\s\S]*?(<\/\1>|$)/gi, ' ').replace(/[*#`>|]+/g, '').replace(/\s+/g, ' ').trim();
+const sname = (s) => s.name || plain(s.first).slice(0, 70) || 'סשן בלי שם';
+function sstate(s) {
+  let st = s.mstate && (s.mstateAt || 0) >= (s.askAt || 0) && s.state !== 'needs' && s.state !== 'ended' ? s.mstate : s.state;
+  if (st === 'waiting' && Date.now() - s.u > 12 * H && !s.question) st = 'idle';
+  if (st === 'working' && Date.now() - s.u > 6 * H) st = 'idle';
+  return st || 'new';
+}
+const forMe = (i) => i.status === 'waiting' || ((i.type === 'task' || i.type === 'reminder') && i.status === 'open');
+const kindOf = (it) => it.status === 'waiting' ? 'askItem' : it.type === 'task' ? 'task' : it.type === 'reminder' ? 'remind' : it.type === 'wait' ? 'wait'
+  : it.type === 'idea' ? 'idea' : it.type === 'job' || it.status === 'active' ? 'job' : 'note';
+
+const byUrgency = (a, b) => (b.status === 'waiting') - (a.status === 'waiting') || (b.pin - a.pin) || ((a.due || '9') < (b.due || '9') ? -1 : (a.due || '9') > (b.due || '9') ? 1 : 0) || b.u - a.u;
+const needsMe = (s) => { const st = sstate(s); return st === 'needs' || st === 'stuck' || (st === 'waiting' && s.mstate === 'waiting' && !!s.question); };
+const stateTag = (s) => { const st = sstate(s); return `<span class="state s-${st}"><i></i>${SSTATE[st]}</span>`; };
+const avatar = (s) => { const p = s.project || '?'; return `<span class="av" style="background:${projColor(p)}">${esc((projName(p)[0] || '?').toUpperCase())}</span>`; };
+const sessById = (id) => S.sessions.find((s) => s.id === id);
+const itemById = (id) => S.items.find((i) => i.id === id);
+const handlers = (it) => { const ids = new Set(it.sessions || []); for (const s of S.sessions) if ((s.items || []).includes(it.id)) ids.add(s.id); return [...ids].map(sessById).filter(Boolean); };
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800); }
+const visibleSessions = () => S.sessions.filter((s) => !s.hidden);
+const projects = () => { const m = new Map(); for (const i of S.items) if (i.project && i.status !== 'done' && i.status !== 'parked') m.set(i.project, (m.get(i.project) || 0) + 1);
+  for (const s of visibleSessions()) if (s.project && !m.has(s.project)) m.set(s.project, 0); return [...m.entries()].sort((a, b) => b[1] - a[1]); };
+const allProjects = () => [...new Set([...S.items.map((i) => i.project), ...S.sessions.map((s) => s.project)].filter(Boolean))].sort();
+
+function counts() {
+  const live = S.items.filter((i) => i.status !== 'done' && i.status !== 'parked');
+  const ses = visibleSessions();
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+  return {
+    waitItems: live.filter(forMe).sort(byUrgency), needSess: ses.filter(needsMe),
+    working: ses.filter((s) => sstate(s) === 'working'), yourTurn: ses.filter((s) => sstate(s) === 'waiting'),
+    live, open: live.filter((i) => i.status === 'open'), active: live.filter((i) => i.status === 'active'),
+    pinned: live.filter((i) => i.pin), doneToday: S.items.filter((i) => i.status === 'done' && i.u >= dayStart.getTime()),
+  };
+}
+
+// ---------- the side + tabs ----------
+function renderChrome() {
+  const c = counts(), fresh = newEntries(), waitN = fresh.length, freshAsk = fresh.filter((e) => e.s).length;
+  $('#nav').innerHTML = [
+    ['home', 'home', 'השולחן', waitN, true], ['sessions', 'bot', 'סשנים של Claude', freshAsk, true], ['archive', 'archive', 'ארכיון'],
+  ].map(([v, i, t, n, hot]) => `<button class="${S.view === v ? 'on' : ''}" data-view="${v}">${ic(i)}${t}${n ? `<span class="n ${hot && n ? 'hot' : ''}">${n}</span>` : ''}</button>`).join('');
+  const qf = [['waiting', 'מחכה לך', waitN, 'alert', true], ['active', 'בטיפול', c.active.length, 'play'], ['open', 'פתוחים', c.open.length, 'dot'], ['pin', 'מסומנים בכוכב', c.pinned.length, 'star']];
+  const cur = S.view === 'items' ? (S.f.pin ? 'pin' : S.f.status) : '';
+  $('#projs').innerHTML = projects().slice(0, 8).map(([p, n]) => `<button class="${S.view === 'items' && S.f.project === p ? 'on' : ''}" data-proj="${esc(p)}"><i class="dot" style="background:${projColor(p)}"></i>${esc(projName(p))}<span class="n">${n}</span></button>`).join('') || '<div class="hint" style="padding:0 11px">עוד אין</div>';
+  $('#tabs').innerHTML = `
+    <button class="${S.view === 'home' ? 'on' : ''}" data-view="home">${ic('home')}השולחן${waitN ? `<b>${waitN}</b>` : ''}</button>
+    <button class="${S.view === 'sessions' ? 'on' : ''}" data-view="sessions">${ic('bot')}סשנים${freshAsk ? `<b>${freshAsk}</b>` : ''}</button>
+    <span class="gap"></span>
+    <button class="${S.view === 'archive' ? 'on' : ''}" data-view="archive">${ic('archive')}ארכיון</button>
+    <button data-act="settings">${ic('settings')}עוד</button>`;
+  document.title = waitN ? `(${waitN}) המוח השני` : 'המוח השני';
+}
+
+// ---------- views ----------
+function itemRow(it) {
+  const t = typeOf(it.type), hs = handlers(it), h = hs[0];
+  return `<div class="row ${S.open?.id === it.id ? 'sel' : ''}" data-item="${it.id}">
+    <i class="bar" style="background:${t.color}"></i>
+    <button class="star ${it.pin ? 'on' : ''}" data-pin="${it.id}" title="כוכב">${ic('star')}</button>
+    <div class="main"><div class="ttl ${it.status === 'done' ? 'done' : ''}">${esc(it.text)}</div>${it.body ? `<div class="sub">${esc(it.body.slice(0, 160))}</div>` : ''}</div>
+    <div class="meta">${typeChip(it.type)}${projTag(it.project)}${statusChip(it.status)}${h ? `<span class="who">${ic('bot')}<span>${esc(sname(h))}</span></span>` : ''}${it.due ? `<span class="chip st-open">${ic('clock')}${esc(it.due.slice(5).split('-').reverse().join('/'))}</span>` : ''}<span class="ago">${ago(it.u)}</span></div>
+  </div>`;
+}
+function sessCard(s) {
+  const said = [s.summary, s.reply, s.ask].map(plain).find((x) => x && x.slice(0, 70) !== sname(s)) || '';
+  return `<button class="sc" data-sess="${esc(s.id)}">
+    <div class="h">${avatar(s)}<div class="nm"><b>${esc(sname(s))}</b><small>${esc(projName(s.project || '?'))}${s.machine ? ' · ' + esc(machine(s.machine)) : ''}</small></div>${stateTag(s)}</div>
+    ${s.question && needsMe(s) ? `<div class="q">${esc(s.question.slice(0, 220))}</div>` : s.note && sstate(s) === 'needs' ? `<div class="q">${esc(s.note)}</div>` : said ? `<div class="said">${esc(said.slice(0, 260))}</div>` : ''}
+    <div class="ft">${ic('clock')}${ago(s.u)}${s.items?.length ? ` · ${s.items.length} פריטים` : ''}${s.prompts ? ` · ${s.prompts} הודעות` : ''}</div>
+  </button>`;
+}
+const sortSess = (a, b) => { const r = (s) => ({ needs: 0, stuck: 1, working: 3, waiting: 4, done: 5, idle: 6, ended: 7, new: 8 }[sstate(s)] ?? 9) - (needsMe(s) ? 2 : 0); return r(a) - r(b) || b.u - a.u; };
+
+// The home = ONE list of everything on his table (his ask, 2026-11-04: "one list, but each kind its own look").
+// Order: what needs him -> starred -> to-dos -> waiting for someone -> running -> ideas -> notes.
+const TABLE_CHIPS = [['all', 'הכל'], ['tasks', 'משימות'], ['ideas', 'רעיונות'], ['notes', 'הערות'], ['agents', 'סוכנים']];
+
+// "new for him" = something that needs him, or that a session wrote for him, that he hasn't opened since it changed.
+// Only these count on the badges; his own items never do.
+function isNew(e) {
+  if (e.s) return e.k === 'ask' && (e.s.u || 0) > (e.s.seen || 0);
+  const it = e.it, last = (it.log || [])[(it.log || []).length - 1];
+  if ((it.u || 0) <= (it.seen || 0)) return false;
+  if (last && last.by === 'שלומי') return false;
+  return e.k === 'askItem' || it.by !== 'שלומי';
+}
+function newEntries() { const keep = S.hf; S.hf = 'all'; const l = tableEntries(); S.hf = keep; return l.filter(isNew); }
+function markSeen(list) {
+  const items = [], sessions = [], now = Date.now();
+  for (const e of list) { if (e.s) { e.s.seen = now; sessions.push(e.s.id); } else { e.it.seen = now; items.push(e.it.id); } }
+  if (!items.length && !sessions.length) return;
+  api('seen', { items, sessions }).catch(() => {});
+}
+function seenOne(kind, id) {
+  const x = kind === 'item' ? itemById(id) : sessById(id); if (!x) return;
+  x.seen = Date.now(); api('seen', kind === 'item' ? { items: [id] } : { sessions: [id] }).catch(() => {});
+}
+function tableEntries() {
+  const out = [];
+  for (const s of visibleSessions()) {
+    const st = sstate(s);
+    if (needsMe(s)) out.push({ k: 'ask', s, rank: 0, t: s.u });
+    else if (st === 'working') out.push({ k: 'run', s, rank: 5, t: s.u });
+  }
+  for (const it of S.items) {
+    if (it.status === 'done' || it.status === 'parked') continue;
+    const k = kindOf(it);
+    const rank = { askItem: 0, task: 2, remind: 2, wait: 3, job: 5, idea: 6, note: 7 }[k] - (it.pin && k !== 'askItem' ? 0.5 : 0);
+    out.push({ k, it, rank, t: it.u });
+  }
+  const q = S.f.q.trim().toLowerCase(), proj = S.f.project;
+  const match = (e) => (!proj || (e.s ? e.s.project : e.it.project) === proj)
+    && (!q || (e.s ? [e.s.name, e.s.first, e.s.ask, e.s.question, e.s.summary, e.s.project] : [e.it.text, e.it.body, e.it.project, (e.it.log || []).map((l) => l.text).join(' ')]).join(' ').toLowerCase().includes(q));
+  const chip = S.hf || 'all';
+  const keep = { all: () => true, tasks: (e) => ['task', 'remind', 'wait', 'askItem'].includes(e.k), ideas: (e) => e.k === 'idea', notes: (e) => e.k === 'note',
+    agents: (e) => e.s || e.k === 'job' }[chip];
+  return out.filter((e) => keep(e) && match(e)).sort((a, b) => b.t - a.t);   // newest update first (his rule)
+}
+function dueChip(d) {
+  if (!d) return '';
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const days = Math.round((new Date(d + 'T00:00:00') - today) / 864e5);
+  const t = days < 0 ? 'באיחור' : days === 0 ? 'היום' : days === 1 ? 'מחר' : days < 7 ? `בעוד ${days} ימים` : d.slice(5).split('-').reverse().join('/');
+  return `<span class="due ${days <= 1 ? 'hot' : ''}">${ic('clock')}${t}</span>`;
+}
+const KIND = { ask: ['bot', 'red'], askItem: ['alert', 'red'], task: ['task', 'blue'], remind: ['bell', 'pink'], wait: ['users', 'violet'], run: ['bot', 'green'], job: ['play', 'green'], idea: ['bulb', 'amber'], note: ['edit', 'gray'] };
+function tableRow(e) {
+  const [icon, tone] = KIND[e.k];
+  if (e.s) {
+    const s = e.s, said = plain(s.question || (sstate(s) === 'needs' ? s.note : '') || s.summary || s.ask || '');
+    return `<div class="trow k-${e.k} ${isNew(e) ? 'new' : ''}" data-sess="${esc(s.id)}" data-tid="s:${esc(s.id)}">
+      <span class="tk"><span class="tic t-${tone}">${ic(icon)}</span><em>סוכן</em></span>
+      <div class="tm"><b>${esc(sname(s))}<small> · ${esc(projName(s.project || '?'))}</small></b><span>${esc(said.slice(0, 180))}</span></div>
+      <div class="te">${e.k === 'ask' ? `<span class="tag red">${sstate(s) === 'needs' ? 'מחכה לאישור' : sstate(s) === 'stuck' ? 'תקוע' : 'שואל אותך'}</span>` : `<span class="tag green"><i class="live"></i>רץ עכשיו</span>`}<small>${ago(e.t)}</small></div>
+      <div class="ta">${e.k === 'ask' ? `<button data-sdone="${esc(s.id)}" title="טופל - הורד מהשולחן">${ic('check')}</button>` : ''}<button data-shide="${esc(s.id)}" title="הורד מהשולחן">${ic('x')}</button></div>
+    </div>`;
+  }
+  const it = e.it, t = typeOf(it.type), hs = handlers(it);
+  const custom = e.k === 'note' && !['thought'].includes(it.type);
+  const tic = custom ? `<span class="tic" style="background:${soft(t.color, .16)};color:${t.color}">${ic(t.icon)}</span>` : `<span class="tic t-${tone}">${ic(icon)}</span>`;
+  const sub = it.body ? plain(it.body).slice(0, 160) : hs[0] ? 'בטיפול של ' + sname(hs[0]) : '';
+  const end = e.k === 'askItem' ? `<span class="tag red">מחכה לך</span>`
+    : e.k === 'task' || e.k === 'remind' ? dueChip(it.due)
+    : e.k === 'wait' ? `<span class="tag violet">${ic('hourglass')}ממתין</span>`
+    : e.k === 'job' ? `<span class="tag green"><i class="live"></i>${hs[0] ? 'בטיפול' : 'רץ'}</span>` : '';
+  return `<div class="trow k-${e.k} ${isNew(e) ? 'new' : ''}" data-item="${it.id}" data-tid="i:${it.id}">
+    <span class="tk">${e.k === 'task' ? `<button class="tick" data-done="${it.id}" title="בוצע">${ic('check')}</button>` : tic}<em>${esc(t.name)}</em></span>
+    <div class="tm"><b>${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
+    <div class="te">${end}<small>${ago(it.u)}</small></div>
+    <div class="ta">${e.k !== 'task' ? `<button data-done="${it.id}" title="בוצע">${ic('check')}</button>` : ''}<button data-pin="${it.id}" class="${it.pin ? 'on' : ''}" title="סמן בכוכב">${ic('star')}</button><button data-park="${it.id}" title="הורד מהשולחן">${ic('x')}</button></div>
+  </div>`;
+}
+function viewHome() {
+  const all = (() => { const keep = S.hf; S.hf = 'all'; const l = tableEntries(); S.hf = keep; return l; })();
+  const list = tableEntries();
+  const hr = new Date().getHours();
+  const hi = hr < 5 ? 'לילה טוב' : hr < 12 ? 'בוקר טוב' : hr < 17 ? 'צהריים טובים' : hr < 21 ? 'ערב טוב' : 'לילה טוב';
+  const fresh = all.filter(isNew);
+  const need = all.filter((e) => e.rank === 0 || e.k === 'task' || e.k === 'remind').length, run = all.filter((e) => e.k === 'run' || e.k === 'job').length;
+  return `<div class="wrap home">
+    <div class="hello"><h1>${hi}, שלומי</h1><p>${fresh.length ? `<span class="newcount">${fresh.length} ${fresh.length === 1 ? 'חדש' : 'חדשים'}</span> מסומנים בכחול · ` : ''}${need ? `${need} מחכים לך` : 'שום דבר לא מחכה לך'}${run ? ` · ${run} רצים עכשיו` : ''}${fresh.length ? ` <button class="seenall" data-act="seenall">סמן הכל כנקרא</button>` : ''}</p></div>
+    <form class="qc" id="qcf"><input id="qc" autocomplete="off" placeholder="מה עובר לך בראש? כתוב או דבר, וה-AI יסדר"><button type="button" class="qmic" data-act="recscreen" title="להקליט - וה-AI יסדר">${ic('mic')}</button></form>
+    <div class="chips">${S.f.project ? `<button class="on" data-proj="${esc(S.f.project)}">${esc(projName(S.f.project))} ${ic('x')}</button>` : ''}${S.f.q ? `<button class="on" data-act="clearq">"${esc(S.f.q)}" ${ic('x')}</button>` : ''}${TABLE_CHIPS.map(([k, t]) => `<button class="${(S.hf || 'all') === k ? 'on' : ''}" data-hf="${k}">${t}</button>`).join('')}</div>
+    <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>${all.length ? 'אין כאן כלום' : 'השולחן ריק'}</b>${all.length ? '' : 'כתוב למעלה מה עובר לך בראש'}</div>`}</div>
+    <div class="hint swipehint">בטלפון: החלק ימינה - בוצע, שמאלה - הורד מהשולחן</div>
+  </div>`;
+}
+
+// what the AI did with what he said (op organize): new items + changes to items he has, one undo for all of it
+const aiFocus = () => S.open?.kind === 'item' ? S.open.id : '';
+function applyAI(res) {
+  const items = res.items || [], changed = res.changed || [];
+  S.items.unshift(...items);
+  for (const c of changed) { const it = itemById(c.item.id); if (it) Object.assign(it, c.item); else S.items.unshift(c.item); }
+  render(); if (S.open?.kind === 'item' && changed.some((c) => c.item.id === S.open.id)) renderPanel(true);
+  const sum = [items.length ? (items.length === 1 ? 'נוסף: ' + items[0].text : items.length + ' חדשים') : '',
+    changed.length ? (changed.length === 1 ? changed[0].item.text + ' - ' + changed[0].note : changed.length + ' עודכנו') : ''].filter(Boolean).join(' · ');
+  return S.lastAI = { items, changed, reply: res.reply || '', sum, undo: () => aiUndo(items, changed) };
+}
+async function aiUndo(items, changed) {
+  const ids = new Set(items.map((i) => i.id));
+  S.items = S.items.filter((i) => !ids.has(i.id));
+  for (const c of changed) setItem(c.item.id, c.before);
+  render(); toast('בוטל');
+  await Promise.all(items.map((it) => api('delete', { id: it.id }).catch(() => {})));
+}
+// the full-screen answer: what landed, what changed, his question answered
+function aiScreen(res) {
+  const el = $('#recscreen'); el.classList.remove('hidden'); clearTimeout(recClose.t);
+  const n = res.items.length + res.changed.length;
+  const head = [res.items.length ? (res.items.length === 1 ? 'על השולחן' : res.items.length + ' דברים חדשים') : '',
+    res.changed.length ? (res.changed.length === 1 ? 'עודכן' : res.changed.length + ' עודכנו') : ''].filter(Boolean).join(' · ');
+  const rows = [...res.changed.map((c) => `<div class="rchg">${ic('check')}${esc(c.note)}</div>` + tableRow({ k: kindOf(c.item), it: c.item, rank: 0, t: c.item.u })),
+    ...res.items.map((it) => tableRow({ k: kindOf(it), it, rank: 0, t: it.u }))].join('');
+  el.innerHTML = `<button class="rx" data-act="recclose" aria-label="סגור">${ic('x')}</button>
+    ${res.reply ? `<div class="rreply">${esc(res.reply)}</div>` : ''}
+    ${n ? `<div class="rmsg" style="color:#fff;font-size:20px;font-weight:800;margin-bottom:14px">${head}</div><div class="rres">${rows}</div>` : res.reply ? '' : '<div class="rmsg">לא הבנתי מה לעשות - נסה שוב</div>'}
+    <div class="racts"><button class="pri" data-act="recagain">${ic('mic')}עוד הקלטה</button>${n ? '<button data-act="aiundo">בטל</button>' : ''}<button data-act="recclose">סגור</button></div>`;
+  el.querySelectorAll('.ta, .tick').forEach((x) => x.remove());
+  if (!res.reply) recClose.t = setTimeout(recClose, res.changed.length ? 12000 : 8000);
+}
+async function quickAdd() {
+  const inp = $('#qc'); if (!inp) return;
+  const text = inp.value.trim(); if (!text) return;
+  inp.value = ''; inp.placeholder = 'מסדר...'; inp.disabled = true;
+  try { const res = applyAI(await api('organize', { text, focus: aiFocus() })); if (res.reply || res.changed.length > 1) aiScreen(res); else if (res.sum) undoToast(res.sum, res.undo); else toast('לא הבנתי מה לעשות'); }
+  catch (e) { try { const r = await api('add', { item: { text: text.split('\n')[0].slice(0, 300), body: text.split('\n').slice(1).join('\n'), type: 'idea' } }); S.items.unshift(r.item); toast('נשמר'); } catch (er) { inp.value = text; toast('לא נשמר - ' + er.message); } }
+  render(); const n = $('#qc'); if (n) { n.disabled = false; n.focus(); }
+}
+// off the table, with an undo: items -> done / parked, sessions -> done / hidden
+function offTable(kind, id, how) {
+  if (kind === 'i') {
+    const it = itemById(id); if (!it) return;
+    const before = { status: it.status };
+    setItem(id, { status: how });
+    undoToast(how === 'done' ? 'בוצע' : 'הורד מהשולחן', () => setItem(id, before));
+  } else {
+    const s = sessById(id); if (!s) return;
+    const before = how === 'done' ? { state: s.mstate || '' } : { hidden: false };
+    setSess(id, how === 'done' ? { state: 'done' } : { hidden: true });
+    undoToast('הורד מהשולחן', () => setSess(id, before));
+  }
+}
+function undoToast(text, undo) {
+  const el = $('#toast'); el.innerHTML = `${esc(text)} <button id="undo">בטל</button>`; el.classList.add('on', 'act');
+  $('#undo').onclick = () => { undo(); el.classList.remove('on', 'act'); };
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on', 'act'), 5000);
+}
+// phone: swipe a row - right = done, left = off the table
+(() => {
+  let row = null, x0 = 0, y0 = 0, dx = 0, on = false;
+  document.addEventListener('touchstart', (e) => { row = e.target.closest('.trow'); if (!row) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; on = false; }, { passive: true });
+  document.addEventListener('touchmove', (e) => {
+    if (!row) return;
+    const mx = e.touches[0].clientX - x0, my = e.touches[0].clientY - y0;
+    if (!on && Math.abs(my) > Math.abs(mx)) { row = null; return; }
+    if (Math.abs(mx) > 10) on = true;
+    if (!on) return;
+    dx = mx; row.style.transform = `translateX(${dx}px)`; row.classList.toggle('sw-done', dx > 50); row.classList.toggle('sw-off', dx < -50);
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    if (!row) return;
+    const r = row, d = dx; row = null; r.style.transform = ''; r.classList.remove('sw-done', 'sw-off');
+    if (!on || Math.abs(d) < 90) return;
+    r.dataset.swiped = '1'; setTimeout(() => delete r.dataset.swiped, 400);
+    const [kind, id] = r.dataset.tid.split(/:(.*)/s);
+    offTable(kind, id, d > 0 ? 'done' : kind === 'i' ? 'parked' : 'hide');
+  });
+})();
+
+function filteredItems(archive) {
+  const f = S.f, q = f.q.trim().toLowerCase();
+  let l = S.items.filter((i) => archive ? (i.status === 'done' || i.status === 'parked') : true);
+  if (!archive) {
+    if (f.pin) l = l.filter((i) => i.pin && i.status !== 'done' && i.status !== 'parked');
+    else if (f.status === 'live') l = l.filter((i) => i.status !== 'done' && i.status !== 'parked');
+    else if (f.status === 'waiting') l = l.filter(forMe);
+    else if (f.status !== 'all') l = l.filter((i) => i.status === f.status);
+  }
+  if (f.type) l = l.filter((i) => i.type === f.type);
+  if (f.project) l = l.filter((i) => i.project === f.project);
+  if (q) l = l.filter((i) => (i.text + ' ' + (i.body || '') + ' ' + (i.project || '') + ' ' + (i.tags || []).join(' ') + ' ' + (i.log || []).map((x) => x.text).join(' ')).toLowerCase().includes(q));
+  return l.sort((a, b) => b.u - a.u);
+}
+function filterBar(archive) {
+  const f = S.f;
+  return `<div class="filters">
+    ${S.config.types.map((t) => `<button class="fchip ${f.type === t.id ? 'on' : ''}" data-type="${t.id}" style="${f.type === t.id ? `color:${t.color};background:${soft(t.color)}` : ''}"><span style="color:${t.color};display:flex">${ic(t.icon)}</span>${esc(t.name)}</button>`).join('')}
+    <select class="sel-in" id="fproj"><option value="">כל הפרויקטים</option>${allProjects().map((p) => `<option ${f.project === p ? 'selected' : ''} value="${esc(p)}">${esc(projName(p))}</option>`).join('')}</select>
+    ${f.type || f.project || f.q ? `<button class="fchip" data-act="clearf">${ic('x')}נקה סינון</button>` : ''}
+  </div>`;
+}
+function viewItems() {
+  const l = filteredItems(false), c = counts(), all = S.items;
+  const segs = [['live', 'פעילים', c.live.length], ['waiting', 'מחכה לך', c.waitItems.length + c.needSess.length], ['active', 'בטיפול', c.active.length], ['open', 'פתוחים', c.open.length], ['done', 'בוצעו', all.filter((i) => i.status === 'done').length], ['all', 'הכל', all.length]];
+  return `<div class="wrap">
+    <div class="vh"><h2>פריטים</h2><div class="seg">${segs.map(([k, t, n]) => `<button class="${!S.f.pin && S.f.status === k ? 'on' : ''}" data-status="${k}">${t} <span class="n">${n}</span></button>`).join('')}</div></div>
+    ${filterBar()}
+    ${S.f.status === 'waiting' && !S.f.pin && c.needSess.length ? `<div class="lbl" style="margin-top:0">סשנים שצריכים אותך</div><div class="sess grid" style="margin-bottom:16px">${c.needSess.sort(sortSess).map(sessCard).join('')}</div>` : ''}
+    <section class="card">${l.length ? `<div class="rows" style="margin-top:-1px">${l.map(itemRow).join('')}</div>` : `<div class="empty"><b>אין כאן כלום</b>${S.f.q ? 'שום דבר לא מתאים לחיפוש' : 'לחץ + כדי לתפוס מחשבה'}</div>`}</section>
+  </div>`;
+}
+function viewArchive() {
+  const l = filteredItems(true);
+  return `<div class="wrap"><div class="vh"><h2>ארכיון</h2><span class="hint">מה שבוצע ומה שבהקפאה</span></div>${filterBar(true)}
+    <section class="card">${l.length ? `<div class="rows" style="margin-top:-1px">${l.map(itemRow).join('')}</div>` : '<div class="empty">הארכיון ריק</div>'}</section></div>`;
+}
+function viewSessions() {
+  const all = visibleSessions(), q = S.f.q.trim().toLowerCase();
+  const by = { all: all, working: all.filter((s) => sstate(s) === 'working'), needs: all.filter(needsMe), waiting: all.filter((s) => sstate(s) === 'waiting'),
+    done: all.filter((s) => sstate(s) === 'done'), quiet: all.filter((s) => ['idle', 'ended', 'new'].includes(sstate(s))) };
+  let l = by[S.sf] || all;
+  if (S.f.project) l = l.filter((s) => s.project === S.f.project);
+  if (q) l = l.filter((s) => [s.name, s.first, s.ask, s.reply, s.summary, s.project, s.question].join(' ').toLowerCase().includes(q));
+  l = [...l].sort((a, b) => b.u - a.u);
+  const segs = [['all', 'הכל'], ['needs', 'צריכים אותך'], ['working', 'עובדים'], ['waiting', 'תורך'], ['done', 'סיימו'], ['quiet', 'רדומים']];
+  const machines = [...new Set(all.map((s) => s.machine).filter(Boolean))];
+  return `<div class="wrap">
+    <div class="vh"><h2>סשנים של Claude</h2><div class="seg">${segs.map(([k, t]) => `<button class="${S.sf === k ? 'on' : ''}" data-sf="${k}">${t} <span class="n">${by[k].length}</span></button>`).join('')}</div></div>
+    <div class="filters"><select class="sel-in" id="fproj"><option value="">כל הפרויקטים</option>${[...new Set(all.map((s) => s.project).filter(Boolean))].sort().map((p) => `<option ${S.f.project === p ? 'selected' : ''} value="${esc(p)}">${esc(projName(p))}</option>`).join('')}</select>
+      <span class="hint">${machines.length ? 'מחשבים: ' + machines.map((m) => esc(machine(m))).join(', ') + ' · ' : ''}30 הימים האחרונים</span></div>
+    ${l.length ? `<div class="sess grid">${l.map(sessCard).join('')}</div>` : `<section class="card"><div class="empty"><b>אין סשנים כאן</b>${all.length ? '' : 'אחרי ההתקנה, כל סשן של Claude Code במחשב יופיע כאן לבד. מחשב נוסף: הגדרות ← חיבור מחשב'}</div></section>`}
+  </div>`;
+}
+
+function render() {
+  if (!S.loaded) return;
+  renderChrome();
+  const qc = $('#qc'); if (qc && (document.activeElement === qc && qc.value || qc.disabled || (rec && rec.btn.closest('.qc')) || $('.qc .mic[data-busy]'))) { renderChrome(); renderPanel(); return; }
+  const v = $('#view'), top = v.scrollTop;
+  v.innerHTML = S.view === 'items' ? viewItems() : S.view === 'sessions' ? viewSessions() : S.view === 'archive' ? viewArchive() : viewHome();
+  v.scrollTop = top;
+  renderPanel();
+}
+
+// ---------- the panel ----------
+function renderPanel(force) {
+  const p = $('#panel');
+  $('#pscrim').classList.toggle('hidden', !S.open);
+  if (!S.open) { p.classList.add('hidden'); p.innerHTML = ''; return; }
+  if (!force && p.contains(document.activeElement) && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;   // he's typing
+  if (!force && (rec || p.querySelector('.mic[data-busy]'))) return;   // he's talking
+  p.classList.remove('hidden');
+  p.innerHTML = S.open.kind === 'item' ? itemPanel(itemById(S.open.id)) : sessPanel(sessById(S.open.id));
+  p.querySelectorAll('textarea.ttl-in, .pf textarea, #pbody').forEach(grow);
+  const tl = p.querySelector('.pb'); if (S.open.kind === 'item' && S.open.scroll) { tl.scrollTop = tl.scrollHeight; S.open.scroll = false; }
+}
+function itemPanel(it) {
+  if (!it) return `<div class="ph"><span class="sp"></span><button class="btn icon" data-act="close">${ic('x')}</button></div><div class="empty">הפריט נמחק</div>`;
+  const t = typeOf(it.type), hs = handlers(it);
+  return `<div class="ph">
+      <button class="btn icon" data-act="close" title="סגור">${ic('x')}</button><span class="sp"></span>
+      <button class="btn icon" data-act="recscreen" title="דבר על זה - וה-AI יעדכן">${ic('mic')}</button>
+      ${it.status !== 'done' ? `<button class="btn ok" data-set="status:done">${ic('check')}בוצע</button>` : `<button class="btn" data-set="status:open">פתח מחדש</button>`}
+    </div>
+    <div class="pb">
+      <textarea class="ttl-in" id="pt" rows="1">${esc(it.text)}</textarea>
+      <div class="props">
+        <button class="pchip" data-pick="type" style="background:${soft(t.color)};color:${t.color}">${ic(t.icon)}${esc(t.name)}${ic('chev', 'dn')}</button>
+        <button class="pchip chip st-${it.status}" data-pick="status" style="padding:5px 10px">${STATUS[it.status]}${ic('chev', 'dn')}</button>
+        <input class="proj-in" id="pp" list="projlist" placeholder="פרויקט" value="${esc(it.project || '')}">
+        <button class="pchip plain star ${it.pin ? 'on' : ''}" data-pin="${it.id}">${ic('star')}כוכב</button>
+        <span class="pchip plain">${ic('clock')}${it.due ? esc(it.due.split('-').reverse().join('/')) : 'תאריך'}<input type="date" data-field="due" value="${esc(it.due || '')}"></span>
+      </div>
+      <div class="picker hidden" id="picker"></div>
+      <textarea class="body-in" id="pbody" placeholder="פרטים, קישורים, מה בדיוק...">${esc(it.body || '')}</textarea>
+      ${hs.length ? `<div class="lbl">מטופל על ידי</div><div class="sess" style="padding:0">${hs.map(sessCard).join('')}</div>` : ''}
+      <div class="lbl">ציר זמן</div>
+      <div class="tl">${(it.log || []).map((l) => { const me = l.by === 'שלומי'; return `<div class="tle"><span class="av" style="background:${me ? 'var(--violet)' : l.s ? projColor(sessById(l.s)?.project || '') : 'var(--brand)'}">${me ? 'ש' : ic('bot')}</span>
+        <div class="c"><b>${esc(me ? 'אתה' : l.by)}</b><small>${clock(l.t)}</small>${l.st ? ` ${statusChip(l.st)}` : ''}<p>${esc(l.text)}</p></div></div>`; }).join('')}</div>
+      <div class="hint" style="margin-top:10px">נוצר ${clock(it.c)} · ${esc(it.by === 'שלומי' ? 'על ידך' : 'על ידי ' + it.by)}</div>
+      <div class="pacts">
+        ${it.status !== 'parked' && it.status !== 'done' ? `<button class="btn" data-set="status:parked" title="לא בוצע, רק לא על השולחן">${ic('archive')}הורד מהשולחן</button>` : ''}
+        <button class="btn danger" data-act="delete">${ic('trash')}מחק</button>
+      </div>
+    </div>
+    <div class="pf"><button class="rbtn mic" data-mic="#pnote" title="הקלטה">${ic('mic')}</button><textarea id="pnote" rows="1" placeholder="הוסף עדכון..."></textarea><button class="rbtn" data-act="note" title="שלח">${ic('send')}</button></div>`;
+}
+function sessPanel(s) {
+  if (!s) return `<div class="ph"><span class="sp"></span><button class="btn icon" data-act="close">${ic('x')}</button></div><div class="empty">הסשן לא נמצא</div>`;
+  const its = (s.items || []).map(itemById).filter(Boolean);
+  const resume = s.cwd ? `cd "${s.cwd}" && claude --resume ${s.id}` : `claude --resume ${s.id}`;
+  return `<div class="ph">
+      <button class="btn icon" data-act="close" title="סגור">${ic('x')}</button>${stateTag(s)}<span class="sp"></span>
+      ${sstate(s) !== 'done' ? `<button class="btn ok" data-sset="done">${ic('check')}סיים</button>` : ''}
+      <button class="btn icon" data-act="hide" title="הסתר מהרשימה">${ic('eyeoff')}</button>
+    </div>
+    <div class="pb">
+      <textarea class="ttl-in" id="sname" rows="1" placeholder="שם לסשן">${esc(s.name || '')}</textarea>
+      <div class="props">${avatar(s)}<span class="proj">${esc(projName(s.project || '?'))}</span>${s.machine ? `<span class="proj">${ic('laptop')}${esc(machine(s.machine))}</span>` : ''}<span class="proj">${ic('clock')}${ago(s.u)}</span>${s.prompts ? `<span class="proj">${s.prompts} הודעות</span>` : ''}</div>
+      ${s.question && needsMe(s) ? `<div class="lbl">מה הוא צריך ממך</div><div class="box q">${esc(s.question)}</div>` : ''}
+      ${s.note && sstate(s) === 'needs' ? `<div class="lbl">מחכה לאישור</div><div class="box q">${esc(s.note)}</div>` : ''}
+      ${s.summary ? `<div class="lbl">סיכום</div><div class="box">${esc(s.summary)}</div>` : ''}
+      ${its.length ? `<div class="lbl">הפריטים שלו</div><section class="card" style="box-shadow:none"><div class="rows" style="margin-top:-1px">${its.map(itemRow).join('')}</div></section>` : ''}
+      ${s.first ? `<div class="lbl">הבקשה הראשונה</div><div class="box clamp">${esc(s.first)}</div>` : ''}
+      ${s.ask && s.ask !== s.first ? `<div class="lbl">הבקשה האחרונה · ${ago(s.askAt)}</div><div class="box clamp">${esc(s.ask)}</div>` : ''}
+      ${s.reply ? `<div class="lbl">מה הוא ענה · ${ago(s.replyAt)}</div><div class="box clamp">${esc(s.reply)}</div>` : ''}
+      <div class="lbl">לחזור לסשן הזה</div>
+      <div class="code"><span>${esc(resume)}</span><button data-copy="${esc(resume)}" title="העתק">${ic('copy')}</button></div>
+      <div class="hint" style="margin-top:6px">בטרמינל במחשב ${esc(machine(s.machine) || 'שלו')}. ב-VS Code: היסטוריית השיחות של Claude, לפי השם.</div>
+      <div style="margin-top:18px;display:flex;gap:8px"><button class="btn danger" data-act="sdelete">${ic('trash')}מחק מהרשימה</button></div>
+    </div>`;
+}
+function grow(t) { if (t.tagName !== 'TEXTAREA') return; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+function openItem(id, scroll) { seenOne('item', id); S.open = { kind: 'item', id, scroll }; history.replaceState(null, '', '#' + id); renderPanel(true); highlight(); }
+function openSess(id) { seenOne('sess', id); S.open = { kind: 'sess', id }; history.replaceState(null, '', '#s=' + id); renderPanel(true); highlight(); }
+function closePanel() { S.open = null; history.replaceState(null, '', location.pathname + (S.view !== 'home' ? '#' + S.view : '')); renderPanel(); highlight(); }
+function highlight() { document.querySelectorAll('.row.sel').forEach((r) => r.classList.remove('sel')); if (S.open?.kind === 'item') document.querySelectorAll(`.row[data-item="${S.open.id}"]`).forEach((r) => r.classList.add('sel')); }
+
+// ---------- writes ----------
+async function setItem(id, ch, msg) {
+  const it = itemById(id); if (!it) return;
+  Object.assign(it, ch, { u: Date.now() });
+  render();
+  try { const r = await api('update', { id, item: ch }); Object.assign(it, r.item); if (msg) toast(msg); render(); }
+  catch (e) { toast('לא נשמר - ' + e.message); load(); }
+}
+async function addNote(id, text) {
+  if (!text.trim()) return;
+  const it = itemById(id); it.log = [...(it.log || []), { t: Date.now(), by: 'שלומי', text }];
+  S.open.scroll = true; renderPanel(true);
+  try { const r = await api('update', { id, item: { note: text } }); Object.assign(it, r.item); S.open.scroll = true; render(); } catch (e) { toast('לא נשמר'); }
+}
+async function setSess(id, ch) {
+  const s = sessById(id); if (!s) return;
+  Object.assign(s, ch); render();
+  try { await api('session', { session: { id, ...ch } }); load(); } catch (e) { toast('לא נשמר'); }
+}
+
+// ---------- capture ----------
+function capture(prefill = '') {
+  const lastType = LS('type') || 'idea', lastProj = LS('proj') || '';
+  $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet" role="dialog">
+    <header><h3>מה עובר לך בראש?</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
+    <div class="sb">
+      <div class="cap-area"><textarea id="ct" placeholder="רעיון, משימה, משהו לזכור...">${esc(prefill)}</textarea><button class="rbtn mic" data-mic="#ct" title="להגיד בקול">${ic('mic')}</button></div>
+      <div class="lbl">סוג</div>
+      <div class="typesel" id="ctype">${S.config.types.map((t) => `<button class="tsel ${t.id === lastType ? 'on' : ''}" data-ctype="${t.id}" style="${t.id === lastType ? `border-color:${t.color};background:${soft(t.color)}` : ''}"><span style="color:${t.color};display:flex">${ic(t.icon)}</span>${esc(t.name)}</button>`).join('')}</div>
+      <div class="lbl">פרויקט</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="proj-in" id="cproj" list="projlist" placeholder="איזה פרויקט? (לא חובה)" value="${esc(lastProj)}" style="width:220px;padding:8px 12px">
+        ${allProjects().slice(0, 6).map((p) => `<button class="fchip" data-cproj="${esc(p)}"><i class="dot" style="background:${projColor(p)}"></i>${esc(projName(p))}</button>`).join('')}</div>
+      <div class="lbl">מצב</div>
+      <div class="seg" id="cstat">${['open', 'active', 'waiting'].map((k, i) => `<button class="${i === 0 ? 'on' : ''}" data-cstat="${k}">${STATUS[k]}</button>`).join('')}</div>
+    </div>
+    <footer><button class="pchip plain star" id="cpin" data-cpin="0">${ic('star')}כוכב</button>
+      <label class="auto"><input type="checkbox" id="cauto" ${LS('auto') === false ? '' : 'checked'}>אחרי הקלטה ה-AI מסדר ושומר לבד</label>
+      <span class="sp" style="flex:1"></span><span class="hint">Ctrl+Enter</span>
+      <button class="btn" data-act="cai" title="ה-AI כותב כותרת, סוג, פרויקט ותאריך - ואפשר כמה דברים בבת אחת">${ic('brain')}AI יסדר</button>
+      <button class="btn pri" data-act="csave" style="padding:10px 22px">שמור</button></footer>
+  </div></div>`;
+  const ta = $('#ct'); setTimeout(() => ta.focus(), 30);
+}
+async function saveCapture() {
+  if (rec) { stopMic(false); toast('רגע, מתמלל...'); return; }
+  if ($('.sheet .mic[data-busy]')) { toast('רגע, מתמלל...'); return; }
+  const text = $('#ct').value.trim(); if (!text) { $('#ct').focus(); return; }
+  const lines = text.split('\n'), title = lines[0].slice(0, 300), body = lines.slice(1).join('\n').trim() + (lines[0].length > 300 ? '\n' + lines[0].slice(300) : '');
+  const type = $('#ctype .on')?.dataset.ctype || 'idea', project = $('#cproj').value.trim(), status = $('#cstat .on')?.dataset.cstat || 'open', pin = $('#cpin').dataset.cpin === '1';
+  LS('type', type); LS('proj', project);
+  closeModal();
+  const temp = { id: 'tmp' + Date.now(), text: title, body, type, project, status, pin, c: Date.now(), u: Date.now(), log: [], sessions: [], by: 'שלומי' };
+  S.items.unshift(temp); render();
+  try { const r = await api('add', { item: { text: title, body, type, project, status, pin } }); Object.assign(temp, r.item); toast('נתפס. הראש קצת יותר שקט'); render(); }
+  catch (e) { S.items = S.items.filter((i) => i !== temp); render(); toast('לא נשמר - ' + e.message); capture(text); }
+}
+async function organize() {
+  const ta = $('#ct'); if (!ta) return;
+  if (rec) { rec.then = organize; stopMic(false); return; }
+  if ($('.sheet .mic[data-busy]')) { S.afterTranscribe = organize; return; }
+  const text = ta.value.trim(); if (!text) { ta.focus(); return; }
+  const btn = $('[data-act="cai"]'); btn.disabled = true; btn.innerHTML = ic('brain') + 'מסדר...';
+  try {
+    const res = await api('organize', { text, focus: aiFocus() });
+    closeModal(); const r = applyAI(res);
+    if (r.reply || r.changed.length > 1) aiScreen(r); else if (r.sum) undoToast(r.sum, r.undo); else toast('לא הבנתי מה לעשות');
+  } catch (e) { btn.disabled = false; btn.innerHTML = ic('brain') + 'AI יסדר'; toast('לא הצליח - ' + e.message); }
+}
+function closeModal() { stopMic(); $('#modal').innerHTML = ''; }
+
+// ---------- voice ----------
+// The mic records (any browser, the iPhone home-screen app too), then the server turns it into Hebrew text
+// (op transcribe, gpt-4o-transcribe). Tap to start, tap again to stop. Up to 3 minutes.
+let rec = null;
+function stopMic(cancel = true) { if (!rec) return; rec.cancel = cancel; try { rec.mr.stop(); } catch (e) {} }
+async function mic(btn, sel) {
+  if (btn.dataset.busy) return;
+  if (rec) { if (rec.btn === btn) stopMic(false); return; }
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { toast('הדפדפן הזה לא מקליט. במקלדת של הטלפון יש מיקרופון'); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { toast('צריך לאשר את המיקרופון בדפדפן'); return; }
+  const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+  const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined), chunks = [], icon = btn.innerHTML;
+  const r = rec = { mr, btn, t0: Date.now(), cancel: false, peak: 0 };
+  try {   // how loud: the button glows with the voice, and a silent recording is caught before it's sent
+    const ac = new (window.AudioContext || window.webkitAudioContext)(), an = ac.createAnalyser(), buf = new Float32Array(1024);
+    an.fftSize = 2048; ac.createMediaStreamSource(stream).connect(an); r.ac = ac;
+    r.level = setInterval(() => { an.getFloatTimeDomainData(buf); let q = 0; for (const v of buf) q += v * v; const rms = Math.sqrt(q / buf.length);
+      r.peak = Math.max(r.peak, rms); btn.style.boxShadow = `0 0 0 ${Math.min(14, rms * 120).toFixed(1)}px rgba(229,72,77,.35)`; }, 80);
+  } catch (e) { r.peak = 1; }
+  mr.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  mr.onstop = async () => {
+    clearInterval(r.timer); clearInterval(r.level); try { r.ac?.close(); } catch (e) {} btn.style.boxShadow = ''; stream.getTracks().forEach((t) => t.stop());
+    btn.classList.remove('rec'); btn.innerHTML = icon; rec = null;
+    if (r.cancel || !chunks.length || Date.now() - r.t0 < 700) return;
+    if (r.peak < 0.008) { toast('המיקרופון לא קלט קול - בדוק איזה מיקרופון נבחר (המנעול ליד הכתובת)'); return; }
+    btn.dataset.busy = '1'; btn.innerHTML = '<span class="dots">···</span>';
+    try {
+      const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
+      const audio = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = no; fr.readAsDataURL(blob); });
+      const { text } = await api('transcribe', { audio, mime: blob.type });
+      const ta = $(sel);
+      if (ta && text) { ta.value = (ta.value.trim() ? ta.value.replace(/\s*$/, ' ') : '') + text; grow(ta); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+      else if (!text) toast('לא שמעתי כלום');
+      delete btn.dataset.busy; btn.innerHTML = icon;
+      // in the capture window: after a recording the AI finishes the item (the switch), or "AI יסדר" was pressed while recording
+      const next = r.then || S.afterTranscribe || (sel === '#ct' && $('#cauto')?.checked ? organize : null) || (sel === '#qc' ? quickAdd : null); S.afterTranscribe = null;
+      if (text && next) next();
+    } catch (e) { toast('התמלול לא הצליח - ' + e.message); }
+    delete btn.dataset.busy; btn.innerHTML = icon;
+  };
+  mr.start(1000);
+  toast('מקליט - דבר, ולחץ שוב כשסיימת');
+  btn.classList.add('rec'); btn.innerHTML = '<span class="rt">0:00</span>';
+  r.timer = setInterval(() => { const sec = Math.floor((Date.now() - r.t0) / 1000); btn.innerHTML = `<span class="rt">${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}</span>`; if (sec >= 180) stopMic(false); }, 250);
+}
+
+// ---------- the recording screen ----------
+// His ask (2026-11-04): "if I'm recording myself I don't need anything on the screen" - one big button: tap = talk,
+// tap again = the AI files it (transcribe -> organize -> saved), and shows what landed on the table.
+let RS = null;
+function recClose() { if (RS) { RS.cancel = true; try { RS.mr.state !== 'inactive' && RS.mr.stop(); } catch (e) {} } RS = null; clearTimeout(recClose.t); const el = $('#recscreen'); el.classList.add('hidden'); el.innerHTML = ''; if (location.hash === '#rec') history.replaceState(null, '', location.pathname); }
+async function recScreen() {
+  const el = $('#recscreen'); el.classList.remove('hidden'); clearTimeout(recClose.t);
+  el.innerHTML = `<button class="rx" data-act="recclose" aria-label="סגור">${ic('x')}</button><button class="rbig wait" id="rbig">${ic('mic')}</button><div class="rtime" id="rtime">0:00</div><div class="rmsg" id="rmsg">פותח מיקרופון...</div>`;
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { $('#rmsg').textContent = 'הדפדפן הזה לא מקליט'; return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { $('#rmsg').textContent = 'צריך לאשר את המיקרופון בדפדפן'; $('#rbig').classList.remove('wait'); return; }
+  if ($('#recscreen').classList.contains('hidden')) { stream.getTracks().forEach((t) => t.stop()); return; }
+  const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+  const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined), chunks = [];
+  const r = RS = { mr, t0: Date.now(), peak: 0, cancel: false };
+  mr.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)(), an = ac.createAnalyser(), buf = new Float32Array(1024);
+    an.fftSize = 2048; ac.createMediaStreamSource(stream).connect(an); r.ac = ac;
+    r.level = setInterval(() => { an.getFloatTimeDomainData(buf); let q = 0; for (const v of buf) q += v * v; const rms = Math.sqrt(q / buf.length);
+      r.peak = Math.max(r.peak, rms); const b = $('#rbig'); if (b) b.style.boxShadow = `0 0 0 ${Math.min(60, rms * 500).toFixed(0)}px rgba(229,72,77,.22)`; }, 60);
+  } catch (e) { r.peak = 1; }
+  r.timer = setInterval(() => { const sec = Math.floor((Date.now() - r.t0) / 1000); const t = $('#rtime'); if (t) t.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; if (sec >= 300) mr.stop(); }, 250);
+  mr.onstop = async () => {
+    clearInterval(r.timer); clearInterval(r.level); try { r.ac?.close(); } catch (e) {} stream.getTracks().forEach((t) => t.stop());
+    if (r.cancel) return;
+    const big = $('#rbig'), msg = $('#rmsg'); big.classList.remove('stop'); big.classList.add('wait'); big.style.boxShadow = '';
+    if (!chunks.length || r.peak < 0.008) { big.classList.remove('wait'); msg.textContent = 'לא שמעתי כלום - בדוק את המיקרופון ולחץ כדי לנסות שוב'; RS = null; return; }
+    msg.textContent = 'מתמלל...';
+    try {
+      const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
+      const audio = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = no; fr.readAsDataURL(blob); });
+      const { text } = await api('transcribe', { audio, mime: blob.type });
+      if (!text) { big.classList.remove('wait'); msg.textContent = 'לא שמעתי מילים - לחץ כדי לנסות שוב'; RS = null; return; }
+      msg.textContent = 'מסדר...';
+      const res = applyAI(await api('organize', { text, focus: aiFocus() })); RS = null;
+      aiScreen(res);
+    } catch (e) { big.classList.remove('wait'); msg.textContent = 'לא הצליח (' + e.message + ') - לחץ כדי לנסות שוב'; RS = null; }
+  };
+  mr.start(1000);
+  const big = $('#rbig'); big.classList.remove('wait'); big.classList.add('stop');
+  $('#rmsg').textContent = S.open?.kind === 'item' ? 'מקליט. מה לעשות עם "' + (itemById(S.open.id)?.text || '').slice(0, 40) + '"? לחץ כשסיימת' : 'מקליט. משהו חדש, או לעדכן משהו שעל השולחן - לחץ כשסיימת';
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#rbig')) return;
+  if (RS && RS.mr.state === 'recording') { if (Date.now() - RS.t0 > 600) RS.mr.stop(); }
+  else if (!RS && !$('#rbig').classList.contains('wait')) recScreen();
+});
+
+// ---------- settings ----------
+function settings() {
+  const types = S.config.types.map((t) => ({ ...t }));
+  const ms = [...new Set(S.sessions.map((s) => s.machine).filter(Boolean))];
+  const draw = () => {
+    $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet" role="dialog">
+      <header><h3>הגדרות</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
+      <div class="sb">
+        <h4 style="margin:4px 0 2px;font-size:15px">סוגי מחשבות</h4><div class="hint">אתה מחליט אילו סוגים יש. לכל סוג צבע וסמל.</div>
+        <div id="tlist">${types.map((t, i) => `<div class="set-row" data-ti="${i}"><input type="color" value="${t.color}" data-tc="${i}"><input type="text" value="${esc(t.name)}" data-tn="${i}" placeholder="שם הסוג">
+          <button class="btn icon" data-ticon="${i}" style="color:${t.color}">${ic(t.icon)}</button><button class="btn icon danger" data-tdel="${i}">${ic('trash')}</button></div>
+          <div class="iconpick hidden" id="ip${i}">${ICONS.map((n) => `<button class="${n === t.icon ? 'on' : ''}" data-tpick="${i}:${n}">${ic(n)}</button>`).join('')}</div>`).join('')}</div>
+        <div style="display:flex;gap:8px;margin-top:6px"><button class="btn" data-act="tadd">${ic('plus')}סוג חדש</button><button class="btn pri" data-act="tsave">שמור סוגים</button></div>
+        ${ms.length ? `<div class="set-sec"><h4>שמות המחשבים</h4>${ms.map((m) => `<div class="set-row"><span style="min-width:120px;direction:ltr;text-align:right" class="hint">${esc(m)}</span><input type="text" data-mname="${esc(m)}" value="${esc(S.config.machines?.[m] || '')}" placeholder="למשל: מחשב בבית"></div>`).join('')}<button class="btn pri" data-act="msave">שמור שמות</button></div>` : ''}
+        <div class="set-sec"><h4>חיבור מחשב</h4><div class="hint">מחשב נוסף? תן לסשן של Claude Code שם את השורה הזאת. הוא יתקין הכל: הדיווח האוטומטי, הסקיל, וה-MCP.</div>
+          <div id="conn" style="margin-top:8px"><button class="btn" data-act="connect">${ic('link')}הצג את שורת החיבור</button></div></div>
+        <div class="set-sec"><h4>מראה</h4><div class="seg">${[['auto', 'אוטומטי'], ['light', 'בהיר'], ['dark', 'כהה']].map(([k, t]) => `<button class="${(LS('theme') || 'auto') === k ? 'on' : ''}" data-theme-set="${k}">${t}</button>`).join('')}</div></div>
+        <div class="set-sec"><button class="btn danger" data-act="logout">יציאה במכשיר הזה</button></div>
+      </div></div></div>`;
+  };
+  settings.types = types; settings.draw = draw; draw();
+}
+async function showConnect() {
+  const el = $('#conn'); el.innerHTML = '<span class="hint">רגע...</span>';
+  try {
+    const { key } = await api('connect');
+    const say = `Set up Mind on this computer: read https://shlomiverse.com/mind/setup/ and run the installer with --key ${key} --machine "<name this computer>"`;
+    const cmd = `curl -fsSL https://shlomiverse.com/mind/setup/install.mjs -o mind-install.mjs && node mind-install.mjs --key ${key} --machine "Laptop"`;
+    el.innerHTML = `<div class="lbl" style="margin-top:4px">להגיד לסשן של Claude במחשב השני</div><div class="code"><span>${esc(say)}</span><button data-copy="${esc(say)}">${ic('copy')}</button></div>
+      <div class="lbl">או להריץ בעצמך בטרמינל</div><div class="code"><span>${esc(cmd)}</span><button data-copy="${esc(cmd)}">${ic('copy')}</button></div>
+      <div class="hint" style="margin-top:6px">המפתח הזה פותח את המוח השני - אל תשלח אותו לאף אחד.</div>`;
+  } catch (e) { el.innerHTML = '<span class="hint">לא הצליח</span>'; }
+}
+
+// ---------- theme ----------
+function applyTheme() {
+  const t = LS('theme') || 'auto', dark = t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.querySelector('[data-act="theme"]').innerHTML = ic(dark ? 'sun' : 'moon');
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+// ---------- events ----------
+function go(view, extra = {}) {
+  S.view = view; Object.assign(S, extra);
+  S.open = null;
+  history.replaceState(null, '', location.pathname + (view !== 'home' ? '#' + view : ''));
+  $('#view').scrollTop = 0; render();
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button, [data-item], [data-sess], .scrim, .pscrim'); if (!t) return;
+  const d = t.dataset;
+  if (t.classList.contains('scrim') && e.target !== t) return;
+  if (t.closest('.trow')?.dataset.swiped) return;
+  if (d.pin) { e.stopPropagation(); const it = itemById(d.pin); setItem(d.pin, { pin: !it.pin }, it.pin ? '' : 'סומן בכוכב'); return; }
+  if (d.done) { offTable('i', d.done, 'done'); return; }
+  if (d.park) { offTable('i', d.park, 'parked'); return; }
+  if (d.sdone) { offTable('s', d.sdone, 'done'); return; }
+  if (d.shide) { offTable('s', d.shide, 'hide'); return; }
+  if (d.hf) { S.hf = d.hf; render(); return; }
+  if (d.pick) {
+    const el = $('#picker'), it = itemById(S.open.id);
+    if (!el.classList.contains('hidden') && el.dataset.kind === d.pick) { el.classList.add('hidden'); return; }
+    el.dataset.kind = d.pick; el.classList.remove('hidden');
+    el.innerHTML = d.pick === 'type'
+      ? S.config.types.map((x) => `<button class="tsel ${x.id === it.type ? 'on' : ''}" data-ptype="${x.id}" style="color:${x.color};background:${soft(x.color)}">${ic(x.icon)}<span style="color:var(--ink)">${esc(x.name)}</span></button>`).join('')
+      : Object.entries(STATUS).map(([k, v]) => `<button class="tsel chip st-${k} ${k === it.status ? 'on' : ''}" data-pstatus="${k}" style="padding:8px 14px">${v}</button>`).join('');
+    return;
+  }
+  if (d.ptype) { setItem(S.open.id, { type: d.ptype }, 'עכשיו: ' + typeOf(d.ptype).name); renderPanel(true); return; }
+  if (d.pstatus) { setItem(S.open.id, { status: d.pstatus }); if (d.pstatus === 'done' || d.pstatus === 'parked') closePanel(); else renderPanel(true); return; }
+  if (d.copy) { navigator.clipboard.writeText(d.copy).then(() => toast('הועתק')); return; }
+  if (d.mic) { mic(t, d.mic); return; }
+  if (d.view) { go(d.view, d.sf ? { sf: d.sf } : {}); return; }
+  if (d.qf) { go('home'); return; }
+  if (d.proj != null && !t.closest('.sheet')) { S.f = { ...S.f, project: S.f.project === d.proj ? '' : d.proj }; go(S.view === 'sessions' || S.view === 'archive' ? S.view : 'home'); return; }
+  if (d.type && !t.closest('.sheet')) { S.f = { ...S.f, type: S.f.type === d.type ? '' : d.type }; if (S.view !== 'archive') S.view = 'items'; go(S.view); return; }
+  if (d.status) { S.f = { ...S.f, status: d.status, pin: false }; render(); return; }
+  if (d.sf) { S.sf = d.sf; render(); return; }
+  if (d.item) { openItem(d.item); return; }
+  if (d.sess) { openSess(d.sess); return; }
+  if (d.set) { const [k, v] = d.set.split(':'); setItem(S.open.id, { [k]: v }, v === 'done' ? 'בוצע. כל הכבוד' : v === 'parked' ? 'הורד מהשולחן (בארכיון)' : ''); if (v !== 'open') closePanel(); return; }
+  if (d.sset) { setSess(S.open.id, { state: d.sset }); return; }
+  if (d.ctype) { document.querySelectorAll('[data-ctype]').forEach((b) => { const ty = typeOf(b.dataset.ctype), on = b === t; b.classList.toggle('on', on); b.style.borderColor = on ? ty.color : ''; b.style.background = on ? soft(ty.color) : ''; }); return; }
+  if (d.cproj) { $('#cproj').value = d.cproj; return; }
+  if (d.cstat) { document.querySelectorAll('[data-cstat]').forEach((b) => b.classList.toggle('on', b === t)); return; }
+  if (d.cpin != null) { const on = d.cpin !== '1'; t.dataset.cpin = on ? '1' : '0'; t.classList.toggle('on', on); return; }
+  if (d.ticon != null) { $('#ip' + d.ticon).classList.toggle('hidden'); return; }
+  if (d.tpick) { const [i, n] = d.tpick.split(':'); readTypes(); settings.types[i].icon = n; settings.draw(); return; }
+  if (d.tdel != null) { readTypes(); settings.types.splice(+d.tdel, 1); settings.draw(); return; }
+  if (d.themeSet) { LS('theme', d.themeSet); applyTheme(); document.querySelectorAll('[data-theme-set]').forEach((b) => b.classList.toggle('on', b === t)); return; }
+  switch (d.act) {
+    case 'capture': capture(); break;
+    case 'recscreen': recScreen(); break;
+    case 'seenall': markSeen(newEntries()); render(); toast('הכל סומן כנקרא'); break;
+    case 'recclose': recClose(); break;
+    case 'recagain': clearTimeout(recClose.t); recScreen(); break;
+    case 'aiundo': S.lastAI?.undo(); recClose(); break;
+    case 'csave': saveCapture(); break;
+    case 'cai': organize(); break;
+    case 'mclose': closeModal(); break;
+    case 'close': closePanel(); break;
+    case 'settings': settings(); break;
+    case 'clearq': S.f.q = ''; $('#q').value = ''; render(); break;
+    case 'clearf': S.f = { ...S.f, type: '', project: '', q: '' }; $('#q').value = ''; render(); break;
+    case 'note': { if (rec) { stopMic(false); break; } const ta = $('#pnote'); addNote(S.open.id, ta.value); ta.value = ''; grow(ta); break; }
+    case 'delete': { const id = S.open.id, it = itemById(id); if (!it || !confirmDelete(t)) break; S.items = S.items.filter((x) => x.id !== id); closePanel(); render(); api('delete', { id }).then(() => toast('נמחק')); break; }
+    case 'hide': setSess(S.open.id, { hidden: true }); closePanel(); toast('הוסתר'); break;
+    case 'sdelete': { if (!confirmDelete(t)) break; const id = S.open.id; S.sessions = S.sessions.filter((s) => s.id !== id); closePanel(); render(); api('session_delete', { id }); break; }
+    case 'theme': { const dark = document.documentElement.dataset.theme === 'dark'; LS('theme', dark ? 'light' : 'dark'); applyTheme(); break; }
+    case 'tadd': readTypes(); settings.types.push({ id: 't' + Date.now().toString(36), name: '', color: PALETTE[settings.types.length % PALETTE.length], icon: 'dot' }); settings.draw(); setTimeout(() => document.querySelector(`[data-tn="${settings.types.length - 1}"]`)?.focus(), 20); break;
+    case 'tsave': readTypes(); api('config', { types: settings.types.filter((x) => x.name.trim()) }).then((r) => { S.config = r.config; render(); toast('הסוגים נשמרו'); closeModal(); }); break;
+    case 'msave': { const m = {}; document.querySelectorAll('[data-mname]').forEach((i) => { if (i.value.trim()) m[i.dataset.mname] = i.value.trim(); }); api('config', { machines: m }).then((r) => { S.config = r.config; render(); toast('נשמר'); }); break; }
+    case 'connect': showConnect(); break;
+    case 'logout': try { localStorage.removeItem('owner-key'); } catch (err) {} location.reload(); break;
+  }
+});
+// a delete asks twice by itself (no browser dialogs): first tap arms the button
+function confirmDelete(btn) { if (btn.dataset.armed) return true; btn.dataset.armed = '1'; btn.classList.add('ok'); btn.style.background = 'var(--red)'; btn.style.color = '#fff'; setTimeout(() => { delete btn.dataset.armed; btn.style.background = ''; btn.style.color = ''; btn.classList.remove('ok'); }, 2500); toast('לחץ שוב כדי למחוק'); return false; }
+function readTypes() { document.querySelectorAll('[data-tn]').forEach((i) => { settings.types[i.dataset.tn].name = i.value; }); document.querySelectorAll('[data-tc]').forEach((i) => { settings.types[i.dataset.tc].color = i.value; }); }
+
+document.addEventListener('submit', (e) => { if (e.target.id === 'qcf') { e.preventDefault(); quickAdd(); } });
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.id === 'fproj') { S.f.project = t.value; render(); return; }
+  if (t.id === 'cauto') { LS('auto', t.checked); return; }
+  if (t.dataset.field && S.open?.kind === 'item') { t.blur(); setItem(S.open.id, { [t.dataset.field]: t.value }); return; }
+});
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'q') { S.f.q = e.target.value; clearTimeout(S.qt); S.qt = setTimeout(render, 120); }
+  if (e.target.matches('textarea.ttl-in, .pf textarea, #pbody')) grow(e.target);
+});
+document.addEventListener('focusout', (e) => {
+  const t = e.target; if (!S.open) return;
+  if (S.open.kind === 'item') {
+    const it = itemById(S.open.id); if (!it) return;
+    if (t.id === 'pt' && t.value.trim() && t.value.trim() !== it.text) setItem(it.id, { text: t.value.trim() }, 'נשמר');
+    if (t.id === 'pbody' && t.value !== (it.body || '')) setItem(it.id, { body: t.value }, 'נשמר');
+    if (t.id === 'pp' && t.value.trim() !== (it.project || '')) setItem(it.id, { project: t.value.trim() });
+  } else if (t.id === 'sname') { const s = sessById(S.open.id); if (s && t.value.trim() !== (s.name || '')) setSess(s.id, { name: t.value.trim() }); }
+});
+document.addEventListener('keydown', (e) => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName);
+  if (e.key === 'Escape' && !$('#recscreen').classList.contains('hidden')) { recClose(); return; }
+  if (e.key === 'Escape') { if ($('#modal').innerHTML) closeModal(); else if (S.open) closePanel(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { if ($('#ct')) saveCapture(); else if (document.activeElement?.id === 'pnote') $('[data-act="note"]').click(); return; }
+  if (e.key === 'Enter' && !e.shiftKey && document.activeElement?.matches('#pt, #sname')) { e.preventDefault(); document.activeElement.blur(); return; }
+  if (e.key === 'Enter' && !e.shiftKey && document.activeElement?.id === 'pnote' && window.innerWidth > 760) { e.preventDefault(); $('[data-act="note"]').click(); return; }
+  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'n' || e.key === 'מ') { e.preventDefault(); capture(); }
+  else if (e.key === 'r' || e.key === 'ר') { e.preventDefault(); recScreen(); }
+  else if (e.key === '/' || e.key === '.') { e.preventDefault(); $('#q').focus(); }
+});
+
+// ---------- data ----------
+async function load() {
+  try {
+    const j = await api('all');
+    const sig = JSON.stringify([j.items.map((i) => i.id + i.u), j.sessions.map((s) => s.id + s.u), j.config]);
+    $('#live').classList.remove('off'); $('#live span').textContent = 'מחובר';
+    if (sig === S.sig && S.loaded) return;
+    S.sig = sig; S.items = j.items; S.sessions = j.sessions; S.config = j.config; S.loaded = true;
+    if (!$('#projlist')) document.body.insertAdjacentHTML('beforeend', '<datalist id="projlist"></datalist>');
+    $('#projlist').innerHTML = allProjects().map((p) => `<option value="${esc(p)}">`).join('');
+    render();
+  } catch (e) { if (e.message !== 'key' && e.message !== '429') { $('#live').classList.add('off'); $('#live span').textContent = 'לא מחובר'; } }
+}
+function boot() {
+  if (!ownerKey()) return showGate();
+  $('#app').classList.remove('hidden');
+  const h = location.hash.slice(1);
+  if (h === 'rec') recScreen();
+  if (['sessions', 'archive'].includes(h)) S.view = h;
+  load().then(() => {
+    if (h.startsWith('s=')) openSess(decodeURIComponent(h.slice(2)));
+    else if (/^[a-z0-9]{6}$/.test(h) && itemById(h)) openItem(h);
+  });
+}
+applyTheme();
+// iPhone home-screen app: when iOS already stops the page above the home indicator, the bar must not add that space
+// again (it sat ~34pt too high - his iPhone, 2026-11-04)
+// the iPhone home-screen app can make the page shorter than the screen and leave a dead strip under it (his iPhone,
+// 2026-11-04): measure it, and let the bar, the windows and the screens reach down into it
+function fitBottom() {
+  const app = navigator.standalone || matchMedia('(display-mode: standalone)').matches, portrait = innerHeight > innerWidth;
+  const gap = app && portrait ? Math.max(0, Math.max(screen.height, screen.width) - innerHeight) : 0;
+  document.documentElement.style.setProperty('--gapB', (gap > 0 && gap < 120 ? gap : 0) + 'px');
+}
+fitBottom(); addEventListener('resize', fitBottom); addEventListener('orientationchange', () => setTimeout(fitBottom, 300));
+boot();
+setInterval(() => { if (document.visibilityState === 'visible' && S.loaded) load(); }, 15000);
+setInterval(() => { if (S.loaded && document.visibilityState === 'visible' && !$('#modal').innerHTML) render(); }, 60000);   // "ago" labels
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) load(); });
+</script>
+</body>
+</html>

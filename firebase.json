@@ -65,6 +65,13 @@
     ],
     "rewrites": [
       {
+        "source": "/mind/@(api|hook|mcp)",
+        "function": {
+          "functionId": "mind",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "/c/**",
         "function": {
           "functionId": "versePage",

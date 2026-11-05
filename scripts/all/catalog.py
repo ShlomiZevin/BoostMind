@@ -26,7 +26,7 @@ GROUPS = [
     ('new', 'חדש / לא ממוין'),
 ]
 FOLDER = {
-    'links': 'verse', 'wiki': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
+    'links': 'verse', 'wiki': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
     'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters',
     'sketch-studio': 'tools', 'karaoke': 'tools', 'sticker-lab': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
@@ -82,6 +82,7 @@ EXTRA = [
     ('servers', 'verseOnComment - הדמויות עונות בתגובות', 'https://console.cloud.google.com/run/detail/me-west1/verseoncomment/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'verseOwner - מאחורי הקלעים', 'https://console.cloud.google.com/run/detail/europe-west1/verseowner/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'verseAutoAnnounce - התראה על סרטון חדש לעוקבים (כל 15 דק\')', 'https://console.cloud.google.com/run/detail/europe-west1/verseautoannounce/metrics?project=boostmind-b052c', 'פונקציה'),
+    ('servers', 'mind - המוח השני: העמוד, ההוקים של הסשנים ושרת ה-MCP', 'https://console.cloud.google.com/run/detail/europe-west1/mind/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'track + stats - האנליטיקס', 'https://console.cloud.google.com/run/detail/europe-west1/track/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'siteLead - טפסים מאתרי הדמויות', 'https://console.cloud.google.com/run/detail/europe-west1/sitelead/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'techietechApply - קורות חיים לטקי-טק', 'https://console.cloud.google.com/run/detail/europe-west1/techietechapply/metrics?project=boostmind-b052c', 'פונקציה'),

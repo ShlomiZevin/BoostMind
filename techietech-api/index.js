@@ -210,3 +210,6 @@ exports.verseMail = mailer.verseMail;
 exports.verseOrderReply = mailer.verseOrderReply;
 // the verse's page addresses (/c/hani, /play/<game>...) with their own link preview for WhatsApp - see page.js
 Object.assign(exports, require('./page'));
+// "המוח השני" (shlomiverse.com/mind/): everything in his head + every Claude session on his computers, one page,
+// a hook door and an MCP server - see mind.js
+Object.assign(exports, require('./mind'));
