@@ -42,12 +42,13 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #scoreBox small{font-size:14px;opacity:.85;font-weight:700}
 #speedBox{font-size:14px;color:#facc15}
 /* the bell - big, bottom left, just for fun */
-#bellBtn{position:fixed;left:12px;bottom:calc(var(--safe-b) + 8px);width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#24427a,#13294b);box-shadow:0 0 0 3px #facc15,0 6px 16px #0008;display:none;place-items:center;z-index:3;padding:0}
+#bellBtn{position:fixed;left:10px;bottom:calc(var(--safe-b) + 46px);width:72px;height:72px;opacity:.72;transition:opacity .2s;border-radius:50%;background:radial-gradient(circle at 40% 35%,#24427a,#13294b);box-shadow:0 0 0 3px #facc15,0 6px 16px #0008;display:none;place-items:center;z-index:3;padding:0}
 #bellBtn.on{display:grid;animation:bellIdle 3s ease-in-out infinite}
 #bellBtn img{width:56px;height:56px;object-fit:contain;pointer-events:none}
 #bellBtn i{position:absolute;inset:0;border-radius:50%;border:3px solid #facc15;opacity:0;pointer-events:none}
 #bellBtn span{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-weight:900;font-size:20px;color:#facc15;text-shadow:0 2px 0 #13294b,0 0 10px #000;opacity:0;pointer-events:none;white-space:nowrap}
 #bellBtn:active{transform:scale(.92)}
+#bellBtn.ring{opacity:1}
 #bellBtn.ring img{animation:ring .6s}
 #bellBtn.ring i:nth-of-type(1){animation:wave .7s ease-out}
 #bellBtn.ring i:nth-of-type(2){animation:wave .7s .15s ease-out}
@@ -66,7 +67,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #say.loud{background:#fff1f1;border-color:var(--red);color:#991b1b}
 
 /* the verb chip */
-#chip{position:fixed;left:calc(50% + 44px);bottom:calc(var(--safe-b) + 28px);transform:translateX(-50%);display:none;align-items:center;gap:8px;background:#13294be6;color:#fff;font-weight:900;font-size:16px;padding:7px 16px;border-radius:22px;white-space:nowrap;z-index:2;pointer-events:none}
+#chip{position:fixed;left:50%;bottom:calc(var(--safe-b) + 8px);transform:translateX(-50%);display:none;align-items:center;gap:8px;background:#13294be6;color:#fff;font-weight:900;font-size:16px;padding:7px 16px;border-radius:22px;white-space:nowrap;z-index:2;pointer-events:none}
 #chip.on{display:flex}
 #chip em{font-style:normal;background:#facc15;color:var(--ink);padding:2px 9px;border-radius:12px}
 
@@ -195,6 +196,6 @@ body.turn #turn{display:flex}
     <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
   </div>
 </div>
-<script src="game.js?v=12"></script>
+<script src="game.js?v=13"></script>
 </body>
 </html>

@@ -165,7 +165,7 @@ function layout() {
   cv.width = W * DPR; cv.height = H * DPR;
   document.body.classList.toggle('turn', W > H * 1.15 && H < 520 && 'ontouchstart' in window);
   // room for the HUD + the speech strip above, the verb chip below; the characters stand ~0.7 tile above their tile
-  const top = cssPx('var(--safe-t)') + 96, bottom = H - 96 - cssPx('env(safe-area-inset-bottom,0px)');
+  const top = cssPx('var(--safe-t)') + 96, bottom = H - 44 - cssPx('env(safe-area-inset-bottom,0px)');
   const t = Math.floor(Math.min((W - 16) / COLS, (bottom - top) / ROWS));
   B = { t, x: Math.round((W - t * COLS) / 2), y: Math.round(top + Math.max(0, (bottom - top - t * ROWS) * 0.4)) };
 }
