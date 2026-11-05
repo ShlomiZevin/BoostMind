@@ -428,16 +428,16 @@ function draw(now) {
     icon('alert', cx, by - ch * 1.0, t * 0.5, now);
   } });
   const k = moving ? clamp(prog, 0, 1) : 1;
-  const pos = snake.map((s) => ({ x: tx(lerp(s.pc, s.c, k) + 0.5), y: ty(lerp(s.pr, s.r, k) + 1) - t * 0.14 }));
+  const pos = snake.map((s) => ({ x: tx(lerp(s.pc, s.c, k) + 0.5), y: ty(lerp(s.pr, s.r, k) + 1) - t * 0.22 }));
   // Sagi's scooter grows: one long deck from his scooter to the last listener, a rear wheel at its end
   // the deck turns where the line turned: between two riders it passes through the tile the front one just left
-  const path = []; pos.forEach((p, i) => { path.push(p); if (i < pos.length - 1) path.push({ x: tx(snake[i].pc + 0.5), y: ty(snake[i].pr + 1) - t * 0.14 }); });
+  const path = []; pos.forEach((p, i) => { path.push(p); if (i < pos.length - 1) path.push({ x: tx(snake[i].pc + 0.5), y: ty(snake[i].pr + 1) - t * 0.22 }); });
   if (snake.length > 1 && !crash) drawDeck(path, snake[snake.length - 1], t);
   const view = (s) => s.dy < 0 ? ['b', false] : s.dy > 0 ? ['f', false] : ['s', s.face < 0];
   snake.forEach((s, i) => {
     const p = pos[i];
-    items.push({ y: (p.y + t * 0.14 - B.y) / t - 0.1 + (i === 0 ? 0.01 : 0), f: () => {
-      const cx = p.x, by = p.y + t * 0.06, bounce = Math.abs(Math.sin(now * 10 + i * 0.7)) * t * 0.03;
+    items.push({ y: (p.y + t * 0.22 - B.y) / t - 0.1 + (i === 0 ? 0.01 : 0), f: () => {
+      const cx = p.x, by = p.y + (i === 0 ? t * 0.14 : t * 0.05), bounce = Math.abs(Math.sin(now * 10 + i * 0.7)) * t * 0.03;
       const [v, flip] = view(s);
       if (i === 0) {
         if (crash) { shadow(cx, by, t * 1.1); sprite(IMG['sagi-crash'], cx + Math.sin(crash.t * 50) * Math.max(0, 1 - crash.t * 2) * 4, by, ch * 1.05, s.face < 0); return; }
