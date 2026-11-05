@@ -75,3 +75,5 @@ principles - apply them to whatever the game is.
 - **A safe place really hides the player**: while the player is in it, the enemies lose track and go elsewhere - no circling at the door.
 - **Signs and labels belong to the world**: paint them (GPT) and lay them on the tiles they name (a plate in three pieces - ends + a stretched middle), never a UI card floating on the map.
 - **Walls one tile thick** in maze games (no 2x2 solid masses except the enemies' house); check it with a script (yotam-games/pacman/tools/maze-check.py).
+
+- **Cut sprite sheets by the shapes, then look at every cut** on a contrasting background before it goes in: cutting a sheet into equal cells chops anything wide (a scooter, a side view) and drags in pieces of its neighbour (Sagi, 5 Nov 2026).
