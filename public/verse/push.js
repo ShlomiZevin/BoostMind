@@ -90,12 +90,16 @@ export function installPage(q = {}) {
     + (tab === 'android' && canInstallNow() && !e.inapp ? `<div class="ig-ok"><p>${esc(A.inviteLine)}</p><button class="vx-btn main small" data-install>${esc(A.inviteInstall)}</button></div>` : '')
     + (e.inapp ? `<div class="ig-ok"><p>${esc(A.coachTitleInapp)}</p></div>` : '') + stepsHtml(e)
     + part(2, A.part2, mine && s === 'granted') + push2();
-  return `<div class="ig"><h1>${esc(T.app.pageTitle)}</h1><p>${esc(T.app.pageSub)}</p>
+  // a way back at the top: inside the home-screen app there's no browser back button
+  return `<div class="ig"><button class="pg-back" data-ig-back>${I.back}${esc(T.app.back)}</button><h1>${esc(T.app.pageTitle)}</h1><p>${esc(T.app.pageSub)}</p>
     ${body}
     <a class="vx-btn glass block light-ok" href="/" style="margin-top:22px;color:var(--text);background:var(--card);border-color:var(--line)">${esc(T.igGot)}</a>
     ${standalone() ? '' : `<div class="ig-tabs">${['ios', 'android', 'desktop'].filter((k) => k !== tab).map((k) => `<a href="/install?os=${k}">${esc(T.igTabs[k])}</a>`).join('<span>·</span>')}</div>`}</div>`;
 }
+const START_LEN = history.length;
 document.addEventListener('click', async (e) => {
+  // back to the page they came from inside the site (the history grew since the site opened), else home
+  if (e.target.closest('[data-ig-back]')) { e.preventDefault(); if (history.length > START_LEN || document.referrer.startsWith(location.origin)) history.back(); else nav('/'); return; }
   if (e.target.closest('[data-push-on]')) { e.preventDefault(); if (await enablePush()) window.dispatchEvent(new Event('popstate')); }
   if (e.target.closest('[data-install]') && canInstallNow()) { e.preventDefault(); await installNow(); window.dispatchEvent(new Event('popstate')); }
 });

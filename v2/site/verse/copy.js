@@ -160,6 +160,7 @@ export const T = {
     welcomeLine: "נשאר צעד אחד: התראות. ככה תדעו ראשונים כשיש סרטון חדש, כשעונים לכם וכשקורה משהו בשלומיוורס.",
     welcomeYes: "להפעיל התראות",
     welcomeLater: "אחר כך",
+    back: "חזרה",
   },
   // daily records of the games (verse/records.js; Terra, 2026-11-03) - {place} {n} {unit} {nick} {game} are filled in
   rec: {
