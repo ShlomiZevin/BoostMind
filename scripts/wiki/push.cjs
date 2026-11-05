@@ -48,8 +48,23 @@ async function guardCharacters(bucket, base) {
   process.exit(2);
 }
 
+// Two computers (his ask, 2026-11-05): a computer that didn't pull would push old profiles / copy over the newer ones
+function guardBehind() {
+  const { execSync } = require('child_process');
+  const git = (a) => execSync('git ' + a, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  try { git('fetch -q origin'); } catch { console.log('  ! could not reach git - pushing without the up-to-date check'); return; }
+  const behind = +git('rev-list --count HEAD..@{u}');
+  if (!behind) return;
+  console.error(`
+  STOP - this computer is ${behind} commit(s) behind git; its wiki would put older profiles live.
+  git pull, run build.py again, then push.
+`);
+  process.exit(2);
+}
+
 async function main() {
   const t0 = Date.now();
+  guardBehind();
   const bucket = storage.bucket(MEDIA);
   const [remote] = await bucket.getFiles({ prefix: 'wiki/' });
   const have = Object.fromEntries(remote.map((f) => [f.name, f.metadata.md5Hash]));
@@ -85,6 +100,14 @@ async function main() {
     return o;
   };
   const out = fix(w);
+  // the portraits' originals are git-ignored (zoomcut/characters/*/*.jpg), so a build on a computer without them has no
+  // img - the one already in the bucket stays (his ask, 2026-11-05: a laptop build took every face but Asaf's off the site)
+  const kept = [];
+  for (const c of out.characters) {
+    const h = !c.img && have[`wiki/img/c/${c.id}.jpg`];
+    if (h) { c.img = BASE + `img/c/${c.id}.jpg?v=` + Buffer.from(h, 'base64').toString('hex').slice(0, 8); kept.push(c.id); }
+  }
+  if (kept.length) console.log(`  · ${kept.length} portrait(s) not on this computer - kept the live ones`);
   if (missing.length) console.log(`  ! wiki.json names files that aren't in public/wiki: ${missing.join(', ')}`);
   // 3. the videos live in the database (techietech-api/catalog.js, since 2026-11-05) - this push only ADDS a video the
   //    catalog doesn't have yet (the studio's publish and insta-to-verse still come this way until they call versePublish);
