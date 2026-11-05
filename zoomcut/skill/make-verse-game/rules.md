@@ -77,3 +77,5 @@ principles - apply them to whatever the game is.
 - **Walls one tile thick** in maze games (no 2x2 solid masses except the enemies' house); check it with a script (yotam-games/pacman/tools/maze-check.py).
 
 - **Cut sprite sheets by the shapes, then look at every cut** on a contrasting background before it goes in: cutting a sheet into equal cells chops anything wide (a scooter, a side view) and drags in pieces of its neighbour (Sagi, 5 Nov 2026).
+
+- **What you see is what blocks you** (Sagi, 5 Nov 2026): furniture drawn inside its own tiles with a floor shadow; no traps in a random map - every free tile has two ways out and the floor is one piece (check every seed with a script); a turn a moment late still counts. "It looks good and it is fun, but you cannot really play it" came from exactly these.
