@@ -159,21 +159,21 @@ async function listItems({ status, type, project, query, limit = 200, includeDon
 
 // ---------- notifications ----------
 // one notification to every device he turned them on (dead ones are dropped). kind = one of PUSH_KINDS.
-async function pushMe(kind, { title, body, url, tag }) {
+async function pushMe(kind, { title, body, url, tag }, why) {
   try {
     const on = { ...PUSH_KINDS, ...((await config()).push || {}) };
-    if (!on[kind]) return 0;
+    if (!on[kind]) { if (why) why.push('kind off: ' + kind); return 0; }
     const subs = await PUSH.get();
-    if (subs.empty) return 0;
+    if (subs.empty) { if (why) why.push('no devices'); return 0; }
     webpush.setVapidDetails('mailto:shlomi@boostart.io', VAPID_PUBLIC, VAPID_PRIVATE.value());
     const payload = JSON.stringify({ title: oneLine(title, 120), body: oneLine(body, 240), url: url || '/mind/', tag: tag || kind });
     let sent = 0;
     await Promise.all(subs.docs.map(async (d) => {
       try { await webpush.sendNotification(d.data().sub, payload, { TTL: 86400, urgency: kind === 'ask' ? 'high' : 'normal' }); sent++; }
-      catch (e) { if (e.statusCode === 404 || e.statusCode === 410) await d.ref.delete(); else console.error('mind push', e.statusCode, e.body || e.message); }
+      catch (e) { if (why) why.push(`${e.statusCode || ''} ${e.body || e.message}`.slice(0, 300)); if (e.statusCode === 404 || e.statusCode === 410) await d.ref.delete(); else console.error('mind push', e.statusCode, e.body || e.message); }
     }));
     return sent;
-  } catch (e) { console.error('mind push', e.message); return 0; }
+  } catch (e) { if (why) why.push(e.message); console.error('mind push', e.message); return 0; }
 }
 const sessTitle = (s) => oneLine(s.name || s.first || s.project || 'סשן', 60);
 const sessUrl = (id) => '/mind/#s=' + encodeURIComponent(id);
@@ -380,8 +380,9 @@ async function pageOp(b) {
     }
     case 'push_off': if (b.endpoint) await PUSH.doc(crypto.createHash('sha256').update(String(b.endpoint)).digest('hex').slice(0, 32)).delete(); return { ok: true };
     case 'push_test': {
-      const on = { ...(await config()).push }, sent = await (async () => { const k = Object.keys(on).find((x) => on[x]) || 'ask'; return pushMe(k, { title: 'המוח השני', body: 'ככה תיראה התראה. לחיצה פותחת את המוח.', url: '/mind/', tag: 'test' }); })();
-      return { sent };
+      const on = { ...(await config()).push }, why = [];
+      const sent = await pushMe(Object.keys(on).find((x) => on[x]) || 'ask', { title: 'המוח השני', body: 'ככה תיראה התראה. לחיצה פותחת את המוח.', url: '/mind/', tag: 'test' }, why);
+      return { sent, why };
     }
     case 'organize': {   // what he said / typed -> anything on his table: new items, and changes to the ones he has
       // (done, update, a note, type, date, project, star, off the table). The AI sees his items and picks the actions.
