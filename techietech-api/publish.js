@@ -90,7 +90,9 @@ async function video(b) {
   const src = b.url ? null : await mediaUrl(admin, `v/${b.id}.mp4`), poster = await mediaUrl(admin, `v/${b.id}.jpg`);
   if (!b.url && !src && !was?.url) return { error: 'no_file', detail: `upload wiki/v/${b.id}.mp4 first (op uploadUrl)` };
   const w = await base();
-  const cast = Array.isArray(b.cast) ? b.cast.filter((c) => ID.test(c)) : was?.cast || [];
+  // an empty list counts as not sent - it never blanks the cast that is there (Sketch Studio's catch)
+  const sent = Array.isArray(b.cast) ? b.cast.filter((c) => ID.test(c)) : [];
+  const cast = sent.length ? sent : was?.cast || [];
   const seriesOf = Object.fromEntries(w.characters.map((c) => [c.id, c.series]));
   const v = {
     title: b.title || was?.title || '', teaser: b.teaser || was?.teaser || '', cast,
