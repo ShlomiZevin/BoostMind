@@ -320,7 +320,7 @@ textarea.vx-field { height: auto; min-height: 96px; padding: 14px 18px; resize: 
 @media (max-width: 760px) { .sv-box { width: 100vw; height: 100%; aspect-ratio: auto; max-width: none; } }
 /* his choice (2026-11-05, "B"): the picture sits BETWEEN the name bar and the button - nothing lies on it; the full-screen
    button (.sv.clean) gives it the whole screen with the name, the button and the words on top, and back on a second tap */
-.sv .sa { --top: calc(72px + env(safe-area-inset-top)); --bot: calc(10px + env(safe-area-inset-bottom)); }
+.sv .sa { --top: calc(78px + env(safe-area-inset-top)); --bot: calc(10px + env(safe-area-inset-bottom)); }
 .sv .with-cta .sa { --bot: calc(86px + env(safe-area-inset-bottom)); }
 .sv.clean .sa, .sv.clean .with-cta .sa { --top: 0px; --bot: 0px; }
 .sv:not(.clean) .sv-shade { opacity: 0; }
@@ -328,10 +328,15 @@ textarea.vx-field { height: auto; min-height: 96px; padding: 14px 18px; resize: 
 .sv-shade { height: 150px; background: linear-gradient(to bottom, rgba(0, 0, 0, .62), rgba(0, 0, 0, .25) 60%, transparent); }
 .sv-shade.bot { inset: auto 0 0; height: 170px; background: linear-gradient(to top, rgba(0, 0, 0, .6), transparent); opacity: 0; }
 .sv.peek .sv-shade.bot { opacity: 0; }
-.sv-head { gap: 10px; inset-inline: 10px; }
+/* the top row centred between the progress lines and the picture (his note: too close to the picture, too far from the lines):
+   lines end at 13px, the picture starts at 78px, the row is 52px tall -> 19.5px from the top */
+.sv-head { gap: 10px; inset-inline: 10px; top: calc(19.5px + env(safe-area-inset-top)); }
 .sv-who { position: relative; flex: none; }
 .sv-who .vx-av { width: 44px; height: 44px; }
-.sv-follow { position: absolute; bottom: -3px; inset-inline-start: -3px; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 2px solid #111; background: var(--vx-accent); color: #fff; display: grid; place-items: center; cursor: pointer; }
+/* the ring as a shadow, not an outline: iPhone browsers draw an outline around the square, not the circle (his screenshot) */
+.sv-who { padding: 4px; }
+.sv-who .vx-av.ring { outline: none; box-shadow: 0 0 0 2px #15131b, 0 0 0 4.5px var(--vx-accent); }
+.sv-follow { position: absolute; bottom: -1px; inset-inline-start: -1px; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 2px solid #111; background: var(--vx-accent); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .sv-follow svg { width: 12px; height: 12px; stroke-width: 3; }
 .sv-follow span { display: none; }
 .sv-follow.on { background: #2b2b33; color: var(--vx-accent); }
@@ -346,10 +351,12 @@ textarea.vx-field { height: auto; min-height: 96px; padding: 14px 18px; resize: 
 .sv-btn:active { transform: scale(.94); }
 /* full screen = the original picture / clip and nothing on it (his ask, 2026-11-05) */
 .sv.clean .sv-head, .sv.clean .sv-bars, .sv.clean .sv-cta, .sv.clean .sa-boxes, .sv.clean .sv-shade { opacity: 0 !important; pointer-events: none; }
-.sv-exit { position: absolute; top: calc(16px + env(safe-area-inset-top)); inset-inline-end: 14px; z-index: 6; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%;
-  display: none; place-items: center; color: #fff; background: rgba(0, 0, 0, .4); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
-.sv-exit svg { width: 20px; height: 20px; }
-.sv.clean .sv-exit { display: grid; animation: sv-exit-hint 2.6s ease forwards; }
+/* the way back, for two seconds (his ask): a clear pill at the top, then it fades - a tap anywhere still comes back */
+.sv-exit { position: absolute; top: calc(18px + env(safe-area-inset-top)); left: 50%; translate: -50% 0; z-index: 6; height: 42px; padding: 0 16px; border: 0; border-radius: 99px;
+  display: none; align-items: center; gap: 8px; color: #fff; font: inherit; font-size: .92rem; font-weight: 700; white-space: nowrap; pointer-events: none;
+  background: rgba(0, 0, 0, .55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.sv-exit svg { width: 18px; height: 18px; }
+.sv.clean .sv-exit { display: flex; animation: sv-exit-hint 2.6s ease forwards; }
 @keyframes sv-exit-hint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 .sv-tap { top: calc(70px + env(safe-area-inset-top)); }
 .with-cta .sv-text { bottom: calc(100px + env(safe-area-inset-bottom)); }

@@ -85,7 +85,7 @@ export function openStory(char) {
       <div data-slot></div>
       <div class="sv-shade"></div>
       <button class="sv-tap next" data-next aria-label="הבא"></button><button class="sv-tap prev" data-prev aria-label="הקודם"></button>
-      <button class="sv-exit" data-exit aria-label="יציאה ממסך מלא">${textOn}</button>
+      <button class="sv-exit" data-exit>${textOn}<span>יציאה ממסך מלא</span></button>
     </div>`;
   document.body.append(el);
   document.body.style.overflow = 'hidden';
