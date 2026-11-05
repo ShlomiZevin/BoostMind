@@ -54,6 +54,29 @@ no set, no eye contact).
 5. Hand over in one message: length, which take of the opening, lines not filmed, off-script ad-libs (keep?), the
    music in use and the muted options. Optionally a phone page with the beds (claude.ai artifact) when he is away.
 
+## ONE continuous take (sagi-1, 2026-11-05 - his words: "very sharp, good pace... it's one shot, but cut the
+sentences I said twice, transcribe it so it's what I actually shot... nothing special, quite simple... 1.2, 1.3 speed,
+it's very slow")
+- **Speed 1.25** for a single-take selfie monologue (he finds 1x "very slow"; 1.15 is for many short takes).
+- No restarts to find (`scdet` gives nothing) - the work is the **repeats**: transcribe with word times, find every
+  sentence said twice (sagi-1: "לא ברכבת, לא באוטובוס, לא ברכב... בדיוק בזמן" at 55.9 s and again at 62.0 s), keep the
+  LAST one, cut the first with `cut.removes` {take: [[before the first try, just before the retake]]}.
+- **Subtitles = what he SAID, not the script he pasted** (he ad-libs a lot - "בשביל קופסת פח", "לא נוגע בעוגיות"):
+  write the corrected transcript into captions.txt (both tries of a repeated line, so the aligner finds the kept one)
+  and `captions_from: "file"` in episode.json - otherwise the Reader script overwrites it. Re-transcribe an unclear
+  word on its span alone before writing it (ivrit-ai heard "לדוד" for "לזוז").
+- **Pause audit in numbers** (the recogniser's word times are too rough for gaps): 10 ms RMS of the take, a quiet run
+  under -34 dB of >= 0.14 s inside a piece = a pause -> removes with 0.04 s margins (sagi-1: six of 0.15-0.45 s; the
+  engine's merge 0.2 left them because the room noise sat above its threshold). The video opens on his first word:
+  `cut.edges` [[piece start, first word - 0.08]].
+- **A project made before filming (stand-in) is reused**, not remade - but its layer props stay (rule: props are never
+  overwritten): `person` -> `cutout: false` + full-frame box, `set` hidden, the end card moved to the new end
+  (`pin: end` does not follow a rebuild that shortens the cut), every bed's `dur` = the new `duration`.
+- **Music with `own_pace: true`** on every bed: the 1.25x would otherwise speed the music up too. A 1-minute track
+  covers 75 s of timeline at 1.25 - one item, no loop needed. The character's beds + any game music of his = muted
+  layers, one per option, levels matched by LUFS (gain = known bed's gain x 10^((its LUFS - this LUFS)/20)).
+- Measured: 87.6 s take -> 13 pieces, 55 s at 1.25 + a 4 s end card.
+
 ## Measured on asaf-1
 Two files (95 s + 30 s, 14 recording segments) -> 74.5 s at 1.15. His notes after the first tight cut were ALL
 pause-audit items (four 0.16-0.19 s pauses, three 0.3-0.5 s tails) plus one off-script line - the audit above
