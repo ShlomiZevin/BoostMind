@@ -62,6 +62,8 @@
 
 .ins-text { width: 100%; min-height: 76px; resize: vertical; background: var(--app); border: 1px solid var(--edge-2); border-radius: var(--r); padding: 9px 10px; outline: none; line-height: 1.45; }
 .ins-text:focus { border-color: var(--accent); }
+.ins-saved { font-size: 11px; color: var(--ok, #45a86a); margin-top: 3px; }
+.ins-saved.dirty { color: var(--faint); }
 .ins-select { height: 32px; width: 100%; background: var(--app); border: 1px solid var(--edge-2); border-radius: var(--r); padding: 0 8px; outline: none; cursor: pointer; }
 
 /* 3x3 anchor grid */

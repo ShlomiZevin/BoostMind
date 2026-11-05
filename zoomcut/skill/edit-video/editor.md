@@ -105,6 +105,11 @@ One format, one composition, one editor, one export. The format and the API: `la
   audio again (`zoomcut.py voices`, seconds). episode.json characters[].voice. The export mixes from the same settings.
 - **Subtitles - a layer.** The Subtitles lane: click a chunk → its line → the subtitle text, edited live (corrections
   `caption`, chunks re-cut in edit.json at once, POST /api/ep/:id/caption).
+- **Every box he types in saves when he leaves it - any way** (`useTyped` in `layers/inspect/controls.tsx`, 2026-11-05:
+  his subtitle edits "sometimes just don't save"): a blur, but also the box closing - a block clicked on the timeline or
+  the video keeps the focus (its mousedown is prevented) and picks another line - and the tab going away; always into
+  the line it was opened on (the box is keyed on it). A small line under it: "Saves when you click away" / "Saved".
+  New typed boxes use it (subtitle words, who, a text's words, a script line's subtitle words do).
 - **Click a character's name on the timeline** = all of that character's settings (look, background, voice). The ✕ in
   the inspector header = back to the project settings (speed, subtitles, texts).
 - Images (an end poster) are overlay layers (`style: image`), texts as before.

@@ -37,6 +37,10 @@ const post = async (url: string, body: any) => {
 
 export function useLayered(ep: string) {
   const [view, setView] = useState<View | null>(null);
+  // (the newest view, for a send made from an older render - a box saving as it closes: it wrote over the changes made
+  // since and the inverse was taken on an old project)
+  const viewRef = useRef<View | null>(null);
+  viewRef.current = view;
   // live drafts by channel: 'drag' (a slider / block being dragged - replaced as it moves) and 'sync' (edits shown
   // live while a builder catches up in the background - they stack). Both show; only a commit clears 'drag'.
   const [drafts, setDrafts] = useState<Record<string, any[]>>({});
@@ -96,13 +100,15 @@ export function useLayered(ep: string) {
   };
 
   const send: Send = (ops, opts = {}) => {
+    const view = viewRef.current;
     if (!view) return;
     if (opts.commit === false) { const ch = opts.channel || 'drag'; setDrafts((d) => ({ ...d, [ch]: ops })); return; }  // (no ops: that draft goes)
     if (!ops.length) return;
     let inv: any[];
     try { inv = inverse(view.project, ops); } catch (e: any) { setError(e.message); return; }
     const next = apply(view.project, ops);
-    setView({ ...view, project: next });
+    viewRef.current = { ...view, project: next };
+    setView(viewRef.current);
     setDrafts((d) => ({ ...d, drag: [] }));
     setUndo((u) => [...u.slice(-199), { ops, inv, label: opts.label }]);
     setRedo([]);

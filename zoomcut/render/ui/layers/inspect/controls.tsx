@@ -196,6 +196,40 @@ export function Row({ label, wide, children }: { label: React.ReactNode; wide?: 
   const { q, note } = useQ(label);
   return <><div className={'ins-row' + (wide ? ' wide' : '')}><label>{label}{q}</label><div>{children}</div></div>{note}</>;
 }
+/** A box he types in (a subtitle's words, a text, who says it): saved when he leaves it - however he leaves it, always
+ *  into the line it was opened on. Leaving isn't always a blur: a block clicked on the timeline or the video keeps the
+ *  focus (its mousedown is prevented) and picks another line, and the box closed with the words unsaved - his edits
+ *  "sometimes just don't save" (2026-11-05). So also when the box closes, and when the tab goes away. Key the box on
+ *  its line (key={item.id}) - it is then one box per line. Returns the box's props and a small "saved" line. */
+export function useTyped(initial: string, save: (v: string) => void, opts: { trim?: boolean } = {}) {
+  const cur = useRef(initial), done = useRef(initial), fn = useRef(save), live = useRef(true);
+  fn.current = save;  // (the newest save of this box - the same line: the box is keyed on it)
+  const [state, setState] = useState<'' | 'dirty' | 'saved'>('');
+  const norm = (v: string) => (opts.trim ? v.trim() : v);
+  const flush = () => {
+    const v = norm(cur.current);
+    if (v === norm(done.current)) { if (live.current) setState((s) => (s === 'dirty' ? '' : s)); return; }
+    done.current = v; fn.current(v);
+    if (!live.current) return;
+    setState('saved');
+    setTimeout(() => live.current && setState((s) => (s === 'saved' ? '' : s)), 2500);
+  };
+  useEffect(() => {
+    const away = () => flush();
+    addEventListener('pagehide', away);
+    return () => { removeEventListener('pagehide', away); live.current = false; flush(); };
+  }, []);
+  return {
+    box: {
+      defaultValue: initial,
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { cur.current = e.target.value; setState(norm(e.target.value) === norm(done.current) ? '' : 'dirty'); },
+      onBlur: flush,
+    },
+    flush,
+    status: state ? <div className={'ins-saved' + (state === 'dirty' ? ' dirty' : '')}>{state === 'dirty' ? 'Saves when you click away' : 'Saved'}</div> : null,
+  };
+}
+
 export const Note = ({ warn, children }: { warn?: boolean; children: React.ReactNode }) => <div className={'ins-note' + (warn ? ' warn' : '')}>{children}</div>;
 
 /** "clip only" mark when the selected clip overrides a layer setting; click = use the layer's value again. */

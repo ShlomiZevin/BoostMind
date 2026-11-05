@@ -11,6 +11,7 @@ import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
 import { Media } from './Media';
 import { Inspector, hasPanel } from './Inspector';
+import { useTyped } from './inspect/controls';
 import { LineProps } from '../lineprops';
 import { Media as FootageAssign } from '../footage';
 import { Handles, pickAt } from './Handles';
@@ -383,8 +384,8 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       <LineProps key={curLine.n} l={curLine} busy={busy} chars={chars} onFix={(f: any) => lineFix(curLine.n, f)} />
       <div className="card">
         <div className="card-h"><div className="title grow">Subtitle words</div></div>
-        <textarea className="field he" style={{ height: 70, padding: 8, userSelect: 'text' }} key={curLine.n} defaultValue={curLine.fix?.caption || curLine.text}
-          onBlur={async (e) => { const t = e.target.value.trim(); if (t !== (curLine.fix?.caption || curLine.text)) { before('caption'); await build(ep, { action: 'caption', n: curLine.n, text: t === curLine.text ? '' : t }); reloaded(); } }} />
+        <LineCaption key={curLine.n} words={curLine.fix?.caption || curLine.text}
+          save={async (t) => { before('caption'); await build(ep, { action: 'caption', n: curLine.n, text: t === curLine.text ? '' : t }); reloaded(); }} />
         <div className="help">How this line reads on screen; the timing stays the line's.</div>
       </div>
     </>
@@ -466,4 +467,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         onDelete={() => deleteNote(noteOpen.note.id)} onClose={() => setNoteOpen(null)} />}
     </div>
   );
+}
+
+/** A script line's subtitle words (saved when he leaves the box, any way - useTyped: picking another line kept the
+ *  focus and dropped the words) */
+function LineCaption({ words, save }: { words: string; save: (t: string) => void }) {
+  const t = useTyped(words, save, { trim: true });
+  return <><textarea className="field he" style={{ height: 70, padding: 8, userSelect: 'text' }} dir="auto" {...t.box} />{t.status}</>;
 }

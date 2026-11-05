@@ -2,19 +2,27 @@
 // (render/src/layers/styles.tsx), where they sit, when, and how they come in.
 import React from 'react';
 import { TEXT_STYLES, SUB_STYLES } from '../../../src/layers/styles';
-import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, PanelEnd, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace } from './controls';
+import { InspectorProps, useSettings, Head, Sec, More, Row, Note, Ovr, Seg, Chips, Slider, ToggleRow, Num, Anchor, Swatches, ClipTiming, LayerState, PanelEnd, Entrance, WholeVideo, Opacity, ICON, fmt, usePlace, useTyped } from './controls';
 import { popAnim, blinkAnim, hasPop, hasBlink, mergeAnim } from '../../../src/layers/entrances_solo.js';
 
 const WHITE_ETC = ['#ffffff', '#ffd23f', '#ff6b57', '#111111'];
 const TEXT_ANCHORS = ['tl', 't', 'tr', 'c', 'bl', 'b', 'br'];
 
-/** The words of the selected item (Enter = a new line, saved when the field is left). */
+/** The words of the selected item (Enter = a new line; saved when he leaves the box, any way - useTyped). */
 function Words({ P, rows = 3 }: { P: InspectorProps; rows?: number }) {
-  const it = P.item;
+  return P.item ? <WordsBox key={P.item.id} P={P} rows={rows} /> : null;
+}
+function WordsBox({ P, rows }: { P: InspectorProps; rows: number }) {
   const S = useSettings(P);
-  if (!it) return null;
-  return <textarea className="ins-text he" rows={rows} key={it.id} defaultValue={it.text ?? ''} dir="auto"
-    onBlur={(e) => e.target.value !== (it.text ?? '') && S.item({ text: e.target.value })} />;
+  const t = useTyped(P.item.text ?? '', (v) => S.item({ text: v }));
+  return <><textarea className="ins-text he" rows={rows} dir="auto" {...t.box} />{t.status}</>;
+}
+/** Who says the line (saved like the words) */
+function WhoBox({ P }: { P: InspectorProps }) {
+  const S = useSettings(P);
+  const t = useTyped(P.item.who || '', (v) => S.item({ who: v || null }), { trim: true });
+  return <Row label="Who"><input className="ins-select he" dir="auto" {...t.box}
+    onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />{t.status}</Row>;
 }
 
 /** One word / number knob typed in (saved when the field is left; empty = the style's default). */
@@ -179,7 +187,7 @@ export const SubtitlesInspector: React.FC<InspectorProps> = (P) => {
     <Head icon={ICON.subtitles} title={layer.name || 'Subtitles'} sub={item ? `Line ${item.id}${item.who ? ' · ' + item.who : ''}` : `Subtitles · ${layer.items?.length || 0} lines`} />
     {item && <Sec title="Line">
       <Words P={P} rows={2} />
-      <Row label="Who"><input className="ins-select he" key={item.id} defaultValue={item.who || ''} dir="auto" onBlur={(e) => e.target.value !== (item.who || '') && S.item({ who: e.target.value || null })} /></Row>
+      <WhoBox key={item.id} P={P} />
       <ToggleRow label="Said on the side (amber, above)" on={!!item.side} onChange={(on) => S.item({ side: on || null })} />
     </Sec>}
     <Sec title="Style">
