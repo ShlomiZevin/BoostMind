@@ -1,0 +1,9 @@
+Game sprite sheet for a mobile Snake game, transparent background, drawn in the cartoon game style of the second reference picture (same scooters, same size and angle). Six real colleagues from a tech company, the six people of the first reference picture, from left to right - keep each one's face, hair and glasses recognisable:
+1) Yotam - black bob wig with bangs, glasses, round face, a galaxy-print t-shirt, jeans;
+2) Hani - a Haredi woman: black head scarf (tichel) tied at the back covering ALL her hair, glasses, a modest dark navy long-sleeved buttoned blouse and a long dark skirt to below the knees, dark stockings, flat shoes;
+3) Osnat - brown hair up high with a pink headband bow, glasses, grey blazer, black top, trousers;
+4) Yaniv - bald, glasses, short stubble, navy polo shirt, jeans; his eyes slightly misaligned;
+5) Tzvika - bald, thick beard with sideburns, glasses, purple t-shirt, a sour grumpy face;
+6) Ido - wild messy black hair, thick round glasses, short beard, white t-shirt, headphones around his neck.
+Each one riding a small grey kick scooter, seen from slightly above, scooter pointing to the right, each with a bored, suffering face because someone is talking their ear off about scooters.
+Arranged 3 across and 2 down in that order, with clear empty space between them, all the same size, full body, nothing cut off.

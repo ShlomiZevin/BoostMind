@@ -1,0 +1,6 @@
+Game sprite sheet for a mobile Snake game, transparent background: Sagi, the man in the first reference picture (keep his face exactly - glasses, stubble, and his eyes CROSSED inward toward his nose, black helmet with loose straps, light blue tank top, dark shorts, plain black sneakers with no logo), drawn in the cartoon game style of the second reference picture.
+Three separate poses side by side with empty space between them, each one full body standing on his black electric scooter, seen from slightly above, scooter pointing to the right:
+1) riding happily, talking with an excited open mouth;
+2) riding and pointing proudly down at his scooter while talking, the happiest man alive;
+3) crashed - fallen off, dizzy, helmet tilted, scooter on its side.
+Nothing cut off by the edges.

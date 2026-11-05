@@ -1,0 +1,4 @@
+Game sprite sheet for a mobile Snake game, transparent background, in the cartoon game style of the second reference picture. Four separate figures side by side with empty space between them, full body, seen from slightly above, all the same size, nothing cut off:
+1) and 2) Ofer, the man in the first reference picture (grey hair, glasses, short beard, grey blazer, white shirt) - a busy VP walking briskly to the right holding a tablet, two steps of a walk;
+3) an important Enterprise client visitor: a smiling woman in an elegant navy suit with a VISITOR lanyard and a rolling suitcase, standing and waving;
+4) the same client visitor, delighted, clapping.

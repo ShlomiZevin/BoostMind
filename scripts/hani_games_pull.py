@@ -18,7 +18,9 @@ SITE = 'https://boostmind-b052c.web.app'
 OURS = ('/hani-games/img/', '/hani-games/audio/', '/hani-games/video/', '/hani-games/sounds/')
 # other games are in git, but their pictures of Hani's face never go into git - only those come from the live site
 LIVE_ONLY = ('/yotam-games/pacman/assets/hani', '/yotam-games/pacman/assets/hero.jpg', '/yotam-games/pacman/assets/share.jpg',
-             '/yotam-games/pacman/cover.jpg')
+             '/yotam-games/pacman/cover.jpg',
+             '/sagi-games/scooter-snake/assets/c2-', '/sagi-games/scooter-snake/assets/hero.jpg', '/sagi-games/scooter-snake/assets/share.jpg',
+             '/sagi-games/scooter-snake/cover.jpg')
 
 token = subprocess.run('gcloud auth print-access-token', shell=True, capture_output=True, text=True).stdout.strip()
 HDR = {'Authorization': 'Bearer ' + token, 'x-goog-user-project': 'boostmind-b052c'}

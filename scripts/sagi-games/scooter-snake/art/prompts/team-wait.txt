@@ -1,0 +1,8 @@
+Game sprite sheet for a mobile Snake game, transparent background: the SAME six colleagues as in the reference picture (same faces, hair, glasses, clothes, same order: 3 across, 2 down, same cartoon style and size) but now WITHOUT scooters - each one standing alone in the office, relaxed and content, unaware of what is coming:
+1) Yotam holding a laptop with stickers, smiling;
+2) Hani (keep her modest clothes exactly: black head scarf covering all her hair, long-sleeved navy blouse, long dark skirt) holding a laptop close to her chest, arms down, calm smile;
+3) Osnat holding a clipboard and a coffee mug;
+4) Yaniv looking at a tiny colourful keyboard in his hands;
+5) Tzvika with a coffee mug, grumpy as always;
+6) Ido listening to music, hands on his headphones.
+Clear empty space between them, full body, nothing cut off.

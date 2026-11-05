@@ -1,0 +1,7 @@
+Game props for a top-down mobile Snake game set in a modern tech company open-space office, transparent background, in the cartoon game style of the reference picture, seen from above at a slight angle. Six separate objects with clear empty space between them, nothing cut off:
+1) a pair of white office desks side by side with monitors, keyboards and chairs (a wide object, twice as wide as tall);
+2) a big plant in a grey pot (square);
+3) a coffee corner counter with a coffee machine and cups (square);
+4) a water cooler (square);
+5) a stack of moving boxes (square);
+6) a foosball table seen from above (square).

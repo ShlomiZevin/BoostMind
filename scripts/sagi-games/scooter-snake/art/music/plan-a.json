@@ -1,0 +1,5 @@
+{"positive_global_styles":["upbeat quirky comedy game music","fast 140 bpm","bouncy pizzicato strings","plucky ukulele","whistled melody","light snappy drums","playful, cheeky, in love with something silly","instrumental","seamless loop"],
+ "negative_global_styles":["vocals","slow","sad","ambient","cinematic","epic"],
+ "sections":[
+  {"section_name":"ride","positive_local_styles":["catchy whistled hook","bouncy bass"],"negative_local_styles":["vocals"],"duration_ms":30000,"lines":[]},
+  {"section_name":"faster","positive_local_styles":["same hook, more energy","handclaps","bicycle-bell-like glockenspiel accents"],"negative_local_styles":["vocals"],"duration_ms":30000,"lines":[]}]}

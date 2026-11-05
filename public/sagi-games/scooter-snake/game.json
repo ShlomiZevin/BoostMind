@@ -1,0 +1,13 @@
+{
+  "slug": "scooter-snake",
+  "title": "שמעת על הקורקינט שלי?",
+  "tagline": "שגיא מאוהב בקורקינט שלו – וכל מי שהוא תופס נגרר אחריו ושומע הכול",
+  "character": "sagi",
+  "chars": ["sagi", "ofer", "yotam", "hani", "osnat", "yaniv", "tzvika", "ido"],
+  "world": "טקי-טק",
+  "status": "live",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:scooter-snake:best", "label": "מאזינים" },
+  "record": { "unit": "מאזינים", "better": "high" },
+  "date": "2026-11-05"
+}

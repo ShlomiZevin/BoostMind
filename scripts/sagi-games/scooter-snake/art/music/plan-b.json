@@ -1,0 +1,5 @@
+{"positive_global_styles":["zippy electro-funk game music","fast 128 bpm","funky slap bass","bright retro synth lead","tight disco drums","fun, cheeky, speeding through an office","instrumental","seamless loop"],
+ "negative_global_styles":["vocals","slow","sad","ambient","dark","epic"],
+ "sections":[
+  {"section_name":"cruise","positive_local_styles":["catchy synth hook","groovy bass"],"negative_local_styles":["vocals"],"duration_ms":30000,"lines":[]},
+  {"section_name":"boost","positive_local_styles":["same hook, higher energy","synth arpeggio","claps"],"negative_local_styles":["vocals"],"duration_ms":30000,"lines":[]}]}

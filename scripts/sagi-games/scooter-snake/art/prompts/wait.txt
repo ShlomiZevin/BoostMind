@@ -1,0 +1,2 @@
+Game sprite sheet for a mobile Snake game, transparent background: the SAME six office workers as in the reference picture (same faces, hair, clothes, same order: 3 across, 2 down, same cartoon style and size), but now WITHOUT scooters - each one standing alone in the office, relaxed and cheerful, unaware of what is coming: holding a coffee mug, looking at a phone, holding a laptop, stretching, eating a sandwich, holding a notebook.
+Clear empty space between them, full body, nothing cut off.

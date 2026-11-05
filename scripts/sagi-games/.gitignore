@@ -1,0 +1,9 @@
+# Hani's face (photo + paintings) never goes into git
+ref/team-hani.jpg
+ref/team-strip.jpg
+scooter-snake/art/sheets/team-ride.png
+scooter-snake/art/sheets/team-wait.png
+scooter-snake/art/sheets/cover2.png
+scooter-snake/build/
+scooter-snake/tools/shots/
+*.log
