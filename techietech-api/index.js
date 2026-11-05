@@ -213,3 +213,6 @@ Object.assign(exports, require('./page'));
 // "המוח השני" (shlomiverse.com/mind/): everything in his head + every Claude session on his computers, one page,
 // a hook door and an MCP server - see mind.js
 Object.assign(exports, require('./mind'));
+// the video catalog's door: the studio, insta-to-verse and sessions publish / update / hide a video - see publish.js,
+// catalog.js (the list of videos lives in the database since 2026-11-05)
+exports.versePublish = require('./publish').versePublish;

@@ -129,3 +129,4 @@ public/avi-balloons/img/og.jpg
 drafts/avi-balloons/
 # Remotion's downloaded headless Chrome (a binary, re-downloads itself)
 zoomcut/.remotion/
+scripts/wiki/catalog-local.json

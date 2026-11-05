@@ -230,6 +230,7 @@
   .ask p { font-size: 1rem; line-height: 1.55; margin: 0 0 18px; color: var(--text); }
   .ask-acts { display: flex; gap: 8px; justify-content: center; }
   .ask-acts .btn { min-width: 110px; justify-content: center; }
+  .vc-q { width: 100%; height: 42px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; padding: 0 14px; }
   .bs-toast { position: fixed; bottom: 24px; left: 50%; translate: -50% 0; z-index: 999; background: var(--card2); border: 1px solid var(--accent); color: var(--text); padding: 12px 18px; border-radius: 14px; font-weight: 700; }
   .dz-row .del { margin-inline-start: auto; color: #ff7a7a; }
   .dz-row .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line2); }
@@ -650,7 +651,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
+const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -670,7 +671,7 @@ function draw() {
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
   if (tab === 'requests' || tab === 'content' || tab === 'ideas') markSeen(tab);
   const badge = badges();
-  const phoneTab = ['requests', 'ideas', 'content', 'publish', 'mail'].includes(tab) ? 'more' : tab;
+  const phoneTab = ['requests', 'ideas', 'content', 'videos', 'publish', 'mail'].includes(tab) ? 'more' : tab;
   const moreBadge = badge.requests + badge.ideas + badge.content;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
@@ -679,7 +680,7 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, chats, data, people, requests, ideas, content, publish, mail: mails, more })[tab]();
+  ({ overview, chats, data, people, requests, ideas, content, videos, publish, mail: mails, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
@@ -687,7 +688,7 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
 }
@@ -1346,6 +1347,31 @@ function storyWindow(edit) {
 }
 
 // ---------- new video ----------
+// ---------- סרטונים: every video in the catalog (the list lives in the database since 2026-11-05 - techietech-api/catalog.js),
+// hidden ones too; hiding is the only way a video leaves the site, and it comes back the same way ----------
+let VC = null, vcQ = '';
+async function videos() {
+  const draw = () => {
+    const q = vcQ.trim(), list = (VC || []).filter((v) => !q || (v.title || '').includes(q) || v.id.includes(q));
+    const hidden = (VC || []).filter((v) => v.hidden).length;
+    $('#pane').innerHTML = `<div class="top"><div><h1>סרטונים</h1><p>כל הסרטונים באתר${VC ? ` · ${fmt(VC.length - hidden)} באתר${hidden ? ` · ${hidden} מוסתרים` : ''}` : ''}. סרטון יורד מהאתר רק אם מסתירים אותו כאן.</p></div></div>
+      <input class="vc-q" placeholder="חיפוש לפי שם" value="${esc(vcQ)}" data-vc-q>
+      <div>${!VC ? '<div class="empty">טוען…</div>' : list.slice(0, 200).map((v) => `<div class="item ${v.hidden ? 'off' : ''}">${v.poster ? `<img class="th" src="${esc(v.poster)}" alt="" loading="lazy">` : ''}<div class="body"><b>${esc(v.title || v.id)}</b>
+        <p>${(v.cast || []).map((id) => esc(C[id]?.name || id)).join(', ') || '&nbsp;'} · ${esc(v.date || '')}${v.archive ? ' · <span class="tag">אינסטגרם</span>' : ''}${v.hidden ? ' · <span class="tag red">מוסתר</span>' : ''}</p></div>
+        <a class="btn" href="/v/${encodeURIComponent(v.id)}" target="_blank">${IC.out}</a><button class="btn" data-vc-hide="${v.id}" data-on="${v.hidden ? 0 : 1}">${v.hidden ? 'להחזיר לאתר' : 'להסתיר'}</button></div>`).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`;
+    const inp = $('[data-vc-q]'); if (inp) inp.oninput = (e) => { vcQ = e.target.value; const pos = e.target.selectionStart; draw(); const n = $('[data-vc-q]'); n.focus(); n.setSelectionRange(pos, pos); };
+  };
+  draw();
+  if (!VC) { VC = (await api('catalogList', {}).catch(() => ({ videos: [] }))).videos; if (tab === 'videos') draw(); }
+}
+async function vcHide(b) {
+  const v = (VC || []).find((x) => x.id === b.dataset.vcHide), hide = b.dataset.on === '1';
+  if (!v || !(await askBox(hide ? `להסתיר את "${v.title}"? הסרטון יורד מהאתר ומהצ'אט (אפשר להחזיר אותו מכאן).` : `להחזיר את "${v.title}" לאתר?`))) return;
+  b.disabled = true;
+  await api('catalogHide', { id: v.id, hidden: hide }).catch(() => {});
+  v.hidden = hide; videos();
+}
+
 function video() {
   const list = W.videos.filter((v) => !v.archive && !v.url).slice(0, 30);
   $('#pane').innerHTML = `${publishSegHtml()}<div class="top"><div><h1>סרטון חדש</h1><p>סרטונים חדשים יוצאים לעוקבים לבד, בדיקה כל רבע שעה. כאן רואים מה כבר נשלח, ואפשר לשלוח שוב.</p></div></div>
@@ -1564,6 +1590,7 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.stchar !== undefined) { stChar = b.dataset.stchar; story(); }
   else if (b.dataset.hide) { if (b.closest('.sheet')) closeSheet(); b.disabled = true; await api('hide', { kind: b.dataset.hide, id: b.dataset.id, hidden: b.dataset.on === '1' }).catch(() => {}); refresh(); }
   else if (b.dataset.ideaStep) await ideaStep(b);
+  else if (b.dataset.vcHide) await vcHide(b);
   else if (b.dataset.ideaReply) {
     const id = b.dataset.ideaReply, text = document.querySelector(`[data-idea-reply-text="${id}"]`).value.trim();
     const x = (L.ideas || []).find((i) => i.id === id);

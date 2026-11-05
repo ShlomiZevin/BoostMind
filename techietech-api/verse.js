@@ -951,6 +951,12 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
     // an idea's way (his ask, 2026-11-05): liked -> making -> live (with its video); each step tells the writer once - the
     // bell, a push and a mail (mailer.ideaMail: Shabbat and night wait, a stopped mail never goes) - and 'live' also tells
     // everyone who voted for it (bell + push). 'new' takes the mark off and tells nobody.
+    // the video catalog (catalog.js / publish.js): every video, hidden ones too, and hide / show - the only way one leaves
+    if (op === 'catalogList') {
+      const q = await db.collection('catalogVideos').select('title', 'hidden', 'date', 'poster', 'archive', 'cast', 'url').get();
+      return res.json({ videos: q.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.date).localeCompare(String(a.date))) });
+    }
+    if (op === 'catalogHide') return res.json(await require('./publish')._publish.handle({ op: 'hide', id: b.id, hidden: b.hidden !== false }));
     // the Shlomiverse answers an idea (his ask, 2026-11-05: "I want to comment from there"): shown under it on the wall,
     // the writer gets a bell note and a push; an empty text takes the answer off (and tells nobody)
     if (op === 'ideaReply') {

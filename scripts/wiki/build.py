@@ -161,6 +161,10 @@ def main():
             'games': games({c['id'] for c in out_chars})}
     with open(os.path.join(PUB, 'data', 'wiki.json'), 'w', encoding='utf8') as f:
         json.dump(site, f, ensure_ascii=False, separators=(',', ':'))
+    # each video's sort time (to the second) - push.cjs gives a video the catalog doesn't have yet its place in the list
+    # (techietech-api/catalog.js: the list itself lives in the database since 2026-11-05)
+    with open(os.path.join(HERE, 'catalog-local.json'), 'w', encoding='utf8') as f:
+        json.dump({v['id']: v.get('_t') or v.get('date') or '' for v in videos}, f, ensure_ascii=False, indent=0)
 
     card = cards(videos)
     raw = {c['id']: c for c in chars}

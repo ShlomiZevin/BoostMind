@@ -6,6 +6,9 @@
 //   public/wiki/data/wiki.json             -> gs://shlomiverse-media/wiki/data/wiki.json, its media paths made
 //                                             absolute (+ ?v=<md5> so a replaced video is never served stale), no-cache
 //   techietech-api/wiki-brain.json         -> gs://shlomiverse-private/wiki-brain.json (never public)
+// Since 2026-11-05 the list of videos lives in the database (techietech-api/catalog.js): this only ADDS a video the
+// catalog doesn't have, uploads the rest as base.json / wiki-base-brain.json, and composes wiki.json + the brain from
+// the catalog - a computer that lacks some videos can't take them off the site any more.
 // The wiki, the links page and the stats page read wiki.json from the bucket (falling back to the site's own copy),
 // and the chat agent (techietech-api/wiki.js) reads its brain from the private bucket within a few minutes.
 // So a new video, character or profile line = build.py + this; the site's code is deployed only when the code changes.
@@ -13,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const admin = require('../../techietech-api/node_modules/firebase-admin');
+const { compose } = require('../../techietech-api/catalog.js');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const WIKI = path.join(ROOT, 'public', 'wiki');
@@ -26,28 +30,27 @@ const storage = admin.storage();
 const md5 = (buf) => crypto.createHash('md5').update(buf).digest('base64');
 const TYPES = { '.mp4': 'video/mp4', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json' };
 
-// The guard (his ask, 2026-11-05): a build that runs where some exports aren't (another computer, projects in the online
-// studio) silently leaves those videos out - on Nov 3 a push took 20 videos off the live wiki (haredit-1 had 33 plays a
-// day) and nobody saw. So nothing that is live disappears unless it is meant to: a video or character missing from the
-// new wiki.json stops the push and is listed. Meant to (a video taken down): --allow-drop=<id>,<id> (or --allow-drop=all).
-async function guard(bucket) {
-  const [buf] = await bucket.file('wiki/data/wiki.json').download().catch(() => [null]);
+// The guard (his ask, 2026-11-05): a build on a computer missing something must not take it off the live site. Videos
+// can't leave any more (the catalog only adds; a video leaves only by versePublish op=hide). A character missing from
+// this build's base stops the push and is listed; meant to: --allow-drop=<id>,<id> (or --allow-drop=all).
+async function guardCharacters(bucket, base) {
+  const [buf] = await bucket.file('wiki/data/base.json').download().catch(() => [null]);
   if (!buf) return;
-  const live = JSON.parse(buf.toString('utf8')), next = JSON.parse(fs.readFileSync(path.join(WIKI, 'data', 'wiki.json'), 'utf8'));
+  const live = JSON.parse(buf.toString('utf8'));
   const arg = (process.argv.find((a) => a.startsWith('--allow-drop=')) || '').slice(13).split(',').filter(Boolean);
-  const gone = (key) => { const now = new Set((next[key] || []).map((x) => x.id)); return (live[key] || []).map((x) => x.id).filter((id) => !now.has(id) && !arg.includes('all') && !arg.includes(id)); };
-  const videos = gone('videos'), chars = gone('characters');
-  if (!videos.length && !chars.length) return;
-  console.error(`\n  STOP - this push would take off the live wiki:${videos.length ? `\n    ${videos.length} video(s): ${videos.join(', ')}` : ''}${chars.length ? `\n    ${chars.length} character(s): ${chars.join(', ')}` : ''}
-  Usually the build didn't find their files on this computer (python scripts/wiki/build.py lists what is missing). Fix that
-  and build again. Taking them down on purpose: node scripts/wiki/push.cjs --allow-drop=${[...videos, ...chars].join(',')}\n`);
+  const now = new Set(base.characters.map((c) => c.id));
+  const gone = live.characters.map((c) => c.id).filter((id) => !now.has(id) && !arg.includes('all') && !arg.includes(id));
+  if (!gone.length) return;
+  console.error(`
+  STOP - this push would take ${gone.length} character(s) off the live site: ${gone.join(', ')}
+  Taking them off on purpose: node scripts/wiki/push.cjs --allow-drop=${gone.join(',')}
+`);
   process.exit(2);
 }
 
 async function main() {
   const t0 = Date.now();
   const bucket = storage.bucket(MEDIA);
-  await guard(bucket);
   const [remote] = await bucket.getFiles({ prefix: 'wiki/' });
   const have = Object.fromEntries(remote.map((f) => [f.name, f.metadata.md5Hash]));
   const hashes = {};  // 'v/x.mp4' -> md5, for the ?v= in wiki.json
@@ -83,22 +86,42 @@ async function main() {
   };
   const out = fix(w);
   if (missing.length) console.log(`  ! wiki.json names files that aren't in public/wiki: ${missing.join(', ')}`);
-  const json = Buffer.from(JSON.stringify(out));
-  if (have['wiki/data/wiki.json'] !== md5(json)) {
-    console.log(`  ↑ data/wiki.json (${w.characters.length} characters, ${w.videos.length} videos)`);
-    if (!dry) await bucket.file('wiki/data/wiki.json').save(json, { resumable: false,
-      metadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'no-cache, max-age=0' } });
-  } else console.log('  · data/wiki.json unchanged');
+  // 3. the videos live in the database (techietech-api/catalog.js, since 2026-11-05) - this push only ADDS a video the
+  //    catalog doesn't have yet (the studio's publish and insta-to-verse still come this way until they call versePublish);
+  //    it never changes or removes one there (two writers of one list overwrite each other - tzvika-1)
+  const brainLocal = JSON.parse(fs.readFileSync(path.join(ROOT, 'techietech-api', 'wiki-brain.json'), 'utf8'));
+  const times = JSON.parse(fs.readFileSync(path.join(__dirname, 'catalog-local.json'), 'utf8'));
+  const bv = Object.fromEntries(brainLocal.videos.map((v) => [v.id, v]));
+  const db = admin.firestore();
+  const inCatalog = new Set((await db.collection('catalogVideos').select().get()).docs.map((d) => d.id));
+  const fresh = out.videos.filter((v) => !inCatalog.has(v.id) && (v.url || /^https:/.test(v.src || '')));
+  for (const v of fresh) {
+    const { id, ...rest } = v;
+    console.log(`  + catalog: ${id} (new video)`);
+    if (dry) continue;
+    await db.collection('catalogVideos').doc(id).set({ ...rest, t: times[id] || v.date || '', seq: 0, card: bv[id]?.card || v.teaser || '', hidden: false,
+      source: v.archive ? 'reel' : v.url ? 'clip' : 'studio', created: admin.firestore.FieldValue.serverTimestamp(), updated: admin.firestore.FieldValue.serverTimestamp() });
+    await db.collection('catalogTranscripts').doc(id).set({ text: bv[id]?.transcript || '' });
+  }
+  const notHere = out.videos.length - fresh.length - out.videos.filter((v) => inCatalog.has(v.id)).length;
+  if (notHere) console.log(`  ! ${notHere} video(s) in wiki.json without their file up - not added (run again after the media upload)`);
 
-  // 3. the chat agent's brain, private
-  const brainFile = path.join(ROOT, 'techietech-api', 'wiki-brain.json');
-  const brain = fs.readFileSync(brainFile);
-  const [meta] = await storage.bucket(PRIVATE).file('wiki-brain.json').getMetadata().catch(() => [{}]);
-  if (meta.md5Hash !== md5(brain)) {
-    console.log(`  ↑ wiki-brain.json (${Math.round(brain.length / 1024)} KB, private)`);
-    if (!dry) await storage.bucket(PRIVATE).file('wiki-brain.json').save(brain, { resumable: false,
-      metadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'no-store' } });
-  } else console.log('  · wiki-brain.json unchanged');
+  // 4. everything else the site and the chat read (characters, series, sites, games) - the base the catalog is composed on
+  const base = { ...out, series: out.series.map((s) => ({ ...s, videos: [] })), characters: out.characters.map((c) => ({ ...c, videos: [] })) };
+  delete base.videos;
+  const baseBrain = { ...brainLocal, characters: brainLocal.characters.map((c) => ({ ...c, videos: [] })) };
+  delete baseBrain.videos;
+  await guardCharacters(bucket, base);
+  const baseJson = Buffer.from(JSON.stringify(base)), brainJson = Buffer.from(JSON.stringify(baseBrain));
+  if (have['wiki/data/base.json'] !== md5(baseJson)) { console.log(`  ↑ data/base.json (${base.characters.length} characters, ${base.series.length} series)`); if (!dry) await bucket.file('wiki/data/base.json').save(baseJson, { resumable: false, metadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'no-cache, max-age=0' } }); }
+  else console.log('  · data/base.json unchanged');
+  const [bm] = await storage.bucket(PRIVATE).file('wiki-base-brain.json').getMetadata().catch(() => [{}]);
+  if (bm.md5Hash !== md5(brainJson)) { console.log(`  ↑ wiki-base-brain.json (${Math.round(brainJson.length / 1024)} KB, private)`); if (!dry) await storage.bucket(PRIVATE).file('wiki-base-brain.json').save(brainJson, { resumable: false, metadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'no-store' } }); }
+  else console.log('  · wiki-base-brain.json unchanged');
+
+  // 5. the site's wiki.json and the chat's brain, composed from the catalog + the base
+  const c = await compose(admin, { dry, base, baseBrain });
+  console.log(`  ${dry ? '·' : '↑'} wiki.json + wiki-brain.json from the catalog: ${c.wiki.characters.length} characters, ${c.videos} videos`);
 
   console.log(`${dry ? 'DRY - nothing sent. ' : ''}pushed ${sent} media file(s), ${(bytes / 1e6).toFixed(1)} MB, in ${((Date.now() - t0) / 1000).toFixed(0)} s` +
     ` - live on the wiki now, the chat within 3 minutes`);
