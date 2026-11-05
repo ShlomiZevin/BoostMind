@@ -20,7 +20,6 @@
      one as /backstage/ and /all/ (localStorage owner-key). Sessions report through hooks + the MCP server (setup/). -->
 <style>
 :root {
-  --gapB: 0px;
   --bg: #f4f6fb; --card: #ffffff; --card2: #f8fafd; --line: #e6eaf2; --line2: #eef1f7;
   --ink: #0f172a; --ink2: #475569; --ink3: #94a3b8;
   --brand: #2563eb; --brand2: #1d4ed8; --brandSoft: #eaf1ff;
@@ -53,7 +52,7 @@ svg.i { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor;
 * { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 
 /* ---------- gate ---------- */
-#gate { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); display: grid; place-items: center; background: #05070d; color: #fff; padding: 24px; z-index: 50; }
+#gate { position: fixed; inset: 0; display: grid; place-items: center; background: #05070d; color: #fff; padding: 24px; z-index: 50; }
 #gate form { width: min(360px, 100%); text-align: center; }
 #gate img { width: min(300px, 80vw); height: auto; margin-bottom: 6px; }
 #gate h1 { margin: 18px 0 2px; font-size: 28px; } #gate p { margin: 0 0 22px; color: #9fb0cc; }
@@ -189,7 +188,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
 /* ---------- panel (item / session) ---------- */
 .panel { position: fixed; z-index: 25; top: 5vh; left: 50%; transform: translateX(-50%); width: min(780px, calc(100% - 32px)); max-height: 90vh; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow2); display: flex; flex-direction: column; overflow: hidden; }
-.pscrim { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); z-index: 24; background: rgba(5,8,15,.66); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.pscrim { position: fixed; inset: 0; z-index: 24; background: rgba(5,8,15,.66); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
 .pb { min-height: 0; }
 .panel .ph { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line2); }
 .panel .ph .id { color: var(--ink3); font-size: 13px; font-weight: 600; direction: ltr; }
@@ -238,7 +237,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .code button { color: #94a3b8; } .code button:hover { color: #fff; }
 
 /* ---------- modal / sheet ---------- */
-.scrim { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); background: rgba(8,12,22,.45); z-index: 30; display: grid; place-items: start center; padding: 9vh 16px 16px; }
+.scrim { position: fixed; inset: 0; background: rgba(8,12,22,.45); z-index: 30; display: grid; place-items: start center; padding: 9vh 16px 16px; }
 .sheet { width: min(620px, 100%); background: var(--card); border-radius: 18px; box-shadow: var(--shadow2); overflow: hidden; display: flex; flex-direction: column; max-height: 84vh; }
 .sheet > header { display: flex; align-items: center; gap: 10px; padding: 16px 20px 6px; }
 .sheet > header h3 { margin: 0; font-size: 19px; font-weight: 800; flex: 1; }
@@ -281,10 +280,10 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .trow:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
 .trow.k-ask, .trow.k-askItem { background: color-mix(in srgb, var(--red) 9%, var(--card)); border-color: color-mix(in srgb, var(--red) 35%, var(--line)); }
 .trow.k-note .tm b, .trow.k-idea .tm b { font-weight: 600; }
-.trow.new { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand), 0 6px 20px color-mix(in srgb, var(--brand) 22%, transparent); }
-.trow.new .te::before { content: "חדש"; font-size: 11px; font-weight: 800; color: #fff; background: var(--brand); border-radius: 6px; padding: 1px 7px; }
-.trow.new.k-ask, .trow.new.k-askItem { box-shadow: 0 0 0 1px var(--brand), 0 6px 20px color-mix(in srgb, var(--red) 20%, transparent); }
+.trow.new::after { content: ""; position: absolute; top: 12px; left: 12px; width: 10px; height: 10px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent); }
+.newdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--brand); margin-inline-end: 5px; vertical-align: 1px; }
 .newcount { color: #fff; background: var(--brand); border-radius: 8px; padding: 1px 9px; font-weight: 800; }
+.newline { margin-top: 4px; font-size: 14px; }
 .seenall { color: var(--brand); font-weight: 700; margin-inline-start: 6px; text-decoration: underline; text-underline-offset: 3px; }
 .trow.k-note { background: var(--card2); }
 .tk { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: none; width: 52px; }
@@ -322,7 +321,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .swipehint { display: none; text-align: center; margin-top: 14px; }
 #toast.act { pointer-events: auto; display: flex; align-items: center; gap: 14px; }
 #toast button { color: #8fb4ff; font-weight: 800; }
-.recs { position: fixed; inset: 0; bottom: calc(0px - var(--gapB)); z-index: 40; background: #070b14; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; padding-top: calc(24px + var(--safeT)); }
+.recs { position: fixed; inset: 0; z-index: 40; background: #070b14; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; padding-top: calc(24px + var(--safeT)); }
 .recs .rx { position: absolute; top: calc(16px + var(--safeT)); left: 16px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #9fb0cc; background: rgba(255,255,255,.06); }
 .recs .rx svg { width: 22px; height: 22px; }
 .rbig { width: 168px; height: 168px; border-radius: 50%; background: #e5484d; color: #fff; display: grid; place-items: center; transition: box-shadow .08s; box-shadow: 0 0 0 0 rgba(229,72,77,.3); }
@@ -341,7 +340,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .recs { overflow-y: auto; }
 .racts button { padding: 13px 22px; border-radius: 14px; font-weight: 700; font-size: 16px; background: rgba(255,255,255,.08); color: #fff; display: inline-flex; gap: 8px; align-items: center; }
 .racts button.pri { background: #e5484d; }
-#toast { position: fixed; bottom: calc(26px + var(--safeB) - var(--gapB)); left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 600; opacity: 0; transition: .2s; z-index: 60; pointer-events: none; white-space: nowrap; }
+#toast { position: fixed; bottom: calc(26px + var(--safeB)); left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 600; opacity: 0; transition: .2s; z-index: 60; pointer-events: none; white-space: nowrap; }
 #toast.on { opacity: 1; transform: translateX(-50%); }
 
 /* ---------- mobile ---------- */
@@ -356,7 +355,6 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   html { background: var(--card); }   /* any strip iOS leaves under the page takes the bar's colour */
   body { font-size: 15.5px; }
   .ta { display: none; } .swipehint { display: block; }
-  .trow.new .ta { display: flex; opacity: 1; } .trow.new .ta button:not([data-park]):not([data-shide]) { display: none; }
   .trow { padding: 12px; gap: 11px; } .te { min-width: 0; } .tm b small { display: none; }
   .tm b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
   .side { display: none; }
@@ -375,16 +373,16 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .row .meta { width: 100%; padding-inline-start: 34px; flex-wrap: wrap; }
   .row .meta .ago { margin-inline-start: auto; min-width: 0; }
   .sess.grid { grid-template-columns: 1fr; }
-  .panel { width: 100%; inset: 0; top: 0; left: 0; transform: none; max-height: none; border: 0; border-radius: 0; bottom: calc(0px - var(--gapB)); }
+  .panel { width: 100%; inset: 0; top: 0; left: 0; transform: none; max-height: none; border: 0; border-radius: 0; }
   .panel .ph { padding-inline: 16px; gap: 12px; } .panel .pb { padding: 20px 20px 28px; } .ttl-in { font-size: 24px; }
   .panel .ph { padding-top: calc(10px + var(--safeT)); }
-  .tabs { display: flex; position: fixed; bottom: calc(0px - var(--gapB)); inset-inline: 0; background: var(--card); border-top: 1px solid var(--line); padding: 6px 6px calc(6px + var(--safeB)); z-index: 15; }
+  .tabs { display: flex; position: fixed; bottom: 0; inset-inline: 0; background: var(--card); border-top: 1px solid var(--line); padding: 6px 6px max(8px, calc(var(--safeB) - 12px)); z-index: 15; }
   .tabs button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11.5px; color: var(--ink3); font-weight: 600; padding: 4px 0; position: relative; }
   .tabs button.on { color: var(--brand); }
   .tabs button svg { width: 23px; height: 23px; }
   .tabs .gap { flex: 1; }
   .tabs b { position: absolute; top: 0; left: calc(50% - 20px); background: var(--red); color: #fff; font-size: 10.5px; min-width: 17px; height: 17px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px; }
-  .fab { display: grid; place-items: center; position: fixed; bottom: calc(18px + var(--safeB) - var(--gapB)); left: 50%; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 50%; background: var(--brand); color: #fff; box-shadow: 0 8px 24px rgba(37,99,235,.45); z-index: 16; }
+  .fab { display: grid; place-items: center; position: fixed; bottom: calc(6px + var(--safeB)); left: 50%; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 50%; background: var(--brand); color: #fff; box-shadow: 0 8px 24px rgba(37,99,235,.45); z-index: 16; }
   .fab svg { width: 28px; height: 28px; stroke-width: 2.4; }
   .scrim { padding: 0; place-items: end stretch; }
   .sheet { width: 100%; max-height: 92vh; border-radius: 20px 20px 0 0; }
@@ -613,12 +611,12 @@ const TABLE_CHIPS = [['all', 'הכל'], ['tasks', 'משימות'], ['ideas', 'ר
 
 // "new for him" = something that needs him, or that a session wrote for him, that he hasn't opened since it changed.
 // Only these count on the badges; his own items never do.
+// The one rule (his ask 2026-11-05, "I don't know when it's new"): a blue dot = a session wrote you something you haven't
+// opened - it made the item, wrote an update on it, or is asking you. Opening it (or "סמן הכל כנקרא") clears the dot.
 function isNew(e) {
   if (e.s) return e.k === 'ask' && (e.s.u || 0) > (e.s.seen || 0);
   const it = e.it, last = (it.log || [])[(it.log || []).length - 1];
-  if ((it.u || 0) <= (it.seen || 0)) return false;
-  if (last && last.by === 'שלומי') return false;
-  return e.k === 'askItem' || it.by !== 'שלומי';
+  return (it.u || 0) > (it.seen || 0) && (last ? last.by !== 'שלומי' : it.by !== 'שלומי');
 }
 function newEntries() { const keep = S.hf; S.hf = 'all'; const l = tableEntries(); S.hf = keep; return l.filter(isNew); }
 function markSeen(list) {
@@ -694,7 +692,7 @@ function viewHome() {
   const fresh = all.filter(isNew);
   const need = all.filter((e) => e.rank === 0 || e.k === 'task' || e.k === 'remind').length, run = all.filter((e) => e.k === 'run' || e.k === 'job').length;
   return `<div class="wrap home">
-    <div class="hello"><h1>${hi}, שלומי</h1><p>${fresh.length ? `<span class="newcount">${fresh.length} ${fresh.length === 1 ? 'חדש' : 'חדשים'}</span> מסומנים בכחול · ` : ''}${need ? `${need} מחכים לך` : 'שום דבר לא מחכה לך'}${run ? ` · ${run} רצים עכשיו` : ''}${fresh.length ? ` <button class="seenall" data-act="seenall">סמן הכל כנקרא</button>` : ''}</p></div>
+    <div class="hello"><h1>${hi}, שלומי</h1><p>${need ? `${need} מחכים לך` : 'שום דבר לא מחכה לך'}${run ? ` · ${run} רצים עכשיו` : ''}</p>${fresh.length ? `<p class="newline"><span class="newdot"></span>${fresh.length === 1 ? 'סשן כתב לך משהו שעוד לא פתחת' : `סשנים כתבו לך ${fresh.length} דברים שעוד לא פתחת`} · <button class="seenall" data-act="seenall">סמן הכל כנקרא</button></p>` : ''}</div>
     <form class="qc" id="qcf"><input id="qc" autocomplete="off" placeholder="מה עובר לך בראש? כתוב או דבר, וה-AI יסדר"><button type="button" class="qmic" data-act="recscreen" title="להקליט - וה-AI יסדר">${ic('mic')}</button></form>
     <div class="chips">${S.f.project ? `<button class="on" data-proj="${esc(S.f.project)}">${esc(projName(S.f.project))} ${ic('x')}</button>` : ''}${S.f.q ? `<button class="on" data-act="clearq">"${esc(S.f.q)}" ${ic('x')}</button>` : ''}${TABLE_CHIPS.map(([k, t]) => `<button class="${(S.hf || 'all') === k ? 'on' : ''}" data-hf="${k}">${t}</button>`).join('')}</div>
     <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>${all.length ? 'אין כאן כלום' : 'השולחן ריק'}</b>${all.length ? '' : 'כתוב למעלה מה עובר לך בראש'}</div>`}</div>
@@ -1270,16 +1268,6 @@ function boot() {
   });
 }
 applyTheme();
-// iPhone home-screen app: when iOS already stops the page above the home indicator, the bar must not add that space
-// again (it sat ~34pt too high - his iPhone, 2026-11-04)
-// the iPhone home-screen app can make the page shorter than the screen and leave a dead strip under it (his iPhone,
-// 2026-11-04): measure it, and let the bar, the windows and the screens reach down into it
-function fitBottom() {
-  const app = navigator.standalone || matchMedia('(display-mode: standalone)').matches, portrait = innerHeight > innerWidth;
-  const gap = app && portrait ? Math.max(0, Math.max(screen.height, screen.width) - innerHeight) : 0;
-  document.documentElement.style.setProperty('--gapB', (gap > 0 && gap < 120 ? gap : 0) + 'px');
-}
-fitBottom(); addEventListener('resize', fitBottom); addEventListener('orientationchange', () => setTimeout(fitBottom, 300));
 boot();
 setInterval(() => { if (document.visibilityState === 'visible' && S.loaded) load(); }, 15000);
 setInterval(() => { if (S.loaded && document.visibilityState === 'visible' && !$('#modal').innerHTML) render(); }, 60000);   // "ago" labels
