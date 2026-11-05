@@ -10,8 +10,8 @@
 //   node render/cloud/keys.mjs list    the key names only
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFile } from 'node:child_process';
 import { PROJECT, ROOT } from './layout.mjs';
+import { token, freshToken } from './store.mjs';
 
 export const SECRET = 'studio-keys';
 const ENV = path.join(ROOT, '.env');
@@ -19,14 +19,14 @@ const API = `https://secretmanager.googleapis.com/v1/projects/${PROJECT}`;
 // keys the studio used to borrow from other projects' files (email, Telegram) - kept with its own from now on
 const BORROWED = { 'C:/workspace/aspect/aspect-agent-server/.env': ['GMAIL_USER', 'GMAIL_APP_PASSWORD'], 'C:/workspace/xplace-auto-bidder/.env': ['TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID'] };
 
-let tok = null;
-const token = () => (tok && tok.until > Date.now() ? Promise.resolve(tok.v) : new Promise((ok, fail) =>
-  execFile('cmd', ['/c', 'gcloud', 'auth', 'print-access-token'], { windowsHide: true }, (e, out) => {
-    if (e) return fail(new Error('gcloud login needed (gcloud auth login)'));
-    tok = { v: out.trim(), until: Date.now() + 40 * 60e3 }; ok(tok.v);
-  })));
+// (the login's token comes from store.mjs - asked again every 5 min, a fresh one after a 401: its own 40-minute copy
+// ran out under it, "secret manager 401" every few minutes in the studio's log, 2026-11-05)
 const call = async (url, opts = {}) => {
-  const r = await fetch(url, { ...opts, headers: { authorization: `Bearer ${await token()}`, 'content-type': 'application/json', ...(opts.headers || {}) } });
+  let r;
+  for (const get of [token, freshToken]) {
+    r = await fetch(url, { ...opts, headers: { authorization: `Bearer ${await get()}`, 'content-type': 'application/json', ...(opts.headers || {}) } });
+    if (r.status !== 401) break;
+  }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const e = new Error(`secret manager ${r.status}: ${j.error?.message || ''}`.slice(0, 200)); e.status = r.status; throw e; }
   return j;

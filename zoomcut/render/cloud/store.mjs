@@ -20,6 +20,7 @@ export const token = () => (tok && tok.until > Date.now() ? Promise.resolve(tok.
 // (gcloud hands back the token it already has, however little life it has left - kept 40 min, it ran out under us:
 // "401 Invalid Credentials" until the 40 min were over, 2026-11-04. So: asked again every 5 min, and a 401 = a fresh
 // token and the request once more - unless its body is a stream already sent)
+export const freshToken = () => { tok = null; return token(); };  // (after a 401: keys.mjs asks for one too)
 const plainFetch = globalThis.fetch;
 const fetch = async (url, o = {}) => {
   const r = await plainFetch(url, o);

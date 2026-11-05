@@ -2,40 +2,17 @@
 models/*
 !models/rnnoise/
 render/node_modules/
-episodes/*/work/
-episodes/*/out/
-episodes/*/input/
-episodes/*-test/
 __pycache__/
 *.pyc
-episodes/_assets/**/*.wav
 *.bak
-# a project's own voice recordings and the filtered copies made from them stay on this computer (public repo)
-episodes/*/media/*.ogg
-episodes/*/media/*.wav
-# the Jobs panel's history (this computer's builds, exports and sends)
-episodes/_jobs.json
-# the editor's sound report while he plays (this computer's)
-episodes/_sound.jsonl
-episodes/*/media/*.jpg
-episodes/*/media/*.jpeg
-episodes/*/media/*.png
-# every wav stays on this computer (big; the mp3 next to it is what we keep), and so do the choir's split voices and
-# the per-singer voice takes the song pipeline makes (media/he/ - made again from the plan)
-episodes/**/*.wav
-episodes/**/*.wav.voices/
-episodes/*/media/he/
-# his own phone recordings stay on this computer (public repo)
-episodes/*/media/*.m4a
-# pictures and sounds he turned down
-episodes/_assets/**/rejected/
 # his video ideas (the Ideas page) - jokes he has not filmed yet, and the repo is public
 ideas/
-# the studio online (render/cloud/): the copy / check reports and each project's sync state stay on this computer
-episodes/_cloud/
-episodes/*/.cloud-state.json
+# the studio online: a file still coming down from the cloud
 **/*.cloud-part
 # the asset library (tools/library_harvest.mjs): his pictures, music and sounds - in the private bucket, not the repo
 library/
-# his saved sound setups travel through the cloud (render/setups.mjs)
-episodes/_setups.json
+# THE PROJECTS ARE NEVER IN GIT (his rule, 2026-11-05: "I don't like to see so many things in git"): every project
+# (episodes/<id>/), the shared pictures and sounds (episodes/_assets/), the studio's own files (_jobs, _cloud...) - they
+# travel between his computers through the studio online (render/cloud/: sync.mjs the projects, pool.mjs the shared
+# folders). Git carries the tool only.
+episodes/

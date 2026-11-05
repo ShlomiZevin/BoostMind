@@ -46,7 +46,7 @@ export async function sameAs(file, loc, r, st) {
 }
 export const pool = async (items, n, f) => { let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) await f(items[i++]); })); };
 
-export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) }) {
+export function startSync({ app, jobs, heal = null, shared = null, log = (s) => console.log(s) }) {  // (shared: the shared folders' sync, pool.mjs)
   const busy = {};  // id -> the pull / push running (one at a time per project)
   const progress = {};  // id -> {state, files, done, bytes, doneBytes, error}
   const held = new Map();  // id -> {gen, since} - the locks this computer has
@@ -95,6 +95,7 @@ export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) 
   async function pull(id) {
     const P = (progress[id] = { state: 'checking', files: 0, done: 0, bytes: 0, doneBytes: 0 });
     const dir = path.join(EPS, id), prefix = `projects/${id}/`;
+    if (shared) await shared.round();  // (the shared pictures it may use come first - pool.mjs)
     const remote = await list(prefix);
     if (!Object.keys(remote).length) { P.state = 'ready'; return P; }  // (not in the cloud yet: the first push sends it)
     const state = readJson(stateFile(id), { files: {} }), local = walk(dir);
@@ -156,7 +157,14 @@ export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) 
     const state = readJson(stateFile(id), { files: {} }), local = walk(dir);
     // (quick: nothing changed since the last sync - no need to ask the cloud)
     const changed = Object.entries(local).filter(([rel, l]) => { const st = state.files[rel]; return !st || st.size !== l.size || st.mtime !== l.mtime; });
-    const gone = Object.keys(state.files).filter((rel) => !local[rel]);
+    let gone = Object.keys(state.files).filter((rel) => !local[rel]);
+    // a project's own files vanishing all at once is never an edit - a git pull that took tracked copies away, a folder
+    // cleared by hand, a disk problem: the cloud keeps everything, and opening the project brings it back
+    const core = gone.filter((rel) => /^(project|episode)\.json$/.test(rel));
+    if (core.length || (gone.length >= 10 && gone.length > 0.3 * Object.keys(state.files).length)) {
+      log(`cloud: ${id} - ${gone.length} files are gone here${core.length ? ' (with ' + core.join(', ') + ')' : ''}: NOT deleting them in the cloud - opening the project brings them back`);
+      gone = [];
+    }
     if (!changed.length && !gone.length) return { up: 0 };
     const remote = await list(prefix);
     let up = 0, bytes = 0;
@@ -177,6 +185,7 @@ export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) 
       for (const rel of Object.keys(have)) if (!fr[cloudDir + '/' + rel]) { await upload(path.join(here, rel), cloudDir + '/' + rel); up++; bytes += have[rel].size; }
     }
     fs.writeFileSync(stateFile(id), JSON.stringify(state));
+    if (up) shared?.soon();  // (the shared pictures it uses go up with it)
     if (up || gone.length) log(`cloud: ${id} - ${up} files up (${(bytes / 1e6).toFixed(1)} MB)${gone.length ? `, ${gone.length} deleted` : ''}`);
     return { up, gone: gone.length };
   }
@@ -195,6 +204,20 @@ export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) 
   };
   const tick = setInterval(() => { for (const id of held.keys()) serial(id, () => push(id)).catch((e) => log('cloud push: ' + e.message)); }, 60e3);
   tick.unref?.();
+  // every 5 minutes, any project changed on this computer goes up - whoever changed it (he in the editor, a session
+  // writing files, the Drop, a build): the cloud is never more than minutes behind what is here. (Quick: sizes and
+  // times against the last sync; a project whose job runs waits; one open on his other computer is that one's to send.)
+  const sweep = () => {
+    if (mode() === 'off') return;
+    for (const id of fs.readdirSync(EPS)) {
+      if (!allowed(id) || held.has(id) || jobs[id]?.running || !fs.existsSync(path.join(EPS, id, 'episode.json'))) continue;
+      const state = readJson(stateFile(id), { files: {} }), local = walk(path.join(EPS, id));
+      const changed = Object.entries(local).some(([rel, l]) => { const st = state.files[rel]; return !st || st.size !== l.size || st.mtime !== l.mtime; });
+      if (changed) pushSoon(id);
+    }
+  };
+  setTimeout(sweep, 60e3);
+  const sweepT = setInterval(sweep, 5 * 60e3); sweepT.unref?.();
 
   // ---- the studio's endpoints -------------------------------------------------------------------------------------
   app.get('/api/cloud', (_q, res) => res.json({ mode: mode(), host: HOST, held: [...held.keys()] }));
@@ -224,8 +247,10 @@ export function startSync({ app, jobs, heal = null, log = (s) => console.log(s) 
   const cloudOnly = async () => {
     if (mode() === 'off') return [];
     if (Date.now() - cloudIds.at > 120e3) cloudIds = { at: Date.now(), ids: await folders('projects/').catch(() => cloudIds.ids) };
-    // (a folder of that name here - a project, or a workshop that isn't one, e.g. shlomiverse-intro - is never "only in the cloud")
-    return cloudIds.ids.filter((id) => allowed(id) && !fs.existsSync(path.join(EPS, id)));
+    // (a project here is never "only in the cloud"; nor a workshop folder that isn't one, e.g. shlomiverse-intro. A folder
+    // the sync knows whose episode.json is gone - a git pull took it - is: opening it brings the project back)
+    return cloudIds.ids.filter((id) => allowed(id) && !fs.existsSync(path.join(EPS, id, 'episode.json'))
+      && (!fs.existsSync(path.join(EPS, id)) || fs.existsSync(stateFile(id))));
   };
   return { pushSoon, cloudOnly, pull, push, lock, unlock, mode, allowed };
 }

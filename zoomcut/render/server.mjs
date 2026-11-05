@@ -21,6 +21,7 @@ import { localPath } from './cloud/layout.mjs';
 import { startSync } from './cloud/sync.mjs';
 import { startKeys } from './cloud/keys.mjs';
 import { startShared } from './cloud/shared.mjs';
+import { startPools } from './cloud/pool.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -378,7 +379,9 @@ const heal = (id) => new Promise((ok) => {
   p.on('close', () => { try { ok(JSON.parse(out.trim().split(/\r?\n/).pop())); } catch { ok(null); } });
   p.on('error', () => ok(null));
 });
-const cloud = startSync({ app, jobs, heal, log: (s) => console.log(s) });
+// the shared folders (episodes/_assets, the characters' pictures) - the same on every computer (render/cloud/pool.mjs)
+const pools = !TEST && readJson(path.join(EPS, '_cloud', 'config.json'), {})?.sync === 'on' ? startPools({ log: (s) => console.log(s) }) : null;
+const cloud = startSync({ app, jobs, heal, shared: pools, log: (s) => console.log(s) });
 const keys = !TEST && cloud.mode() === 'on' ? startKeys({ log: (s) => console.log(s) }) : null;
 if (!TEST && cloud.mode() === 'on') startShared({ log: (s) => console.log(s) });
 // once a day: scratch out, and projects untouched for a week keep only their small files here - the rest is safe in the
