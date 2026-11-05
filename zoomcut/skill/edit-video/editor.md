@@ -326,6 +326,11 @@ end must show at once, with the real footage there.
   (`check_export`: length vs the edit at its speed, 1080x1920, 30 fps, sound - fails loudly) and **tidies**
   (`tidy`: anims / subtitle images of earlier versions, the project's unused filtered sound copies, pieces unused 24 h).
 - The only intended difference from the editor: export slow motion is interpolated (smoother); the editor repeats frames.
+- **A project of pictures only (no footage) - 2026-11-05, balabusta-teaser:** a drawn frame covered edge to edge comes
+  out of the PNG encoder as RGB, and the layered export reads its drawn frames as RGBA (`-reinit_filter 0`, against the
+  2026-10-22 deadlock) - those frames came out squeezed, repeated and grey. `export_layers.rgba_only()` makes every
+  drawn frame RGBA first. Each drawn frame may take up to 120 s (`--timeout=120000`): a frame-by-frame animation (an
+  image item per frame) loads a new picture every frame and passed Remotion's 30 s default.
 - Every cache is written to a `.part` file and renamed (an interrupted run once left an empty .wav that broke builds).
 - Never run a script that rewrites work/ files (mix, edit.json) while an export runs - it cut an export's audio once.
 - The mask videos are TV range (16-235): `mask_curve()` maps them to 0-255 before the cut-off (read raw, the person

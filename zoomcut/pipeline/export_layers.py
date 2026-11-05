@@ -129,6 +129,20 @@ def _asset_public(ep, project, ids, pub):
     return urls
 
 
+def rgba_only(folder, pngs):
+    """A fully covered frame (pictures edge to edge, no footage) comes out of the PNG encoder as RGB, not RGBA. The
+    compositing reads the drawn frames with -reinit_filter 0 (a format change mid-stream deadlocked it, 2026-10-22), so
+    those RGB frames were read as RGBA - squeezed, repeated and grey (balabusta-teaser, 2026-11-05). Every drawn frame
+    is made RGBA here, so the stream never changes format. Only RGB files are rewritten (PNG colour type 2)."""
+    from PIL import Image
+    for f in pngs:
+        p = os.path.join(folder, f)
+        with open(p, "rb") as fh:
+            head = fh.read(26)
+        if len(head) == 26 and head[25] == 2:
+            Image.open(p).convert("RGBA").save(p, compress_level=1)
+
+
 def render_graphics(ep, project, k, layers, scale, total, step=1):
     """One graphics run -> work/layers/g<k>/f-000000.png .. one picture per video frame (held frames hard-linked)."""
     fps = project["canvas"]["fps"]
@@ -150,13 +164,14 @@ def render_graphics(ep, project, k, layers, scale, total, step=1):
                   fh, ensure_ascii=False)
     log(f"  · drawing layers {', '.join(l['id'] for l in layers[:4])}{'…' if len(layers) > 4 else ''}: {len(keys)} of {total} frames change")
     r = subprocess.run(["node", REMOTION, "render", "src/index.ts", "Layers", raw, "--sequence", "--image-format=png", f"--props={props_file}",
-                        f"--public-dir={pub}", "--concurrency=4", "--log=error"] + ([f"--scale={scale}"] if scale != 1 else []),
+                        f"--public-dir={pub}", "--concurrency=4", "--log=error", "--timeout=120000"] + ([f"--scale={scale}"] if scale != 1 else []),
                        cwd=os.path.join(ROOT, "render"), creationflags=LOW)
     if r.returncode:
         raise RuntimeError("drawing the layers failed")
     pngs = sorted(f for f in os.listdir(raw) if f.endswith(".png"))
     if len(pngs) != len(keys):
         raise RuntimeError(f"drew {len(pngs)} frames, expected {len(keys)}")
+    rgba_only(raw, pngs)
     for i, key in enumerate(keys):
         nxt = keys[i + 1] if i + 1 < len(keys) else total
         src = os.path.join(raw, pngs[i])
