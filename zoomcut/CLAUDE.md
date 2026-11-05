@@ -32,9 +32,20 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
 - Everything in `gs://shlomiverse-studio` (boostmind-b052c, private): `projects/<id>/`, `footage/<path under home>`,
   `assets/`, `library/`, `studio/` (ideas, jobs, models), `locks/<id>.json`. Keys: ONE secret `studio-keys` (JSON) -
   `node render/cloud/keys.mjs push | pull | list` (never print a value). `.env` is written from it.
-- The sync is OFF on a computer until `episodes/_cloud/config.json` is `{"sync": "on"}` (setup.ps1 sets it on a new
-  computer; his main PC switches only when he says). Then: a lock per project (take-over window), pull on open, push
-  after edits / every minute / never during a job. Never deletes locally.
+- **The system in one line (2026-11-05, his ask "the right way, not a patch"): git carries the TOOL, the cloud carries
+  the WORK.** `episodes/` is not in git at all (ignored whole). He works locally; the other computer sees it within
+  minutes.
+- Switched on on both his computers (`episodes/_cloud/config.json` `{"sync": "on"}`; setup.ps1 sets it on a new one).
+- **Projects** (`sync.mjs`) - one computer edits a project at a time: a lock per project (take-over window), pull on
+  open, push after edits / every minute while open, and **every 5 minutes any project changed here goes up, whoever
+  changed it** (a session writing files, the Drop, a build) - never during its job. Never deletes locally; files
+  vanishing all at once (project.json / episode.json, or >30% of them - a git pull, a cleared folder) are never
+  deleted in the cloud, and the menu offers that project from the cloud again.
+- **Shared folders** (`pool.mjs`) - `episodes/_assets` and the characters' pictures: a pool that only grows, synced
+  both ways at start, every 5 min, after a project goes up and before one opens. Nothing is ever deleted by it (delete
+  in each place by hand); changed on both = both kept ("(conflict <computer>)"); a file git carries is never in the
+  cloud (the characters' profiles are git's, their portraits the cloud's). One round now: `node render/cloud/pool.mjs`.
+- A session needs to do NOTHING for this: write the project's files as usual - they reach the cloud by themselves.
 - Tests: a second studio with `PORT=4848 ZC_CLOUD=test` (+ `ZC_HOST`, `ZC_EPISODES` to act as another computer) touches
   ONLY hidden `_test` projects - no Drop, no keys, no picking up his jobs. Delete the `_test` project and its
   `projects/_x/` + `locks/_x.json` in the bucket after.
@@ -44,10 +55,10 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
 - A new computer: `zoomcut/setup.ps1`.
 
 ## Rules of the house
-- **Projects travel through the cloud, never through git** (his rule, 2026-11-02): never commit or push files under
-  `episodes/<id>/` (project.json, episode.json, captions...) - commit code only. Two systems carrying the same file
-  overwrote each other (tzvika-1). His case is simple: one person, two computers, one project at a time - open it on
-  the other computer and the studio brings it.
+- **Projects travel through the cloud, never through git** (his rule, 2026-11-02; since 2026-11-05 `episodes/` is
+  ignored and untracked whole - never `git add -f` anything under it). Two systems carrying the same file overwrote
+  each other (tzvika-1). His case is simple: one person, two computers, one project at a time - open it on the other
+  computer and the studio brings it.
 - Build / export / re-mix through the studio's API (the editor's own buttons), never a parallel CLI run.
 - Never kill, restart or rebuild while a job runs. The export is gentle on purpose (his PC blue-screens under
   full load) - don't raise its parallelism.

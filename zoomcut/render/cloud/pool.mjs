@@ -45,14 +45,18 @@ async function syncPool(P, state, n) {
     if (!rel || skip(rel)) continue;
     const l = local[rel], r = remote[P.prefix + rel], s = st[rel], f = path.join(P.dir, rel);
     if (tracked.has(rel)) { if (r) { await remove(P.prefix + rel).catch(() => {}); n.cleaned++; } delete st[rel]; continue; }  // (git carries it)
-    if (l && Date.now() - l.mtime < FRESH) continue;  // (still being written)
+    if (l && Date.now() - l.mtime < FRESH && !(s && s.mtime === l.mtime)) continue;  // (still being written here - not one that just came down)
     if (l && r) {
       if (await sameAs(f, l, r, s)) { st[rel] = { ...l, fp: fp(r) }; continue; }
       const here = !s || s.size !== l.size || s.mtime !== l.mtime, there = !s || s.fp !== fp(r);
       if (here && !there) up.push(rel);
       else if (!here && there) down.push(rel);
       else if (!s && l.mtime >= (+(r.meta.mtime || 0) || Date.parse(r.updated) || 0)) up.push(rel);  // (never synced here: the newer one wins - this one)
-      else { fs.renameSync(f, conflictName(f)); down.push(rel); n.conflicts.push(rel); }  // (both changed: keep both)
+      else {  // (both changed: keep both - this computer's copy goes up under its new name)
+        fs.renameSync(f, conflictName(f));
+        up.push(path.relative(P.dir, conflictName(f)).split(path.sep).join('/'));
+        down.push(rel); n.conflicts.push(rel);
+      }
     } else if (l) up.push(rel);
     else if (!(s && s.fp === fp(r))) down.push(rel);  // (in the cloud and never here - or changed there since it was deleted here)
   }
