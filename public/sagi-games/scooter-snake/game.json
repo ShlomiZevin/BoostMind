@@ -5,7 +5,7 @@
   "character": "sagi",
   "chars": ["sagi", "ofer", "yotam", "hani", "osnat", "yaniv", "tzvika", "ido"],
   "world": "טקי-טק",
-  "status": "soon",
+  "status": "live",
   "cover": "cover.jpg",
   "best": { "key": "shlomiverse:scooter-snake:best", "label": "מאזינים" },
   "record": { "unit": "מאזינים", "better": "high" },

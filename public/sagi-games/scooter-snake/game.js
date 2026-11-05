@@ -165,7 +165,7 @@ function layout() {
   cv.width = W * DPR; cv.height = H * DPR;
   document.body.classList.toggle('turn', W > H * 1.15 && H < 520 && 'ontouchstart' in window);
   // room for the HUD + the speech strip above, the verb chip below; the characters stand ~0.7 tile above their tile
-  const top = cssPx('var(--safe-t)') + 96, bottom = H - 44 - cssPx('env(safe-area-inset-bottom,0px)');
+  const top = cssPx('var(--safe-t)') + 96, bottom = H - 96 - cssPx('env(safe-area-inset-bottom,0px)');
   const t = Math.floor(Math.min((W - 16) / COLS, (bottom - top) / ROWS));
   B = { t, x: Math.round((W - t * COLS) / 2), y: Math.round(top + Math.max(0, (bottom - top - t * ROWS) * 0.4)) };
 }
@@ -520,7 +520,7 @@ function draw(now) {
 // ───────────────────────── HUD + screens ─────────────────────────
 function hud() { $('scoreTxt').textContent = score; $('speedTxt').textContent = Math.max(1, Math.round((speed() - 3.3) / 0.39) + 1); }
 function show(id) { document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id)); }
-function showHUD(on) { $('hud').classList.toggle('on', on); $('strip').classList.toggle('on', on); $('chip').classList.toggle('on', on); }
+function showHUD(on) { $('bellBtn').classList.toggle('on', on); $('hud').classList.toggle('on', on); $('strip').classList.toggle('on', on); $('chip').classList.toggle('on', on); }
 function bestNum() { return +(store.get(KEY.best) || 0); }
 function showBest() {
   const b = bestNum(), d = (store.get(KEY.day) || '').split('|');
@@ -557,7 +557,7 @@ function pause(on) {
 // the bell - it does nothing, it's just fun
 function ringBell() {
   if (paused || (state !== 'play' && state !== 'tut') || crash) return;
-  audioUnlock(); play('bell', .8);
+  audioUnlock(); play('bell', 2.2);
   const b = $('bellBtn'); b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring');
   sagiSays(pickNo(LINES.bell, 'b'), 1.4);
   if (tutWait && tutWait.id === 'ring') tutWait.done = true;
@@ -629,7 +629,7 @@ const tut = {
     $('tutDim').classList.toggle('on', !!dim);
     if (dim) Object.assign(tutHole.style, { left: sp.x + 'px', top: sp.y + 'px', width: sp.w + 'px', height: sp.h + 'px' });
     // the card sits where it does not cover the action: at the top while riding (Sagi starts at the bottom), else at the bottom
-    if (s.move || s.setup === 'client' || s.show === 'sagi') { tutCard.style.top = `calc(var(--safe-t) + 54px)`; tutCard.style.bottom = 'auto'; }
+    if (s.move || s.setup === 'client' || s.show === 'sagi' || s.try === 'ring') { tutCard.style.top = `calc(var(--safe-t) + 54px)`; tutCard.style.bottom = 'auto'; }
     else { tutCard.style.top = 'auto'; tutCard.style.bottom = `calc(env(safe-area-inset-bottom,0px) + 10px)`; }
     if (tutWait && tutWait.done && !tutWait.shown) { tutWait.shown = true; moving = false; humOn(false); $('tutText').innerHTML = s.text + ' <span class="ok">יופי!</span>'; }
     $('tutNext').disabled = !!(tutWait && !tutWait.done);
@@ -653,7 +653,7 @@ function chip() {
   if (state === 'play' || state === 'tut') {
     if (crash) t = '';
     else if (client) t = '<em>מהר!</em> הלקוח מחכה';
-    else if (moving) t = '<em>גררו</em> לכיוון – רכבו אל העובד';
+    else if (moving) t = '<em>גררו</em> אל העובד';
   }
   if (t !== chipTxt) { chipTxt = t; $('chip').innerHTML = t; $('chip').style.visibility = t ? 'visible' : 'hidden'; }
 }
