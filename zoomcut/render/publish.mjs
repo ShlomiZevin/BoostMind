@@ -17,6 +17,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { sendTelegramText, tgEsc, sendTelegram, sizedCopy } from './share.mjs';
+import { toVerse } from './verse.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -303,9 +304,10 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   }
 
   // ---- his sites: a published video goes on the Shlomiverse (the wiki + the links page) by itself, every time - videos
-  // whose sessions skipped the wiki steps were missing there (2026-10-25). scripts/wiki/publish_site.py does it all
-  // (done, web copy, Terra's fan copy, build, push to the Shlomiverse's bucket - no deploy since 2026-10-31 - live check);
-  // here it is a "site" job, one at a time, its lines the job's log, a Telegram with the link or the error.
+  // whose sessions skipped the wiki steps were missing there (2026-10-25). Since 2026-11-05 through the Shlomiverse's
+  // publish API (verse.mjs: done, web copy, upload, the record - its Terra writes title / teaser); before that API is
+  // live (or with no VERSE_PUBLISH_KEY) the old way, scripts/wiki/publish_site.py (build + push from this computer).
+  // A "site" job, one at a time, its lines the job's log, a Telegram with the link or the error.
   const BM = path.resolve(ROOT, '..');
   const sites = { queue: [], cur: null };
   function site(id) {
@@ -318,10 +320,8 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     if (sites.cur || !sites.queue.length) return;
     const id = sites.queue.shift();
     const cur = (sites.cur = { id, started: Date.now(), log: [] });
-    const ch = spawn('python', ['scripts/wiki/publish_site.py', id], { cwd: BM, windowsHide: true, env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' } });
     let buf = '';
     const take = (d) => { buf += d; const ls = buf.split(/\r?\n/); buf = ls.pop(); for (const l of ls) if (l.trim()) cur.log.push(l.trimEnd()); };
-    ch.stdout.on('data', take); ch.stderr.on('data', take);
     let over = false;  // ('error' and 'close' can both come)
     const end = async (code) => {
       if (over) return;
@@ -335,8 +335,17 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       sites.cur = null;
       pumpSites();
     };
-    ch.on('close', end);
-    ch.on('error', (e) => { cur.log.push(String(e.message || e)); end(-1); });
+    const oldWay = () => {
+      const ch = spawn('python', ['scripts/wiki/publish_site.py', id], { cwd: BM, windowsHide: true, env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' } });
+      ch.stdout.on('data', take); ch.stderr.on('data', take);
+      ch.on('close', end);
+      ch.on('error', (e) => { cur.log.push(String(e.message || e)); end(-1); });
+    };
+    const key = env().VERSE_PUBLISH_KEY;
+    if (!key) return oldWay();
+    toVerse({ id, dir: epDir(id), ROOT, key, port: Number(process.env.PORT || 4747), log: (l) => cur.log.push(l) })
+      .then(() => { saved?.(id); end(0); })
+      .catch((e) => { if (e.notLive) return oldWay(); cur.log.push(String(e.message || e)); end(1); });
   }
   // by hand: a video published before this, or one whose site job failed
   app.post('/api/ep/:id/site', (q, res) => {
