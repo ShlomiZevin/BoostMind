@@ -34,6 +34,7 @@ Object.assign(HOOK, {
   nearestId: nearest,
   // the chat sends the account with each question (3 in total without an account, 10 a day signed in), and signs in from its note
   chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),
+  myUid: () => (st.user ? st.user.uid : null),   // the chat's invite link (bring a friend)
   chatSignIn: () => needFan('chat'),
   afterRoute(page, id) {
     // where the video page / stories go back to: the page under them

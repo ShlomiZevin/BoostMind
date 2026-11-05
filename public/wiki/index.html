@@ -359,6 +359,13 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   .mk-row button:active { transform: scale(.94); }
   .mk-row img { width: 100%; height: 100%; object-fit: contain; }
   .mk small { display: block; margin-top: 8px; font-size: .8rem; color: var(--dim); text-align: center; }
+  .minv { width: min(320px, 100%); padding: 12px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line2); display: grid; gap: 8px; }
+  .minv b { font-size: .95rem; }
+  .minv small { color: var(--dim); font-size: .8rem; line-height: 1.35; }
+  .minv .row { display: flex; gap: 8px; }
+  .minv .row > * { flex: 1; text-align: center; padding: 9px 10px; border-radius: 999px; font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .minv .wa { background: #25d366; color: #062b14; border: 0; }
+  .minv .cp { background: none; color: inherit; border: 1px solid var(--line2); }
   .mc .av { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--cc); }
   .mc .av img, .mc .av .ph { width: 100%; height: 100%; object-fit: cover; }
   .mfaces { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px 6px; width: min(340px, 100%); padding: 10px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line2); }
@@ -747,6 +754,8 @@ function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.na
 function route() {
   const path = location.pathname || '/', qs = location.search.slice(1);
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
+  // a friend's invite link (?inv=<uid>): kept until the server settles it (inviteDone), then off the address
+  if (q.inv) { try { if (!localStorage.getItem('vx-inv')) localStorage.setItem('vx-inv', q.inv); } catch (e) {} const u = new URL(location.href); u.searchParams.delete('inv'); history.replaceState(history.state, '', u.pathname + u.search); }
   let [, page = '', id] = path.split('/');
   // #/chat?with=<id>&ask=<text> - the links page opens a conversation straight from a face or its question box
   if (page === 'chat') { openChat(q.with && C[q.with] ? q.with : 'guide', q.ask || null); history.replaceState(null, '', '/'); page = ''; }
@@ -965,6 +974,9 @@ function renderText(text, streaming) {
       } else if (m && m[1] === 'request' && HOOK.requestCard) {
         flush();
         parts.push(streaming ? '' : HOOK.requestCard(m[2], cxMode, m[3]));
+      } else if (line.trim() === '[[invite]]') {   // today's 10 are used: their own invite link (wiki.js LIMIT.done)
+        flush();
+        parts.push(streaming ? '' : inviteCard());
       } else if (line.trim() === '[[signin]]') {   // the character asks to sign in (the day's free questions are used)
         flush();
         parts.push(streaming || !HOOK.signinCard ? '' : HOOK.signinCard(true));
@@ -1009,14 +1021,31 @@ function drawMsgs() {
 // the anonymous ids the analytics already use, so the dashboard can show a conversation as one thread;
 // own = one of Shlomi's devices (not kept)
 function visitor() {
-  try { return { v: localStorage.getItem('t-v'), s: sessionStorage.getItem('t-s'), r: sessionStorage.getItem('t-r'), own: !!localStorage.getItem('t-ignore'), m: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) }; }
+  try { return { v: localStorage.getItem('t-v'), s: sessionStorage.getItem('t-s'), r: sessionStorage.getItem('t-r'), own: !!localStorage.getItem('t-ignore'), m: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent), inv: localStorage.getItem('vx-inv') || undefined }; }
   catch (e) { return {}; }
+}
+// Bring a friend (wiki.js creditInvite): a signed-in visitor's own link - /c/<who they talk to>?inv=<their uid>. A friend who
+// signs in after coming through it gets, with the inviter, 10 more questions today; route() keeps the inv it came with
+function inviteCard() {
+  const uid = HOOK.myUid ? HOOK.myUid() : null;
+  if (!uid) return '';
+  const c = cxMode !== 'guide' && C[cxMode], url = `https://shlomiverse.com/${c ? 'c/' + c.id : ''}?inv=${encodeURIComponent(uid)}`;
+  const msg = `${c ? `בואו לדבר עם ${c.name} בשלומיוורס` : 'בואו לשלומיוורס'}: ${url}`;
+  return `<div class="minv"><b>הקישור שלכם להזמנת חבר</b><small>חבר שנכנס דרכו ומתחבר עם Google - שניכם מקבלים עוד 10 שאלות היום.</small>`
+    + `<div class="row"><a class="wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">שליחה בוואטסאפ</a><button class="cp" data-inv-copy="${esc(url)}">העתקת הקישור</button></div></div>`;
+}
+// the server's word on the invite this friend came with: any answer means it is settled (kept for good, once)
+function inviteDone(r) {
+  if (!r) return;
+  try { localStorage.removeItem('vx-inv'); } catch (e) {}
+  t('invite_' + r, cxMode);
+  if (r === 'ok' && cxMode && threads[cxMode]) { threads[cxMode].push({ role: 'note', content: 'נכנסתם דרך הזמנה של חבר - שניכם קיבלתם עוד 10 שאלות להיום.' }); save(cxMode); }
 }
 // the questions are used (3 in total without an account, 10 a day signed in): say so in the chat; signed out = a Google button,
 // and their question goes out by itself once they are in
 function quotaNote(why) {
   if (why === 'signin' && HOOK.signinCard) return `<p>3 השאלות החינמיות שלכם כבר נשאלו. התחברו עם Google בחינם וקבלו 10 שאלות בכל יום.</p>${HOOK.signinCard(false)}`;
-  return `<p>${why === 'full' ? 'הדמויות מוצפות היום. נסו שוב מחר.' : '10 השאלות של היום כבר נשאלו. מחר יש עוד - בינתיים אפשר לראות סרטונים או להשאיר לשלומי בקשה.'}</p>`;
+  return `<p>${why === 'full' ? 'הדמויות מוצפות היום. נסו שוב מחר.' : '10 השאלות של היום כבר נשאלו. מחר יש עוד - או שמזמינים חבר, ושניכם מקבלים עוד 10 כבר היום.'}</p>${why === 'done' ? inviteCard() : ''}`;
 }
 async function send(text) {
   text = String(text || '').trim();
@@ -1039,8 +1068,9 @@ async function send(text) {
     const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
     const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) },
       body: JSON.stringify({ mode, messages: history, contact: true, ...visitor() }) });
-    if (res.status === 429) { const j = await res.json().catch(() => ({})); if (j.error === 'quota' && quota) { quota.left = 0; paintLeft(); } throw Object.assign(new Error(j.error === 'quota' ? 'quota' : 'busy'), { why: j.why }); }
+    if (res.status === 429) { const j = await res.json().catch(() => ({})); inviteDone(j.invite); if (j.error === 'quota' && quota) { quota.left = 0; paintLeft(); } throw Object.assign(new Error(j.error === 'quota' ? 'quota' : 'busy'), { why: j.why }); }
     if (!res.ok || !res.body) throw new Error('fail');
+    inviteDone(res.headers.get('X-Invite'));
     const left = res.headers.get('X-Left');
     if (left === 'owner') quota = { owner: true }; else if (left !== null && left !== '' && quota) { quota.left = +left; } else if (left !== null && left !== '') peekLeft();
     paintLeft();
@@ -1081,7 +1111,7 @@ async function peekLeft() {
   try {
     const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
     const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify({ peek: true, ...visitor() }) });
-    if (r.ok) { quota = await r.json(); paintLeft(); }
+    if (r.ok) { quota = await r.json(); inviteDone(quota.invite); paintLeft(); }
   } catch (e) {}
 }
 function openChat(mode, text) {
@@ -1138,6 +1168,9 @@ if (matchMedia('(hover: hover)').matches) {
 }
 
 document.addEventListener('click', (e) => {
+  const ic = e.target.closest('[data-inv-copy]');
+  if (ic) { navigator.clipboard?.writeText(ic.dataset.invCopy).then(() => { ic.textContent = 'הועתק'; setTimeout(() => { ic.textContent = 'העתקת הקישור'; }, 1500); }); t('invite_copy', cxMode); return; }
+  if (e.target.closest('.minv .wa')) t('invite_share', cxMode);
   const sw = e.target.closest('[data-switch]');
   if (sw) { switchChat(sw.dataset.switch); return; }
   const vid = e.target.closest('[data-video]');

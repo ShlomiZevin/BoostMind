@@ -104,7 +104,9 @@ const LIMIT = {
   // the last free answer when the visitor asked to FIND something (8 visitors got "sign in" exactly when the chat had
   // found the video they asked for): what was found comes first, the wall moves to their next question (wiki.js below)
   soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: answer it briefly - one or two short sentences, a real answer in your own voice; then, in one short sentence in your own voice, invite them to sign in with Google (free, one tap) so you can keep talking: 10 questions every day. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last.`,
-  done: `The visitor has used today's questions (an account gets 10 every day) - tomorrow they get 10 more. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say a warm see-you-tomorrow: you'll be here tomorrow and you'd be glad to go on then; meanwhile they can watch your videos (suggest one with a [[video:ID]] card on its own line).`,
+  // today's 10 are used (his ask, 2026-11-05): a real answer, then in voice - come back tomorrow, or bring a friend now;
+  // [[invite]] = the page's invite card (their own link, WhatsApp / copy): a friend who signs in with it = 10 more today for both
+  done: `The visitor has used today's questions (an account gets 10 every day). First answer their last message briefly - one or two short sentences, a real answer in your own voice. Then, in your own voice and style - your words, your world, your humour - in one or two short sentences tell them clearly: tomorrow they get 10 new questions and you'll be glad to go on; or, right now, they can bring a friend - when a friend signs in with their invite link, both of them get 10 more questions today. Speak to them in plural (אתם) in this part. Then put [[invite]] on its own line, last (the page shows their invite link there, to send on WhatsApp or copy). Don't sound like a system message and don't apologise.`,
 };
 
 function modeText(mode, byId, contact) {
@@ -199,13 +201,9 @@ async function stream(key, mode, turns, onText, opts = {}) {
     if (again.notes) throw new Error('notes twice');
     return { ...again, usage: add(r.usage, again.usage) };
   };
-  if (opts.limit === 'done') {   // today's 10 are used: see you tomorrow, in voice, no look-up
-    const r = await safe(dev(b) + '\n\n' + LIMIT[opts.limit], null);
-    console.log('wikiChat limit', mode, opts.limit);
-    return r.usage;
-  }
-  // soft: found first, the wall later; signin: a short real answer, then the wall - both with the look-up, so it's right
-  const note = chain.lookupNote(b), soft = opts.limit === 'soft' || opts.limit === 'signin' ? '\n\n' + LIMIT[opts.limit] : '';
+  // soft: found first, the wall later; signin / done: a short real answer, then the wall (sign in / tomorrow or a friend)
+  // - all with the look-up, so the answer is right
+  const note = chain.lookupNote(b), soft = opts.limit ? '\n\n' + LIMIT[opts.limit] : '';
   const first = await safe(dev(b) + note + soft + '\n\nNow reply to the visitor\'s last message.', note ? [chain.lookupTool(b)] : null);
   if (!first.lookup) {
     console.log('wikiChat one call', mode, JSON.stringify({ c: b.characters, v: b.videos.slice(0, 8) }));
@@ -252,14 +250,46 @@ const quotaDocs = (req, who) => {
   const db = admin.firestore();
   return [db.collection('quota').doc(`chatq_${quotaKey(req, who)}`), db.collection('quota').doc(`chat_all_${dayIL()}`)];
 };
+// an account's limit today: 10 + 10 for every friend who signed in with their invite link today (creditInvite)
+const limitOf = (who, doc) => (who.uid ? FAN_TOTAL + ((doc || {}).bonus || 0) : ANON_TOTAL);
+const dayExp = () => admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);   // day counters (the site's, an account's) only
+
+// Bring a friend (his ask, 2026-11-05): the link the character gives when today's 10 are used is /c/<char>?inv=<uid>; the
+// page keeps inv and sends it with the friend's chat once they are signed in. A NEW account (made in the last 2 days),
+// not the inviter, credited once ever (invites/<friend uid>) = 10 more questions today for both; an inviter gets it for
+// up to 5 friends a day. Returns why not, or 'ok'.
+const INVITE_DAY_MAX = 5;
+async function creditInvite(req, who) {
+  const inv = String(req.body?.inv || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 64);
+  if (!who.uid || !inv) return null;
+  if (inv === who.uid) return 'self';
+  try {
+    const [me, host] = await Promise.all([admin.auth().getUser(who.uid), admin.auth().getUser(inv)]);
+    if (Date.now() - new Date(me.metadata.creationTime).getTime() > 2 * 864e5) return 'old';
+    if (!host) return 'bad';
+  } catch (e) { return 'bad'; }
+  const db = admin.firestore(), day = dayIL(), exp = dayExp();
+  const mark = db.collection('invites').doc(who.uid);
+  const mineDay = db.collection('quota').doc(`chatq_u${who.uid}_${day}`), hostDay = db.collection('quota').doc(`chatq_u${inv}_${day}`);
+  return db.runTransaction(async (tx) => {
+    const [m, h] = await Promise.all([tx.get(mark), tx.get(hostDay)]);
+    if (m.exists) return 'had';
+    if (((h.data() || {}).friends || 0) >= INVITE_DAY_MAX) { tx.set(mark, { by: inv, t: new Date(), credited: false }); return 'full'; }
+    const ten = admin.firestore.FieldValue.increment(10);
+    tx.set(mark, { by: inv, t: new Date(), credited: true });
+    tx.set(mineDay, { bonus: ten, kind: 'chat', who: 'fan', exp }, { merge: true });
+    tx.set(hostDay, { bonus: ten, friends: admin.firestore.FieldValue.increment(1), kind: 'chat', who: 'fan', exp }, { merge: true });
+    return 'ok';
+  }).catch((e) => { console.error('invite failed', e.message); return 'bad'; });
+}
+
 async function spendQuestion(req, who) {
   if (who.owner) return true;
   const db = admin.firestore(), [mine, all] = quotaDocs(req, who);
-  const limit = who.uid ? FAN_TOTAL : ANON_TOTAL;
-  const exp = admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);   // day counters (the site's, an account's) only
+  const exp = dayExp();
   return db.runTransaction(async (tx) => {
     const [a, b] = await Promise.all([tx.get(mine), tx.get(all)]);
-    const used = (a.data() || {}).n || 0, total = (b.data() || {}).n || 0;
+    const used = (a.data() || {}).n || 0, total = (b.data() || {}).n || 0, limit = limitOf(who, a.data());
     // one more answer after the limit, in the character's own voice: "sign in and we'll go on" / a warm goodbye
     // (his ask, 2026-11-01 - the sign-in comes naturally inside the chat); after that the page shows its own note
     // signed out, the first time: 'soft' - a question that FINDS something is answered and the wall waits for the next one
@@ -308,9 +338,10 @@ exports.wikiChat = onRequest({
   if (req.body?.peek) {
     const who = await whoAsks(req);
     if (who.owner) return res.json({ owner: true });
-    const limit = who.uid ? FAN_TOTAL : ANON_TOTAL;
-    const used = ((await quotaDocs(req, who)[0].get()).data() || {}).n || 0;
-    return res.json({ left: Math.max(0, limit - used), limit, signed: !!who.uid });
+    const invite = await creditInvite(req, who);   // a friend who just signed in with an invite link (opening the chat)
+    const d = (await quotaDocs(req, who)[0].get()).data() || {};
+    const limit = limitOf(who, d), used = d.n || 0;
+    return res.json({ left: Math.max(0, limit - used), limit, signed: !!who.uid, ...(invite ? { invite } : {}) });
   }
   const { mode = 'guide', messages } = req.body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: 'messages' });
@@ -321,10 +352,11 @@ exports.wikiChat = onRequest({
   if (!turns.length || turns[turns.length - 1].role !== 'user') return res.status(400).json({ error: 'messages' });
 
   const who = await whoAsks(req);
+  const invite = who.owner ? null : await creditInvite(req, who);
   const ok = await spendQuestion(req, who).catch((e) => { console.error('quota failed', e.message); return true; });
-  if (typeof ok === 'string') return res.status(429).json({ error: 'quota', why: ok, limit: who.uid ? FAN_TOTAL : ANON_TOTAL });
+  if (typeof ok === 'string') return res.status(429).json({ error: 'quota', why: ok, limit: who.uid ? FAN_TOTAL : ANON_TOTAL, ...(invite ? { invite } : {}) });
   res.set({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no',
-    'X-Left': ok === true ? 'owner' : String(ok.left ?? 0), 'Access-Control-Expose-Headers': 'X-Left' });
+    'X-Left': ok === true ? 'owner' : String(ok.left ?? 0), ...(invite ? { 'X-Invite': invite } : {}), 'Access-Control-Expose-Headers': 'X-Left, X-Invite' });
   try {
     let reply = '';
     const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); },
