@@ -28,7 +28,9 @@ growing out of space until it lands exactly on the logo frame (`source/frame-log
 - **The hand-over from the intro to the video** (his note: "looks like two different stuff"): a warm white flash
   (`verse.flash`, a #fff1dc shape peaking on the cut) - the logo fades into light and the first shot appears through it.
   The intro's sound = one deep cinematic hit on the logo's lock (`source/px-kick-hit.mp3`) + a soft shimmer; the music
-  starts from its OWN beginning (its natural swell), stretched only as much as its hit needs to land on the reveal.
+  JUST STARTS - full from the very first frame, never a fade-in and never the track's own swell from silence (he hates
+  both); start it where the track is already at full level (balabusta: sv-music from 2.7 s, slowed to 0.773 so its hit
+  lands on the reveal).
 - **Sound variety** (his note: the same whoosh three times "you can sense it too much"): the intro = a blink (the first
   teaser's own ting + shimmer, `source/sfx-ting.mp3`), the video's own moments = their hits, the deep space whoosh ONCE
   - in the outro.
