@@ -32,7 +32,7 @@ Object.assign(HOOK, {
   signinCard,
   stickerCard,   // [[sticker:ID]] in a chat reply
   nearestId: nearest,
-  // the chat sends the account with each question (3 in total without an account, 10 more signed in), and signs in from its note
+  // the chat sends the account with each question (3 in total without an account, 10 a day signed in), and signs in from its note
   chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),
   chatSignIn: () => needFan('chat'),
   afterRoute(page, id) {

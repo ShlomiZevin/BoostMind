@@ -100,11 +100,11 @@ Once they say yes: if it is about reaching Shlomi for something other than video
 // The reply that meets the wall answers first, then invites (his ask, 2026-11-05: 92 visitors left right after a reply
 // that only said "sign in" - the moment broke; "אין לי כח" got an invitation instead of an answer)
 const LIMIT = {
-  signin: `The visitor has used their free questions (3 without an account). First answer their last message briefly - one or two short sentences, a real answer in your own voice (cards only if they asked to find something). Then, in your own voice and style - your words, your world, your humour - in one short sentence invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
+  signin: `The visitor has used their free questions (3 without an account). First answer their last message briefly - one or two short sentences, a real answer in your own voice (cards only if they asked to find something). Then, in your own voice and style - your words, your world, your humour - in one short sentence invite them to sign in with Google (free, one tap) so you can keep talking: 10 questions every day. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
   // the last free answer when the visitor asked to FIND something (8 visitors got "sign in" exactly when the chat had
   // found the video they asked for): what was found comes first, the wall moves to their next question (wiki.js below)
-  soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: answer it briefly - one or two short sentences, a real answer in your own voice; then, in one short sentence in your own voice, invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last.`,
-  done: `The visitor has used all their questions in this chat (the 10 they get with an account) - there are no more. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say a warm goodbye; they can still watch your videos (suggest one with a [[video:ID]] card on its own line) or leave Shlomi a request. Never promise more questions later.`,
+  soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: answer it briefly - one or two short sentences, a real answer in your own voice; then, in one short sentence in your own voice, invite them to sign in with Google (free, one tap) so you can keep talking: 10 questions every day. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last.`,
+  done: `The visitor has used today's questions (an account gets 10 every day) - tomorrow they get 10 more. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say a warm see-you-tomorrow: you'll be here tomorrow and you'd be glad to go on then; meanwhile they can watch your videos (suggest one with a [[video:ID]] card on its own line).`,
 };
 
 function modeText(mode, byId, contact) {
@@ -199,7 +199,7 @@ async function stream(key, mode, turns, onText, opts = {}) {
     if (again.notes) throw new Error('notes twice');
     return { ...again, usage: add(r.usage, again.usage) };
   };
-  if (opts.limit === 'done') {   // all 10 are used: a goodbye in voice, no look-up
+  if (opts.limit === 'done') {   // today's 10 are used: see you tomorrow, in voice, no look-up
     const r = await safe(dev(b) + '\n\n' + LIMIT[opts.limit], null);
     console.log('wikiChat limit', mode, opts.limit);
     return r.usage;
@@ -226,10 +226,11 @@ exports._stream = stream;
 exports._canon = canonNow;   // the Shlomiverse's social layer (verse.js): characters answering in the comments
 exports._test = { RULES, canon, modeText };  // the side-by-side test of the old full-canon answer (scripts/wiki/chain_test.cjs)
 
-// questions IN TOTAL, not per day (his call, 2026-11-01 - the chat is free and every answer costs): 3 without an
-// account, then 10 more signed in, and that's it; he himself is never counted. Kept in `quota` (no exp - it never
-// resets): signed in by the account, otherwise by the page's anonymous visitor id (else the address). DAY_CAP is a
-// ceiling for the whole site per Israel day, so a flood can't run up the bill.
+// 3 questions without an account, IN TOTAL (no exp - it never resets), then 10 a day with an account (his call,
+// 2026-11-05: 11 of the first 32 accounts used all 10 - the people most into the characters were locked out for good;
+// now tomorrow brings 10 more, a reason to come back). He himself is never counted. Kept in `quota`: signed in by the
+// account and the Israel day, otherwise by the page's anonymous visitor id (else the address). DAY_CAP is a ceiling for
+// the whole site per Israel day, so a flood can't run up the bill.
 const ANON_TOTAL = 3, FAN_TOTAL = 10, DAY_CAP = 1500;
 const OWNER = 'shlomi@boostart.io';
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
@@ -243,10 +244,10 @@ async function whoAsks(req) {
 }
 const quotaKey = (req, who) => {
   const v = String(req.body?.v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, 12);
-  return who.uid ? 'u' + who.uid : v ? 'v' + v : 'ip' + String(req.ip || '').replace(/[^\w]/g, '');
+  return who.uid ? 'u' + who.uid + '_' + dayIL() : v ? 'v' + v : 'ip' + String(req.ip || '').replace(/[^\w]/g, '');
 };
 // {left} = go ahead; {grace} = the one answer after the limit; otherwise why not ('signin' - the 3 are used, 'done' -
-// the 10 are used, 'full' - the site's ceiling today)
+// today's 10 are used, 'full' - the site's ceiling today)
 const quotaDocs = (req, who) => {
   const db = admin.firestore();
   return [db.collection('quota').doc(`chatq_${quotaKey(req, who)}`), db.collection('quota').doc(`chat_all_${dayIL()}`)];
@@ -255,7 +256,7 @@ async function spendQuestion(req, who) {
   if (who.owner) return true;
   const db = admin.firestore(), [mine, all] = quotaDocs(req, who);
   const limit = who.uid ? FAN_TOTAL : ANON_TOTAL;
-  const exp = admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);   // the site's day counter only
+  const exp = admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);   // day counters (the site's, an account's) only
   return db.runTransaction(async (tx) => {
     const [a, b] = await Promise.all([tx.get(mine), tx.get(all)]);
     const used = (a.data() || {}).n || 0, total = (b.data() || {}).n || 0;
@@ -264,12 +265,12 @@ async function spendQuestion(req, who) {
     // signed out, the first time: 'soft' - a question that FINDS something is answered and the wall waits for the next one
     // (putOff below); once put off, the next one is the wall itself
     if (used === limit) {
-      tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon' }, { merge: true });
+      tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon', ...(who.uid ? { exp } : {}) }, { merge: true });
       return { grace: who.uid ? 'done' : (a.data() || {}).putOff ? 'signin' : 'soft' };
     }
     if (used > limit) return who.uid ? 'done' : 'signin';
     if (total >= DAY_CAP) return 'full';
-    tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon' }, { merge: true });
+    tx.set(mine, { n: used + 1, kind: 'chat', who: who.uid ? 'fan' : 'anon', ...(who.uid ? { exp } : {}) }, { merge: true });   // a day's count: gone after 3 days
     tx.set(all, { n: total + 1, kind: 'chat', exp }, { merge: true });
     return { left: limit - used - 1 };
   });
