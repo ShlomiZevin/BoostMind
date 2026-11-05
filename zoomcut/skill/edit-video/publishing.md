@@ -9,6 +9,9 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
    Send window (top bar → **Send**: Test on my phone · Telegram / Email · the socials) opens with it filled in.
 2. Write the post (below) and **save it into the window**, without publishing:
    `POST /api/ep/<id>/publish {save: true, platforms: [...], caption, title, options}`
+   **`options` always carries `{instagram: {reelsOnly: false}, youtube: {privacy: "public"}}`** - the window sends
+   these itself, the API does not: empty `options` = YouTube uploads PRIVATE (the safe fallback). sagi-1 (2026-11-05)
+   went up private that way - he: "usually through the studio itself it's going public".
    (or `{afterExport: true, ...}` when he wants it out as soon as an export ends).
    **The hashtags always end with #שלומיוורס** (his rule, 2026-11-02 - "don't forget #שלומיוורס"), in the caption AND
    in `options.x.text`.
