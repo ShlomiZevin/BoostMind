@@ -20,7 +20,7 @@
   "dont": [
     "באתר: בלי קורקינט, בלי פאנץ׳ בביו ובלי ציטוט (ציטוטים רק להנהלה) - ההומור רק בסרטונים."
   ],
-  "look": "קירח, משקפיים, חיוך נלהב עם פה פתוח, סווטשירט רוכסן כחול (פורטרט).",
+  "look": "פוזל (שתי העיניים פונות פנימה - חובה בכל תמונה שלו), משקפיים, זיפים, חיוך נלהב עם פה פתוח, קסדת אופניים שחורה עם רצועות גם במשרד, סווטשירט רוכסן כחול כהה / גופייה תכלת (פורטרט).",
   "writing_rules": [
     "אתר טקי-טק הוא אתר רציני של חברה רצינית (כלל שלו): בלי פאנצ׳ים בביוגרפיות, בערכים, בחדשות ובקריירה - ההומור רק בסרטונים.",
     "שמות המשפחה והתפקידים של הצוות הומצאו ואושרו על ידו - לא לשנות בלי לשאול.",
@@ -49,6 +49,8 @@
   ],
   "assets": {
     "portraits": [
+      "C:/workspace/BoostMind/zoomcut/episodes/_assets/sagi/headshot-squint-helmet.jpg",
+      "C:/workspace/BoostMind/zoomcut/episodes/_assets/sagi/headshot-squint-nohelmet.jpg",
       "c:/workspace/BoostMind/public/techietech/team/scooter.jpg",
       "C:/Users/shazbak/Downloads/techi-tech/scooter-guy.png"
     ]

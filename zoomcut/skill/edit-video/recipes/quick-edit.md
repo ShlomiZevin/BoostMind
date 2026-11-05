@@ -57,7 +57,7 @@ no set, no eye contact).
 ## ONE continuous take (sagi-1, 2026-11-05 - his words: "very sharp, good pace... it's one shot, but cut the
 sentences I said twice, transcribe it so it's what I actually shot... nothing special, quite simple... 1.2, 1.3 speed,
 it's very slow")
-- **Speed 1.25** for a single-take selfie monologue (he finds 1x "very slow"; 1.15 is for many short takes).
+- **Speed: he said "1.2, 1.3"; I set 1.25 and he brought it down to 1.15 himself** after watching - start at 1.15.
 - No restarts to find (`scdet` gives nothing) - the work is the **repeats**: transcribe with word times, find every
   sentence said twice (sagi-1: "לא ברכבת, לא באוטובוס, לא ברכב... בדיוק בזמן" at 55.9 s and again at 62.0 s), keep the
   LAST one, cut the first with `cut.removes` {take: [[before the first try, just before the retake]]}.
@@ -75,7 +75,16 @@ it's very slow")
 - **Music with `own_pace: true`** on every bed: the 1.25x would otherwise speed the music up too. A 1-minute track
   covers 75 s of timeline at 1.25 - one item, no loop needed. The character's beds + any game music of his = muted
   layers, one per option, levels matched by LUFS (gain = known bed's gain x 10^((its LUFS - this LUFS)/20)).
-- Measured: 87.6 s take -> 13 pieces, 55 s at 1.25 + a 4 s end card.
+- **His notes on the first cut (2026-11-05) - do these before he sees it:**
+  - the **acting before the first word stays** ("הוא מפהק מצחיק לפני זה, תחזיר את זה") - look at the first 2-3 s
+    frame by frame; start right after his hand leaves the phone, not on the first word (`cut.edges` [[start, 0.45]]);
+  - **the silent beat before the punchline is the joke** ("אחרי הלא חסר צריך לראות את השקט שלו... זה חלק מהפאנץ'"):
+    the pause right before the reveal line stays - `cut.keep_pauses` {take: [[a, b]]}; every other pause goes;
+  - **never cut inside a phrase** - a 0.12 s "pause" between "קופסת" and "פח" was the ת stop; he heard a skip. A
+    pause counts only BETWEEN sentences (after a word that ends a clause), not between two words of one phrase;
+  - **end on the cut-off word and go straight to the end card, the music running on** (`lift` +6 dB on the beds,
+    `of: "person"`).
+- Measured: 87.6 s take -> 11 pieces, 62 s at 1.15 + a 4 s end card.
 
 ## Measured on asaf-1
 Two files (95 s + 30 s, 14 recording segments) -> 74.5 s at 1.15. His notes after the first tight cut were ALL
