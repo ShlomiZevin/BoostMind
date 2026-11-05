@@ -1,0 +1,33 @@
+{
+  "id": "chaimi",
+  "world": "טקי-טק",
+  "tier": "npc",
+  "name": "חיימי פרידמן",
+  "name_en": "Chaimi Friedman",
+  "aka": [
+    "חיימי"
+  ],
+  "role": "הבן של חני, בן 9 - הבן הגדול, בין ברכי לשרולי",
+  "color": "#2f6f9f",
+  "brief": "בן 9, הילד השלישי של חני ואברהם משה והבן הגדול במשפחה - אחרי שטערני וברכי, ולפני שרולי. בתמונה בעץ המשפחה של שטערני הוא עם המשקפיים של המשפחה וחיוך גאה.",
+  "look": "בן 9, משקפיים כמו של אמא, כיפת קטיפה שחורה, פאות קצרות מאחורי האוזניים, חולצה לבנה מכופתרת עד הצוואר. חיוך גאה.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלו"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלו"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/tree/chaimi.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/tree/chaimi.jpg"
+    ]
+  },
+  "themes": [
+    "בעץ המשפחה של שטערני (/friedman/)"
+  ]
+}

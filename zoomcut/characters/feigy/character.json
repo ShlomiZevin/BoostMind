@@ -1,0 +1,33 @@
+{
+  "id": "feigy",
+  "world": "טקי-טק",
+  "tier": "npc",
+  "name": "פייגי פרידמן",
+  "name_en": "Feigy Friedman",
+  "aka": [
+    "פייגי"
+  ],
+  "role": "הבת של חני, בת 7 - בין שרולי ליענקי",
+  "color": "#9f4f7a",
+  "brief": "בת 7, הילדה החמישית של חני ואברהם משה - אחרי שרולי, ולפני יענקי. בתמונה בעץ המשפחה של שטערני היא עם שתי צמות וחיוך ביישן ומתוק.",
+  "look": "בת 7, שיער חום בהיר בשתי צמות מסודרות עם סרטים כחולים, חולצת תלבושת כחולה כהה מכופתרת עם שרוולים ארוכים. חיוך ביישן ומתוק.",
+  "relations": [
+    {
+      "id": "hani",
+      "relation": "אמא שלה"
+    },
+    {
+      "id": "avraham-moshe",
+      "relation": "אבא שלה"
+    }
+  ],
+  "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/tree/feigy.jpg",
+  "assets": {
+    "portraits": [
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/haredit/tree/feigy.jpg"
+    ]
+  },
+  "themes": [
+    "בעץ המשפחה של שטערני (/friedman/)"
+  ]
+}
