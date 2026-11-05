@@ -46,6 +46,17 @@ export function storyFaces() {
 }
 // the character page: a ring around the portrait when there is something to watch
 export const storyRing = (char) => (recentOf(char).length ? ` data-story="${char}" style="outline:3px solid var(--vx-accent);outline-offset:4px;cursor:pointer"` : '');
+// the page was drawn before the stories arrived (opened from a story, a link, a push): the ring is put on / taken off in
+// place when they come - it used to show only after a refresh (his find, 2026-11-05)
+export function paintStoryRing() {
+  const id = decodeURIComponent((location.pathname.match(/^\/c\/([^/?#]+)/) || [])[1] || '');
+  const el = id && document.querySelector('.chero .portrait');
+  if (!el) return;
+  const on = !!recentOf(id).length;
+  if (on === (el.dataset.story === id)) return;
+  if (on) el.dataset.story = id; else delete el.dataset.story;
+  Object.assign(el.style, on ? { outline: '3px solid var(--vx-accent)', outlineOffset: '4px', cursor: 'pointer' } : { outline: '', outlineOffset: '', cursor: '' });
+}
 document.addEventListener('click', (e) => { const p = e.target.closest('[data-story]'); if (p) { e.preventDefault(); nav('/story/' + p.dataset.story); } });
 
 // ---------- the viewer ----------

@@ -3,7 +3,7 @@
 import { T } from './copy.js';
 import { st, onState, needFan } from './state.js';
 import { openPlayer, openGame, closePlayer, followBtn, paintFollow, setBack } from './player.js';
-import { openStory, closeStory, storyRing, onStories, setStoryBack } from './stories.js';
+import { openStory, closeStory, storyRing, onStories, setStoryBack, paintStoryRing } from './stories.js';
 import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest } from './community.js';
 import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
@@ -61,7 +61,7 @@ pages['my-stickers'] = myStickersPage;
 pages.install = installPage;
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
-onStories(() => refresh());
+onStories(() => { refresh(); paintStoryRing(); });
 
 // the wiki rendered before this module arrived (the Firebase SDK loads first). On the home: fill in only the account parts
 // (the greeting, their block under the hero) - redrawing the whole page reloaded the wall of faces, and he saw the site
