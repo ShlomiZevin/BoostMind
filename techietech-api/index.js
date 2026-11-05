@@ -215,4 +215,6 @@ Object.assign(exports, require('./page'));
 Object.assign(exports, require('./mind'));
 // the video catalog's door: the studio, insta-to-verse and sessions publish / update / hide a video - see publish.js,
 // catalog.js (the list of videos lives in the database since 2026-11-05)
-exports.versePublish = require('./publish').versePublish;
+// Waits for its key: the VERSE_PUBLISH_KEY secret has to exist first (a deploy otherwise stops every session's functions
+// deploy to ask for it). Uncomment once the secret is in Secret Manager.
+// exports.versePublish = require('./publish').versePublish;
