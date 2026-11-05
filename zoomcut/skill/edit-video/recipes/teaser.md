@@ -21,9 +21,16 @@ growing out of space until it lands exactly on the logo frame (`source/frame-log
   (a v3 built from new space pictures looked "terrible" and its dust ended in a visible edge).
 - Music from the first frame with a hit that must land on a moment: slow the part before the hit (rubberband) so the hit
   lands there, starting where the track is already full (balabusta: sv-music 1.3-15.3 s at tempo 0.859 -> hit at 16.3).
+- **The green "הסכמות" card** after "רק בשלומיוורס" (his ask - like the green card before a film trailer, made Haredi:
+  "מכתבי ברכה והסכמה", the video "נבדק ונמצא כשר למהדרין לכל בני הבית", five rabbis' approvals, "ועל זה באעה"ח"):
+  `_assets/shlomiverse/verse-haskamot.mp4` (4 s), from `source/haskamot/card.html` (shot.mjs -> PNG -> clip). The rabbis
+  and yeshivas are INVENTED (written with GPT-5, checked not to be real people) - never put a real rabbi's name on it.
+- **Sound variety** (his note: the same whoosh three times "you can sense it too much"): the intro = a blink (the first
+  teaser's own ting + shimmer, `source/sfx-ting.mp3`), the video's own moments = their hits, the deep space whoosh ONCE
+  - in the outro.
 - **Put them on a project:** `python tools/verse_bookends.py <project>` (studio running): uploads both, moves every
   item later by the intro's length, adds the "Shlomiverse" picture + sound layers, the outro pinned to the end; then
-  move the music item to frame 0. `--replace` swaps in remade clips; `--muted`, `--no-intro`, `--no-outro`.
+  move the music item to frame 0. `--haskamot` adds the green card at the very end; `--replace` swaps in remade clips; `--muted`, `--no-intro`, `--no-outro`. An audio item already on frame 0 (the music) stays there.
 - Remake: `source/render4.py` (python render4.py; `python render4.py cuts` writes the circle pieces). The space kit
   (`kit/space.py` + its pictures) stays as a tool for a space shot, not for the bookends.
 - `episodes/_assets` travels by the studio's cloud sync, not git (CLAUDE.md "The studio online").
