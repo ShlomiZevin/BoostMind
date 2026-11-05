@@ -1,7 +1,8 @@
 // versePublish - the one way a video gets onto the Shlomiverse (his rule, 2026-11-05): the studio (render/publish.mjs),
 // insta-to-verse (old Instagram reels) and any session sending a missed video all call this. The list of videos lives
 // in the database (catalog.js), the files in gs://shlomiverse-media/wiki/v/ - nothing depends on what one computer has.
-//   POST https://europe-west1-boostmind-b052c.cloudfunctions.net/versePublish   authorization: Bearer <VERSE_PUBLISH_KEY>
+//   POST https://europe-west1-boostmind-b052c.cloudfunctions.net/versePublish   authorization: Key <VERSE_PUBLISH_KEY>
+//   (not "Bearer": Google's front door takes a Bearer for a Google identity token and refuses it before it gets here)
 //   {op: 'uploadUrl', id, kind: 'video' | 'poster', contentType}   -> {uri}: PUT the whole file there (same content type)
 //                                                                     - wiki/v/<id>.mp4 / wiki/v/<id>.jpg
 //   {op: 'video', id, title?, teaser?, cast?, series?, date?, t?, transcript?, archive?, ig?, url?, card?, dryRun?}
@@ -31,7 +32,7 @@ const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: '
 const nowIL = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date()).map((x) => [x.type, x.value])); return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`; };
 
 function keyOk(req) {
-  const got = String(req.get('authorization') || '').replace(/^Bearer /, '');
+  const got = String(req.get('x-publish-key') || req.get('authorization') || '').replace(/^(Key|Bearer) /, '');
   const want = LOCAL ? process.env.VERSE_PUBLISH_KEY || 'local-publish' : PUBLISH_KEY.value();
   const a = Buffer.from(got), b = Buffer.from(want);
   return a.length === b.length && crypto.timingSafeEqual(a, b);

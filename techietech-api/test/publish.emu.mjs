@@ -18,7 +18,7 @@ const MEDIA = 'shlomiverse-media', PRIV = 'shlomiverse-private';
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pub-'));
 
 const step = (m) => console.log('  .. ' + m);
-const call = async (body) => { step('call ' + body.op + ' ' + (body.id || '')); const r = await fetch(FN, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + KEY }, body: JSON.stringify(body) }); return { status: r.status, j: await r.json() }; };
+const call = async (body) => { step('call ' + body.op + ' ' + (body.id || '')); const r = await fetch(FN, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Key ' + KEY }, body: JSON.stringify(body) }); return { status: r.status, j: await r.json() }; };
 // the storage emulator through the admin SDK (emulators:exec sets FIREBASE_STORAGE_EMULATOR_HOST for this script)
 import { createRequire } from 'node:module';
 const admin = createRequire(import.meta.url)('../node_modules/firebase-admin');
@@ -81,5 +81,5 @@ if (process.env.WIKI_OPENAI_KEY || process.env.VERSE_OPENAI_KEY) {
   assert.ok(r.j.video?.title && r.j.video.teaser && r.j.card, 'Terra wrote title, teaser and card: ' + JSON.stringify(r.j));
   console.log('ok  no title sent: Terra wrote it (' + r.j.video.title + ')');
 } else console.log('(no OpenAI key - the Terra step was not checked)');
-assert.equal((await fetch(FN, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer wrong' }, body: '{}' })).status, 401, 'a wrong key is refused');
+assert.equal((await fetch(FN, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Key wrong' }, body: '{}' })).status, 401, 'a wrong key is refused');
 console.log('publish: all good');
