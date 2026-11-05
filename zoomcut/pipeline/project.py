@@ -272,5 +272,24 @@ def merge(old, new):
         prev = next((new["layers"][j]["id"] for j in range(k - 1, -1, -1) if new["layers"][j]["id"] in {x["id"] for x in layers}), None)
         at = next((i + 1 for i, x in enumerate(layers) if x["id"] == prev), 0 if prev is None else len(layers))
         layers.insert(at, n)
+    relink(layers)
     out["layers"] = layers
     return out
+
+
+def relink(layers):
+    """A kept item whose `link` names a cut piece the new cut no longer has (the piece starts elsewhere in the take now -
+    sagi-1's s17 still said cut-...-18.99 after the piece became ...-19.05) joins the piece it plays over; over none of
+    them: no link. (The link is what moves an item with its piece.)"""
+    vids = [it for l in layers if l.get("kind") == "video" for it in l.get("items", []) if it.get("link")]
+    have = {it["link"] for it in vids}
+    for l in layers:
+        if l.get("kind") == "video":
+            continue
+        for it in l.get("items", []):
+            if it.get("link") and it["link"].startswith("cut-") and it["link"] not in have:
+                under = next((v for v in vids if v["from"] <= it["from"] < v["from"] + v["dur"]), None)
+                if under:
+                    it["link"] = under["link"]
+                else:
+                    it.pop("link")

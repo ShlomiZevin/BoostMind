@@ -82,7 +82,9 @@ def changes(layers, fps, total, step=1):
             if it.get("hidden"):
                 continue
             a, z = int(math.floor(it["from"])), int(math.ceil(it["from"] + it["dur"]))
-            keys.update((a, z))
+            # (+ the first frame it is ON: an item at from 543.2 isn't drawn at 543 - that empty picture was held to the
+            # next key and the subtitle never showed in the export, while the editor played it; sagi-1, 2026-11-05)
+            keys.update((a, int(math.ceil(it["from"])), z))
             fi, fo = it.get("fade_in", props.get("fade_in", 0)) or 0, it.get("fade_out", props.get("fade_out", 0)) or 0
             if fi:
                 keys.update(range(a, a + int(math.ceil(fi * fps)) + 1, step))

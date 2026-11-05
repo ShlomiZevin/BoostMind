@@ -2618,6 +2618,13 @@ def new_from(dst, src_slug, input_dir, script=None, takes=None):
     cfg["takes"] = takes or "IMG_*.MP4"  # the new video's files, not the old episode's
     if cfg.get("eye_contact"):  # eye contact stays on - by the default (NVIDIA), never an old take's CapCut file or mode
         cfg["eye_contact"] = {"on": cfg["eye_contact"].get("on", True)}
+    # its own script, and nothing about the old takes: the copied `script` pointed at the old episode's file and the new
+    # script was written over it (tzvika-1, 2026-11-05); sequence / props / cut edges are seconds of the OLD takes
+    cfg["script"] = os.path.basename(os.path.normpath(dst))
+    for k in ("sequence", "prop_color", "props", "keep_objects", "done"):
+        cfg.pop(k, None)
+    if isinstance(cfg.get("cut"), dict):
+        cfg["cut"] = {k: v for k, v in cfg["cut"].items() if k not in ("edges", "removes", "keep_pauses", "video_start", "video_end")}
     os.makedirs(dst, exist_ok=True)
     save_json(os.path.join(dst, "episode.json"), cfg)
     takes = sorted(glob.glob(os.path.join(input_dir, cfg.get("takes", "*.MP4"))))

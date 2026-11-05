@@ -4,7 +4,7 @@
 // render/publish.mjs), the few options only for what's picked, one big button. An up-to-date export goes out AS IS;
 // otherwise the button exports first and everything goes out when the export ends. The project remembers its post
 // (publish.json); a new project starts from his last picks.
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './publish.css';
 
 type Platform = { id: string; name: string; what: string; manual?: boolean; ok: boolean; handle?: string; note?: string; until?: string; limits: any };
@@ -70,6 +70,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
       const post = cur.post, last = JSON.parse(store.get('zc-publish') || '{}');
       setCaption(post?.caption ?? '');
       setYTitle(post?.title || clean);
+      kept.current = { caption: post?.caption ?? '', title: post?.title || clean };
       const picks: string[] = post?.platforms || last.platforms || [];
       setOn(Object.fromEntries(pl.map((p: Platform) => [p.id, p.ok && picks.includes(p.id)])));
       if (post?.options || last.options) setOpt((o: any) => ({ ...o, ...(last.options || {}), ...(post?.options || {}) }));
@@ -113,6 +114,19 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
   const chans = CHANNELS.filter((c) => ch[c.id]).map((c) => c.id);
   // one caption for every platform (X takes its first 280, without links - the server does it)
   const post = () => ({ platforms: picked.map((p) => p.id), caption, title: yTitle, options: { instagram: opt.instagram, youtube: opt.youtube } });
+  // his caption / title are kept as he types (and when the window closes) - only Publish saved them, so a caption
+  // written before "Send the file" was gone when the window closed (sagi-1, 2026-11-05)
+  const kept = useRef<{ caption: string; title: string } | null>(null);
+  const latest = useRef(post);
+  latest.current = post;
+  const keep = () => {
+    const p = latest.current();
+    if (!kept.current || (p.caption === kept.current.caption && p.title === kept.current.title)) return;
+    kept.current = { caption: p.caption, title: p.title };
+    api(`/api/ep/${ep}/publish`, { ...p, save: true }).catch(() => {});
+  };
+  useEffect(() => { const t = setTimeout(keep, 700); return () => clearTimeout(t); }, [caption, yTitle]);
+  useEffect(() => () => keep(), []);
   const isStale = !!file?.stale;
   // an up-to-date full export goes out as is; otherwise the button exports first - or, his pick, the last export as is
   const outdated = !!file && (isStale || !!(draft && draft.exported > file.exported));

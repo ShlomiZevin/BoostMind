@@ -4,7 +4,8 @@
 // Only what a writer needs: who they are, how they behave and talk, their look, the rules, the people around them,
 // their site and what their videos already did. No file paths, no ids.
 
-const list = (xs) => (xs || []).filter(Boolean).map((x) => `- ${typeof x === 'string' ? x : x.text || JSON.stringify(x)}`).join('\n');
+const list = (xs) => (Array.isArray(xs) ? xs : xs ? [xs] : []).filter(Boolean)  // (a field written as one text = one line - ~45 characters have speech as a string)
+  .map((x) => `- ${typeof x === 'string' ? x : x.text || JSON.stringify(x)}`).join('\n');
 const sec = (title, body) => (body && String(body).trim() ? `## ${title}\n${String(body).trim()}\n` : '');
 
 /** c: the character (with videos as [{id, title}] or ids), all: every character (for the relations' names / roles). */
