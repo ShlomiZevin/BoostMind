@@ -64,6 +64,7 @@ for (const id of ['sagi', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'client']) for (co
 for (let i = 1; i <= 6; i++) img(`c${i}-wait`, `assets/c${i}-wait.webp`);
 for (const p of ['ofer-1', 'ofer-2', 'client-wave']) img(p, `assets/${p}.webp`);
 for (const u of ['marker', 'talk', 'bell', 'alert']) img('ui-' + u, `assets/ui-${u}.webp`);
+img('grip', 'assets/grip.jpg'); img('sagi-s2', 'assets/sagi-s2.webp'); img('sagi-b2', 'assets/sagi-b2.webp'); img('rear-s', 'assets/rear-s.webp'); img('rear-b', 'assets/rear-b.webp');
 for (const p of ['desk', 'plant', 'coffee', 'water', 'boxes', 'foos']) img('p-' + p, `assets/p-${p}.webp`);
 const ok = (im) => im && im.complete && im.naturalWidth;
 
@@ -340,25 +341,37 @@ function ring(cx, cy, R, left) {
   ctx.save(); ctx.lineWidth = Math.max(3, R * 0.28); ctx.strokeStyle = '#ffffffcc'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = left < 0.35 ? '#ef4444' : '#facc15'; ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * left); ctx.stroke(); ctx.restore();
 }
-// the long deck: dark grip tape on a black body, a red stripe, the rear wheel and its red light at the end
+// the long scooter: painted grip tape on top, the black body with its red trim showing on the near side, and the
+// painted rear wheel + tail light at the end (side view when the tail goes sideways, end-on when it goes up or down)
+let gripPat = null, gripFor = 0;
 function drawDeck(pts, tail, t) {
+  const h0 = snake[0]; pts = [{ x: pts[0].x + (h0.dx || 0) * t * 0.34, y: pts[0].y + (h0.dy || 0) * t * 0.2 }, ...pts];
   const n = pts.length, last = pts[n - 1];
-  const bx = tail.dx || 0, by = tail.dy || 0;                       // the tail goes this way - the deck ends behind it
+  const bx = tail.dx || 0, by = tail.dy || 0;
   const end = { x: last.x - bx * t * 0.42, y: last.y - by * t * 0.42 };
+  const Wd = t * 0.44, th = t * 0.11;
   const path = (dy = 0) => { ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y + dy); for (let i = 1; i < n; i++) ctx.lineTo(pts[i].x, pts[i].y + dy); ctx.lineTo(end.x, end.y + dy); };
+  if (ok(IMG.grip) && gripFor !== t) { gripPat = ctx.createPattern(IMG.grip, 'repeat'); const k = t * 0.9 / 256; gripPat.setTransform(new DOMMatrix([k, 0, 0, k, 0, 0])); gripFor = t; }
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#13294b33'; ctx.lineWidth = t * 0.44; path(t * 0.07); ctx.stroke();
-  ctx.strokeStyle = '#111114'; ctx.lineWidth = t * 0.36; path(); ctx.stroke();
-  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = t * 0.3; path(); ctx.stroke();
-  ctx.strokeStyle = '#26262c'; ctx.lineWidth = t * 0.25; path(); ctx.stroke();
-  ctx.setLineDash([t * 0.05, t * 0.07]); ctx.strokeStyle = '#ffffff1c'; ctx.lineWidth = t * 0.16; path(); ctx.stroke(); ctx.setLineDash([]);
-  // the rear wheel + fender light
-  const wx = end.x - bx * t * 0.05, wy = end.y + t * 0.05;
-  ctx.fillStyle = '#0d0d10'; ctx.beginPath(); ctx.ellipse(wx, wy, bx ? t * 0.2 : t * 0.12, bx ? t * 0.14 : t * 0.17, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#6b7280'; ctx.beginPath(); ctx.ellipse(wx, wy, bx ? t * 0.08 : t * 0.05, bx ? t * 0.06 : t * 0.07, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#ff3b3b'; ctx.shadowColor = '#ff3b3b'; ctx.shadowBlur = t * 0.3;
-  ctx.beginPath(); ctx.arc(end.x - bx * t * 0.18, end.y - t * 0.1 - by * t * 0.12, t * 0.055, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#13294b40'; ctx.lineWidth = Wd + t * 0.08; path(th + t * 0.07); ctx.stroke();      // shadow
+  ctx.strokeStyle = '#0c0c0f'; ctx.lineWidth = Wd; path(th); ctx.stroke();                              // the body's side
+  ctx.strokeStyle = '#e53935'; ctx.lineWidth = Wd; path(th * 0.62); ctx.stroke();                       // red trim
+  ctx.strokeStyle = '#1a1a1f'; ctx.lineWidth = Wd; path(th * 0.32); ctx.stroke();
+  ctx.strokeStyle = '#3a3a44'; ctx.lineWidth = Wd; path(); ctx.stroke();                                // the top's rim
+  ctx.strokeStyle = gripPat || '#222228'; ctx.lineWidth = Wd * 0.84; path(); ctx.stroke();               // grip tape
   ctx.restore();
+  // the rear end
+  if (bx) {
+    const im = IMG['rear-s']; if (!ok(im)) return;
+    const h = t * 0.8, w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save(); ctx.translate(end.x - bx * t * 0.12, end.y + th * 0.5); if (bx < 0) ctx.scale(-1, 1);          // the piece's deck stub points toward the riders
+    ctx.drawImage(im, -w * 0.28, -h * 0.64, w, h); ctx.restore();
+  } else {
+    const im = IMG['rear-b']; if (!ok(im)) return;
+    const h = t * 0.7, w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save(); ctx.translate(end.x, end.y); if (by > 0) ctx.scale(1, -1);
+    ctx.drawImage(im, -w / 2, -h * 0.2, w, h); ctx.restore();
+  }
 }
 function drawBubble(text, hx, hy) {
   const fs = clamp(Math.round(B.t * 0.48), 13, 18), pad = fs * 0.55, maxW = Math.min(W * 0.62, fs * 11);
@@ -437,15 +450,15 @@ function draw(now) {
   snake.forEach((s, i) => {
     const p = pos[i];
     items.push({ y: (p.y + t * 0.22 - B.y) / t - 0.1 + (i === 0 ? 0.01 : 0), f: () => {
-      const cx = p.x, by = p.y + (i === 0 ? t * 0.14 : t * 0.05), bounce = Math.abs(Math.sin(now * 10 + i * 0.7)) * t * 0.03;
+      const cx = p.x, by = p.y + (i === 0 ? (snake.length > 1 && view(s)[0] === 's' ? t * 0.2 : t * 0.14) : t * 0.05), bounce = Math.abs(Math.sin(now * 10 + i * 0.7)) * t * 0.03;
       const [v, flip] = view(s);
       if (i === 0) {
         if (crash) { shadow(cx, by, t * 1.1); sprite(IMG['sagi-crash'], cx + Math.sin(crash.t * 50) * Math.max(0, 1 - crash.t * 2) * 4, by, ch * 1.05, s.face < 0); return; }
         shadow(cx, by, t * 0.9);
-        sprite(IMG['sagi-' + v], cx, by - bounce, ch * (v === 's' ? 1.1 : 1.15), flip);
+        sprite(IMG['sagi-' + v + (snake.length > 1 && v !== 'f' ? '2' : '')], cx, by - bounce, ch * (v === 's' ? 1.2 : 1.24), flip);
       } else {
         const id = s.kind === 'client' ? 'client' : 'c' + s.kind;
-        sprite(IMG[`${id}-${v}`], cx, by - bounce, ch * 0.9 * (0.6 + 0.4 * (s.join ?? 1)), flip, crash ? 0.85 : 1);
+        sprite(IMG[`${id}-${v}`], cx, by - bounce, ch * 1.06 * (0.6 + 0.4 * (s.join ?? 1)), flip, crash ? 0.85 : 1);
       }
     } });
   });
@@ -618,7 +631,7 @@ layout(); hud(); showBest(); requestAnimationFrame(frame);
 // for the tests
 window.SNAKE = {
   get state() { return state; }, get score() { return score; }, get snake() { return snake; }, get food() { return food; }, get client() { return client; },
-  get ofer() { return ofer; }, get tut() { return tut.on; }, get tutStep() { return tut.i; }, get tutTry() { return (STEPS[tut.i] || {}).try; }, get moving() { return moving; }, get dir() { return dir; },
+  get ofer() { return ofer; }, get tut() { return tut.on; }, get tutStep() { return tut.i; }, get tutTry() { return (STEPS[tut.i] || {}).try; }, get moving() { return moving; }, set moving(v) { moving = v; }, set snakeForTest(v) { snake = v; }, get dir() { return dir; },
   get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, ROWS, OFR,
   setSpeedForTest(v) { window.__spd = v; },
 };
