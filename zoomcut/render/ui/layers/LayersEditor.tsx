@@ -7,6 +7,7 @@ import { Player, PlayerRef } from '@remotion/player';
 import { Layers } from '../../src/Layers';
 import { clockFrame, soundDiag, soundClock, soundJump } from '../../src/layers/AudioTrack';
 import { useLayered, build, fmtT } from './api';
+import { apply } from '../../src/layers/ops.js';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
 import { Media } from './Media';
@@ -269,6 +270,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   const [syncing, setSyncing] = useState(0);
   const liveEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number, project = L.live) => {
     const ops: any[] = [], seen = new Set<string>();
+    d = takeRoom(project, it, side, d);
     const change = (ly: any, x: any) => {
       const set: any = side === 'm' ? { from: Math.max(0, x.from + d) }
         : side === 'r' ? { dur: Math.max(1, x.dur + d) }
@@ -288,14 +290,70 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     if (ripple) {  // everything after the edge moves with it (texts, sounds, pictures, his own layers too); what spans
       // the edge - the background, the music, a sound of his - grows / shrinks with it (his rule, 2026-10-28)
       const shift = side === 'l' ? -d : d, edge = side === 'r' ? it.from + it.dur : it.from;
+      // the words cut off by a shorter clip: their subtitles go (the right edge: those starting in the cut-off end; the
+      // left: those inside the clip that would now start before it)
+      const hidden = (ly: any, x: any) => ly.kind === 'subtitles' && side !== 'm' && d !== 0
+        && (side === 'r' ? d < 0 && x.from >= edge + d - 0.5 && x.from < edge - 0.5 : d > 0 && x.from >= it.from - 0.5 && x.from < it.from + d - 0.5);
       for (const ly of project.layers) for (const x of ly.items || []) {
         if (seen.has(ly.id + '|' + x.id)) continue;
+        if (hidden(ly, x)) { ops.push({ op: 'item.remove', layer: ly.id, id: x.id }); continue; }
+        if (x.pin && side !== 'm') continue;  // (pinned to the end / spanning to it: the new length moves it - ops.js repin)
         const after = side === 'r' ? x.from >= edge - 0.5 : x.from > edge;
         if (after) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { from: Math.max(0, x.from + shift) }, user: false });
         else if (x.from + x.dur > edge + 0.5) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { dur: Math.max(1, x.dur + shift) }, user: false });
       }
+      if (side !== 'm' && shift) ops.push({ op: 'project', set: { duration: Math.max(1, (project.duration || 0) + shift) } });  // (the video grows / shrinks with it)
     }
     return ops;
+  };
+  // how far a clip of a take can go: a clip is a window on its whole take (his rule, 2026-11-05 - "each video is longer
+  // than the cut it took"), its edge stops at the take's start / end; and a clip keeps at least a frame
+  const takeRoom = (project: any, it: any, side: 'l' | 'r' | 'm', d: number) => {
+    if (side === 'm') return d;
+    const rate = it.rate || 1, len = project.assets?.[it.asset]?.duration;
+    if (side === 'r') {
+      d = Math.max(d, 1 - it.dur);
+      if (it.in != null && len) d = Math.min(d, Math.floor(((len - (it.in + (it.dur / fps) * rate)) * fps) / rate));
+    } else {
+      d = Math.min(d, it.dur - 1);
+      if (it.in != null) d = Math.max(d, -Math.floor((it.in * fps) / rate));
+    }
+    return d;
+  };
+  // the words a longer clip uncovers get their subtitles (from the take's words, work/words/<take>.json), styled as the
+  // subtitles beside them; words a subtitle already shows are left alone
+  const takeWords = useRef<Record<string, Promise<any[]>>>({});
+  const newWordsSubs = async (it: any, side: 'l' | 'r', d: number, ops: any[]) => {
+    const take = it.ref?.take, rate = it.rate || 1;
+    if (!take || it.in == null || !(side === 'r' ? d > 0 : d < 0)) return [];
+    const words = await (takeWords.current[take] ||= fetch(`/pm/${ep}?p=${encodeURIComponent(`work/words/${take}.json`)}`)
+      .then((r) => (r.ok ? r.json() : [])).catch(() => []));
+    const after = apply(L.live, ops);
+    const subs = after.layers.find((x: any) => x.kind === 'subtitles' && x.items?.length);
+    if (!subs || !words.length) return [];
+    // the uncovered stretch of the take (seconds) and where a second of it plays now (frames)
+    const a = side === 'r' ? it.in + (it.dur / fps) * rate : it.in + (d / fps) * rate;
+    const z = side === 'r' ? it.in + ((it.dur + d) / fps) * rate : it.in;
+    const startIn = side === 'r' ? it.in : a;
+    const at = (sec: number) => it.from + ((sec - startIn) * fps) / rate;
+    const taken = (f0: number, f1: number) => subs.items.some((x: any) => Math.min(f1, x.from + x.dur) - Math.max(f0, x.from) > (f1 - f0) / 2);  // (a subtitle shows most of it)
+    const ws = words.filter((w: any) => w.s >= a - 0.05 && w.s < z && !taken(at(w.s), at(w.e)));
+    if (!ws.length) return [];
+    const groups: any[][] = [];
+    let cur: any[] = [];
+    for (const w of ws) {
+      if (cur.length && (w.s - cur[cur.length - 1].e > 0.6 || cur.length >= 5)) { groups.push(cur); cur = []; }
+      cur.push(w);
+      if (cur.length >= 3 && /[.?,!]$/.test(w.w)) { groups.push(cur); cur = []; }
+    }
+    if (cur.length) groups.push(cur);
+    const near = [...subs.items].sort((x: any, y: any) => Math.abs(x.from - at(a)) - Math.abs(y.from - at(a)))[0];
+    const { id: _i, text: _t, from: _f, dur: _d, ref: _r, ...look } = near;
+    return groups.map((g, k) => {
+      const f0 = Math.round(at(g[0].s)), f1 = Math.round(at(g[g.length - 1].e));
+      return { op: 'item.add', layer: subs.id, item: { ...look, id: `s${Date.now().toString(36)}${k}`, from: f0, dur: Math.max(8, f1 - f0),
+        text: g.map((w) => w.w).join(' '), ref: { sub: take, t: g[0].s }, link: it.link, user: true } };
+    });
   };
   // edits waiting for their builder: shown live (the 'sync' draft, they stack), one quiet loop brings the builder's
   // answer in when everything has settled
@@ -327,6 +385,20 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     isTake(l, it) && project.edit?.ripple && side !== 'm' ? liveEdit(l, it, side, d, base) : null;
   const onItemEdit = (l: any, it: any, side: 'l' | 'r' | 'm', d: number): boolean | 'keep' => {
     if (!isTake(l, it)) return false;  // a layer of his own, a caption, a picture: the plain edit is the edit
+    // one camera (a continuous cut): as in CapCut - the edge shows more / less of the take, everything after it moves
+    // by exactly that, and that IS the edit: saved as his, no rebuild (his rule, 2026-11-05 - the builder's re-cut
+    // after a drag forgot the end card, cut the end music short and joined two clips: "it completely ruined everything")
+    if (project.builder?.kind !== 'zoom' && project.edit?.ripple && side !== 'm') {
+      const live = liveEdit(l, it, side, d);
+      L.send([], { commit: false });
+      L.send(live, { commit: false, channel: 'sync' });  // (shown while the uncovered words are looked up)
+      (async () => {
+        const subs = await newWordsSubs(it, side, takeRoom(L.live, it, side, d), live).catch(() => []);
+        L.send([], { commit: false, channel: 'sync' });
+        L.send([...live, ...subs].map((o: any) => (o.op === 'item.update' ? { ...o, user: true } : o)), { label: 'trim' });
+      })();
+      return 'keep';
+    }
     before(side === 'm' ? 'move' : 'trim');
     const live = liveEdit(l, it, side, d);
     L.send([], { commit: false });  // (the drag's own draft goes - the live edit below shows it)

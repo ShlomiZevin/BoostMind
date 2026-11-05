@@ -24,9 +24,15 @@ One format, one composition, one editor, one export. The format and the API: `la
   scrolls sideways - a native non-passive listener; a caption's or a text's edge / move changes ONLY that item - never its
   line's picture / voice, nothing ripples - his rule; LayersEditor.onItemEdit hands those to the plain edit); **a take's edge in a one-camera cut ripples** (his rule, 2026-10-28): longer pushes EVERYTHING after it later, shorter
   pulls it earlier - the other takes, voice, subtitles, stickers, sounds, his own layers and hand-changed items too - and
-  what spans the edge (the background, the music, a sound of his) grows / shrinks with it; shown while dragging
-  (Timeline onItemPreview -> LayersEditor.liveEdit), then saved by the builder's re-cut, where `pipeline/project.py`
-  merge() moves his items by `timemap()` (by what plays under them, in source seconds of the take); **a click picks a block, only the picked one
+  what spans the edge (the background, the music, a sound of his) grows / shrinks with it; **as in CapCut, and what
+  he sees while dragging IS the edit - no rebuild** (his rule, 2026-11-05: the builder's re-cut after a drag forgot the
+  end card, cut the end music short and joined two clips - "it completely ruined everything"): each clip is a window on
+  its whole take, the edge shows more / less of it (stops at the take's start / end - `takeRoom`), everything after
+  moves by exactly the same frames, the video's length with it (items pinned to the end - the end card - follow the
+  length: ops.js repin); words a longer clip uncovers get subtitles from `work/words/<take>.json` (styled as the
+  ones beside them, only words no subtitle shows yet - `newWordsSubs`), subtitles of words a shorter clip cuts off go;
+  one undo step, saved as his (`user`). Into the next clip's footage = that stretch plays twice, his call - never
+  joined. (LayersEditor.liveEdit / onItemEdit; a Zoom grid's line still goes to its builder.) **a click picks a block, only the picked one
   drags** - body = move, its two white grips = start / end, a label shows 'end +0.57 s' - so the edge between two clips
   is never the neighbour's (his rule, 2026-10-23); **nudging a cut edge by ms** (his ask, 2026-11-02): a click on a
   picked block's grip, or right at an unpicked block's start / end, picks THAT edge (coral grip, a dashed coral line
