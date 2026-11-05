@@ -99,7 +99,14 @@ they tap it).
 5. **Post** as always (`--test` first; Never on Shabbat). `"poster": "C:/path/cover.jpg"` chooses another cover; on an
    up story `--edit <id>` with only `"poster"` replaces just the cover. In /backstage/ he can upload a clip too - the
    page grabs its cover by itself; an iPhone .mov or a file over 29 MB there = do it here instead (it says so).
-6. **Tested**: `techietech-api/test/story-video.emu.mjs` (on the emulators - `bash scripts/test.sh`) prepares a stand-in
+6. **A clip is also a video** (his rule, 2026-11-05): posting it puts it in the latest videos and on the character's
+   page too (the catalog, `story-<id>`, Terra's title from the story's words - `"videoTitle"` to choose one). Its
+   followers already heard from the story, so no second "new video" ping. **The same clip already on the site** (he
+   published it from the studio, or another session posted another cut) = `"videoId": "<its id>"` - the character joins
+   that video's cast, no second copy (the בעלבוסטע teaser is `balabusta-teaser`, Hani + Shindy). `"toVideos": false` =
+   a story only (a snippet that isn't a video of its own). `--test` never makes one; hiding the story hides the video it
+   made (one it only joined stays). story.mjs prints the video's link - say it in the hand-over.
+7. **Tested**: `techietech-api/test/story-video.emu.mjs` (on the emulators - `bash scripts/test.sh`) prepares a stand-in
    iPhone clip, posts it with its cover, replaces the cover, and checks the real viewer (cover, sound, hold, the bar).
 
 ## The story JSON
