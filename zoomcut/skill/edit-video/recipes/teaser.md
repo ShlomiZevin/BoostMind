@@ -24,7 +24,7 @@ growing out of space until it lands exactly on the logo frame (`source/frame-log
 - **The green "הסכמות" card** after "רק בשלומיוורס" (his ask - like the green card before a film trailer, made Haredi:
   "מכתבי ברכה והסכמה", the video "נבדק ונמצא כשר למהדרין לכל בני הבית", five rabbis' approvals, "ועל זה באעה"ח"):
   `_assets/shlomiverse/verse-haskamot.mp4` (4 s), from `source/haskamot/card.html` (shot.mjs -> PNG -> clip). The rabbis
-  and yeshivas are INVENTED (written with GPT-5, checked not to be real people) - never put a real rabbi's name on it.
+  and yeshivas are INVENTED (written with Terra - gpt-5.6-terra, his rule for Hebrew copy - checked not to be real people) - never put a real rabbi's name on it.
 - **Sound variety** (his note: the same whoosh three times "you can sense it too much"): the intro = a blink (the first
   teaser's own ting + shimmer, `source/sfx-ting.mp3`), the video's own moments = their hits, the deep space whoosh ONCE
   - in the outro.
