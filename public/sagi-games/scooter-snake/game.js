@@ -23,10 +23,11 @@ function rng(seed) {
 }
 
 // ───────────────────────── the office ─────────────────────────
-const COLS = 9, ROWS = 17;
-const OFR = 8;                                   // Ofer's aisle (kept clear of furniture)
-const START = { c: 4, r: 14 };
-const inClear = (c, r) => c >= 2 && c <= 6 && r >= 11;   // the start zone stays empty
+// 9 columns always; the rows fit the phone (13-20) so the office fills the screen - set when a ride starts
+const COLS = 9;
+let ROWS = 17, OFR = 8, START = { c: 4, r: 14 };   // OFR = Ofer's aisle (kept clear of furniture)
+function setRows(n) { ROWS = n; OFR = Math.floor(n / 2); START = { c: 4, r: n - 3 }; }
+const inClear = (c, r) => (c >= 2 && c <= 6 && r >= START.r - 3) || (c >= 3 && c <= 5 && r >= START.r - 8);   // the start + a lane ahead stay empty   // the start zone stays empty
 const PROPS = ['plant', 'coffee', 'water', 'boxes', 'foos', 'plant'];
 let grid = [], props = [];
 function buildOffice(seed) {
@@ -49,7 +50,7 @@ function buildOffice(seed) {
       props.push({ kind, c, r, w }); return;
     }
   };
-  for (let i = 0; i < 5; i++) place('desk', 2);
+  for (let i = 0, n = Math.round(ROWS * 0.29); i < n; i++) place('desk', 2);
   for (const p of PROPS) place(p, 1);
 }
 const solid = (c, r) => c < 0 || r < 0 || c >= COLS || r >= ROWS || grid[r * COLS + c] === 1;
@@ -164,11 +165,15 @@ function layout() {
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
   cv.width = W * DPR; cv.height = H * DPR;
   document.body.classList.toggle('turn', W > H * 1.15 && H < 520 && 'ontouchstart' in window);
-  // room for the HUD + the speech strip above, the verb chip below; the characters stand ~0.7 tile above their tile
-  const top = cssPx('var(--safe-t)') + 96, bottom = H - 44 - cssPx('env(safe-area-inset-bottom,0px)');
-  const t = Math.floor(Math.min((W - 16) / COLS, (bottom - top) / ROWS));
-  B = { t, x: Math.round((W - t * COLS) / 2), y: Math.round(top + Math.max(0, (bottom - top - t * ROWS) * 0.4)) };
+  // the HUD above, the verb chip below (the speech strip floats over the board's top); the top row's people stand
+  // ~0.6 tile above the board, so that much room is kept
+  const G = gap();
+  const t = Math.floor(Math.min((W - 12) / COLS, G.h / (ROWS + 0.6)));
+  B = { t, x: Math.round((W - t * COLS) / 2), y: Math.round(G.top + t * 0.6 + Math.max(0, (G.h - t * (ROWS + 0.6)) / 2)) };
 }
+function gap() { const top = cssPx('var(--safe-t)') + 56, bottom = H - 40 - cssPx('env(safe-area-inset-bottom,0px)'); return { top, h: bottom - top }; }
+// how many rows fill this screen when the board takes the whole width
+function fitRows() { W = innerWidth; H = innerHeight; const t = (W - 12) / COLS; return clamp(Math.floor(gap().h / t - 0.6), 13, 20); }
 addEventListener('resize', layout); addEventListener('verseframe', layout);
 const tx = (c) => B.x + c * B.t, ty = (r) => B.y + r * B.t;
 
@@ -231,7 +236,7 @@ function spawnFood(at) {
 }
 function startGame() {
   tutorial = false; state = 'play'; moving = true; score = 0; T = 0; runs++;
-  buildOffice(`${SLUG}|${today()}`); foodR = rng(`${SLUG}|${today()}|food`); nextKind = 1;
+  setRows(fitRows()); layout(); buildOffice(`${SLUG}|${today()}|${ROWS}`); foodR = rng(`${SLUG}|${today()}|food`); nextKind = 1;
   resetSnake(); food = null; client = null; ofer = null; clientNext = 14; idleT = 5; bubble = null;
   spawnFood();
   showHUD(true); show(null); hud(); play('start', .7); banner('יאללה, רוכבים!');
@@ -591,7 +596,7 @@ const tut = {
   on: false, i: 0,
   begin() {
     show(null); showHUD(true); state = 'tut'; tutorial = true; this.on = true; this.i = 0; score = 0; T = 0;
-    buildOffice('tutorial'); foodR = rng('tutorial|food'); nextKind = 2;
+    setRows(fitRows()); layout(); buildOffice('tutorial|' + ROWS); foodR = rng('tutorial|food'); nextKind = 2;
     resetSnake(); food = null; client = null; ofer = null; bubble = null; hud();
     musicOn('music-a');
     tutCard.classList.add('on'); this.enter();
@@ -602,7 +607,7 @@ const tut = {
     moving = !!s.move; humOn(moving);
     if (s.move) resetSnake();
     if (s.setup === 'catch') spawnFood({ c: START.c, r: START.r - 4 });
-    if (s.setup === 'client') { food = null; client = { c: 7, r: 13, life: 5, max: 7 }; }
+    if (s.setup === 'client') { food = null; client = { c: 7, r: START.r - 1, life: 5, max: 7 }; }
     if (s.setup === 'ofer') { client = null; ofer = { c: 3, r: OFR, pc: 3, d: 1, t: 0, step: 0.55, on: true }; }
     if (s.last) ofer = null;
     if (s.show === 'sagi') sagiSays('שמעת על הקורקינט שלי?', 3);
@@ -678,6 +683,6 @@ window.SNAKE = {
     for (let i = 1; i <= n; i++) snake.push({ kind: i > 6 ? 'client' : i, join: 1, x: c, y: r, face: 1, dx: 0, dy: 0 });
     trail = cells.map(([x, y]) => ({ x, y })); placeRiders();
   }, get dir() { return dir; },
-  get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, ROWS, OFR,
+  get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, get ROWS() { return ROWS; }, get OFR() { return OFR; },
   setSpeedForTest(v) { window.__spd = v; },
 };
