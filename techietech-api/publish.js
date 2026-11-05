@@ -9,7 +9,8 @@
 //        (onScreen: the words burned into the video - feeds the title / card and the chat, kept like the transcript)
 //        the record, by id, again and again: a field not sent keeps its value, nothing is ever blanked. Its files must be
 //        in the bucket (or `url` for a video that lives elsewhere). No title / teaser = Terra writes them from the words;
-//        no card (the chat's map line) = written too. Then the site and the chat are rebuilt. -> {ok, url, video}
+//        no card (the chat's map line) = written too. No cast (nobody said who is in it) = the AI picks the characters
+//        from the words (castBy: 'ai' in the answer - check it). Then the site and the chat are rebuilt. -> {ok, url, video, castBy}
 //   {op: 'hide', id, hidden}   the only way a video leaves the site (and comes back)
 //   {op: 'get', id}            the record as it is (+ live: is it on the site)
 //   {op: 'list'}               every id, its title, hidden
@@ -58,6 +59,30 @@ ${String(words || '').slice(0, 6000) || '(אין תמליל)'}
   return JSON.parse(txt);
 }
 
+// who is in the video, when nobody said (his find, 2026-11-05: 12 videos - yesterday's Hani + Yotam among them - had no
+// characters, so no character's page showed them): the AI reads the words / the on-screen text / the title and picks from
+// the verse's own characters. It decides (his rule: judgement = the AI, never a list in code); an id it invents is dropped.
+async function pickCast(v, words, onScreen, chars) {
+  const key = LOCAL ? process.env.WIKI_OPENAI_KEY || process.env.VERSE_OPENAI_KEY : OPENAI.value();
+  const list = chars.map((c) => `${c.id} | ${c.name} | ${c.role || ''}`).join('\n');
+  const prompt = `סרטון מהשלומיוורס (עולם של דמויות קבועות שכולן מגלם שלומי זוין). מי הדמויות שמופיעות בו?
+כותרת: ${v.title || '-'}
+${onScreen ? `טקסט על המסך: ${String(onScreen).slice(0, 1200)}\n` : ''}מה נאמר:
+${String(words || '').slice(0, 6000) || '(אין תמליל)'}
+
+הדמויות (id | שם | תפקיד):
+${list}
+
+החזר JSON בלבד: {"cast": ["<id>", ...]} - רק ids מהרשימה, הדמות הראשית ראשונה, רק מי שבאמת מופיע או מדבר בסרטון (לא מי שרק מוזכר). אם אין אף דמות מהרשימה - רשימה ריקה.`;
+  const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + key, 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'gpt-5.6-terra', input: prompt, reasoning: { effort: 'low' }, text: { format: { type: 'json_object' } } }) });
+  const j = await r.json();
+  if (!r.ok) throw new Error('terra ' + r.status);
+  const ids = new Set(chars.map((c) => c.id));
+  const out = JSON.parse((j.output || []).flatMap((o) => o.content || []).find((c) => c.type === 'output_text')?.text || '{}');
+  return [...new Set((out.cast || []).filter((c) => ids.has(c)))];
+}
+
 async function base() { const [buf] = await admin.storage().bucket(MEDIA).file('wiki/data/base.json').download(); return JSON.parse(buf.toString('utf8')); }
 
 async function video(b) {
@@ -77,6 +102,12 @@ async function video(b) {
   };
   const tw = (await db.collection('catalogTranscripts').doc(b.id).get()).data() || {};
   const words = b.transcript != null ? String(b.transcript) : tw.text || '', onScreen = b.onScreen != null ? String(b.onScreen) : tw.onScreen || '';
+  let castBy = Array.isArray(b.cast) && b.cast.length ? 'sent' : was?.cast?.length ? 'kept' : null;
+  if (!v.cast.length && !v.url) {
+    v.cast = await pickCast(v, words, onScreen, w.characters).catch((e) => { console.error('pickCast', b.id, e.message); return []; });
+    castBy = v.cast.length ? 'ai' : 'none';
+    v.series = b.series || was?.series || v.cast.map((c) => seriesOf[c]).find(Boolean) || null;
+  }
   let wrote = null;
   if (!v.title || !v.teaser || !v.card) {
     const names = cast.map((c) => w.characters.find((x) => x.id === c)?.name || c);
@@ -84,11 +115,12 @@ async function video(b) {
     if (!wrote.error) { v.title ||= wrote.title || ''; v.teaser ||= wrote.teaser || ''; v.card ||= wrote.card || v.teaser; }
   }
   if (!v.title) return { error: 'no_title', detail: wrote?.error || 'send a title (Terra could not write one)' };
-  if (b.dryRun) return { ok: true, dryRun: true, video: siteVideo({ id: b.id, ...v }), card: v.card, wrote: !!wrote };
+  if (b.dryRun) return { ok: true, dryRun: true, video: siteVideo({ id: b.id, ...v }), card: v.card, wrote: !!wrote, castBy };
   await ref.set({ ...v, updated: FieldValue.serverTimestamp(), ...(was ? {} : { created: FieldValue.serverTimestamp() }) }, { merge: true });
   if (b.transcript != null || b.onScreen != null) await db.collection('catalogTranscripts').doc(b.id).set({ ...(b.transcript != null ? { text: String(b.transcript) } : {}), ...(b.onScreen != null ? { onScreen: String(b.onScreen).slice(0, 3000) } : {}) }, { merge: true });
   const out = await compose(admin);
-  return { ok: true, id: b.id, url: `${SITE}/v/${b.id}`, video: siteVideo({ id: b.id, ...v }), live: !v.hidden, videos: out.videos, wrote: !!wrote };
+  // castBy: who decided the characters - 'sent' (the caller), 'kept' (already there), 'ai' (picked now), 'none' (nobody found)
+  return { ok: true, id: b.id, url: `${SITE}/v/${b.id}`, video: siteVideo({ id: b.id, ...v }), live: !v.hidden, videos: out.videos, wrote: !!wrote, castBy };
 }
 
 async function handle(b) {

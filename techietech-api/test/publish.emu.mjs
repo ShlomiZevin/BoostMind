@@ -85,6 +85,10 @@ if (process.env.WIKI_OPENAI_KEY || process.env.VERSE_OPENAI_KEY) {
   r = await call({ op: 'video', id: 'terra-one', cast: ['hani'], transcript: 'אוי, ה-Cache נפל שוב. עשיתי ולידציה, ניקיתי את המפתח, ובעזרת השם הכול עלה.', dryRun: true });
   assert.ok(r.j.video?.title && r.j.video.teaser && r.j.card, 'Terra wrote title, teaser and card: ' + JSON.stringify(r.j));
   console.log('ok  no title sent: Terra wrote it (' + r.j.video.title + ')');
+  r = await call({ op: 'video', id: 'terra-one', transcript: 'שלום, אני חני פרידמן מה-Backend. אוי, ה-Cache נפל שוב, עשיתי ולידציה ובעזרת השם הכול עלה.', dryRun: true });
+  assert.equal(r.j.castBy, 'ai', 'no cast sent = the AI picks: ' + JSON.stringify(r.j));
+  assert.ok(r.j.video.cast.includes('hani'), 'it found Hani: ' + JSON.stringify(r.j.video.cast));
+  console.log('ok  no cast sent: the AI picked the characters (' + r.j.video.cast.join(', ') + ')');
 } else console.log('(no OpenAI key - the Terra step was not checked)');
 assert.equal((await fetch(FN, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Key wrong' }, body: '{}' })).status, 401, 'a wrong key is refused');
 console.log('publish: all good');
