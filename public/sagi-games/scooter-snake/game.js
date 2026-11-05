@@ -23,11 +23,11 @@ function rng(seed) {
 }
 
 // ───────────────────────── the office ─────────────────────────
-const COLS = 9, ROWS = 15;
-const OFR = 7;                                   // Ofer's aisle (kept clear of furniture)
-const START = { c: 4, r: 12 };
-const inClear = (c, r) => c >= 2 && c <= 6 && r >= 9;   // the start zone stays empty
-const PROPS = ['plant', 'coffee', 'water', 'boxes', 'foos'];
+const COLS = 9, ROWS = 17;
+const OFR = 8;                                   // Ofer's aisle (kept clear of furniture)
+const START = { c: 4, r: 14 };
+const inClear = (c, r) => c >= 2 && c <= 6 && r >= 11;   // the start zone stays empty
+const PROPS = ['plant', 'coffee', 'water', 'boxes', 'foos', 'plant'];
 let grid = [], props = [];
 function buildOffice(seed) {
   const R = rng(seed);
@@ -49,7 +49,7 @@ function buildOffice(seed) {
       props.push({ kind, c, r, w }); return;
     }
   };
-  for (let i = 0; i < 4; i++) place('desk', 2);
+  for (let i = 0; i < 5; i++) place('desk', 2);
   for (const p of PROPS) place(p, 1);
 }
 const solid = (c, r) => c < 0 || r < 0 || c >= COLS || r >= ROWS || grid[r * COLS + c] === 1;
@@ -602,7 +602,7 @@ const tut = {
     moving = !!s.move; humOn(moving);
     if (s.move) resetSnake();
     if (s.setup === 'catch') spawnFood({ c: START.c, r: START.r - 4 });
-    if (s.setup === 'client') { food = null; client = { c: 7, r: 11, life: 5, max: 7 }; }
+    if (s.setup === 'client') { food = null; client = { c: 7, r: 13, life: 5, max: 7 }; }
     if (s.setup === 'ofer') { client = null; ofer = { c: 3, r: OFR, pc: 3, d: 1, t: 0, step: 0.55, on: true }; }
     if (s.last) ofer = null;
     if (s.show === 'sagi') sagiSays('שמעת על הקורקינט שלי?', 3);
