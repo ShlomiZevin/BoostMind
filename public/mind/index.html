@@ -284,6 +284,10 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .newdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--brand); margin-inline-end: 5px; vertical-align: 1px; }
 .newcount { color: #fff; background: var(--brand); border-radius: 8px; padding: 1px 9px; font-weight: 800; }
 .newline { margin-top: 4px; font-size: 14px; }
+.pushinv { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin: 4px 0 14px; border: 1px solid var(--brand); border-radius: 14px; background: var(--brandSoft); }
+.pushinv > svg { width: 26px; height: 26px; color: var(--brand); flex: none; }
+.pushinv > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .pushinv span { font-size: 13.5px; color: var(--ink2); }
+.pk { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; font-size: 15px; cursor: pointer; } .pk input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--brand); }
 .seenall { color: var(--brand); font-weight: 700; margin-inline-start: 6px; text-decoration: underline; text-underline-offset: 3px; }
 .trow.k-note { background: var(--card2); }
 .tk { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: none; width: 52px; }
@@ -693,6 +697,7 @@ function viewHome() {
   const need = all.filter((e) => e.rank === 0 || e.k === 'task' || e.k === 'remind').length, run = all.filter((e) => e.k === 'run' || e.k === 'job').length;
   return `<div class="wrap home">
     <div class="hello"><h1>${hi}, שלומי</h1><p>${need ? `${need} מחכים לך` : 'שום דבר לא מחכה לך'}${run ? ` · ${run} רצים עכשיו` : ''}</p>${fresh.length ? `<p class="newline"><span class="newdot"></span>${fresh.length === 1 ? 'סשן כתב לך משהו שעוד לא פתחת' : `סשנים כתבו לך ${fresh.length} דברים שעוד לא פתחת`} · <button class="seenall" data-act="seenall">סמן הכל כנקרא</button></p>` : ''}</div>
+    ${pushInvite()}
     <form class="qc" id="qcf"><input id="qc" autocomplete="off" placeholder="מה עובר לך בראש? כתוב או דבר, וה-AI יסדר"><button type="button" class="qmic" data-act="recscreen" title="להקליט - וה-AI יסדר">${ic('mic')}</button></form>
     <div class="chips">${S.f.project ? `<button class="on" data-proj="${esc(S.f.project)}">${esc(projName(S.f.project))} ${ic('x')}</button>` : ''}${S.f.q ? `<button class="on" data-act="clearq">"${esc(S.f.q)}" ${ic('x')}</button>` : ''}${TABLE_CHIPS.map(([k, t]) => `<button class="${(S.hf || 'all') === k ? 'on' : ''}" data-hf="${k}">${t}</button>`).join('')}</div>
     <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>${all.length ? 'אין כאן כלום' : 'השולחן ריק'}</b>${all.length ? '' : 'כתוב למעלה מה עובר לך בראש'}</div>`}</div>
@@ -1103,13 +1108,14 @@ function settings() {
           <div class="iconpick hidden" id="ip${i}">${ICONS.map((n) => `<button class="${n === t.icon ? 'on' : ''}" data-tpick="${i}:${n}">${ic(n)}</button>`).join('')}</div>`).join('')}</div>
         <div style="display:flex;gap:8px;margin-top:6px"><button class="btn" data-act="tadd">${ic('plus')}סוג חדש</button><button class="btn pri" data-act="tsave">שמור סוגים</button></div>
         ${ms.length ? `<div class="set-sec"><h4>שמות המחשבים</h4>${ms.map((m) => `<div class="set-row"><span style="min-width:120px;direction:ltr;text-align:right" class="hint">${esc(m)}</span><input type="text" data-mname="${esc(m)}" value="${esc(S.config.machines?.[m] || '')}" placeholder="למשל: מחשב בבית"></div>`).join('')}<button class="btn pri" data-act="msave">שמור שמות</button></div>` : ''}
+        <div class="set-sec" id="pushsec"></div>
         <div class="set-sec"><h4>חיבור מחשב</h4><div class="hint">מחשב נוסף? תן לסשן של Claude Code שם את השורה הזאת. הוא יתקין הכל: הדיווח האוטומטי, הסקיל, וה-MCP.</div>
           <div id="conn" style="margin-top:8px"><button class="btn" data-act="connect">${ic('link')}הצג את שורת החיבור</button></div></div>
         <div class="set-sec"><h4>מראה</h4><div class="seg">${[['auto', 'אוטומטי'], ['light', 'בהיר'], ['dark', 'כהה']].map(([k, t]) => `<button class="${(LS('theme') || 'auto') === k ? 'on' : ''}" data-theme-set="${k}">${t}</button>`).join('')}</div></div>
         <div class="set-sec"><button class="btn danger" data-act="logout">יציאה במכשיר הזה</button></div>
       </div></div></div>`;
   };
-  settings.types = types; settings.draw = draw; draw();
+  settings.types = types; settings.draw = draw; draw(); pushDraw();
 }
 async function showConnect() {
   const el = $('#conn'); el.innerHTML = '<span class="hint">רגע...</span>';
@@ -1203,6 +1209,10 @@ document.addEventListener('click', (e) => {
     case 'tsave': readTypes(); api('config', { types: settings.types.filter((x) => x.name.trim()) }).then((r) => { S.config = r.config; render(); toast('הסוגים נשמרו'); closeModal(); }); break;
     case 'msave': { const m = {}; document.querySelectorAll('[data-mname]').forEach((i) => { if (i.value.trim()) m[i.dataset.mname] = i.value.trim(); }); api('config', { machines: m }).then((r) => { S.config = r.config; render(); toast('נשמר'); }); break; }
     case 'connect': showConnect(); break;
+    case 'pushon': pushOn(); break;
+    case 'pushoff': pushOff(); break;
+    case 'pushlater': LS('pushlater', 1); render(); break;
+    case 'pushtest': api('push_test').then((r) => toast(r.sent ? 'נשלחה - תסתכל בטלפון' : 'לא נשלחה - אין מכשיר מחובר, או שכל הסוגים כבויים')).catch((e) => toast('לא הצליח - ' + e.message)); break;
     case 'logout': try { localStorage.removeItem('owner-key'); } catch (err) {} location.reload(); break;
   }
 });
@@ -1215,6 +1225,7 @@ document.addEventListener('change', (e) => {
   const t = e.target;
   if (t.id === 'fproj') { S.f.project = t.value; render(); return; }
   if (t.id === 'cauto') { LS('auto', t.checked); return; }
+  if (t.dataset.pkind) { S.config.push = { ...S.config.push, [t.dataset.pkind]: t.checked }; api('config', { push: S.config.push }).then(() => toast('נשמר')).catch((er) => toast('לא נשמר - ' + er.message)); return; }
   if (t.dataset.field && S.open?.kind === 'item') { t.blur(); setItem(S.open.id, { [t.dataset.field]: t.value }); return; }
 });
 document.addEventListener('input', (e) => {
@@ -1256,6 +1267,52 @@ async function load() {
     render();
   } catch (e) { if (e.message !== 'key' && e.message !== '429') { $('#live').classList.add('off'); $('#live span').textContent = 'לא מחובר'; } }
 }
+
+// ---------- notifications to his phone ----------
+// The iPhone shows them for a web app only when it's opened from its home-screen icon (iOS 16.4+), and asks for the
+// permission only from a tap. The server decides what buzzes (a session waits for him, something got done, a reminder's
+// day, every answer - his switches); sw.js shows it and a tap opens that item / session.
+const VAPID = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const isApp = () => navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+const pushOk = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const swReady = 'serviceWorker' in navigator ? navigator.serviceWorker.register('/mind/sw.js', { scope: '/mind/' }).catch(() => null) : Promise.resolve(null);
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data?.go) location.href = e.data.go; });
+const pushSub = async () => (await swReady)?.pushManager.getSubscription() || null;
+const b64u = (k) => Uint8Array.from(atob((k + '='.repeat((4 - k.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+async function pushOn() {
+  if (!pushOk()) { toast(isIOS && !isApp() ? 'פתח את המוח מהאייקון במסך הבית ונסה שוב' : 'הדפדפן הזה לא תומך בהתראות'); return; }
+  const perm = await Notification.requestPermission();   // first thing in the tap - the iPhone insists
+  if (perm !== 'granted') { toast('ההתראות חסומות - הגדרות › התראות › המוח השני'); pushDraw(); render(); return; }
+  try {
+    const reg = (await swReady) || (await navigator.serviceWorker.ready);
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) }));
+    await api('push_on', { sub: sub.toJSON(), ua: navigator.userAgent });
+    LS('push', 1); toast('ההתראות פועלות במכשיר הזה');
+  } catch (e) { toast('לא הצליח - ' + e.message); }
+  pushDraw(); render();
+}
+async function pushOff() {
+  const sub = await pushSub().catch(() => null);
+  if (sub) { await api('push_off', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
+  LS('push', 0); toast('ההתראות כבויות במכשיר הזה'); pushDraw();
+}
+const PUSH_LABELS = [['ask', 'סשן מחכה לך - שאלה או אישור'], ['done', 'סשן סיים משהו'], ['remind', 'תזכורות ומשימות שהגיע היום שלהן (ב-9 בבוקר)'], ['reply', 'כל תשובה של כל סשן (הרבה התראות)']];
+async function pushDraw() {
+  const el = $('#pushsec'); if (!el) return;
+  const st = !pushOk() ? (isIOS && !isApp() ? 'needapp' : 'nosupport') : Notification.permission === 'denied' ? 'denied' : (await pushSub().catch(() => null)) ? 'on' : 'off';
+  const on = S.config.push || {};
+  el.innerHTML = `<h4>התראות</h4>` + {
+    needapp: '<div class="hint">באייפון התראות עובדות רק כשהמוח פתוח מהאייקון שלו במסך הבית. פתח אותו משם והפעל כאן.</div>',
+    nosupport: '<div class="hint">הדפדפן הזה לא תומך בהתראות.</div>',
+    denied: '<div class="hint">ההתראות חסומות במכשיר הזה. באייפון: הגדרות › התראות › המוח השני › לאפשר התראות.</div>',
+    off: `<div class="hint">המכשיר הזה לא מקבל התראות.</div><button class="btn pri" data-act="pushon" style="margin-top:8px">${ic('bell')}הפעל התראות במכשיר הזה</button>`,
+    on: `<div class="hint">המכשיר הזה מקבל התראות.</div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" data-act="pushtest">${ic('bell')}שלח התראת בדיקה</button><button class="btn" data-act="pushoff">כבה במכשיר הזה</button></div>`,
+  }[st] + `<div class="lbl" style="margin-top:14px">על מה להתריע</div>${PUSH_LABELS.map(([k, t]) => `<label class="pk"><input type="checkbox" data-pkind="${k}" ${on[k] ? 'checked' : ''}><span>${t}</span></label>`).join('')}`;
+}
+// on the table, once, in the phone app: the invite (a tap there is what the iPhone needs)
+const pushInvite = () => isApp() && pushOk() && Notification.permission === 'default' && !LS('pushlater')
+  ? `<div class="pushinv">${ic('bell')}<div><b>התראות לטלפון</b><span>שתדע כשסשן מחכה לך, כשמשהו בוצע, ותזכורות</span></div><button class="btn pri" data-act="pushon">הפעל</button><button class="btn icon" data-act="pushlater" title="לא עכשיו">${ic('x')}</button></div>` : '';
 function boot() {
   if (!ownerKey()) return showGate();
   $('#app').classList.remove('hidden');
@@ -1267,6 +1324,11 @@ function boot() {
     else if (/^[a-z0-9]{6}$/.test(h) && itemById(h)) openItem(h);
   });
 }
+addEventListener('hashchange', () => {
+  const h = location.hash.slice(1);
+  if (h.startsWith('s=')) openSess(decodeURIComponent(h.slice(2)));
+  else if (/^[a-z0-9]{6}$/.test(h) && itemById(h)) openItem(h);
+});
 applyTheme();
 boot();
 setInterval(() => { if (document.visibilityState === 'visible' && S.loaded) load(); }, 15000);

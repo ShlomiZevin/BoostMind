@@ -9,6 +9,8 @@
 // page shows it in "חיבור מחשב" for the setup line of another computer.
 // Deploy from this folder: firebase deploy --only functions:mind
 const { onRequest } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const webpush = require('web-push');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
@@ -21,6 +23,12 @@ const SESSIONS = db.collection('mind_sessions');
 const META = db.collection('mind_meta');
 const wrongKey = new Map();
 const OPENAI = defineSecret('WIKI_OPENAI_KEY');   // the voice notes on his page -> text
+// notifications to his phone (the home-screen app): the same VAPID keys as the verse's push (verse.js)
+const VAPID_PRIVATE = defineSecret('VERSE_VAPID_PRIVATE');
+const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';
+const PUSH = db.collection('mind_push');
+// what buzzes his phone - he turns each on / off in the page's settings (config.push)
+const PUSH_KINDS = { ask: true, done: true, remind: true, reply: false };
 
 const STATUSES = ['open', 'active', 'waiting', 'done', 'parked'];
 const STATUS_HE = { open: 'פתוח', active: 'בטיפול', waiting: 'מחכה לך', done: 'בוצע', parked: 'בהקפאה' };
@@ -72,7 +80,7 @@ async function who(req) {
 // ---------- config: his types, project names, computer names ----------
 async function config() {
   const c = (await META.doc('config').get()).data() || {};
-  return { types: c.types?.length ? c.types : DEFAULT_TYPES, projects: c.projects || {}, machines: c.machines || {} };
+  return { types: c.types?.length ? c.types : DEFAULT_TYPES, projects: c.projects || {}, machines: c.machines || {}, push: { ...PUSH_KINDS, ...(c.push || {}) } };
 }
 const typeIds = async () => new Set((await config()).types.map((t) => t.id));
 
@@ -122,8 +130,13 @@ async function updateItem(id, f, by) {
         ...(ch.status ? { st: ch.status } : {}), ...(f.session ? { s: oneLine(f.session, 80) } : {}) })].slice(-LOG_MAX);
     }
     tx.update(ref, ch);
-    return { id: ref.id, ...it, ...ch, _linked: f.session && ch.sessions ? oneLine(f.session, 80) : null };
-  }).then(async (r) => { if (r._linked) await linkSession(r._linked, r.id); delete r._linked; return r; });
+    return { id: ref.id, ...it, ...ch, _linked: f.session && ch.sessions ? oneLine(f.session, 80) : null, _st: ch.status || null };
+  }).then(async (r) => {
+    if (r._linked) await linkSession(r._linked, r.id); delete r._linked;
+    if (by !== 'שלומי' && r._st === 'done') await pushMe('done', { title: 'בוצע: ' + r.text, body: f.note || '', url: '/mind/#' + r.id, tag: 'i:' + r.id });
+    else if (by !== 'שלומי' && r._st === 'waiting') await pushMe('ask', { title: 'מחכה לך: ' + r.text, body: f.note || '', url: '/mind/#' + r.id, tag: 'i:' + r.id });
+    delete r._st; return r;
+  });
 }
 
 async function linkSession(sid, itemId) {
@@ -143,6 +156,27 @@ async function listItems({ status, type, project, query, limit = 200, includeDon
 }
 
 // ---------- sessions (from the hooks, and what a session says about itself) ----------
+
+// ---------- notifications ----------
+// one notification to every device he turned them on (dead ones are dropped). kind = one of PUSH_KINDS.
+async function pushMe(kind, { title, body, url, tag }) {
+  try {
+    const on = { ...PUSH_KINDS, ...((await config()).push || {}) };
+    if (!on[kind]) return 0;
+    const subs = await PUSH.get();
+    if (subs.empty) return 0;
+    webpush.setVapidDetails('mailto:shlomi@boostart.io', VAPID_PUBLIC, VAPID_PRIVATE.value());
+    const payload = JSON.stringify({ title: oneLine(title, 120), body: oneLine(body, 240), url: url || '/mind/', tag: tag || kind });
+    let sent = 0;
+    await Promise.all(subs.docs.map(async (d) => {
+      try { await webpush.sendNotification(d.data().sub, payload, { TTL: 86400, urgency: kind === 'ask' ? 'high' : 'normal' }); sent++; }
+      catch (e) { if (e.statusCode === 404 || e.statusCode === 410) await d.ref.delete(); else console.error('mind push', e.statusCode, e.body || e.message); }
+    }));
+    return sent;
+  } catch (e) { console.error('mind push', e.message); return 0; }
+}
+const sessTitle = (s) => oneLine(s.name || s.first || s.project || 'סשן', 60);
+const sessUrl = (id) => '/mind/#s=' + encodeURIComponent(id);
 async function hook(b) {
   const id = sessionDocId(b.session_id);
   if (id === 'unknown') return;
@@ -150,7 +184,7 @@ async function hook(b) {
   const base = { id, u: now, machine: oneLine(b.machine, 60), cwd: oneLine(b.cwd, 300), project: oneLine(b.project, 60) };
   for (const k of Object.keys(base)) if (!base[k]) delete base[k];
   const ev = b.event;
-  await db.runTransaction(async (tx) => {
+  const r = await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref), s = snap.data() || {};
     const ch = { ...base };
     if (!snap.exists) { ch.c = now; ch.state = 'new'; ch.prompts = 0; ch.items = []; }
@@ -163,9 +197,14 @@ async function hook(b) {
     else if (ev === 'Notification') { ch.state = 'needs'; ch.note = oneLine(b.message, 200); }
     else if (ev === 'Resumed') { if (s.state === 'needs') { ch.state = 'working'; ch.note = ''; } }
     else if (ev === 'SessionEnd') { ch.state = 'ended'; ch.endReason = oneLine(b.reason, 40); }
-    else return;
+    else return null;
     tx.set(ref, ch, { merge: true });
+    return { s: { ...s, ...ch }, was: s.state };
   });
+  if (!r) return;
+  // a session stopped for his permission -> his phone; a finished answer -> only if he turned "every answer" on
+  if (ev === 'Notification' && r.was !== 'needs') await pushMe('ask', { title: sessTitle(r.s) + ' צריך אישור', body: r.s.note || 'מחכה שתאשר במחשב', url: sessUrl(id), tag: 's:' + id });
+  else if (ev === 'Stop') await pushMe('reply', { title: sessTitle(r.s) + ' ענה', body: r.s.reply || '', url: sessUrl(id), tag: 's:' + id });
 }
 
 async function reportSession(f, by) {
@@ -184,7 +223,13 @@ async function reportSession(f, by) {
   if (f.machine) ch.machine = oneLine(f.machine, 60);
   if (f.hidden != null) ch.hidden = !!f.hidden;
   if (Array.isArray(f.items) && f.items.length) ch.items = admin.firestore.FieldValue.arrayUnion(...f.items.map((x) => oneLine(x, 20).replace(/^#/, '')));
+  const before = (await SESSIONS.doc(id).get()).data() || {};
   await SESSIONS.doc(id).set(ch, { merge: true });
+  if (by !== 'שלומי') {
+    const now = { ...before, ...ch };
+    if (ch.question && ch.question !== before.question && ['waiting', 'stuck'].includes(now.mstate)) await pushMe('ask', { title: sessTitle(now) + ' שואל', body: ch.question, url: sessUrl(id), tag: 's:' + id });
+    else if (ch.mstate === 'done' && before.mstate !== 'done') await pushMe('done', { title: sessTitle(now) + ' סיים', body: now.summary || '', url: sessUrl(id), tag: 's:' + id });
+  }
   return { ok: true, id };
 }
 
@@ -313,6 +358,7 @@ async function pageOp(b) {
       if (Array.isArray(b.types)) c.types = b.types.map((t) => ({ id: oneLine(t.id, 24).replace(/[^\w-]/g, '') || newId(), name: oneLine(t.name, 30), color: /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#64748b', icon: oneLine(t.icon, 20) || 'dot' })).filter((t) => t.name).slice(0, 20);
       if (b.machines && typeof b.machines === 'object') c.machines = Object.fromEntries(Object.entries(b.machines).slice(0, 20).map(([k, v]) => [oneLine(k, 60), oneLine(v, 30)]));
       if (b.projects && typeof b.projects === 'object') c.projects = Object.fromEntries(Object.entries(b.projects).slice(0, 60).map(([k, v]) => [oneLine(k, 60), { color: /^#[0-9a-f]{6}$/i.test(v?.color) ? v.color : '#64748b', name: oneLine(v?.name, 40) }]));
+      if (b.push && typeof b.push === 'object') c.push = Object.fromEntries(Object.keys(PUSH_KINDS).filter((k) => typeof b.push[k] === 'boolean').map((k) => [k, b.push[k]]));
       await META.doc('config').set(c, { merge: true });
       return { config: await config() };
     }
@@ -326,6 +372,17 @@ async function pageOp(b) {
       return { ok: true, seen: now };
     }
     case 'connect': return { key: await mindKey(true) };
+    case 'push_on': {   // this phone / computer gets notifications
+      const sub = b.sub || {};
+      if (!/^https:\/\//.test(sub.endpoint || '') || !sub.keys?.p256dh || !sub.keys?.auth) throw new Error('subscription');
+      await PUSH.doc(crypto.createHash('sha256').update(sub.endpoint).digest('hex').slice(0, 32)).set({ sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, ua: oneLine(b.ua, 200), c: Date.now() });
+      return { ok: true, devices: (await PUSH.count().get()).data().count };
+    }
+    case 'push_off': if (b.endpoint) await PUSH.doc(crypto.createHash('sha256').update(String(b.endpoint)).digest('hex').slice(0, 32)).delete(); return { ok: true };
+    case 'push_test': {
+      const on = { ...(await config()).push }, sent = await (async () => { const k = Object.keys(on).find((x) => on[x]) || 'ask'; return pushMe(k, { title: 'המוח השני', body: 'ככה תיראה התראה. לחיצה פותחת את המוח.', url: '/mind/', tag: 'test' }); })();
+      return { sent };
+    }
     case 'organize': {   // what he said / typed -> anything on his table: new items, and changes to the ones he has
       // (done, update, a note, type, date, project, star, off the table). The AI sees his items and picks the actions.
       const said = clip(b.text, 6000);
@@ -412,7 +469,7 @@ ${gone.map(line).join('\n') || '(none)'}`,
   throw new Error('unknown op');
 }
 
-exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256MiB', timeoutSeconds: 60, secrets: [OPENAI],
+exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256MiB', timeoutSeconds: 60, secrets: [OPENAI, VAPID_PRIVATE],
   cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/] }, async (req, res) => {
   res.set('cache-control', 'no-store');
   const door = req.path.replace(/\/+$/, '').split('/').pop();     // api | hook | mcp (through hosting: /mind/<door>)
@@ -430,10 +487,18 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
       return out ? res.json(out) : res.status(202).end();
     }
     if (door === 'api') {
-      if (['connect', 'transcribe', 'organize'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
+      if (['connect', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
       return res.json(await pageOp(req.body || {}));
     }
     res.status(404).json({ error: 'door' });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+// every morning at 9: reminders and tasks whose day came (still open) -> one notification each (a few = one summary)
+exports.mindDaily = onSchedule({ schedule: '0 9 * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1', secrets: [VAPID_PRIVATE], memory: '256MiB', timeoutSeconds: 60 }, async () => {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const due = (await listItems({ limit: 1500 })).filter((i) => i.due && i.due <= today && ['reminder', 'task'].includes(i.type) && ['open', 'active', 'waiting'].includes(i.status));
+  if (!due.length) return;
+  if (due.length <= 3) for (const i of due) await pushMe('remind', { title: (i.type === 'reminder' ? 'תזכורת: ' : 'להיום: ') + i.text, body: i.body || (i.due < today ? 'היה ל-' + i.due : ''), url: '/mind/#' + i.id, tag: 'i:' + i.id });
+  else await pushMe('remind', { title: `${due.length} דברים להיום`, body: due.slice(0, 5).map((i) => i.text).join(' · '), url: '/mind/', tag: 'daily' });
+});
