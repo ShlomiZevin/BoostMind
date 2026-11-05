@@ -37,9 +37,8 @@ const admin = createRequire(import.meta.url)('../node_modules/firebase-admin');
 admin.initializeApp({ projectId: 'demo-shlomiverse' });
 const putObj = (bucket, name, data) => admin.storage().bucket(bucket).file(name).save(Buffer.from(data), { resumable: false, metadata: { contentType: 'application/json' } });
 const getObj = async (bucket, name) => JSON.parse((await admin.storage().bucket(bucket).file(name).download())[0].toString('utf8'));
-await putObj('shlomiverse-media', 'wiki/data/base.json', JSON.stringify({ series: [{ id: 'techytech', title: 'טקי-טק', blurb: '', site: null, characters: ['hani', 'yotam'], videos: [] }],
-  characters: [{ id: 'hani', name: 'חני פרידמן', series: 'techytech', videos: [] }, { id: 'yotam', name: 'יותם', series: 'techytech', videos: [] }], sites: {}, site_list: [], games: [] }));
-await putObj('shlomiverse-private', 'wiki-base-brain.json', JSON.stringify({ worlds: [], characters: [], sites: [], games: [] }));
+for (const [kind, items] of [['series', [{ id: 'techytech', title: 'טקי-טק' }]], ['character', [{ id: 'hani', name: 'חני פרידמן', series: 'techytech' }, { id: 'yotam', name: 'יותם', series: 'techytech' }]]])
+  await fetch('http://127.0.0.1:5001/demo-shlomiverse/europe-west1/versePublish', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Key ' + (process.env.VERSE_PUBLISH_KEY || 'local-publish') }, body: JSON.stringify({ op: 'sync', kind, items, noCompose: true }) });
 const terra = !!(process.env.WIKI_OPENAI_KEY || process.env.VERSE_OPENAI_KEY);
 
 // 2. posted with its cover, then a new cover alone

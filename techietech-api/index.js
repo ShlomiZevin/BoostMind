@@ -217,3 +217,4 @@ Object.assign(exports, require('./mind'));
 // catalog.js (the list of videos lives in the database since 2026-11-05)
 // its key: the VERSE_PUBLISH_KEY secret (Secret Manager; the studio reads the same value from studio-keys)
 exports.versePublish = require('./publish').versePublish;
+exports.verseHeal = require('./publish').verseHeal;

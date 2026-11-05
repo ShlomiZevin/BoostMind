@@ -14,6 +14,8 @@ Sources, in order of authority:
 Writes:
   public/wiki/data/wiki.json        what the site shows
   public/wiki/img/c/<id>.jpg        character portraits, 480x600
+  scripts/wiki/records.json         one record per character / series / game / site - what push.cjs syncs to the
+                                    database (techietech-api/content.js), the site's source since 2026-11-05
   techietech-api/wiki-brain.json    everything the chat agent knows (full bibles + transcripts + a card per video) -
                                     never served (the private bucket)
   scripts/wiki/cards.json           the video cards: 1-2 lines on what happens + its topics, written by AI once per video
@@ -128,6 +130,9 @@ def main():
         if src and os.path.exists(src):
             if not os.path.exists(dst) or os.path.getmtime(src) > os.path.getmtime(dst):
                 portrait(src, dst)
+                # the face keeps its picture's own time: push.cjs replaces a live face only with a NEWER one, so a computer
+                # with an older copy of a portrait never puts it back (2026-11-05)
+                os.utime(dst, (os.path.getmtime(src), os.path.getmtime(src)))
             img = f'img/c/{cid}.jpg'
         out_chars.append({
             'id': cid, 'name': ch['name'], 'aka': [a for a in ch.get('aka', []) if not a.isascii() or ' ' in a][:4],
@@ -165,6 +170,24 @@ def main():
     # (techietech-api/catalog.js: the list itself lives in the database since 2026-11-05)
     with open(os.path.join(HERE, 'catalog-local.json'), 'w', encoding='utf8') as f:
         json.dump({v['id']: v.get('_t') or v.get('date') or '' for v in videos}, f, ensure_ascii=False, indent=0)
+
+    # one record per thing for the database (techietech-api/content.js) - push.cjs syncs them, three-way per field
+    keys = ('name', 'name_en', 'aka', 'world', 'role', 'catchphrases', 'color', 'relations', 'brief', 'personality', 'speech',
+            'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules')
+    page = {c['id']: c for c in out_chars}
+    records = {
+        'characters': [{'id': ch['id'], 'order': i, **{k: ch[k] for k in keys if k in ch}, 'series': series_id(ch.get('world')),
+                        'tagline': page[ch['id']]['tagline'], 'bio': page[ch['id']]['bio'], 'ask': page[ch['id']]['ask'],
+                        'site': page[ch['id']]['site']} for i, ch in enumerate(chars)],
+        'series': [{'id': series_id(k), 'order': i, 'title': s['title'], 'blurb': s['blurb'], 'site': s['site'],
+                    'brief': w.get('brief', '')} for i, (k, w) in enumerate(worlds.items()) for s in out_series if s['id'] == series_id(k)],
+        'games': site['games'],
+        'sites': [{'id': s['id'], 'order': i, 'url': s['url'], 'title': s['title'], 'about': s['about'], 'img': site_card[s['id']]['img'],
+                   'host': site_card[s['id']]['host'], 'whose': s['whose'], 'in': s.get('in'), **topics.get(s['id'], {}),
+                   'mainOf': [k for k, v in site_card.items() if v is site_card[s['id']] and k != s['id']]} for i, s in enumerate(site_list)],
+    }
+    with open(os.path.join(HERE, 'records.json'), 'w', encoding='utf8') as f:
+        json.dump(records, f, ensure_ascii=False, separators=(',', ':'))
 
     card = cards(videos)
     raw = {c['id']: c for c in chars}

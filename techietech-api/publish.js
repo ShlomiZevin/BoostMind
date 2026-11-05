@@ -11,10 +11,17 @@
 //        in the bucket (or `url` for a video that lives elsewhere). No title / teaser = Terra writes them from the words;
 //        no card (the chat's map line) = written too. No cast (nobody said who is in it) = the AI picks the characters
 //        from the words (castBy: 'ai' in the answer - check it). Then the site and the chat are rebuilt. -> {ok, url, video, castBy}
-//   {op: 'hide', id, hidden}   the only way a video leaves the site (and comes back)
-//   {op: 'get', id}            the record as it is (+ live: is it on the site)
-//   {op: 'list'}               every id, its title, hidden
-//   {op: 'rebuild'}            compose the site and the chat again (after base.json changed)
+//   {op: 'hide', id, hidden, kind?}   the only way a video (or a character / series / game / site) leaves the site, and comes back
+//   {op: 'get', id, kind?}     the record as it is (+ live: is it on the site)
+//   {op: 'list', kind?}        every id, its title, hidden
+//   {op: 'rebuild'}            compose the site and the chat again
+// Everything else the site shows (content.js, since 2026-11-05 evening) - kind = character | series | game | site:
+//   {op: 'put', kind, id, ...fields, clear?: [field]}   a direct edit: sets what it sends (a new one needs its name/title)
+//   {op: 'sync', kind, items: [{id, ...fields}], by}    from a computer's files (scripts/wiki/push.cjs): three-way per
+//        field - only what that computer's files really changed; never removes, never blanks, never undoes a newer value
+//   {op: 'uploadUrl', id, kind: 'portrait', contentType: 'image/jpeg'}   a character's face, wiki/img/c/<id>.jpg (480x600)
+//   {op: 'log', kind?, id?, limit?}   who changed what, when, and the value before
+// `by` (any op): who is writing - the computer / session, kept in the log.
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
@@ -29,7 +36,8 @@ const PUBLISH_KEY = defineSecret('VERSE_PUBLISH_KEY');
 const OPENAI = defineSecret('WIKI_OPENAI_KEY');
 const SITE = 'https://shlomiverse.com';
 const ID = /^[a-z0-9][a-z0-9_-]{1,80}$/i;
-const TYPES = { video: ['mp4', ['video/mp4']], poster: ['jpg', ['image/jpeg']] };
+const TYPES = { video: ['v', 'mp4', ['video/mp4']], poster: ['v', 'jpg', ['image/jpeg']], portrait: ['img/c', 'jpg', ['image/jpeg']] };
+const content = require('./content');
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
 const nowIL = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date()).map((x) => [x.type, x.value])); return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`; };
 
@@ -83,7 +91,8 @@ ${list}
   return [...new Set((out.cast || []).filter((c) => ids.has(c)))];
 }
 
-async function base() { const [buf] = await admin.storage().bucket(MEDIA).file('wiki/data/base.json').download(); return JSON.parse(buf.toString('utf8')); }
+// the characters (for a video's series, names and the AI's cast pick) - from the records
+async function base() { return { characters: (await db.collection('catalogCharacters').get()).docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => !c.hidden) }; }
 
 async function video(b) {
   const ref = db.collection('catalogVideos').doc(b.id), was = (await ref.get()).data() || null;
@@ -126,14 +135,24 @@ async function video(b) {
 }
 
 async function handle(b) {
-  if (b.op === 'list') return { videos: (await db.collection('catalogVideos').select('title', 'hidden', 'date').get()).docs.map((d) => ({ id: d.id, ...d.data() })) };
-  if (b.op === 'rebuild') return { ok: true, videos: (await compose(admin)).videos };
+  const by = b.by || '';
+  if (b.op === 'sync') { const r = await content.sync(b.kind, Array.isArray(b.items) ? b.items : [], by, !!b.dryRun); if (!r.error && !b.dryRun && !b.noCompose && (r.added.length || r.changed.length)) r.composed = (await compose(admin)).characters; return r; }
+  if (b.op === 'log') return content.history(b);
+  if (b.op === 'list') return b.kind && b.kind !== 'video' ? content.list(b.kind) : { videos: (await db.collection('catalogVideos').select('title', 'hidden', 'date').get()).docs.map((d) => ({ id: d.id, ...d.data() })) };
+  if (b.op === 'rebuild') { const c = await compose(admin); return { ok: true, videos: c.videos, characters: c.characters }; }
   if (!ID.test(b.id || '')) return { error: 'id', detail: 'letters, digits, - and _ only' };
   if (b.op === 'uploadUrl') {
     const t = TYPES[b.kind];
-    if (!t || !t[1].includes(b.contentType)) return { error: 'kind', detail: 'video (video/mp4) or poster (image/jpeg)' };
-    const [uri] = await admin.storage().bucket(MEDIA).file(`wiki/v/${b.id}.${t[0]}`).createResumableUpload({ metadata: { contentType: b.contentType, cacheControl: 'public, max-age=31536000' } });
-    return { uri, path: `wiki/v/${b.id}.${t[0]}` };
+    if (!t || !t[2].includes(b.contentType)) return { error: 'kind', detail: 'video (video/mp4), poster (image/jpeg) or portrait (image/jpeg)' };
+    const path = `wiki/${t[0]}/${b.id}.${t[1]}`;
+    const [uri] = await admin.storage().bucket(MEDIA).file(path).createResumableUpload({ metadata: { contentType: b.contentType, cacheControl: 'public, max-age=31536000', metadata: { by: String(by).slice(0, 120), mtime: String(Date.now()) } } });
+    return { uri, path };
+  }
+  if (b.kind && b.kind !== 'video') {
+    if (b.op === 'put') { const r = await content.put(b, by); if (r.ok && r.changed.length) await compose(admin); return r; }
+    if (b.op === 'get') return content.get(b.kind, b.id);
+    if (b.op === 'hide') { const r = await content.hide(b.kind, b.id, b.hidden, by); if (r.ok) await compose(admin); return r; }
+    return { error: 'op' };
   }
   if (b.op === 'video') return video(b);
   const ref = db.collection('catalogVideos').doc(b.id), was = await ref.get();
@@ -156,4 +175,13 @@ exports.versePublish = onRequest({ region: 'europe-west1', secrets: LOCAL ? [] :
     res.status(500).json({ error: 'server', detail: e.message });
   }
 });
-exports._publish = { handle };   // the owner page (verse.js) hides / shows a video through the same code
+exports._publish = { handle };
+// the site and the chat composed again every 15 minutes (his ask, 2026-11-05: nothing may break the site) - whatever wrote
+// wiki.json behind the records' back (an old push.cjs on a computer that didn't pull) is put right within minutes
+exports.verseHeal = require('firebase-functions/v2/scheduler').onSchedule({ schedule: 'every 15 minutes', region: 'europe-west1', memory: '512MiB', timeoutSeconds: 120 }, async () => {
+  const media = admin.storage().bucket(MEDIA), { wiki } = await compose(admin, { dry: true });
+  const [buf] = await media.file('wiki/data/wiki.json').download().catch(() => [Buffer.from('')]);
+  if (buf.toString('utf8') === JSON.stringify(wiki)) return;
+  const c = await compose(admin);
+  console.warn('verseHeal: wiki.json differed from the records - composed again', c.characters, 'characters', c.videos, 'videos');
+});   // the owner page (verse.js) hides / shows a video through the same code

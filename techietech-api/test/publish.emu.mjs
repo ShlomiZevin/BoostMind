@@ -27,11 +27,10 @@ const putObj = (bucket, name, data, type) => admin.storage().bucket(bucket).file
 const getObj = async (bucket, name) => JSON.parse((await admin.storage().bucket(bucket).file(name).download())[0].toString('utf8'));
 const str = (v) => ({ stringValue: v });
 
-// the base the catalog is composed on, and one video that is already live
-const base = { series: [{ id: 'techytech', title: 'טקי-טק', blurb: '', site: null, characters: ['hani'], videos: [] }], characters: [{ id: 'hani', name: 'חני פרידמן', series: 'techytech', videos: [] }], sites: {}, site_list: [], games: [] };
-const baseBrain = { worlds: [], characters: [{ id: 'hani', name: 'חני פרידמן', videos: [] }], sites: [], games: [] };
-step('seed base'); await putObj(MEDIA, 'wiki/data/base.json', JSON.stringify(base), 'application/json');
-await putObj(PRIV, 'wiki-base-brain.json', JSON.stringify(baseBrain), 'application/json');
+// the records the catalog is composed with (content.js), and one video that is already live
+step('seed records');
+assert.ok((await call({ op: 'sync', kind: 'series', items: [{ id: 'techytech', title: 'טקי-טק', blurb: '', site: null }], noCompose: true })).j.ok);
+assert.ok((await call({ op: 'sync', kind: 'character', items: [{ id: 'hani', name: 'חני פרידמן', series: 'techytech' }], noCompose: true })).j.ok);
 await fetch(`${FS}/catalogVideos/old-one`, { method: 'PATCH', headers: H, body: JSON.stringify({ fields: { title: str('ישן'), teaser: str('ישן'), series: str('techytech'), cast: { arrayValue: { values: [str('hani')] } },
   date: str('2026-10-01'), t: str('2026-10-01T10:00:00'), src: str('https://x/v/old-one.mp4'), poster: str('https://x/v/old-one.jpg'), hidden: { booleanValue: false } } }) });
 
@@ -48,7 +47,6 @@ for (const [kind, file, type] of [['video', mp4, 'video/mp4'], ['poster', jpg, '
 }
 const dry = await call({ op: 'video', id: 'new-one', title: 'חני והקאש', teaser: 'מה קרה לקאש', cast: ['hani'], date: '2026-11-05', transcript: 'הקאש נפל', dryRun: true });
 assert.ok(dry.j.dryRun && dry.j.video.src.includes('v/new-one.mp4?v='), 'dryRun shows the record: ' + JSON.stringify(dry.j));
-assert.equal((await getObj(MEDIA, 'wiki/data/base.json')).series[0].id, 'techytech');
 let r = await call({ op: 'video', id: 'new-one', title: 'חני והקאש', teaser: 'מה קרה לקאש', cast: ['hani'], date: '2026-11-05', transcript: 'הקאש נפל' });
 assert.equal(r.status, 200, JSON.stringify(r.j)); assert.equal(r.j.videos, 2);
 let wiki = await getObj(MEDIA, 'wiki/data/wiki.json'), brain = await getObj(PRIV, 'wiki-brain.json');
