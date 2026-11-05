@@ -772,6 +772,28 @@ async function saveStoryMedia(id, file, poster) {
 }
 const POSTER = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 
+// a video story is also a video (his rule, 2026-11-05): it joins the latest videos and its character's page, through the
+// catalog's one door (publish.js). videoId = a video already in the catalog (the same clip, or another cut of it): the
+// story's character joins its cast, nothing new is made; else a new one, story-<id>, with the clip and its cover copied
+// next to the other videos and Terra's title from the story's words (or videoTitle). Its followers heard about it from the story - the
+// 15-minute video announcement skips it.
+async function storyVideo(storyId, char, media, text, videoId, title) {
+  const P = require('./publish')._publish, from = admin.storage().bucket(BUCKET), to = admin.storage().bucket(require('./catalog').MEDIA);
+  const castWith = (cast) => [...new Set([...(cast || []), ...(idOk(char) && char !== 'verse' ? [char] : [])])];
+  const id = /^[a-z0-9][a-z0-9_-]{1,80}$/i.test(videoId || '') ? videoId : `story-${storyId.toLowerCase()}`;
+  const was = await db.collection('catalogVideos').doc(id).get();
+  if (!was.exists) {
+    const path = (u) => { const d = decodeURIComponent(String(u).split('?')[0]); return d.slice(d.indexOf('verse/stories/')); };   // (the live address or the emulator's)
+    await from.file(path(media.url)).copy(to.file(`wiki/v/${id}.mp4`));
+    if (/\.jpe?g$/i.test(path(media.poster || ''))) await from.file(path(media.poster)).copy(to.file(`wiki/v/${id}.jpg`));
+    await db.collection('announced').doc(id).set({ t: FieldValue.serverTimestamp(), story: storyId });
+  }
+  const r = await P.handle({ op: 'video', id, cast: castWith(was.data()?.cast), source: was.exists ? undefined : 'story',
+    ...(was.exists ? {} : { onScreen: text, ...(title ? { title: String(title).slice(0, 140) } : {}), ...(media.poster ? { poster: media.poster } : {}) }) });
+  if (r.error) throw new Error(r.error + ' ' + (r.detail || ''));
+  return { id, title: r.video?.title, cast: r.video?.cast, made: !was.exists };
+}
+
 // ---------- a new video: everyone who follows someone in its cast hears about it, once ----------
 async function announceVideo(videoId, v, again = false) {
   const flag = db.collection('announced').doc(videoId);
@@ -956,6 +978,11 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const col = b.kind === 'sticker' ? 'stickers' : b.kind === 'story' ? 'stories' : b.kind === 'idea' ? 'ideas' : 'comments';
       if (!idOk(b.id)) return res.status(400).json({ error: 'id' });
       await db.collection(col).doc(b.id).update({ hidden: b.hidden !== false, ...(b.hidden !== false ? { removedBy: 'owner' } : {}) });
+      // a story's own video (story-<id>, made from its clip) goes and comes back with it; a video it only joined stays
+      if (col === 'stories') {
+        const vid = (await db.collection('stories').doc(b.id).get()).data()?.video;
+        if (vid && vid === `story-${b.id.toLowerCase()}`) await require('./publish')._publish.handle({ op: 'hide', id: vid, hidden: b.hidden !== false }).catch((e) => console.error('story video hide', vid, e.message));
+      }
       return res.json({ ok: true });
     }
     // an idea's way (his ask, 2026-11-05): liked -> making -> live (with its video); each step tells the writer once - the
@@ -1029,6 +1056,12 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const everyone = f.everyone === 'yes' || (isVerse && f.notify !== 'no');
       const keepClear = cleanKeep(f.keepClear);
       await ref.set({ char: f.char, text: text || (boxes || []).map((b) => b.t).join(' ').slice(0, 600), ...(boxes ? { boxes } : {}), ...(keepClear ? { keepClear } : {}), media, link, everyone, hidden: false, t: FieldValue.serverTimestamp() });
+      // a clip = a video too: the latest videos and the character's page (toVideos=no keeps it a story only)
+      let video = null;
+      if (media?.kind === 'video' && f.toVideos !== 'no') {
+        video = await storyVideo(ref.id, f.char, media, text || (boxes || []).map((x) => x.t).join(' '), f.videoId, f.videoTitle).catch((e) => { console.error('storyVideo', ref.id, e.message); return { error: e.message }; });
+        if (video.id) await ref.update({ video: video.id });
+      }
       let fans = [], sent = 0;
       if (f.notify !== 'no' || everyone) {
         fans = everyone ? (await db.collection('fans').select().get()).docs.map((d) => d.id) : await followersOf([f.char]);
@@ -1042,7 +1075,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
           image: media?.kind === 'image' ? media.url : media?.poster, tag: 'story_' + f.char });
         await ref.update({ reach: fans.length, pushes: sent });
       }
-      return res.json({ ok: true, id: ref.id, fans: fans.length, sent, everyone });
+      return res.json({ ok: true, id: ref.id, fans: fans.length, sent, everyone, video });
     }
     // fixing a story that is already up - its words / boxes, its button, its picture - without telling anyone again
     // (fields: id, then only what changes: boxes (JSON; '[]' = no words on it), text, link + linkLabel or noLink=yes, file,

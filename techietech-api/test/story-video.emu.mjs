@@ -32,6 +32,16 @@ assert.match(execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v', '-s
 assert.ok(fs.statSync(clip.poster).size > 5000, 'a cover picture');
 console.log(`ok  prepared: ${clip.duration}s ${clip.w}x${clip.h} ${clip.mb} MB h264 + sound, and a cover`);
 
+// the catalog's base (a video story is also a video - it joins the catalog through publish.js)
+const admin = createRequire(import.meta.url)('../node_modules/firebase-admin');
+admin.initializeApp({ projectId: 'demo-shlomiverse' });
+const putObj = (bucket, name, data) => admin.storage().bucket(bucket).file(name).save(Buffer.from(data), { resumable: false, metadata: { contentType: 'application/json' } });
+const getObj = async (bucket, name) => JSON.parse((await admin.storage().bucket(bucket).file(name).download())[0].toString('utf8'));
+await putObj('shlomiverse-media', 'wiki/data/base.json', JSON.stringify({ series: [{ id: 'techytech', title: 'טקי-טק', blurb: '', site: null, characters: ['hani', 'yotam'], videos: [] }],
+  characters: [{ id: 'hani', name: 'חני פרידמן', series: 'techytech', videos: [] }, { id: 'yotam', name: 'יותם', series: 'techytech', videos: [] }], sites: {}, site_list: [], games: [] }));
+await putObj('shlomiverse-private', 'wiki-base-brain.json', JSON.stringify({ worlds: [], characters: [], sites: [], games: [] }));
+const terra = !!(process.env.WIKI_OPENAI_KEY || process.env.VERSE_OPENAI_KEY);
+
 // 2. posted with its cover, then a new cover alone
 const send = async (op, fields, files) => {
   const fd = new FormData();
@@ -40,7 +50,7 @@ const send = async (op, fields, files) => {
   const r = await fetch(`${FN}?op=${op}`, { method: 'POST', headers: { authorization: 'Key ' + KEY }, body: fd });
   const j = await r.json(); assert.ok(r.ok, op + ': ' + JSON.stringify(j)); return j;
 };
-const posted = await send('story', { char: 'hani', text: 'בקרוב', notify: 'no', boxes: JSON.stringify([{ t: 'בקרוב', x: 50, y: 84, w: 60, s: 7, st: 'tag' }]) },
+const posted = await send('story', { char: 'hani', text: 'בעלבוסטע - הקומיקס של חני מגיע בקרוב', notify: 'no', ...(terra ? {} : { videoTitle: 'בעלבוסטע בקרוב' }), boxes: JSON.stringify([{ t: 'בקרוב', x: 50, y: 84, w: 60, s: 7, st: 'tag' }]) },
   [['file', clip.file, 'video/mp4'], ['poster', clip.poster, 'image/jpeg']]);
 const doc = async () => (await (await fetch(`${FS}/stories/${posted.id}`, { headers: { authorization: 'Bearer owner' } })).json()).fields.media.mapValue.fields;
 let m = await doc();
@@ -50,6 +60,30 @@ await send('storyEdit', { id: posted.id }, [['poster', clip.poster, 'image/jpeg'
 m = await doc();
 assert.notEqual(m.poster.stringValue, firstPoster, 'a new cover alone replaces it'); assert.equal(m.url.stringValue.length > 0, true);
 console.log('ok  posted with its cover; a new cover alone replaced it, the clip stayed');
+
+// 2b. the clip is a video too: in the latest videos and on Hani's page; another character's story of it joins its cast;
+// hiding the story takes its video off the site, showing brings it back
+const vid = `story-${posted.id.toLowerCase()}`;
+assert.equal(posted.video?.id, vid, 'the story made its video: ' + JSON.stringify(posted.video));
+let wiki = await getObj('shlomiverse-media', 'wiki/data/wiki.json');
+let v = wiki.videos.find((x) => x.id === vid);
+assert.ok(v && v.title && v.src.includes(`v/${vid}.mp4`) && v.poster, 'on the site with its file, cover and title: ' + JSON.stringify(v));
+assert.deepEqual(v.cast, ['hani']); assert.ok(wiki.characters.find((c) => c.id === 'hani').videos.includes(vid), "on Hani's page");
+assert.equal(wiki.videos[0].id, vid, 'the newest video');
+const again = await send('story', { char: 'yotam', text: 'הטיזר', notify: 'no', videoId: vid }, [['file', clip.file, 'video/mp4'], ['poster', clip.poster, 'image/jpeg']]);
+assert.equal(again.video?.made, false, 'joined, nothing new made');
+wiki = await getObj('shlomiverse-media', 'wiki/data/wiki.json');
+assert.equal(wiki.videos.filter((x) => x.id.startsWith('story-')).length, 1, 'one video, not two');
+assert.deepEqual(wiki.videos.find((x) => x.id === vid).cast, ['hani', 'yotam'], "Yotam's story of it put him in its cast");
+const hide = async (id, hidden) => { const r = await fetch(`${FN}?op=hide`, { method: 'POST', headers: { authorization: 'Key ' + KEY, 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'story', id, hidden }) }); assert.ok(r.ok); };
+await hide(again.id, true);
+assert.ok((await getObj('shlomiverse-media', 'wiki/data/wiki.json')).videos.some((x) => x.id === vid), "hiding a story that only joined it keeps the video");
+await hide(posted.id, true);
+assert.ok(!(await getObj('shlomiverse-media', 'wiki/data/wiki.json')).videos.some((x) => x.id === vid), 'hiding its story takes it off');
+await hide(posted.id, false);
+assert.ok((await getObj('shlomiverse-media', 'wiki/data/wiki.json')).videos.some((x) => x.id === vid), 'showing it brings it back');
+await hide(again.id, false);
+console.log(`ok  a video story is a video: newest on the site, on Hani's page (${terra ? "Terra's title: " + v.title : 'its own title'}); a second story joins it; hide / show go with its story`);
 
 // 3. the real viewer
 const site = spawn('node', [path.join(ROOT, 'v2/dev.mjs'), '--site'], { stdio: 'ignore' });
