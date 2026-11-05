@@ -15,9 +15,24 @@ import path from 'node:path';
 import http from 'node:http';
 import { createRequire } from 'node:module';
 
-const require = createRequire('C:/workspace/BoostMind/zoomcut/render/package.json');
+// any computer with the repo (his other PC too): paths from this file, puppeteer-core from zoomcut/render
+// (`npm install` there once), and whichever browser it has - CHROME_PATH, Playwright's Chromium, Chrome or Edge
+const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..');
+const require = createRequire(path.join(REPO, 'zoomcut', 'render', 'package.json'));
 const puppeteer = require('puppeteer-core');
-const SITE = 'C:/workspace/BoostMind/v2/site';
+const SITE = path.join(REPO, 'v2', 'site');
+function browser() {
+  const pw = path.join(process.env.LOCALAPPDATA || '', 'ms-playwright');
+  const tries = [process.env.CHROME_PATH,
+    ...(fs.existsSync(pw) ? fs.readdirSync(pw).filter((d) => /^chromium-\d+$/.test(d)).sort().reverse().map((d) => path.join(pw, d, 'chrome-win64', 'chrome.exe')) : []),
+    path.join(process.env.PROGRAMFILES || 'C:/Program Files', 'Google/Chrome/Application/chrome.exe'),
+    path.join(process.env['PROGRAMFILES(X86)'] || 'C:/Program Files (x86)', 'Google/Chrome/Application/chrome.exe'),
+    path.join(process.env.LOCALAPPDATA || '', 'Google/Chrome/Application/chrome.exe'),
+    path.join(process.env['PROGRAMFILES(X86)'] || 'C:/Program Files (x86)', 'Microsoft/Edge/Application/msedge.exe')];
+  const found = tries.find((p) => p && fs.existsSync(p));
+  if (!found) { console.error('no browser found - install Chrome, or set CHROME_PATH to a chrome.exe'); process.exit(1); }
+  return found;
+}
 const [jsonPath, outArg] = process.argv.slice(2);
 if (!jsonPath) { console.error('usage: node scripts/stories/preview.mjs story.json [outDir]'); process.exit(1); }
 const story = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
@@ -108,7 +123,7 @@ const server = http.createServer((req, res) => {
 });
 await new Promise((r) => server.listen(0, r));
 const base = 'http://localhost:' + server.address().port;
-const b = await puppeteer.launch({ executablePath: process.env.LOCALAPPDATA + '/ms-playwright/chromium-1228/chrome-win64/chrome.exe', headless: 'new' });
+const b = await puppeteer.launch({ executablePath: browser(), headless: 'new' });
 let bad = 0;
 try {
   for (const [tag, vp, mode] of [['phone', { width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }, 'story'],

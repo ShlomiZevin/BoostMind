@@ -10,6 +10,20 @@ Most stories on shlomiverse.com are posted by Claude sessions, not by him in /ba
 the time the one who will build the stories will be a Claude session, so the skill matters more than the tool").
 Reply in English; Hebrew only in the story.
 
+## On another computer (his other PC - read this first there)
+1. `git pull` in the BoostMind repo (this skill: `zoomcut/skill/verse-story/SKILL.md`; the tools: `scripts/story.mjs`,
+   `scripts/stories/preview.mjs`, `scripts/stories/video.mjs`). Not on his main PC? Read this file directly - the skill
+   is registered as `verse-story` only where `~/.claude/skills/verse-story` links to this folder.
+2. Needs: Node 18+, **ffmpeg + ffprobe** on PATH (a video story), `npm install` once in `zoomcut/render` (puppeteer-core
+   for the preview), and Chrome or Edge (or `CHROME_PATH=<chrome.exe>`). Removing words from a picture
+   (`clean-words.mjs`) also needs `OPENAI_API_KEY` in the environment.
+3. **Whose story**: `"char"` = the character's id - the folder name under `zoomcut/characters/` (hani, shterni, yotam,
+   avraham-moshe...) or `verse` for the Shlomiverse's own account. Check the id exists there before posting; the story
+   shows that character's name, face and ring, and their followers get the bell + push.
+4. **The owner key**: ask HIM for it in the chat, every time; never write it to a file or commit it. Then the flow below:
+   preview -> `--test` -> post. Not on Shabbat. A video story: give the clip as `"file"` (any .mov / .mp4) - it is made
+   story-ready by itself (section "A video story").
+
 ## His rules (2026-11-04 - every one cost a round)
 1. **Nothing sits on anything.** No word on a face, no word on a word that is already in the picture, no box on another
    box, nothing under the name bar or the button. The viewer keeps the picture between the bar and the button on every
