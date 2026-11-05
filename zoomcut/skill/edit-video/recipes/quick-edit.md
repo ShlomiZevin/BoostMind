@@ -82,6 +82,11 @@ it's very slow")
     the pause right before the reveal line stays - `cut.keep_pauses` {take: [[a, b]]}; every other pause goes;
   - **never cut inside a phrase** - a 0.12 s "pause" between "קופסת" and "פח" was the ת stop; he heard a skip. A
     pause counts only BETWEEN sentences (after a word that ends a clause), not between two words of one phrase;
+  - **a pause cut must start >= 0.3 s after the recogniser's word end** - a soft last consonant (the ז of "לזוז")
+    falls under -34 dB and a cut right after it ate the word ("חתכת את הדיבור של הלזוז השני");
+  - **the music runs to the very end**: a 1-minute bed with `own_pace` covers (60 - 1) x speed x 30 frames of
+    timeline - at 1.15 a 66 s video needs a second item of the same track (1 s crossfade, `in` 0) - recompute after
+    he changes the speed;
   - **end on the cut-off word and go straight to the end card, the music running on** (`lift` +6 dB on the beds,
     `of: "person"`).
 - Measured: 87.6 s take -> 11 pieces, 62 s at 1.15 + a 4 s end card.
