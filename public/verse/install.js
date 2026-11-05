@@ -10,6 +10,7 @@
 //   - the same steps on /install (verse/push.js installPage) and an icon in the phone footer.
 import { T } from './copy.js';
 import { I, esc, sheet, toast, track, isIOS, isAndroid, standalone, av } from './ui.js';
+import { enablePush, pushState } from './push.js';
 
 // ---------- where we are ----------
 const ua = navigator.userAgent;
@@ -56,6 +57,14 @@ function picsOf(e) {
 export function stepsHtml(e = env()) {
   const pics = picsOf(e);
   return stepsOf(e).map(([h, p], i) => `<div class="ig-step"><div><div class="n">${i + 1}</div><h3>${esc(h)}</h3>${p ? `<p>${esc(p)}</p>` : ''}</div>${pics[i]}</div>`).join('');
+}
+
+// the notifications part: the same cards, for iPhone (only from the icon) or Android (right away in the browser)
+const permPic = () => pic.sheet([[A().permAsk, I.bell], [A().permNo, ''], [A().permYes, I.check]], 2);
+const btnPic = () => pic.sheet([[T.pushOn, I.bell]], 0);
+export function pushStepsHtml(os = env().os) {
+  const steps = os === 'ios' ? A().pushStepsIos : A().pushStepsAndroid, pics = os === 'ios' ? [pic.home, btnPic(), permPic()] : [btnPic(), permPic()];
+  return steps.map(([h, p], i) => `<div class="ig-step"><div><div class="n">${i + 1}</div><h3>${esc(h)}</h3>${p ? `<p>${esc(p)}</p>` : ''}</div>${pics[i]}</div>`).join('');
 }
 
 // ---------- remembering ----------
@@ -137,9 +146,41 @@ export function coach() {
   track('app_guide', e.browser);
 }
 
+// ---------- the first moments inside the app: the one place an iPhone can say yes to notifications ----------
+// Opened from the icon and notifications never asked: a welcome with one button. "אחר כך" = three days of quiet.
+function welcomeOk() {
+  if (!standalone() || pushState() !== 'default') return false;
+  const s = load();
+  if (s.welcomeLater && Date.now() - s.welcomeLater < 3 * 864e5) return false;
+  try { if (sessionStorage.getItem('vx-app-welcome')) return false; } catch (x) {}
+  return !document.querySelector('.vx-sheet, .st, .ac, .vp');
+}
+function welcome() {
+  try { sessionStorage.setItem('vx-app-welcome', '1'); } catch (x) {}
+  track('app_welcome', env().os);
+  const who = (W.characters || []).find((c) => c.img) || null;
+  const h = sheet(`<div class="ap">
+    <h2>${esc(A().welcomeTitle)}</h2><p class="ap-line">${esc(A().welcomeLine)}</p>
+    <div class="ap-phone"><div class="ap-screen">
+      <div class="ap-status"><b>9:41</b><i></i></div>
+      <div class="ap-notif"><img src="/verse/icon-192.png" alt=""><span><b>שלומיוורס</b><span>${esc(A().notifNew.replace('{name}', who ? who.name : 'חני פרידמן'))}</span></span><small>${esc(T.now)}</small></div>
+      <div class="ap-apps"><span class="ap-me"><img src="/verse/icon-192.png" alt=""><b>שלומיוורס</b></span><span class="ap-t t1"></span><span class="ap-t t2"></span><span class="ap-t t3"></span></div>
+    </div></div>
+    <button class="vx-btn main block" data-welcome-yes>${I.bell}${esc(A().welcomeYes)}</button>
+    <button class="vx-link" data-welcome-later>${esc(A().welcomeLater)}</button></div>`, { cls: 'ap-sheet', x: false });
+  h.el.addEventListener('click', (ev) => {
+    if (ev.target.closest('[data-welcome-yes]')) { track('app_welcome_yes', env().os); h.close('yes'); enablePush(); }
+    else if (ev.target.closest('[data-welcome-later]')) { keep({ welcomeLater: Date.now() }); track('app_welcome_later', env().os); h.close('later'); }
+  });
+}
+
 // ---------- on every page ----------
 export function appBoot() {
-  if (standalone()) keep({ installed: true });
+  if (standalone()) {
+    keep({ installed: true });
+    const tryWelcome = (n) => setTimeout(() => { if (welcomeOk()) welcome(); else if (n > 0 && standalone() && pushState() === 'default') tryWelcome(n - 1); }, n === 3 ? 2500 : 8000);
+    tryWelcome(3);
+  }
   const e = env();
   document.documentElement.classList.toggle('can-app', e.phone && !standalone() && !load().installed);
   // a second visit, on another day: once the person has been on the home for a moment

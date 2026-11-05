@@ -1411,3 +1411,11 @@ section.hero .scroll-hint { z-index: 1; }
 /* the footer's home-screen icon: only where the Shlomiverse can be added (a phone browser, not the app itself) */
 .foot-app { display: none !important; }
 html.can-app .foot-app { display: inline-flex !important; }
+/* /install: the two parts - on the home screen, then notifications (his ask 2026-11-05) */
+.ig-part { display: flex; align-items: center; gap: 10px; font-size: 1.35rem; font-weight: 900; margin-top: 30px; line-height: 1.2; }
+.ig-part > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--vx-accent); color: #fff; font-size: 1.05rem; flex: none; }
+.ig-part > i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #22c55e; color: #fff; flex: none; }
+.ig-part > i svg { width: 16px; height: 16px; }
+.ig-note { margin-top: 10px; color: var(--vx-accent); font-weight: 700; }
+.ig-ok .vx-btn svg, .ap .vx-btn svg { width: 18px; height: 18px; vertical-align: -3px; margin-inline-end: 6px; }
+.ig-ok.col { flex-wrap: wrap; } .ig-ok.col p { flex: 1 1 60%; color: var(--text); } .ig-ok.col .vx-btn { flex: 1 1 100%; justify-content: center; }
