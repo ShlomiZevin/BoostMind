@@ -211,7 +211,7 @@ export function openGame(id, q = {}) {
       <div class="vg-mid">
       <div class="vg-acts">
         ${g.record ? `<button data-records><span class="vx-round">${TROPHY}</span>${esc(T.rec.rail)}</button>` : ''}
-        <button data-heart><span class="vx-round">${I.planet}</span><span data-heart-l>${esc(T.gLike)}</span><small data-count-h></small></button>
+        <button data-heart><span class="vx-round">${LIKE}</span><span data-heart-l>${esc(T.gLike)}</span><small data-count-h></small></button>
         <button data-comments><span class="vx-round">${I.comment}</span>${esc(T.comments)}<small data-count-c></small></button>
         <button data-save><span class="vx-round">${I.save}</span><span data-save-l>${esc(T.save)}</span></button>
         <button data-share><span class="vx-round">${I.share}</span>${esc(T.share)}</button>
@@ -367,7 +367,7 @@ function paint() {
   $('[data-save] .vx-round', el).classList.toggle('on', saved);
   $('[data-save-l]', el).textContent = saved ? T.saved : T.save;
   const h = $('[data-heart] .vx-round', el);
-  if (h) { h.classList.toggle('main', !!P.hearted); $('[data-heart-l]', el).textContent = P.hearted ? T.gLiked : T.gLike; }
+  if (h) { h.classList.toggle('on', !!P.hearted); $('[data-heart-l]', el).textContent = P.hearted ? T.gLiked : T.gLike; }
   paintFollow(el);
 }
 function share(v) {

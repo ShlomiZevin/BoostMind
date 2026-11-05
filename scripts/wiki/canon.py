@@ -63,7 +63,12 @@ def episodes(chars):
         if eid.startswith('_') or eid.endswith('-test'):
             continue
         meta = load_json(ep, {})
+        # the studio's export - or, when it isn't on this computer (projects live in the online studio since 2026-11-05;
+        # haredit-2's export wasn't here and the build dropped the video from the live wiki), the site's own web copy
         src = export_path(eid)
+        web = os.path.join(ZC, '..', 'public', 'wiki', 'v', eid + '.mp4')
+        if not src and os.path.exists(web):
+            src = web
         if not meta.get('done') or not src:
             continue
         # the cast: the characters who list the video + the project's own list (the editor's Characters page reads both)

@@ -1254,10 +1254,10 @@ section.hero .scroll-hint { z-index: 1; }
 .vg-acts .vx-round svg { width: 22px; height: 22px; }
 .vg-acts small { font-size: .72rem; opacity: .8; margin-top: -2px; }
 .vg-acts small:empty { display: none; }
-/* the like = the logo's planet: white on glass, the whole button orange once they liked (the site's "main") */
-.vg [data-heart] .vx-round { --pl-fill: #18161c; color: #fff; }
-.vg [data-heart] .vx-round .pl { width: 28px; height: 28px; }
-.vg [data-heart] .vx-round.main { --pl-fill: var(--vx-accent); }
+/* the like = the Shlomiverse planet, the same as every like in the verse (his ask, 2026-11-05): grey until they like
+   it, then the planet in its own orange with its glow (.on > .lk) and an orange ring */
+.vg [data-heart] .vx-round .lk { width: 30px; }
+.vg [data-heart] .vx-round.on { border-color: var(--vx-accent); background: rgba(255, 106, 31, .16); }
 .vg-card { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-radius: 18px; background: var(--vx-glass);
   border: 1px solid var(--vx-glass-line); -webkit-backdrop-filter: var(--vx-blur); backdrop-filter: var(--vx-blur); }
 .vg-card > div { flex: 1; min-width: 0; }
@@ -1411,6 +1411,7 @@ section.hero .scroll-hint { z-index: 1; }
 /* the footer's home-screen icon: only where the Shlomiverse can be added (a phone browser, not the app itself) */
 .foot-app { display: none !important; }
 html.can-app .foot-app { display: inline-flex !important; }
+
 /* /install: the two parts - on the home screen, then notifications (his ask 2026-11-05) */
 .ig-part { display: flex; align-items: center; gap: 10px; font-size: 1.35rem; font-weight: 900; margin-top: 30px; line-height: 1.2; }
 .ig-part > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--vx-accent); color: #fff; font-size: 1.05rem; flex: none; }
