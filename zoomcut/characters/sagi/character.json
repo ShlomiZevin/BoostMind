@@ -49,10 +49,10 @@
   ],
   "assets": {
     "portraits": [
+      "C:/workspace/BoostMind/zoomcut/episodes/_assets/sagi/linkedin-b.jpg",
+      "C:/workspace/BoostMind/zoomcut/episodes/_assets/sagi/linkedin-a.jpg",
       "C:/workspace/BoostMind/zoomcut/episodes/_assets/sagi/headshot-squint-helmet.jpg",
-      "C:/workspace/BoostMind/zoomcut/episodes/_assets/sagi/headshot-squint-nohelmet.jpg",
-      "c:/workspace/BoostMind/public/techietech/team/scooter.jpg",
-      "C:/Users/shazbak/Downloads/techi-tech/scooter-guy.png"
+      "C:/workspace/BoostMind/zoomcut/episodes/_assets/sagi/headshot-squint-nohelmet.jpg"
     ]
   },
   "color": "#f1c40f",
