@@ -175,7 +175,9 @@ const tx = (c) => B.x + c * B.t, ty = (r) => B.y + r * B.t;
 // ───────────────────────── state ─────────────────────────
 let state = 'menu', paused = false, tutorial = false, moving = false;
 let score = 0, T = 0, prog = 0, dir = { x: 0, y: -1 }, queue = [], crash = null, runs = 0;
-let snake = [];          // [{ c, r, pc, pr, face, kind }] - head first; kind: 'sagi' | 1..6 | 'client'
+let snake = [];          // head first: Sagi { c, r, pc, pr, dx, dy, face } moves on the grid; the riders { kind, x, y, c, r, dx, dy, face }
+let trail = [];          // where Sagi has been (tile units, newest first) - the riders stand along it, SP apart
+const SP = 0.62;         // how far apart the riders stand on the long scooter, in tiles
 let food = null;         // { c, r, kind 1..6, t }
 let client = null;       // { c, r, life, max }
 let ofer = null;         // { c, r, pc, d, t, step, on }
@@ -184,9 +186,32 @@ const speed = () => Math.min(7.2, 3.3 + (snake.length - 1) * 0.11);
 
 function resetSnake() {
   snake = [{ c: START.c, r: START.r, pc: START.c, pr: START.r + 1, face: 1, dx: 0, dy: -1, kind: 'sagi' }];
+  trail = [{ x: START.c, y: START.r + 1 }, { x: START.c, y: START.r + 6 }];
   dir = { x: 0, y: -1 }; queue = []; prog = 0; crash = null;
 }
-const onSnake = (c, r, from = 0) => snake.some((s, i) => i >= from && s.c === c && s.r === r);
+const headPos = () => { const h = snake[0], k = moving ? clamp(prog, 0, 1) : 1; return { x: lerp(h.pc, h.c, k), y: lerp(h.pr, h.r, k) }; };
+const segPos = (s, i) => i === 0 ? headPos() : { x: s.x, y: s.y };
+const onSnake = (c, r, from = 0, near = 0.7) => snake.some((s, i) => { if (i < from) return false; const p = segPos(s, i); return Math.hypot(p.x - c, p.y - r) < near; });
+// the riders stand along Sagi's trail, SP apart; each faces the way the trail goes where they stand
+function placeRiders() {
+  const hp = headPos();
+  if (!trail.length || Math.hypot(trail[0].x - hp.x, trail[0].y - hp.y) > 0.04) trail.unshift(hp); else trail[0] = hp;
+  let seg = 0, acc = 0;
+  for (let i = 1; i < snake.length; i++) {
+    const want = i * SP, s = snake[i];
+    while (seg < trail.length - 1) {
+      const a = trail[seg], b = trail[seg + 1], L = Math.hypot(b.x - a.x, b.y - a.y);
+      if (acc + L >= want) { const u = L ? (want - acc) / L : 0; s.x = lerp(a.x, b.x, u); s.y = lerp(a.y, b.y, u);
+        const dx = a.x - b.x, dy = a.y - b.y; if (Math.abs(dx) > Math.abs(dy)) { s.dx = Math.sign(dx); s.dy = 0; s.face = s.dx; } else if (dy) { s.dx = 0; s.dy = Math.sign(dy); } break; }
+      acc += L; seg++;
+    }
+    if (seg >= trail.length - 1) { const e = trail[trail.length - 1]; s.x = e.x; s.y = e.y; }
+    s.c = Math.round(s.x); s.r = Math.round(s.y);
+  }
+  // keep only the trail the line needs
+  let need = (snake.length + 1) * SP + 1, d = 0;
+  for (let j = 1; j < trail.length; j++) { d += Math.hypot(trail[j].x - trail[j - 1].x, trail[j].y - trail[j - 1].y); if (d > need) { trail.length = j + 1; break; } }
+}
 function freeTile(avoidRow) {
   const h = snake[0];
   for (let k = 0; k < 400; k++) {
@@ -255,18 +280,13 @@ function tick() {
   const eats = food && food.c === nc && food.r === nr, meets = client && client.c === nc && client.r === nr;
   const grow = eats || meets;
   if (solid(nc, nr)) return die('wall');
-  if (onSnake(nc, nr, 1) && !(snake.length > 1 && !grow && snake[snake.length - 1].c === nc && snake[snake.length - 1].r === nr)) return die('self');
+  if (onSnake(nc, nr, 2, 0.5)) return die('self');
   if (ofer && ofer.on && ofer.c === nc && ofer.r === nr) return die('ofer');
-  const tail = snake[snake.length - 1], old = { c: tail.c, r: tail.r, face: tail.face, dx: tail.dx, dy: tail.dy };
-  for (let i = snake.length - 1; i >= 0; i--) {
-    const s = snake[i]; s.pc = s.c; s.pr = s.r;
-    if (i === 0) { s.c = nc; s.r = nr; } else { s.c = snake[i - 1].pc; s.r = snake[i - 1].pr; }
-    if (s.c !== s.pc || s.r !== s.pr) { s.dx = s.c - s.pc; s.dy = s.r - s.pr; }
-    if (s.c !== s.pc) s.face = s.c > s.pc ? 1 : -1;
-  }
+  const hd = snake[0]; hd.pc = hd.c; hd.pr = hd.r; hd.c = nc; hd.r = nr; hd.dx = dir.x; hd.dy = dir.y; if (dir.x) hd.face = dir.x;
+  const tail = snake[snake.length - 1], old = { x: tail.x ?? hd.pc, y: tail.y ?? hd.pr, face: tail.face, dx: tail.dx, dy: tail.dy };
   if (grow) {
     const kind = eats ? food.kind : 'client';
-    snake.push({ c: old.c, r: old.r, pc: old.c, pr: old.r, face: old.face, dx: old.dx, dy: old.dy, kind, join: 0 });
+    snake.push({ x: old.x, y: old.y, c: Math.round(old.x), r: Math.round(old.y), face: old.face, dx: old.dx, dy: old.dy, kind, join: 0 });
     const x = tx(nc + 0.5), y = ty(nr) - B.t * 0.6;
     if (eats) {
       if (!tutorial) score += 1;
@@ -301,8 +321,8 @@ function oferStep() {
   const nc = ofer.c + ofer.d;
   if (nc < 0 || nc >= COLS || onSnake(nc, ofer.r, 1)) { ofer.d *= -1; return; }   // he turns around at a wall or at your line
   ofer.pc = ofer.c; ofer.c = nc; ofer.t = 0;
-  const h = snake[0];
-  if (!tutorial && h.c === ofer.c && h.r === ofer.r) die('ofer');
+  const h = headPos();
+  if (!tutorial && Math.hypot(h.x - ofer.c, h.y - ofer.r) < 0.6) die('ofer');
 }
 function step(dt) {
   T += dt;
@@ -312,6 +332,7 @@ function step(dt) {
     prog += dt * speed();
     while (prog >= 1 && moving) { prog -= 1; tick(); }
   }
+  placeRiders();
   if (crash) crash.t += dt;
   // Ofer comes out of his meeting once Sagi has 3 listeners
   if (!tutorial && state === 'play' && !ofer && score >= 3) {
@@ -344,32 +365,43 @@ function ring(cx, cy, R, left) {
 // the long scooter: painted grip tape on top, the black body with its red trim showing on the near side, and the
 // painted rear wheel + tail light at the end (side view when the tail goes sideways, end-on when it goes up or down)
 let gripPat = null, gripFor = 0;
+const DECK = 0.25;                                   // his deck's top, above his tile's bottom (in tiles) - the long deck matches it
 function drawDeck(pts, tail, t) {
-  const h0 = snake[0]; pts = [{ x: pts[0].x + (h0.dx || 0) * t * 0.34, y: pts[0].y + (h0.dy || 0) * t * 0.2 }, ...pts];
   const n = pts.length, last = pts[n - 1];
   const bx = tail.dx || 0, by = tail.dy || 0;
-  const end = { x: last.x - bx * t * 0.42, y: last.y - by * t * 0.42 };
-  const Wd = t * 0.44, th = t * 0.11;
-  const path = (dy = 0) => { ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y + dy); for (let i = 1; i < n; i++) ctx.lineTo(pts[i].x, pts[i].y + dy); ctx.lineTo(end.x, end.y + dy); };
+  const end = { x: last.x - bx * t * 0.36, y: last.y - by * t * 0.36 };
+  pts = [...pts, end];
+  // split the line into straight runs: sideways (thin, like his deck from the side) or up/down (wide, seen from above)
+  const runs = []; let cur = null;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i]; if (Math.hypot(b.x - a.x, b.y - a.y) < 0.5) continue;
+    const side = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
+    if (!cur || cur.side !== side) { cur = { side, p: [a] }; runs.push(cur); }
+    cur.p.push(b);
+  }
   if (ok(IMG.grip) && gripFor !== t) { gripPat = ctx.createPattern(IMG.grip, 'repeat'); const k = t * 0.9 / 256; gripPat.setTransform(new DOMMatrix([k, 0, 0, k, 0, 0])); gripFor = t; }
+  const topY = -DECK * t, th = t * 0.17;              // the deck's top above the floor line, its side's height
+  const width = (r) => r.side ? t * 0.1 : t * 0.32;
+  const stroke = (style, wAdd, dy, wMul = 1) => { for (const r of runs) { ctx.strokeStyle = style; ctx.lineWidth = width(r) * wMul + wAdd; ctx.beginPath();
+    const cy = topY + width(r) / 2; r.p.forEach((q, i) => i ? ctx.lineTo(q.x, q.y + cy + dy) : ctx.moveTo(q.x, q.y + cy + dy)); ctx.stroke(); } };
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#13294b40'; ctx.lineWidth = Wd + t * 0.08; path(th + t * 0.07); ctx.stroke();      // shadow
-  ctx.strokeStyle = '#0c0c0f'; ctx.lineWidth = Wd; path(th); ctx.stroke();                              // the body's side
-  ctx.strokeStyle = '#e53935'; ctx.lineWidth = Wd; path(th * 0.62); ctx.stroke();                       // red trim
-  ctx.strokeStyle = '#1a1a1f'; ctx.lineWidth = Wd; path(th * 0.32); ctx.stroke();
-  ctx.strokeStyle = '#3a3a44'; ctx.lineWidth = Wd; path(); ctx.stroke();                                // the top's rim
-  ctx.strokeStyle = gripPat || '#222228'; ctx.lineWidth = Wd * 0.84; path(); ctx.stroke();               // grip tape
+  stroke('#13294b40', t * 0.06, th + t * 0.05);   // shadow
+  stroke('#0c0c0f', 0, th);                        // the side
+  stroke('#e53935', 0, th * 0.55);                 // red trim
+  stroke('#1a1a1f', 0, th * 0.25);
+  stroke('#3a3a44', 0, 0);                         // the top's rim
+  stroke(gripPat || '#222228', 0, 0, 0.8);         // grip tape
   ctx.restore();
   // the rear end
   if (bx) {
     const im = IMG['rear-s']; if (!ok(im)) return;
-    const h = t * 0.8, w = h * im.naturalWidth / im.naturalHeight;
-    ctx.save(); ctx.translate(end.x - bx * t * 0.12, end.y + th * 0.5); if (bx < 0) ctx.scale(-1, 1);          // the piece's deck stub points toward the riders
-    ctx.drawImage(im, -w * 0.28, -h * 0.64, w, h); ctx.restore();
+    const h = t * 0.62, w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save(); ctx.translate(end.x, last.y); if (bx < 0) ctx.scale(-1, 1);
+    ctx.drawImage(im, -w * 0.3, -h, w, h); ctx.restore();
   } else {
     const im = IMG['rear-b']; if (!ok(im)) return;
-    const h = t * 0.7, w = h * im.naturalWidth / im.naturalHeight;
-    ctx.save(); ctx.translate(end.x, end.y); if (by > 0) ctx.scale(1, -1);
+    const h = t * 0.62, w = h * im.naturalWidth / im.naturalHeight;
+    ctx.save(); ctx.translate(end.x, end.y + topY); if (by > 0) ctx.scale(1, -1);
     ctx.drawImage(im, -w / 2, -h * 0.2, w, h); ctx.restore();
   }
 }
@@ -441,16 +473,25 @@ function draw(now) {
     icon('alert', cx, by - ch * 1.0, t * 0.5, now);
   } });
   const k = moving ? clamp(prog, 0, 1) : 1;
-  const pos = snake.map((s) => ({ x: tx(lerp(s.pc, s.c, k) + 0.5), y: ty(lerp(s.pr, s.r, k) + 1) - t * 0.22 }));
-  // Sagi's scooter grows: one long deck from his scooter to the last listener, a rear wheel at its end
-  // the deck turns where the line turned: between two riders it passes through the tile the front one just left
-  const path = []; pos.forEach((p, i) => { path.push(p); if (i < pos.length - 1) path.push({ x: tx(snake[i].pc + 0.5), y: ty(snake[i].pr + 1) - t * 0.22 }); });
-  if (snake.length > 1 && !crash) drawDeck(path, snake[snake.length - 1], t);
+  // the floor line under each one (screen px): Sagi's tile bottom; his deck's top is DECK above it
+  const foot = (p) => ({ x: tx(p.x + 0.5), y: ty(p.y + 1) });
+  const pos = snake.map((sg, i) => foot(segPos(sg, i)));
+  // Sagi's scooter grows: the deck goes back along his trail from his heel to the last listener, a rear wheel at its end
+  if (snake.length > 1 && !crash) {
+    const L = (snake.length - 1) * SP, path = [];
+    let d = 0; path.push(foot(trail[0]));
+    for (let j = 1; j < trail.length; j++) {
+      const a = trail[j - 1], b = trail[j], l = Math.hypot(b.x - a.x, b.y - a.y);
+      if (d + l >= L) { const u = l ? (L - d) / l : 0; path.push(foot({ x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u) })); break; }
+      d += l; path.push(foot(b));
+    }
+    drawDeck(path, snake[snake.length - 1], t);
+  }
   const view = (s) => s.dy < 0 ? ['b', false] : s.dy > 0 ? ['f', false] : ['s', s.face < 0];
   snake.forEach((s, i) => {
     const p = pos[i];
-    items.push({ y: (p.y + t * 0.22 - B.y) / t - 0.1 + (i === 0 ? 0.01 : 0), f: () => {
-      const cx = p.x, by = p.y + (i === 0 ? (snake.length > 1 && view(s)[0] === 's' ? t * 0.2 : t * 0.14) : t * 0.05), bounce = Math.abs(Math.sin(now * 10 + i * 0.7)) * t * 0.03;
+    items.push({ y: (p.y - B.y) / t - 0.1 + (i === 0 ? 0.01 : 0), f: () => {
+      const cx = p.x, by = i === 0 ? p.y : p.y - t * 0.22, bounce = Math.abs(Math.sin(now * 10 + i * 0.7)) * t * 0.03;
       const [v, flip] = view(s);
       if (i === 0) {
         if (crash) { shadow(cx, by, t * 1.1); sprite(IMG['sagi-crash'], cx + Math.sin(crash.t * 50) * Math.max(0, 1 - crash.t * 2) * 4, by, ch * 1.05, s.face < 0); return; }
@@ -465,8 +506,8 @@ function draw(now) {
   items.sort((a, b) => a.y - b.y).forEach((it) => it.f());
 
   if (bubble && snake[0]) {
-    const s = snake[0], c = lerp(s.pc, s.c, k), r = lerp(s.pr, s.r, k);
-    drawBubble(bubble.text, tx(c + 0.5), ty(r + 1) - ch * 1.05);
+    const hp = headPos();
+    drawBubble(bubble.text, tx(hp.x + 0.5), ty(hp.y + 1) - ch * 1.05);
   }
   // the joystick under the thumb
   if (joy.on) {
@@ -631,7 +672,12 @@ layout(); hud(); showBest(); requestAnimationFrame(frame);
 // for the tests
 window.SNAKE = {
   get state() { return state; }, get score() { return score; }, get snake() { return snake; }, get food() { return food; }, get client() { return client; },
-  get ofer() { return ofer; }, get tut() { return tut.on; }, get tutStep() { return tut.i; }, get tutTry() { return (STEPS[tut.i] || {}).try; }, get moving() { return moving; }, set moving(v) { moving = v; }, set snakeForTest(v) { snake = v; }, get dir() { return dir; },
+  get ofer() { return ofer; }, get tut() { return tut.on; }, get tutStep() { return tut.i; }, get tutTry() { return (STEPS[tut.i] || {}).try; }, get moving() { return moving; }, set moving(v) { moving = v; }, setLineForTest(cells, n) {   // cells: the trail's corners, head first (tile coords); n riders
+    moving = false; const [c, r] = cells[0], [c2, r2] = cells[1];
+    snake = [{ c, r, pc: c2, pr: r2, dx: Math.sign(c - c2), dy: Math.sign(r - r2), face: c < c2 ? -1 : 1, kind: 'sagi' }];
+    for (let i = 1; i <= n; i++) snake.push({ kind: i > 6 ? 'client' : i, join: 1, x: c, y: r, face: 1, dx: 0, dy: 0 });
+    trail = cells.map(([x, y]) => ({ x, y })); placeRiders();
+  }, get dir() { return dir; },
   get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, ROWS, OFR,
   setSpeedForTest(v) { window.__spd = v; },
 };
