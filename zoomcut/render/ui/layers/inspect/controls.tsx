@@ -224,9 +224,13 @@ export function useTyped(initial: string, save: (v: string) => void, opts: { tri
       defaultValue: initial,
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { cur.current = e.target.value; setState(norm(e.target.value) === norm(done.current) ? '' : 'dirty'); },
       onBlur: flush,
+      // Ctrl+Enter = done: saved and out of the box (the editor's keys work again - Space plays; his ask 2026-11-05)
+      onKeyDown: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.currentTarget.blur(); }
+      },
     },
     flush,
-    status: state ? <div className={'ins-saved' + (state === 'dirty' ? ' dirty' : '')}>{state === 'dirty' ? 'Saves when you click away' : 'Saved'}</div> : null,
+    status: state ? <div className={'ins-saved' + (state === 'dirty' ? ' dirty' : '')}>{state === 'dirty' ? 'Saves when you click away · Ctrl+Enter' : 'Saved'}</div> : null,
   };
 }
 

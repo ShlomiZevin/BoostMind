@@ -108,7 +108,7 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Every box he types in saves when he leaves it - any way** (`useTyped` in `layers/inspect/controls.tsx`, 2026-11-05:
   his subtitle edits "sometimes just don't save"): a blur, but also the box closing - a block clicked on the timeline or
   the video keeps the focus (its mousedown is prevented) and picks another line - and the tab going away; always into
-  the line it was opened on (the box is keyed on it). A small line under it: "Saves when you click away" / "Saved".
+  the line it was opened on (the box is keyed on it). **Ctrl+Enter = done** (saved and out of the box, so Space plays again). A small line under it: "Saves when you click away · Ctrl+Enter" / "Saved".
   New typed boxes use it (subtitle words, who, a text's words, a script line's subtitle words do).
 - **Click a character's name on the timeline** = all of that character's settings (look, background, voice). The ✕ in
   the inspector header = back to the project settings (speed, subtitles, texts).
