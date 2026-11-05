@@ -695,6 +695,7 @@ separately filmed characters). Pick by the footage; never name things after a se
 | one person reacting to a voice we don't see - a Zoom at his desk, a phone call on speaker, an office day (Hani) | `recipes/offscreen-voice.md` | lesson.py |
 | **a new Hani Friedman video (haredit-N)** - read this FIRST: the steps + every lesson from haredit-2 | `recipes/hani.md` (then `offscreen-voice.md`) | lesson.py |
 | a silent stare + her thoughts as voice-over (Gen Z), cinematic | `recipes/genz-thoughts.md` | lesson.py |
+| **a teaser / preview from a still** (a comic cover, a poster - no footage), and the **Shlomiverse bookends** ("שלומיוורס מציגים" / "רק בשלומיוורס") on ANY teaser or preview: `python tools/verse_bookends.py <project>` | `recipes/teaser.md` | layers only |
 A new kind of video: start from the closest recipe and the closest earlier project, then write its recipe file when
 he signs off.
 
