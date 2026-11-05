@@ -1,3 +1,4 @@
+// OBSOLETE since 2026-11-05 evening: base.json is no longer read - characters / series / games / sites are records (techietech-api/content.js, the shlomiverse-content skill). Kept for its history only.
 // One time (2026-11-05): today's live wiki -> the catalog (techietech-api/catalog.js). Copies exactly what visitors see:
 // every video of the live wiki.json (with its live media addresses), its words and chat card from the live chat brain,
 // its sort time from scripts/wiki/catalog-local.json (build.py), and the rest (characters, series, sites, games) into

@@ -122,7 +122,7 @@ def places(eid, cast, world, brain_check=True):
 def new_characters(cids):
     """python scripts/wiki/publish_site.py --characters <character-id>...  - only the characters' part: a character born
     in a video the studio sent through the publish API (render/verse.mjs) gets its fan copy (Terra), the build and the
-    push (base.json - their pages and faces); the video itself is the API's (2026-11-05)."""
+    push (their records in the database + faces); the video itself is the API's (2026-11-05)."""
     copy = load_json(os.path.join(HERE, 'copy.json'), {}) or {}
     need = [c for c in cids if c not in copy.get('characters', {})]
     if need:

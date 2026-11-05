@@ -68,10 +68,13 @@ Keep the words in the middle: Facebook crops the sides on phones and the profile
 The wiki's videos, posters, portraits and `wiki.json` live in the bucket **gs://shlomiverse-media/wiki/** (public),
 the chat's brain in **gs://shlomiverse-private/wiki-brain.json**. The wiki, the links page and the stats page read
 `https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json` (falling back to the site's own copy; a local
-preview on localhost reads the local one), and wikiChat reloads its brain from the bucket every 3 minutes. So any
-content change = `python scripts/wiki/build.py` + **`node scripts/wiki/push.cjs`** (uploads only what changed, a few
-seconds; `--dry` shows what would go). No `deploy.sh`, no wikiChat deploy, nothing of another session's goes along.
-Deploy only when the CODE of a page or of wikiChat changes.
+preview on localhost reads the local one), and wikiChat reloads its brain from the bucket every 3 minutes. **Since
+2026-11-05 both are composed on the server ONLY from the database** (characters, series, games, sites, videos - one
+record each; portraits = files in the bucket) - **read the `shlomiverse-content` skill** (zoomcut/skill/shlomiverse-content).
+A profile / copy change = `python scripts/wiki/build.py` + **`node scripts/wiki/push.cjs`** (`--dry` first: it lists
+exactly which records and fields this computer changed; it never removes or blanks anything, and stops if this
+computer is behind git), or `node scripts/verse/content.mjs put|portrait|hide ...` from any computer. No `deploy.sh`,
+no wikiChat deploy. Deploy only when the CODE of a page or of wikiChat changes.
 
 **UPLOADING A VIDEO TO THE VERSE - THE ONE PATH** (his ask, 2026-10-31: "super clear to the editor skill and zoomcut")
 1. The video's project is finished and has its full export (`zoomcut/episodes/<id>/out/<id>.mp4`), and every character

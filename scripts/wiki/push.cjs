@@ -43,6 +43,21 @@ async function api(body) {
   return j;
 }
 
+// every computer that sends content gets the Shlomiverse's skills (zoomcut/skill/*) linked into ~/.claude/skills, so its
+// sessions know the rules (the shlomiverse-content skill) - travels by git, no installer
+function linkSkills() {
+  try {
+    const home = path.join(os.homedir(), '.claude', 'skills'), from = path.join(ROOT, 'zoomcut', 'skill');
+    fs.mkdirSync(home, { recursive: true });
+    for (const s of fs.readdirSync(from)) {
+      const to = path.join(home, s);
+      if (!fs.existsSync(path.join(from, s, 'SKILL.md')) || fs.existsSync(to)) continue;
+      fs.symlinkSync(path.join(from, s), to, process.platform === 'win32' ? 'junction' : 'dir');
+      console.log(`  · skill ${s} linked on this computer`);
+    }
+  } catch (e) { console.log('  ! skills not linked: ' + e.message); }
+}
+
 // Two computers (his ask, 2026-11-05): a computer that didn't pull would send older profiles / copy
 function guardBehind() {
   const git = (a) => execSync('git ' + a, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
@@ -58,6 +73,7 @@ function guardBehind() {
 
 async function main() {
   const t0 = Date.now();
+  linkSkills();
   guardBehind();
   const bucket = admin.storage().bucket(MEDIA);
   const [remote] = await bucket.getFiles({ prefix: 'wiki/' });

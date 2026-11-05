@@ -45,6 +45,16 @@ Shlomi found new sites missing from his lists because some sessions never added 
   (a "Shlomiverse" job, through the Shlomiverse's publish API - the list of videos lives in the database since
   2026-11-05); one that missed it: `POST http://localhost:4747/api/ep/<id>/site`, or `node zoomcut/render/verse.mjs <id>`.
 
+## Content - the database, never git (his rule, 2026-11-05)
+
+He works from two computers; **nothing either one has or lacks may break the site.** Everything the Shlomiverse shows -
+videos, characters, profiles, family links, portraits, games, sites, stories - lives in the database (one record each;
+portraits = files in the bucket), and the site + the chat are composed from it on the server. One door (versePublish):
+`node scripts/wiki/push.cjs` after build.py (sends only what this computer's files changed; never removes, never blanks,
+stops when behind git) or `node scripts/verse/content.mjs put | portrait | hide | log` from anywhere. **Read the
+`shlomiverse-content` skill** (zoomcut/skill/shlomiverse-content) before adding or changing any content;
+`content.mjs log` answers "who changed what".
+
 ## Deploy
 
 ```bash

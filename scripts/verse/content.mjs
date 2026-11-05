@@ -42,6 +42,22 @@ function out(j) {
   if (f) { fs.writeFileSync(f, JSON.stringify(j, null, 1), 'utf8'); console.log('written to', f); } else console.log(JSON.stringify(j, null, 1));
 }
 
+// every computer that sends content gets the Shlomiverse's skills (zoomcut/skill/*) linked into ~/.claude/skills, so its
+// sessions know the rules (the shlomiverse-content skill) - travels by git, no installer
+function linkSkills() {
+  try {
+    const home = path.join(os.homedir(), '.claude', 'skills'), from = path.join(ROOT, 'zoomcut', 'skill');
+    fs.mkdirSync(home, { recursive: true });
+    for (const s of fs.readdirSync(from)) {
+      const to = path.join(home, s);
+      if (!fs.existsSync(path.join(from, s, 'SKILL.md')) || fs.existsSync(to)) continue;
+      fs.symlinkSync(path.join(from, s), to, process.platform === 'win32' ? 'junction' : 'dir');
+      console.log(`  · skill ${s} linked on this computer`);
+    }
+  } catch (e) { console.log('  ! skills not linked: ' + e.message); }
+}
+linkSkills();
+
 const [cmd, kind, id] = pos;
 if (cmd === 'get') out(await api({ op: 'get', kind, id }));
 else if (cmd === 'list') out(await api({ op: 'list', kind }));
