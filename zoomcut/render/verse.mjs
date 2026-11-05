@@ -46,12 +46,27 @@ export function onScreenOf(dir) {
   return [...new Set(t.filter(Boolean))].join('\n');
 }
 
-// the cast: characters whose profile lists the video + the project's own list (known characters only)
-export function castOf(ROOT, id, dir) {
+// the cast: characters whose profile lists the video + the project's own list + who he picked in Send ("On the
+// Shlomiverse" - publish.json cast: kept with the post, never written into the project he edits). Known characters only.
+// Every video on the Shlomiverse has at least one (his rule, 2026-11-05 - 12 videos with none were on nobody's page).
+// detail=true: [{id, name, fixed}] - fixed = listed by a profile / the project (changed there, not in Send)
+export function castOf(ROOT, id, dir, detail = false) {
   const cdir = path.join(ROOT, 'characters'), order = readJson(path.join(cdir, 'index.json'), {}).order || [];
-  const listed = order.filter((c) => (readJson(path.join(cdir, c, 'character.json'), {}).videos || []).includes(id));
-  const own = (readJson(path.join(dir, 'project.json'), {}).characters || []).filter((c) => order.includes(c));
-  return [...new Set([...listed, ...own])];
+  const ch = Object.fromEntries(order.map((c) => [c, readJson(path.join(cdir, c, 'character.json'), {})]));
+  const listed = order.filter((c) => (ch[c].videos || []).includes(id));
+  const own = (readJson(path.join(dir, 'project.json'), {}).characters || []).filter((c) => ch[c]);
+  const picked = (readJson(path.join(dir, 'publish.json'), {}).cast || []).filter((c) => ch[c]);
+  const ids = [...new Set([...listed, ...own, ...picked])];
+  return detail ? ids.map((c) => ({ id: c, name: ch[c].name || c, fixed: listed.includes(c) || own.includes(c) })) : ids;
+}
+
+export function namesOf(ROOT, ids) {
+  return ids.map((c) => readJson(path.join(ROOT, 'characters', c, 'character.json'), {}).name || c);
+}
+// the last trip to the Shlomiverse, kept with the post (publish.json site): Send shows it (where, who - and how the cast was chosen)
+export function saveSite(dir, site) {
+  const f = path.join(dir, 'publish.json');
+  fs.writeFileSync(f, JSON.stringify({ ...readJson(f, {}), site }, null, 2));
 }
 
 export function verseApi(key) {
@@ -107,12 +122,17 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
     log(`  · new on the Shlomiverse: ${born.join(', ')} - their page first`);
     await py(['--characters', ...born]).catch((e) => { throw new Error('the new character page failed: ' + e.message); });
   }
-  const out = await api({ op: 'video', id, cast, transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
-  if (!cast.length) log('  ! no character lists this video - give it its cast in the editor (Characters), then publish to the site again');
-  if (dryRun) { log(`✔ dry run: "${out.video?.title || ''}" - nothing written`); return out; }
+  // (no cast here = none sent: the record keeps the one it has, else the API's AI picks it from the words - castBy 'ai')
+  const out = await api({ op: 'video', id, ...(cast.length ? { cast } : {}), transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
+  if (dryRun) { log(`✔ dry run: "${out.video?.title || ''}" - cast ${out.castBy || '?'}: ${(out.video?.cast || []).join(', ') || 'nobody'} - nothing written`); return out; }
   const live = await api({ op: 'get', id });
   if (!live.live) throw new Error(`written, but ${id} is hidden on the site (/backstage/ סרטונים shows it)`);
   log(`  · "${live.title}"${out.wrote ? ' (title by Terra)' : ''}`);
+  const names = namesOf(ROOT, live.cast || []), by = out.castBy || (cast.length ? 'sent' : 'kept');
+  saveSite(dir, { at: Date.now(), url: out.url, title: live.title, cast: live.cast || [], castBy: by });
+  if (!names.length) log(`  ! ${id} is on nobody's page - nobody found in it: pick who's in it in Send (On the Shlomiverse)`);
+  else if (by === 'ai') log(`  ! the cast was picked by AI from the words: ${names.join(', ')} - check it in Send (On the Shlomiverse)`);
+  else log(`  · on the pages of: ${names.join(', ')}`);
   await py(['--check', id]).catch((e) => log('  ! the places check failed: ' + e.message));  // (a portrait, a company card, a character site - '  !' lines)
   log(`✔ on the Shlomiverse: ${out.url}`);
   return out;

@@ -75,7 +75,11 @@ Deploy only when the CODE of a page or of wikiChat changes.
 
 **UPLOADING A VIDEO TO THE VERSE - THE ONE PATH** (his ask, 2026-10-31: "super clear to the editor skill and zoomcut")
 1. The video's project is finished and has its full export (`zoomcut/episodes/<id>/out/<id>.mp4`), and every character
-   in it lists the episode in their studio profile's `videos` (that is how the verse knows the cast).
+   in it lists the episode in their studio profile's `videos`, or the project's `characters` has them (that is how the
+   verse knows the cast). **Every video on the Shlomiverse is on at least one character's page** (his rule, 2026-11-05):
+   Send shows "On the Shlomiverse" - who's in it, with a "Who's in this video?" pick when nobody is known (kept in
+   publish.json `cast`; a video already up gets the change at once). Sent with no cast, the API's AI picks from the words
+   and the job says so (`!` - check it there).
 2. **He presses Publish** in the studio -> the studio queues a **"site" job** by itself (Jobs panel "Shlomiverse").
    No publish (an old video, a socials-only miss)? **`POST http://localhost:4747/api/ep/<id>/site`** - the queue keeps
    jobs one at a time. Only with the studio down: `node zoomcut/render/verse.mjs <id>` from BoostMind.

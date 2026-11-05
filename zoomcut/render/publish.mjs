@@ -17,7 +17,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { sendTelegramText, tgEsc, sendTelegram, sizedCopy } from './share.mjs';
-import { toVerse } from './verse.mjs';
+import { toVerse, castOf, verseApi, saveSite, namesOf } from './verse.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -347,6 +347,38 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
       .then(() => { saved?.(id); end(0); })
       .catch((e) => { if (e.notLive) return oldWay(); cur.log.push(String(e.message || e)); end(1); });
   }
+  // who's in the video on the Shlomiverse (Send, "On the Shlomiverse"): his picks go in publish.json `cast` (the
+  // profiles' / project's own stay as they are); a video already up there gets its new cast at once (op=video)
+  app.post('/api/ep/:id/cast', async (q, res) => {
+    const id = q.params.id, dir = epDir(id);
+    const fixed = castOf(ROOT, id, dir, true).filter((c) => c.fixed).map((c) => c.id);
+    const pick = [...new Set((q.body?.cast || []).map(String))].filter((c) => !fixed.includes(c));
+    writeJson(pubFile(id), { ...readJson(pubFile(id), {}), cast: pick });
+    saved?.(id);
+    const cast = castOf(ROOT, id, dir, true), pj = readJson(pubFile(id), {}), key = env().VERSE_PUBLISH_KEY;
+    let site = pj.site || null, error = null;
+    if (key && cast.length) {
+      try {
+        const api = verseApi(key), up = await api({ op: 'get', id }).catch(() => null);  // (only a video already up there)
+        if (!up) return res.json({ cast, site, error });
+        const out = await api({ op: 'video', id, cast: cast.map((c) => c.id) });
+        site ||= { url: up.url, title: up.title };
+        site = { ...site, at: Date.now(), cast: out.video?.cast || cast.map((c) => c.id), castBy: 'sent' };
+        saveSite(dir, site);
+      } catch (e) { error = String(e.message || e).slice(0, 200); }
+    }
+    res.json({ cast, site, error });
+  });
+  // the video as the Shlomiverse has it now (Send shows its cast when the project knows none - a cast fixed there)
+  app.get('/api/ep/:id/verse', async (q, res) => {
+    const key = env().VERSE_PUBLISH_KEY;
+    if (!key) return res.json({ found: false });
+    try {
+      const v = await verseApi(key)({ op: 'get', id: q.params.id });
+      const ids = v.cast || [], names = namesOf(ROOT, ids);
+      res.json({ found: true, url: v.url, live: v.live, cast: ids.map((c, i) => ({ id: c, name: names[i], fixed: false })) });
+    } catch { res.json({ found: false }); }
+  });
   // by hand: a video published before this, or one whose site job failed
   app.post('/api/ep/:id/site', (q, res) => {
     if (!fs.existsSync(master(q.params.id))) return res.status(400).json({ error: 'No full export of this video' });
@@ -367,7 +399,8 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id) }; } catch {}
     let draft = null;  // a Quick check (half size) - shown in the window, never published
     try { draft = { exported: fs.statSync(draftOf(q.params.id)).mtimeMs }; } catch {}
-    res.json({ post: pj, run: runs[q.params.id] || null, published: publishedOf(q.params.id), title: e.title || q.params.id, file, draft });
+    res.json({ post: pj, run: runs[q.params.id] || null, published: publishedOf(q.params.id), title: e.title || q.params.id, file, draft,
+      cast: castOf(ROOT, q.params.id, epDir(q.params.id), true), site: pj?.site || null, siting: sites.cur?.id === q.params.id || sites.queue.includes(q.params.id) });
   });
   // the video the window shows: the full export, else the Quick check draft
   app.get('/api/ep/:id/publish/video', (q, res) => {

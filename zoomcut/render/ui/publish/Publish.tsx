@@ -52,6 +52,11 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
   const [file, setFile] = useState<{ name: string; size: number; exported: number; stale: boolean } | null>(null);
   const [draft, setDraft] = useState<{ exported: number } | null>(null);  // a Quick check - shown, never published
   const [published, setPublished] = useState<Record<string, { at: number; url: string | null }>>({});  // where it's already up
+  // who's in it on the Shlomiverse (every video there is on at least one character's page - his rule, 2026-11-05)
+  const [cast, setCast] = useState<{ id: string; name: string; fixed: boolean }[]>([]);
+  const [site, setSite] = useState<{ at: number; url: string; cast: string[]; castBy: string } | null>(null);
+  const [onVerse, setOnVerse] = useState(false);  // the chips are the Shlomiverse's cast (the project knows none)
+  const [everyone, setEveryone] = useState<{ id: string; name: string; world?: string }[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -69,6 +74,9 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
       setOn(Object.fromEntries(pl.map((p: Platform) => [p.id, p.ok && picks.includes(p.id)])));
       if (post?.options || last.options) setOpt((o: any) => ({ ...o, ...(last.options || {}), ...(post?.options || {}) }));
       setPublished(cur.published || {});
+      setCast(cur.cast || []); setSite(cur.site || null);
+      if (!(cur.cast || []).length) api(`/api/ep/${ep}/verse`).then((v) => { if (v.found && v.cast?.length) { setCast(v.cast); setOnVerse(true); } }).catch(() => {});  // (the project knows nobody: show who the Shlomiverse has)
+      api('/api/characters').then((j) => setEveryone((j.characters || []).map((c: any) => ({ id: c.id, name: c.name || c.id, world: c.world })).sort((a: any, b: any) => a.name.localeCompare(b.name, 'he')))).catch(() => {});
       if (cur.run?.running) setRun(cur.run);  // (a finished run doesn't lock the window - he publishes again whenever he likes)
     })();
   }, [ep]);
@@ -128,6 +136,11 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
       if (r.error) setErr(r.error); else setRun(r.run);
     }
   };
+  const setPicks = async (ids: string[]) => {
+    const j = await api(`/api/ep/${ep}/cast`, { cast: ids });
+    setCast(j.cast || []); setOnVerse(false); if (j.site) setSite(j.site); if (j.error) setErr(j.error);
+  };
+  const picks = cast.filter((c) => !c.fixed).map((c) => c.id);
   const running = !!run?.running || Object.values(sends).some((s: any) => s?.running);
   const started = !!run || Object.keys(sends).length > 0;
   const when = (t: number) => { const d = new Date(t), today = new Date().toDateString() === d.toDateString(); return (today ? 'today ' : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ' ') + d.toTimeString().slice(0, 5); };
@@ -184,6 +197,19 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
         <div className="pb-sec">Publish</div>
         <div className="pb-tiles">
           {(platforms || []).map((p) => tile(p.id, p.name, !!on[p.id], () => setOn({ ...on, [p.id]: !on[p.id] }), !p.ok, run?.items[p.id]?.state))}
+        </div>
+
+        {/* who's in it on the Shlomiverse - the video goes on their pages there (with any publish) */}
+        <div className="pb-sec">On the Shlomiverse</div>
+        <div className={`pb-verse ${cast.length ? '' : 'need'}`}>
+          {cast.map((c) => <span key={c.id} className="pb-who" title={c.fixed ? 'In the project / their profile lists this video' : ''}>{c.name}
+            {!c.fixed && <button disabled={running} onClick={() => setPicks(picks.filter((x) => x !== c.id))} title="Not in this video">✕</button>}</span>)}
+          <select className="pb-addwho" value="" disabled={running || !everyone.length} onChange={(e) => e.target.value && setPicks([...picks, e.target.value])}>
+            <option value="">{cast.length ? '+ someone else' : "+ Who's in this video?"}</option>
+            {everyone.filter((c) => !cast.some((x) => x.id === c.id)).map((c) => <option key={c.id} value={c.id}>{c.name}{c.world ? ` · ${c.world}` : ''}</option>)}
+          </select>
+          <span className="pb-verse-t">{!cast.length ? 'Pick at least one - the video goes on their page (else the AI picks from the words)'
+            : onVerse ? 'As on the Shlomiverse now' : site ? <>{site.castBy === 'ai' ? 'Cast picked by AI - check it · ' : ''}up since {when(site.at)} · <a href={site.url} target="_blank" rel="noreferrer">open ↗</a></> : ''}</span>
         </div>
 
         {/* the few options, only for what's picked */}

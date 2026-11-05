@@ -99,3 +99,13 @@
 .pb-seg button:hover { color: var(--text); }
 .pb-seg button.on { background: color-mix(in srgb, var(--accent) 14%, var(--panel-2)); color: var(--text); font-weight: 600; }
 .pb-foot { flex-direction: column; align-items: stretch; gap: 0; }
+/* On the Shlomiverse: who's in the video (chips + an add list) */
+.pb-verse { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pb-verse.need .pb-addwho { border-color: var(--warn, #e9c46a); color: var(--text); }
+.pb-verse.need .pb-verse-t { color: var(--warn, #e9c46a); }
+.pb-who { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 16%, var(--panel-2)); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); color: var(--text); font-size: 13px; }
+.pb-who button { border: 0; background: none; color: var(--dim); font-size: 11px; cursor: pointer; padding: 0 0 0 2px; }
+.pb-who button:hover { color: var(--text); }
+.pb-addwho { height: 28px; padding: 0 8px; border-radius: 14px; border: 1px dashed var(--edge-2); background: var(--panel-2); color: var(--dim); font: inherit; font-size: 12.5px; cursor: pointer; }
+.pb-verse-t { flex-basis: 100%; font-size: 11.5px; color: var(--faint); }
+.pb-verse-t a { color: var(--accent); }
