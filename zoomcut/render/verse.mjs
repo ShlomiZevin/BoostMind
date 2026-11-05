@@ -38,6 +38,14 @@ export function wordsOf(dir) {
   return '';
 }
 
+// the words on the screen (the text layers - a POV hook, labels; not the subtitles, those are the transcript): they
+// often carry the joke, so the API's Terra and the chat read them too
+export function onScreenOf(dir) {
+  const p = readJson(path.join(dir, 'project.json'), {});
+  const t = (p.layers || []).filter((l) => l.kind === 'text' && !l.hidden).flatMap((l) => (l.items || []).filter((i) => !i.hidden && i.text).map((i) => String(i.text).replace(/\{clock\}/g, '').trim()));
+  return [...new Set(t.filter(Boolean))].join('\n');
+}
+
 // the cast: characters whose profile lists the video + the project's own list (known characters only)
 export function castOf(ROOT, id, dir) {
   const cdir = path.join(ROOT, 'characters'), order = readJson(path.join(cdir, 'index.json'), {}).order || [];
@@ -99,7 +107,7 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
     log(`  · new on the Shlomiverse: ${born.join(', ')} - their page first`);
     await py(['--characters', ...born]).catch((e) => { throw new Error('the new character page failed: ' + e.message); });
   }
-  const out = await api({ op: 'video', id, cast, transcript: wordsOf(dir), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
+  const out = await api({ op: 'video', id, cast, transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
   if (!cast.length) log('  ! no character lists this video - give it its cast in the editor (Characters), then publish to the site again');
   if (dryRun) { log(`✔ dry run: "${out.video?.title || ''}" - nothing written`); return out; }
   const live = await api({ op: 'get', id });
