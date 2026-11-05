@@ -7,6 +7,7 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
 
 if (!admin.apps.length) admin.initializeApp();
@@ -19,11 +20,11 @@ async function keep(b, mode, turns, reply, u = {}, who = {}) {
   const clean = (v, n) => String(v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, n);
   const now = new Date();
   await admin.firestore().collection('chat_logs').add({
-    t: admin.firestore.Timestamp.fromDate(now), mode, v: clean(b.v, 10), s: clean(b.s, 10), r: clean(b.r, 12), m: !!b.m,
+    t: Timestamp.fromDate(now), mode, v: clean(b.v, 10), s: clean(b.s, 10), r: clean(b.r, 12), m: !!b.m,
     q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length, in: !!who.uid, uid: who.uid || null,   // uid: the admin page shows a person's conversations
     // the tokens it took (input / of them cached / output) - the dashboard turns them into dollars
     u: [u.input_tokens || 0, u.input_tokens_details?.cached_tokens || 0, u.output_tokens || 0],
-    exp: admin.firestore.Timestamp.fromMillis(now.getTime() + KEEP_DAYS * 864e5),
+    exp: Timestamp.fromMillis(now.getTime() + KEEP_DAYS * 864e5),
   });
 }
 
@@ -106,7 +107,7 @@ const LIMIT = {
   soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: answer it briefly - one or two short sentences, a real answer in your own voice; then, in one short sentence in your own voice, invite them to sign in with Google (free, one tap) so you can keep talking: 10 questions every day. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last.`,
   // today's 10 are used (his ask, 2026-11-05): a real answer, then in voice - come back tomorrow, or bring a friend now;
   // [[invite]] = the page's invite card (their own link, WhatsApp / copy): a friend who signs in with it = 10 more today for both
-  done: `The visitor has used today's questions (an account gets 10 every day). First answer their last message briefly - one or two short sentences, a real answer in your own voice. Then, in your own voice and style - your words, your world, your humour - in one or two short sentences tell them clearly: tomorrow they get 10 new questions and you'll be glad to go on; or, right now, they can bring a friend - when a friend signs in with their invite link, both of them get 10 more questions today. Speak to them in plural (אתם) in this part. Then put [[invite]] on its own line, last (the page shows their invite link there, to send on WhatsApp or copy). Don't sound like a system message and don't apologise.`,
+  done: `The visitor has used today's questions (an account gets 10 every day). First answer their last message briefly - one or two short sentences, a real answer in your own voice. Then, in your own voice and style - your words, your world, your humour, the way you yourself would put it - in two short sentences tell them clearly BOTH ways to go on: (1) tomorrow they get 10 new questions and you'll be glad to go on; (2) or right now - bring a friend: when a friend signs in with their invite link below, both of them get 10 more questions today. Never leave out the friend. Speak to them in plural (אתם) in this part. Then put [[invite]] on its own line, last (the page shows their invite link there, to send on WhatsApp or copy). Don't sound like a system message and don't apologise.`,
 };
 
 function modeText(mode, byId, contact) {
@@ -252,7 +253,7 @@ const quotaDocs = (req, who) => {
 };
 // an account's limit today: 10 + 10 for every friend who signed in with their invite link today (creditInvite)
 const limitOf = (who, doc) => (who.uid ? FAN_TOTAL + ((doc || {}).bonus || 0) : ANON_TOTAL);
-const dayExp = () => admin.firestore.Timestamp.fromMillis(Date.now() + 3 * 864e5);   // day counters (the site's, an account's) only
+const dayExp = () => Timestamp.fromMillis(Date.now() + 3 * 864e5);   // day counters (the site's, an account's) only
 
 // Bring a friend (his ask, 2026-11-05): the link the character gives when today's 10 are used is /c/<char>?inv=<uid>; the
 // page keeps inv and sends it with the friend's chat once they are signed in. A NEW account (made in the last 2 days),
@@ -275,10 +276,10 @@ async function creditInvite(req, who) {
     const [m, h] = await Promise.all([tx.get(mark), tx.get(hostDay)]);
     if (m.exists) return 'had';
     if (((h.data() || {}).friends || 0) >= INVITE_DAY_MAX) { tx.set(mark, { by: inv, t: new Date(), credited: false }); return 'full'; }
-    const ten = admin.firestore.FieldValue.increment(10);
+    const ten = FieldValue.increment(10);
     tx.set(mark, { by: inv, t: new Date(), credited: true });
     tx.set(mineDay, { bonus: ten, kind: 'chat', who: 'fan', exp }, { merge: true });
-    tx.set(hostDay, { bonus: ten, friends: admin.firestore.FieldValue.increment(1), kind: 'chat', who: 'fan', exp }, { merge: true });
+    tx.set(hostDay, { bonus: ten, friends: FieldValue.increment(1), kind: 'chat', who: 'fan', exp }, { merge: true });
     return 'ok';
   }).catch((e) => { console.error('invite failed', e.message); return 'bad'; });
 }
@@ -309,7 +310,7 @@ async function spendQuestion(req, who) {
 const putOff = (req, who) => quotaDocs(req, who)[0].set({ n: ANON_TOTAL, putOff: true }, { merge: true }).catch(() => {});
 const refundQuestion = (req, who) => { /* a failed answer doesn't count */
   if (who.owner) return;
-  const inc = admin.firestore.FieldValue.increment(-1);
+  const inc = FieldValue.increment(-1);
   return Promise.all(quotaDocs(req, who).map((d) => d.set({ n: inc }, { merge: true }))).catch(() => {});
 };
 
