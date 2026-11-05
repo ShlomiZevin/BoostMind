@@ -84,7 +84,9 @@ they tap it).
    can't fit - ask him for a shorter cut.
 2. **A tall clip** (9:16) fills the phone; a square / wide one shows whole with its blurred cover around it - fine, but
    a teaser made for stories should be 9:16.
-3. **Words on a clip**: usually none - a teaser carries its own titles and sound. If you add a box, it stays on screen the
+3. **Words on a clip**: usually none - a teaser carries its own titles and sound. Then write `"boxes": []` in the JSON:
+   with no `boxes` key at all the viewer shows the bell's `text` as a box over the clip (on the בעלבוסטע teaser it sat on
+   the poster's "בקרוב", 2026-11-05). If you add a box, it stays on screen the
    whole clip: the preview gives stills at 10/35/60/90% (`<name>-phone-at-<s>s.png`) - LOOK at all of them, a box that
    is clear at the start can sit on a face or a title later. Words that belong to one moment belong IN the clip (the
    editor), not in a box.
