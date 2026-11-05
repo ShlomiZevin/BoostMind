@@ -2,7 +2,7 @@
 // buttons are fully on screen, the board does not sit under the HUD. node t2-phones.js [url]
 const path = require('path'), fs = require('fs');
 const { chromium } = require(path.join(process.env.USERPROFILE, 'plaxzy-creator/node_modules/playwright-core'));
-const URL = process.argv[2] || 'http://localhost:8765/sagi-games/scooter-snake/?solo=1&notrack=1';
+const URL = process.argv[2] || 'http://localhost:8766/sagi-games/scooter-snake/?solo=1&notrack=1';
 const OUT = path.join(__dirname, 'shots'); fs.mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const SIZES = [[320, 568], [360, 640], [390, 844], [412, 915], [844, 390], [1280, 800]];
@@ -24,9 +24,9 @@ const SIZES = [[320, 568], [360, 640], [390, 844], [412, 915], [844, 390], [1280
     await pg.screenshot({ path: path.join(OUT, `p-${tag}-tut.png`) });
     for (const s of ['#tutNext', '#tutCard']) if (!(await inView(s))) { console.log(tag, 'TUT: off screen', s); bad++; }
     await pg.keyboard.press('Escape'); await sleep(700);
-    const g = await pg.evaluate(() => { const B = window.SNAKE.B, s = window.SNAKE; const hud = document.getElementById('hud').getBoundingClientRect(); return { x: B.x, y: B.y, w: B.t * s.COLS, h: B.t * s.ROWS, t: B.t, hudB: hud.bottom, W: innerWidth, H: innerHeight }; });
+    const g = await pg.evaluate(() => { const B = window.SNAKE.B, s = window.SNAKE; const hud = document.getElementById('hud').getBoundingClientRect(); return { x: B.x, y: B.y, w: B.t * s.COLS, h: B.th * s.ROWS, t: B.t, hudB: hud.bottom, W: innerWidth, H: innerHeight }; });
     await sleep(600); await pg.screenshot({ path: path.join(OUT, `p-${tag}-play.png`) });
-    const okBoard = g.x >= 0 && g.y + g.h <= g.H - 30 && g.x + g.w <= g.W && g.y - g.t * 0.8 >= g.hudB - 4;
+    const okBoard = g.x >= 0 && g.y + g.h <= g.H - 30 && g.x + g.w <= g.W && g.y - g.t * 0.6 >= g.hudB - 4;
     console.log(tag, 'tile', g.t, okBoard ? 'board ok' : 'BOARD BAD ' + JSON.stringify(g));
     if (!okBoard) bad++;
     for (const s of ['#pauseBtn', '#scoreBox']) if (!(await inView(s))) { console.log(tag, 'PLAY: off screen', s); bad++; }

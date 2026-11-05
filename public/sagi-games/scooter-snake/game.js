@@ -47,8 +47,21 @@ function buildOffice(seed) {
       const c = Math.floor(R() * (COLS - w + 1)), r = Math.floor(R() * ROWS);
       if (!free(c, r, w)) continue;
       for (let x = c; x < c + w; x++) grid[r * COLS + x] = 1;
+      if (!roomy()) { for (let x = c; x < c + w; x++) grid[r * COLS + x] = 0; continue; }
       props.push({ kind, c, r, w }); return;
     }
+  };
+  // a snake can't turn back: a free tile with one way in is a trap, and so is the corridor that leads only to it.
+  // Peel such tiles away again and again - if anything peels, or the floor falls apart, the piece doesn't go there.
+  const roomy = () => {
+    const open = (c, r) => c >= 0 && r >= 0 && c < COLS && r < ROWS && !grid[r * COLS + c];
+    const live = new Set(); for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (open(c, r)) live.add(r * COLS + c);
+    const deg = (i) => { const c = i % COLS, r = (i / COLS) | 0; return [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(([dx, dy]) => live.has((r + dy) * COLS + c + dx) && open(c + dx, r + dy)).length; };
+    for (let again = true; again;) { again = false; for (const i of [...live]) if (deg(i) <= 1) { return false; } }
+    const first = live.values().next().value, seen = new Set([first]), q = [first];
+    while (q.length) { const i = q.pop(), c = i % COLS, r = (i / COLS) | 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const j = (r + dy) * COLS + c + dx; if (open(c + dx, r + dy) && !seen.has(j)) { seen.add(j); q.push(j); } } }
+    return seen.size === live.size;
   };
   for (let i = 0, n = Math.round(ROWS * 0.29); i < n; i++) place('desk', 2);
   for (const p of PROPS) place(p, 1);
@@ -95,7 +108,7 @@ const PEOPLE = [null,
 ];
 function pickNo(list, key) { const last = pickNo[key]; let l = pick(list); if (list.length > 1 && l === last) l = list[(list.indexOf(l) + 1) % list.length]; pickNo[key] = l; return l; }
 let bubble = null;                 // { text, t } - his line beside his head
-function sagiSays(text, dur = 2) { bubble = { text, t: dur }; }
+function sagiSays(text, dur = 1.6) { bubble = { text, t: Math.min(dur, 1.8) }; }
 
 // ───────────────────────── effects ─────────────────────────
 const fxEl = $('fx');
@@ -159,7 +172,7 @@ sndIcons();
 
 // ───────────────────────── layout ─────────────────────────
 const cv = $('cv'), ctx = cv.getContext('2d');
-let W = 0, H = 0, DPR = 1, B = { x: 0, y: 0, t: 30 };
+let W = 0, H = 0, DPR = 1, B = { x: 0, y: 0, t: 30, th: 30 };
 const cssPx = (v) => { const d = document.createElement('div'); d.style.cssText = `position:fixed;top:${v};visibility:hidden`; document.body.appendChild(d); const t = d.getBoundingClientRect().top; d.remove(); return t; };
 function layout() {
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
@@ -169,13 +182,14 @@ function layout() {
   // ~0.6 tile above the board, so that much room is kept
   const G = gap();
   const t = Math.floor(Math.min((W - 12) / COLS, G.h / (ROWS + 0.6)));
-  B = { t, x: Math.round((W - t * COLS) / 2), y: Math.round(G.top + t * 0.6 + Math.max(0, (G.h - t * (ROWS + 0.6)) / 2)) };
+  const th = Math.min(t * 1.18, (G.h - t * 0.6) / ROWS);           // stretch the rows (a little) to fill the height
+  B = { t, th, x: Math.round((W - t * COLS) / 2), y: Math.round(G.top + t * 0.6 + Math.max(0, (G.h - t * 0.6 - th * ROWS) / 2)) };
 }
-function gap() { const top = cssPx('var(--safe-t)') + 56, bottom = H - 40 - cssPx('env(safe-area-inset-bottom,0px)'); return { top, h: bottom - top }; }
+function gap() { const top = cssPx('var(--safe-t)') + 52, bottom = H - 40 - cssPx('env(safe-area-inset-bottom,0px)'); return { top, h: bottom - top }; }
 // how many rows fill this screen when the board takes the whole width
 function fitRows() { W = innerWidth; H = innerHeight; const t = (W - 12) / COLS; return clamp(Math.floor(gap().h / t - 0.6), 13, 20); }
 addEventListener('resize', layout); addEventListener('verseframe', layout);
-const tx = (c) => B.x + c * B.t, ty = (r) => B.y + r * B.t;
+const tx = (c) => B.x + c * B.t, ty = (r) => B.y + r * B.th;
 
 // ───────────────────────── state ─────────────────────────
 let state = 'menu', paused = false, tutorial = false, moving = false;
@@ -186,14 +200,15 @@ const SP = 0.62;         // how far apart the riders stand on the long scooter, 
 let food = null;         // { c, r, kind 1..6, t }
 let client = null;       // { c, r, life, max }
 let ofer = null;         // { c, r, pc, d, t, step, on }
-let clientNext = 0, idleT = 0, foodR = Math.random, nextKind = 1, lastTurnT = 0;
-const speed = () => Math.min(7.2, 3.3 + (snake.length - 1) * 0.11);
+let grace = 0, clientNext = 0, idleT = 0, foodR = Math.random, nextKind = 1, lastTurnT = 0;
+const speed = () => Math.min(6.2, 2.9 + (snake.length - 1) * 0.08);
 
 function resetSnake() {
   snake = [{ c: START.c, r: START.r, pc: START.c, pr: START.r + 1, face: 1, dx: 0, dy: -1, kind: 'sagi' }];
   trail = [{ x: START.c, y: START.r + 1 }, { x: START.c, y: START.r + 6 }];
   dir = { x: 0, y: -1 }; queue = []; prog = 0; crash = null;
 }
+const blockedAhead = () => { const h = snake[0], nc = h.c + dir.x, nr = h.r + dir.y; return solid(nc, nr) || onSnake(nc, nr, 2, 0.5) || (ofer && ofer.on && ofer.c === nc && ofer.r === nr); };
 const headPos = () => { const h = snake[0], k = moving ? clamp(prog, 0, 1) : 1; return { x: lerp(h.pc, h.c, k), y: lerp(h.pr, h.r, k) }; };
 const segPos = (s, i) => i === 0 ? headPos() : { x: s.x, y: s.y };
 const onSnake = (c, r, from = 0, near = 0.7) => snake.some((s, i) => { if (i < from) return false; const p = segPos(s, i); return Math.hypot(p.x - c, p.y - r) < near; });
@@ -335,13 +350,16 @@ function step(dt) {
   for (const s of snake) if (s.join !== undefined && s.join < 1) s.join = Math.min(1, s.join + dt * 4);
   if (moving && !crash) {
     prog += dt * speed();
-    while (prog >= 1 && moving) { prog -= 1; tick(); }
+    while (prog >= 1 && moving) {
+      if (!queue.length && blockedAhead() && (grace += dt) < 0.24) { prog = 1; break; }
+      grace = 0; prog -= 1; tick();
+    }
   }
   placeRiders();
   if (crash) crash.t += dt;
   // Ofer comes out of his meeting once Sagi has 3 listeners
   if (!tutorial && state === 'play' && !ofer && score >= 3) {
-    ofer = { c: 0, r: OFR, pc: -1, d: 1, t: 0, step: 0.55, on: true };
+    ofer = { c: 0, r: OFR, pc: -1, d: 1, t: 0, step: 0.75, on: true };
     play('ofer', .6); say('עופר יצא מהישיבה! לא להיתקל בו.', 2.6, true);
   }
   if (ofer && ofer.on && !crash) { ofer.t += dt; if (ofer.t >= ofer.step) oferStep(); }
@@ -411,7 +429,7 @@ function drawDeck(pts, tail, t) {
   }
 }
 function drawBubble(text, hx, hy) {
-  const fs = clamp(Math.round(B.t * 0.48), 13, 18), pad = fs * 0.55, maxW = Math.min(W * 0.62, fs * 11);
+  const fs = clamp(Math.round(B.t * 0.38), 12, 15), pad = fs * 0.5, maxW = Math.min(W * 0.5, fs * 10);
   ctx.save(); ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const words = text.split(' '), rows = []; let row = '';
   for (const w of words) { const t = row ? row + ' ' + w : w; if (ctx.measureText(t).width > maxW && row) { rows.push(row); row = w; } else row = t; }
@@ -433,7 +451,7 @@ function draw(now) {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = '#13294b'; ctx.fillRect(0, 0, W, H);
   if (state === 'menu') return;
-  const t = B.t, bw = t * COLS, bh = t * ROWS;
+  const t = B.t, bw = t * COLS, bh = B.th * ROWS;
   // the office walls and floor
   ctx.save(); ctx.fillStyle = '#d9e3ef'; ctx.beginPath(); ctx.roundRect(B.x - 6, B.y - 6, bw + 12, bh + 12, 12); ctx.fill();
   ctx.beginPath(); ctx.rect(B.x, B.y, bw, bh); ctx.clip();
@@ -443,16 +461,18 @@ function draw(now) {
   for (let r = 1; r < ROWS; r++) { ctx.moveTo(B.x, ty(r)); ctx.lineTo(B.x + bw, ty(r)); }
   ctx.stroke();
   // Ofer's aisle - a carpet runner
-  ctx.fillStyle = (ofer && ofer.on) || (tutorial && STEPS[tut.i].setup === 'ofer') ? '#b91c1c22' : '#13294b0d'; ctx.fillRect(B.x, ty(OFR), bw, t);
+  ctx.fillStyle = (ofer && ofer.on) || (tutorial && STEPS[tut.i].setup === 'ofer') ? '#b91c1c22' : '#13294b0d'; ctx.fillRect(B.x, ty(OFR), bw, B.th);
   ctx.restore();
 
   // everything that stands on the floor, back to front
   const items = [];
   for (const p of props) items.push({ y: p.r + 1, f: () => {
     const im = IMG['p-' + p.kind]; if (!ok(im)) return;
-    const w = p.w * t * 1.04, h = Math.min(w * im.naturalHeight / im.naturalWidth, t * 1.7);
-    const ww = h * im.naturalWidth / im.naturalHeight;
-    ctx.drawImage(im, tx(p.c) + (p.w * t - ww) / 2, ty(p.r + 1) - h + t * 0.08, ww, h);
+    // the piece stays inside its own tiles (a little lift for depth), with its shadow on the floor where it blocks
+    ctx.save(); ctx.fillStyle = '#13294b2e'; ctx.beginPath(); ctx.roundRect(tx(p.c) + 2, ty(p.r) + 2, p.w * t - 4, B.th - 4, t * 0.18); ctx.fill(); ctx.restore();
+    const ar = im.naturalHeight / im.naturalWidth;
+    let ww = p.w * t * 0.96, h = ww * ar; if (h > B.th * 1.15) { h = B.th * 1.15; ww = h / ar; }
+    ctx.drawImage(im, tx(p.c) + (p.w * t - ww) / 2, ty(p.r + 1) - h - B.th * 0.02, ww, h);
   } });
   const ch = t * 1.7;
   // the one under the marker is the next to hear about the scooter: a painted floor marker + a talk icon over the head
@@ -578,7 +598,7 @@ document.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => 
 // ───────────────────────── tutorial ─────────────────────────
 const tutCard = $('tutCard'), tutHole = $('tutHole');
 let tutWait = null;
-const spotBoard = () => ({ x: B.x - 4, y: B.y - 4, w: B.t * COLS + 8, h: B.t * ROWS + 8 });
+const spotBoard = () => ({ x: B.x - 4, y: B.y - 4, w: B.t * COLS + 8, h: B.th * ROWS + 8 });
 const spotEl = (id) => () => { const r = $(id).getBoundingClientRect(); return { x: r.left - 6, y: r.top - 6, w: r.width + 12, h: r.height + 12 }; };
 const spotTile = (o, rows = 2) => () => o() && { x: tx(o().c) - B.t * 0.4, y: ty(o().r + 1 - rows), w: B.t * 1.8, h: B.t * rows + 6 };
 const STEPS = [
@@ -683,6 +703,6 @@ window.SNAKE = {
     for (let i = 1; i <= n; i++) snake.push({ kind: i > 6 ? 'client' : i, join: 1, x: c, y: r, face: 1, dx: 0, dy: 0 });
     trail = cells.map(([x, y]) => ({ x, y })); placeRiders();
   }, get dir() { return dir; },
-  get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, get ROWS() { return ROWS; }, get OFR() { return OFR; },
+  get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, get ROWS() { return ROWS; }, officeForTest(seed, rows) { setRows(rows); buildOffice(seed); return { grid: grid.slice(), props: props.length, OFR, START }; }, get OFR() { return OFR; },
   setSpeedForTest(v) { window.__spd = v; },
 };

@@ -2,7 +2,7 @@
 // small bot with real touch drags, then a crash on purpose and the end screen. node t1-play.js [url]
 const path = require('path'), fs = require('fs');
 const { chromium } = require(path.join(process.env.USERPROFILE, 'plaxzy-creator/node_modules/playwright-core'));
-const URL = process.argv[2] || 'http://localhost:8765/sagi-games/scooter-snake/?solo=1&notrack=1';
+const URL = process.argv[2] || 'http://localhost:8766/sagi-games/scooter-snake/?solo=1&notrack=1';
 const OUT = path.join(__dirname, 'shots'); fs.mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
@@ -47,7 +47,7 @@ const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
   while (Date.now() - t0 < 40000 && (await S('s.state')) === 'play') {
     const d = await botMove();
     if (d && d.join() !== lastD) { lastD = d.join(); await drag(d[0] * 60, d[1] * 60); }
-    await sleep(60);
+    await sleep(+process.env.REACT || 60);
     if (Date.now() - t0 > 8000 * (shot + 1) && shot < 4) { shot++; await pg.screenshot({ path: path.join(OUT, `03-play-${shot}.png`) }); }
   }
   const score = await S('s.score'); console.log('score after the bot round:', score, 'length', await S('s.snake.length'), 'ofer', !!(await S('s.ofer')));
