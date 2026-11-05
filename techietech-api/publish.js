@@ -5,7 +5,8 @@
 //   (not "Bearer": Google's front door takes a Bearer for a Google identity token and refuses it before it gets here)
 //   {op: 'uploadUrl', id, kind: 'video' | 'poster', contentType}   -> {uri}: PUT the whole file there (same content type)
 //                                                                     - wiki/v/<id>.mp4 / wiki/v/<id>.jpg
-//   {op: 'video', id, title?, teaser?, cast?, series?, date?, t?, transcript?, archive?, ig?, url?, card?, dryRun?}
+//   {op: 'video', id, title?, teaser?, cast?, series?, date?, t?, transcript?, onScreen?, archive?, ig?, url?, card?, dryRun?}
+//        (onScreen: the words burned into the video - feeds the title / card and the chat, kept like the transcript)
 //        the record, by id, again and again: a field not sent keeps its value, nothing is ever blanked. Its files must be
 //        in the bucket (or `url` for a video that lives elsewhere). No title / teaser = Terra writes them from the words;
 //        no card (the chat's map line) = written too. Then the site and the chat are rebuilt. -> {ok, url, video}
@@ -39,12 +40,13 @@ function keyOk(req) {
 }
 
 // title, teaser and the chat's card from the words (Terra) - only for what wasn't sent
-async function writeCopy(v, words, names) {
+async function writeCopy(v, words, names, onScreen = '') {
   const key = LOCAL ? process.env.WIKI_OPENAI_KEY || process.env.VERSE_OPENAI_KEY : OPENAI.value();
   const prompt = `אתה כותב את הכותרות של השלומיוורס (shlomiverse.com) - עולם קומי של דמויות קבועות של שלומי זוין, שהקהל עוקב אחריהן כמו סדרה.
 הדמויות הן אנשים אמיתיים בתוך העולם: כותבים מבפנים, בעובדות שלהם. אסור: להסביר את הבדיחה, "פרודיה", "סאטירה", "דמות", "מערכון", "שלומי מגלם", "מעריצים". בלי אימוג'ים, בלי מקף ארוך.
 סרטון: ${names.join(', ') || 'לא ידוע'}${v.title ? ` · הכותרת שלו: ${v.title}` : ''}
-מה נאמר בו:
+${onScreen ? `טקסט על המסך: ${String(onScreen).slice(0, 1500)}
+` : ''}מה נאמר בו:
 ${String(words || '').slice(0, 6000) || '(אין תמליל)'}
 
 החזר JSON בלבד: {"title": "כותרת קצרה ומושכת", "teaser": "משפט אחד שגורם ללחוץ, בלי לספיילר את הפאנץ'", "card": "משפט אחד על מה שקורה, ואז 'נושאים:' ורשימה של כל נושא, מקום, חפץ, אירוע ורעיון שמוזכרים, גם בדרך אגב, עד 18"}`;
@@ -73,17 +75,18 @@ async function video(b) {
     ...(b.url || was?.url ? { url: b.url || was.url } : {}), ...(b.archive || was?.archive ? { archive: true } : {}), ...(b.ig || was?.ig ? { ig: b.ig || was.ig } : {}),
     card: b.card || was?.card || '', hidden: was?.hidden || false, source: b.source || was?.source || 'publish', seq: was?.seq || 0,
   };
-  const words = b.transcript != null ? String(b.transcript) : ((await db.collection('catalogTranscripts').doc(b.id).get()).data() || {}).text || '';
+  const tw = (await db.collection('catalogTranscripts').doc(b.id).get()).data() || {};
+  const words = b.transcript != null ? String(b.transcript) : tw.text || '', onScreen = b.onScreen != null ? String(b.onScreen) : tw.onScreen || '';
   let wrote = null;
   if (!v.title || !v.teaser || !v.card) {
     const names = cast.map((c) => w.characters.find((x) => x.id === c)?.name || c);
-    wrote = await writeCopy(v, words, names).catch((e) => ({ error: e.message }));
+    wrote = await writeCopy(v, words, names, onScreen).catch((e) => ({ error: e.message }));
     if (!wrote.error) { v.title ||= wrote.title || ''; v.teaser ||= wrote.teaser || ''; v.card ||= wrote.card || v.teaser; }
   }
   if (!v.title) return { error: 'no_title', detail: wrote?.error || 'send a title (Terra could not write one)' };
   if (b.dryRun) return { ok: true, dryRun: true, video: siteVideo({ id: b.id, ...v }), card: v.card, wrote: !!wrote };
   await ref.set({ ...v, updated: FieldValue.serverTimestamp(), ...(was ? {} : { created: FieldValue.serverTimestamp() }) }, { merge: true });
-  if (b.transcript != null) await db.collection('catalogTranscripts').doc(b.id).set({ text: String(b.transcript) });
+  if (b.transcript != null || b.onScreen != null) await db.collection('catalogTranscripts').doc(b.id).set({ ...(b.transcript != null ? { text: String(b.transcript) } : {}), ...(b.onScreen != null ? { onScreen: String(b.onScreen).slice(0, 3000) } : {}) }, { merge: true });
   const out = await compose(admin);
   return { ok: true, id: b.id, url: `${SITE}/v/${b.id}`, video: siteVideo({ id: b.id, ...v }), live: !v.hidden, videos: out.videos, wrote: !!wrote };
 }

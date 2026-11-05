@@ -4,7 +4,8 @@
 //   catalogVideos/<id>       one record per video: title, teaser, series, cast, date, t (sort key), src, poster, url
 //                            (a TikTok-only clip), archive + ig (old Instagram reels), card (the chat's one-line map),
 //                            hidden, source, created, updated. Only `hidden` takes a video off; nothing deletes.
-//   catalogTranscripts/<id>  { text } - what is said in it, for the chat (never served)
+//   catalogTranscripts/<id>  { text, onScreen } - what is said in it and the words burned into it (an "אף אחד:" meme
+//                            says it all on screen), for the chat (never served)
 //   wiki/data/base.json      (media bucket) everything else the site reads - characters, series, sites, games -
 //                            written by scripts/wiki/push.cjs from the characters' canon (until they move here too)
 //   wiki-base-brain.json     (private bucket) the same for the chat: the characters' full profiles, worlds, sites, games
@@ -35,7 +36,8 @@ async function compose(admin, { dry = false, base = null, baseBrain = null } = {
   const db = admin.firestore(), media = admin.storage().bucket(MEDIA), priv = admin.storage().bucket(PRIVATE);
   [base, baseBrain] = await Promise.all([base || readJson(media.file('wiki/data/base.json')), baseBrain || readJson(priv.file('wiki-base-brain.json'))]);
   const [vs, ts] = await Promise.all([db.collection('catalogVideos').get(), db.collection('catalogTranscripts').get()]);
-  const text = Object.fromEntries(ts.docs.map((d) => [d.id, d.data().text || '']));
+  const text = Object.fromEntries(ts.docs.map((d) => { const x = d.data(); return [d.id, (x.onScreen ? `טקסט על המסך: ${x.onScreen}
+` : '') + (x.text || '')]; }));
   const videos = vs.docs.map((d) => ({ id: d.id, ...d.data() })).filter((v) => !v.hidden).sort(order);
   const byChar = {};
   for (const v of videos) for (const c of v.cast || []) (byChar[c] ||= []).push(v.id);

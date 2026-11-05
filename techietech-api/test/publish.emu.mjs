@@ -64,6 +64,11 @@ brain = await getObj(PRIV, 'wiki-brain.json');
 assert.equal(brain.videos.find((v) => v.id === 'new-one').transcript, 'הקאש נפל', 'the words are kept too');
 console.log('ok  idempotent: a second call keeps every field it did not send');
 
+r = await call({ op: 'video', id: 'new-one', onScreen: 'אף אחד: חני ב-2026' });
+brain = await getObj(PRIV, 'wiki-brain.json');
+assert.equal(brain.videos.find((v) => v.id === 'new-one').transcript, 'טקסט על המסך: אף אחד: חני ב-2026\nהקאש נפל', 'the words on screen reach the chat, the speech is kept');
+console.log('ok  onScreen: the burned-in words reach the chat (before the speech)');
+
 r = await call({ op: 'hide', id: 'new-one', hidden: true });
 wiki = await getObj(MEDIA, 'wiki/data/wiki.json');
 assert.deepEqual(wiki.videos.map((v) => v.id), ['old-one'], 'hidden = off the site');
