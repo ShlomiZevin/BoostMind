@@ -380,8 +380,8 @@ function drawDeck(pts, tail, t) {
     cur.p.push(b);
   }
   if (ok(IMG.grip) && gripFor !== t) { gripPat = ctx.createPattern(IMG.grip, 'repeat'); const k = t * 0.9 / 256; gripPat.setTransform(new DOMMatrix([k, 0, 0, k, 0, 0])); gripFor = t; }
-  const topY = -DECK * t, th = t * 0.17;              // the deck's top above the floor line, its side's height
-  const width = (r) => r.side ? t * 0.1 : t * 0.32;
+  const topY = -DECK * t, th = t * 0.11;              // the deck's top above the floor line, its side's height
+  const width = (r) => r.side ? t * 0.07 : t * 0.3;
   const stroke = (style, wAdd, dy, wMul = 1) => { for (const r of runs) { ctx.strokeStyle = style; ctx.lineWidth = width(r) * wMul + wAdd; ctx.beginPath();
     const cy = topY + width(r) / 2; r.p.forEach((q, i) => i ? ctx.lineTo(q.x, q.y + cy + dy) : ctx.moveTo(q.x, q.y + cy + dy)); ctx.stroke(); } };
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -395,12 +395,12 @@ function drawDeck(pts, tail, t) {
   // the rear end
   if (bx) {
     const im = IMG['rear-s']; if (!ok(im)) return;
-    const h = t * 0.62, w = h * im.naturalWidth / im.naturalHeight;
+    const h = t * 0.48, w = h * im.naturalWidth / im.naturalHeight;
     ctx.save(); ctx.translate(end.x, last.y); if (bx < 0) ctx.scale(-1, 1);
     ctx.drawImage(im, -w * 0.3, -h, w, h); ctx.restore();
   } else {
     const im = IMG['rear-b']; if (!ok(im)) return;
-    const h = t * 0.62, w = h * im.naturalWidth / im.naturalHeight;
+    const h = t * 0.5, w = h * im.naturalWidth / im.naturalHeight;
     ctx.save(); ctx.translate(end.x, end.y + topY); if (by > 0) ctx.scale(1, -1);
     ctx.drawImage(im, -w / 2, -h * 0.2, w, h); ctx.restore();
   }
