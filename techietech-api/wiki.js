@@ -97,11 +97,13 @@ const CONTACT = `You are also the way to reach Shlomi himself, through a request
 Once they say yes: if it is about reaching Shlomi for something other than videos and you don't know how to get back to them, ask that first (for videos it is optional). Then write the request for them: one short line saying this is what goes to Shlomi and they can change it before approving, and on its own line [[request:video|THE TEXT]] (a missing video or more videos) or [[request:contact|THE TEXT]] (anything else), where THE TEXT is the request itself in Hebrew, one to three sentences in the visitor's own words and details (what they are looking for or want, and how to reach them if they gave it), written as from the visitor, on one line, without | or ] characters. The page shows it as a card with that text, which the visitor approves with a button. Say that it goes to Shlomi and nothing is promised. Never say that you sent or opened it yourself - only the visitor's button sends it.`;
 
 // the one reply after the limit (spendQuestion's grace), in the speaker's own voice - the whole invitation is theirs
+// The reply that meets the wall answers first, then invites (his ask, 2026-11-05: 92 visitors left right after a reply
+// that only said "sign in" - the moment broke; "אין לי כח" got an invitation instead of an answer)
 const LIMIT = {
-  signin: `The visitor has used their free questions (3 without an account). Do NOT answer their last message. Instead, in your own voice and style - your words, your world, your humour - in one or two short sentences, react to it lightly and invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם). Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
+  signin: `The visitor has used their free questions (3 without an account). First answer their last message briefly - one or two short sentences, a real answer in your own voice (cards only if they asked to find something). Then, in your own voice and style - your words, your world, your humour - in one short sentence invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
   // the last free answer when the visitor asked to FIND something (8 visitors got "sign in" exactly when the chat had
   // found the video they asked for): what was found comes first, the wall moves to their next question (wiki.js below)
-  soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: do NOT answer it; in your own voice, in one or two short sentences, react to it lightly and invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם). Then put [[signin]] on its own line, last.`,
+  soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: answer it briefly - one or two short sentences, a real answer in your own voice; then, in one short sentence in your own voice, invite them to sign in with Google (free, one tap) so you can keep talking: 10 more questions. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last.`,
   done: `The visitor has used all their questions in this chat (the 10 they get with an account) - there are no more. Do NOT answer their last message. In your own voice and style, in one or two short sentences, say a warm goodbye; they can still watch your videos (suggest one with a [[video:ID]] card on its own line) or leave Shlomi a request. Never promise more questions later.`,
 };
 
@@ -197,12 +199,13 @@ async function stream(key, mode, turns, onText, opts = {}) {
     if (again.notes) throw new Error('notes twice');
     return { ...again, usage: add(r.usage, again.usage) };
   };
-  if (opts.limit && opts.limit !== 'soft') {   // the questions are used: one short reply in voice, no look-up
+  if (opts.limit === 'done') {   // all 10 are used: a goodbye in voice, no look-up
     const r = await safe(dev(b) + '\n\n' + LIMIT[opts.limit], null);
     console.log('wikiChat limit', mode, opts.limit);
     return r.usage;
   }
-  const note = chain.lookupNote(b), soft = opts.limit === 'soft' ? '\n\n' + LIMIT.soft : '';   // soft: found first, the wall later
+  // soft: found first, the wall later; signin: a short real answer, then the wall - both with the look-up, so it's right
+  const note = chain.lookupNote(b), soft = opts.limit === 'soft' || opts.limit === 'signin' ? '\n\n' + LIMIT[opts.limit] : '';
   const first = await safe(dev(b) + note + soft + '\n\nNow reply to the visitor\'s last message.', note ? [chain.lookupTool(b)] : null);
   if (!first.lookup) {
     console.log('wikiChat one call', mode, JSON.stringify({ c: b.characters, v: b.videos.slice(0, 8) }));
