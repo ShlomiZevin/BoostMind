@@ -1234,7 +1234,22 @@ function storyWindow(edit) {
     $('#st-q').oninput = (e) => { stQ = e.target.value.trim(); document.querySelectorAll('.ns-faces [data-pick]').forEach((b) => { b.hidden = !!stQ && !b.dataset.name.includes(stQ); }); };
     $('#st-q').oninput({ target: $('#st-q') });
   }
-  const setFile = (f) => { file = f || null; $('#st-fname').textContent = file ? file.name : 'גוררים לכאן או לוחצים לבחירה'; prev(); };
+  // a clip: its cover (a frame from its first moment) goes with it - shown while it loads, blurred around it, in the push.
+  // Too big, or an iPhone .mov (Android often can't play it): scripts/stories/video.mjs makes it right (a Claude session)
+  const setFile = (f) => {
+    file = f || null;
+    const note = !file || !file.type.startsWith('video/') ? '' : file.size > 29 * 1048576 ? ' · גדול מדי (עד 29MB) - Claude יכין אותו' : file.type === 'video/quicktime' ? ' · קובץ אייפון: Claude יכין אותו כדי שיתנגן בכל טלפון' : '';
+    $('#st-fname').textContent = file ? file.name + note : 'גוררים לכאן או לוחצים לבחירה';
+    prev();
+  };
+  const posterOf = (f) => new Promise((resolve) => {
+    const v = document.createElement('video'), url = URL.createObjectURL(f), done = (b) => { URL.revokeObjectURL(url); resolve(b); };
+    v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+    v.onloadedmetadata = () => { v.currentTime = Math.min(0.5, (v.duration || 2) / 4); };
+    v.onseeked = () => { const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0); c.toBlob((b) => done(b), 'image/jpeg', 0.85); };
+    v.onerror = () => done(null);
+    setTimeout(() => done(null), 8000);
+  });
   $('#st-file').onchange = (e) => setFile(e.target.files[0]);
   const drop = $('#st-drop');
   drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
@@ -1247,6 +1262,7 @@ function storyWindow(edit) {
     fd.append('text', text || words().map((b) => b.t).join(' '));
     if (link) { fd.append('link', link); fd.append('linkLabel', $('#st-label').value.trim()); } else if (edit) fd.append('noLink', 'yes');
     if (file) fd.append('file', file, file.name);
+    if (file && file.type.startsWith('video/')) { const pb = await posterOf(file); if (pb) fd.append('poster', pb, 'poster.jpg'); }
     if (edit) fd.append('id', edit.id);
     else {
       if (!pick) return;

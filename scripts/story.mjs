@@ -10,8 +10,11 @@
 //     only the keys the JSON has change - boxes ([] = no words on it), text, link + label ("link": "" = no button), file
 // file (picture or short clip, up to 30MB), link + label (the button) and everyone (every account hears, not only the
 // character's followers - big news only) are optional. link: https://..., a page of this site (/...) or a wiki place.
+// A clip: made story-ready first if it isn't (scripts/stories/video.mjs - H.264, under 25 MB, its cover picture), and its
+// cover goes with it ("poster": "C:/path/cover.jpg" to choose another; with --edit, "poster" alone replaces the cover).
 import fs from 'node:fs';
 import path from 'node:path';
+import { prepare } from './stories/video.mjs';
 
 const [jsonPath, flag, editId] = process.argv.slice(2);
 const KEY = process.env.OWNER_KEY;
@@ -22,7 +25,17 @@ const TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png'
 const test = flag === '--test', edit = flag === '--edit';
 
 const fd = new FormData();
-const file = () => s.file && fd.append('file', new Blob([fs.readFileSync(s.file)], { type: TYPES[path.extname(s.file).toLowerCase()] }), path.basename(s.file));
+const blob = (p) => new Blob([fs.readFileSync(p)], { type: TYPES[path.extname(p).toLowerCase()] });
+if (s.file && /\.(mp4|mov|m4v|webm)$/i.test(s.file)) {
+  const r = prepare(s.file);
+  console.log(`clip: ${r.duration}s, ${r.w}x${r.h}, ${r.mb} MB, ${r.audio ? 'with sound' : 'no sound'} (from ${r.from.codec} ${r.from.mb} MB)`);
+  s.file = r.file;
+  s.poster ||= r.poster;
+}
+const file = () => {
+  if (s.file) fd.append('file', blob(s.file), path.basename(s.file));
+  if (s.poster) fd.append('poster', blob(s.poster), path.basename(s.poster));
+};
 if (edit) {
   fd.append('id', editId);
   if ('boxes' in s) fd.append('boxes', JSON.stringify(s.boxes || []));

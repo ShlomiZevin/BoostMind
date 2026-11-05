@@ -61,7 +61,8 @@ http.createServer((req, res) => {
   if (url.pathname.startsWith('/api/')) return proxy(req, res, url.pathname.slice(5) + url.search);
   if (url.pathname === '/t.js') { res.writeHead(200, { 'content-type': TYPES['.js'] }); return res.end(T_STUB); }
   if (url.pathname === '/') { res.writeHead(302, { location: '/wiki/' }); return res.end(); }
-  const file = find(url.pathname);
+  // the verse's real addresses (/c/hani, /story/hani, /play/<game> - live they are versePage's) are the wiki page itself
+  const file = find(url.pathname) || (!path.extname(url.pathname) ? find('/wiki/index.html') : null);
   if (!file) { res.writeHead(404, { 'content-type': 'text/plain' }); return res.end('not found'); }
   const type = TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream';
   const size = fs.statSync(file).size;

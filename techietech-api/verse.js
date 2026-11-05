@@ -657,21 +657,22 @@ function ownerOk(req, res) {
   if (!crypto.timingSafeEqual(got, Buffer.from(OWNER_KEY_SHA256, 'hex'))) { fails.push(now); wrongKey.set(req.ip, fails); res.status(401).json({ error: 'key' }); return false; }
   return true;
 }
-// a story's picture or short clip comes as multipart
+// a story's picture or short clip comes as multipart: `file`, and for a clip its cover picture as `poster` (its first
+// moment - scripts/stories/video.mjs or /backstage/ make it), shown while it loads, blurred around it and in the push
 function parseStory(req) {
   return new Promise((resolve, reject) => {
     const fields = {};
-    let file = null, tooBig = false;
-    const bb = Busboy({ headers: req.headers, defCharset: 'utf8', defParamCharset: 'utf8', limits: { fileSize: 30 * 1024 * 1024, files: 1, fields: 12, fieldSize: 12000 } });
+    let file = null, poster = null, tooBig = false;
+    const bb = Busboy({ headers: req.headers, defCharset: 'utf8', defParamCharset: 'utf8', limits: { fileSize: 30 * 1024 * 1024, files: 2, fields: 12, fieldSize: 12000 } });
     bb.on('field', (k, v) => { fields[k] = String(v); });
-    bb.on('file', (_k, stream, info) => {
+    bb.on('file', (k, stream, info) => {
       const chunks = [];
       stream.on('data', (x) => chunks.push(x));
       stream.on('limit', () => { tooBig = true; });
-      stream.on('end', () => { file = { type: info.mimeType, data: Buffer.concat(chunks) }; });
+      stream.on('end', () => { const f = { type: info.mimeType, data: Buffer.concat(chunks) }; if (k === 'poster') poster = f; else file = f; });
     });
     bb.on('error', reject);
-    bb.on('close', () => resolve({ fields, file, tooBig }));
+    bb.on('close', () => resolve({ fields, file, poster, tooBig }));
     bb.end(req.rawBody);
   });
 }
@@ -708,13 +709,16 @@ const storyLink = (f) => {
   if (!/^(https?:\/\/[^\s"'<>]+|\/[^\s"'<>]*|#\/[^\s"'<>]*)$/.test(url) || url.length > 500) return false;
   return { url, label: clip(oneLine(f.linkLabel || '', 40), 40) || 'לפתוח' };
 };
-async function saveStoryMedia(id, file) {
+const saveFile = async (path, f) => { await admin.storage().bucket(BUCKET).file(path).save(f.data, { contentType: f.type, resumable: false, metadata: { cacheControl: 'public, max-age=31536000' } }); return publicUrl(path); };
+async function saveStoryMedia(id, file, poster) {
   const ext = MEDIA[file.type];
   if (!ext) return null;
-  const path = `verse/stories/${id}${file.v ? '-' + file.v : ''}.${ext}`;
-  await admin.storage().bucket(BUCKET).file(path).save(file.data, { contentType: file.type, resumable: false, metadata: { cacheControl: 'public, max-age=31536000' } });
-  return { url: publicUrl(path), kind: file.type.startsWith('video/') ? 'video' : 'image' };
+  const base = `verse/stories/${id}${file.v ? '-' + file.v : ''}`;
+  const media = { url: await saveFile(`${base}.${ext}`, file), kind: file.type.startsWith('video/') ? 'video' : 'image' };
+  if (media.kind === 'video' && poster?.data.length && POSTER[poster.type]) media.poster = await saveFile(`${base}-poster.${POSTER[poster.type]}`, poster);
+  return media;
 }
+const POSTER = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 
 // ---------- a new video: everyone who follows someone in its cast hears about it, once ----------
 async function announceVideo(videoId, v, again = false) {
@@ -921,7 +925,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
     // a character's story, written by Shlomi: a line, maybe a picture or a short clip, maybe a button with a link (a new
     // game, a video, a site); followers hear about it - or, with everyone=yes, every account (big news only, his call)
     if (op === 'story') {
-      const { fields: f, file, tooBig } = await parseStory(req);
+      const { fields: f, file, poster, tooBig } = await parseStory(req);
       if (!idOk(f.char)) return res.status(400).json({ error: 'char' });
       if (tooBig) return res.status(400).json({ error: 'file_size' });
       // text = the line in the bell and the push (and the words, for a story from before its boxes); boxes = the words
@@ -934,7 +938,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const ref = db.collection('stories').doc();
       let media = null;
       if (file && file.data.length) {
-        media = await saveStoryMedia(ref.id, file);
+        media = await saveStoryMedia(ref.id, file, poster);
         if (!media) return res.status(400).json({ error: 'file_type' });
       }
       const { byId } = await _canon();
@@ -954,28 +958,32 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
           await batch.commit();
         }
         sent = await push(fans, { title: `סטורי חדש מ${name}`, body: text.slice(0, 140) || name, url: `/story/${f.char}`, icon: isVerse ? ICON : faceUrl(f.char), badge: BADGE,
-          image: media?.kind === 'image' ? media.url : undefined, tag: 'story_' + f.char });
+          image: media?.kind === 'image' ? media.url : media?.poster, tag: 'story_' + f.char });
         await ref.update({ reach: fans.length, pushes: sent });
       }
       return res.json({ ok: true, id: ref.id, fans: fans.length, sent, everyone });
     }
     // fixing a story that is already up - its words / boxes, its button, its picture - without telling anyone again
-    // (fields: id, then only what changes: boxes (JSON; '[]' = no words on it), text, link + linkLabel or noLink=yes, file)
+    // (fields: id, then only what changes: boxes (JSON; '[]' = no words on it), text, link + linkLabel or noLink=yes, file,
+// poster - a clip's cover, with its file or alone)
     if (op === 'storyEdit') {
-      const { fields: f, file, tooBig } = await parseStory(req);
+      const { fields: f, file, poster, tooBig } = await parseStory(req);
       if (tooBig) return res.status(400).json({ error: 'file_size' });
       if (!/^[A-Za-z0-9]{10,40}$/.test(f.id || '')) return res.status(400).json({ error: 'story' });
       const ref = db.collection('stories').doc(f.id);
-      if (!(await ref.get()).exists) return res.status(404).json({ error: 'story' });
+      const was = await ref.get();
+      if (!was.exists) return res.status(404).json({ error: 'story' });
       const up = {};
       if (f.boxes != null) { const b = cleanBoxes(f.boxes); if (!b) return res.status(400).json({ error: 'boxes' }); up.boxes = b; }
       if (f.text != null) up.text = clip(String(f.text).trim(), 600);
       if (f.noLink === 'yes') up.link = null;
       else if (f.link != null) { const l = storyLink(f); if (l === false) return res.status(400).json({ error: 'link' }); up.link = l; }
       if (file && file.data.length) {
-        const media = await saveStoryMedia(ref.id, { ...file, v: Date.now().toString(36) });
+        const media = await saveStoryMedia(ref.id, { ...file, v: Date.now().toString(36) }, poster);
         if (!media) return res.status(400).json({ error: 'file_type' });
         up.media = media;
+      } else if (poster?.data.length && was.data().media?.kind === 'video' && POSTER[poster.type]) {   // a new cover for the clip that is up
+        up.media = { ...was.data().media, poster: await saveFile(`verse/stories/${ref.id}-${Date.now().toString(36)}-poster.${POSTER[poster.type]}`, poster) };
       }
       if (!Object.keys(up).length) return res.status(400).json({ error: 'empty' });
       await ref.update({ ...up, edited: FieldValue.serverTimestamp() });

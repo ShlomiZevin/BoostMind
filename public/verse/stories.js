@@ -58,6 +58,11 @@ export const setStoryBack = (h) => { backTo = h || '/'; };
 const CLEAN = 'vx-story-clean';
 const textOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h10M10 6v12"/><path d="M14 13h6M17 13v5"/><path d="M3.5 3.5l17 17"/></svg>';
 const textOn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h10M10 6v12"/><path d="M14 13h6M17 13v5"/></svg>';
+// a clip's sound (his ask, 2026-11-05 - the first video story is a teaser with music): on unless the visitor turned it off;
+// when the phone won't play sound by itself the clip plays muted and the button waits for a tap, like Instagram
+const SOUND = 'vx-story-sound';
+const soundOn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
+const soundOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
 export function openStory(char) {
   closeStory();
   if (!loaded) { waiting = char; return; }
@@ -71,7 +76,7 @@ export function openStory(char) {
   el.innerHTML = `<div class="sv-box" style="--c:${charColor(char)}">
       <div class="sv-bars">${list.map(() => '<span><i></i></span>').join('')}</div>
       <div class="sv-head"><a href="${char === 'verse' ? '/' : `/c/${char}`}">${whoFace(char)}</a><span><b>${esc(who(char).name)}</b><br><small data-ago></small></span>
-        <span class="end">${char === 'verse' ? '' : followBtn(char, 'pill')}<button class="vx-round sv-clean" data-clean style="width:42px;height:42px"></button><button class="vx-round" data-x style="width:42px;height:42px" aria-label="סגירה">${I.x}</button></span></div>
+        <span class="end">${char === 'verse' ? '' : followBtn(char, 'pill')}<button class="vx-round sv-sound" data-sound style="width:42px;height:42px" hidden></button><button class="vx-round sv-clean" data-clean style="width:42px;height:42px"></button><button class="vx-round" data-x style="width:42px;height:42px" aria-label="סגירה">${I.x}</button></span></div>
       <div data-slot></div>
       <div class="sv-shade"></div>
       <button class="sv-tap next" data-next aria-label="הבא"></button><button class="sv-tap prev" data-prev aria-label="הקודם"></button>
@@ -88,6 +93,15 @@ export function openStory(char) {
     b.title = b.getAttribute('aria-label');
   };
   paintClean();
+  const paintSound = () => {
+    const v = el.querySelector('video.sa-media'), b = el.querySelector('[data-sound]');
+    b.hidden = !v;
+    if (!v) return;
+    b.innerHTML = v.muted ? soundOff : soundOn;
+    b.classList.toggle('ask', v.muted && localStorage.getItem(SOUND) !== '0');   // muted by the phone, not by them: a nudge
+    b.setAttribute('aria-label', v.muted ? 'להפעיל סאונד' : 'להשתיק');
+    b.title = b.getAttribute('aria-label');
+  };
   paintFollow(el);
   const bars = [...el.querySelectorAll('.sv-bars i')];
   const show = () => {
@@ -116,7 +130,11 @@ export function openStory(char) {
       if (p >= 1) return go(1);
       SV.raf = requestAnimationFrame(step);
     };
-    if (vid) vid.play().catch(() => { vid.muted = true; vid.play(); });
+    if (vid) {
+      vid.muted = localStorage.getItem(SOUND) === '0';
+      vid.play().catch(() => { vid.muted = true; vid.play().catch(() => {}); paintSound(); });
+    }
+    paintSound();
     SV.raf = requestAnimationFrame(step);
   };
   const go = (d) => {
@@ -156,6 +174,11 @@ export function openStory(char) {
   el.addEventListener('contextmenu', (e) => { if (e.target.closest('.sv-tap')) e.preventDefault(); });
   el.addEventListener('click', (e) => {
     if (wasHeld && e.target.closest('.sv-tap')) { wasHeld = false; return; }
+    if (e.target.closest('[data-sound]')) {
+      const v = el.querySelector('video.sa-media');
+      if (v) { v.muted = !v.muted; localStorage.setItem(SOUND, v.muted ? '0' : '1'); if (!v.muted) v.play().catch(() => {}); paintSound(); track('story_sound', v.muted ? 'off' : 'on'); }
+      return;
+    }
     if (e.target.closest('[data-clean]')) { localStorage.setItem(CLEAN, localStorage.getItem(CLEAN) === '1' ? '0' : '1'); paintClean(); track('story_clean', char); return; }
     if (e.target.closest('[data-cta]')) { track('story_link', list[i].id); cancelAnimationFrame(SV.raf); return; }
     if (e.target.closest('[data-next]')) go(1);

@@ -62,8 +62,10 @@ function boxHtml(b, i) {
 // the story's art: the blurred fill, the stage with the picture / clip (or the character's colour), the boxes
 export function stageHtml(x, o = {}) {
   const m = x.media, url = m ? esc(m.url) : '';
-  const fill = m?.kind === 'image' ? `<img class="sa-fill" src="${url}" alt=""${o.lazy ? ' loading="lazy"' : ''}>` : '<div class="sa-fill sa-tint"></div>';
-  const media = m?.kind === 'video' ? `<video class="sa-media" src="${url}" playsinline${o.autoplay ? ' autoplay' : ''}${o.muted ? ' muted' : ''}${o.loop ? ' loop' : ''}${o.controls ? ' controls' : ''} preload="metadata"></video>`
+  // a clip's cover (media.poster - its first moment, made when it was posted): shown while it loads, and blurred around it
+  const still = m?.kind === 'image' ? url : m?.kind === 'video' && m.poster ? esc(m.poster) : '';
+  const fill = still ? `<img class="sa-fill" src="${still}" alt=""${o.lazy ? ' loading="lazy"' : ''}>` : '<div class="sa-fill sa-tint"></div>';
+  const media = m?.kind === 'video' ? `<video class="sa-media" src="${url}"${m.poster ? ` poster="${esc(m.poster)}"` : ''} playsinline${o.autoplay ? ' autoplay' : ''}${o.muted ? ' muted' : ''}${o.loop ? ' loop' : ''}${o.controls ? ' controls' : ''} preload="${o.autoplay ? 'auto' : 'metadata'}"></video>`
     : m?.kind === 'image' ? `<img class="sa-media" src="${url}" alt=""${o.lazy ? ' loading="lazy"' : ''}>` : '<div class="sa-media sa-tint"></div>';
   const boxes = boxesOf(x);
   loadFonts(boxes);

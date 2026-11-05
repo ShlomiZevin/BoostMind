@@ -56,6 +56,32 @@ Reply in English; Hebrew only in the story.
    boxes (`[]` = no words on it), text, link + label (`"link": ""` = no button), file (a new picture). Nobody is told
    again. He can do the same in /backstage/ (a story → עריכה), dragging boxes on a phone preview.
 
+## A video story (his ask, 2026-11-05 - the first: Hani's comic-book teaser)
+A clip plays like Instagram's: the whole clip fits the screen, its cover blurred around it, the progress bar follows the
+clip and the next story comes when it ends, a finger held on it pauses it, and a sound button sits in the name bar (sound
+on unless the visitor turned it off; a phone that won't play sound by itself plays it muted and the button pulses until
+they tap it).
+1. **Any clip he gives you** (an iPhone .mov, an export, a big file): `"file": "C:/path/teaser.mov"` in the story JSON -
+   that's all. `scripts/stories/video.mjs` makes it story-ready by itself (preview.mjs and story.mjs both run it, the
+   second time reuses the first): H.264 + AAC, at most 1080x1920 and 30 fps, starts playing at once, under 25 MB (a long
+   clip gets the bitrate that fits), and its **cover** (`<name>.poster.jpg` - the first real frame, not a black fade-in;
+   shown while it loads, blurred around it, the picture in the push). Run it alone to see what it makes:
+   `node scripts/stories/video.mjs <clip> [--at <seconds>]` (`--at` = the cover from that moment). Over ~3 minutes it
+   can't fit - ask him for a shorter cut.
+2. **A tall clip** (9:16) fills the phone; a square / wide one shows whole with its blurred cover around it - fine, but
+   a teaser made for stories should be 9:16.
+3. **Words on a clip**: usually none - a teaser carries its own titles and sound. If you add a box, it stays on screen the
+   whole clip: the preview gives stills at 10/35/60/90% (`<name>-phone-at-<s>s.png`) - LOOK at all of them, a box that
+   is clear at the start can sit on a face or a title later. Words that belong to one moment belong IN the clip (the
+   editor), not in a box.
+4. **The button** (`link` + `label`) works the same - for a teaser: where to follow / get notified (`/c/hani`), or the
+   pre-order page once there is one.
+5. **Post** as always (`--test` first; Never on Shabbat). `"poster": "C:/path/cover.jpg"` chooses another cover; on an
+   up story `--edit <id>` with only `"poster"` replaces just the cover. In /backstage/ he can upload a clip too - the
+   page grabs its cover by itself; an iPhone .mov or a file over 29 MB there = do it here instead (it says so).
+6. **Tested**: `techietech-api/test/story-video.emu.mjs` (on the emulators - `bash scripts/test.sh`) prepares a stand-in
+   iPhone clip, posts it with its cover, replaces the cover, and checks the real viewer (cover, sound, hold, the bar).
+
 ## The story JSON
 ```json
 { "char": "hani", "file": "C:/path/story.jpg", "text": "the line in the bell and the push",

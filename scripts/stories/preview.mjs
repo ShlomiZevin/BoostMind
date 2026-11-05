@@ -6,8 +6,11 @@
 // instead of "file". "keepClear": [[x1, y1, x2, y2], ...] (in % of the stage) = where the picture has its own words,
 // faces or anything that must stay seen - no box may touch them. Exit 1 = something is on something; fix it first.
 // Writes <out>/<name>-phone.png (390x844), -short.png (375x667), -wide.png (desktop), -clean.png (the picture alone,
-// with the grid and the keepClear areas) and prints the checks.
+// with the grid and the keepClear areas) and prints the checks. A clip ("file": an .mp4 / .mov) is made story-ready
+// first (scripts/stories/video.mjs - exactly what story.mjs will post, with its cover) and the phone gets stills at
+// 10%, 35%, 60% and 90% of it (<name>-phone-at-<s>s.png): words over a moving picture must stay clear all the way.
 import fs from 'node:fs';
+import { prepare } from './video.mjs';
 import path from 'node:path';
 import http from 'node:http';
 import { createRequire } from 'node:module';
@@ -26,8 +29,14 @@ const name = path.basename(jsonPath, '.json');
 const W = await fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json').then((r) => r.json()).catch(() => ({ characters: [] }));
 const ch = story.char === 'verse' ? { name: 'שלומיוורס', img: 'https://shlomiverse.com/verse/icon-192.png', color: '#ff6a1f' } : (W.characters || []).find((c) => c.id === story.char) || { name: story.char };
 const abs = (u) => (!u ? '' : /^https?:/.test(u) ? u : 'https://shlomiverse.com' + (u.startsWith('/') ? '' : '/') + u);
-let media = story.media || null;
-if (story.file) media = { url: '/__media/' + encodeURIComponent(path.basename(story.file)), kind: /\.(mp4|mov)$/i.test(story.file) ? 'video' : 'image' };
+let media = story.media || null, clip = null;
+if (story.file && /\.(mp4|mov|m4v|webm)$/i.test(story.file)) {
+  clip = prepare(story.file);
+  console.log(`clip: ${clip.duration}s, ${clip.w}x${clip.h}, ${clip.mb} MB, ${clip.audio ? 'with sound' : 'no sound'} -> ${clip.file}
+cover: ${clip.poster}`);
+  story.file = clip.file; story.poster ||= clip.poster;
+}
+if (story.file) media = { url: '/__media/' + encodeURIComponent(path.basename(story.file)), kind: clip ? 'video' : 'image', ...(story.poster ? { poster: '/__poster/' + encodeURIComponent(path.basename(story.poster)) } : {}) };
 
 const TYPES = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html; charset=utf-8', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4', '.mov': 'video/quicktime', '.svg': 'image/svg+xml' };
 const page = (mode) => `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -85,9 +94,16 @@ window.__report = { problems, notes, boxes: boxes.map(pc).map((p) => Object.from
 const server = http.createServer((req, res) => {
   const u = new URL(req.url, 'http://x');
   if (u.pathname.startsWith('/__page/')) { res.writeHead(200, { 'content-type': TYPES['.html'] }); return res.end(page(u.pathname.split('/')[2])); }
-  const f = u.pathname.startsWith('/__media/') ? story.file : path.join(SITE, decodeURIComponent(u.pathname));
+  const f = u.pathname.startsWith('/__media/') ? story.file : u.pathname.startsWith('/__poster/') ? story.poster : path.join(SITE, decodeURIComponent(u.pathname));
   if (!f || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
-  res.writeHead(200, { 'content-type': TYPES[path.extname(f).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-store' });
+  const type = TYPES[path.extname(f).toLowerCase()] || 'application/octet-stream', size = fs.statSync(f).size;
+  const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');   // a clip is read in ranges (seeking to the stills)
+  if (range) {
+    const a = range[1] ? +range[1] : 0, z = range[2] ? Math.min(+range[2], size - 1) : size - 1;
+    res.writeHead(206, { 'content-type': type, 'content-range': `bytes ${a}-${z}/${size}`, 'accept-ranges': 'bytes', 'content-length': z - a + 1, 'cache-control': 'no-store' });
+    return fs.createReadStream(f, { start: a, end: z }).pipe(res);
+  }
+  res.writeHead(200, { 'content-type': type, 'content-length': size, 'accept-ranges': 'bytes', 'cache-control': 'no-store' });
   fs.createReadStream(f).pipe(res);
 });
 await new Promise((r) => server.listen(0, r));
@@ -108,6 +124,15 @@ try {
     await p.evaluate(() => document.querySelector('video')?.pause());
     const file = path.join(out, `${name}-${tag}.png`);
     await p.screenshot({ path: file });
+    if (clip && tag === 'phone') {   // the clip at four moments, with its words on it
+      for (const f of [0.1, 0.35, 0.6, 0.9]) {
+        const at = Math.round(clip.duration * f * 10) / 10;
+        await p.evaluate((t) => new Promise((r) => { const v = document.querySelector('video'); v.muted = true; v.pause(); v.onseeked = () => r(); v.currentTime = t; setTimeout(r, 4000); }), at);
+        const still = path.join(out, `${name}-phone-at-${at}s.png`);
+        await p.screenshot({ path: still });
+        console.log(`  still: ${still}`);
+      }
+    }
     if (mode === 'story') {
       console.log(`${tag}: ${file}`);
       if (tag === 'phone') r.boxes.forEach((x, i) => console.log(`  box ${i + 1}: x ${x.x1}-${x.x2}%, y ${x.y1}-${x.y2}%`));
