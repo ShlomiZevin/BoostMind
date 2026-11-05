@@ -4,7 +4,7 @@ import { db, F } from './fb.js';
 import { T } from './copy.js';
 import { I, esc, av, ago, abs, charColor, track } from './ui.js';
 import { st } from './state.js';
-import { followBtn, paintFollow } from './player.js';
+import { paintFollow } from './player.js';
 import { stageHtml, readMs } from './story-art.js';
 
 const RECENT = 3 * 864e5;   // a story stays in the rings for three days
@@ -56,8 +56,11 @@ export const setStoryBack = (h) => { backTo = h || '/'; };
 // "בלי טקסט": the visitor sees the story without its words (his ask, 2026-11-04) - the button keeps it for the
 // stories that follow; holding a finger on a story shows only the picture for as long as it is held, like Instagram
 const CLEAN = 'vx-story-clean';
-const textOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h10M10 6v12"/><path d="M14 13h6M17 13v5"/><path d="M3.5 3.5l17 17"/></svg>';
-const textOn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h10M10 6v12"/><path d="M14 13h6M17 13v5"/></svg>';
+// full screen (his ask, 2026-11-05): the original picture or clip on the whole screen and NOTHING on it - no name, no face,
+// no words, no button, no bars. The story waits there (a clip keeps playing, round again); a tap anywhere comes back.
+// A small shrink icon shows for two seconds so people know the way back.
+const textOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+const textOn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 // a clip's sound (his ask, 2026-11-05 - the first video story is a teaser with music): on unless the visitor turned it off;
 // when the phone won't play sound by itself the clip plays muted and the button waits for a tap, like Instagram
 const SOUND = 'vx-story-sound';
@@ -75,30 +78,32 @@ export function openStory(char) {
   el.className = 'sv';
   el.innerHTML = `<div class="sv-box" style="--c:${charColor(char)}">
       <div class="sv-bars">${list.map(() => '<span><i></i></span>').join('')}</div>
-      <div class="sv-head"><a href="${char === 'verse' ? '/' : `/c/${char}`}">${whoFace(char)}</a><span><b>${esc(who(char).name)}</b><br><small data-ago></small></span>
-        <span class="end">${char === 'verse' ? '' : followBtn(char, 'pill')}<button class="vx-round sv-sound" data-sound style="width:42px;height:42px" hidden></button><button class="vx-round sv-clean" data-clean style="width:42px;height:42px"></button><button class="vx-round" data-x style="width:42px;height:42px" aria-label="סגירה">${I.x}</button></span></div>
+      <div class="sv-head"><span class="sv-who"><a href="${char === 'verse' ? '/' : `/c/${char}`}">${whoFace(char)}</a>${char === 'verse' ? '' : `<button class="sv-follow" data-follow="${char}" aria-label="לעקוב"></button>`}</span>
+        <span class="sv-name"><b>${esc(who(char).name)}</b><small data-ago></small></span>
+        <span class="end"><button class="sv-btn sv-clean" data-clean></button><button class="sv-btn sv-sound" data-sound hidden></button><button class="sv-btn" data-x aria-label="סגירה">${I.x}</button></span></div>
+      <div class="sv-shade bot"></div>
       <div data-slot></div>
       <div class="sv-shade"></div>
       <button class="sv-tap next" data-next aria-label="הבא"></button><button class="sv-tap prev" data-prev aria-label="הקודם"></button>
+      <button class="sv-exit" data-exit aria-label="יציאה ממסך מלא">${textOn}</button>
     </div>`;
   document.body.append(el);
   document.body.style.overflow = 'hidden';
-  SV = { el, timer: 0, raf: 0, start: 0, held: 0 };
-  const paintClean = () => {
-    const on = localStorage.getItem(CLEAN) === '1';
-    el.classList.toggle('clean', on);
-    const b = el.querySelector('[data-clean]');
-    b.innerHTML = on ? textOn : textOff;
-    b.setAttribute('aria-label', on ? 'להחזיר את הטקסט' : 'לראות בלי טקסט');
-    b.title = b.getAttribute('aria-label');
+  SV = { el, timer: 0, raf: 0, start: 0, held: 0, full: 0 };
+  const cb = el.querySelector('[data-clean]');
+  cb.innerHTML = textOff; cb.setAttribute('aria-label', 'מסך מלא'); cb.title = 'מסך מלא';
+  const enterFull = () => { SV.full = performance.now(); el.classList.add('clean'); track('story_clean', char); };
+  const exitFull = () => {
+    if (!SV.full) return;
+    if (!el.querySelector('video.sa-media')) SV.start += performance.now() - SV.full;   // a picture's time waited too
+    SV.full = 0; el.classList.remove('clean');
   };
-  paintClean();
   const paintSound = () => {
     const v = el.querySelector('video.sa-media'), b = el.querySelector('[data-sound]');
     b.hidden = !v;
     if (!v) return;
     b.innerHTML = v.muted ? soundOff : soundOn;
-    b.classList.toggle('ask', v.muted && localStorage.getItem(SOUND) !== '0');   // muted by the phone, not by them: a nudge
+    b.classList.toggle('nudge', v.muted && localStorage.getItem(SOUND) !== '0');   // muted by the phone, not by them: a nudge
     b.setAttribute('aria-label', v.muted ? 'להפעיל סאונד' : 'להשתיק');
     b.title = b.getAttribute('aria-label');
   };
@@ -124,9 +129,10 @@ export function openStory(char) {
     const len = () => (vid && vid.duration ? vid.duration * 1000 : readMs(x));
     const step = (now) => {
       if (!SV || !bars[i]) return;
-      if (SV.held) { SV.raf = requestAnimationFrame(step); return; }
+      if (SV.held || (SV.full && !vid)) { SV.raf = requestAnimationFrame(step); return; }
       const p = vid ? (vid.currentTime * 1000) / len() : (now - SV.start) / len();
       bars[i].style.width = Math.min(100, p * 100) + '%';
+      if (p >= 1 && SV.full && vid) { vid.currentTime = 0; vid.play().catch(() => {}); SV.raf = requestAnimationFrame(step); return; }   // full screen: round again
       if (p >= 1) return go(1);
       SV.raf = requestAnimationFrame(step);
     };
@@ -162,7 +168,7 @@ export function openStory(char) {
     const v = el.querySelector('.sa-media[src]'); if (v?.play) v.play().catch(() => {});
   };
   el.addEventListener('pointerdown', (e) => {
-    if (!e.target.closest('.sv-tap')) return;
+    if (!e.target.closest('.sv-tap') || SV.full) return;
     wasHeld = false;
     holdT = setTimeout(() => {
       if (!SV) return;
@@ -173,19 +179,20 @@ export function openStory(char) {
   ['pointerup', 'pointercancel', 'pointerleave'].forEach((k) => el.addEventListener(k, release));
   el.addEventListener('contextmenu', (e) => { if (e.target.closest('.sv-tap')) e.preventDefault(); });
   el.addEventListener('click', (e) => {
+    if (SV.full) { e.preventDefault(); exitFull(); return; }   // full screen: any tap comes back
     if (wasHeld && e.target.closest('.sv-tap')) { wasHeld = false; return; }
     if (e.target.closest('[data-sound]')) {
       const v = el.querySelector('video.sa-media');
       if (v) { v.muted = !v.muted; localStorage.setItem(SOUND, v.muted ? '0' : '1'); if (!v.muted) v.play().catch(() => {}); paintSound(); track('story_sound', v.muted ? 'off' : 'on'); }
       return;
     }
-    if (e.target.closest('[data-clean]')) { localStorage.setItem(CLEAN, localStorage.getItem(CLEAN) === '1' ? '0' : '1'); paintClean(); track('story_clean', char); return; }
+    if (e.target.closest('[data-clean]')) { enterFull(); return; }
     if (e.target.closest('[data-cta]')) { track('story_link', list[i].id); cancelAnimationFrame(SV.raf); return; }
     if (e.target.closest('[data-next]')) go(1);
     else if (e.target.closest('[data-prev]')) go(-1);
     else if (e.target.closest('[data-x]')) nav(backTo);
   });
-  SV.key = (e) => { if (e.key === 'ArrowLeft') go(1); if (e.key === 'ArrowRight') go(-1); if (e.key === 'Escape') nav(backTo); };
+  SV.key = (e) => { if (SV.full) { exitFull(); return; } if (e.key === 'ArrowLeft') go(1); if (e.key === 'ArrowRight') go(-1); if (e.key === 'Escape') nav(backTo); };
   document.addEventListener('keydown', SV.key);
   show();
 }

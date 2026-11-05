@@ -69,7 +69,31 @@ export function stageHtml(x, o = {}) {
     : m?.kind === 'image' ? `<img class="sa-media" src="${url}" alt=""${o.lazy ? ' loading="lazy"' : ''}>` : '<div class="sa-media sa-tint"></div>';
   const boxes = boxesOf(x);
   loadFonts(boxes);
-  return `<div class="sa"${o.color ? ` style="--c:${esc(o.color)}"` : ''}>${fill}<div class="sa-area"><div class="sa-stage">${media}<div class="sa-boxes">${boxes.map(boxHtml).join('')}</div></div></div></div>`;
+  // keepClear: the picture's own words / faces ([x1, y1, x2, y2] in %) - the name bar and the button never cover them either
+  const kc = (Array.isArray(x.keepClear) ? x.keepClear : []).map((k) => (Array.isArray(k) ? k : [k.x1, k.y1, k.x2, k.y2]));   // [..] in a story JSON, {x1..} in the database
+  const keep = kc.length ? ` data-keep="${esc(JSON.stringify(kc))}"` : '';
+  return `<div class="sa"${o.color ? ` style="--c:${esc(o.color)}"` : ''}>${fill}<div class="sa-area"><div class="sa-stage"${keep}>${media}<div class="sa-boxes">${boxes.map(boxHtml).join('')}</div></div></div></div>`;
+}
+
+// The story gets the whole screen and the name bar / the button lie on it (his ask, 2026-11-05) - but a story whose words
+// would sit under them gets room instead: the picture moves down from under the name bar (--top) or up from the button
+// (--bot) just enough, so a word is never covered. Run after the story is drawn (and again when the fonts arrive);
+// the viewer (stories.js) and scripts/stories/preview.mjs both call it, so the preview shows what visitors get.
+export function makeRoom(root, head, cta) {
+  const sa = root && root.querySelector('.sa');
+  if (!sa) return;
+  sa.style.removeProperty('--top'); sa.style.removeProperty('--bot');
+  const hit = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  const boxes = () => {
+    const st = sa.querySelector('.sa-stage'), r = st.getBoundingClientRect();
+    let keep = []; try { keep = JSON.parse(st.dataset.keep || '[]'); } catch (e) {}
+    return [...sa.querySelectorAll('.sa-b .sa-in')].map((e) => e.getBoundingClientRect())
+      .concat(keep.map(([x1, y1, x2, y2]) => ({ left: r.left + r.width * x1 / 100, right: r.left + r.width * x2 / 100, top: r.top + r.height * y1 / 100, bottom: r.top + r.height * y2 / 100 })));
+  };
+  const area = sa.getBoundingClientRect();
+  const h = head && head.getBoundingClientRect(), c = cta && cta.getBoundingClientRect();
+  if (h && h.height && boxes().some((r) => hit(r, h))) sa.style.setProperty('--top', `${Math.ceil(h.bottom - area.top) + 6}px`);
+  if (c && c.height && boxes().some((r) => hit(r, c))) sa.style.setProperty('--bot', `${Math.ceil(area.bottom - c.top) + 6}px`);
 }
 
 // the fonts the boxes use, once per page

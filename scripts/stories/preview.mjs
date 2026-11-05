@@ -61,14 +61,14 @@ const page = (mode) => `<!doctype html><html lang="he" dir="rtl"><head><meta cha
 .keep{position:absolute;border:2px dashed #ffd23f;background:rgba(255,210,63,.16);z-index:9}</style></head><body>
 <div class="sv"><div class="sv-box" style="--c:${ch.color || '#ff6a1f'}">
   <div class="sv-bars"><span><i style="width:40%"></i></span></div>
-  <div class="sv-head"><span class="vx-av ring"><img src="${abs(ch.img)}" alt=""></span><span><b></b><br><small>לפני 5 דק'</small></span>
-    <span class="end"><button class="vx-pill" style="height:34px;padding:0 14px;border-radius:99px;background:rgba(255,255,255,.18);color:#fff;font-weight:700">לעקוב</button>
-    <button class="vx-round" style="width:42px;height:42px"></button><button class="vx-round" style="width:42px;height:42px"></button></span></div>
+  <div class="sv-head"><span class="sv-who"><span class="vx-av ring"><img src="${abs(ch.img)}" alt=""></span><button class="sv-follow"></button></span><span class="sv-name"><b></b><small>לפני 5 דק'</small></span>
+    <span class="end"><button class="sv-btn"></button><button class="sv-btn"></button><button class="sv-btn"></button></span></div>
+  <div class="sv-shade bot"></div>
   <div data-slot></div><div class="sv-shade"></div></div></div>
 <script type="module">
 import { stageHtml, boxesOf, allFontsReady } from '/verse/story-art.js';
 const story = ${JSON.stringify({ ...story, media })}, mode = '${mode}';
-document.querySelector('.sv-head b').textContent = ${JSON.stringify(ch.name || '')};
+document.querySelector('.sv-name b').textContent = ${JSON.stringify(ch.name || '')};
 const slot = document.querySelector('[data-slot]');
 slot.classList.toggle('with-cta', !!story.link && mode !== 'clean');
 const link = story.link ? \`<a class="sv-cta">\${story.label || 'לפתוח'}</a>\` : '';

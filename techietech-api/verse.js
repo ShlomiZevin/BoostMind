@@ -721,6 +721,16 @@ function parseStory(req) {
 const MEDIA = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4', 'video/quicktime': 'mov' };
 // a story's words as boxes on its 9:16 stage (v2/site/verse/story-art.js draws them; the same names and limits there):
 // up to 8, each up to 300 characters; places in % of the stage. Anything else is dropped. null = no / broken boxes field.
+// keepClear: the picture's own words and faces, [x1, y1, x2, y2] in % - the viewer keeps the name bar and the button off them
+function cleanKeep(raw) {
+  if (raw == null || raw === '') return null;
+  let list; try { list = JSON.parse(raw); } catch (e) { return null; }
+  if (!Array.isArray(list)) return null;
+  // stored as {x1, y1, x2, y2} - Firestore keeps no list inside a list
+  const n = (v) => Math.round(Math.min(100, Math.max(0, Number(v))) * 10) / 10;
+  return list.slice(0, 12).map((a) => (Array.isArray(a) ? a : a && [a.x1, a.y1, a.x2, a.y2])).filter((a) => a && a.length === 4 && a.every((v) => Number.isFinite(Number(v))))
+    .map(([x1, y1, x2, y2]) => ({ x1: n(x1), y1: n(y1), x2: n(x2), y2: n(y2) }));
+}
 const BOX_ST = ['box', 'glass', 'line', 'outline', 'shadow', 'bubble', 'note', 'tag'];
 const BOX_F = ['heebo', 'rubik', 'secular', 'suez', 'frank', 'amatic', 'karantina', 'varela'];
 const boxColor = (v) => (v === 'char' || /^#[0-9a-f]{3,8}$/i.test(v || '') || /^rgba?\([\d.,\s%]+\)$/.test(v || '') ? String(v) : null);
@@ -1017,7 +1027,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const isVerse = f.char === 'verse';
       const name = isVerse ? OFFICIAL.nick : byId[f.char]?.name || f.char;
       const everyone = f.everyone === 'yes' || (isVerse && f.notify !== 'no');
-      await ref.set({ char: f.char, text: text || (boxes || []).map((b) => b.t).join(' ').slice(0, 600), ...(boxes ? { boxes } : {}), media, link, everyone, hidden: false, t: FieldValue.serverTimestamp() });
+      const keepClear = cleanKeep(f.keepClear);
+      await ref.set({ char: f.char, text: text || (boxes || []).map((b) => b.t).join(' ').slice(0, 600), ...(boxes ? { boxes } : {}), ...(keepClear ? { keepClear } : {}), media, link, everyone, hidden: false, t: FieldValue.serverTimestamp() });
       let fans = [], sent = 0;
       if (f.notify !== 'no' || everyone) {
         fans = everyone ? (await db.collection('fans').select().get()).docs.map((d) => d.id) : await followersOf([f.char]);
@@ -1046,6 +1057,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const up = {};
       if (f.boxes != null) { const b = cleanBoxes(f.boxes); if (!b) return res.status(400).json({ error: 'boxes' }); up.boxes = b; }
       if (f.text != null) up.text = clip(String(f.text).trim(), 600);
+      if (f.keepClear != null) { const k = cleanKeep(f.keepClear); if (!k) return res.status(400).json({ error: 'keepClear' }); up.keepClear = k; }
       if (f.noLink === 'yes') up.link = null;
       else if (f.link != null) { const l = storyLink(f); if (l === false) return res.status(400).json({ error: 'link' }); up.link = l; }
       if (file && file.data.length) {

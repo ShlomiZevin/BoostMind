@@ -40,6 +40,7 @@ if (edit) {
   fd.append('id', editId);
   if ('boxes' in s) fd.append('boxes', JSON.stringify(s.boxes || []));
   if ('text' in s) fd.append('text', s.text || '');
+  if ('keepClear' in s) fd.append('keepClear', JSON.stringify(s.keepClear || []));
   if ('link' in s) { if (s.link) { fd.append('link', s.link); fd.append('linkLabel', s.label || ''); } else fd.append('noLink', 'yes'); }
   file();
   const res = await fetch(`${API}?op=storyEdit`, { method: 'POST', headers: { authorization: 'Key ' + KEY }, body: fd });
@@ -51,6 +52,7 @@ if (edit) {
 fd.append('char', s.char);
 fd.append('text', s.text || '');
 if (s.boxes) fd.append('boxes', JSON.stringify(s.boxes));
+if (s.keepClear) fd.append('keepClear', JSON.stringify(s.keepClear));   // the viewer keeps the name bar / button off them
 fd.append('notify', s.notify === false || test ? 'no' : 'yes');
 if (s.link) { fd.append('link', s.link); fd.append('linkLabel', s.label || ''); }
 if (s.everyone && !test) fd.append('everyone', 'yes');

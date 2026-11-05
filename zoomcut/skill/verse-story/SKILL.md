@@ -27,7 +27,11 @@ Reply in English; Hebrew only in the story.
 ## His rules (2026-11-04 - every one cost a round)
 1. **Nothing sits on anything.** No word on a face, no word on a word that is already in the picture, no box on another
    box, nothing under the name bar or the button. The viewer keeps the picture between the bar and the button on every
-   screen; you keep the boxes off faces and off the picture's own words.
+   screen (his choice "B", 2026-11-05 - the same for pictures and clips, on a phone the story fills the whole screen);
+   you keep the boxes off faces and off the picture's own words.
+   **Full screen** (the expand button next to the X): the original picture / clip on the whole screen with NOTHING on it -
+   no name, no face, no words, no button; a tap anywhere comes back. So a story must also make sense with no words at all
+   (rule 4). Give `keepClear` in the story JSON (the picture's own words and faces) - it goes up with the story.
 2. **The whole picture is always seen.** A story fits the screen whole, never wider than it (the sides of a 9:16
    picture used to be cut off on phones - and words with them). Around it the viewer paints the same picture blurred.
    You do nothing for this - just never put anything important in the outer 2% of the picture.
