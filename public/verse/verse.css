@@ -957,6 +957,19 @@ body > footer { padding: 14px 0 !important; margin-top: 40px !important; }
 .idea-acts { display: flex; align-items: center; gap: 6px; }
 .idea .vote { height: 34px; padding: 0 12px 0 10px; gap: 6px; }
 .idea .vote .lk { width: 20px; }
+/* where the idea is on its way: the planet lit, the step, and for an idea that is out - its video */
+.idea-step { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px; padding: 4px 12px 4px 10px; border-radius: 99px; background: rgba(255, 106, 31, .14); border: 1px solid rgba(255, 106, 31, .45); font-size: .8rem; }
+.idea-step .lk { width: 18px; filter: drop-shadow(0 0 4px rgba(255, 106, 31, .7)); }
+.idea-step b { color: var(--vx-accent); font-weight: 800; }
+.idea-step a { color: var(--text); font-weight: 700; text-decoration: none; margin-inline-start: 4px; }
+.idea-step.s-live { background: var(--vx-accent); border-color: var(--vx-accent); }
+.idea-step.s-live b, .idea-step.s-live a { color: #fff; }
+.idea-step.s-live .lk { filter: brightness(0) invert(1); }
+/* the video page: the viewer whose idea it was */
+.vp-credit { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: .8rem; color: rgba(255, 255, 255, .85); text-decoration: none; }
+.vp-credit[hidden] { display: none; }
+.vp-credit .lk { width: 16px; filter: drop-shadow(0 0 4px rgba(255, 106, 31, .7)); }
+.vp-credit b { color: #fff; }
 .idea .vote b { font-size: .9rem; font-weight: 800; }
 .idea .vote.on b { color: var(--vx-accent); }
 .idea .icon-btn { width: 34px; height: 34px; }

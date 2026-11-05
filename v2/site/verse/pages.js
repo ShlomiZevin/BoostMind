@@ -101,6 +101,10 @@ function noteRow(n) {
   else if (n.kind === 'like') { face = n.n > 1 || !n.from ? av({ planet: true }) : av({ fan: { nick: n.from, photo: n.photo } }); name = T.note.like(n.n || 1, n.from); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?c=${n.focus || n.commentId}`; }
   else if (n.kind === 'stamp') { face = n.char ? av({ char: n.char }) : av({ planet: true }); name = T.note.stamp(n.n || 1); line = `"${n.text}"`; href = `${itemLink(n.videoId)}?sticker=${n.stickerId}`;
     if (n.img) thumb = `<img class="thumb sq" src="${esc(n.img)}" alt="">`; }
+  // an idea: its votes (they showed as the welcome line - no row of their own), its steps (liked / making / live)
+  else if (n.kind === 'vote') { face = av({ planet: true }); name = T.note.vote(n.n || 1); line = `"${n.text}"`; href = `/community?idea=${n.ideaId}`; }
+  else if (n.kind === 'idea') { face = av({ planet: true }); name = T.note.idea[n.status] || T.note.idea.liked; line = `"${n.text}"`; href = n.videoId ? itemLink(n.videoId) : `/community?idea=${n.ideaId}`;
+    const v = n.videoId && V[n.videoId]; if (v && v.poster) thumb = `<img class="thumb" src="${abs(v.poster)}" alt="">`; }
   else if (n.kind === 'record') { face = av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.rec.noteLine.replace('{nick}', n.from).replace('{game}', n.text); href = `/play/${n.game}?records=1`; }
   else { face = av({ planet: true }); name = T.note.welcome(n.text || st.fan?.nick || ''); line = T.note.welcomeLine; href = '/characters'; }
   return `<a class="nt-row ${unread}" href="${href}">${!n.read ? '<span class="vx-dot"></span>' : ''}${face}

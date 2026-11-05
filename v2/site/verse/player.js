@@ -75,7 +75,7 @@ export function openPlayer(id, q = {}) {
         <button data-share><span class="vx-round">${I.share}</span>${esc(T.share)}</button>
       </div>
       <div class="vp-ep">
-        <div><h2>${esc(v.title)}</h2><div class="meta">${esc(S[v.series] && eps.length > 1 ? T.episode(n + 1, S[v.series].title) : (S[v.series]?.title || (lead ? C[lead].name : '')))}</div></div>
+        <div><h2>${esc(v.title)}</h2><div class="meta">${esc(S[v.series] && eps.length > 1 ? T.episode(n + 1, S[v.series].title) : (S[v.series]?.title || (lead ? C[lead].name : '')))}</div><a class="vp-credit" data-credit hidden></a></div>
         <button class="vx-round pp" data-pp aria-label="נגינה">${I.play}</button>
         <div class="scrub"><input type="range" min="0" max="1000" value="0" data-scrub aria-label="מיקום בסרטון"><div class="times"><span data-cur>00:00</span><span data-dur>--:--</span></div></div>
       </div>
@@ -89,6 +89,13 @@ export function openPlayer(id, q = {}) {
   // live counts under the video
   P.off.push(F.onSnapshot(F.doc(db, 'videoStats', id), (s) => { const d = s.data() || {}; P && (P.stats = d, $('[data-count-c]', el).textContent = d.comments ? String(d.comments) : ''); }, () => {}));
   P.off.push(onState(() => P && paint()));
+  // a viewer's idea that became this video (marked live in /backstage/): their credit under the title
+  P.off.push(F.onSnapshot(F.query(F.collection(db, 'ideas'), F.where('videoId', '==', id), F.where('hidden', '==', false)), (s) => {
+    const x = s.docs.map((d) => ({ id: d.id, ...d.data() })).find((i) => i.status === 'live'), a = P && $('[data-credit]', el);
+    if (!a) return;
+    a.hidden = !x;
+    if (x) { a.href = `/community?idea=${x.id}`; a.innerHTML = `${LIKE}<span>${esc(T.ideaCredit)} <b>${esc(x.nick || '')}</b></span>`; }
+  }, () => {}));
   paint();
 
   // play: with sound when the browser allows it, otherwise muted with "tap for sound"

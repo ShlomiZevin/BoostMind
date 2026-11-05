@@ -50,6 +50,14 @@ const reserved = (nick) => /שלומיוורס|shlomi\s*verse/i.test(nick);
 const STICKERS_A_DAY = 3;          // free stickers per fan per day (tokens later)
 const CHARACTER_REPLIES_A_DAY = 10; // @character answers per fan per day
 const IDEAS_A_DAY = 5;              // ideas per fan per day on the community wall
+// an idea's way and what its writer hears at each step (Terra, 2026-11-05; the bell and the mail have their own lines)
+const IDEA_STEPS = ['liked', 'making', 'live'];
+const IDEA_COPY = {
+  liked: { title: 'השלומיוורס אהב', body: 'הרעיון שלכם סומן בקיר: {idea}' },
+  making: { title: 'מתחילים לעבוד', body: 'הרעיון שלכם נכנס לעבודה בשלומיוורס' },
+  live: { title: 'זה באוויר', body: 'יצא סרטון מהרעיון שלכם, עם קרדיט לכם' },
+  liveVoter: { title: 'רעיון שווה צפייה', body: 'רעיון שהצבעתם לו הפך לסרטון' },
+};
 const COMMENT_MAX = 500;
 const REGION = 'europe-west1';
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
@@ -496,6 +504,8 @@ const ops = {
       if (on === ms.exists) return { n: is.data().votes || 0, idea: is.data(), changed: false };
       tx.update(ref, { votes: FieldValue.increment(on ? 1 : -1) });
       if (on) tx.set(mine, { t: FieldValue.serverTimestamp() }); else tx.delete(mine);
+      // who voted, kept private (ideaVoters/<idea>): they hear when it goes live (ideaStatus)
+      tx.set(db.collection('ideaVoters').doc(d.ideaId), { uids: on ? FieldValue.arrayUnion(uid) : FieldValue.arrayRemove(uid) }, { merge: true });
       return { n: (is.data().votes || 0) + (on ? 1 : -1), idea: is.data(), changed: on };
     });
     const idea = r.idea;
@@ -905,6 +915,37 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       if (!idOk(b.id)) return res.status(400).json({ error: 'id' });
       await db.collection(col).doc(b.id).update({ hidden: b.hidden !== false, ...(b.hidden !== false ? { removedBy: 'owner' } : {}) });
       return res.json({ ok: true });
+    }
+    // an idea's way (his ask, 2026-11-05): liked -> making -> live (with its video); each step tells the writer once - the
+    // bell, a push and a mail (mailer.ideaMail: Shabbat and night wait, a stopped mail never goes) - and 'live' also tells
+    // everyone who voted for it (bell + push). 'new' takes the mark off and tells nobody.
+    if (op === 'ideaStatus') {
+      if (!idOk(b.id) || ![...IDEA_STEPS, 'new'].includes(b.status)) return res.status(400).json({ error: 'id' });
+      const ref = db.collection('ideas').doc(b.id), was = await ref.get();
+      if (!was.exists) return res.status(404).json({ error: 'idea' });
+      const x = was.data(), videoId = b.status === 'live' ? String(b.videoId || '').trim() : null;
+      if (b.status === 'live' && !idOk(videoId)) return res.status(400).json({ error: 'video' });
+      const first = b.status !== 'new' && !(x.told || {})[b.status];
+      await ref.update({ status: b.status === 'new' ? FieldValue.delete() : b.status, statusAt: FieldValue.serverTimestamp(), videoId: videoId || FieldValue.delete(),
+        ...(first ? { ['told.' + b.status]: FieldValue.serverTimestamp() } : {}) });
+      let voters = 0;
+      if (first && x.uid && !x.official) {
+        const c = IDEA_COPY[b.status], url = b.status === 'live' ? await pageOf(videoId) : `/community?idea=${b.id}`;
+        await db.collection('fans').doc(x.uid).collection('notes').add({ kind: 'idea', status: b.status, ideaId: b.id, videoId, text: x.text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() });
+        await push([x.uid], { title: c.title, body: c.body.replace('{idea}', clip(x.text, 80)), url, icon: ICON, badge: BADGE, tag: 'idea_' + b.id });
+        await require('./mailer').ideaMail({ uid: x.uid, nick: x.nick, ideaId: b.id, text: x.text, status: b.status, videoId }).catch((e) => console.error('idea mail', e.message));
+      }
+      if (first && b.status === 'live') {
+        const vs = (((await db.collection('ideaVoters').doc(b.id).get()).data() || {}).uids || []).filter((u) => u !== x.uid);
+        voters = vs.length;
+        if (vs.length) {
+          const batch = db.batch();
+          vs.slice(0, 450).forEach((u) => batch.set(db.collection('fans').doc(u).collection('notes').doc(), { kind: 'idea', status: 'liveVoter', ideaId: b.id, videoId, text: x.text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() }));
+          await batch.commit();
+          await push(vs, { title: IDEA_COPY.liveVoter.title, body: IDEA_COPY.liveVoter.body, url: await pageOf(videoId), icon: ICON, badge: BADGE, tag: 'idea_' + b.id });
+        }
+      }
+      return res.json({ ok: true, told: first, voters });
     }
     if (op === 'done') {
       if (!idOk(b.id)) return res.status(400).json({ error: 'id' });

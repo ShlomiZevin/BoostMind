@@ -189,9 +189,52 @@ async function mailFor(p, w, now) {
     faces: chars.map((id) => ({ ...who(w, id), href: `/story/${id}` })), facesTitle: 'העלו סטורי' } };
 }
 
+// ---------- an idea's step, to its writer (his ask, 2026-11-05) ----------
+// Personal, not marketing: it goes whatever the switch says and beside the day's one mail - but never to someone who
+// stopped mail, and on Shabbat / at night it waits in mailQueue for the first run in decent hours. (Terra wrote the words.)
+const IDEA_MAIL = {
+  liked: { subject: 'השלומיוורס אהב את הרעיון שלכם', preheader: 'הוא סומן בקיר הרעיונות', chip: 'השלומיוורס אהב', title: '{nick}, יש מצב לרעיון הזה',
+    body: 'השלומיוורס אהב את הרעיון שלכם והוא עכשיו מסומן בקיר הרעיונות. זה עדיין לא מבטיח פרק, אבל נעדכן אתכם אם הוא יתקדם. בינתיים אפשר לשתף אותו ולגייס עוד +1ים.', cta: 'לראות את הרעיון' },
+  making: { subject: 'הרעיון שלכם כבר בעבודה', preheader: 'השלומיוורס התחיל לעבוד עליו', chip: 'בעבודה', title: 'הרעיון שלכם זז',
+    body: 'השלומיוורס התחיל לעבוד על הרעיון שלכם, בכתיבה או בצילומים. יש עוד דרך למסך, אבל זה קורה. נעדכן אתכם כשהוא יצא לאוויר.', cta: 'לראות את הרעיון' },
+  live: { subject: 'הסרטון מהרעיון שלכם עלה', preheader: 'ויש לכם עליו קרדיט', chip: 'עלה לאוויר', title: '{nick}, זה עלה למסך',
+    body: 'סרטון שנולד מהרעיון שלכם יצא לאוויר, ויש לכם עליו קרדיט. לכו לראות מה יצא מזה, ואז תשתפו עם מי שחייבים לראות.', cta: 'לצפייה בסרטון' },
+};
+function ideaRender(x, name, links = {}) {
+  const c = IDEA_MAIL[x.status], nick = first(name || '');
+  const title = nick ? c.title.replace('{nick}', nick) : c.title.replace('{nick}, ', '');
+  const href = x.status === 'live' && x.videoId ? `/v/${x.videoId}` : `/community?idea=${x.ideaId}`;
+  return mail.render('idea', { subject: c.subject, preheader: c.preheader, chip: c.chip, title, idea: x.text, body: c.body, cta: c.cta, href,
+    note: 'קיבלתם את המייל כי הצעתם רעיון בשלומיוורס' }, links);
+}
+async function ideaMail(x, { now = Date.now(), queued = null } = {}) {
+  const c = IDEA_MAIL[x.status];
+  if (!c || !x.uid) return 'no';
+  if (!queued && !sendingHours(now)) { await db.collection('mailQueue').add({ kind: 'idea', x, sent: false, t: FieldValue.serverTimestamp() }); return 'queued'; }
+  const st = (await db.collection('mailUsers').doc(x.uid).get()).data() || {};
+  if (st.off) return 'off';
+  const u = await admin.auth().getUser(x.uid).catch(() => null);
+  if (!u?.email) return 'no-email';
+  const m = ideaRender(x, x.nick || u.displayName, { unsub: prefsLink(x.uid), unsubPost: prefsLink(x.uid) + '&one=1' });
+  return (await deliver({ to: u.email, uid: x.uid, kind: 'idea', m, meta: { ideaId: x.ideaId, status: x.status } })) ? 'sent' : 'failed';
+}
+// the idea mails that waited for Shabbat / the night to end
+async function drainQueue(now) {
+  const q = await db.collection('mailQueue').where('sent', '==', false).limit(50).get();
+  let n = 0;
+  for (const d of q.docs) {
+    const r = d.data().kind === 'idea' ? await ideaMail(d.data().x, { now, queued: true }).catch((e) => 'failed: ' + e.message) : 'unknown';
+    await d.ref.update({ sent: true, result: r, at: FieldValue.serverTimestamp() });
+    if (r === 'sent') n++;
+  }
+  return n;
+}
+
 // one run: write down what happened, then mail whoever is due (at most PER_RUN). dry = only say who would get what.
 async function run({ now = Date.now(), dry = false, force = false, budget = 420e3 } = {}) {
   if (!force && !sendingHours(now)) return { skipped: 'hours' };
+  const queued = dry ? 0 : await drainQueue(now).catch((e) => { console.error('mail queue', e.message); return 0; });
+  if (queued) console.log('idea mails from the queue', queued);
   const swept = await sweepEvents(now);
   const cfg = (await db.collection('verseMeta').doc('mail').get()).data() || { on: false, only: [OWNER] };
   const users = [];
@@ -330,6 +373,10 @@ async function samples() {
   if (stories[0]) await add('סטורי חדש', { ...P, kind: 'story', events: [ev('story', stories[0].id)] });
   await add('כמה דברים באותו יום', { ...P, kind: 'digest', events: [games[0] && ev('game', games[0].id), games[1] && ev('game', games[1].id), ...videos.slice(0, 3).map((v) => ev('video', v.id)),
     ...stories.map((d) => ev('story', d.id))].filter(Boolean) });
+  const sampleIdea = { ideaId: 'sample', text: 'מה עם דמות נוספת - הדתי מחמד, זה שמנדבים אותו להדליק נרות חנוכה ושואלים אותו על ההכשרים?', videoId: videos[0]?.id };
+  for (const [status, label] of [['liked', 'רעיון: השלומיוורס אהב'], ['making', 'רעיון: בעבודה'], ['live', 'רעיון: עלה לאוויר']]) {
+    out.push({ key: 'idea:' + status, label, kind: 'idea', ...ideaRender({ ...sampleIdea, status }, 'ישראל') });
+  }
   for (const key of Object.keys(replies())) {
     const x = replyMail(key, { name: 'ישראל ישראלי', choice: '', when: '' }, w);
     if (x) out.push({ key: 'reply:' + key, label: `תשובה: ${x.r.site || key} (${x.r.fromName})`, kind: 'reply', from: x.r.fromName, ...mail.render('reply', x.d) });
@@ -365,4 +412,4 @@ async function owner(op, b = {}) {
   return null;
 }
 
-module.exports = { ...exports, reply, replyMail, owner, plan, il, sendingHours, MAIL_SECRETS: SECRETS };
+module.exports = { ...exports, reply, replyMail, ideaMail, owner, plan, il, sendingHours, MAIL_SECRETS: SECRETS };

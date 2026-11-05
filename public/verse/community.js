@@ -26,6 +26,9 @@ onState(() => {
 });
 const sorted = () => (sort === 'new' ? [...ideas].sort((a, b) => (b.t?.toMillis?.() || Date.now()) - (a.t?.toMillis?.() || Date.now())) : ideas);
 
+// where the idea is on its way (marked in /backstage/): the Shlomiverse liked it / on its way to the screen / out, with its video
+const stepBadge = (x) => (!T.ideaStep[x.status] ? '' : `<div class="idea-step s-${x.status}">${LIKE}<b>${esc(T.ideaStep[x.status])}</b>${x.status === 'live' && x.videoId
+  ? `<a href="/v/${encodeURIComponent(x.videoId)}">${esc(T.ideaWatch)} ←</a>` : ''}</div>`);
 function ideaCard(x) {
   const on = myVotes.has(x.id);
   const faces = (x.chars || []).filter((id) => C[id]).slice(0, 2);
@@ -33,6 +36,7 @@ function ideaCard(x) {
     ${faces.length ? `<div class="idea-faces">${faces.map((id) => `<a href="/c/${id}" title="${esc(C[id].name)}">${av({ char: id, ring: true })}</a>`).join('')}</div>` : ''}
     <div class="idea-body"><div class="idea-by">${av({ fan: x })}<span>${esc(x.nick || '')}</span>${ofc(x)}${x.t ? `<small>${ago(x.t)}</small>` : ''}</div>
       <p>${esc(x.text)}</p>
+      ${stepBadge(x)}
       <div class="idea-foot">${T.ideaKinds[x.kind] && x.kind !== 'other' ? `<span class="idea-kind">${esc(T.ideaKinds[x.kind])}</span>` : '<span></span>'}
         <span class="idea-acts"><button class="vote ${on ? 'on' : ''}" data-vote="${x.id}" aria-label="+1">${LIKE}<b dir="ltr">${x.votes ? x.votes : '+1'}</b></button>
         <button class="icon-btn" data-share-idea="${x.id}" aria-label="${esc(T.ideaShare)}">${I.share}</button></span></div></div></div>`;

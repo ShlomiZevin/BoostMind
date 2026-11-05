@@ -199,13 +199,20 @@ ${verse ? '' : `<td valign="middle"><img src="${esc(d.face)}" alt="" width="48" 
     d.cta ? pad(button(d.cta.label, track(d.cta.href, k))) + spacer(34) : ''].join('');
 }
 
-const KINDS = { game: newGame, story, video, digest, welcome, reply };
+// an idea's step (his ask, 2026-11-05): the Shlomiverse liked it / it's being made / it's out - the writer's own idea quoted,
+// what it means, and the button (the idea on the wall, or the video)
+function idea(d, k) {
+  return [spacer(18), pad(`<div style="text-align:center">${chip(d.chip)}</div>`), spacer(16), pad(`<div style="text-align:center">${h1(d.title)}</div>`), spacer(20),
+    pad(quote(d.idea)), spacer(20), pad(p(d.body)), spacer(26), pad(button(d.cta, track(d.href, k))), spacer(34)].join('');
+}
+
+const KINDS = { game: newGame, story, video, digest, welcome, reply, idea };
 
 // one mail: { subject, html, text, headers } - `unsub` is this reader's own link, `unsubPost` the one-click address
 function render(kind, d, { unsub, unsubPost } = {}) {
   if (kind !== 'reply') unsub = unsub || SITE + '/mail/off';
   const body = KINDS[kind]({ prefs: unsub, ...d }, kind);
-  const note = kind === 'reply' ? `זו תשובה אוטומטית מ${esc(d.site || 'השלומיוורס')}, בשלומיוורס – עולם של דמויות.<br>אפשר להשיב למייל הזה.` : null;
+  const note = kind === 'reply' ? `זו תשובה אוטומטית מ${esc(d.site || 'השלומיוורס')}, בשלומיוורס – עולם של דמויות.<br>אפשר להשיב למייל הזה.` : d.note ? esc(d.note) : null;
   const html = shell({ kind, subject: d.subject, preheader: d.preheader || '', body, unsub, note });
   const text = [d.subject, '', ...(d.paras || [d.preheader || '']), '', abs(d.url || d.href || d.cta?.href || '/'), ...(unsub ? ['', 'לבחור על מה לקבל מיילים או להפסיק: ' + unsub] : [])].join('\n');
   const headers = unsub ? { 'List-Unsubscribe': `<${unsubPost || unsub}>`, ...(unsubPost ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}) } : {};

@@ -214,6 +214,12 @@
   .dz-row > span { color: var(--dim); font-size: .85rem; min-width: 56px; }
   .dz-row .chip { height: 32px; padding: 0 11px; border-radius: 99px; border: 1px solid var(--line2); font-size: .82rem; font-weight: 700; color: var(--dim); }
   .dz-row .chip.on { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .idea-steps { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+  .idea-steps .chip { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 11px; border-radius: 99px; border: 1px solid var(--line2); background: none; font: inherit; font-size: .82rem; font-weight: 700; color: var(--dim); cursor: pointer; }
+  .idea-steps .chip.on { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .idea-steps .chip img { width: 16px; height: 16px; }
+  .idea-steps select { height: 32px; max-width: 200px; border-radius: 10px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; font-size: .8rem; }
+  .bs-toast { position: fixed; bottom: 24px; left: 50%; translate: -50% 0; z-index: 999; background: var(--card2); border: 1px solid var(--accent); color: var(--text); padding: 12px 18px; border-radius: 14px; font-weight: 700; }
   .dz-row .del { margin-inline-start: auto; color: #ff7a7a; }
   .dz-row .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line2); }
   .dz-row .sw.on { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -1039,10 +1045,30 @@ function publish() { ({ story, video })[publishSeg](); }
 function ideas() {
   const KIND = { episode: 'פרק חדש', character: 'דמות חדשה', meet: 'מפגש בין דמויות', other: 'משהו אחר' };
   const list = (L.ideas || []).slice().sort((a, b) => (a.hidden - b.hidden) || ((b.votes || 0) - (a.votes || 0)));
-  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר באתר</a></div>
+  // an idea's way (his ask, 2026-11-05): each step tells its writer once - the bell, a push, a mail (verse.js ideaStatus)
+  const STEP = { liked: 'השלומיוורס אהב', making: 'בעבודה', live: 'עלה לאוויר' };
+  const vids = W.videos.filter((v) => !v.archive && !v.url).slice(0, 40);
+  const steps = (x) => x.hidden ? '' : `<div class="idea-steps">${Object.entries(STEP).map(([k, l]) => `<button class="chip ${x.status === k ? 'on' : ''}" data-idea-step="${k}" data-id="${x.id}">${k === 'liked' ? LOGO_LIKE : ''}${l}</button>`).join('')}
+      <select data-idea-video="${x.id}" title="איזה סרטון יצא מהרעיון">${vids.map((v) => `<option value="${v.id}" ${x.videoId === v.id ? 'selected' : ''}>${esc(v.title)}</option>`).join('')}</select>
+      ${x.status ? `<button class="chip" data-idea-step="new" data-id="${x.id}">לבטל את הסימון</button>` : ''}</div>`;
+  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר. סימון (השלומיוורס אהב / בעבודה / עלה לאוויר) מופיע בקיר, וכותב הרעיון מקבל עליו התראה ומייל.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר באתר</a></div>
     <div>${list.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body">
-      <b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.votes || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <span class="tag">${KIND[x.kind] || ''}</span>${x.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}</p></div>
+      <b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.votes || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <span class="tag">${KIND[x.kind] || ''}</span>${x.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${x.status ? ` · <span class="tag">${STEP[x.status]}</span>` : ''}</p>
+      ${steps(x)}</div>
       ${hideBtn('idea', x)}</div>`).join('') || '<div class="empty">עוד אין רעיונות.</div>'}</div>`;
+}
+async function ideaStep(b) {
+  const x = (L.ideas || []).find((i) => i.id === b.dataset.id), s = b.dataset.ideaStep;
+  if (!x) return;
+  const videoId = s === 'live' ? document.querySelector(`[data-idea-video="${x.id}"]`)?.value : undefined;
+  const told = (x.told || {})[s];
+  const msg = s === 'new' ? 'לבטל את הסימון? (לא נשלחת הודעה)' : told ? 'לסמן שוב? (כבר קיבלו הודעה על השלב הזה - לא תישלח שוב)'
+    : `לסמן "${{ liked: 'השלומיוורס אהב', making: 'בעבודה', live: 'עלה לאוויר' }[s]}"? ${x.nick || 'הכותב'} יקבל/ת התראה ומייל${s === 'live' ? ', וכל מי שהצביע יקבל התראה' : ''}.`;
+  if (!confirm(msg)) return;
+  b.disabled = true;
+  const say = (t) => { const d = document.createElement('div'); d.className = 'bs-toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 3200); };
+  try { const r = await api('ideaStatus', { id: x.id, status: s, videoId }); say(r.told ? `סומן ונשלח ל${x.nick || 'כותב הרעיון'}${r.voters ? ` ול-${r.voters} שהצביעו` : ''}` : 'עודכן'); } catch (e) { say('לא הצליח: ' + (e.message || '')); }
+  refresh();
 }
 const hideBtn = (kind, x) => `<button class="btn" data-hide="${kind}" data-id="${x.id}" data-on="${x.hidden ? 0 : 1}">${x.hidden ? 'להחזיר' : 'להסתיר'}</button>`;
 
@@ -1498,6 +1524,7 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.ststate) { stState = b.dataset.ststate; story(); }
   else if (b.dataset.stchar !== undefined) { stChar = b.dataset.stchar; story(); }
   else if (b.dataset.hide) { if (b.closest('.sheet')) closeSheet(); b.disabled = true; await api('hide', { kind: b.dataset.hide, id: b.dataset.id, hidden: b.dataset.on === '1' }).catch(() => {}); refresh(); }
+  else if (b.dataset.ideaStep) await ideaStep(b);
   else if (b.dataset.done) { b.disabled = true; await api('done', { id: b.dataset.done, done: b.dataset.on === '1' }).catch(() => {}); refresh(); }
   else if (b.dataset.announce) {
     const v = V[b.dataset.announce];
