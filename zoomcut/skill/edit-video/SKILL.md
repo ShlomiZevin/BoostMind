@@ -242,15 +242,15 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    Instagram Reel.
 11. **Put it on the Shlomiverse (= "upload it to the verse")** - part of publishing, not an extra; the ONE path is
    in `wiki.md` "A finished video -> the Shlomiverse". The studio's "site" job runs
-   `scripts/wiki/publish_site.py` by itself after every Publish (Jobs panel "Shlomiverse"); by hand
-   `POST /api/ep/<id>/site` (`wiki.md`): web copy + poster, the fan title (Terra), build, deploy the site and the
-   chat. Check it ended ✔ and act on any "!". Until then the video isn't on https://boostmind-b052c.web.app/wiki/ and the characters can't talk
+   `render/verse.mjs` by itself after every Publish (Jobs panel "Shlomiverse"); by hand
+   `POST /api/ep/<id>/site` (`wiki.md`): web copy + poster, the record through the Shlomiverse's publish API (the fan
+   title by Terra, the site and the chat read it at once). Check it ended ✔ and act on any "!". Until then the video isn't on https://boostmind-b052c.web.app/wiki/ and the characters can't talk
    about it. **Do it the moment he publishes - don't wait to be asked** (2026-10-25, haredit-1: he had to remind me).
    A video reaches the wiki only when its project is **done** (`POST /api/ep/<id>/done {done: true}`) and has
    `out/<id>.mp4`.
 12. **Every place the character and the video must reach - check each one, every video** (his ask, 2026-10-25:
    "make sure the edit video knows to guide each session to add the character to all these places if it wasn't
-   already, and the character's videos"). **The site job checks these by itself** (`places()` in publish_site.py)
+   already, and the character's videos"). **The site job checks these by itself** (`publish_site.py --check`, run by the site job)
    and prints one `  !` line per gap - a missing portrait, a Techy-Tech card, a site without a links-page button, a
    character site that shows videos but not this one. Act on every `!` line. For each character in the video:
    - [ ] **Characters page** - a profile (`POST /api/characters/<id>`), its portrait, the video in `videos`, the

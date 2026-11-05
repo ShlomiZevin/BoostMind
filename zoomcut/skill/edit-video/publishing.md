@@ -63,8 +63,8 @@ for Instagram, it needs the Reel's link). Each goes out once, no retries. TikTok
 "waiting for you to approve in the TikTok app (Inbox → ready to edit)", then the caption ALONE in its own plain message,
 so one long-press copies exactly it (his ask; he once posted with an old caption TikTok had kept - 2026-10-25).
 **His sites, by themselves:** when a publish ends with any platform out, the studio runs
-`scripts/wiki/publish_site.py <id>` as a "Shlomiverse" job (one at a time - it deploys the hosting site): done, web
-copy, Terra's fan copy, build, deploy, live check - the video is on the wiki and the links page, and a Telegram says
+`render/verse.mjs` as a "Shlomiverse" job (one at a time): done, web copy, the record through the Shlomiverse's publish
+API (Terra's title; the list of videos lives in its database since 2026-11-05), live check - the video is on the wiki and the links page, and a Telegram says
 so (or why not). A video published before this / a failed one: `POST /api/ep/<id>/site`. Never skip it by hand. YouTube's
 "exceeded the number of videos" = the channel's daily upload limit (it opens ~24 h after a batch): the job says so in
 plain words; `node zoomcut/tools/yt_when_open.mjs <id> public` uploads it the moment it opens.

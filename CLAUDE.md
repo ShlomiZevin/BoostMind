@@ -42,7 +42,8 @@ Shlomi found new sites missing from his lists because some sessions never added 
 - **A game for a character** (Hani's playhouse or anyone in the verse): load the `make-verse-game` skill
   (`zoomcut/skill/make-verse-game/`) - games live at /hani-games/<slug>/ or /<character>-games/<slug>/ (on the character's wiki page), never on Plaxzy.
 - **A finished video** reaches the wiki and the links page by itself when it is published from Sketch Studio
-  (a "Shlomiverse" job); one that missed it: `python scripts/wiki/publish_site.py <episode-id>`.
+  (a "Shlomiverse" job, through the Shlomiverse's publish API - the list of videos lives in the database since
+  2026-11-05); one that missed it: `POST http://localhost:4747/api/ep/<id>/site`, or `node zoomcut/render/verse.mjs <id>`.
 
 ## Deploy
 

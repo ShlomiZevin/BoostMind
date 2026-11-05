@@ -85,14 +85,14 @@ def settle():
         say(f'  ! went live along with it (other sessions\' changes): {", ".join(went)}')
 
 
-def places(eid, cast, world):
+def places(eid, cast, world, brain_check=True):
     """The places a video's characters must reach. Done here: the wiki (their page + the video), the links page's
     videos (it reads wiki.json), the chat agent's brain. Checked and reported with '  !' (a session adds it):
     the character's portrait, a Techy-Tech card on the company site, their own site on the links page and the video
     on their own site."""
     out = []
-    brain = open(os.path.join(ROOT, 'techietech-api', 'wiki-brain.json'), encoding='utf8').read()
-    if f'"{eid}"' not in brain and eid not in brain:
+    brain = open(os.path.join(ROOT, 'techietech-api', 'wiki-brain.json'), encoding='utf8').read() if brain_check else ''
+    if brain_check and f'"{eid}"' not in brain and eid not in brain:
         out.append(f'  ! the chat agent\'s brain has no {eid} - rerun scripts/wiki/build.py')
     company = open(os.path.join(ROOT, 'public', 'techietech', 'index.html'), encoding='utf8').read()
     links = open(os.path.join(ROOT, 'public', 'links', 'index.html'), encoding='utf8').read()
@@ -119,11 +119,39 @@ def places(eid, cast, world):
     return out or [f'  · {eid}: every place checked - nothing missing']
 
 
+def new_characters(cids):
+    """python scripts/wiki/publish_site.py --characters <character-id>...  - only the characters' part: a character born
+    in a video the studio sent through the publish API (render/verse.mjs) gets its fan copy (Terra), the build and the
+    push (base.json - their pages and faces); the video itself is the API's (2026-11-05)."""
+    copy = load_json(os.path.join(HERE, 'copy.json'), {}) or {}
+    need = [c for c in cids if c not in copy.get('characters', {})]
+    if need:
+        run([sys.executable, 'scripts/wiki/copy_brief.py', '--only-missing'])
+        work = tempfile.mkdtemp()  # sol.js reads ./.env first - a project folder's key is revoked
+        run(['node', SOL, '--in', os.path.join(HERE, 'work', 'copy-brief.txt'), '--out', os.path.join(HERE, 'work', 'copy-answer.md'),
+             '--model', 'gpt-5.6-terra', '--env', KEYS], cwd=work)
+        run([sys.executable, 'scripts/wiki/merge_copy.py'])
+        say(f'  · copy by Terra for {", ".join(need)}')
+    out = run([sys.executable, 'scripts/wiki/build.py'])
+    say('  · built: ' + next((l for l in out.splitlines() if l.startswith('wiki.json')), 'wiki.json'))
+    run(['node', 'scripts/wiki/push.cjs'])
+    say(f'  · characters pushed: {", ".join(cids)}')
+
+
 def main():
     ids = [a for a in sys.argv[1:] if not a.startswith('--')]
     push = not ({'--no-push', '--no-deploy'} & set(sys.argv))
     if not ids:
         raise SystemExit(__doc__)
+    if '--characters' in sys.argv:
+        return new_characters(ids)
+    if '--check' in sys.argv:  # (render/verse.mjs, after the API took the video: the places it can't reach, as '  !' lines)
+        chars, _ = characters()
+        eps = {e['id']: e for e in episodes(chars)}
+        for i in ids:
+            for line in places(i, eps.get(i, {}).get('cast', []), {c['id']: c for c in chars}, brain_check=False):
+                say(line)
+        return
     for eid in ids:
         if not os.path.exists(os.path.join(ZC, 'episodes', eid, 'out', f'{eid}.mp4')):
             raise SystemExit(f'{eid}: no full export (out/{eid}.mp4) - export it first')

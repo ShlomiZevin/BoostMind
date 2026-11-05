@@ -7,8 +7,11 @@
 //   3. both files up through upload sessions the API opens (the studio never writes the media bucket itself)
 //   4. the record: cast (the characters who list the video + the project's own), the words (captions.txt, else the
 //      script), the series. No title / teaser sent - the API's Terra writes them the first time and keeps them after
-//      (a new cut of a published video keeps its title, its date and anything fixed in /backstage/)
-// Key: VERSE_PUBLISH_KEY (studio-keys -> zoomcut/.env). Only /backstage/'s hide takes a video off the site.
+//      (a new cut of a published video keeps its title, its date and anything fixed in /backstage/). A character
+//      born in this video (no copy in scripts/wiki/copy.json yet) first gets its page: publish_site.py --characters
+//      (Terra's copy, build, push of base.json - characters aren't in the database yet)
+// Key: VERSE_PUBLISH_KEY (studio-keys -> zoomcut/.env), sent as 'authorization: Key <key>' (a Bearer is taken by
+// Google's front door for its own token and refused before the function). Only /backstage/'s hide takes a video off the site.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -45,7 +48,7 @@ export function castOf(ROOT, id, dir) {
 
 export function verseApi(key) {
   return async (body) => {
-    const r = await fetch(process.env.VERSE_PUBLISH_URL || VERSE_API, { method: 'POST', headers: { authorization: 'Bearer ' + key, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await fetch(process.env.VERSE_PUBLISH_URL || VERSE_API, { method: 'POST', headers: { authorization: 'Key ' + key, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     const j = await r.json().catch(() => ({}));
     if (r.status === 404 && !j.error) { const e = new Error('the Shlomiverse publish API is not live yet'); e.notLive = true; throw e; }
     if (!r.ok || j.error) throw new Error(`versePublish ${body.op}: ${j.error || r.status}${j.detail ? ' - ' + j.detail : ''}`);
@@ -82,12 +85,27 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
   log('  · uploaded to the Shlomiverse');
   const cfg = readJson(path.join(dir, 'episode.json'), {});
   const cast = castOf(ROOT, id, dir);
+  const BM = path.resolve(ROOT, '..'), known = readJson(path.join(BM, 'scripts', 'wiki', 'copy.json'), {}).characters || {};
+  const born = cast.filter((c) => !known[c]);
+  // publish_site.py's characters part (--characters) and its checks of the places it can't reach (--check): python, from BoostMind
+  const py = (args) => new Promise((ok, fail) => {
+    const ch = spawn('python', ['scripts/wiki/publish_site.py', ...args], { cwd: BM, windowsHide: true, env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' } });
+    let o = '';
+    ch.stdout.on('data', (d) => (o += d)); ch.stderr.on('data', (d) => (o += d));
+    ch.on('close', (c) => { const ls = o.split(/\r?\n/).filter((l) => l.trim()); ls.forEach((l) => log(l.trimEnd())); c ? fail(new Error(ls.at(-1) || `failed (${c})`)) : ok(); });
+    ch.on('error', fail);
+  });
+  if (born.length && !dryRun) {
+    log(`  · new on the Shlomiverse: ${born.join(', ')} - their page first`);
+    await py(['--characters', ...born]).catch((e) => { throw new Error('the new character page failed: ' + e.message); });
+  }
   const out = await api({ op: 'video', id, cast, transcript: wordsOf(dir), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
   if (!cast.length) log('  ! no character lists this video - give it its cast in the editor (Characters), then publish to the site again');
   if (dryRun) { log(`✔ dry run: "${out.video?.title || ''}" - nothing written`); return out; }
   const live = await api({ op: 'get', id });
   if (!live.live) throw new Error(`written, but ${id} is hidden on the site (/backstage/ סרטונים shows it)`);
   log(`  · "${live.title}"${out.wrote ? ' (title by Terra)' : ''}`);
+  await py(['--check', id]).catch((e) => log('  ! the places check failed: ' + e.message));  // (a portrait, a company card, a character site - '  !' lines)
   log(`✔ on the Shlomiverse: ${out.url}`);
   return out;
 }

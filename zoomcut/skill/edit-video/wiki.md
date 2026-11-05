@@ -78,10 +78,14 @@ Deploy only when the CODE of a page or of wikiChat changes.
    in it lists the episode in their studio profile's `videos` (that is how the verse knows the cast).
 2. **He presses Publish** in the studio -> the studio queues a **"site" job** by itself (Jobs panel "Shlomiverse").
    No publish (an old video, a socials-only miss)? **`POST http://localhost:4747/api/ep/<id>/site`** - the queue keeps
-   deploys one at a time. Only with the studio down: `python scripts/wiki/publish_site.py <id>` from BoostMind.
-3. The job puts it everywhere it can by itself: the wiki (the video, each character's page, fan copy by Terra), the
-   links page's videos strip (it reads the wiki's data), the chat agent (every character can talk about it), then the
-   push (`scripts/wiki/push.cjs`, no deploy) and a check that the live wiki lists it.
+   jobs one at a time. Only with the studio down: `node zoomcut/render/verse.mjs <id>` from BoostMind.
+3. The job (`render/verse.mjs`, since 2026-11-05) sends it through the **Shlomiverse's publish API** (`versePublish`,
+   techietech-api/publish.js): the web copy + poster made here, uploaded, the record in the database (`catalogVideos` -
+   the list of videos lives there now, not in files on one computer) with its cast and words; the API's Terra writes the
+   title / teaser the first time and a new cut keeps them. The wiki, the links page and the chat read the database. A
+   character born in the video first gets its page (`publish_site.py --characters`: Terra's copy, build, push).
+   Hide / show a video: /backstage/ סרטונים (the only way one leaves the site). Before 2026-11-05 this was
+   build.py + push.cjs from this computer - a PC missing exports took 20 videos off the site.
 4. It then checks **every other place** each character must reach and prints one `  !` line per gap: no portrait,
    a Techy-Tech person with no card on the company site, a character site with no links-page button, a character
    site that shows videos but not this one. **Act on every `!` line** (SKILL.md step 12): a wiki/profile fix = build.py
@@ -93,8 +97,8 @@ The verse is moving to **https://shlomiverse.com** (same site, same paths - ever
 
 **Publishing a video = publishing it to his sites too** (his words, 2026-10-25: "this is part of publishing a video -
 it should go to my site... everything just one direction"). ONE command does all of it, from `c:\workspace\BoostMind`:
-`python scripts/wiki/publish_site.py <episode-id>` - marks the project done, web copy + poster, fan copy (Terra) for
-anything new (the video, a new character), build, push (no deploy), checks the live wiki lists it
+`node zoomcut/render/verse.mjs <episode-id>` - marks the project done, web copy + poster, the record through the publish
+API (Terra's title for a new video, a new character's page), checks the site lists it
 (`✔ on the Shlomiverse: <link>`), and warns (`!`) for every place a character hasn't reached yet (see the one path above).
 **The studio runs it by itself after every Publish** (since 2026-10-25, commit 72d08ff): a publish with any platform
 out queues a "site" job (Jobs panel "Shlomiverse", one at a time - each deploys the whole site), Telegram with the ✔
