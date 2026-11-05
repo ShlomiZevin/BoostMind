@@ -22,7 +22,8 @@ const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
     const step = await S('s.tutStep');
     await pg.screenshot({ path: path.join(OUT, `02-tut-${step + 1}.png`) });
     if (await pg.$eval('#tutNext', (b) => b.disabled)) {
-      if (step === 2) { await sleep(300); await drag(-70, 0); }          // turn
+      if (step === 2) { await sleep(300); await drag(-70, 0); }
+      if ((await S('s.tutTry')) === 'ring') await pg.click('#bellBtn');          // turn
       for (let k = 0; k < 40 && (await pg.$eval('#tutNext', (b) => b.disabled)); k++) await sleep(150);   // catch: ride straight into the colleague
       if (await pg.$eval('#tutNext', (b) => b.disabled)) { fail('try step ' + (step + 1) + ' never finished'); break; }
       await pg.screenshot({ path: path.join(OUT, `02-tut-${step + 1}-done.png`) });

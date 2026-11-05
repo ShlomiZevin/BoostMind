@@ -58,9 +58,12 @@ const solid = (c, r) => c < 0 || r < 0 || c >= COLS || r >= ROWS || grid[r * COL
 const IMG = {};
 const img = (k, src) => { const i = new Image(); i.src = src; IMG[k] = i; return i; };
 img('floor', 'assets/floor.jpg');
-for (const p of ['ride', 'point', 'crash']) img('sagi-' + p, `assets/sagi-${p}.webp`);
-for (let i = 1; i <= 6; i++) { img(`c${i}-ride`, `assets/c${i}-ride.webp`); img(`c${i}-wait`, `assets/c${i}-wait.webp`); }
-for (const p of ['ofer-1', 'ofer-2', 'client-wave', 'client-clap']) img(p, `assets/${p}.webp`);
+img('sagi-crash', 'assets/sagi-crash.webp');
+// every rider faces where they go: f = toward us (down), b = away (up), s = to the right (flipped for left)
+for (const id of ['sagi', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'client']) for (const v of ['f', 'b', 's']) img(`${id}-${v}`, `assets/${id}-${v}.webp`);
+for (let i = 1; i <= 6; i++) img(`c${i}-wait`, `assets/c${i}-wait.webp`);
+for (const p of ['ofer-1', 'ofer-2', 'client-wave']) img(p, `assets/${p}.webp`);
+for (const u of ['marker', 'talk', 'bell', 'alert']) img('ui-' + u, `assets/ui-${u}.webp`);
 for (const p of ['desk', 'plant', 'coffee', 'water', 'boxes', 'foos']) img('p-' + p, `assets/p-${p}.webp`);
 const ok = (im) => im && im.complete && im.naturalWidth;
 
@@ -77,15 +80,16 @@ const LINES = {
   wall: ['הקורקינט! הוא בסדר?!', 'אאוץ׳. תבדקו את הבלמים!', 'מי שם פה שולחן?!'],
   self: ['נתקעתי בקהל המעריצים שלי!', 'רגע, מי זה מאחוריי?'],
   ofer: ['שגיא. לחדר ישיבות. עכשיו.', 'שגיא, הקורקינט – בחניה.'],
+  bell: ['דינג דינג!', 'פנו דרך – קורקינט!', 'שמעתם? זה הפעמון שלו!', 'דינג! סתם, בשביל הכיף.'],
 };
 // the colleagues (c1..c6 in assets) - real Techy-Tech people, each sighs in their own way
 const PEOPLE = [null,
-  { name: 'יותם', lines: ['רק רגע... אוקיי, שלוש שעות.', 'יש לקורקינט הזה API?'] },
-  { name: 'חני', lines: ['רגע, אני באמצע ברכה...', 'אפשר לשלוח לי את זה במייל?'] },
-  { name: 'אסנת', lines: ['אני לא בדיוק הדמות המוסמכת לזה.', 'זה לא מופיע בהטבות.'] },
-  { name: 'יניב', lines: ['אני לא יכול לעמוד יותר מעשר דקות!', 'הגב שלי...'] },
-  { name: 'צביקה', lines: ['בזמני הלכנו ברגל.', 'קורקינט חשמלי. עוד AI.'] },
-  { name: 'עידו', lines: ['טוב, אני רק אביא את המקלדת שלי.', 'מה? יש לי אוזניות.'] },
+  { name: 'יותם', g: 'm', lines: ['רק רגע... אוקיי, שלוש שעות.', 'יש לקורקינט הזה API?'] },
+  { name: 'חני', g: 'f', lines: ['רגע, אני באמצע ברכה...', 'אפשר לשלוח לי את זה במייל?'] },
+  { name: 'אסנת', g: 'f', lines: ['אני לא בדיוק הדמות המוסמכת לזה.', 'זה לא מופיע בהטבות.'] },
+  { name: 'יניב', g: 'm', lines: ['אני לא יכול לעמוד יותר מעשר דקות!', 'הגב שלי...'] },
+  { name: 'צביקה', g: 'm', lines: ['בזמני הלכנו ברגל.', 'קורקינט חשמלי. עוד AI.'] },
+  { name: 'עידו', g: 'm', lines: ['טוב, אני רק אביא את המקלדת שלי.', 'מה? יש לי אוזניות.'] },
 ];
 function pickNo(list, key) { const last = pickNo[key]; let l = pick(list); if (list.length > 1 && l === last) l = list[(list.indexOf(l) + 1) % list.length]; pickNo[key] = l; return l; }
 let bubble = null;                 // { text, t } - his line beside his head
@@ -99,7 +103,7 @@ function banner(text) { const b = document.createElement('div'); b.className = '
 
 // ───────────────────────── sound ─────────────────────────
 const SND = { ctx: null, raw: {}, buf: {}, on: store.get(KEY.snd) !== '0', last: {}, master: null, hum: null, humGain: null, music: null, musicGain: null };
-const SFX = ['bell-1', 'bell-2', 'bell-3', 'catch-1', 'catch-2', 'catch-3', 'sigh-1', 'sigh-2', 'sigh-3', 'sigh-4', 'crash-1', 'crash-2', 'client', 'ofer', 'start', 'over', 'turn', 'hum'];
+const SFX = ['bell-1', 'bell-2', 'bell-3', 'catch-1', 'catch-2', 'catch-3', 'sigh-1', 'sigh-2', 'sigh-3', 'sigh-4', 'crash-1', 'crash-2', 'client', 'ofer', 'start', 'over', 'hum'];
 const MUSIC = ['music-a', 'music-b'];
 const load = (n, url) => fetch(url).then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { if (b) { SND.raw[n] = b; decode(n); } }).catch(() => {});
 for (const n of SFX) load(n, `assets/sfx/${n}.mp3`);
@@ -118,7 +122,8 @@ function audioUnlock() {
 // a name plays one of its variants (bell → bell-1..3), never the same one twice in a row
 function play(name, vol = 1) {
   if (!SND.ctx) return;
-  const vars = SFX.filter((n) => n === name || n.startsWith(name + '-')).filter((n) => SND.buf[n]);
+  const GROUP = { sighm: ['sigh-1', 'sigh-3'], sighf: ['sigh-2', 'sigh-4'] };   // a man sighs like a man, a woman like a woman
+  const vars = (GROUP[name] || SFX.filter((n) => n === name || n.startsWith(name + '-'))).filter((n) => SND.buf[n]);
   if (!vars.length) return;
   let n = pick(vars);
   if (vars.length > 1 && n === SND.last[name]) n = vars[(vars.indexOf(n) + 1) % vars.length];
@@ -177,7 +182,7 @@ let clientNext = 0, idleT = 0, foodR = Math.random, nextKind = 1, lastTurnT = 0;
 const speed = () => Math.min(7.2, 3.3 + (snake.length - 1) * 0.11);
 
 function resetSnake() {
-  snake = [{ c: START.c, r: START.r, pc: START.c, pr: START.r + 1, face: 1, kind: 'sagi' }];
+  snake = [{ c: START.c, r: START.r, pc: START.c, pr: START.r + 1, face: 1, dx: 0, dy: -1, kind: 'sagi' }];
   dir = { x: 0, y: -1 }; queue = []; prog = 0; crash = null;
 }
 const onSnake = (c, r, from = 0) => snake.some((s, i) => i >= from && s.c === c && s.r === r);
@@ -244,27 +249,29 @@ addEventListener('keydown', (e) => {
 // ───────────────────────── the ride ─────────────────────────
 function tick() {
   const turned = queue.length > 0;
-  if (turned) { dir = queue.shift(); lastTurnT = T; play('turn', .25); if (tutWait && tutWait.id === 'turn') tutWait.done = true; }
+  if (turned) { dir = queue.shift(); lastTurnT = T; if (tutWait && tutWait.id === 'turn') tutWait.done = true; }
   const h = snake[0], nc = h.c + dir.x, nr = h.r + dir.y;
   const eats = food && food.c === nc && food.r === nr, meets = client && client.c === nc && client.r === nr;
   const grow = eats || meets;
   if (solid(nc, nr)) return die('wall');
   if (onSnake(nc, nr, 1) && !(snake.length > 1 && !grow && snake[snake.length - 1].c === nc && snake[snake.length - 1].r === nr)) return die('self');
   if (ofer && ofer.on && ofer.c === nc && ofer.r === nr) return die('ofer');
-  const tail = snake[snake.length - 1], old = { c: tail.c, r: tail.r, face: tail.face };
+  const tail = snake[snake.length - 1], old = { c: tail.c, r: tail.r, face: tail.face, dx: tail.dx, dy: tail.dy };
   for (let i = snake.length - 1; i >= 0; i--) {
     const s = snake[i]; s.pc = s.c; s.pr = s.r;
     if (i === 0) { s.c = nc; s.r = nr; } else { s.c = snake[i - 1].pc; s.r = snake[i - 1].pr; }
+    if (s.c !== s.pc || s.r !== s.pr) { s.dx = s.c - s.pc; s.dy = s.r - s.pr; }
     if (s.c !== s.pc) s.face = s.c > s.pc ? 1 : -1;
   }
   if (grow) {
     const kind = eats ? food.kind : 'client';
-    snake.push({ c: old.c, r: old.r, pc: old.c, pr: old.r, face: old.face, kind, join: 0 });
+    snake.push({ c: old.c, r: old.r, pc: old.c, pr: old.r, face: old.face, dx: old.dx, dy: old.dy, kind, join: 0 });
     const x = tx(nc + 0.5), y = ty(nr) - B.t * 0.6;
     if (eats) {
       if (!tutorial) score += 1;
-      play('catch', .7); play('bell', .5); setTimeout(() => play('sigh', .8), 260);
-      sagiSays(pickNo(LINES.catch, 'c'), 2.2); const who = PEOPLE[food.kind]; popText(x, y - B.t * 0.5, `${who.name}: ${pickNo(who.lines, 'p' + food.kind)}`, 'talk');
+      const who = PEOPLE[food.kind];
+      play('catch', .7); setTimeout(() => play(who.g === 'f' ? 'sighf' : 'sighm', .85), 260);
+      sagiSays(pickNo(LINES.catch, 'c'), 2.2); say(`${who.name}: ${pickNo(who.lines, 'p' + food.kind)}`, 2.4);
       food = null;
       if (tutWait && tutWait.id === 'catch') tutWait.done = true;
       if (!tutorial) spawnFood();
@@ -333,6 +340,26 @@ function ring(cx, cy, R, left) {
   ctx.save(); ctx.lineWidth = Math.max(3, R * 0.28); ctx.strokeStyle = '#ffffffcc'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = left < 0.35 ? '#ef4444' : '#facc15'; ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * left); ctx.stroke(); ctx.restore();
 }
+// the long deck: dark grip tape on a black body, a red stripe, the rear wheel and its red light at the end
+function drawDeck(pts, tail, t) {
+  const n = pts.length, last = pts[n - 1];
+  const bx = tail.dx || 0, by = tail.dy || 0;                       // the tail goes this way - the deck ends behind it
+  const end = { x: last.x - bx * t * 0.42, y: last.y - by * t * 0.42 };
+  const path = (dy = 0) => { ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y + dy); for (let i = 1; i < n; i++) ctx.lineTo(pts[i].x, pts[i].y + dy); ctx.lineTo(end.x, end.y + dy); };
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#13294b33'; ctx.lineWidth = t * 0.44; path(t * 0.07); ctx.stroke();
+  ctx.strokeStyle = '#111114'; ctx.lineWidth = t * 0.36; path(); ctx.stroke();
+  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = t * 0.3; path(); ctx.stroke();
+  ctx.strokeStyle = '#26262c'; ctx.lineWidth = t * 0.25; path(); ctx.stroke();
+  ctx.setLineDash([t * 0.05, t * 0.07]); ctx.strokeStyle = '#ffffff1c'; ctx.lineWidth = t * 0.16; path(); ctx.stroke(); ctx.setLineDash([]);
+  // the rear wheel + fender light
+  const wx = end.x - bx * t * 0.05, wy = end.y + t * 0.05;
+  ctx.fillStyle = '#0d0d10'; ctx.beginPath(); ctx.ellipse(wx, wy, bx ? t * 0.2 : t * 0.12, bx ? t * 0.14 : t * 0.17, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#6b7280'; ctx.beginPath(); ctx.ellipse(wx, wy, bx ? t * 0.08 : t * 0.05, bx ? t * 0.06 : t * 0.07, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ff3b3b'; ctx.shadowColor = '#ff3b3b'; ctx.shadowBlur = t * 0.3;
+  ctx.beginPath(); ctx.arc(end.x - bx * t * 0.18, end.y - t * 0.1 - by * t * 0.12, t * 0.055, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
 function drawBubble(text, hx, hy) {
   const fs = clamp(Math.round(B.t * 0.48), 13, 18), pad = fs * 0.55, maxW = Math.min(W * 0.62, fs * 11);
   ctx.save(); ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -366,7 +393,7 @@ function draw(now) {
   for (let r = 1; r < ROWS; r++) { ctx.moveTo(B.x, ty(r)); ctx.lineTo(B.x + bw, ty(r)); }
   ctx.stroke();
   // Ofer's aisle - a carpet runner
-  ctx.fillStyle = (ofer && ofer.on) || (tutorial && tut.i >= 6) ? '#b91c1c22' : '#13294b0d'; ctx.fillRect(B.x, ty(OFR), bw, t);
+  ctx.fillStyle = (ofer && ofer.on) || (tutorial && STEPS[tut.i].setup === 'ofer') ? '#b91c1c22' : '#13294b0d'; ctx.fillRect(B.x, ty(OFR), bw, t);
   ctx.restore();
 
   // everything that stands on the floor, back to front
@@ -378,14 +405,18 @@ function draw(now) {
     ctx.drawImage(im, tx(p.c) + (p.w * t - ww) / 2, ty(p.r + 1) - h + t * 0.08, ww, h);
   } });
   const ch = t * 1.7;
+  // the one under the marker is the next to hear about the scooter: a painted floor marker + a talk icon over the head
+  const marker = (cx, by, w, pulse) => { const im = IMG['ui-marker']; if (!ok(im)) return; const ww = w * (1 + pulse), hh = ww * im.naturalHeight / im.naturalWidth; ctx.drawImage(im, cx - ww / 2, by - hh * 0.62, ww, hh); };
+  const icon = (name, cx, top, sz, t0) => { const im = IMG['ui-' + name]; if (!ok(im)) return; const h = sz, w = h * im.naturalWidth / im.naturalHeight, y = top - h - Math.abs(Math.sin(t0 * 3)) * sz * 0.18; ctx.drawImage(im, cx - w / 2, y, w, h); };
   if (food) items.push({ y: food.r + 0.95, f: () => {
-    const cx = tx(food.c + 0.5), by = ty(food.r + 1) - t * 0.06, bob = Math.sin(food.t * 5) * t * 0.04;
-    ctx.save(); ctx.fillStyle = '#facc1555'; ctx.beginPath(); ctx.ellipse(cx, by, t * (0.5 + Math.sin(food.t * 6) * 0.05), t * 0.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    sprite(IMG[`c${food.kind}-wait`], cx, by + bob, ch * 0.95, false);
+    const cx = tx(food.c + 0.5), by = ty(food.r + 1) - t * 0.06;
+    marker(cx, by, t * 1.25, Math.sin(food.t * 5) * 0.05);
+    sprite(IMG[`c${food.kind}-wait`], cx, by, ch * 0.95, false);
+    icon('talk', cx + t * 0.15, by - ch * 0.95, t * 0.6, food.t);
   } });
   if (client) items.push({ y: client.r + 0.95, f: () => {
     const cx = tx(client.c + 0.5), by = ty(client.r + 1) - t * 0.06;
-    ctx.save(); ctx.fillStyle = '#facc1599'; ctx.shadowColor = '#facc15'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.ellipse(cx, by, t * 0.6, t * 0.24, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    marker(cx, by, t * 1.5, Math.sin(T * 7) * 0.07);
     sprite(IMG['client-wave'], cx, by, ch, false);
     ring(cx + t * 0.55, by - ch * 0.9, t * 0.22, client.life / client.max);
   } });
@@ -394,20 +425,27 @@ function draw(now) {
     const cx = tx(c + 0.5), by = ty(ofer.r + 1) - t * 0.05;
     shadow(cx, by, t * 0.8);
     sprite(IMG[(Math.floor(now * 4) % 2) ? 'ofer-1' : 'ofer-2'], cx, by, ch * 1.02, ofer.d < 0);
+    icon('alert', cx, by - ch * 1.0, t * 0.5, now);
   } });
   const k = moving ? clamp(prog, 0, 1) : 1;
+  const pos = snake.map((s) => ({ x: tx(lerp(s.pc, s.c, k) + 0.5), y: ty(lerp(s.pr, s.r, k) + 1) - t * 0.14 }));
+  // Sagi's scooter grows: one long deck from his scooter to the last listener, a rear wheel at its end
+  // the deck turns where the line turned: between two riders it passes through the tile the front one just left
+  const path = []; pos.forEach((p, i) => { path.push(p); if (i < pos.length - 1) path.push({ x: tx(snake[i].pc + 0.5), y: ty(snake[i].pr + 1) - t * 0.14 }); });
+  if (snake.length > 1 && !crash) drawDeck(path, snake[snake.length - 1], t);
+  const view = (s) => s.dy < 0 ? ['b', false] : s.dy > 0 ? ['f', false] : ['s', s.face < 0];
   snake.forEach((s, i) => {
-    const c = lerp(s.pc, s.c, k), r = lerp(s.pr, s.r, k);
-    items.push({ y: r + 0.9 + (i === 0 ? 0.01 : 0), f: () => {
-      const cx = tx(c + 0.5), by = ty(r + 1) - t * 0.08, bounce = Math.abs(Math.sin(now * 12 + i)) * t * 0.04;
+    const p = pos[i];
+    items.push({ y: (p.y + t * 0.14 - B.y) / t - 0.1 + (i === 0 ? 0.01 : 0), f: () => {
+      const cx = p.x, by = p.y + t * 0.06, bounce = Math.abs(Math.sin(now * 10 + i * 0.7)) * t * 0.03;
+      const [v, flip] = view(s);
       if (i === 0) {
         if (crash) { shadow(cx, by, t * 1.1); sprite(IMG['sagi-crash'], cx + Math.sin(crash.t * 50) * Math.max(0, 1 - crash.t * 2) * 4, by, ch * 1.05, s.face < 0); return; }
         shadow(cx, by, t * 0.9);
-        sprite(IMG[bubble && bubble.t > 1 ? 'sagi-point' : 'sagi-ride'], cx, by - bounce, ch * 1.1, s.face < 0);
+        sprite(IMG['sagi-' + v], cx, by - bounce, ch * (v === 's' ? 1.1 : 1.15), flip);
       } else {
-        shadow(cx, by, t * 0.8);
-        const im = s.kind === 'client' ? IMG['client-clap'] : IMG[`c${s.kind}-ride`];
-        sprite(im, cx, by - bounce, ch * (s.kind === 'client' ? 1 : 0.96) * (0.6 + 0.4 * (s.join ?? 1)), s.face < 0, crash ? 0.85 : 1);
+        const id = s.kind === 'client' ? 'client' : 'c' + s.kind;
+        sprite(IMG[`${id}-${v}`], cx, by - bounce, ch * 0.9 * (0.6 + 0.4 * (s.join ?? 1)), flip, crash ? 0.85 : 1);
       }
     } });
   });
@@ -462,6 +500,15 @@ function pause(on) {
   paused = on; show(on ? 'paused' : null); joyEnd();
   if (SND.ctx) on ? SND.ctx.suspend() : SND.ctx.resume();
 }
+// the bell - it does nothing, it's just fun
+function ringBell() {
+  if (paused || (state !== 'play' && state !== 'tut') || crash) return;
+  audioUnlock(); play('bell', .8);
+  const b = $('bellBtn'); b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring');
+  sagiSays(pickNo(LINES.bell, 'b'), 1.4);
+  if (tutWait && tutWait.id === 'ring') tutWait.done = true;
+}
+$('bellBtn').onclick = ringBell;
 $('pauseBtn').onclick = () => pause(true);
 $('resumeBtn').onclick = () => pause(false);
 $('quitBtn').onclick = () => { paused = false; SND.ctx && SND.ctx.resume(); state = 'menu'; moving = false; humOn(false); musicOn(null); tut.end(true); showHUD(false); showBest(); show('start'); };
@@ -479,6 +526,7 @@ const STEPS = [
   { text: 'זה <b>שגיא</b> מטקי-טק. הוא מאוהב בקורקינט שלו – ומדבר רק עליו.', spot: spotBoard, show: 'sagi' },
   { text: '<b>המטרה:</b> לרכוב אל כל מי שבמשרד. מי שנתפס שומע על הקורקינט – ונגרר אחריכם בשורה.', spot: spotEl('scoreBox') },
   { text: '<b>היגוי:</b> שימו אצבע בכל מקום וגררו לכיוון (במחשב: החצים). נסו עכשיו – <b>פנו!</b>', try: 'turn', move: true },
+  { text: '🔔 <b>הפעמון</b> של הקורקינט – הוא לא עושה כלום, סתם בשביל הכיף! נסו – <b>צלצלו!</b>', try: 'ring', spot: spotEl('bellBtn') },
   { text: 'נסו: עובד מחכה מולכם – <b>רכבו אליו ותפסו אותו!</b>', try: 'catch', move: true, setup: 'catch' },
   { text: '<b>זהירות:</b> שולחן, עציץ, קיר או השורה של עצמכם = נפילה. וככל שהשורה מתארכת – הקורקינט מהיר יותר.', spot: spotBoard },
   { text: '<b>לקוח Enterprise</b> מופיע רק לכמה שניות – שווה 5 מאזינים. הטבעת = כמה זמן נשאר לו.', setup: 'client', spot: spotTile(() => client) },
@@ -511,7 +559,7 @@ const tut = {
   },
   next() {
     if (tutWait && !tutWait.done) return;
-    play('bell', .4);
+    play('catch', .3);
     if (++this.i >= STEPS.length) return this.end();
     this.enter();
   },
@@ -523,7 +571,7 @@ const tut = {
   frame() {
     if (!this.on) return;
     const s = STEPS[this.i], sp = s.spot && s.spot();
-    const dim = sp && !(tutWait && !tutWait.done);
+    const dim = sp && (!(tutWait && !tutWait.done) || s.try === 'ring');
     $('tutDim').classList.toggle('on', !!dim);
     if (dim) Object.assign(tutHole.style, { left: sp.x + 'px', top: sp.y + 'px', width: sp.w + 'px', height: sp.h + 'px' });
     // the card sits where it does not cover the action: at the top while riding (Sagi starts at the bottom), else at the bottom
@@ -537,6 +585,8 @@ $('tutNext').onclick = () => tut.next();
 $('tutSkip').onclick = () => tut.end();
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && paused) return pause(false);
+  if (e.key === 'Escape' && state === 'play' && !crash) return pause(true);
+  if ((e.key === 'b' || e.key === 'B') && !paused) ringBell();
   if (!tut.on || paused) return;
   if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); tut.next(); }
   if (e.key === 'Escape') tut.end();
@@ -568,7 +618,7 @@ layout(); hud(); showBest(); requestAnimationFrame(frame);
 // for the tests
 window.SNAKE = {
   get state() { return state; }, get score() { return score; }, get snake() { return snake; }, get food() { return food; }, get client() { return client; },
-  get ofer() { return ofer; }, get tut() { return tut.on; }, get tutStep() { return tut.i; }, get moving() { return moving; }, get dir() { return dir; },
+  get ofer() { return ofer; }, get tut() { return tut.on; }, get tutStep() { return tut.i; }, get tutTry() { return (STEPS[tut.i] || {}).try; }, get moving() { return moving; }, get dir() { return dir; },
   get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, ROWS, OFR,
   setSpeedForTest(v) { window.__spd = v; },
 };

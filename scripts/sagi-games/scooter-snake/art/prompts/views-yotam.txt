@@ -1,0 +1,4 @@
+Game sprite sheet for a top-down mobile Snake game, transparent background, in exactly the cartoon style of the reference picture: the SAME person as in the reference (Yotam - black bob wig with bangs, glasses, galaxy t-shirt, jeans) - same face, hair, glasses, clothes, same size - but WITHOUT a scooter: standing upright with feet together and arms down, a bored, suffering face, as if riding along standing on a long moving scooter deck. Three views side by side with clear empty space between them, all the same size, full body, seen from slightly above, nothing cut off:
+1) facing the viewer (front view, coming toward us);
+2) from behind (back view, going away from us - we see the back of the head and body);
+3) side view, facing right.

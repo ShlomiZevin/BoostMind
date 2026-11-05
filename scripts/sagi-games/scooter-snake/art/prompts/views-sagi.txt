@@ -1,0 +1,4 @@
+Game sprite sheet for a top-down mobile Snake game, transparent background, in exactly the cartoon style of the reference pictures: Sagi, the SAME man (black helmet with loose straps, glasses, his eyes CROSSED inward toward his nose, light blue tank top, dark shorts, black sneakers without logos) riding his black electric scooter, talking excitedly. Three views side by side with clear empty space between them, all the same size, full body, seen from slightly above, nothing cut off:
+1) riding straight toward the viewer (front view - handlebar and front wheel toward us);
+2) riding straight away from the viewer (back view - we see his back, the back of the helmet and the rear wheel);
+3) side view riding to the right.

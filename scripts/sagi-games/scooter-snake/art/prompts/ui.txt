@@ -1,0 +1,5 @@
+Four separate game UI pieces for a cheerful cartoon mobile game set in a tech office, transparent background, in the cartoon style of the reference picture, arranged 2 across and 2 down with clear empty space, nothing cut off:
+1) a glowing "go here" floor marker for the ground under a character - a flat golden ring decal with soft light and little sparkles, seen from slightly above (a wide ellipse);
+2) a small round speech bubble icon with a tiny electric scooter inside it, to float above a person's head;
+3) a shiny round bicycle thumb bell, a big friendly game button icon;
+4) a small round speech bubble icon with a red exclamation mark inside, to float above a boss's head.
