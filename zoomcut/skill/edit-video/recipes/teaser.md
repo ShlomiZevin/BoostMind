@@ -4,25 +4,28 @@ The first: `balabusta-teaser` (בעלבוסטע, Hani's comic book, 2026-11-05 -
 a poster) cut into layers and moved like a film, in the one editor, exported by the one exporter.
 
 ## The Shlomiverse bookends - every teaser and preview (his ask, 2026-11-05)
-"שלומיוורס מציגים" before it and "רק בשלומיוורס" after it - the look of the first Shlomiverse teaser (deep space,
-orange dust, stars, the glowing ringed planet), made as OUR assets:
-- `episodes/_assets/shlomiverse/verse-presents.mp4` (5 s): we drift slowly through the dust; the logo circles slowly in
-  3D (a Seedance 2.0 clip made from the real logo, `source/sd-presents.mp4`, laid in as light), locks on the exact logo
-  with a flash + streak, and "מציגים" rises in the logo's own lettering (Heebo 900, warm white, orange glow - his pick;
-  a metallic serif looked "like an old PowerPoint", a thin light weight "terrible").
-- `episodes/_assets/shlomiverse/verse-only.mp4` (4.2 s): a fast rush through the dust towards a tiny glow that grows
-  into the logo (a whoosh), the lock, then "רק בשלומיוורס" revealed by a white-orange light sweeping right to left.
-- **No music in them** (his rule: the music must never start twice) - only the deep space whoosh and the shimmer. The
-  video's own music starts when the video itself starts.
-- **Never turn / spin the flat logo picture** ("stupid and ugly") - 3D motion of the logo comes from Seedance (made from
-  the real logo picture) or from moving the camera through the space layers.
-- **The space kit** (`_assets/shlomiverse/kit/`): space.png, galaxy.png, dust-a.png, dust-b.png (GPT Image 2.5, prompts
-  in kit/prompts), stars-far/near.png, logo-light.png + logo-body.png (the real logo as light + its dark planet). 
-  `kit/space.py` flies a camera through them with depth: `Space().frame(z)` - use it for any space shot (a teaser's
-  opening, a title card). `source/render3.py` makes both clips from it.
-- **Put them on a project:** `python tools/verse_bookends.py <project>` (studio running) - uploads both, moves every
-  item later by the intro's length, adds the "Shlomiverse" picture + sound layers, the outro pinned to the end.
-  `--replace` = a project that has them gets the current clips; `--muted`, `--no-intro`, `--no-outro`.
+"שלומיוורס מציגים" before it and "רק בשלומיוורס" after it. They are made from **the first Shlomiverse teaser's own
+circle** (his rule - "if you find the original, use it"): the Seedance clips of the real logo from 2 Nov
+(`source/sd-2-pullback-far-mini.mp4`, `source/sd-1-pullback-mini.mp4`) played BACKWARDS - the planet turning and
+growing out of space until it lands exactly on the logo frame (`source/frame-logo.jpg`), locked with a flash + streak.
+- `episodes/_assets/shlomiverse/verse-presents.mp4` (1.8 s): the end of the circle in HALF A SECOND, the lock, "מציגים"
+  rises in the logo's own lettering (Heebo 900 warm white + orange glow - his pick; serif metal = "old PowerPoint").
+- `episodes/_assets/shlomiverse/verse-only.mp4` (2.4 s): the end of the circle in half a second (a whoosh), the lock,
+  "רק בשלומיוורס" revealed by a white-orange light sweeping right to left.
+- **The circle in pieces, for any edit** (`_assets/shlomiverse/kit/`): `circle-full.mp4` (galaxy -> planet -> logo,
+  ~10 s), `circle-half.mp4` (the planet turning and growing, 5 s), `circle-end.mp4` (just the end of the turn, 1.5 s);
+  each ends exactly on the logo frame. Speed them up / cut them for a quick start or end.
+- His rules: FAST - an intro or outro is half a second of motion, then the words; one continuous film - the video's
+  MUSIC starts on the very first frame (under the intro) and runs to the end, never twice; no music inside the
+  bookends (only whoosh + shimmer); never spin the flat logo picture; no made-up space that doesn't match the original
+  (a v3 built from new space pictures looked "terrible" and its dust ended in a visible edge).
+- Music from the first frame with a hit that must land on a moment: slow the part before the hit (rubberband) so the hit
+  lands there, starting where the track is already full (balabusta: sv-music 1.3-15.3 s at tempo 0.859 -> hit at 16.3).
+- **Put them on a project:** `python tools/verse_bookends.py <project>` (studio running): uploads both, moves every
+  item later by the intro's length, adds the "Shlomiverse" picture + sound layers, the outro pinned to the end; then
+  move the music item to frame 0. `--replace` swaps in remade clips; `--muted`, `--no-intro`, `--no-outro`.
+- Remake: `source/render4.py` (python render4.py; `python render4.py cuts` writes the circle pieces). The space kit
+  (`kit/space.py` + its pictures) stays as a tool for a space shot, not for the bookends.
 - `episodes/_assets` travels by the studio's cloud sync, not git (CLAUDE.md "The studio online").
 
 ## Making the teaser (what worked, his notes)
