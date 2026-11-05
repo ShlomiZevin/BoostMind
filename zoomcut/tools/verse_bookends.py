@@ -4,11 +4,10 @@
 # Each is a clip with its own Shlomiverse sound (the trailer's music / landing, whoosh, shimmer). The tool uploads them,
 # moves every item of the project later by the intro's length, adds a "Shlomiverse" picture layer (both clips, on top)
 # and their sound layer, and makes the project that much longer - all through the studio's ops, one undoable write.
-#   python tools/verse_bookends.py <project> [--no-intro] [--no-outro] [--muted]
+#   python tools/verse_bookends.py <project> [--no-intro] [--no-outro] [--muted] [--replace]
+#   --replace: a project that has them already gets the current clips (after the clips were remade)
 #   --muted: the clips' sound layer muted (a version where he lays his own music over everything, e.g. Instagram)
-# Run once per project (it refuses a project that already has them). The clips are remade with
-# episodes/_assets/shlomiverse/source/render.py (python render.py in that folder; it reads its sound from presents.wav /
-# only.wav there).
+# The clips are made by episodes/_assets/shlomiverse/source/render3.py on the space kit (../kit/space.py).
 import json, os, sys, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,7 +26,19 @@ def main():
     pid = sys.argv[1]
     want = {'intro': '--no-intro' not in sys.argv, 'outro': '--no-outro' not in sys.argv}
     p = call(pid)['project']
-    if any(l['id'] == 'verse.picture' for l in p['layers']): sys.exit('this project has the Shlomiverse bookends already')
+    old = next((l for l in p['layers'] if l['id'] == 'verse.picture'), None)
+    if old and '--replace' not in sys.argv: sys.exit('this project has the Shlomiverse bookends already (--replace swaps in the current clips)')
+    if old:   # take the old ones out first: everything back by the old intro's length, the project that much shorter
+        back = sum(it['dur'] for it in old['items'] if it['id'] == 'intro')
+        gone = sum(it['dur'] for it in old['items'])
+        ops = [{'op': 'layer.remove', 'id': i} for i in ('verse.picture', 'verse.sound') if any(l['id'] == i for l in p['layers'])]
+        for l in p['layers']:
+            if l['id'] in ('verse.picture', 'verse.sound'): continue
+            for it in l.get('items', []):
+                if back: ops.append({'op': 'item.update', 'layer': l['id'], 'id': it['id'], 'set': {'from': max(0, it['from'] - back)}})
+        ops.append({'op': 'project', 'set': {'duration': p['duration'] - gone}})
+        call(f'{pid}/ops', {'rev': p['rev'], 'ops': ops})
+        p = call(pid)['project']
     fps = p['canvas']['fps']
     ids = {k: call(f'{pid}/assets?name={os.path.basename(f)}', raw=open(f, 'rb').read())['id'] for k, f in CLIPS.items() if want[k]}
     p = call(pid)['project']

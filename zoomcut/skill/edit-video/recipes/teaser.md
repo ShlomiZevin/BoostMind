@@ -4,17 +4,25 @@ The first: `balabusta-teaser` (בעלבוסטע, Hani's comic book, 2026-11-05 -
 a poster) cut into layers and moved like a film, in the one editor, exported by the one exporter.
 
 ## The Shlomiverse bookends - every teaser and preview (his ask, 2026-11-05)
-"שלומיוורס מציגים" before it and "רק בשלומיוורס" after it, both with the Shlomiverse's own sound:
-- `episodes/_assets/shlomiverse/verse-presents.mp4` (4 s): the planet logo comes round slowly in space, "מציגים" under it.
-- `episodes/_assets/shlomiverse/verse-only.mp4` (4 s): the logo whips in with two fast turns (whoosh), lands on the
-  trailer's own hit, and "רק בשלומיוורס" comes with light - a white-and-orange streak crossing right to left, the words
-  there behind it (his words). The logo's lettering: "שלומי" warm white #fdf6ef + "וורס" orange #fc7211, Heebo 900.
-- **Put them on a project:** `python tools/verse_bookends.py <project>` (studio running) - uploads both, moves every item
-  4 s later, adds the "Shlomiverse" picture + sound layers, the outro pinned to the end. `--muted` = their sound layer
-  muted (a version he lays his own music over, e.g. Instagram), `--no-intro` / `--no-outro`. Once per project.
-- **Remake them** (a new look, other words): `episodes/_assets/shlomiverse/source/render.py` (python render.py in that
-  folder - the logo as light over the trailer's own space frame, the titles from titles.html via titles.mjs, the sound
-  from presents.wav / only.wav there; render.py says how each was mixed).
+"שלומיוורס מציגים" before it and "רק בשלומיוורס" after it - the look of the first Shlomiverse teaser (deep space,
+orange dust, stars, the glowing ringed planet), made as OUR assets:
+- `episodes/_assets/shlomiverse/verse-presents.mp4` (5 s): we drift slowly through the dust; the logo circles slowly in
+  3D (a Seedance 2.0 clip made from the real logo, `source/sd-presents.mp4`, laid in as light), locks on the exact logo
+  with a flash + streak, and "מציגים" rises in the logo's own lettering (Heebo 900, warm white, orange glow - his pick;
+  a metallic serif looked "like an old PowerPoint", a thin light weight "terrible").
+- `episodes/_assets/shlomiverse/verse-only.mp4` (4.2 s): a fast rush through the dust towards a tiny glow that grows
+  into the logo (a whoosh), the lock, then "רק בשלומיוורס" revealed by a white-orange light sweeping right to left.
+- **No music in them** (his rule: the music must never start twice) - only the deep space whoosh and the shimmer. The
+  video's own music starts when the video itself starts.
+- **Never turn / spin the flat logo picture** ("stupid and ugly") - 3D motion of the logo comes from Seedance (made from
+  the real logo picture) or from moving the camera through the space layers.
+- **The space kit** (`_assets/shlomiverse/kit/`): space.png, galaxy.png, dust-a.png, dust-b.png (GPT Image 2.5, prompts
+  in kit/prompts), stars-far/near.png, logo-light.png + logo-body.png (the real logo as light + its dark planet). 
+  `kit/space.py` flies a camera through them with depth: `Space().frame(z)` - use it for any space shot (a teaser's
+  opening, a title card). `source/render3.py` makes both clips from it.
+- **Put them on a project:** `python tools/verse_bookends.py <project>` (studio running) - uploads both, moves every
+  item later by the intro's length, adds the "Shlomiverse" picture + sound layers, the outro pinned to the end.
+  `--replace` = a project that has them gets the current clips; `--muted`, `--no-intro`, `--no-outro`.
 - `episodes/_assets` travels by the studio's cloud sync, not git (CLAUDE.md "The studio online").
 
 ## Making the teaser (what worked, his notes)
