@@ -277,7 +277,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .chips button svg { width: 13px; height: 13px; vertical-align: -2px; }
 .table { display: flex; flex-direction: column; gap: 8px; }
 .trow { position: relative; display: flex; align-items: center; gap: 14px; padding: 13px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; cursor: pointer; transition: transform .15s; }
-.trow:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+@media (hover: hover) { .trow:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); } }
 .trow.k-ask, .trow.k-askItem { background: color-mix(in srgb, var(--red) 9%, var(--card)); border-color: color-mix(in srgb, var(--red) 35%, var(--line)); }
 .trow.k-note .tm b, .trow.k-idea .tm b { font-weight: 600; }
 .trow.new::after { content: ""; position: absolute; top: 12px; left: 12px; width: 10px; height: 10px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent); }
@@ -299,7 +299,9 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .t-green { background: var(--greenSoft); color: var(--green); } .t-amber { background: var(--amberSoft); color: var(--amber); } .t-gray { background: var(--graySoft); color: var(--ink2); }
 .tick { width: 40px; height: 40px; flex: none; display: grid; place-items: center; }
 .tick svg { width: 24px; height: 24px; padding: 3px; border: 2px solid var(--ink3); border-radius: 50%; color: transparent; stroke-width: 3; }
-.tick:hover svg { border-color: var(--green); color: var(--green); }
+/* hover only for a mouse: on the iPhone a hover sticks to the spot he tapped, and the row that moves up into it looked done */
+@media (hover: hover) { .tick:hover svg { border-color: var(--green); color: var(--green); } }
+.tick:active svg { border-color: var(--green); color: var(--green); }
 .tm { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .tm b { font-size: 15.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tm b small { font-weight: 500; color: var(--ink3); font-size: 13px; }
@@ -315,10 +317,10 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .due { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; color: var(--ink2); background: var(--graySoft); border-radius: 7px; padding: 1px 8px; }
 .due svg { width: 13px; height: 13px; } .due.hot { color: var(--red); background: var(--redSoft); }
 .ta { display: flex; gap: 2px; opacity: 0; transition: opacity .12s; }
-.trow:hover .ta { opacity: 1; }
+@media (hover: hover) { .trow:hover .ta { opacity: 1; } }
 .ta button { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: var(--ink3); }
-.ta button:hover { background: var(--card2); color: var(--ink); }
-.ta button[data-done]:hover, .ta button[data-sdone]:hover { color: var(--green); } .ta button[data-park]:hover, .ta button[data-shide]:hover { color: var(--red); }
+@media (hover: hover) { .ta button:hover { background: var(--card2); color: var(--ink); }
+.ta button[data-done]:hover, .ta button[data-sdone]:hover { color: var(--green); } .ta button[data-park]:hover, .ta button[data-shide]:hover { color: var(--red); } }
 .ta button.on { color: var(--amber); } .ta button.on svg { fill: currentColor; }
 .ta svg { width: 17px; height: 17px; }
 .trow.sw-done { box-shadow: inset -6px 0 0 var(--green); } .trow.sw-off { box-shadow: inset 6px 0 0 var(--red); }
