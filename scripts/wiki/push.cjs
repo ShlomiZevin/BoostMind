@@ -26,9 +26,28 @@ const storage = admin.storage();
 const md5 = (buf) => crypto.createHash('md5').update(buf).digest('base64');
 const TYPES = { '.mp4': 'video/mp4', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json' };
 
+// The guard (his ask, 2026-11-05): a build that runs where some exports aren't (another computer, projects in the online
+// studio) silently leaves those videos out - on Nov 3 a push took 20 videos off the live wiki (haredit-1 had 33 plays a
+// day) and nobody saw. So nothing that is live disappears unless it is meant to: a video or character missing from the
+// new wiki.json stops the push and is listed. Meant to (a video taken down): --allow-drop=<id>,<id> (or --allow-drop=all).
+async function guard(bucket) {
+  const [buf] = await bucket.file('wiki/data/wiki.json').download().catch(() => [null]);
+  if (!buf) return;
+  const live = JSON.parse(buf.toString('utf8')), next = JSON.parse(fs.readFileSync(path.join(WIKI, 'data', 'wiki.json'), 'utf8'));
+  const arg = (process.argv.find((a) => a.startsWith('--allow-drop=')) || '').slice(13).split(',').filter(Boolean);
+  const gone = (key) => { const now = new Set((next[key] || []).map((x) => x.id)); return (live[key] || []).map((x) => x.id).filter((id) => !now.has(id) && !arg.includes('all') && !arg.includes(id)); };
+  const videos = gone('videos'), chars = gone('characters');
+  if (!videos.length && !chars.length) return;
+  console.error(`\n  STOP - this push would take off the live wiki:${videos.length ? `\n    ${videos.length} video(s): ${videos.join(', ')}` : ''}${chars.length ? `\n    ${chars.length} character(s): ${chars.join(', ')}` : ''}
+  Usually the build didn't find their files on this computer (python scripts/wiki/build.py lists what is missing). Fix that
+  and build again. Taking them down on purpose: node scripts/wiki/push.cjs --allow-drop=${[...videos, ...chars].join(',')}\n`);
+  process.exit(2);
+}
+
 async function main() {
   const t0 = Date.now();
   const bucket = storage.bucket(MEDIA);
+  await guard(bucket);
   const [remote] = await bucket.getFiles({ prefix: 'wiki/' });
   const have = Object.fromEntries(remote.map((f) => [f.name, f.metadata.md5Hash]));
   const hashes = {};  // 'v/x.mp4' -> md5, for the ?v= in wiki.json

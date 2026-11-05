@@ -965,6 +965,10 @@ body > footer { padding: 14px 0 !important; margin-top: 40px !important; }
 .idea-step.s-live { background: var(--vx-accent); border-color: var(--vx-accent); }
 .idea-step.s-live b, .idea-step.s-live a { color: #fff; }
 .idea-step.s-live .lk { filter: brightness(0) invert(1); }
+/* the Shlomiverse's answer under an idea (written in /backstage/) */
+.idea-reply { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; padding: 9px 11px; border-radius: 14px; background: rgba(255, 106, 31, .07); border-inline-start: 3px solid var(--vx-accent); font-size: .88rem; line-height: 1.45; }
+.idea-reply img { width: 22px; flex: none; margin-top: 1px; }
+.idea-reply b { color: var(--vx-accent); margin-inline-end: 6px; }
 /* the video page: the viewer whose idea it was */
 .vp-credit { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: .8rem; color: rgba(255, 255, 255, .85); text-decoration: none; }
 .vp-credit[hidden] { display: none; }
@@ -1185,18 +1189,23 @@ section.hero .scroll-hint { z-index: 1; }
 .cmy-st { margin-top: 22px; }
 .cmy-tile svg.flip { transform: scaleX(-1); }
 
-/* footer on a phone, above the bottom bar (his notes 2026-11-03: "messy", then "just icons and a simple one line"):
-   one centred row of round icons - the site's links (sites, business, "something broken?"), a thin divider, the
-   socials. No names: each icon has its title. "The community" is already in the bottom bar */
+/* footer on a phone, above the bottom bar. 2026-11-03 "messy" -> one row of round icons; 2026-11-05 "it reads like a second
+   tab bar, nothing says what each is": the site's links as orange icons WITH their names (what he liked), and under them
+   the socials as small grey icons - no circles, so neither row looks like the tab bar. "The community" is in the tab bar */
 @media (max-width: 600px) {
-  footer .wrap.foot { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 6px; }
+  footer .wrap.foot { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 14px; }
   .foot-brand { display: none; }
-  .foot-links, .foot-soc { display: flex; flex-wrap: nowrap; gap: 6px; width: auto; margin: 0; }
+  .foot-links { display: flex; flex-wrap: nowrap; justify-content: center; gap: 16px; width: auto; margin: 0; }
   .foot-links a[href="/community"] { display: none; }
-  .foot-links a, .foot-soc a { width: 36px; height: 36px; padding: 0; border-radius: 50%; justify-content: center; font-size: 0; gap: 0; flex: none; }
-  .foot-links a span, .foot-soc a span { display: none; }
-  .foot-links svg, .foot-soc svg { width: 17px; height: 17px; }
-  .foot-links::after { content: ''; width: 1px; height: 22px; background: var(--line); margin-inline: 4px; align-self: center; }
+  .foot-links a { flex-direction: column; width: auto; min-width: 58px; white-space: nowrap; height: auto; padding: 0; gap: 6px; border: 0; border-radius: 0; background: none; color: var(--dim); font-size: .7rem; font-weight: 600; line-height: 1.2; text-align: center; }
+  .foot-links a:hover { background: none; color: var(--text); }
+  .foot-links a span { display: block; }
+  .foot-links svg { width: 40px; height: 40px; padding: 10px; box-sizing: border-box; border-radius: 50%; border: 1px solid rgba(255, 106, 31, .45); background: rgba(255, 106, 31, .08); color: var(--vx-accent); }
+  .foot-links::after { display: none; }
+  .foot-soc { display: flex; flex-wrap: nowrap; justify-content: center; gap: 22px; width: auto; margin: 0; }
+  .foot-soc a { width: auto; height: auto; padding: 4px; border: 0; border-radius: 0; background: none; color: var(--dim); }
+  .foot-soc a span { display: none; }
+  .foot-soc svg { width: 19px; height: 19px; }
 }
 
 /* ---- games (2026-11-03, designs scripts/v2-design/games.mjs): the home row, the games page, a character's section,

@@ -57,6 +57,7 @@ const IDEA_COPY = {
   making: { title: 'מתחילים לעבוד', body: 'הרעיון שלכם נכנס לעבודה בשלומיוורס' },
   live: { title: 'זה באוויר', body: 'יצא סרטון מהרעיון שלכם, עם קרדיט לכם' },
   liveVoter: { title: 'רעיון שווה צפייה', body: 'רעיון שהצבעתם לו הפך לסרטון' },
+  reply: { title: 'השלומיוורס הגיב לרעיון שלכם' },
 };
 const COMMENT_MAX = 500;
 const REGION = 'europe-west1';
@@ -494,7 +495,7 @@ const ops = {
   // +1 on an idea (the planet, never a heart); the idea's writer hears at 1, 5, 10, 25...
   async vote(uid, d) {
     if (!idOk(d.ideaId)) fail('invalid-argument', 'idea');
-    await fanOf(uid);
+    const voter = await fanOf(uid);
     const ref = db.collection('ideas').doc(d.ideaId);
     const mine = db.collection('fans').doc(uid).collection('votes').doc(d.ideaId);
     const r = await db.runTransaction(async (tx) => {
@@ -509,6 +510,8 @@ const ops = {
       return { n: (is.data().votes || 0) + (on ? 1 : -1), idea: is.data(), changed: on };
     });
     const idea = r.idea;
+    // his own +1 (the official Shlomiverse account) = "השלומיוורס אהב": the writer gets that (bell, push, mail), not a plain +1
+    if (r.changed && voter.official && !idea.status) { await ideaStep(d.ideaId, 'liked'); return { ok: true, votes: r.n, liked: true }; }
     if (r.changed && idea.uid && idea.uid !== uid) {
       await db.collection('fans').doc(idea.uid).collection('notes').doc('votes_' + d.ideaId).set({ kind: 'vote', ideaId: d.ideaId, text: idea.text.slice(0, 140), n: r.n,
         read: false, t: FieldValue.serverTimestamp() });
@@ -653,6 +656,35 @@ exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 
   ]);
   await push([c.uid], { title: `תשובה מ${who.name}`, body: reply.slice(0, 140), url, icon: faceUrl(who.id), badge: BADGE, tag: 'reply_' + root });
 });
+
+// an idea's step, from /backstage/ (ideaStatus) or from his own +1 on the wall (vote, his official account = liked)
+async function ideaStep(id, status, vid) {
+  const ref = db.collection('ideas').doc(id), was = await ref.get();
+  if (!was.exists) return { error: 'idea' };
+  const x = was.data(), videoId = status === 'live' ? String(vid || '').trim() : null;
+  if (status === 'live' && !idOk(videoId)) return { error: 'video' };
+  const first = status !== 'new' && !(x.told || {})[status];
+  await ref.update({ status: status === 'new' ? FieldValue.delete() : status, statusAt: FieldValue.serverTimestamp(), videoId: videoId || FieldValue.delete(),
+    ...(first ? { ['told.' + status]: FieldValue.serverTimestamp() } : {}) });
+  let voters = 0;
+  if (first && x.uid && !x.official) {
+    const c = IDEA_COPY[status], url = status === 'live' ? await pageOf(videoId) : `/community?idea=${id}`;
+    await db.collection('fans').doc(x.uid).collection('notes').add({ kind: 'idea', status, ideaId: id, videoId, text: x.text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() });
+    await push([x.uid], { title: c.title, body: c.body.replace('{idea}', clip(x.text, 80)), url, icon: ICON, badge: BADGE, tag: 'idea_' + id });
+    await require('./mailer').ideaMail({ uid: x.uid, nick: x.nick, ideaId: id, text: x.text, status, videoId }).catch((e) => console.error('idea mail', e.message));
+  }
+  if (first && status === 'live') {
+    const vs = (((await db.collection('ideaVoters').doc(id).get()).data() || {}).uids || []).filter((u) => u !== x.uid);
+    voters = vs.length;
+    if (vs.length) {
+      const batch = db.batch();
+      vs.slice(0, 450).forEach((u) => batch.set(db.collection('fans').doc(u).collection('notes').doc(), { kind: 'idea', status: 'liveVoter', ideaId: id, videoId, text: x.text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() }));
+      await batch.commit();
+      await push(vs, { title: IDEA_COPY.liveVoter.title, body: IDEA_COPY.liveVoter.body, url: await pageOf(videoId), icon: ICON, badge: BADGE, tag: 'idea_' + id });
+    }
+  }
+  return { told: first, voters };
+}
 
 // ---------- Shlomi's page ----------
 const wrongKey = new Map();
@@ -919,33 +951,24 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
     // an idea's way (his ask, 2026-11-05): liked -> making -> live (with its video); each step tells the writer once - the
     // bell, a push and a mail (mailer.ideaMail: Shabbat and night wait, a stopped mail never goes) - and 'live' also tells
     // everyone who voted for it (bell + push). 'new' takes the mark off and tells nobody.
-    if (op === 'ideaStatus') {
-      if (!idOk(b.id) || ![...IDEA_STEPS, 'new'].includes(b.status)) return res.status(400).json({ error: 'id' });
+    // the Shlomiverse answers an idea (his ask, 2026-11-05: "I want to comment from there"): shown under it on the wall,
+    // the writer gets a bell note and a push; an empty text takes the answer off (and tells nobody)
+    if (op === 'ideaReply') {
+      if (!idOk(b.id)) return res.status(400).json({ error: 'id' });
       const ref = db.collection('ideas').doc(b.id), was = await ref.get();
       if (!was.exists) return res.status(404).json({ error: 'idea' });
-      const x = was.data(), videoId = b.status === 'live' ? String(b.videoId || '').trim() : null;
-      if (b.status === 'live' && !idOk(videoId)) return res.status(400).json({ error: 'video' });
-      const first = b.status !== 'new' && !(x.told || {})[b.status];
-      await ref.update({ status: b.status === 'new' ? FieldValue.delete() : b.status, statusAt: FieldValue.serverTimestamp(), videoId: videoId || FieldValue.delete(),
-        ...(first ? { ['told.' + b.status]: FieldValue.serverTimestamp() } : {}) });
-      let voters = 0;
-      if (first && x.uid && !x.official) {
-        const c = IDEA_COPY[b.status], url = b.status === 'live' ? await pageOf(videoId) : `/community?idea=${b.id}`;
-        await db.collection('fans').doc(x.uid).collection('notes').add({ kind: 'idea', status: b.status, ideaId: b.id, videoId, text: x.text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() });
-        await push([x.uid], { title: c.title, body: c.body.replace('{idea}', clip(x.text, 80)), url, icon: ICON, badge: BADGE, tag: 'idea_' + b.id });
-        await require('./mailer').ideaMail({ uid: x.uid, nick: x.nick, ideaId: b.id, text: x.text, status: b.status, videoId }).catch((e) => console.error('idea mail', e.message));
+      const x = was.data(), text = clip(String(b.text || '').trim(), 600);
+      await ref.update({ reply: text ? { text, t: FieldValue.serverTimestamp() } : FieldValue.delete() });
+      if (text && x.uid && !x.official) {
+        await db.collection('fans').doc(x.uid).collection('notes').add({ kind: 'idea', status: 'reply', ideaId: b.id, text: text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() });
+        await push([x.uid], { title: IDEA_COPY.reply.title, body: clip(text, 120), url: `/community?idea=${b.id}`, icon: ICON, badge: BADGE, tag: 'idea_reply_' + b.id });
       }
-      if (first && b.status === 'live') {
-        const vs = (((await db.collection('ideaVoters').doc(b.id).get()).data() || {}).uids || []).filter((u) => u !== x.uid);
-        voters = vs.length;
-        if (vs.length) {
-          const batch = db.batch();
-          vs.slice(0, 450).forEach((u) => batch.set(db.collection('fans').doc(u).collection('notes').doc(), { kind: 'idea', status: 'liveVoter', ideaId: b.id, videoId, text: x.text.slice(0, 140), read: false, t: FieldValue.serverTimestamp() }));
-          await batch.commit();
-          await push(vs, { title: IDEA_COPY.liveVoter.title, body: IDEA_COPY.liveVoter.body, url: await pageOf(videoId), icon: ICON, badge: BADGE, tag: 'idea_' + b.id });
-        }
-      }
-      return res.json({ ok: true, told: first, voters });
+      return res.json({ ok: true, told: !!(text && x.uid && !x.official) });
+    }
+    if (op === 'ideaStatus') {
+      if (!idOk(b.id) || ![...IDEA_STEPS, 'new'].includes(b.status)) return res.status(400).json({ error: 'id' });
+      const r = await ideaStep(b.id, b.status, b.videoId);
+      return r.error ? res.status(r.error === 'idea' ? 404 : 400).json(r) : res.json({ ok: true, ...r });
     }
     if (op === 'done') {
       if (!idOk(b.id)) return res.status(400).json({ error: 'id' });

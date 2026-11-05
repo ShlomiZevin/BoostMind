@@ -219,6 +219,17 @@
   .idea-steps .chip.on { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); }
   .idea-steps .chip img { width: 16px; height: 16px; }
   .idea-steps select { height: 32px; max-width: 200px; border-radius: 10px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; font-size: .8rem; }
+  .idea-reply-box { display: flex; gap: 6px; margin-top: 8px; align-items: flex-start; }
+  .idea-reply-box textarea { flex: 1; min-height: 34px; border-radius: 12px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; font-size: .86rem; padding: 7px 10px; resize: vertical; }
+  .idea-reply-box .chip { display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--accent); background: none; color: var(--text); font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+  .ask-back { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(0, 0, 0, .6); opacity: 0; transition: opacity .15s; }
+  .ask-back.on { opacity: 1; }
+  .ask { width: min(420px, 100%); background: var(--card); border: 1px solid var(--line2); border-radius: 22px; padding: 22px 22px 18px; box-shadow: 0 24px 60px rgba(0, 0, 0, .5); text-align: center; transform: translateY(8px) scale(.98); transition: transform .15s; }
+  .ask-back.on .ask { transform: none; }
+  .ask img { width: 46px; margin-bottom: 8px; }
+  .ask p { font-size: 1rem; line-height: 1.55; margin: 0 0 18px; color: var(--text); }
+  .ask-acts { display: flex; gap: 8px; justify-content: center; }
+  .ask-acts .btn { min-width: 110px; justify-content: center; }
   .bs-toast { position: fixed; bottom: 24px; left: 50%; translate: -50% 0; z-index: 999; background: var(--card2); border: 1px solid var(--accent); color: var(--text); padding: 12px 18px; border-radius: 14px; font-weight: 700; }
   .dz-row .del { margin-inline-start: auto; color: #ff7a7a; }
   .dz-row .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line2); }
@@ -597,7 +608,7 @@ const hi = () => { const h = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia
 
 // ---------- faces ----------
 let W, C = {}, V = {}, L = null, S = null, tab = (location.hash.match(/^#(\w+)/) || [])[1] || 'overview', pick = null, file = null;
-let rqKind = 'all', rqQuery = '', contentSeg = 'comments', publishSeg = 'story', range = 1;   // today first (his ask)
+let rqKind = 'all', rqQuery = '', contentSeg = 'all', publishSeg = 'story', range = 1;   // today first (his ask)
 const GUIDE_FACE = '<span class="vx-av"><span class="gmark"><img src="/verse/logo-160.png" alt=""></span></span>';
 const face = (id) => id === 'guide' ? GUIDE_FACE : C[id]?.img ? `<span class="vx-av ring"><img src="${abs(C[id].img)}" alt="" loading="lazy"></span>` : `<span class="vx-av">${esc((C[id]?.name || '?')[0])}</span>`;
 const cname = (id) => id === 'guide' ? 'המדריך' : C[id]?.name || id;
@@ -639,7 +650,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['content', 'תוכן', 'content'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
+const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -650,15 +661,17 @@ const seen = (k) => { try { return +localStorage.getItem('bs-seen-' + k) || 0; }
 const markSeen = (k) => { try { localStorage.setItem('bs-seen-' + k, String(Date.now())); } catch (e) {} };
 const badges = () => ({
   requests: L.requests.filter((r) => !r.done && (r.t || 0) > seen('requests')).length,
-  content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length
-    + (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('content'), Date.now() - 7 * 864e5)).length,
+  content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length,
+  ideas: (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('ideas'), Date.now() - 7 * 864e5)).length,
 });
 function draw() {
-  if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', ideas: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
-  if (tab === 'requests' || tab === 'content') markSeen(tab);
+  // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
+  if (['comments', 'stickers'].includes(tab)) contentSeg = tab;
+  if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
+  if (tab === 'requests' || tab === 'content' || tab === 'ideas') markSeen(tab);
   const badge = badges();
-  const phoneTab = ['requests', 'content', 'publish', 'mail'].includes(tab) ? 'more' : tab;
-  const moreBadge = badge.requests + badge.content;
+  const phoneTab = ['requests', 'ideas', 'content', 'publish', 'mail'].includes(tab) ? 'more' : tab;
+  const moreBadge = badge.requests + badge.ideas + badge.content;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
       <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
@@ -666,7 +679,7 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, chats, data, people, requests, content, publish, mail: mails, more })[tab]();
+  ({ overview, chats, data, people, requests, ideas, content, publish, mail: mails, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
@@ -674,7 +687,7 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['content', 'תוכן: תגובות, רעיונות, סטיקרים', 'content'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
 }
@@ -855,6 +868,21 @@ function sheet(html, cls = '') {
   document.body.insertAdjacentHTML('beforeend', `<div class="sheet-back" data-close></div><div class="sheet ${cls}" role="dialog"><div class="grab"></div>${html}</div>`);
   requestAnimationFrame(() => { $('.sheet-back').classList.add('on'); $('.sheet').classList.add('on'); });
   document.body.style.overflow = 'hidden';
+}
+// a question in the page's own look, instead of the browser's "shlomiverse.com says" box (his ask, 2026-11-05).
+// await askBox('...') -> true / false; Enter = yes, Escape or a tap outside = no
+function askBox(msg, { ok = 'כן', no = 'ביטול' } = {}) {
+  return new Promise((resolve) => {
+    document.querySelectorAll('.ask-back').forEach((x) => x.remove());
+    document.body.insertAdjacentHTML('beforeend', `<div class="ask-back"><div class="ask" role="alertdialog" aria-modal="true"><img src="/verse/logo-160.png" alt=""><p>${esc(msg).split('\n').join('<br>')}</p>
+      <div class="ask-acts"><button class="btn main" data-ask="1">${esc(ok)}</button><button class="btn" data-ask="0">${esc(no)}</button></div></div></div>`);
+    const back = document.querySelector('.ask-back');
+    const done = (v) => { back.remove(); removeEventListener('keydown', key, true); resolve(v); };
+    const key = (e) => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } if (e.key === 'Enter') { e.preventDefault(); done(true); } };
+    addEventListener('keydown', key, true);
+    back.addEventListener('click', (e) => { const b = e.target.closest('[data-ask]'); if (b) done(b.dataset.ask === '1'); else if (e.target === back) done(false); });
+    requestAnimationFrame(() => { back.classList.add('on'); back.querySelector('[data-ask="1"]').focus(); });
+  });
 }
 function closeSheet() { document.querySelectorAll('.sheet, .sheet-back').forEach((x) => x.remove()); document.body.style.overflow = ''; }
 addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
@@ -1037,9 +1065,22 @@ function requests() {
 }
 
 // תוכן: comments, ideas and stickers in one place; פרסום: a character's story, a new video
-const contentSegHtml = () => `<div class="seg">${[['comments', 'תגובות'], ['ideas', 'רעיונות'], ['stickers', 'סטיקרים']].map(([k, l]) => `<button data-cseg="${k}" class="${contentSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const contentSegHtml = () => `<div class="seg">${[['all', 'הכל'], ['comments', 'תגובות'], ['stickers', 'סטיקרים']].map(([k, l]) => `<button data-cseg="${k}" class="${contentSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 const publishSegHtml = () => `<div class="seg">${[['story', 'סטוריז'], ['video', 'סרטון חדש']].map(([k, l]) => `<button data-pseg="${k}" class="${publishSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-function content() { ({ comments, ideas, stickers })[contentSeg](); }
+function content() { ({ all: allContent, comments, stickers })[contentSeg](); }
+const commentRow = (c) => `<div class="item ${c.hidden ? 'off' : ''}">${c.char ? face(c.char) : fanFace(c)}
+      <div class="body"><b>${esc(c.nick)}</b> ${c.char ? '<span class="tag or">דמות</span>' : ''}${c.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${c.removedBy === 'fan' ? ' <span class="tag">נמחק ע״י המגיב</span>' : ''}
+        <small> · ${ago(c.t)} · <a href="/v/${c.videoId}?c=${c.parentId || c.id}" target="_blank" style="color:#ff9a5c">${esc(V[c.videoId]?.title || c.videoId)}</a></small><p>${esc(c.text)}</p></div>${hideBtn('comment', c)}</div>`;
+const stickerRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}"><img class="st" src="${esc(x.img)}" alt="">
+      <div class="body"><b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.stampCount || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <a href="/v/${x.videoId}?sticker=${x.id}" target="_blank" style="color:#ff9a5c">${esc(V[x.videoId]?.title || x.videoId)}</a></p></div>${hideBtn('sticker', x)}</div>`;
+// תוכן opens on everything at once, newest first (his ask, 2026-11-05: the parts behind the buttons were easy to miss)
+function allContent() {
+  const ideaRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body"><b>${esc(x.nick || '')}</b> <span class="tag or">רעיון</span><small> · ${ago(x.t)}</small><p>${esc(x.text)}</p></div><button class="btn" data-tab="ideas">לרעיונות</button></div>`;
+  const rows = [...L.comments.map((c) => [c.t || 0, commentRow(c)]), ...L.stickers.map((x) => [x.t || 0, stickerRow(x)]), ...(L.ideas || []).map((x) => [x.t || 0, ideaRow(x)])]
+    .sort((a, b) => b[0] - a[0]).slice(0, 150);
+  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>כל התוכן</h1><p>תגובות, רעיונות וסטיקרים יחד, החדשים קודם.</p></div></div>
+    <div>${rows.map((r) => r[1]).join('') || '<div class="empty">עוד אין כלום.</div>'}</div>`;
+}
 function publish() { ({ story, video })[publishSeg](); }
 // ---------- ideas ----------
 function ideas() {
@@ -1050,8 +1091,9 @@ function ideas() {
   const vids = W.videos.filter((v) => !v.archive && !v.url).slice(0, 40);
   const steps = (x) => x.hidden ? '' : `<div class="idea-steps">${Object.entries(STEP).map(([k, l]) => `<button class="chip ${x.status === k ? 'on' : ''}" data-idea-step="${k}" data-id="${x.id}">${k === 'liked' ? LOGO_LIKE : ''}${l}</button>`).join('')}
       <select data-idea-video="${x.id}" title="איזה סרטון יצא מהרעיון">${vids.map((v) => `<option value="${v.id}" ${x.videoId === v.id ? 'selected' : ''}>${esc(v.title)}</option>`).join('')}</select>
-      ${x.status ? `<button class="chip" data-idea-step="new" data-id="${x.id}">לבטל את הסימון</button>` : ''}</div>`;
-  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר. סימון (השלומיוורס אהב / בעבודה / עלה לאוויר) מופיע בקיר, וכותב הרעיון מקבל עליו התראה ומייל.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר באתר</a></div>
+      ${x.status ? `<button class="chip" data-idea-step="new" data-id="${x.id}">לבטל את הסימון</button>` : ''}</div>
+      <div class="idea-reply-box"><textarea rows="1" data-idea-reply-text="${x.id}" placeholder="תגובה של השלומיוורס לרעיון (מופיעה מתחתיו בקיר, והכותב מקבל התראה)">${esc(x.reply?.text || '')}</textarea><button class="chip" data-idea-reply="${x.id}">${x.reply?.text ? 'לעדכן' : 'להגיב'}</button></div>`;
+  $('#pane').innerHTML = `<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים, הכי אהובים קודם. מה שלא מתאים - להסתיר. סימון (השלומיוורס אהב / בעבודה / עלה לאוויר) מופיע בקיר, וכותב הרעיון מקבל עליו התראה ומייל.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר באתר</a></div>
     <div>${list.map((x) => `<div class="item ${x.hidden ? 'off' : ''}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body">
       <b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.votes || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <span class="tag">${KIND[x.kind] || ''}</span>${x.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${x.status ? ` · <span class="tag">${STEP[x.status]}</span>` : ''}</p>
       ${steps(x)}</div>
@@ -1064,7 +1106,7 @@ async function ideaStep(b) {
   const told = (x.told || {})[s];
   const msg = s === 'new' ? 'לבטל את הסימון? (לא נשלחת הודעה)' : told ? 'לסמן שוב? (כבר קיבלו הודעה על השלב הזה - לא תישלח שוב)'
     : `לסמן "${{ liked: 'השלומיוורס אהב', making: 'בעבודה', live: 'עלה לאוויר' }[s]}"? ${x.nick || 'הכותב'} יקבל/ת התראה ומייל${s === 'live' ? ', וכל מי שהצביע יקבל התראה' : ''}.`;
-  if (!confirm(msg)) return;
+  if (!await askBox(msg)) return;
   b.disabled = true;
   const say = (t) => { const d = document.createElement('div'); d.className = 'bs-toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 3200); };
   try { const r = await api('ideaStatus', { id: x.id, status: s, videoId }); say(r.told ? `סומן ונשלח ל${x.nick || 'כותב הרעיון'}${r.voters ? ` ול-${r.voters} שהצביעו` : ''}` : 'עודכן'); } catch (e) { say('לא הצליח: ' + (e.message || '')); }
@@ -1075,14 +1117,11 @@ const hideBtn = (kind, x) => `<button class="btn" data-hide="${kind}" data-id="$
 // ---------- comments / stickers ----------
 function comments() {
   $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>תגובות</h1><p>כל התגובות, החדשות קודם. תגובה שמסתירים נעלמת מהאתר.</p></div></div>
-    <div>${L.comments.map((c) => `<div class="item ${c.hidden ? 'off' : ''}">${c.char ? face(c.char) : fanFace(c)}
-      <div class="body"><b>${esc(c.nick)}</b> ${c.char ? '<span class="tag or">דמות</span>' : ''}${c.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${c.removedBy === 'fan' ? ' <span class="tag">נמחק ע״י המגיב</span>' : ''}
-        <small> · ${ago(c.t)} · <a href="/v/${c.videoId}?c=${c.parentId || c.id}" target="_blank" style="color:#ff9a5c">${esc(V[c.videoId]?.title || c.videoId)}</a></small><p>${esc(c.text)}</p></div>${hideBtn('comment', c)}</div>`).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`;
+    <div>${L.comments.map(commentRow).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`;
 }
 function stickers() {
   $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>סטיקרים</h1><p>הסטיקרים שהצופים פרסמו. סטיקר שמסתירים יורד מהאתר.</p></div></div>
-    <div>${L.stickers.map((x) => `<div class="item ${x.hidden ? 'off' : ''}"><img class="st" src="${esc(x.img)}" alt="">
-      <div class="body"><b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.stampCount || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <a href="/v/${x.videoId}?sticker=${x.id}" target="_blank" style="color:#ff9a5c">${esc(V[x.videoId]?.title || x.videoId)}</a></p></div>${hideBtn('sticker', x)}</div>`).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`;
+    <div>${L.stickers.map(stickerRow).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`;
 }
 
 // ---------- סטוריז: every story as a visitor saw it; a new one is written in a window on top (his ask 2026-11-02,
@@ -1292,7 +1331,7 @@ function storyWindow(edit) {
     if (edit) fd.append('id', edit.id);
     else {
       if (!pick) return;
-      if (stAud === 'everyone' && !confirm(`לשלוח התראה לכל ${fmt(L.fans)} החשבונות בשלומיוורס?`)) return;
+      if (stAud === 'everyone' && !await askBox(`לשלוח התראה לכל ${fmt(L.fans)} החשבונות בשלומיוורס?`)) return;
       fd.append('char', pick); fd.append('notify', stAud === 'none' ? 'no' : 'yes');
       if (stAud === 'everyone') fd.append('everyone', 'yes');
     }
@@ -1379,7 +1418,7 @@ function mlStatus() {
 // the switch: on = everyone; off = only the addresses in `only` (the test mode). Turning it on mails real people - asks first.
 async function mlSwitch(e) {
   const on = e.target.checked;
-  if (on && !confirm(`להדליק את המיילים לכולם?\nמהריצה הבאה כל החשבונות יקבלו מיילים אמיתיים, קודם ברוכים הבאים.`)) { e.target.checked = false; return; }
+  if (on && !await askBox(`להדליק את המיילים לכולם?\nמהריצה הבאה כל החשבונות יקבלו מיילים אמיתיים, קודם ברוכים הבאים.`)) { e.target.checked = false; return; }
   e.target.disabled = true;
   try { MST.cfg = (await api('mailConfig', { on, only: MST.cfg?.only })).cfg; mlNote = on ? '<span class="ok">דלוק: מעכשיו שולחים לכולם.</span>' : 'כבוי: חזרנו למצב בדיקה.'; }
   catch (x) { mlNote = `לא נשמר (${esc(x.message)}).`; }
@@ -1389,7 +1428,7 @@ async function mlSwitch(e) {
 }
 async function mlRun(b) {
   const n = MST?.plan?.due?.length || 0;
-  if (!confirm(`להריץ את המיילים עכשיו, באמת?\n${n ? `${fmt(n)} ${MST.cfg?.on ? 'אנשים' : 'כתובות בדיקה'} יקבלו מייל אמיתי.` : 'לפי התכנון אין עכשיו למי לשלוח.'}`)) return;
+  if (!await askBox(`להריץ את המיילים עכשיו, באמת?\n${n ? `${fmt(n)} ${MST.cfg?.on ? 'אנשים' : 'כתובות בדיקה'} יקבלו מייל אמיתי.` : 'לפי התכנון אין עכשיו למי לשלוח.'}`)) return;
   b.disabled = true;
   $('#ml-msg').textContent = 'מריץ…';
   try {
@@ -1525,6 +1564,15 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.stchar !== undefined) { stChar = b.dataset.stchar; story(); }
   else if (b.dataset.hide) { if (b.closest('.sheet')) closeSheet(); b.disabled = true; await api('hide', { kind: b.dataset.hide, id: b.dataset.id, hidden: b.dataset.on === '1' }).catch(() => {}); refresh(); }
   else if (b.dataset.ideaStep) await ideaStep(b);
+  else if (b.dataset.ideaReply) {
+    const id = b.dataset.ideaReply, text = document.querySelector(`[data-idea-reply-text="${id}"]`).value.trim();
+    const x = (L.ideas || []).find((i) => i.id === id);
+    if (!text && !x?.reply?.text) return;
+    if (!await askBox(text ? `לפרסם את התגובה מתחת לרעיון? ${x?.nick || 'הכותב'} יקבל/ת התראה.` : 'למחוק את התגובה?')) return;
+    b.disabled = true;
+    await api('ideaReply', { id, text }).catch(() => {});
+    refresh();
+  }
   else if (b.dataset.done) { b.disabled = true; await api('done', { id: b.dataset.done, done: b.dataset.on === '1' }).catch(() => {}); refresh(); }
   else if (b.dataset.announce) {
     const v = V[b.dataset.announce];

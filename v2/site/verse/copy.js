@@ -114,7 +114,7 @@ export const T = {
     like: (n, from) => (n > 1 ? `${n} אהבו את התגובה שלכם` : `אהבתי מ${from || 'מישהו'}`),
     stamp: (k) => (k === 1 ? 'מישהו החתים את הסטיקר שלכם' : `${k} החתמות על הסטיקר שלכם`),
     vote: (n) => (n > 1 ? `${n} הצביעו לרעיון שלכם` : 'מישהו נתן +1 לרעיון שלכם'),
-    idea: { liked: 'השלומיוורס אהב את הרעיון שלכם', making: 'הרעיון שלכם בעבודה', live: 'הרעיון שלכם יצא לאוויר', liveVoter: 'רעיון שהצבעתם לו יצא לאוויר' },
+    idea: { liked: 'השלומיוורס אהב את הרעיון שלכם', making: 'הרעיון שלכם בעבודה', live: 'הרעיון שלכם יצא לאוויר', liveVoter: 'רעיון שהצבעתם לו יצא לאוויר', reply: 'השלומיוורס הגיב לרעיון שלכם' },
     welcome: (n) => `ברוכים הבאים לשלומיוורס, ${n}`,
     welcomeLine: 'עקבו אחרי דמויות, ומה שקורה להן יגיע לכאן.',
   },
@@ -276,7 +276,7 @@ export const T = {
   ideasTop: 'הכי אהובים', ideasNew: 'חדשים', ideasEmpty: 'עוד אין כאן רעיונות. תהיו הראשונים.', ideaShare: 'שיתוף',
   ideaKinds: { episode: 'פרק חדש', character: 'דמות חדשה', meet: 'מפגש בין דמויות', other: 'משהו אחר' },
   // an idea's way, marked in /backstage/ (Terra, 2026-11-05): the badge on the wall, the credit on the video page
-  ideaStep: { liked: 'השלומיוורס אהב', making: 'בדרך למסך', live: 'עלה לאוויר' }, ideaWatch: 'לצפייה', ideaCredit: 'רעיון של',
+  ideaStep: { liked: 'השלומיוורס אהב', making: 'בדרך למסך', live: 'עלה לאוויר' }, ideaWatch: 'לצפייה', ideaCredit: 'רעיון של', ideaReplyBy: 'השלומיוורס',
   ideaTitle: 'יש לכם רעיון לשלומיוורס?', ideaPh: 'מה הייתם רוצים לראות?', ideaWho: 'על מי זה?', ideaWhoHint: 'או כתבו @ ושם של דמות', ideaSend: 'לשלוח לשלומי',
   ideaNote: 'הרעיונות הכי אהובים מגיעים לשלומי ראשונים', ideaQuota: 'מספיק רעיונות להיום. מחר עוד.',
   ideaDoneTitle: 'הרעיון שלכם עלה', ideaDoneSub: 'תנו לחברים להצביע', ideaShareWa: 'לשתף בוואטסאפ', ideaCopy: 'העתקת קישור', ideaCopied: 'הקישור הועתק',

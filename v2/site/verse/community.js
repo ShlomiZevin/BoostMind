@@ -37,6 +37,7 @@ function ideaCard(x) {
     <div class="idea-body"><div class="idea-by">${av({ fan: x })}<span>${esc(x.nick || '')}</span>${ofc(x)}${x.t ? `<small>${ago(x.t)}</small>` : ''}</div>
       <p>${esc(x.text)}</p>
       ${stepBadge(x)}
+      ${x.reply?.text ? `<div class="idea-reply"><img src="/verse/logo-160.png" alt=""><span><b>${esc(T.ideaReplyBy)}</b>${esc(x.reply.text)}</span></div>` : ''}
       <div class="idea-foot">${T.ideaKinds[x.kind] && x.kind !== 'other' ? `<span class="idea-kind">${esc(T.ideaKinds[x.kind])}</span>` : '<span></span>'}
         <span class="idea-acts"><button class="vote ${on ? 'on' : ''}" data-vote="${x.id}" aria-label="+1">${LIKE}<b dir="ltr">${x.votes ? x.votes : '+1'}</b></button>
         <button class="icon-btn" data-share-idea="${x.id}" aria-label="${esc(T.ideaShare)}">${I.share}</button></span></div></div></div>`;

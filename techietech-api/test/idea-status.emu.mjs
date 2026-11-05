@@ -52,6 +52,28 @@ notes = await list(`fans/${voter}/notes`);
 assert.ok(notes.some((n) => n.fields.status?.stringValue === 'liveVoter'), 'the voter hears it went live');
 console.log('ok  live: the writer told again, the voter gets a bell note');
 
+// the Shlomiverse answers the idea: shown on it, the writer gets a bell note
+let r = await fetch(`${OWN}?op=ideaReply`, { method: 'POST', headers: { authorization: 'Key ' + KEY, 'content-type': 'application/json' }, body: JSON.stringify({ id, text: 'רעיון מעולה, כבר כותבים' }) });
+assert.ok(r.ok);
+notes = await list(`fans/${writer}/notes`);
+assert.ok(notes.some((n) => n.fields.status?.stringValue === 'reply'), 'the writer hears about the answer');
+console.log('ok  the answer: on the idea, the writer told');
+
+// his own +1 (the official account) on a fresh idea = "the Shlomiverse liked it"
+const tok = async (n) => (await (await fetch(`${AUTH}/accounts:signUp?key=x`, { method: 'POST', headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ email: `${n}${Date.now()}@test.local`, password: 'secret123', returnSecureToken: true }) })).json());
+const me = await tok('official');
+await put(`fans/${me.localId}`, { nick: str('שלומיוורס'), official: { booleanValue: true } });
+const id2 = 'idea2' + Date.now().toString(36);
+await put(`ideas/${id2}`, { text: str('עוד רעיון'), kind: str('episode'), uid: str(writer), nick: str('חסדי השם'), votes: { integerValue: '0' }, hidden: { booleanValue: false }, t: { timestampValue: new Date().toISOString() } });
+r = await fetch('http://127.0.0.1:5001/demo-shlomiverse/europe-west1/verse', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + me.idToken },
+  body: JSON.stringify({ data: { op: 'vote', ideaId: id2, on: true } }) });
+const vj = await r.json();
+assert.ok(vj.result?.liked, 'his +1 marks it liked: ' + JSON.stringify(vj));
+const i2 = (await (await fetch(`${FS}/ideas/${id2}`, { headers: H })).json()).fields;
+assert.equal(i2.status?.stringValue, 'liked');
+console.log('ok  his own +1 = השלומיוורס אהב (the writer gets the liked bell + mail, not a plain +1)');
+
 const site = spawn('node', [path.join(ROOT, 'v2/dev.mjs'), '--site'], { stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 2500));
 const b = await puppeteer.launch({ executablePath: process.env.LOCALAPPDATA + '/ms-playwright/chromium-1228/chrome-win64/chrome.exe', headless: 'new' });
@@ -61,6 +83,7 @@ try {
   await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await p.goto(`http://localhost:5050/community?idea=${id}`, { waitUntil: 'networkidle2', timeout: 60000 });
   await p.waitForSelector(`#idea-${id} .idea-step.s-live`, { timeout: 20000 });
+  assert.match(await p.$eval(`#idea-${id} .idea-reply`, (e) => e.textContent), /כבר כותבים/, 'the answer shows under the idea');
   assert.match(await p.$eval(`#idea-${id} .idea-step a`, (a) => a.getAttribute('href')), new RegExp(video.id), 'the badge links to its video');
   await p.$eval(`#idea-${id}`, (e) => e.scrollIntoView({ block: 'center' }));
   await p.screenshot({ path: path.join(dir, 'wall.png') });
