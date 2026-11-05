@@ -677,8 +677,8 @@ function chip() {
   let t = '';
   if (state === 'play' || state === 'tut') {
     if (crash) t = '';
-    else if (client) t = '<em>מהר!</em> הלקוח מחכה';
-    else if (moving) t = '<em>גררו</em> אל העובד';
+    else if (client && T < 30) t = '<em>מהר!</em> הלקוח מחכה';
+    else if (moving && (tutorial || T < 10)) t = '<em>החליקו</em> לצדדים כדי לשנות כיוון';   // gone after the first 10 seconds
   }
   if (t !== chipTxt) { chipTxt = t; $('chip').innerHTML = t; $('chip').style.visibility = t ? 'visible' : 'hidden'; }
 }
