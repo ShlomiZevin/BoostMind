@@ -84,6 +84,14 @@ it's very slow")
     pause counts only BETWEEN sentences (after a word that ends a clause), not between two words of one phrase;
   - **a pause cut must start >= 0.3 s after the recogniser's word end** - a soft last consonant (the ז of "לזוז")
     falls under -34 dB and a cut right after it ate the word ("חתכת את הדיבור של הלזוז השני");
+  - **"קאט זריז" into a reply, where the gap is shorter than `join`** (0.25 s between "לזוז" and "לא, לא, לא תודה"):
+    every jump cut overlaps the next line by `join` and fades the last 0.3 s, so the next word lands on a soft word
+    end and swallows it (he heard "לזוז" cut twice). No per-cut join exists - after the LAST rebuild, by ops: that
+    picture item's `dur` = its voice item's `dur`, the voice `fade_out` 0.04, every later item (picture, voice,
+    subtitles, end card) +the difference, `duration` and the beds' ends too. Hand items stay through a rebuild, so do
+    it last and say so;
+  - **a soft last word at a piece end** ("לא" at -40 dB) falls into the join's fading tail - extend the piece with
+    `cut.edges` [[voice span end, wanted end + join]] (the span end = picture end + `join`; the last piece has none);
   - **the music runs to the very end**: a 1-minute bed with `own_pace` covers (60 - 1) x speed x 30 frames of
     timeline - at 1.15 a 66 s video needs a second item of the same track (1 s crossfade, `in` 0) - recompute after
     he changes the speed;
