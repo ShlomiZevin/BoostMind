@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/conversion';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const prompt = `Edit the attached portrait so it is ONE believable real person, photographed, not retouched. Two changes:
 1. Body: a slim but normal woman in her late fifties - not bony, not skinny, not broad: average slim shoulders, a normal neck
 that fits the face, the black cardigan fitting naturally; natural head-to-body proportions, the same skin tone on face, neck

@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/conversion';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const prompt = `Edit the attached portrait. Change ONLY her skin: she smokes, and it shows a LITTLE - half as much as a heavy smoker: her neck, throat and chest
 (the décolletage in the shirt's neckline) have a smoker's skin - lightly crepey, a few fine neck lines, a few
 spots, small brown spots, slightly uneven tone - and her face matches it under the heavy makeup: smoker's

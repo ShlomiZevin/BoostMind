@@ -137,3 +137,6 @@ zoomcut/characters/**/profile.md
 # characters live only in the database since 2026-11-06 (Shlomiverse Studio + content.mjs) - never a file copy
 zoomcut/characters/**/character.json
 zoomcut/characters/index.json
+
+# the Shlomiverse design / session scripts' own OpenAI key (2026-11-06) - never in git; node scripts/design-env.mjs makes it on a computer
+scripts/design.env

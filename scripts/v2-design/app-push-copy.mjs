@@ -3,7 +3,7 @@
 // node scripts/v2-design/app-push-copy.mjs  -> prints JSON for T.app in v2/site/verse/copy.js
 import { readFileSync } from 'node:fs';
 
-const env = readFileSync('C:/workspace/aspect/aspect-agent-server/.env', 'utf8');
+const env = readFileSync('C:/workspace/BoostMind/scripts/design.env', 'utf8');
 const KEY = (env.match(/^OPENAI_API_KEY=(.+)$/m) || [])[1]?.trim().replace(/^["']|["']$/g, '');
 if (!KEY) throw new Error('no OPENAI_API_KEY');
 

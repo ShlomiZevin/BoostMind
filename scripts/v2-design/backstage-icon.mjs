@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/conversion';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const form = new FormData();
 form.append('model', 'gpt-image-2.6-sunburst');
 form.append('prompt', `An iPhone home-screen app icon, full square, edge to edge (iOS rounds the corners, so no rounded corners, no border).

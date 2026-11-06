@@ -20,7 +20,7 @@ const JAVA = path.join(process.env.USERPROFILE || 'C:/Users/shazbak', '.local', 
 const envKey = (file, name) => { try { return fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, ''); } catch { return undefined; } };
 
 if (!process.argv.includes('--site')) {
-  const key = envKey(path.join(ROOT, 'zoomcut', '.env'), 'OPENAI_API_KEY') || envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+  const key = envKey(path.join(ROOT, 'zoomcut', '.env'), 'OPENAI_API_KEY') || envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
   if (!key) console.log('! no OpenAI key found - character replies, moderation and stickers will fail');
   const env = { ...process.env, JAVA_HOME: JAVA, PATH: path.join(JAVA, 'bin') + path.delimiter + process.env.PATH, VERSE_OPENAI_KEY: key || '', WIKI_OPENAI_KEY: key || '' };
   const emu = spawn('firebase', ['emulators:start', '--project', 'demo-shlomiverse', '--import', './.emu', '--export-on-exit', './.emu'],

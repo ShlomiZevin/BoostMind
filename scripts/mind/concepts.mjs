@@ -4,7 +4,7 @@
 //   node scripts/mind/concepts.mjs <out-dir>
 import fs from 'node:fs';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const out = process.argv[2]; fs.mkdirSync(out, { recursive: true });
 
 const product = `PRODUCT: a private personal "second brain" web app for ONE person - a busy CTO who runs two companies' tech and a

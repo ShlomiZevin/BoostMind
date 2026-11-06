@@ -11,7 +11,7 @@ const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find
 const ZENV = new URL('../../zoomcut/.env', import.meta.url);
 const EL = envKey(ZENV, 'ELEVENLABS_API_KEY');
 const LEO = envKey(ZENV, 'LEONARDO_API_KEY');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // Creator plan: $22 a month for 121,000 credits (elevenlabs.io/pricing, 30 Oct 2026)
 const USD_PER_CREDIT = 22 / 121000;

@@ -9,7 +9,7 @@ const DESIGN = 'C:/Users/shazbak/Documents/shlomiverse-v2-design';
 const OUT = path.join(DESIGN, 'admin');
 const SHOTS = 'C:/Users/shazbak/AppData/Local/Temp/claude/c--workspace-BoostMind/7877d1ed-1ed2-4b1b-9b09-cc60652aee71/scratchpad/bio';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const img = (file, name, type = 'image/png') => [new Blob([fs.readFileSync(file)], { type }), name];
 const NOW = img(`${SHOTS}/bs-story-desk.png`, 'current-page.png');
 const STORY = img(`${SHOTS}/pilai-story.jpg`, 'a-real-story-picture.jpg', 'image/jpeg');

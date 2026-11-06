@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const ENV = 'C:/workspace/aspect/aspect-agent-server/.env';
+const ENV = 'C:/workspace/BoostMind/scripts/design.env';
 const key = fs.readFileSync(ENV, 'utf8').split(/\r?\n/).find((l) => l.startsWith('OPENAI_API_KEY='))?.slice(15).trim().replace(/^["']|["']$/g, '');
 if (!key) { console.error('no OPENAI_API_KEY in ' + ENV); process.exit(1); }
 const [inp, out, prompt, quality = 'medium'] = process.argv.slice(2);

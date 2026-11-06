@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/next-plan';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const ref = (f, type = f.endsWith('.png') ? 'image/png' : 'image/jpeg') => [new Blob([fs.readFileSync(`${DIR}/${f}`)], { type }), f];
 const HOME = ref('ref-home.png'), CARD = ref('ref-card.png'), CHAT = ref('ref-chat.jpg');
 const MIRIAM = ref('ref-miriam.jpg'), DEMO = ref('ref-demokratovich.jpg'), HANI = ref('ref-hani.jpg'), YOTAM = ref('ref-yotam.jpg'), ROSEN = ref('ref-rosenblum.jpg');

@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const LOGO = 'C:/workspace/BoostMind/v2/site/verse/logo-512.png';
 const [SKY, OUT] = process.argv.slice(2);
 if (!SKY || !OUT) { console.log('usage: node end-of-verse-planet.mjs <sky.jpg> <out.jpg>'); process.exit(1); }

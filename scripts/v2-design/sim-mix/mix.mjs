@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const q = process.argv[2] || 'low', model = process.argv[3] || 'gpt-image-2.6-flare';
 const form = new FormData();
 form.append('model', model); form.append('size', '1024x1536'); form.append('quality', q); form.append('n', '1'); form.append('output_format', 'jpeg');

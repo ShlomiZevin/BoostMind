@@ -8,7 +8,7 @@ import path from 'node:path';
 const OUT = 'C:/Users/shazbak/Documents/shoot-design';
 fs.mkdirSync(OUT, { recursive: true });
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 
 const PRODUCT = `A UI design concept for an app screen, shown as a flat full-screen screenshot (no device frame, no hands).
 The product: "Shoot" - a comedian's own filming app. He makes short vertical comedy sketches where he plays many

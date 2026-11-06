@@ -12,7 +12,7 @@ const OUT = 'C:/workspace/BoostMind/v2/site/verse/pack';
 const D = 'C:/Users/shazbak/Downloads/drop';
 const R = 'C:/workspace/BoostMind/scripts/insta/work';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 
 // id, character, the line (as in the canon - Hani's Ashkenazi "פילאי פלואים"), the take, the second, crop (top % to drop: a
 // reel's burned-in caption)

@@ -8,7 +8,7 @@ const OUT = path.resolve(process.argv[2] || 'sheet-test-out');
 fs.mkdirSync(OUT, { recursive: true });
 const STUDIO = 'C:/workspace/noam/plaxzy-studio';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const catalog = fs.readFileSync(path.join(STUDIO, 'catalog.jsonl'), 'utf8').trim().split('\n').map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 const entry = (id) => catalog.find((e) => e.id === id);
 const PRICE = { text: 5, image: 8, out: 30 }; // $ per 1M tokens

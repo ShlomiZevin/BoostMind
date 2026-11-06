@@ -4,7 +4,7 @@
 // Redone 2026-11-06 from her fixed portrait (late fifties, slim, a smoker's skin, glasses, very heavy makeup, no beard).
 import fs from 'node:fs';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const form = new FormData();
 form.append('model', 'gpt-image-2.6-flare');
 form.append('prompt', `A wide illustration for the top of a sign-up window: the counter of the Shlomiverse's residency office (the attached

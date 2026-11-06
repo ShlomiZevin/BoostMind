@@ -6,7 +6,7 @@ import fs from 'node:fs';
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/conversion';
 const UP = 'C:/Users/shazbak/.claude/uploads/2b909074-3c8a-43f4-bdbb-2f2d5ceb7904';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const prompt = `Edit the FIRST attached image (the portrait). Keep its composition, framing, camera, light, the background (a medical
 clinic reception), and the clothes (mustard-yellow shirt, black cardigan) exactly as they are. Change ONLY the person: make
 them exactly the person in the two other attached photos - a man in his late forties playing an older woman called Miriam.

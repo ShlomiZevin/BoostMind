@@ -3,7 +3,7 @@
 //   node scripts/mind/logo.mjs <out-dir>   -> logo-1.png .. logo-3.png (transparent)
 import fs from 'node:fs';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const out = process.argv[2]; fs.mkdirSync(out, { recursive: true });
 const prompt = `A logo in EXACTLY the style of the attached logo (same rendering, same neon glow, same bold Hebrew lettering on the
 ring, same composition and proportions), for a sister brand. Changes:

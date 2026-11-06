@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, '$1')), '../..');
-const ENV = 'C:/workspace/aspect/aspect-agent-server/.env';
+const ENV = 'C:/workspace/BoostMind/scripts/design.env';
 const KEY = process.env.WIKI_OPENAI_KEY || fs.readFileSync(ENV, 'utf8').split(/\r?\n/).find((l) => l.startsWith('OPENAI_API_KEY=')).slice(15).trim().replace(/^"|"$/g, '');
 const { _stream } = require(path.join(ROOT, 'techietech-api/wiki.js'));
 const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg', '.png': 'image/png', '.mp4': 'video/mp4', '.svg': 'image/svg+xml' };

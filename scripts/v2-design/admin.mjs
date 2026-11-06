@@ -9,7 +9,7 @@ const DESIGN = 'C:/Users/shazbak/Documents/shlomiverse-v2-design';
 const OUT = path.join(DESIGN, 'admin');
 fs.mkdirSync(OUT, { recursive: true });
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const img = (file, name, type = 'image/jpeg') => [new Blob([fs.readFileSync(file)], { type }), name];
 const STYLE = img(`${DESIGN}/2-tap.jpg`, 'style.jpg');
 const LOGO = img('C:/workspace/BoostMind/v2/site/verse/logo-512.png', 'logo.png', 'image/png');

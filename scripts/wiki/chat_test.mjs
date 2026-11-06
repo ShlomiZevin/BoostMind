@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const ENV = 'C:/workspace/aspect/aspect-agent-server/.env';
+const ENV = 'C:/workspace/BoostMind/scripts/design.env';
 const KEY = process.env.WIKI_OPENAI_KEY || fs.readFileSync(ENV, 'utf8').split(/\r?\n/).find((l) => l.startsWith('OPENAI_API_KEY=')).slice(15).trim().replace(/^"|"$/g, '');
 const api = '../../techietech-api/';
 const { _stream } = require(api + 'wiki.js');

@@ -2,7 +2,7 @@
 //   node scripts/v2-design/icon.mjs <out.png>
 import fs from 'node:fs';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const out = process.argv[2] || 'icon.png';
 const variant = process.argv[3] || 'planet';
 const WORD = `The Hebrew word "שלומיוורס" (right-to-left, spelled exactly ש-ל-ו-מ-י-ו-ו-ר-ס, every letter correct) in a bold, clean, rounded

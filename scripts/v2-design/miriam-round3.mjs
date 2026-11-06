@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/conversion';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const prompt = `Edit the attached portrait of Miriam. Keep the same person (face, age, wrinkles, glasses, the spiky grey wig), the
 clothes, the clinic background, the framing and the light. Change two things only:
 1. Her expression: she looks dumb and completely lost, as if she doesn't understand what is going on - eyebrows raised

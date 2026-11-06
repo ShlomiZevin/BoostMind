@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const LOGO = 'C:/workspace/BoostMind/public/verse/logo-512.png';
 
 const prompt = `A cinematic wide illustration for a website's "page not found" screen, 3:2, no text, no letters, no logo

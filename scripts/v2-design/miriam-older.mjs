@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/conversion';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const prompt = `Edit the attached portrait. Change ONLY her age: make her a bit older - about 56 - with slightly deeper forehead and
 eye lines, light crow's feet, real skin texture and pores (not smooth, not airbrushed) - but NOT elderly: no sagging jowls, no deep folds, no age spots
 under the same makeup. Keep everything else exactly as it is: the same person and face shape, the same expression, the

@@ -2,7 +2,7 @@
 //   node scripts/v2-design/copy-photo.mjs <out.json>
 import fs from 'node:fs';
 const envKey = (file, name) => { try { return fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, ''); } catch { return undefined; } };
-const KEY = envKey('C:/workspace/BoostMind/zoomcut/.env', 'OPENAI_API_KEY') || envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const KEY = envKey('C:/workspace/BoostMind/zoomcut/.env', 'OPENAI_API_KEY') || envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const wiki = JSON.parse(fs.readFileSync('C:/workspace/BoostMind/public/wiki/data/wiki.json', 'utf8'));
 const cast = wiki.characters.map((c) => `${c.name} - ${c.role || ''}`).join('\n');
 const brief = `You write Hebrew interface copy for שלומיוורס (the Shlomiverse): Shlomi Zevin's comedy universe, where his recurring

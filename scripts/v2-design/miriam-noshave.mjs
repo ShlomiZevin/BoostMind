@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 const DIR = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/conversion';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const prompt = `Edit the attached portrait. Change ONLY one thing: she has no beard and no stubble at all - the chin, jaw, cheeks and
 upper lip are completely clean-shaven and smooth, with a layer of foundation like a woman's made-up skin. Keep everything
 else exactly as it is: the same face, age, wrinkles, eyebrows, glasses, eye makeup, overdrawn pink lipstick, expression,

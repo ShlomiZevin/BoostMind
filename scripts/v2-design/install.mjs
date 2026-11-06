@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const OUT = 'C:/Users/shazbak/Documents/shlomiverse-v2-design/install';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const img = (file, name, type = 'image/png') => [new Blob([fs.readFileSync(file)], { type }), name];
 const HOME = img(`${OUT}/home-now.png`, 'home-now.png'), VIDEO = img(`${OUT}/video-now.png`, 'video-page.png'), GUIDE = img(`${OUT}/install-now.png`, 'install-guide-now.png');
 const ICON = img('C:/workspace/BoostMind/public/verse/icon-512.png', 'app-icon.png');

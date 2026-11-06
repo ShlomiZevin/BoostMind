@@ -3,7 +3,7 @@
 //   node scripts/mind/concepts_home.mjs <out-dir>
 import fs from 'node:fs';
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = envKey('C:/workspace/aspect/aspect-agent-server/.env', 'OPENAI_API_KEY');
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
 const out = process.argv[2]; fs.mkdirSync(out, { recursive: true });
 const brief = `PRODUCT: the home screen of a private "second brain" app for ONE busy person (a CTO of two companies who also makes
 comedy videos and runs many AI coding agents at once). He found the old dashboard (stat tiles + four boxes) too much.
