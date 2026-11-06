@@ -43,11 +43,28 @@ const byId = (b) => Object.fromEntries(b.characters.map((c) => [c.id, c]));
 const short = (s, n) => { s = Array.isArray(s) ? s.join(' · ') : String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
 const hostText = (c) => [`Name: ${c.name} (id ${c.id})`, `Who: ${short(c.brief || c.bio, 500)}`, `Personality: ${short(c.personality, 400)}`,
   `Speech: ${short(c.speech, 400)}`, `Catchphrases: ${short(c.catchphrases, 300)}`, `Never: ${short(c.dont, 300)}`, `Writing notes: ${short(c.writing_rules, 300)}`].join('\n');
+// the host's material for the questions (his call, 2026-11-06: "the questions in the tone of the character asking"):
+// the whole profile from the character bible + real lines from their own videos, so the model uses their real phrases
+// and world, not invented jargon. The same text for every call of that host - OpenAI serves it from its cache.
+const FIELDS = [['brief', 'Who'], ['personality', 'Personality'], ['speech', 'How they talk'], ['catchphrases', 'Catchphrases'], ['behavior', 'Behaviour'],
+  ['comedy', 'What is funny about them'], ['themes', 'Their themes'], ['writing_rules', 'Writing notes'], ['dont', 'Never']];
+function hostMaterial(c, b) {
+  const lines = [`Name: ${c.name} (id ${c.id})${c.tagline ? ' - ' + c.tagline : ''}`];
+  for (const [k, l] of FIELDS) if (c[k] && String(c[k]).length) lines.push(`${l}: ${short(c[k], 1400)}`);
+  const vids = (b.videos || []).filter((v) => (v.cast || []).includes(c.id) && v.transcript).slice(0, 4);
+  if (vids.length) {
+    lines.push('', 'Real moments from their videos (their actual words - use their phrases and references, never retell these scenes):');
+    for (const v of vids) lines.push(`- "${v.title}": ${short(v.transcript.replace(/\s+/g, ' '), 700)}`);
+  }
+  return lines.join('\n');
+}
 const castList = (b) => b.characters.filter((c) => c.tagline).map((c) => `${c.id} | ${c.name} | ${c.world || ''} | ${c.tagline} | ${short(c.brief || c.bio, 110)}`).join('\n');
 
 const GAME = `You run "אתם חיים בסימולציה?" ("Do you live in a simulation?") inside שלומיוורס (the Shlomiverse) - a world of comedy characters shown as real people. The visitors keep writing "we live in a simulation"; this test answers them.
 It is like the silly quizzes of the 90s Israeli teen magazines (מעריב לנוער): light, absurd, fast, one thumb. The questions are about THE VISITOR - their habits, reactions, daily-life absurdities, small confessions - never a trivia test about the characters.
-Each question visits a DIFFERENT corner of everyday life (mornings, the phone, the family WhatsApp group, food, work or school, sleep, friends, shopping, driving, holidays...) - never two in a row about the same thing - and every other question or so calls back to something they answered before, so no two tests are alike. Write the questions in plain everyday Hebrew anyone gets; the host's own world and words go into their short reaction, and at most a touch of it into a question - never jargon in every line.
+THE HOST ASKS. Every question, every answer and every reaction is written in the host's own voice - their way of talking, their worldview, their obsessions, their phrases from the material below - the way THEY would ask about someone's life (a businessman turns your morning into a business question, a rabbi into a ruling, a mother of eight into a question about the house). Someone who has never met the host still understands each question at once: one idea per question, short, at most one word of the host's jargon in it, never a pile of it.
+The TOPIC is always the visitor: each question visits a DIFFERENT corner of everyday life (mornings, the phone, the family WhatsApp group, food, work or school, sleep, friends, shopping, driving, holidays...) - never two in a row about the same thing. At most two callbacks in the whole test (a quick nod to something they answered, inside a NEW topic) - never a chain where each question follows the previous answer's object.
+The 4 answers are what the visitor would say: short phrases, ideally with no subject; if they have one, the grammar must agree ("אני קם" / "אנחנו קמים", never "אני קמים").
 Hebrew, addressed in plural (אתם) and gender-neutral. No emoji. Nothing about politics, religious observance, health, sex, money amounts, minors or anything that could hurt. Never explain how the test works or mention AI.`;
 
 // OpenAI Responses API with a JSON schema - one short structured answer
@@ -85,10 +102,10 @@ async function opening(key, host) {
   return out;
 }
 
-const qPrompt = (host, steps) => `${GAME}
+const qPrompt = (host, b) => `${GAME}
 
-The host of this test (write the questions in their voice and world - their references, their jobs, their obsessions - but always about the visitor):
-${hostText(host)}`;
+The host of this test - you write as them:
+${hostMaterial(host, b || brain)}`;
 function qInput(steps) {
   const done = steps.filter((s) => s.pick !== undefined);
   const lines = done.map((s, i) => `${i + 1}. ${s.react ? `(your reaction before it: ${s.react}) ` : ''}${s.q}\n   answered: ${s.a[s.pick]}`).join('\n');
@@ -187,7 +204,7 @@ async function handle(req, res) {
     const n = await db().runTransaction(async (tx) => { const g = await tx.get(rate); const k = (g.exists ? g.data().n : 0) + 1; tx.set(rate, { n: k, exp: Timestamp.fromMillis(Date.now() + 2 * 864e5) }); return k; });
     if (n > STARTS_A_DAY) return { error: 'limit' };
     const rid = crypto.randomBytes(9).toString('hex').slice(0, 14);
-    const first = await ask(key, qPrompt(host), qInput([]), Q_SCHEMA, 'q-' + host.id, 'none');
+    const first = await ask(key, qPrompt(host, br), qInput([]), Q_SCHEMA, 'q-' + host.id, 'low');
     const step = { q: clip(first.out.q, 200), a: first.out.a.map((x) => clip(x, 80)), react: '' };
     const user = await who(req);
     await sims.doc(rid).set({ rid, host: { id: host.id, name: host.name }, from: clip(b.from || '', 20), ref: RID.test(b.ref || '') ? b.ref : null,
@@ -210,7 +227,7 @@ async function handle(req, res) {
     const made = await Promise.all([0, 1, 2, 3].map(async (pick) => {
       try {
         const st = steps.map((x, i) => (i === n - 1 ? { ...x, pick } : x));
-        const r = await ask(key, qPrompt(host), qInput(st), Q_SCHEMA, 'q-' + host.id, 'none');
+        const r = await ask(key, qPrompt(host, br), qInput(st), Q_SCHEMA, 'q-' + host.id, 'low');
         return { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x, 80)), react: clip(r.out.react, 120) };
       } catch (e) { return null; }
     }));
@@ -240,7 +257,7 @@ async function handle(req, res) {
       }
       let step = pre && pre.b[pick], u = [0, 0, 0];
       if (!step) {
-        const next = await ask(key, qPrompt(host), qInput(steps), Q_SCHEMA, 'q-' + host.id, 'none');
+        const next = await ask(key, qPrompt(host, br), qInput(steps), Q_SCHEMA, 'q-' + host.id, 'low');
         step = { q: clip(next.out.q, 200), a: next.out.a.map((x) => clip(x, 80)), react: clip(next.out.react, 120) }; u = next.u;
       }
       await ref.update({ steps: [...steps, step], u: add(u), pre: FieldValue.delete() });
@@ -356,4 +373,4 @@ exports.owner = async (op, b) => {
     by, drop, today: { n: cap.exists && cap.data().day === day() ? cap.data().n : 0, cap: (cap.exists && cap.data().cap) || IMG_CAP }, recent };
 };
 
-exports._test = { ask, qPrompt, qInput, rPrompt, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS };
+exports._test = { ask, qPrompt, hostMaterial, qInput, rPrompt, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS };
