@@ -2,7 +2,9 @@
 // database through versePublish (techietech-api/content.js) and is live in seconds - nothing from git, no deploy.
 //
 //   node scripts/verse/content.mjs get <kind> <id> [--out f.json]       the record as it is live
-//   node scripts/verse/content.mjs list <kind>                         every id (kind: character | series | game | site | video)
+//   node scripts/verse/content.mjs list <kind> [--full]                every id (kind: character | series | game | site | video); --full = whole records
+//   node scripts/verse/content.mjs profile <id> --out p.md             a character's profile for a writing session (what profile.md was -
+//                                                                      the database is the only copy of the characters since 2026-11-06)
 //   node scripts/verse/content.mjs put <kind> <id> --file patch.json   set the fields in the file (Hebrew: ALWAYS through a file)
 //   node scripts/verse/content.mjs put <kind> <id> --set color=#ff7a45 --set order=12   (ASCII values only)
 //   node scripts/verse/content.mjs put <kind> <id> --clear site        empty a field on purpose (the only way to blank one)
@@ -15,7 +17,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execSync, execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/versePublish';
@@ -60,7 +62,16 @@ linkSkills();
 
 const [cmd, kind, id] = pos;
 if (cmd === 'get') out(await api({ op: 'get', kind, id }));
-else if (cmd === 'list') out(await api({ op: 'list', kind }));
+else if (cmd === 'list') out(await api({ op: 'list', kind, full: argv.includes('--full') }));
+else if (cmd === 'profile') {   // pos[1] is the id here
+  const { profileText } = await import(pathToFileURL(path.join(ROOT, 'zoomcut', 'render', 'ui', 'character_profile.js')).href);
+  const all = (await api({ op: 'list', kind: 'character', full: true })).items
+    .map(({ site, site_notes, ...c }) => ({ ...c, ...(site || site_notes ? { site: { url: site || '', notes: site_notes || '' } } : {}) }));
+  const c = all.find((x) => x.id === kind);
+  if (!c) { console.error(`no character "${kind}"`); process.exit(1); }
+  const text = profileText(c, all), f = flag('out');
+  if (f) { fs.writeFileSync(f, text, 'utf8'); console.log('written to', f); } else console.log(text);
+}
 else if (cmd === 'rebuild') out(await api({ op: 'rebuild' }));
 else if (cmd === 'log') out(await api({ op: 'log', kind, id, limit: +(flag('limit') || 30) }));
 else if (cmd === 'hide' || cmd === 'show') out(await api({ op: 'hide', kind, id, hidden: cmd === 'hide' }));
