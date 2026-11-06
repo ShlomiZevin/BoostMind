@@ -1579,3 +1579,11 @@ html.can-app .foot-app { display: inline-flex !important; }
 .sc-more svg, .sc-soon svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
 .sc-soon { padding-top: 10px; border-top: 1px dashed var(--line); }
 .signin-card .vx-btn { margin-top: 4px; }
+
+/* Miriam's counter on top of every sign-in sheet but the sticker ones (his ask, 2026-11-06) */
+.vx-sheet.signin.art { overflow: hidden; }
+.vx-sheet.signin.art .grab { position: absolute; inset-inline: 0; top: 0; z-index: 2; background: rgba(255, 255, 255, .7); }
+.vx-sheet.signin.art .si-in { margin-top: -18px; position: relative; padding-top: 0; }
+.vx-sheet.signin.art .vx-h { margin-top: 0; white-space: normal; }
+.vx-sheet.signin.art .vx-reasons { margin: 10px 0 14px; gap: 8px; }
+@media (max-height: 760px) { .vx-sheet.signin.art .ms-art { height: 150px; } }

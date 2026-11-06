@@ -11,15 +11,16 @@ export const T = {
   signinInApp: 'גוגל לא מאפשרת התחברות בתוך אינסטגרם וטיקטוק. פתחו בדפדפן.',
   signinOut: 'פתחו בדפדפן',
   signinCopy: 'העתיקו קישור',
+  signinOutFail: 'לא נפתח? העתיקו את הקישור והדביקו אותו בדפדפן',
   signinFailed: 'הכניסה לא הצליחה. נסו שוב.',
   gainMore: 'ועוד הרבה דברים שתושבים עושים פה',
   signinMail: 'או עם מייל',
   // residency by email inside Instagram / TikTok / Facebook's browsers (Terra, 2026-11-06; mockups conversion/S1, S2)
   mail: {
     title: 'הנפקת תושבות', line: 'משאירים מייל, מקבלים קוד, ונכנסים כתושבים.', placeholder: 'כתובת המייל שלכם',
-    send: 'שלחו קוד', small: 'קוד חד־פעמי. בלי סיסמה.', google: 'מעדיפים Google? פתחו בדפדפן',
+    send: 'שלחו קוד', small: 'קוד חד־פעמי. בלי סיסמה.', google: 'מעדיפים Google?',
     title2: 'התושבות כמעט מוכנה', sent: 'שלחנו קוד ל־', confirm: 'אשרו תושבות', again: 'לא הגיע? שלחו שוב',
-    other: 'מייל אחר', resent: 'שלחנו קוד חדש',
+    other: 'מייל אחר', resent: 'שלחנו קוד חדש', back: 'חזרה לכניסה עם מייל',
     err: { email_bad: 'הכתובת הזאת לא נראית כמו מייל.', code_bad: 'הקוד לא נכון. נסו שוב.', code_old: 'הקוד פג. שלחו קוד חדש.',
       slow_down: 'רגע, לאט. נסו שוב עוד כמה דקות.', mail_full: 'מרים סגרה את האשנב להיום. נסו מחר, או פתחו בדפדפן.',
       mail_failed: 'המייל לא יצא. נסו שוב.', other: 'משהו השתבש. נסו שוב.' },

@@ -78,27 +78,33 @@ export function signInSheet(key, char, opt = {}) {
       ? opt.cut   // a finished die-cut sticker (the pack): shown as it is
         ? `<div class="vx-gain-st cut"><img src="${esc(opt.img)}" alt=""></div>`
         : `<div class="vx-gain-st"><span><img src="${esc(opt.img)}" alt="">${char && catchphrase(char) ? `<em>${esc(catchphrase(char))}</em>` : ''}</span></div>`
-      : c ? `<div class="vx-hero-face">${av({ char, ring: true })}</div>` : `<img class="vx-si-logo" src="/verse/logo-160.png" alt="שלומיוורס">`;
-    track('signin_ask', inApp() ? 'inapp' : 'browser');   // how many reach the sign-in, and how many of them can't (in-app browser)
-    track('signin_from', key || 'default');                // and what brought them there (backstage: which ask works)
+      : '';
+    // everything but a sticker opens with Miriam's residency counter on top (his ask, 2026-11-06: "I like this image so much")
+    const art = !opt.img;
+    if (!opt.google) {   // opt.google = they came from the email sheet's "prefer Google?" - already counted
+      track('signin_ask', inApp() ? 'inapp' : 'browser');   // how many reach the sign-in, and how many of them can't (in-app browser)
+      track('signin_from', key || 'default');                // and what brought them there (backstage: which ask works)
+    }
     // inside Instagram / TikTok / Facebook's own browser Google refuses to sign in: Miriam's counter, email + a code
-    if (inApp() && MAIL_SIGNIN) return mailSheet(key, resolve);
+    if (inApp() && MAIL_SIGNIN && !opt.google) return mailSheet(key, resolve);
     const body = inApp()
       ? `<p class="vx-sub" style="margin-top:6px">${esc(T.signinInApp)}</p>
          <button class="vx-btn white block" data-out>${esc(T.signinOut)}</button>
-         <button class="vx-link" data-copy>${esc(T.signinCopy)}</button>`
+         <button class="vx-link" data-copy>${esc(T.signinCopy)}</button>
+         ${MAIL_SIGNIN ? `<button class="vx-link si-mail" data-mail>${esc(T.mail.back)}</button>` : ''}`
       : `<button class="vx-btn white block" data-google>${I.google}${esc(T.signinGoogle)}</button>
          ${MAIL_SIGNIN ? `<button class="vx-link si-mail" data-mail>${esc(T.signinMail)}</button>` : `<p class="vx-small">${esc(T.signinSmall)}</p>`}`;
     let done = false;
-    const h = sheet(`<div class="in" style="text-align:center">
+    const h = sheet(`${art ? '<div class="ms-art"><img src="/verse/art/miriam-counter.jpg" alt=""></div>' : ''}<div class="in si-in" style="text-align:center">
         ${face}
         <h2 class="vx-h">${brand(fill(g.title))}</h2>
         ${inApp() ? '' : `<p class="vx-sub vx-gain-sub">${brand(fill(g.sub))}</p>`}
         <div class="vx-reasons">${g.rows.map((r, i) => `<div class="${i ? '' : 'hl'}"><span class="vx-round">${rowIcon(r)}</span><span>${esc(fill(r))}</span></div>`).join('')}<div class="more"><span class="vx-round">${I.plus}</span><span>${esc(T.gainMore)}</span></div></div>
         ${body}
-      </div>`, { cls: 'signin', onClose: () => { if (!done) resolve(false); } });
+      </div>`, { cls: art ? 'signin art' : 'signin', onClose: () => { if (!done) resolve(false); } });
     const out = h.el.querySelector('[data-out]');
-    if (out) out.onclick = () => openOutside(key);
+    // the jump out works on Android and on iPhone with iOS 17+; when nothing happened, say what to do instead of nothing
+    if (out) out.onclick = () => { openOutside(key); setTimeout(() => { if (document.visibilityState === 'visible') toast(T.signinOutFail); }, 1600); };
     const copy = h.el.querySelector('[data-copy]');
     if (copy) copy.onclick = () => { navigator.clipboard?.writeText(location.href); toast(T.linkCopied); };
     // whoever became a resident by email inside Instagram signs in here the same way (his point, 2026-11-06)
@@ -147,7 +153,9 @@ function mailSheet(key, resolve) {
       <button class="vx-link ms-out" type="button">${esc(T.mail.google)}</button>`;
     const f = box.querySelector('form'), input = f.querySelector('input'), b = f.querySelector('button'), e = f.querySelector('.ms-err');
     setTimeout(() => input.focus(), 250);
-    box.querySelector('.ms-out').onclick = () => openOutside(key);
+    // "prefer Google?": the Google sheet, which says why Google needs the phone's browser and takes them there (his note:
+    // it must do something - before, the jump out failed silently on older iPhones and on a computer)
+    box.querySelector('.ms-out').onclick = () => { done = true; h.close('google'); signInSheet(key, null, { google: true }).then(resolve); };
     f.onsubmit = async (ev) => {
       ev.preventDefault();
       email = input.value.trim().toLowerCase();
