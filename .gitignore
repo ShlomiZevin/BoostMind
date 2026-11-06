@@ -131,3 +131,6 @@ drafts/avi-balloons/
 zoomcut/.remotion/
 scripts/wiki/catalog-local.json
 scripts/wiki/records.json
+
+# a character's profile.md is gone from git (2026-11-06): the database is the only copy - node scripts/verse/content.mjs profile <id>
+zoomcut/characters/**/profile.md

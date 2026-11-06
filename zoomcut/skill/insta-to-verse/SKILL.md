@@ -87,25 +87,43 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
    pun names he chose stay (Yuval "(כסא) נוח הררי", Nahor "(ציון) מינוף", Lior "סליים"). Ask only when no name shows.
    Profile through the studio:
    `POST localhost:4747/api/characters/<id> {"patch": {...}}` - name, name_en, aka, world, role, brief (his words),
-   personality, catchphrases, speech, behavior, comedy, look, portrait, assets.portraits, color, sources. A new world:
-   add it to `zoomcut/characters/index.json` "worlds" and a URL id to `SERIES` in `scripts/wiki/build.py`.
-5. **Onto the wiki:** `python scripts/insta/to_wiki.py <media-id> <character-id>[,...]` (copies the video to
-   `public/wiki/v/ig-<id>.*`, adds it to `scripts/wiki/reels.json`). Check `on_screen` there against the frames -
-   Terra misreads burned-in text at low detail; fix it by hand.
-6. **Copy, build, push - no deploy** (wiki.md, "The content is live without a deploy"):
-   `python scripts/wiki/copy_brief.py --only-missing`, Terra (sol.js from a temp folder with
-   `--env C:/workspace/aspect/aspect-agent-server/.env`) - take only the NEW entries from its answer (it rewrites
-   existing worlds/bios too), `build.py`, then **`node scripts/wiki/push.cjs`** (a few seconds; the wiki has it at once,
-   the chat within 3 minutes). Several reels: put them all on the wiki, then one build + one push.
+   personality, catchphrases, speech, behavior, comedy, look, portrait, assets.portraits, color, sources - it saves to
+   the database (catalogCharacters, the only copy since 2026-11-06; or `node scripts/verse/content.mjs put character
+   <id> --file patch.json`). A new world = a series record: `content.mjs put series <url-id> --file w.json` with
+   title, world (the studio's world name), name, blurb, brief (shlomiverse-content skill).
+5. **A new character first** (if the reel has one): profile + portrait as in step 4, then its copy (bio) and the
+   character page: `python scripts/wiki/copy_brief.py --only-missing`, Terra (sol.js from a temp folder with
+   `--env C:/workspace/aspect/aspect-agent-server/.env`) - `python scripts/wiki/merge_copy.py <answer.md>` puts only
+   the NEW character / world copy onto their records (keeps existing bios unless --force; videos stay in copy.json).
+   No build / push needed for a character. Publish the reel only after the character exists.
+6. **Onto the site - `versePublish`, no build / push / deploy** (since 2026-11-05 the site's video list is Firestore
+   `catalogVideos`, one record per video; files in gs://shlomiverse-media/wiki/v/):
+   `zoomcut/.venv/Scripts/python scripts/insta/to_wiki.py <media-id> <character-id>[,...] [--title "..."] [--teaser "..."]`
+   uploads web.mp4 + poster.jpg, then writes the record (`ig-<id>`, cast, the reel's real date + post time,
+   `archive: true`, the permalink, the transcript, and `onScreen` = who.json's burned-in text - the chat and Terra
+   read it before the speech, the only words a music-only meme has; never append it to the transcript). The site and the chat have it at once. Terra on the server writes
+   the title / teaser / the chat's card unless you pass them - **his own words always go in `--title`**. `--dry` first
+   shows the record and writes nothing. It also records the reel in `scripts/wiki/reels.json` - our import record (the
+   duplicate check in reel.py), it no longer feeds the site.
+   - **Every video has at least one character** (his rule, 2026-11-05): always pass the cast. Sent none, Terra picks
+     it (`castBy: 'ai'`, or `'none'` = nobody) - to_wiki.py prints `!! cast by ...`; fix it by running again with the cast.
+   - **Never** push videos with build.py / push.cjs, and don't edit copy.json for videos - it doesn't reach the site.
+   - **Change a live reel** (title, cast): run to_wiki.py again with the new cast / `--title` - the API updates only
+     the fields sent, and a call without a title never blanks the one there. `{op: 'get', id}` shows the record.
+   - **Off the site:** `{op: 'hide', id, hidden: true}` (he also has /backstage/ → סרטונים) - nothing else removes one.
+   - The API: POST `https://europe-west1-boostmind-b052c.cloudfunctions.net/versePublish`, header
+     `authorization: Key <key>` (not Bearer - Google's front door rejects it); the key is read at run time from
+     `gcloud secrets versions access latest --secret=VERSE_PUBLISH_KEY --project boostmind-b052c` - never print,
+     save or commit it.
    Check live: `https://shlomiverse.com/c/<id>`; the home page must NOT show the reel.
 7. **The chat knows it - a reel is not done until this passes (his ask, 2026-10-31).** Every reel goes into the chat's
-   brain (`techietech-api/wiki-brain.json`: the character's bible + every reel's on-screen text and words), so 3
-   minutes after the push, on the LIVE function:
+   brain (the character's bible + every reel's card and words; versePublish writes the reel's card), so 3
+   minutes after publishing, on the LIVE function:
    - **the guide** answers about the character and links the reel (`[[char:<id>]]`, `[[video:ig-<id>]]`);
    - **a new character also chats as themself**, like every other character (the "לדבר עם..." button on their page,
      the `with=<id>` link). Their voice comes from character.json (speech, catchphrases, personality) - from one reel
      it is thin, so when later reels of them come in, add the new lines and habits to the profile (studio endpoint).
-   Once per batch, ~4 minutes after the push, one question (the first one costs ~$0.11 - never poll in a loop):
+   Once per batch, ~4 minutes after publishing, one question (the first one costs ~$0.11 - never poll in a loop):
    ```bash
    printf '%s' '{"mode":"<id>|guide","r":"session-test","messages":[{"role":"user","content":"..."}]}' > "$TEMP/b.json"
    curl -s -X POST https://europe-west1-boostmind-b052c.cloudfunctions.net/wikiChat -H "content-type: application/json" \
