@@ -262,10 +262,21 @@ async function mailFor(p, w, now) {
     faces: chars.map((id) => ({ ...who(w, id), href: `/story/${id}` })), facesTitle: 'העלו סטורי' } };
 }
 
-// ---------- the citizenship journey's invitation, to a resident who hasn't started it (stage 4, mockup E1; words = the approved mockup) ----------
-const citizenData = (w) => ({ subject: 'התושבות שלכם אושרה. הגיע הזמן לאזרחות.', preheader: 'עכשיו נשאר רק לעבור את מרים, דמוקרטוביץ והחותמת.',
-  title: 'אתם כבר בבית בשלומיוורס.', sub: 'עכשיו נשאר רק לעבור את מרים, דמוקרטוביץ והחותמת.', cta: 'צאו למסע האזרחות',
-  cast: [{ ...who(w, 'miriam'), role: 'מרים, בצ׳ק־אין' }, { ...who(w, 'demokratovich'), role: 'דמוקרטוביץ, עם החותמת' }] });
+// ---------- the citizenship journey's invitation, to a resident who hasn't started it (stage 4) ----------
+// Three versions Terra wrote (2026-11-06, he called the first words terrible); he picks one - 'a' is Terra's pick until then.
+const CZ_HERO = `${MEDIA}/mail/citizen-hero.jpg`;
+const CITIZEN_MAIL = {
+  a: { from: 'מרים | השלומיוורס', subject: 'נפתחה עמדת האזרחות שלכם', preheader: 'מרים מנסה למצוא את השם שלכם. זוהרה כבר בתמונה.',
+    title: 'הכרטיס שלכם כבר בדלפק', paras: ['מסע האזרחות נפתח היום.', 'מרים תשאל כמה שאלות, לא תבין אף תשובה ותסווג אתכם בהתאם.', 'בסוף: מספר אזרח, טיסה פנימה ותעודה לשיתוף.'],
+    cta: 'מתחילים צ׳ק־אין', small: 'לאלף הראשונים: מעמד אזרח מייסד.' },
+  b: { from: 'השלומיוורס | מסע האזרחות', subject: 'איזה אזרחים אתם, בעצם?', preheader: 'המחלקה, הסיווג ומספר האזרח נקבעים במסע קצר.',
+    title: 'התעודה שלכם עוד לא יודעת מי אתם', paras: ['שלוש דקות, כמה תשובות, והמערכת מחליטה עליכם.', 'מרים קובעת מחלקה וסיווג. הרב דמוקרטוביץ׳ מעניק את החותמת.', 'בסוף תצא לכם תעודת זהות שלומיוורסית עם תמונה ומספר.'],
+    cta: 'מנפיקים תעודה', small: 'האלף הראשונים יירשמו כאזרחים מייסדים.' },
+  c: { from: 'הרב דמוקרטוביץ׳ | ביקורת הגבולות', subject: 'מן הדין: לגשת לביקורת גבולות', preheader: 'הרב דמוקרטוביץ׳ כבר הכין את החותמת. מרים עדיין בודקת.',
+    title: 'הבוטקה פתוחה, החותמת מוכנה', paras: ['תנן במסכת שלטון ומשפט: תושב המבקש אזרחות, מה דינו?', 'עובר אצל מרים, נכנס לבוטקה ומקבל חותמת ומספר אזרח.', 'והלכתא: טיסה פנימה ותעודת זהות.'],
+    cta: 'ניגשים לבוטקה', small: 'האלף הראשונים: אזרחים מייסדים.' },
+};
+const citizenData = (v = 'a') => ({ ...CITIZEN_MAIL[v], hero: CZ_HERO, note: 'קיבלתם את המייל כי יש לכם חשבון בשלומיוורס.' });
 
 // ---------- an idea's step, to its writer (his ask, 2026-11-05) ----------
 // Personal, not marketing: it goes whatever the switch says and beside the day's one mail - but never to someone who
@@ -449,7 +460,7 @@ async function samples() {
   const out = [];
   const add = async (label, p) => { const x = await mailFor(p, w, now); if (x) out.push({ key: label, label, kind: x.kind, ...mail.render(x.kind, x.d) }); };
   await add('ברוכים הבאים', { ...P, kind: 'welcome', events: [] });
-  out.push({ key: 'אזרחות', label: 'הזמנה למסע האזרחות', kind: 'citizen', ...mail.render('citizen', citizenData(w)) });
+  for (const v of Object.keys(CITIZEN_MAIL)) out.push({ key: 'אזרחות-' + v, label: `הזמנה למסע האזרחות (גרסה ${v})`, kind: 'citizen', from: CITIZEN_MAIL[v].from, ...mail.render('citizen', citizenData(v)) });
   if (games[0]) await add('משחק חדש', { ...P, kind: 'game', events: [ev('game', games[0].id)] });
   if (videos[0]) await add('סרטון חדש', { ...P, kind: 'video', events: [ev('video', videos[0].id)] });
   if (stories[0]) await add('סטורי חדש', { ...P, kind: 'story', events: [ev('story', stories[0].id)] });
