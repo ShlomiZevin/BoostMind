@@ -206,7 +206,17 @@ function idea(d, k) {
     pad(quote(d.idea)), spacer(20), pad(p(d.body)), spacer(26), pad(button(d.cta, track(d.href, k))), spacer(34)].join('');
 }
 
-const KINDS = { game: newGame, story, video, digest, welcome, reply, idea };
+// the citizenship journey (stage 4 of the conversion plan, mockup E1): Miriam and Demokratovich, one button to the journey
+function citizen(d, k) {
+  const go = track('/citizenship', k);
+  const pic = (c) => `<td width="50%" valign="top" style="padding:0 4px"><a href="${esc(go)}"><img src="${esc(c.img)}" alt="${esc(c.name)}" width="264" style="display:block;width:100%;max-width:264px;height:auto;border:0;border-radius:16px"></a>
+<div style="font:700 14px/1.4 ${FONT};color:${C.dim};text-align:center;padding-top:8px">${gm(esc(c.role))}</div></td>`;
+  return [spacer(16), pad(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${d.cast.map(pic).join('')}</tr></table>`, '0 24px'), spacer(26),
+    pad(`<div style="text-align:center">${h1(d.title)}</div>`), spacer(12), pad(`<div style="text-align:center">${p(d.sub)}</div>`), spacer(28),
+    pad(button(d.cta, go)), spacer(36)].join('');
+}
+
+const KINDS = { game: newGame, story, video, digest, welcome, reply, idea, citizen };
 
 // one mail: { subject, html, text, headers } - `unsub` is this reader's own link, `unsubPost` the one-click address
 function render(kind, d, { unsub, unsubPost } = {}) {

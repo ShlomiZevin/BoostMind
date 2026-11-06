@@ -43,6 +43,7 @@ function miriamText(b) {
 const CHECKIN = (b) => `You are Miriam (מרים), the ground clerk at the CHECK-IN COUNTER for flights into שלומיוורס (the Shlomiverse - a world of comedy characters shown as real people). A resident of the site is checking in for their citizenship journey; after you, Rabbi Demokratovich's border control and the stamp.
 You fill in their check-in form by talking to them: a few questions about them - why they came to the Shlomiverse, what they bring with them, who they already know here, what they are running from, what they expect to find... - one at a time, each following what they said. You never understand their answers properly, misread them, ask Zohara, but you never stop talking - and you are kind.
 Each turn: "say" = your talk, in your own voice, up to 22 words, reacting to their last answer (first turn: a hello that already goes wrong); "q" = the question itself, short and clear (up to 12 words) - the visitor must understand it even though you don't; "opts" = 3 short answers the visitor might tap (up to 5 words each, funny, in the visitor's voice, grammar that agrees - never "אני באים"); "done" = true only after at least 4 answered questions (then "q" and "opts" are empty and "say" closes the check-in in your voice).
+The FIRST question is always why they came to the Shlomiverse (Shlomi wants to know the truth): its 3 opts are real reasons people come - e.g. a video of his they saw, someone sent them the link, to talk with the characters / play the games - said in the visitor's funny voice, so whichever they tap is still a true answer.
 Speak to the visitor in plural (אתם), Hebrew, no emoji. Nothing about politics, religion, health, money amounts or anything that could hurt. Never mention AI or forms or that this is a test.
 
 Who you are:
@@ -114,15 +115,16 @@ async function handle(req) {
     if (pend && (b.pick !== undefined || b.text !== undefined || b.skip)) {
       const a = b.skip ? null : b.text !== undefined ? clip(String(b.text).trim(), 200) || null : (pend.opts || [])[Number(b.pick)] ?? null;
       turns.push({ ...pend, a });
+      if (turns.length === 1) d.why = { a, typed: b.text !== undefined };   // the first question = why they came (his ask: keep their reasons)
     } else if (pend) return view(d, fan);   // nothing answered: the same question again (a reload)
     const o = turnOf(await ask(key, CHECKIN(br), talk(turns), TURN, 'turn'));
     if (o.done || turns.length >= MAX_Q) {
       const c = await classify(key, br, turns, fan.nick);
       const last = { say: o.say, q: '', opts: [], done: true };
-      await ref.update({ step: 'booth', turns, closing: last.say, dept: clip(c.dept, 60), cls: clip(c.cls, 80), pending: FieldValue.delete() });
+      await ref.update({ ...(d.why ? { why: d.why } : {}), step: 'booth', turns, closing: last.say, dept: clip(c.dept, 60), cls: clip(c.cls, 80), pending: FieldValue.delete() });
       return { ...view({ ...d, step: 'booth', turns, dept: c.dept, cls: c.cls, pending: null }, fan), closing: last.say };
     }
-    await ref.update({ step: 'checkin', turns, pending: o });
+    await ref.update({ step: 'checkin', turns, pending: o, ...(d.why ? { why: d.why } : {}) });
     return view({ ...d, step: 'checkin', turns, pending: o }, fan);
   }
 
@@ -172,10 +174,20 @@ exports.verseCitizen = onRequest({ region: 'europe-west1', cors: CORS, secrets: 
 exports.owner = async (op) => {
   if (op !== 'citizenStats') return null;
   const snap = await db().collection('citizens').get();
-  const all = snap.docs.map((x) => x.data()).filter((d) => !d.own);
+  const docs = snap.docs.filter((x) => !x.data().own);
+  const all = docs.map((x) => x.data());
   const at = { boarding: 0, checkin: 0, booth: 0, flight: 0, done: 0 };
   let shared = 0, skippedAll = 0;
   for (const d of all) { at[d.step || 'boarding'] = (at[d.step || 'boarding'] || 0) + 1; if (d.shares) shared++; if (d.skippedAll) skippedAll++; }
   const c = await db().collection('verseMeta').doc('citizens').get();
-  return { started: all.length, at, citizens: c.exists ? c.data().n || 0 : 0, shared, skippedAll };
+  // what they told Miriam (his ask, 2026-11-06: why they came matters) - every answer, newest first, with the account's name
+  const ms = (t) => (t?.toMillis ? t.toMillis() : 0);
+  const withAns = docs.filter((x) => (x.data().turns || []).length).sort((a, b) => ms(b.data().created) - ms(a.data().created)).slice(0, 200);
+  const fans = withAns.length ? await db().getAll(...withAns.map((x) => db().collection('fans').doc(x.id))) : [];
+  const answers = withAns.map((x, i) => { const d = x.data(), f = fans[i]?.data() || {};
+    return { uid: x.id, nick: f.nick || '', t: ms(d.created), n: d.n || null, dept: d.dept || null, cls: d.cls || null, step: d.step || 'boarding',
+      qa: (d.turns || []).map((t) => ({ q: t.q, a: t.a ?? null, opt: t.a != null && (t.opts || []).includes(t.a) })) }; });
+  const why = {};
+  for (const x of answers) { const a = x.qa[0]?.a; if (a) why[a] = (why[a] || 0) + 1; }
+  return { started: all.length, at, citizens: c.exists ? c.data().n || 0 : 0, shared, skippedAll, why, answers };
 };

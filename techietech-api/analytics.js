@@ -77,7 +77,7 @@ const EVENTS = new Set([
   'chat_new',      // "new conversation" in the chat               x = character id or 'guide'
 ]);
 const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'yaniv-games', 'sagi-games', 'asaf-games', 'yotam-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'other']);
-const SOURCES = new Set(['tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
+const SOURCES = new Set(['mail', 'tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
 const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
 
 const clean = (v, n) => String(v ?? '').replace(/[^\p{L}\p{N} _\-./:]/gu, '').trim().slice(0, n);

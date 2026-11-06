@@ -608,6 +608,9 @@
     .ml-bar .btn { flex: 1; justify-content: center; padding: 0 10px; }
     .ml-log .chips button { padding: 0 13px; }
   }
+.cz-ans{margin-top:12px}.cz-ans summary{cursor:pointer;font-weight:700;padding:6px 0}
+.cz-a{border-top:1px solid rgba(255,255,255,.08);padding:10px 0}.cz-a .l1{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.cz-a time{opacity:.6;font-size:12px}
+.cz-a .qa{display:grid;gap:2px;margin:6px 0}.cz-a .qa span{opacity:.65;font-size:13px}.cz-a .qa b{font-weight:600}.cz-a .qa i{opacity:.6}
 </style>
 </head>
 <body>
@@ -1254,7 +1257,7 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
 // ---------- נתונים: every number, a day's drill-down, and asking the data ----------
 let metric = 'visitors', drillDay = null, lastAsk = null;
-const SRC = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
+const SRC = { mail: 'מייל', tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
 const SITE = { links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'yaniv-games': 'המשחקים של יניב', 'asaf-games': 'המשחקים של אסף', 'sagi-games': 'המשחקים של שגיא', 'yotam-games': 'המשחקים של יותם', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', other: 'אחר' };
 const GAME = { millimeters: 'מילימטרים (יניב)', sofa: 'מה אני אגיד לך? (אסף)', 'scooter-snake': 'שמעת על הקורקינט שלי? (שגיא)', pacman: 'פקי-טק (יותם)', ketoret: 'מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20 רצים לגן', 'shekel-tov': 'שקל טוב', yosef: 'יוסף מוקיר שבת', pilai: 'פילאי פלואים', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };
 const EV = { sign_in: 'כניסות לחשבון', follow: 'מעקב אחרי דמות', push_optin: 'התראות', comment: 'תגובות', like: 'אהבתי', save: 'שמירות', share: 'שיתופים', st_copy: 'סטיקרים שהועתקו', game: 'משחקים שנפתחו', heart: 'לייקים למשחקים', app_offer: 'הצעות למסך הבית', app_yes: 'רצו לשמור למסך', app_guide: 'מדריך מסך הבית', app_install: 'התקנות (אנדרואיד)', sticker_create: 'סטיקרים', stamp: 'החתמות', story_view: 'צפיות בסטורי', idea: 'רעיונות', vote: 'הצבעות', request: 'פניות', chat_new: 'שיחה חדשה' };
@@ -1320,7 +1323,11 @@ async function czCard() {
         <div class="k"><span class="kh">התחילו</span><b>${fmt(x.started)}</b><small>תושבים שנכנסו למסע</small></div>
         <div class="k"><span class="kh">אזרחים</span><b>${fmt(x.citizens)}</b><small>קיבלו מספר</small></div>
         <div class="k"><span class="kh">שיתפו תעודה</span><b>${fmt(x.shared)}</b><small>${fmt(x.skippedAll)} דילגו על מרים</small></div></div>
-      <div class="sim-row"><b>איפה הם עכשיו</b>${STEP.map(([k, l]) => `<span class="tag">${l} ${x.at[k] || 0}</span>`).join('')}</div>`;
+      <div class="sim-row"><b>איפה הם עכשיו</b>${STEP.map(([k, l]) => `<span class="tag">${l} ${x.at[k] || 0}</span>`).join('')}</div>
+      <div class="sim-row"><b>למה הגיעו לשלומיוורס</b>${Object.entries(x.why || {}).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tag">${esc(k)} ${v}</span>`).join('') || '<span class="hint">עוד אין</span>'}</div>
+      ${(x.answers || []).length ? `<details class="cz-ans"><summary>כל מה שענו למרים (${x.answers.length})</summary>${x.answers.map((r) => `<div class="cz-a"><div class="l1"><b>${esc(r.nick || 'בלי שם')}</b><time>${stamp(r.t)}</time>${r.n ? `<span class="tag">אזרח ${String(r.n).padStart(4, '0')}</span>` : ''}</div>
+        ${r.qa.map((t) => `<div class="qa"><span>${esc(t.q)}</span><b>${t.a == null ? '<i>דילגו</i>' : esc(t.a) + (t.opt ? '' : ' <small>(כתבו)</small>')}</b></div>`).join('')}
+        ${r.dept ? `<div class="hint">מחלקה: ${esc(r.dept)} · סיווג: ${esc(r.cls || '')}</div>` : ''}</div>`).join('')}</details>` : ''}`;
   };
   if (CZST && Date.now() - czAt < 300e3) return draw();
   draw();

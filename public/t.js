@@ -20,7 +20,7 @@
   var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(new Date());
 
   // where the visitor came from: ?src=, the in-app browser, or the referrer
-  var ua = navigator.userAgent, ref = document.referrer, q = qs.get('src');
+  var ua = navigator.userAgent, ref = document.referrer, q = qs.get('src') || qs.get('utm_source');   // utm_source: the mails' links (utm_source=mail)
   var source = ss('t-r');
   if (!source) {
     source = q ? q.toLowerCase()

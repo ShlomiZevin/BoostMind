@@ -262,6 +262,11 @@ async function mailFor(p, w, now) {
     faces: chars.map((id) => ({ ...who(w, id), href: `/story/${id}` })), facesTitle: 'העלו סטורי' } };
 }
 
+// ---------- the citizenship journey's invitation, to a resident who hasn't started it (stage 4, mockup E1; words = the approved mockup) ----------
+const citizenData = (w) => ({ subject: 'התושבות שלכם אושרה. הגיע הזמן לאזרחות.', preheader: 'עכשיו נשאר רק לעבור את מרים, דמוקרטוביץ והחותמת.',
+  title: 'אתם כבר בבית בשלומיוורס.', sub: 'עכשיו נשאר רק לעבור את מרים, דמוקרטוביץ והחותמת.', cta: 'צאו למסע האזרחות',
+  cast: [{ ...who(w, 'miriam'), role: 'מרים, בצ׳ק־אין' }, { ...who(w, 'demokratovich'), role: 'דמוקרטוביץ, עם החותמת' }] });
+
 // ---------- an idea's step, to its writer (his ask, 2026-11-05) ----------
 // Personal, not marketing: it goes whatever the switch says and beside the day's one mail - but never to someone who
 // stopped mail, and on Shabbat / at night it waits in mailQueue for the first run in decent hours. (Terra wrote the words.)
@@ -444,6 +449,7 @@ async function samples() {
   const out = [];
   const add = async (label, p) => { const x = await mailFor(p, w, now); if (x) out.push({ key: label, label, kind: x.kind, ...mail.render(x.kind, x.d) }); };
   await add('ברוכים הבאים', { ...P, kind: 'welcome', events: [] });
+  out.push({ key: 'אזרחות', label: 'הזמנה למסע האזרחות', kind: 'citizen', ...mail.render('citizen', citizenData(w)) });
   if (games[0]) await add('משחק חדש', { ...P, kind: 'game', events: [ev('game', games[0].id)] });
   if (videos[0]) await add('סרטון חדש', { ...P, kind: 'video', events: [ev('video', videos[0].id)] });
   if (stories[0]) await add('סטורי חדש', { ...P, kind: 'story', events: [ev('story', stories[0].id)] });
@@ -502,4 +508,4 @@ async function owner(op, b = {}) {
   return null;
 }
 
-module.exports = { ...exports, reply, replyMail, ideaMail, owner, plan, il, sendingHours, deliver, MAIL_SECRETS: SECRETS, _parseBounce: parseBounce };
+module.exports = { ...exports, citizenData, reply, replyMail, ideaMail, owner, plan, il, sendingHours, deliver, MAIL_SECRETS: SECRETS, _parseBounce: parseBounce };
