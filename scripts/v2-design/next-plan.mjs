@@ -37,8 +37,7 @@ line "יותם מריץ בדיקה. כל תשובה שלכם משנה את הש�
 reality - without breaking the page.`],
   ['Q2-intro', 'gpt-image-2.6-flare', [HOME, YOTAM], `${SCREEN}\n${QUIZ}\n${ALIGN}\nDesign the TEST's OPENING screen (full page),
 hosted by Yotam (exactly the man in the attached portrait), who runs the check like a system test at Techy-Tech: his portrait
-at the top with a small "בבדיקה" status light, title "יותם מריץ בדיקת מערכת", line "כמה שאלות עליכם. כל אחת יודעת מה עניתם
-קודם.", main button "תבדקו אותי" (first letter ת - tav, spelled exactly), small line "כשלוש דקות, תלוי כמה המציאות משתפת פעולה." It should feel like entering a
+at the top with a small "בבדיקה" status light, title "יותם מריץ בדיקת מערכת", line "יותם פתח טיקט. לצערו, אתם הטיקט.", main button "תבדקו אותי" (first letter ת - tav, spelled exactly), small line "כשלוש דקות, תלוי כמה המציאות משתפת פעולה." It should feel like entering a
 strange lab that tests whether you are real.`],
   ['Q3-question', 'gpt-image-2.6-sunburst', [HOME], `${SCREEN}\n${QUIZ}\nDesign ONE QUESTION of the test (question 3 of about 7, a progress
 mark): the AI agent asks "כשאתם שומעים 'בואו נחשוב מחוץ לקופסה', מה קורה?" and four big tappable answers: "אני מחפש קופסה לצאת
