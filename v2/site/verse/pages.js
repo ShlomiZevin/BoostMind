@@ -127,7 +127,7 @@ export function notesPage() {
 // the bell's list: the page (#/notes, where a push opens) and the dropdown / sheet behind the bell show the same thing
 function notesBody() {
   if (!signedIn()) return `<div class="signin-card" style="margin-top:16px"><div><p style="color:var(--text);font-size:1.05rem">${esc(T.notesSignedOut)}</p></div>
-    <button class="vx-btn white" data-signin>${I.google}${esc(T.signinGoogle)}</button></div>`;
+    <button class="vx-btn main" data-signin>${esc(T.residentBtn)}</button></div>`;
   const list = st.notes.filter((n) => filter === 'all' || n.kind === filter || (filter === 'reply' && n.kind === 'like'));
   const day = 864e5, now = Date.now(), today = new Date().toDateString();
   const ms = (n) => n.t?.toMillis?.() || now;
@@ -149,7 +149,7 @@ const itemLink = (id) => (gameOf(id) ? '/play/' : '/v/') + id;
 export function savedPage() {
   const head = pageHead(T.savedTitle, T.savedSub);
   if (!signedIn()) return `<div class="nt-page sv-page">${head}<div class="signin-card" style="margin-top:16px"><div><p style="color:var(--text);font-size:1.05rem">${esc(T.meNone.saved)}</p></div>
-    <button class="vx-btn white" data-signin>${I.google}${esc(T.signinGoogle)}</button></div></div>`;
+    <button class="vx-btn main" data-signin>${esc(T.residentBtn)}</button></div></div>`;
   const ids = [...st.saves.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
   const saves = ids.map((id) => V[id]).filter(Boolean), games = ids.map(gameOf).filter(Boolean);
   if (!saves.length && !games.length) return `<div class="nt-page sv-page">${head}<div class="empty" style="margin-top:16px">${esc(T.savedEmpty)}</div></div>`;
@@ -170,7 +170,7 @@ async function loadMyStickers() {
 }
 // ---------- their pages: each shows one thing (Shlomi: "isolated and clear") ----------
 const signedOutPage = (title, line) => `<div class="nt-page"><div class="nt-h"><h1>${esc(title)}</h1></div><div class="signin-card" style="margin-top:16px"><div><p style="color:var(--text);font-size:1.05rem">${esc(line)}</p></div>
-    <button class="vx-btn white" data-signin>${I.google}${esc(T.signinGoogle)}</button></div></div>`;
+    <button class="vx-btn main" data-signin>${esc(T.residentBtn)}</button></div></div>`;
 const pageHead = (title, sub) => `<div class="nt-h"><a class="pg-back" href="/me">${I.back}${esc(T.mmProfile)}</a><h1>${esc(title)}</h1>${sub ? `<p class="pg-sub">${esc(sub)}</p>` : ''}</div>`;
 // the profile: who they are, and a door to each of their places
 export function mePage() {

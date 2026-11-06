@@ -1052,7 +1052,7 @@ function inviteCard() {
   if (!uid) return '';
   const c = cxMode !== 'guide' && C[cxMode], url = `https://shlomiverse.com/${c ? 'c/' + c.id : ''}?inv=${encodeURIComponent(uid)}`;
   const msg = `${c ? `בואו לדבר עם ${c.name} בשלומיוורס` : 'בואו לשלומיוורס'}: ${url}`;
-  return `<div class="minv"><b>הקישור שלכם להזמנת חבר</b><small>חבר שנכנס דרכו ומתחבר עם Google - שניכם מקבלים עוד 10 שאלות היום.</small>`
+  return `<div class="minv"><b>הקישור שלכם להזמנת חבר</b><small>חבר שמסדיר תושבות דרך ההזמנה, ושניכם מקבלים עוד 10 שאלות היום</small>`
     + `<div class="row"><a class="wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">שליחה בוואטסאפ</a><button class="cp" data-inv-copy="${esc(url)}">העתקת הקישור</button></div></div>`;
 }
 // the server's word on the invite this friend came with: any answer means it is settled (kept for good, once)
