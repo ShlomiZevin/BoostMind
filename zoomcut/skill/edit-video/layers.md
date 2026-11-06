@@ -21,7 +21,7 @@ Checked by `render/src/layers/ops.js validate()` on every write; the studio refu
   "layers": [ ... ],           // BOTTOM to TOP
   "script": [ ... ],           // optional: the lines (the Script tab), written by a builder
   "builder": { ... },          // optional: who builds the items (zoom / solo) and its actions
-  "characters": ["amir", ...], // who is in it - ids of zoomcut/characters/<id> (the Characters page; SKILL.md)
+  "characters": ["amir", ...], // who is in it - character ids (the Characters page - the Shlomiverse's database; SKILL.md)
   "rev": 12                    // bumped on every write
 }
 ```

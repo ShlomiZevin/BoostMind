@@ -23,6 +23,10 @@ export const HOME = os.homedir();
 // a project's file that stays on this computer only (a path inside the project, forward slashes)
 export const SKIP = /(^|\/)work\/pieces\/|\.f32$|\.cloud-[^/]*$|\.tmp$/i;  // (.cloud-*: the sync's own state and half-downloaded files)
 export const skip = (rel) => SKIP.test(rel.replace(/\\/g, '/'));
+// the characters' profiles live in the Shlomiverse's database since 2026-11-06 (render/verse_db.mjs): a character.json /
+// profile.md / index.json left in characters/ on a computer is an old copy - never carried to the cloud
+export const DB_ONLY = /(^|\/)(character\.json|profile\.md|index\.json)$/i;
+export const DB_ONLY_RSYNC = String.raw`(.*[/\\])?(character\.json|profile\.md|index\.json)$`;
 // the same rule for gcloud storage rsync (its paths may use either slash)
 export const SKIP_RSYNC = String.raw`.*work[/\\]pieces[/\\].*|.*\.f32$|.*\.tmp$|.*\.cloud-[^/\\]*$`;
 

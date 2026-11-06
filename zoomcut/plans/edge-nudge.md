@@ -1,4 +1,4 @@
-# Sketch Studio - nudge any cut edge by milliseconds, the easiest thing in the world
+# Shlomiverse Studio - nudge any cut edge by milliseconds, the easiest thing in the world
 
 **His ask (2026-11-02):** "In the editor it should be easy to pick any end or start of a segment, and really really
 really comfortable to tell it: add a few ms or remove a few ms - and everything syncs instantly. The easiest in the

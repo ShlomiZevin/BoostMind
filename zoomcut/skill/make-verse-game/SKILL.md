@@ -6,7 +6,7 @@ argument-hint: "[character] [idea, or 'you decide']"
 
 # make-verse-game - games for the Shlomiverse
 
-Shlomi has dozens of characters (all of them in Sketch Studio, `zoomcut/characters/`). Each one can have games, and
+Shlomi has dozens of characters (all of them in Shlomiverse Studio, `zoomcut/characters/`). Each one can have games, and
 every game is part of the Shlomiverse: it lives on **shlomiverse.com**, it is true to who the character is, and it
 links back into the verse (the character's wiki page, their site, the links page). **Reply in English; Hebrew only
 inside the game.**
@@ -21,7 +21,7 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
 ## 0. Setup (every time, seconds)
 - **The repo**: BoostMind = the Shlomiverse (read its `CLAUDE.md`). Work in a worktree or a clean checkout of
   `origin/main`; `git fetch` first - other sessions push all day. Commit only your own files, and only when he asks.
-- **Sketch Studio's tools = this skill's makers** (`zoomcut/tools/`, keys in `zoomcut/.env`, the studio's own - never
+- **Shlomiverse Studio's tools = this skill's makers** (`zoomcut/tools/`, keys in `zoomcut/.env`, the studio's own - never
   borrow another project's key, never print one):
   - pictures: `node tools/leonardo.mjs image <prompt.txt> <out.jpg> [flare|sunburst] [HIGH|MEDIUM] [WxH]`;
     a character from their portrait: `node tools/leonardo.mjs portrait <ref.png> <prompt.txt> <out.jpg> sunburst HIGH`
@@ -55,7 +55,7 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
   pictures. Never Leonardo (only if OpenAI refuses or fails), never shapes drawn in code for what the player looks at.
 - **Every sound = ElevenLabs**: sound effects, loops, voices and music (`leonardo.mjs sfx|loop` calls ElevenLabs
   directly, `elevenlabs_music.mjs` for music, `elevenlabs.mjs` for voices).
-- Through the Sketch Studio tools above, so each result lands in the editor's library with its labels.
+- Through the Shlomiverse Studio tools above, so each result lands in the editor's library with its labels.
 
 ## Every game ships with its cover and its title - not optional
 A game is not done without these, all made with OpenAI from the game's real look and the character's portrait,
@@ -71,9 +71,12 @@ and shown to him before they are used:
 
 ## 1. The character comes first
 Read before any idea - the game must be something THIS character would be in:
-- `zoomcut/characters/<id>/profile.md` (who they are, how they talk, what is funny about them, their look, the rules
-  for writing them, the "never" list) and `character.json` (`relations`, `world`, `site`, `assets.portraits`).
-- Their world in `zoomcut/characters/index.json` (`worlds`): its brief and site. The game lives in that world - a
+- Their profile: `node scripts/verse/content.mjs profile <id> --out p.md` (who they are, how they talk, what is funny about them, their look,
+  the rules for writing them, the "never" list) and the record itself, `node scripts/verse/content.mjs get character
+  <id> --out c.json` (`relations`, `world`, `site`, `assets.portraits`) - both from the Shlomiverse's database, read
+  the Hebrew from the files.
+- Their world: `node scripts/verse/content.mjs list series --full --out s.json` (the one whose `world` is theirs): its
+  brief and site. The game lives in that world - a
   Techy-Tech game looks like Techy-Tech, Hani's games are in her playhouse, Ayelet's in her podcast's mystic world.
 - **Everyone who appears must match the family tree / the org chart** - read the profile of every character you put in
   (ages, looks, who is whose child, who reports to whom). A wrong kid or a wrong boss is a bug he will catch.
@@ -227,7 +230,7 @@ spot / try).
   build + push so it shows on the character's page. Bump `game.js?v=N`
   on every change (the site caches files).
 - **A new page is not done until it is listed** (BoostMind CLAUDE.md): `/all/` (`python scripts/all/catalog.py`), the
-  character's studio profile (`links` / `site`), their world in `zoomcut/characters/index.json` if it gets a site, the
+  character's studio profile (`links` / `site`), their world's `site` (`content.mjs put series <id> --set site=<url>`) if it gets a site, the
   links page's sites strip, and the sites table in `zoomcut/skill/edit-video/wiki.md`.
 - Verify live: open the real URL on a phone size with Playwright and play a round.
 

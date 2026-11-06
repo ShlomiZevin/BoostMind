@@ -13,8 +13,8 @@ finish in the studio is not on the site until you run the steps below.
 | **Everything he runs** (private: his link / code, once per device): every page, the Vault, tools, servers | https://shlomiverse.com/all/ (old: boostmind-b052c.web.app/all/ - same site) | `scripts/all/catalog.py` -> redeploy `stats` |
 | The characters' own sites | the table below | `public/<site>/` |
 
-**Every character site** (each character's profile has it as `site.url`, each world in `zoomcut/characters/index.json`
-as `site` - the Characters page shows it; keep all three in step):
+**Every character site** (each character's profile has it as `site.url`, each world - a series record in the
+database - as `site`; the Characters page shows it; keep all three in step):
 
 | Site | Whose | Files / deploy |
 |---|---|---|
@@ -34,11 +34,12 @@ as `site` - the Characters page shows it; keep all three in step):
 | **The chat knows a site only through a profile** | build.py `site_cards()` collects every site from a world's `site`, a character's `site` and their `links` (any shlomiverse.com / techytech URL) + every subfolder with a live `game.json`, into wiki.json `sites` (chat cards [[site:ID]]) / `site_list` (the page's sites row) and the brain's `sites` (the chat's map). A new site = put it in the character's `links` (or `site`), then build.py + push.cjs - no deploy (2026-11-01: the chat missed Hani's games) | |
 | - (none yet) | Gen Z cashier, the gym guy + Sigal, the news anchor | a site of their own is welcome - ask him |
 
-His own pages (not characters): /links/, /wiki/, /stats/, /all/ (above); Sketch Studio's public pages
+His own pages (not characters): /links/, /wiki/, /stats/, /all/ (above); the studio's public pages (still named Sketch Studio - the name the apps were registered with)
 /sketch-studio/ (+ terms, privacy - for the social apps); /karaoke/. /micro-comedy/ is obsolete - never link it.
 
 **A NEW site (a character's, or any page of his) is not done until it is in every list:** the character's profile
-`site` (`POST /api/characters/<id> {patch: {site: {url, notes}}}`) and its world's `site` in index.json · this
+`site` (`POST /api/characters/<id> {patch: {site: {url, notes}}}`) and its world's `site` (`node
+scripts/verse/content.mjs put series <id> --set site=<url>`) · this
 table · the sites strip of the links page (`public/links/index.html`) · his private index /all/ (`python
 scripts/all/catalog.py`, then `firebase deploy --only functions:stats` from techietech-api/) · `/t.js` analytics
 (below). Then deploy - and say what else rides along (other sessions' unfinished pages, step 12).

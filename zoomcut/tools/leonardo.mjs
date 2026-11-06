@@ -1,7 +1,7 @@
 // Sketch pictures and sounds: backgrounds, portraits from a reference photo, sound effects, looping beds, AI video.
 // Pictures go to OpenAI and sounds to ElevenLabs DIRECTLY - the same models Leonardo resells (GPT Image 2.5 flare /
 // sunburst; ElevenLabs sound effects), 30-67% cheaper for pictures and ~4x for sound (measured 2026-10-30, his ask:
-// "move Sketch Studio off Leonardo"). Leonardo only when the direct call refuses or fails, or its key is missing, and
+// "move Shlomiverse Studio off Leonardo"). Leonardo only when the direct call refuses or fails, or its key is missing, and
 // for `video` (seedance - neither OpenAI nor ElevenLabs makes video). The file keeps its name so every command still works.
 //   node tools/leonardo.mjs balance                                     (Leonardo's tokens)
 //   node tools/leonardo.mjs portrait <ref.png> <prompt.txt> <out.jpg> [flare|sunburst] [HIGH|MEDIUM] [refStrength] [WxH]

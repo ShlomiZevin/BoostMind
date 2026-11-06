@@ -2,7 +2,7 @@
 // they talk (the Reader's measured pace, kept up to date by it), their website, their videos and their assets.
 // "Copy profile for a session" puts the character's profile on the clipboard (character_profile.js) - paste it into a
 // session, then say what we write.
-// Data: render/characters.mjs (zoomcut/characters/<id>/character.json). Opens in the studio's left rail.
+// Data: render/characters.mjs - the Shlomiverse's database (render/verse_db.mjs, since 2026-11-06). Opens in the studio's left rail.
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { profileText } from './character_profile.js';
@@ -82,7 +82,7 @@ function Profile({ id, all, back, open, reload }: { id: string; all: Ch[]; back:
     return () => { clearInterval(t); removeEventListener('focus', f); }; }, [id]);
   useEffect(() => { if (toast) { const t = setTimeout(() => setToast(''), 2200); return () => clearTimeout(t); } }, [toast]);
   if (!c) return <div className="cx"><div className="cp-note">Loading…</div></div>;
-  const save = async (patch: any) => { const r = await api(`/api/characters/${id}`, { patch }); if (r.ok) { await load(); reload(); setToast('Saved'); } };
+  const save = async (patch: any) => { const r = await api(`/api/characters/${id}`, { patch }); if (r.ok) { await load(); reload(); setToast('Saved'); } else setToast(`Not saved - ${r.error || 'the Shlomiverse did not answer'}`); };  // (saved in the Shlomiverse's database)
   const startEdit = () => { setDraft({ name: c.name || '', role: c.role || '', world: c.world || '', brief: c.brief || '', look: c.look || '',
     personality: (c.personality || []).join(', '), catchphrases: (c.catchphrases || []).join('\n'), writing_rules: (c.writing_rules || []).join('\n'),
     voice_preset: c.voice?.preset || '', voice_notes: c.voice?.notes || '', site: c.site?.url || '', color: c.color || '#ff6b57' }); setEdit(true); };

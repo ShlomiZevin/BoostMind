@@ -52,7 +52,7 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
    `web.mp4` with subtitles + `poster.jpg`, `cost.json`. `--redo subs` (etc.) re-runs a step.
    Look at `strip.jpg` and a still of `web.mp4` before going on.
    **Twins:** right after the words, `twin` compares them with every editor episode (free). His recent reels were
-   made in Sketch Studio and are on the wiki already (the 2026-10-15 reel = the `follow-up` episode); a match stops
+   made in Shlomiverse Studio and are on the wiki already (the 2026-10-15 reel = the `follow-up` episode); a match stops
    the run, `state.json` -> `twin` - go to the next reel.
 3. **Who is it?** Terra reads the burned-in text but **cannot name his characters** (it called the Rosenblum teacher
    "a dad" twice). If the look clearly matches a character in `zoomcut/characters` (same costume/setting as its
@@ -121,7 +121,7 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
    minutes after publishing, on the LIVE function:
    - **the guide** answers about the character and links the reel (`[[char:<id>]]`, `[[video:ig-<id>]]`);
    - **a new character also chats as themself**, like every other character (the "לדבר עם..." button on their page,
-     the `with=<id>` link). Their voice comes from character.json (speech, catchphrases, personality) - from one reel
+     the `with=<id>` link). Their voice comes from their profile (speech, catchphrases, personality - the database record) - from one reel
      it is thin, so when later reels of them come in, add the new lines and habits to the profile (studio endpoint).
    Once per batch, ~4 minutes after publishing, one question (the first one costs ~$0.11 - never poll in a loop):
    ```bash

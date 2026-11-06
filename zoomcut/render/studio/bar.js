@@ -1,4 +1,4 @@
-// Sketch Studio's shared top bar for every tool (Video editor, Karaoke, Reader).
+// Shlomiverse Studio's shared top bar for every tool (Video editor, Karaoke, Reader).
 //   <script src="/studio/bar.js"></script>  then  <studio-nav app="video|karaoke|reader"></studio-nav> in the page's top bar.
 // Inside the studio shell (http://localhost:4747/ - a side rail switches tools) the bar shows only the tool's own
 // controls; opened on its own, it also shows the brand and tool tabs (they link back into the shell).
@@ -94,7 +94,7 @@
           svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
           .sep { width: 1px; height: 22px; background: rgba(255,255,255,0.12); }
         </style>
-        <a class="brand" href="${base}/#${app}"><div class="mark">S</div>Sketch Studio</a>
+        <a class="brand" href="${base}/#${app}"><div class="mark">S</div>Shlomiverse Studio</a>
         <nav class="tabs">${TABS.map((t) => `<a class="tab ${t.id === app ? 'on' : ''}" href="${base}/#${t.id}"><svg viewBox="0 0 24 24">${t.icon}</svg>${t.label}</a>`).join('')}</nav>
         <div class="sep"></div>`;
     }

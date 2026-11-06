@@ -1,4 +1,4 @@
-# Sketch Studio's Python side (zoomcut/.venv, Python 3.12) - made from the working PC with pip freeze (2026-11-02).
+# Shlomiverse Studio's Python side (zoomcut/.venv, Python 3.12) - made from the working PC with pip freeze (2026-11-02).
 # setup.ps1 installs it on a new computer. torch is the CPU build (its own index).
 --extra-index-url https://download.pytorch.org/whl/cpu
 absl-py==2.5.1

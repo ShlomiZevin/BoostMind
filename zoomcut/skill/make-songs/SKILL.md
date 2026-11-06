@@ -1,6 +1,6 @@
 ---
 name: make-songs
-description: Make a song or a music clip in Sketch Studio (c:\workspace\BoostMind\zoomcut) from an existing song plus Shlomi's own words - the backing without its singers, the words on screen in the Karaoke tool for recording, his (and his family's / friends') sung takes as editor layers with effects, a lyric-video look over a poster, an optional techno beat, credits. Use whenever he says new words for a song, parody, chorus with my words, karaoke, record a song, make it a song, music clip, lyric video, "זוט חני", or wants to sing over a track. Read together with the edit-video skill (the editor, its rules).
+description: Make a song or a music clip in Shlomiverse Studio (c:\workspace\BoostMind\zoomcut) from an existing song plus Shlomi's own words - the backing without its singers, the words on screen in the Karaoke tool for recording, his (and his family's / friends') sung takes as editor layers with effects, a lyric-video look over a poster, an optional techno beat, credits. Use whenever he says new words for a song, parody, chorus with my words, karaoke, record a song, make it a song, music clip, lyric video, "זוט חני", or wants to sing over a track. Read together with the edit-video skill (the editor, its rules).
 ---
 
 # make-songs - his words on a song, as a clip in the editor

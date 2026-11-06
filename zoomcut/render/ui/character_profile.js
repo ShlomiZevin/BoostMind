@@ -1,6 +1,6 @@
 // A character's profile as text for a writing session: paste it, then say what we write ("now a script about...").
-// One builder for the Characters page's "Copy profile for a session" button and for the profile.md written next to
-// every character (tools/character_profiles.mjs) - so a session can also just read zoomcut/characters/<id>/profile.md.
+// One builder for the Characters page's "Copy profile for a session" button and for a session's
+// `node scripts/verse/content.mjs profile <id> --out p.md` - both from the Shlomiverse's database.
 // Only what a writer needs: who they are, how they behave and talk, their look, the rules, the people around them,
 // their site and what their videos already did. No file paths, no ids.
 

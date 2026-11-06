@@ -1,4 +1,4 @@
-// ElevenLabs for Sketch Studio: other people's voices made from his own take (same words, same timing, same tune).
+// ElevenLabs for Shlomiverse Studio: other people's voices made from his own take (same words, same timing, same tune).
 //   node tools/elevenlabs.mjs balance                       credits used / left this month
 //   node tools/elevenlabs.mjs voices                        the male / female voices on the account
 //   node tools/elevenlabs.mjs sts <in.wav|mp3|mp4> <voice> <out.mp3>     his take in another voice (voice changer)

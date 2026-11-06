@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { BUCKET, EPS, ROOT, SKIP_RSYNC, footageDirs, footageName, gcloud } from '../render/cloud/layout.mjs';
+import { BUCKET, EPS, ROOT, SKIP_RSYNC, DB_ONLY_RSYNC, footageDirs, footageName, gcloud } from '../render/cloud/layout.mjs';
 
 const args = process.argv.slice(2);
 // --skip a,b: projects this run leaves alone (one coming from another computer - its version must win)
@@ -46,7 +46,7 @@ for (const id of projects) if ((!only || only === id) && !skipIds.has(id)) jobs.
 if (!only) {
   for (const d of footageDirs()) jobs.push(() => rsync(d, footageName(d)));
   jobs.push(() => rsync(path.join(EPS, '_assets'), 'assets/_assets', SKIP_RSYNC));
-  jobs.push(() => rsync(path.join(ROOT, 'characters'), 'assets/characters'));
+  jobs.push(() => rsync(path.join(ROOT, 'characters'), 'assets/characters', DB_ONLY_RSYNC));  // (the pictures - the profiles are the database's)
   jobs.push(() => rsync(path.join(ROOT, 'models'), 'studio/models'));  // (Whisper, cut-out, gaze - not in git; a new computer's setup.ps1 pulls them)
   if (fs.existsSync(path.join(ROOT, 'library'))) jobs.push(() => rsync(path.join(ROOT, 'library'), 'library'));  // (the Assets page's library)
   jobs.push(() => cp(path.join(ROOT, 'ideas', 'ideas.json'), 'studio/ideas.json'));

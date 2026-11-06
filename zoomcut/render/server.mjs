@@ -732,7 +732,7 @@ function startShare(id, channel, to, draft = false) {
       const who = await sendEmail({ file, to, subject: test ? `📱 TEST ${title} — look + sound check (not for posting)` : draft ? `🧪 ${title} — DRAFT to check (quick export, not for TikTok)` : `🎬 ${title} — ready for TikTok`,
         text: `${title}
 
-Exported by Sketch Studio. Full-quality master: ${master}` });
+Exported by Shlomiverse Studio. Full-quality master: ${master}` });
       log(`✓ Sent to ${who}`);
     } else {
       await sendTelegram({ file, caption: test ? `📱 TEST · ${title}` : draft ? `🧪 ${title} — draft` : `🎬 ${title}`, log });
@@ -830,7 +830,7 @@ app.post('/api/shoot/delete', (q, res) => {  // only a take filmed here (shot-..
   } catch (e) { res.status(e.status || 500).json({ error: e.message }); }
 });
 app.use('/studio', express.static(path.join(HERE, 'studio')));  // the shared top bar + the shell
-app.get(['/', '/index.html'], (_q, res) => res.sendFile(path.join(HERE, 'studio', 'index.html')));  // Sketch Studio: rail + tools
+app.get(['/', '/index.html'], (_q, res) => res.sendFile(path.join(HERE, 'studio', 'index.html')));  // Shlomiverse Studio: rail + tools
 // saved scripts for the Reader (prompter texts, pasted dialogues): zoomcut/scripts/<id>.txt, first line "# name"
 const SCRIPTS = path.join(ROOT, 'scripts');
 const scriptId = (name) => name.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '-').slice(0, 60) || 'script';

@@ -563,19 +563,16 @@ def link_at(pic, f):
 
 
 def characters_of(ls):
-    """Who is in this video (zoomcut/characters - the Characters page): episode.json "characters" if he set it, else
-    the characters whose profile lists this video, else those of the earlier videos of the same series."""
+    """Who is in this video (the Characters page - the Shlomiverse's database, pipeline/verse_db.py): episode.json
+    "characters" if he set it, else the characters whose profile lists this video, else those of the earlier videos of
+    the same series."""
     if ls.cfg.get("characters"):
         return list(ls.cfg["characters"])
-    reg = os.path.join(ROOT, "characters")
-    if not os.path.isdir(reg):
-        return []
+    from . import verse_db
     series_of = lambda ep: (L.load_json(os.path.join(ROOT, "episodes", ep, "episode.json"), {}) or {}).get("series")
     mine, same = [], []
-    for cid in sorted(os.listdir(reg)):
-        c = L.load_json(os.path.join(reg, cid, "character.json"), None)
-        if not c:  # (NPCs too: out of the main gallery, still in the videos they are in)
-            continue
+    for c in sorted(verse_db.characters(), key=lambda c: c["id"]):  # (NPCs too: out of the main gallery, still in their videos)
+        cid = c["id"]
         vids = c.get("videos") or []
         if ls.slug in vids:
             mine.append(cid)

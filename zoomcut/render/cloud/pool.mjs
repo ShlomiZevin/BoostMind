@@ -1,6 +1,6 @@
 // The shared folders, the same on every computer (the studio online): what was made for videos and is used by many -
 // the set pictures, sounds and props (episodes/_assets -> assets/_assets/) - and the characters' pictures
-// (characters/ -> assets/characters/: only what git doesn't carry - their profiles live in git, their portraits don't).
+// (characters/ -> assets/characters/: their pictures - the profiles live in the Shlomiverse's database, layout.DB_ONLY).
 // A project is edited by one computer at a time (sync.mjs, with a lock); these are a common pool that only grows:
 //   - a file new or changed on one side goes to the other (a file still being written - changed in the last 15 s -
 //     waits for the next round);
@@ -13,13 +13,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { EPS, ROOT, skip, readJson } from './layout.mjs';
+import { EPS, ROOT, skip, readJson, DB_ONLY } from './layout.mjs';
 import { list, upload, download, remove, md5File } from './store.mjs';
 import { walk, fp, sameAs, pool, HOST } from './sync.mjs';
 
 export const POOLS = [
   { dir: path.join(EPS, '_assets'), prefix: 'assets/_assets/', git: 'episodes/_assets' },
-  { dir: path.join(ROOT, 'characters'), prefix: 'assets/characters/', git: 'characters' },
+  { dir: path.join(ROOT, 'characters'), prefix: 'assets/characters/', git: 'characters', never: DB_ONLY },
 ];
 const STATE = path.join(EPS, '_cloud', 'pool-state.json');
 const FRESH = 15e3;
@@ -44,7 +44,7 @@ async function syncPool(P, state, n) {
   for (const rel of rels) {
     if (!rel || skip(rel)) continue;
     const l = local[rel], r = remote[P.prefix + rel], s = st[rel], f = path.join(P.dir, rel);
-    if (tracked.has(rel)) { if (r) { await remove(P.prefix + rel).catch(() => {}); n.cleaned++; } delete st[rel]; continue; }  // (git carries it)
+    if (tracked.has(rel) || P.never?.test(rel)) { if (r) { await remove(P.prefix + rel).catch(() => {}); n.cleaned++; } delete st[rel]; continue; }  // (git carries it)
     if (l && Date.now() - l.mtime < FRESH && !(s && s.mtime === l.mtime)) continue;  // (still being written here - not one that just came down)
     if (l && r) {
       if (await sameAs(f, l, r, s)) { st[rel] = { ...l, fp: fp(r) }; continue; }

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sketch Studio</title>
+<title>Shlomiverse Studio</title>
 <style>
-/* Sketch Studio shell: one rail that never reloads, the tools live beside it (each keeps its state). */
+/* Shlomiverse Studio shell: one rail that never reloads, the tools live beside it (each keeps its state). */
 :root { --app: #131211; --panel: #1a1918; --panel-3: #2a2826; --edge: rgba(255,255,255,0.07); --text: #f2f0ed; --dim: #aaa59f; --faint: #78736d; --accent: #ff6b57; }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--app); color: var(--text); font: 600 11px/1.2 Inter, "Segoe UI", system-ui, sans-serif; }
@@ -56,7 +56,7 @@ iframe.on { display: block; }
 <body>
 <div class="shell">
   <nav class="rail" id="rail">
-    <div class="mark" title="Sketch Studio">S</div>
+    <div class="mark" title="Shlomiverse Studio">S</div>
   </nav>
   <main id="main"></main>
 </div>
@@ -94,7 +94,7 @@ function show() {
   }
   for (const [k, f] of Object.entries(frames)) f.classList.toggle('on', k === t.id);
   rail.querySelectorAll('.tool').forEach((b) => b.classList.toggle('on', b.dataset.id === t.id));
-  document.title = `${t.label} · Sketch Studio`;
+  document.title = `${t.label} · Shlomiverse Studio`;
   frames[t.id].focus();
 }
 addEventListener('hashchange', show);

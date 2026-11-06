@@ -82,7 +82,7 @@ export async function sendEmail({ file, to, subject, text }) {
   const env = keysOf(ENV_MAIL, ['GMAIL_USER', 'GMAIL_APP_PASSWORD']);
   if (!env.GMAIL_USER || !env.GMAIL_APP_PASSWORD) throw new Error('GMAIL_USER / GMAIL_APP_PASSWORD missing (studio keys)');
   const t = nodemailer.createTransport({ service: 'gmail', auth: { user: env.GMAIL_USER, pass: env.GMAIL_APP_PASSWORD } });
-  await t.sendMail({ from: `Sketch Studio <${env.GMAIL_USER}>`, to: to || env.GMAIL_USER, subject, text,
+  await t.sendMail({ from: `Shlomiverse Studio <${env.GMAIL_USER}>`, to: to || env.GMAIL_USER, subject, text,
     attachments: [{ filename: path.basename(file).replace(/\.(email|telegram)\.mp4$/, '.mp4'), path: file }] });
   return to || env.GMAIL_USER;
 }

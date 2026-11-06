@@ -9,12 +9,13 @@
 //      script), the series. No title / teaser sent - the API's Terra writes them the first time and keeps them after
 //      (a new cut of a published video keeps its title, its date and anything fixed in /backstage/). A character
 //      born in this video (no copy in scripts/wiki/copy.json yet) first gets its page: publish_site.py --characters
-//      (Terra's copy, build, push of base.json - characters aren't in the database yet)
+//      (Terra's copy, build, push)
 // Key: VERSE_PUBLISH_KEY (studio-keys -> zoomcut/.env), sent as 'authorization: Key <key>' (a Bearer is taken by
 // Google's front door for its own token and refused before the function). Only /backstage/'s hide takes a video off the site.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import * as verseDb from './verse_db.mjs';
 
 export const VERSE_API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/versePublish';
 
@@ -50,9 +51,9 @@ export function onScreenOf(dir) {
 // Shlomiverse" - publish.json cast: kept with the post, never written into the project he edits). Known characters only.
 // Every video on the Shlomiverse has at least one (his rule, 2026-11-05 - 12 videos with none were on nobody's page).
 // detail=true: [{id, name, fixed}] - fixed = listed by a profile / the project (changed there, not in Send)
-export function castOf(ROOT, id, dir, detail = false) {
-  const cdir = path.join(ROOT, 'characters'), order = readJson(path.join(cdir, 'index.json'), {}).order || [];
-  const ch = Object.fromEntries(order.map((c) => [c, readJson(path.join(cdir, c, 'character.json'), {})]));
+// (the characters: the database - verse_db.mjs, since 2026-11-06)
+export async function castOf(ROOT, id, dir, detail = false) {
+  const all = await verseDb.characters(), order = all.map((c) => c.id), ch = Object.fromEntries(all.map((c) => [c.id, c]));
   const listed = order.filter((c) => (ch[c].videos || []).includes(id));
   const own = (readJson(path.join(dir, 'project.json'), {}).characters || []).filter((c) => ch[c]);
   const picked = (readJson(path.join(dir, 'publish.json'), {}).cast || []).filter((c) => ch[c]);
@@ -60,8 +61,9 @@ export function castOf(ROOT, id, dir, detail = false) {
   return detail ? ids.map((c) => ({ id: c, name: ch[c].name || c, fixed: listed.includes(c) || own.includes(c) })) : ids;
 }
 
-export function namesOf(ROOT, ids) {
-  return ids.map((c) => readJson(path.join(ROOT, 'characters', c, 'character.json'), {}).name || c);
+export async function namesOf(ROOT, ids) {
+  const all = await verseDb.characters().catch(() => []);
+  return ids.map((c) => all.find((x) => x.id === c)?.name || c);
 }
 // the last trip to the Shlomiverse, kept with the post (publish.json site): Send shows it (where, who - and how the cast was chosen)
 export function saveSite(dir, site) {
@@ -107,7 +109,7 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
   }
   log('  · uploaded to the Shlomiverse');
   const cfg = readJson(path.join(dir, 'episode.json'), {});
-  const cast = castOf(ROOT, id, dir);
+  const cast = await castOf(ROOT, id, dir);
   const BM = path.resolve(ROOT, '..'), known = readJson(path.join(BM, 'scripts', 'wiki', 'copy.json'), {}).characters || {};
   const born = cast.filter((c) => !known[c]);
   // publish_site.py's characters part (--characters) and its checks of the places it can't reach (--check): python, from BoostMind
@@ -128,7 +130,7 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
   const live = await api({ op: 'get', id });
   if (!live.live) throw new Error(`written, but ${id} is hidden on the site (/backstage/ סרטונים shows it)`);
   log(`  · "${live.title}"${out.wrote ? ' (title by Terra)' : ''}`);
-  const names = namesOf(ROOT, live.cast || []), by = out.castBy || (cast.length ? 'sent' : 'kept');
+  const names = await namesOf(ROOT, live.cast || []), by = out.castBy || (cast.length ? 'sent' : 'kept');
   saveSite(dir, { at: Date.now(), url: out.url, title: live.title, cast: live.cast || [], castBy: by });
   if (!names.length) log(`  ! ${id} is on nobody's page - nobody found in it: pick who's in it in Send (On the Shlomiverse)`);
   else if (by === 'ai') log(`  ! the cast was picked by AI from the words: ${names.join(', ')} - check it in Send (On the Shlomiverse)`);

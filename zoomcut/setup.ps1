@@ -1,4 +1,4 @@
-# Sketch Studio on a new computer - one step (the studio online: zoomcut/render/cloud/).
+# Shlomiverse Studio on a new computer - one step (the studio online: zoomcut/render/cloud/).
 #   Right-click > "Run with PowerShell", or:  powershell -ExecutionPolicy Bypass -File setup.ps1
 # What it does, each step only if needed: the tools (Git, Node, Python 3.12, ffmpeg, Google Cloud CLI - via winget),
 # the code (cloned to C:\workspace\BoostMind), the editor's packages, Python's packages, the Google sign-in, the keys
@@ -76,7 +76,7 @@ Write-Host '  ok   keys (zoomcut\.env, from Secret Manager), models, sync on'
 Write-Host '  note: eye contact (NVIDIA Maxine) needs an NVIDIA graphics card and its SDK - the rest works on any computer.' -ForegroundColor DarkGray
 
 if ($NoStart) { Write-Host "`nReady. Start it with:  node $Z\render\server.mjs" -ForegroundColor Green; exit 0 }
-Step '7/7  Sketch Studio'
+Step '7/7  Shlomiverse Studio'
 # another studio already running on this computer: this one gets no iPhone Drop poller (two would fight over the Drop's
 # folders) and must take another port
 if (Get-NetTCPConnection -LocalPort 4747 -State Listen -ErrorAction SilentlyContinue) {

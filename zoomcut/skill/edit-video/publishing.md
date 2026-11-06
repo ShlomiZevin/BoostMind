@@ -40,7 +40,7 @@ Connected = its keys in zoomcut/.env (`GET /api/publish/platforms` says which).
 
 ## Writing the post
 - **Hebrew**, in the character's world - the caption is one more line of the sketch, not a description of it. Read
-  the character's profile.md (how they talk) first. Never "parody", never Shlomi's name in a character's voice.
+  the character's profile (how they talk - `node scripts/verse/content.mjs profile <id> --out p.md`) first. Never "parody", never Shlomi's name in a character's voice.
 - **A hook in the first line** (it's what shows before "more"): the joke's premise or a POV line, short. Then at most
   one more line. No emoji walls - one or two at most.
 - **Hashtags at the end, 3-6**: the character / series (e.g. #טקיטק, #איילתהשחר, #דמוקרטוביץ), the topic of THIS

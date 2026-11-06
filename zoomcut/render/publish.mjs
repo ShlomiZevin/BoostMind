@@ -351,11 +351,11 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   // profiles' / project's own stay as they are); a video already up there gets its new cast at once (op=video)
   app.post('/api/ep/:id/cast', async (q, res) => {
     const id = q.params.id, dir = epDir(id);
-    const fixed = castOf(ROOT, id, dir, true).filter((c) => c.fixed).map((c) => c.id);
+    const fixed = (await castOf(ROOT, id, dir, true).catch(() => [])).filter((c) => c.fixed).map((c) => c.id);
     const pick = [...new Set((q.body?.cast || []).map(String))].filter((c) => !fixed.includes(c));
     writeJson(pubFile(id), { ...readJson(pubFile(id), {}), cast: pick });
     saved?.(id);
-    const cast = castOf(ROOT, id, dir, true), pj = readJson(pubFile(id), {}), key = env().VERSE_PUBLISH_KEY;
+    const cast = await castOf(ROOT, id, dir, true).catch(() => []), pj = readJson(pubFile(id), {}), key = env().VERSE_PUBLISH_KEY;
     let site = pj.site || null, error = null;
     if (key && cast.length) {
       try {
@@ -375,7 +375,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     if (!key) return res.json({ found: false });
     try {
       const v = await verseApi(key)({ op: 'get', id: q.params.id });
-      const ids = v.cast || [], names = namesOf(ROOT, ids);
+      const ids = v.cast || [], names = await namesOf(ROOT, ids);
       res.json({ found: true, url: v.url, live: v.live, cast: ids.map((c, i) => ({ id: c, name: names[i], fixed: false })) });
     } catch { res.json({ found: false }); }
   });
@@ -393,14 +393,14 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     res.json(ORDER.map((id) => ({ id, name: P[id].name, what: P[id].what, manual: !!P[id].manual, limits: P[id].limits, ...P[id].connected(e) })));
   });
   // the project's post (what he last chose) + the run now / the last results
-  app.get('/api/ep/:id/publish', (q, res) => {
+  app.get('/api/ep/:id/publish', async (q, res) => {
     const e = readJson(epFile(q.params.id), {}), f = master(q.params.id), pj = readJson(pubFile(q.params.id), null);
     let file = null;  // what would go out: the file, its size and when it was exported (the window shows it before he clicks)
     try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id) }; } catch {}
     let draft = null;  // a Quick check (half size) - shown in the window, never published
     try { draft = { exported: fs.statSync(draftOf(q.params.id)).mtimeMs }; } catch {}
     res.json({ post: pj, run: runs[q.params.id] || null, published: publishedOf(q.params.id), title: e.title || q.params.id, file, draft,
-      cast: castOf(ROOT, q.params.id, epDir(q.params.id), true), site: pj?.site || null, siting: sites.cur?.id === q.params.id || sites.queue.includes(q.params.id) });
+      cast: await castOf(ROOT, q.params.id, epDir(q.params.id), true).catch(() => []), site: pj?.site || null, siting: sites.cur?.id === q.params.id || sites.queue.includes(q.params.id) });
   });
   // the video the window shows: the full export, else the Quick check draft
   app.get('/api/ep/:id/publish/video', (q, res) => {

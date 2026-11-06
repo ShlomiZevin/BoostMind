@@ -1,4 +1,4 @@
-/* Sketch Studio - the layered editor's inspector panels (design.md). Same tokens as editor.css (:root there):
+/* Shlomiverse Studio - the layered editor's inspector panels (design.md). Same tokens as editor.css (:root there):
    warm off-black, one coral accent, 1px hairlines, flat - no gradients, no glow. Only what the panels add. */
 .ins { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; font-size: 13px; }
 .ins-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px 14px; border-bottom: 1px solid var(--edge); position: sticky; top: 0; background: var(--panel); z-index: 2; }

@@ -1,4 +1,4 @@
-# Sketch Studio online - one studio, any computer
+# Shlomiverse Studio online - one studio, any computer
 
 **His ask (2026-11-02):** "the projects live online and the tool lives online, maybe in the Shlomiverse, so I can move
 between computers. All the keys online, somewhere easy (maybe the Vault). An asset library somewhere general that I

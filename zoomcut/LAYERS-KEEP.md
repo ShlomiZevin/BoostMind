@@ -1,6 +1,6 @@
 # What the layered tool must keep - and show
 
-Inventory of every feature of the CURRENT Sketch Studio (lesson.py one-camera engine, zoomcut.py + pipeline/ Zoom
+Inventory of every feature of the CURRENT Shlomiverse Studio (lesson.py one-camera engine, zoomcut.py + pipeline/ Zoom
 engine, render/ui/editor.tsx + sound.ts + liveplayer.ts, render/server.mjs, the skill) checked against the layered
 model as it stands on 2026-10-22 (LAYERS-PLAN.md, skill/edit-video/layers.md, pipeline/to_layers.py,
 layers_audio.py, export_layers.py, render/src/Layers.tsx, render/src/layers/*).

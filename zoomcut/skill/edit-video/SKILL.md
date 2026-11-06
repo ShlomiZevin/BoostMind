@@ -1,10 +1,11 @@
 ---
 name: edit-video
-description: Edit Shlomi's TikTok comedy footage into a finished vertical video with Sketch Studio (c:\workspace\BoostMind\zoomcut) - one editor where every element is a layer (each take, each character's background, subtitles, texts, images, voices, music, filters) and one export. Projects, never templates; recipes per kind of video (Zoom-call sketch, monologue - rabbi / guru / news anchor / keynote, a person with an off-screen voice, Gen Z thoughts, a "quick edit" of short phone takes). Use for /edit-video, "quick edit" / עריכה מהירה, and whenever Shlomi says he recorded a sketch / has new footage / uploaded through the Drop / a folder in Downloads / wants a video edited, mentions zoomcut, Sketch Studio, the editor at localhost:4747, Amir/Ofer/Daniel/Ronit/Gilad, POV text, or asks to export/send a video to email or Telegram.
+description: Edit Shlomi's TikTok comedy footage into a finished vertical video with Shlomiverse Studio (c:\workspace\BoostMind\zoomcut) - one editor where every element is a layer (each take, each character's background, subtitles, texts, images, voices, music, filters) and one export. Projects, never templates; recipes per kind of video (Zoom-call sketch, monologue - rabbi / guru / news anchor / keynote, a person with an off-screen voice, Gen Z thoughts, a "quick edit" of short phone takes). Use for /edit-video, "quick edit" / עריכה מהירה, and whenever Shlomi says he recorded a sketch / has new footage / uploaded through the Drop / a folder in Downloads / wants a video edited, mentions zoomcut, Shlomiverse Studio, the editor at localhost:4747, Amir/Ofer/Daniel/Ronit/Gilad, POV text, or asks to export/send a video to email or Telegram.
 argument-hint: "[footage folder in Downloads or the Drop] [what the sketch is]"
 ---
 
-# /edit-video - Sketch Studio
+# /edit-video - Shlomiverse Studio
+(Was "Sketch Studio" until 2026-11-06 - renamed at his ask: everything is on the Shlomiverse, from production to live to backstage. Same folder, same address: zoomcut/, localhost:4747.)
 
 Shlomi runs a 40K-follower Hebrew comedy TikTok. He records every character himself (wigs, face filters) and wants a
 finished vertical 1080x1920 MP4. **You make the first edit; he fine-tunes it himself in the editor
@@ -254,7 +255,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    and prints one `  !` line per gap - a missing portrait, a Techy-Tech card, a site without a links-page button, a
    character site that shows videos but not this one. Act on every `!` line. For each character in the video:
    - [ ] **Characters page** - a profile (`POST /api/characters/<id>`), its portrait, the video in `videos`, the
-     facts the video added (family, catchphrases), then `node zoomcut/tools/character_profiles.mjs`.
+     facts the video added (family, catchphrases) - saved in the Shlomiverse's database, live everywhere at once.
    - [ ] **The world's site** - a Techy-Tech character gets a team card (`public/techietech/index.html` TEAM +
      the org chart DIVS, photo `team/<id>.jpg` 560x560 corporate headshot) and BOTH copies deployed:
      `sh techietech-site/deploy.sh` (techytech.web.app) AND `bash scripts/deploy.sh` (/techietech/ on the
@@ -652,9 +653,18 @@ personality, catchphrases, look, voice preset, **pace** (words per minute), writ
 their videos and their assets. It's where he learns about them and briefs a session ("Copy brief for a session").
 **A new character is not done until it is in every place of workflow step 12** (profile, the world's site, their
 own site, the wiki, the chat agent - tested).
-- **Data:** `zoomcut/characters/<id>/character.json` (format: the fields above - see any existing one; `index.json`
-  orders them and names the worlds). Images stay where they are and are referenced by path (`assets.portraits /
-  backgrounds / logos / sounds`, `portrait`). Pictures copied into a character folder are gitignored (his face, public repo).
+- **Data: the Shlomiverse's database** (since 2026-11-06, his rule: "I don't want duplication and git stuff where we
+  don't need it") - one record per character (catalogCharacters/<id>; the worlds = catalogSeries, each with `world` =
+  the name a character's `world` uses), the same record the site and the chat use. The studio reads and saves it
+  (render/verse_db.mjs - `GET / POST /api/characters`); there is no character.json / index.json / profile.md any more.
+  A session changes a character through the page / `POST /api/characters/<id> {patch}` (null clears a field;
+  `site` = `{url, notes}`) or `node scripts/verse/content.mjs put character <id> --file patch.json` (the
+  shlomiverse-content skill) - every change is logged (`content.mjs log character <id>`). A save of the studio's own
+  fields (voice, pace, links, videos, sources, portrait, assets, tier, site notes) doesn't touch the site; anything else
+  recomposes the site and the chat in seconds - never dozens of those in a row. Images stay files on each computer,
+  referenced by path (`assets.portraits / backgrounds / logos / sounds`, `portrait`; zoomcut/characters/<id>/ is
+  gitignored - his face, public repo - and the same on both computers by the cloud pool); the face on the site is the
+  portrait sent with `content.mjs portrait <id> <image>`.
 - **Every video:**
   - Before you build it, find its characters on the page (`GET /api/characters`).
   - **A new character gets a profile first:** `POST /api/characters/<id> {patch: {...}}` with name, world, role and brief
@@ -667,10 +677,10 @@ own site, the wiki, the chat agent - tested).
     one camera: the series' character). Check it, and add a guest character by hand.
   - Use the profile when writing for the character: the catchphrases, the writing rules (e.g. Yotam speaks in the first
     person; the sites never say parody) and the relations.
-- **Writing for a character:** read `zoomcut/characters/<id>/profile.md` first. It's the same text as the page's "Copy
-  profile for a session": who they are, what they do, how they talk (and their pace), what's funny about them, the
-  rules, the people around them, and what their videos already did. After changing a profile, run
-  `node zoomcut/tools/character_profiles.mjs` so the files match (the page always builds it live).
+- **Writing for a character:** read their profile first - `node scripts/verse/content.mjs profile <id> --out p.md` (from BoostMind; read the
+  Hebrew from the file). It's the same text as the page's "Copy profile for a session": who they are, what they do, how
+  they talk (and their pace), what's funny about them, the rules, the people around them, and what their videos
+  already did - built from the database each time, so it's always current.
 - **Pace** comes from the Reader by itself. Measuring a character (⏱ by the name) or typing their pace updates the
   profile. The name must match the character's `name` / `aka`.
 - After a video is done, add anything new you learned about the character to their profile (a new catchphrase, a

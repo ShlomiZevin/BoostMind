@@ -4,7 +4,7 @@
 //   node tools/cloud_verify.mjs
 import fs from 'node:fs';
 import path from 'node:path';
-import { EPS, ROOT, skip, footageDirs, footageName } from '../render/cloud/layout.mjs';
+import { EPS, ROOT, skip, DB_ONLY, footageDirs, footageName } from '../render/cloud/layout.mjs';
 import { list, same } from '../render/cloud/store.mjs';
 
 const walk = (dir, base = dir, out = []) => {
@@ -19,13 +19,14 @@ for (const id of fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.stat
   parts.push({ dir: path.join(EPS, id), prefix: `projects/${id}/`, skip: true });
 for (const d of footageDirs()) parts.push({ dir: d, prefix: footageName(d) + '/' });
 parts.push({ dir: path.join(EPS, '_assets'), prefix: 'assets/_assets/', skip: true });
-parts.push({ dir: path.join(ROOT, 'characters'), prefix: 'assets/characters/' });
+parts.push({ dir: path.join(ROOT, 'characters'), prefix: 'assets/characters/', never: DB_ONLY });  // (the pictures - the profiles are the database's)
 
 const report = { at: new Date().toISOString(), ok: 0, okBytes: 0, missing: [], different: [], skipped: 0, skippedBytes: 0 };
 for (const p of parts) {
   const remote = await list(p.prefix);
   for (const rel of walk(p.dir)) {
     const f = path.join(p.dir, rel), st = fs.statSync(f);
+    if (p.never?.test(rel.replace(/\\/g, '/'))) continue;
     if (p.skip && skip(rel)) { report.skipped++; report.skippedBytes += st.size; continue; }
     const r = remote[p.prefix + rel];
     if (!r) { report.missing.push({ file: f, size: st.size }); continue; }
