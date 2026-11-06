@@ -111,7 +111,9 @@ function one(recs, today, t) {
   // (correcting the projection by their middle was tried on 2026-11-06 - it made it worse; only their spread is used)
   const near = Object.entries(res[best] || {}).filter(([tt]) => Math.abs(+tt - t) <= 1.5).flatMap(([, l]) => l);
   const proj = project(sofar, F, P, k);
-  const band = near.length >= 8 ? [Math.max(sofar, (proj + 1) * Math.exp(q(near, 0.2)) - 1), Math.max(sofar, (proj + 1) * Math.exp(q(near, 0.8)) - 1)] : null;
+  // (it always holds the projection: when the misses all lean one way the middle 60% can sit beside it - a page saying
+  // "about 229, usually 145-206" reads as a bug)
+  const band = near.length >= 8 ? [Math.min(proj, Math.max(sofar, (proj + 1) * Math.exp(q(near, 0.2)) - 1)), Math.max(proj, (proj + 1) * Math.exp(q(near, 0.8)) - 1)] : null;
   const usual = near.length >= 8 ? q(near.map((r) => Math.abs(Math.exp(r) - 1)), 0.5) : null;
   // the days to compare with at the same time: yesterday and a week ago
   const at = (r) => (r ? (r.cum ? r.T * cumAt(r.cum, t) : null) : 0);
