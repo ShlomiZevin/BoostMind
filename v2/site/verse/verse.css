@@ -1719,3 +1719,100 @@ html.can-app .foot-app { display: inline-flex !important; }
   .vx-sheet.open { transform: translateY(-50%); opacity: 1; }
   .vx-sheet > .grab { visibility: hidden; height: 2px; margin: 6px auto 0; }
 }
+
+/* ---------- the citizenship journey (citizen.js; plan conversion-next v6, mockups C1-C6) ---------- */
+.cz-banner { position: relative; display: block; margin: 18px 0 6px; border-radius: 24px; overflow: hidden; text-decoration: none; color: #fff; border: 1px solid rgba(255, 106, 31, .45);
+  background: #120c08; box-shadow: 0 10px 34px rgba(0, 0, 0, .45); }
+.cz-banner-pic { display: block; position: relative; aspect-ratio: 3 / 2; max-height: 260px; width: 100%; overflow: hidden; }
+.cz-banner-pic img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
+.cz-banner-pic::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 45%, #120c08); }
+.cz-say { position: absolute; top: 12px; left: 12px; z-index: 2; background: #fff; color: #17161a; font-weight: 800; font-size: .88rem; padding: 7px 12px; border-radius: 16px 16px 16px 4px; max-width: 60%; box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+.cz-banner-t { display: flex; flex-direction: column; gap: 4px; padding: 0 16px 16px; margin-top: -38px; position: relative; z-index: 2; }
+.cz-banner-t b { font-size: clamp(1.25rem, 5.6vw, 1.55rem); font-weight: 900; line-height: 1.15; }
+.cz-banner-t small { color: rgba(255, 255, 255, .82); font-size: .95rem; margin-bottom: 8px; }
+.cz-banner-t .vx-btn { align-self: flex-start; }
+.cz-pass-peek { position: absolute; top: 14px; right: -8px; transform: rotate(6deg); background: #fdf6ef; color: #17161a; font-weight: 900; font-size: .72rem; padding: 6px 18px 6px 12px;
+  border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, .4); border-right: 6px solid var(--vx-accent); z-index: 2; }
+
+.cz { max-width: 560px; margin: 0 auto; padding: 14px 16px 90px; min-height: 80svh; }
+.cz-step { position: relative; height: 26px; margin-bottom: 14px; }
+.cz-step::before { content: ""; position: absolute; inset: 11px 0 auto; height: 4px; border-radius: 4px; background: var(--card2); }
+.cz-step span { position: absolute; top: 11px; right: 0; height: 4px; border-radius: 4px; background: linear-gradient(270deg, var(--vx-accent), #ffb27a); }
+.cz-step em { position: absolute; top: -4px; left: 0; font-style: normal; font-size: .8rem; color: var(--dim); }
+.cz .vx-btn.block { width: 100%; margin-top: 12px; }
+.cz .vx-btn:not(.main) { background: var(--card2); border: 1px solid var(--line2); color: var(--text); text-decoration: none; }
+
+.cz-pass { position: relative; background: #fdf6ef; color: #17161a; border-radius: 20px; padding: 18px 20px 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, .45); overflow: hidden; }
+.cz-pass::before, .cz-pass::after { content: ""; position: absolute; top: 58%; width: 26px; height: 26px; border-radius: 50%; background: var(--bg); }
+.cz-pass::before { left: -13px; } .cz-pass::after { right: -13px; }
+.cz-pass-top { display: flex; align-items: center; gap: 10px; border-bottom: 2px dashed rgba(0, 0, 0, .15); padding-bottom: 12px; margin-bottom: 12px; }
+.cz-pass-top img { width: 46px; height: 46px; } .cz-pass-top b { font-size: 1.2rem; font-weight: 900; }
+.cz-pass-name small, .cz-pass li small { display: block; font-size: .75rem; color: #7a6f66; font-weight: 700; }
+.cz-pass-name b { font-size: 1.5rem; font-weight: 900; }
+.cz-pass ul { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 2px dashed rgba(0, 0, 0, .15); display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.cz-pass li b { font-size: .95rem; font-weight: 800; line-height: 1.25; }
+.cz-bar { height: 44px; margin-top: 16px; background: repeating-linear-gradient(90deg, #17161a 0 3px, transparent 3px 5px, #17161a 5px 6px, transparent 6px 10px); opacity: .85; border-radius: 3px; }
+
+.cz-desk { display: flex; flex-direction: column; }
+.cz-scene { border-radius: 20px; overflow: hidden; aspect-ratio: 16 / 9; max-height: 26svh; width: 100%; border: 1px solid var(--line2); }
+.cz-scene img { object-position: center 28%; }
+.cz-scene img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cz-chat { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 10px; max-height: 30svh; overflow-y: auto; }
+.cz-b { margin: 0; padding: 11px 14px; border-radius: 18px; font-size: 1.02rem; line-height: 1.45; max-width: 92%; }
+.cz-b.her, .cz-b.rabbi { align-self: flex-start; background: var(--card2); border: 1px solid var(--line2); border-top-right-radius: 4px; }
+.cz-b.her b, .cz-b.rabbi b { display: block; margin-top: 4px; font-weight: 800; }
+.cz-b.her:not(.now), .cz-b.rabbi.past { opacity: .6; font-size: .92rem; }
+.cz-b.rabbi.now { font-size: 1.12rem; font-weight: 700; border-color: rgba(255, 106, 31, .5); }
+.cz-b.me { align-self: flex-end; background: color-mix(in srgb, var(--vx-accent) 22%, var(--card)); border-top-left-radius: 4px; font-size: .92rem; }
+.cz-typing { align-self: flex-start; display: flex; gap: 5px; padding: 12px 14px; margin: 0; background: var(--card2); border-radius: 18px; }
+.cz-typing[hidden] { display: none; }
+.cz-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); animation: sim-blink 1s infinite; }
+.cz-typing i:nth-child(2) { animation-delay: .2s; } .cz-typing i:nth-child(3) { animation-delay: .4s; }
+.cz-opts { display: flex; flex-direction: column; gap: 8px; }
+.cz-opts button { min-height: 52px; padding: 10px 16px; border-radius: 16px; background: var(--card); border: 1.5px solid var(--line2); color: var(--text); font: inherit; font-weight: 700; font-size: 1rem; text-align: right; }
+.cz-opts button.on { border-color: var(--vx-accent); background: color-mix(in srgb, var(--vx-accent) 18%, var(--card)); }
+.cz-opts button:disabled:not(.on) { opacity: .45; }
+.cz-ask { display: flex; gap: 8px; margin-top: 10px; }
+.cz-ask input { flex: 1; min-width: 0; height: 48px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); padding: 0 14px; font: inherit; }
+.cz-ask button { width: 48px; height: 48px; border-radius: 14px; background: var(--vx-accent); color: #fff; font-size: 1.2rem; border: 0; }
+.cz-skips { display: flex; justify-content: center; gap: 18px; margin-top: 10px; }
+.cz-skip { background: none; border: 0; color: var(--dim); font: inherit; font-size: .9rem; text-decoration: underline; text-underline-offset: 3px; padding: 6px; }
+
+.cz-stamp { text-align: center; }
+.cz-passport { position: relative; width: min(70vw, 260px); aspect-ratio: 3 / 4; margin: 6px auto 14px; border-radius: 16px; background: linear-gradient(160deg, #1d2a52, #0f1630); border: 1px solid rgba(255, 255, 255, .15);
+  display: grid; place-items: center; box-shadow: 0 16px 40px rgba(0, 0, 0, .5); }
+.cz-planet { width: 46%; opacity: .9; }
+.cz-ink { position: absolute; bottom: 14%; left: 50%; width: 132px; height: 132px; margin-left: -66px; border-radius: 50%; border: 6px solid rgba(255, 106, 31, .9); display: grid; place-items: center; transform: rotate(-14deg); }
+.cz-ink span { font-weight: 900; font-size: 1.9rem; color: rgba(255, 106, 31, .95); letter-spacing: .04em; }
+.cz-stamp.fresh .cz-ink { animation: cz-stamp .55s cubic-bezier(.2, 1.4, .4, 1) .35s both; }
+@keyframes cz-stamp { from { transform: rotate(-14deg) scale(2.4); opacity: 0; } to { transform: rotate(-14deg) scale(1); opacity: 1; } }
+.cz-stamp .cz-b { margin: 0 auto 10px; text-align: right; }
+.cz-stamp h1 { font-size: 1.6rem; font-weight: 900; margin: 4px 0; }
+.cz-num { display: flex; flex-direction: column; align-items: center; margin: 4px 0 10px; }
+.cz-num small { color: var(--dim); font-weight: 700; } .cz-num b { font-size: 3.4rem; font-weight: 900; color: var(--vx-accent); line-height: 1.05; letter-spacing: .05em; }
+.cz-num em { font-style: normal; font-weight: 800; font-size: .95rem; padding: 5px 12px; border-radius: 999px; background: rgba(255, 106, 31, .14); border: 1px solid rgba(255, 106, 31, .5); }
+.cz-bless { color: var(--dim); font-size: .95rem; font-style: italic; margin: 6px 0 0; }
+
+.cz-flight { position: fixed; inset: 0; z-index: 120; background: #000; display: grid; place-items: center; }
+.cz-flight video { width: 100%; height: 100%; object-fit: cover; }
+.cz-fskip { position: absolute; top: calc(14px + env(safe-area-inset-top)); left: 14px; padding: 8px 16px; border-radius: 999px; background: rgba(0, 0, 0, .55); color: #fff; border: 1px solid rgba(255, 255, 255, .3); font: inherit; font-weight: 700; }
+@media (min-width: 900px) { .cz-flight video { object-fit: contain; } }
+.cz-land { text-align: center; padding-top: 6svh; }
+.cz-land img { width: min(70vw, 280px); }
+.cz-land h1 { font-size: clamp(1.8rem, 8vw, 2.4rem); font-weight: 900; margin: 6px 0; }
+.cz-land p { color: var(--dim); }
+
+.cz-id { padding-top: 6px; }
+.cz-card { position: relative; border-radius: 22px; padding: 16px; background: linear-gradient(150deg, #241812, #120d0a); border: 1.5px solid rgba(255, 106, 31, .6); box-shadow: 0 16px 40px rgba(0, 0, 0, .5); overflow: hidden; }
+.cz-card-h { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, .1); padding-bottom: 10px; margin-bottom: 12px; }
+.cz-card-h img { width: 40px; height: 40px; } .cz-card-h b { font-size: 1.15rem; font-weight: 900; }
+.cz-card-b { display: flex; gap: 14px; align-items: flex-start; }
+.cz-photo { flex: none; width: 96px; aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; background: #2a2018; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .15); }
+.cz-photo img { width: 100%; height: 100%; object-fit: cover; } .cz-photo span { font-size: 2.6rem; font-weight: 900; color: var(--vx-accent); }
+.cz-card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; flex: 1; min-width: 0; font-size: .92rem; }
+.cz-card dt { color: var(--dim); font-weight: 600; } .cz-card dd { margin: 0; font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
+.cz-card dd.n { color: var(--vx-accent); font-size: 1.15rem; letter-spacing: .05em; } .cz-card dd a { color: var(--vx-accent); }
+.cz-side { flex: none; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.cz-card-stamp { margin-top: 4px; width: 74px; height: 74px; border-radius: 50%; border: 4px solid rgba(255, 106, 31, .7); display: grid; place-items: center;
+  font-weight: 900; color: rgba(255, 106, 31, .85); transform: rotate(-16deg); font-size: 1rem; pointer-events: none; }
+.cz-gate { text-align: center; } .cz-gate img { width: 100%; border-radius: 20px; } .cz-gate h1 { font-size: 1.6rem; font-weight: 900; margin: 14px 0 4px; } .cz-gate p { color: var(--dim); }

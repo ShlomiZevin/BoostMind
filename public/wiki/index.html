@@ -737,7 +737,7 @@ const pages = {
 
 // ---------- router ----------
 // the verse's pages, by their first part (shlomiverse.com/<page>/...): anything else is another site of his (/links/, /hani-games/)
-const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation']);
+const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation', 'citizenship']);
 const isPage = (pathname) => pathname === '/' || PAGES.has(pathname.split('/')[1]);
 function nav(url, replace = false) {
   if (typeof url === 'string' && url.startsWith('#/')) url = url.slice(1);   // an old-style link

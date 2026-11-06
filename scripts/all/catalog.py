@@ -53,6 +53,7 @@ EXTRA = [
     ('characters', 'Techy-Tech (הדומיין שלו)', 'https://techytech.web.app', 'אתר'),
     ('verse', 'שלומידגם - ליל הבחירות', 'https://shlomidgam.web.app', 'אתר'),
     ('verse', 'מבחן הסימולציה - "אתם חיים בסימולציה?"', SITE + '/simulation', 'אתר'),
+    ('verse', 'מסע האזרחות (לתושבים) - מרים, דמוקרטוביץ, תעודת זהות', SITE + '/citizenship', 'אתר'),
     # his tools
     # personal tools - their own repo (c:\workspace\shlomi-tools) and project (shlomi-tools) since 2026-10-31
     ('tools', 'Vault', 'https://shlomi-vault.web.app', 'כספת'),

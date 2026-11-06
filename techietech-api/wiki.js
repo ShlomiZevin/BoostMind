@@ -144,7 +144,7 @@ async function stream(key, mode, turns, onText, opts = {}) {
   const b = chain.base(cur, mode, turns);
   const dev = (picked) => {
     const material = chain.material(cur, picked.characters, picked.videos);
-    return modeText(mode, byId, opts.contact) + (b.scope ? '\n' + b.scope : '')
+    return modeText(mode, byId, opts.contact) + (opts.visitor ? '\n' + opts.visitor : '') + (b.scope ? '\n' + b.scope : '')
       + (material ? '\n\n' + material : '\n\n(No resident or video in particular - answer from the map.)');
   };
   const call = async (content, tools) => {
@@ -238,6 +238,21 @@ exports._test = { RULES, canon, modeText };  // the side-by-side test of the old
 const ANON_TOTAL = 3, FAN_TOTAL = 10, DAY_CAP = 1500;
 const OWNER = 'shlomi@boostart.io';
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
+// who the signed-in visitor is, for the characters (stage 3 of the conversion plan: "the characters know you in the chat - the
+// name, the number, the department and the simulation"): their name, and a citizen's number / department / classification /
+// the simulation they live in (sim.js, citizen.js). Mentioned only when it fits.
+async function visitorLine(who) {
+  if (!who.uid) return '';
+  try {
+    const f = (await admin.firestore().collection('fans').doc(who.uid).get()).data() || {};
+    const bits = [];
+    if (f.nick) bits.push(`their name is ${String(f.nick).slice(0, 40)}`);
+    if (f.citizen && f.citizen.n) bits.push(`they are citizen no. ${String(f.citizen.n).padStart(4, '0')} of the Shlomiverse${f.citizen.founding ? ' (a founding citizen)' : ''}${f.citizen.dept ? `, department: ${f.citizen.dept}` : ''}${f.citizen.cls ? `, classification: ${f.citizen.cls}` : ''}`);
+    else bits.push('they are a resident (signed up), not yet a citizen');
+    if (f.sim && f.sim.name) bits.push(`the simulation test says they live in "${f.sim.name}"`);
+    return `About the visitor (you know them): ${bits.join('; ')}. Use their name now and then, naturally; bring up the rest only when it fits the talk, rarely, never as a list.`;
+  } catch (e) { return ''; }
+}
 async function whoAsks(req) {
   const tok = (req.get('authorization') || '').replace(/^Bearer /, '');
   if (tok) {
@@ -358,6 +373,7 @@ exports.wikiChat = onRequest({
   if (!turns.length || turns[turns.length - 1].role !== 'user') return res.status(400).json({ error: 'messages' });
 
   const who = await whoAsks(req);
+  const visitor = await visitorLine(who);
   const invite = who.owner ? null : await creditInvite(req, who);
   const ok = await spendQuestion(req, who).catch((e) => { console.error('quota failed', e.message); return true; });
   if (typeof ok === 'string') return res.status(429).json({ error: 'quota', why: ok, limit: who.uid ? FAN_TOTAL : ANON_TOTAL, ...(invite ? { invite } : {}) });
@@ -366,7 +382,7 @@ exports.wikiChat = onRequest({
   try {
     let reply = '';
     const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); },
-      { contact: req.body.contact === true, limit: ok.grace, cont: req.body.cont === true && !!who.uid });
+      { contact: req.body.contact === true, limit: ok.grace, cont: req.body.cont === true && !!who.uid, visitor });
     if (ok.grace === 'soft' && !reply.includes('[[signin]]')) await putOff(req, who);
     await keep(req.body, mode, turns, reply, u, who).catch((e) => console.error('keep failed', e.message));
     console.log('wikiChat', mode, turns.length, 'in', u.input_tokens, 'cached', u.input_tokens_details?.cached_tokens, 'out', u.output_tokens);

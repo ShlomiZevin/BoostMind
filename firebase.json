@@ -134,6 +134,10 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/citizenship",
+        "destination": "/wiki/index.html"
+      },
+      {
         "source": "/community",
         "destination": "/wiki/index.html"
       },

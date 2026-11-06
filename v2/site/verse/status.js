@@ -3,7 +3,7 @@
 // (אזרח). A small chip in the top bar says which you are; tapping it opens the window with the three and the way up.
 import { T } from './copy.js';
 import { I, esc, sheet, track, brand } from './ui.js';
-import { needFan, signedIn } from './state.js';
+import { st, needFan, signedIn } from './state.js';
 
 const S = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 export const SI = {
@@ -20,27 +20,28 @@ const TIERS = [
   { id: 'resident', icon: SI.house, items: [I.comment, I.sticker, SI.bars] },
   { id: 'citizen', icon: SI.id, items: [SI.doc, SI.hash, SI.award] },
 ];
-export const myStatus = () => (signedIn() ? 'resident' : 'tourist');
+export const myStatus = () => (!signedIn() ? 'tourist' : st.fan && st.fan.citizen && st.fan.citizen.n ? 'citizen' : 'resident');
 
 // the chip in the top bar (pages.js renderTop)
-export const statusChip = () => `<button class="st-chip" data-status aria-label="${esc(T.status.title)}">${myStatus() === 'tourist' ? SI.passport : SI.house}<span>${esc(T.status.name[myStatus()])}</span></button>`;
+export const statusChip = () => `<button class="st-chip" data-status aria-label="${esc(T.status.title)}">${myStatus() === 'tourist' ? SI.passport : myStatus() === 'citizen' ? SI.id : SI.house}<span>${esc(T.status.name[myStatus()])}</span></button>`;
 
 export function openStatus(where = 'chip') {
   track('status_open', where);
   const me = myStatus(), at = TIERS.findIndex((t) => t.id === me);
   const tier = (t, i) => `<div class="sl-tier${i === at ? ' here' : ''}${i < at ? ' past' : ''}">
       <div class="sl-head"><span class="sl-ic">${t.icon}</span><b>${esc(T.status.name[t.id])}</b>
-        ${i === at ? `<em class="sl-here">${esc(T.status.here)}</em>` : t.id === 'citizen' ? `<em class="sl-soon">${esc(T.status.soon)}</em>` : ''}</div>
+        ${i === at ? `<em class="sl-here">${esc(T.status.here)}</em>` : ''}</div>
       <p>${esc(T.status.line[t.id])}</p>
       <ul>${t.items.map((ic, k) => `<li>${ic}<span>${esc(T.status.gets[t.id][k])}</span></li>`).join('')}</ul></div>`;
   const h = sheet(`<div class="in sl">
       <img class="sl-logo" src="/verse/logo-160.png" alt="שלומיוורס">
       <h2 class="vx-h">${brand(T.status.title)}</h2>
-      <p class="vx-sub">${brand(T.status.sub[me])}</p>
+      <p class="vx-sub">${brand(me === 'citizen' ? T.cz.citizenSub : T.status.sub[me])}</p>
       <div class="sl-path">${TIERS.map(tier).join('')}</div>
-      ${me === 'tourist' ? `<button class="vx-btn main block" data-sl-go>${esc(T.status.go)}</button>` : `<p class="vx-small">${esc(T.status.residentNote)}</p>`}
+      ${me === 'tourist' ? `<button class="vx-btn main block" data-sl-go>${esc(T.status.go)}</button>` : me === 'resident' ? `<a class="vx-btn main block" href="/citizenship" data-sl-cz>${esc(T.cz.statusGo)}</a>` : `<a class="vx-btn block" href="/citizenship" data-sl-cz>${esc(T.cz.id.title)}</a>`}
     </div>`, { cls: 'status' });
   h.el.querySelector('[data-sl-go]')?.addEventListener('click', () => { h.close('go'); needFan('status'); });
+  h.el.querySelector('[data-sl-cz]')?.addEventListener('click', () => { track('cz_banner', 'status'); h.close('go'); });
 }
 document.addEventListener('click', (e) => { if (e.target.closest('[data-status]')) { e.preventDefault(); openStatus('chip'); } });
 

@@ -8,6 +8,7 @@ import { ringsHtml, storyRing } from './stories.js';
 import { watched } from './player.js';
 import { pushState, enablePush } from './push.js';
 import { statusChip, SI } from './status.js';
+import { citizenBanner } from './citizen.js';
 
 // ---------- top bar ----------
 export function renderTop() {
@@ -78,7 +79,7 @@ document.addEventListener('click', async (e) => {
 });
 // signed out: today's wiki home, with stories and a clear reason to sign in
 export function homeSlot() {
-  if (signedIn()) return yourBlock() + band();
+  if (signedIn()) return citizenBanner() + yourBlock() + band();   // the citizenship journey's banner until they finish it (citizen.js)
   if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>';
   const rings = ringsHtml();
   return `${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}

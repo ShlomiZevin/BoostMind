@@ -1297,12 +1297,35 @@ function data() {
     ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
       <div class="kgrid" style="margin:4px 0 0">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
     ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
-    <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>`;
+    <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>
+    <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>`;
   bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay, ghostOf(metric));
   hourChart($('#d-fc'), FC(metric));
   $('#metric').onchange = (e) => { metric = e.target.value; data(); };
   $('#ask-f').onsubmit = (e) => { e.preventDefault(); ask($('#ask-q').value); };
   simCard();
+  czCard();
+}
+// the citizenship journey (stage 3, citizen.js citizenStats): where the residents are in it
+let CZST = null, czAt = 0;
+async function czCard() {
+  const el = $('#cz-st');
+  if (!el) return;
+  const draw = () => {
+    const x = CZST;
+    if (!x || x.error) { el.innerHTML = `<div class="card-h"><h2>מסע האזרחות</h2></div><div class="empty">${x && x.error ? 'לא נטען' : 'טוען…'}</div>`; return; }
+    const STEP = [['boarding', 'כרטיס עלייה'], ['checkin', 'אצל מרים'], ['booth', 'בבוטקה'], ['flight', 'בטיסה'], ['done', 'סיימו']];
+    el.innerHTML = `<div class="card-h"><h2>מסע האזרחות</h2></div>
+      <div class="kgrid sim-k">
+        <div class="k"><span class="kh">התחילו</span><b>${fmt(x.started)}</b><small>תושבים שנכנסו למסע</small></div>
+        <div class="k"><span class="kh">אזרחים</span><b>${fmt(x.citizens)}</b><small>קיבלו מספר</small></div>
+        <div class="k"><span class="kh">שיתפו תעודה</span><b>${fmt(x.shared)}</b><small>${fmt(x.skippedAll)} דילגו על מרים</small></div></div>
+      <div class="sim-row"><b>איפה הם עכשיו</b>${STEP.map(([k, l]) => `<span class="tag">${l} ${x.at[k] || 0}</span>`).join('')}</div>`;
+  };
+  if (CZST && Date.now() - czAt < 300e3) return draw();
+  draw();
+  try { CZST = await api('citizenStats', {}); czAt = Date.now(); } catch (e) { CZST = { error: true }; }
+  if ($('#cz-st')) draw();
 }
 // "אתם חיים בסימולציה?" (2026-11-06, stage 2 of the conversion plan): the funnel from the tests themselves (sim.js simStats)
 let SIMST = null, simAt = 0, simDays = 7;

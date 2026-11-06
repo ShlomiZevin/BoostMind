@@ -999,6 +999,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     // plans: briefs + mockups he approves and comments on (plans.js)
     // הוצאות: the AI spend per area, asked from OpenAI / ElevenLabs (costs.js)
     if (op === 'costs') return res.json(await require('./costs').owner(op, b));
+    if (op === 'citizenStats') return res.status(200).json(await require('./citizen').owner(op, b));   // the citizenship journey (citizen.js)
     if (op === 'simStats') { const r = await require('./sim').owner(op, b); return res.status(200).json(r); }   // the simulation test's funnel (sim.js)
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     if (op === 'list') {

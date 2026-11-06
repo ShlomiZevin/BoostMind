@@ -10,6 +10,7 @@ import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
+import { citizenPage } from './citizen.js';
 appBoot();
 
 Object.assign(HOOK, {
@@ -63,6 +64,7 @@ pages['my-characters'] = myCharactersPage;
 pages['my-stickers'] = myStickersPage;
 pages.install = installPage;
 pages.simulation = simPage;
+pages.citizenship = citizenPage;
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
 onStories(() => { refresh(); paintStoryRing(); });

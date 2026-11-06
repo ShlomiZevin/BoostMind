@@ -8,6 +8,7 @@ import { T } from './copy.js';
 import { esc, track, sheet, toast } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
 import { LOCAL } from './fb.js';
+import { isCitizen } from './citizen.js';
 
 const API = LOCAL ? '/api/verseSim' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseSim';
 const S = () => T.sim;
@@ -266,6 +267,7 @@ function fullView(r, fresh) {
       <div class="sim-cast-h">${esc(S().who)}</div>
       <div class="sim-cast">${r.cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><span><b>${esc(C[x.id]?.name || x.id)}</b><small>${esc(x.role || '')}</small></span></a>`).join('')}</div>
       <button class="vx-btn main block" data-sim-share>${esc(S().share)}</button>
+      ${signedIn() && !isCitizen() ? `<a class="vx-btn block" href="/citizenship" onclick="window.track&&window.track('cz_banner','sim')">${esc(T.cz.id.add)}</a>` : ''}
       <button class="vx-btn block" data-sim-meet>${esc(S().meet)}</button>
 </div></section>`;
   if (fresh || !sessionStorage.getItem('vx-sim-full-' + r.rid)) { track('sim_full', r.rid); try { sessionStorage.setItem('vx-sim-full-' + r.rid, '1'); } catch (e) {} }
