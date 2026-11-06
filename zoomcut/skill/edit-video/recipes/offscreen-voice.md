@@ -117,7 +117,7 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
   `_assets/dorit/tarot/shoot.mjs`; copy by Terra. Her family: `family-0.5.jpg` (cheap studio, he loved it) and the
   girls' portraits in `_assets/haredit/daughter-*` - Leonardo refuses any "11-year-old girl" prompt (5 times, with
   or without a reference); the eldest's portrait is cut from the family photo instead.
-- SOL: run `sol.js` from the repo - inside `c:/workspace/BoostMind` it takes the design key (`scripts/design.env`,
+- SOL: run `openai.js` from the repo - inside `c:/workspace/BoostMind` it takes the design key (`scripts/design.env`,
   counted on Backstage); never point it at another project's key.
 
 - **Hani's sound = part 1's final mix, copy it into every Hani video** (his words, 2026-10-27: "the setup with her

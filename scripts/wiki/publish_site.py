@@ -15,7 +15,7 @@ import glob, json, os, re, shutil, subprocess, sys, tempfile, time, urllib.reque
 from canon import HERE, ROOT, ZC, characters, episodes, load_json
 
 STUDIO = 'http://localhost:4747'
-SOL = os.path.expanduser('~/.claude/skills/sol-leonardo/scripts/sol.js')
+SOL = os.path.expanduser('~/.claude/skills/openai-leonardo/scripts/openai.js')
 KEYS = 'C:/workspace/BoostMind/scripts/design.env'  # the working OpenAI key (BoostMind's own is revoked)
 WIKI = 'https://shlomiverse.com/wiki/'
 LIVE_DATA = 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json'  # what the wiki reads (push.cjs)
@@ -127,7 +127,7 @@ def new_characters(cids):
     need = [c for c in cids if not (have.get(c) or {}).get('bio')]   # its fan copy is on the record since 2026-11-06
     if need:
         run([sys.executable, 'scripts/wiki/copy_brief.py', '--only-missing'])
-        work = tempfile.mkdtemp()  # sol.js reads ./.env first - a project folder's key is revoked
+        work = tempfile.mkdtemp()  # openai.js reads ./.env first - a project folder's key is revoked
         run(['node', SOL, '--in', os.path.join(HERE, 'work', 'copy-brief.txt'), '--out', os.path.join(HERE, 'work', 'copy-answer.md'),
              '--model', 'gpt-5.6-terra', '--env', KEYS], cwd=work)
         run([sys.executable, 'scripts/wiki/merge_copy.py'])
@@ -169,7 +169,7 @@ def main():
     need += [c for i in ids for c in eps.get(i, {}).get('cast', []) if not (have.get(c) or {}).get('bio')]
     if need:
         run([sys.executable, 'scripts/wiki/copy_brief.py', '--only-missing'])
-        work = tempfile.mkdtemp()  # sol.js reads ./.env first - a project folder's key is revoked
+        work = tempfile.mkdtemp()  # openai.js reads ./.env first - a project folder's key is revoked
         run(['node', SOL, '--in', os.path.join(HERE, 'work', 'copy-brief.txt'), '--out', os.path.join(HERE, 'work', 'copy-answer.md'),
              '--model', 'gpt-5.6-terra', '--env', KEYS], cwd=work)
         run([sys.executable, 'scripts/wiki/merge_copy.py'])

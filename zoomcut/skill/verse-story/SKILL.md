@@ -58,7 +58,7 @@ Reply in English; Hebrew only in the story.
 2. **Look at it with the grid** - write the story JSON (below) with no boxes yet, run the preview, open
    `<name>-clean.png`: the bare picture with a 10% grid. Write down `keepClear` - every face, every word in the picture,
    anything the joke needs seen (the wig on the stand in "why a tichel and not a wig") - as [x1, y1, x2, y2] in %.
-3. **The words** - written in the character's voice (Hebrew copy = Terra, `gpt-5.6-terra`, through the `sol-leonardo`
+3. **The words** - written in the character's voice (Hebrew copy = Terra, `gpt-5.6-terra`, through the `openai-leonardo`
    skill, as all of his site copy), short. Then the boxes, in the empty places of the grid:
    - one headline at most, big (s 6-9); the rest s 3.6-5.5 (3.6 = the smallest a phone reads);
    - the box's `w` is its widest; check in the preview that a headline doesn't break into a word per line;

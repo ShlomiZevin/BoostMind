@@ -59,7 +59,7 @@ writes it from Secret Manager). Read it from that file inside your script; never
 - The live site's features use their Secret Manager keys (`VERSE_SITE_OPENAI_KEY`, `WIKI_OPENAI_KEY` for the chat,
   `MIND_OPENAI_KEY`); a new live feature takes the site key, or a new key named `shlomiverse-<area>` in the OpenAI
   project "Shlomiverse" (costs.js reads the area from the name).
-- Already wired: `sol.js` (inside this folder it always takes the design key), `oai-image.js` (stories, games),
+- Already wired: `openai.js` - the OpenAI helper, any model (the openai-leonardo skill, in `zoomcut/skill/openai-leonardo`; a computer installs it once with `node zoomcut/skill/openai-leonardo/install.mjs`; inside this folder it always takes the design key), `oai-image.js` (stories, games),
   `clean-words.mjs`, `build.py`, `reel.py` and the design scripts under `scripts/`.
 
 ## Plans for his approval - Backstage → תוכניות (since 2026-11-06)

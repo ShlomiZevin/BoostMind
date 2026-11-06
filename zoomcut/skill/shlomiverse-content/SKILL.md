@@ -60,7 +60,7 @@ and git stuff where we don't need it"):
 - Live in seconds (the site + the chat composed again). Nothing to build, push or commit for a character.
 - Read one: `content.mjs profile <id> --out p.md` (the writer's profile), `content.mjs get character <id> --out c.json`
   (the whole record). `content.mjs log character <id>` = who changed what.
-- Fan copy for new characters (Terra): `copy_brief.py --only-missing` -> sol.js -> `merge_copy.py <answer.md>` puts it
+- Fan copy for new characters (Terra): `copy_brief.py --only-missing` -> openai.js -> `merge_copy.py <answer.md>` puts it
   onto the records.
 
 **A portrait / profile picture:** `node scripts/verse/content.mjs portrait <id> <image>` - cropped 4:5 from the top to

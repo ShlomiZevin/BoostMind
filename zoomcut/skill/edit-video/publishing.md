@@ -17,7 +17,7 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
    in `options.x.text`.
    **A high-tech video always carries #הייטק #צרותבהייטק #הייטקס** (his rule, 2026-11-02) - anything set in the
    high-tech world: Techy-Tech and its people (Tzvika, Gilad, Amir, Ofer, Daniel, Ronit...), Hani the Haredi programmer,
-   the Zoom-call sketches, AI / programmers / office life. Then up to two of the video's own, and #שלומיוורס last. The Hebrew wording comes from SOL (sol-leonardo skill) with two of his earlier captions as the
+   the Zoom-call sketches, AI / programmers / office life. Then up to two of the video's own, and #שלומיוורס last. The Hebrew wording comes from SOL (openai-leonardo skill) with two of his earlier captions as the
    model (`episodes/*/publish.json`): 2-3 short lines from inside the joke, never explaining it, no emoji, then 4-5
    hashtags. The post lives in `publish.json` in the project folder, so it travels to his other computer with the
    project (the studio online uploads it as soon as it's saved).

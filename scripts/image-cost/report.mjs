@@ -112,7 +112,7 @@ ul{padding-left:20px}li{margin:4px 0}
 
 <h2>What I'd do</h2>
 <ul>
-<li>Move <b>images</b> to OpenAI direct: the <code>image</code> and <code>portrait</code> commands in <code>zoomcut/tools/leonardo.mjs</code> and the sol-leonardo skill. The rest of your code calls them the same way. Only the request inside changes, and the polling goes away.</li>
+<li>Move <b>images</b> to OpenAI direct: the <code>image</code> and <code>portrait</code> commands in <code>zoomcut/tools/leonardo.mjs</code> and the openai-leonardo skill. The rest of your code calls them the same way. Only the request inside changes, and the polling goes away.</li>
 <li>Keep <b>Leonardo</b> for sfx, loops and video. The ${data.leonardoTokens.after.toLocaleString()} paid tokens left (about $${(data.leonardoTokens.after * usdPerToken).toFixed(0)} at today's rate) will last a long time once images stop drawing on them.</li>
 <li>One thing to decide: OpenAI has no reference-strength dial. Where you use <code>LOW</code> to take only the colours from a logo, that has to go into the prompt instead. Worth a side-by-side the first time.</li>
 </ul>

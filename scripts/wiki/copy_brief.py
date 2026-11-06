@@ -1,7 +1,7 @@
 """Write the Terra brief for the fan-facing copy of the characters wiki (bios, video titles, teasers).
 
   python scripts/wiki/copy_brief.py [--only-missing]   -> scripts/wiki/work/copy-brief.txt
-  node ~/.claude/skills/sol-leonardo/scripts/sol.js --in scripts/wiki/work/copy-brief.txt \
+  node ~/.claude/skills/openai-leonardo/scripts/openai.js --in scripts/wiki/work/copy-brief.txt \
        --out scripts/wiki/work/copy-answer.md --model gpt-5.6-terra --env "C:/workspace/BoostMind/scripts/design.env"
 then merge the JSON from the answer into scripts/wiki/copy.json (merge_copy.py).
 """

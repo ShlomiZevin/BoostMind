@@ -92,7 +92,7 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
    <id> --file patch.json`). A new world = a series record: `content.mjs put series <url-id> --file w.json` with
    title, world (the studio's world name), name, blurb, brief (shlomiverse-content skill).
 5. **A new character first** (if the reel has one): profile + portrait as in step 4, then its copy (bio) and the
-   character page: `python scripts/wiki/copy_brief.py --only-missing`, Terra (sol.js run from the repo - it takes the
+   character page: `python scripts/wiki/copy_brief.py --only-missing`, Terra (openai.js run from the repo - it takes the
    design key `scripts/design.env`, which Backstage counts) - `python scripts/wiki/merge_copy.py <answer.md>` puts only
    the NEW character / world copy onto their records (keeps existing bios unless --force; videos stay in copy.json).
    No build / push needed for a character. Publish the reel only after the character exists.
