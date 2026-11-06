@@ -25,13 +25,13 @@ const KINDS = {
     'catchphrases', 'color', 'site', 'relations', 'brief', 'personality', 'speech', 'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules',
     // the studio's own (since 2026-11-06 the record is the ONLY copy - no character.json in git): the voice preset, the
     // Reader's pace, links, the projects it's in, sources, and paths to its pictures / sounds on the computers
-    'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets'] },
+    'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes'] },   // site_notes: the studio's site.notes (site = its url)
   // world = the studio's name for it (character.world), name = its full name there (was characters/index.json)
   series: { col: 'catalogSeries', need: ['title'], fields: ['order', 'title', 'blurb', 'site', 'brief', 'world', 'name'] },
   game: { col: 'catalogGames', need: ['url', 'title'], fields: ['url', 'title', 'tagline', 'img', 'chars', 'site', 'date', 'record'] },
   site: { col: 'catalogSites', need: ['url'], fields: ['order', 'url', 'title', 'about', 'img', 'host', 'whose', 'in', 'topic', 'tagline', 'mainOf'] },
 };
-const STUDIO = ['voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets'];   // not on the site
+const STUDIO = ['voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes'];   // not on the site
 const ID = /^[a-z0-9][a-z0-9_-]{0,80}$/i;
 const db = () => admin.firestore();
 const hash = (v) => crypto.createHash('md5').update(JSON.stringify(v ?? null)).digest('hex').slice(0, 12);
