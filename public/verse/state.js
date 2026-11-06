@@ -124,9 +124,9 @@ export function signInSheet(key, char, opt = {}) {
   });
 }
 
-// the email way is on once the functions may sign people in (createCustomToken needs "Service Account Token Creator" on
-// the functions' own service account - his approval, pending 2026-11-06); off = the old "open in browser" sheet in the apps
-const MAIL_SIGNIN = false;
+// the email way (createCustomToken needs "Service Account Token Creator" on the functions' own service account - granted
+// 2026-11-06); false = the old "open in browser" sheet in the apps and no "או עם מייל" link
+const MAIL_SIGNIN = true;
 // ---------- A2: residency by email, inside the apps' own browsers (2026-11-06, mockups conversion/S1-email, S2-code) ----------
 // Miriam's counter: an email, a 6-digit code from verse.js (emailCode / emailIn), and the code opens the account - the
 // same one a Google sign-in with that address has. "Open in the browser" stays, small, for whoever prefers Google.
