@@ -837,9 +837,9 @@ function costs() {
   $('#pane').innerHTML = `${seg}
     ${(CS.errors || []).map((e) => `<p class="cs-err">${esc(e)}</p>`).join('')}
     <div class="kpis">
-      <div class="kpi"><span>שלומיוורס · OpenAI</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'shlomiverse'))}</b><small>כל התחומים</small></div>
-      <div class="kpi"><span>Plaxzy · OpenAI</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'plaxzy'))}</b><small>פרויקט נפרד</small></div>
-      <div class="kpi"><span>המוח</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'mind'))}</b><small>לא חלק מהוורס</small></div>
+      <div class="kpi"><span>סה"כ AI</span>${IC.dollar}<b>${usd(sum(() => true))}</b><small>שלומיוורס + Plaxzy${sum((r) => r.group === 'mind') ? ` + המוח ${usd(sum((r) => r.group === 'mind'))}` : ''}</small></div>
+      <div class="kpi"><span>שלומיוורס</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'shlomiverse'))}</b><small>כל התחומים</small></div>
+      <div class="kpi"><span>Plaxzy</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'plaxzy'))}</b><small>פרויקט נפרד</small></div>
       <div class="kpi"><span>ElevenLabs החודש</span>${IC.dollar}<b>${E ? Math.round(E.used / Math.max(1, E.limit) * 100) + '%' : '-'}</b><small>${E ? `${fmt(E.used)} מתוך ${fmt(E.limit)} קרדיטים` : 'לא נטען'}</small></div>
     </div>
     <div class="cols">
@@ -848,15 +848,13 @@ function costs() {
       <div class="card"><div class="card-h"><h2>לפי סוג</h2></div>${csBars(by(verse, 'kind'), CS_KIND, '$')}</div>
     </div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>שלומיוורס ביום</h2></div><div id="cs-ch"></div></div>
-    <div class="cols" style="margin-top:16px">
-      <div class="card"><div class="card-h"><h2>ElevenLabs</h2></div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h2>Plaxzy</h2><b style="color:var(--accent)">${usd(sum((r) => r.group === 'plaxzy'))}</b></div>${csBars(by(plax, 'kind'), CS_KIND, '$')}</div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h2>ElevenLabs</h2></div>
         ${E ? `<div class="cs-meter"><i style="width:${Math.min(100, E.used / Math.max(1, E.limit) * 100)}%"></i></div><p class="cs-note" style="margin:0 0 12px">תוכנית ${esc(E.tier)} · ${fmt(E.used)} מתוך ${fmt(E.limit)} קרדיטים החודש · מתאפס ב-${new Date(E.resets * 1000).toLocaleDateString('he-IL')}</p>` : ''}
         ${csBars(by(el, 'kind'), CS_EL, 'קרדיטים')}
         ${elKeys.length ? `<h3 style="margin:14px 0 8px;font-size:1rem">לפי מפתח</h3>${csBars(by(elKeys.map((r) => ({ ...r, src: 'elevenlabs' })), 'area'), CS_AREA, 'קרדיטים')}` : '<p class="cs-note">לפי מפתח: יופיע כשלכל תחום יהיה מפתח ElevenLabs משלו.</p>'}</div>
-      <div class="card"><div class="card-h"><h2>Plaxzy לפי סוג</h2></div>${csBars(by(plax, 'kind'), CS_KIND, '$')}</div>
-    </div>
     <p class="cs-note">נשאל מ-OpenAI ו-ElevenLabs עצמם · עודכן ${ago(CS.at)} · <button data-csfresh style="color:var(--accent);font-weight:700">לשאול עכשיו</button></p>`;
-  bars($('#cs-ch'), dayList, '$', null);
+  bars($('#cs-ch'), dayList.slice().reverse(), '$', null);   // newest first = on the right, like the other day charts
   csWire();
 }
 function csWire() {
