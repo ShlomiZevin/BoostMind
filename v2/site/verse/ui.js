@@ -61,6 +61,8 @@ export const linkTag = (u) => {
 export const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const track = (e, x) => window.track && window.track(e, x);
 // his wordmark: שלומי in white, וורס in orange - text only (the planet is only the home-screen icon)
+// the name inside a heading or line: always the logo's two colours, never plain text (his note, 2026-11-06)
+export const brand = (s) => esc(s).replace(/שלומיוורס/g, '<span class="vx-brand">שלומי<b>וורס</b></span>');
 export const wordmark = (tag) => `<span class="vx-wordmark"><span>שלומי<b>וורס</b></span>${tag ? `<small>${tag}</small>` : ''}</span>`;
 
 // the wiki's own data (W, C, V, S live in the page's classic script)
@@ -226,3 +228,23 @@ export function openOutside(key) {
   if (isAndroid()) location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
   else location.href = 'x-safari-' + url;
 }
+
+// ---------- the name in every heading, in the logo's two colours (his rule, 2026-11-06: "שלומיוורס always with the
+// font and the different colours") - one watcher for the whole page, so a heading drawn tomorrow gets it too ----------
+const BRAND_IN = 'h1, h2, h3';
+function paintBrand(root) {
+  const heads = root.matches?.(BRAND_IN) ? [root] : [...(root.querySelectorAll?.(BRAND_IN) || [])];
+  for (const h of heads) {
+    const walker = document.createTreeWalker(h, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (/שלומיוורס/.test(n.nodeValue) && !n.parentElement.closest('.vx-brand, .vx-wordmark, script, style') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
+    const hits = [];
+    while (walker.nextNode()) hits.push(walker.currentNode);
+    for (const t of hits) {
+      const span = document.createElement('span');
+      span.innerHTML = esc(t.nodeValue).replace(/שלומיוורס/g, '<span class="vx-brand">שלומי<b>וורס</b></span>');
+      t.replaceWith(...span.childNodes);
+    }
+  }
+}
+paintBrand(document.body);
+new MutationObserver((list) => { for (const m of list) for (const n of m.addedNodes) if (n.nodeType === 1) paintBrand(n); else if (n.nodeType === 3 && n.parentElement) paintBrand(n.parentElement); })
+  .observe(document.body, { childList: true, subtree: true });

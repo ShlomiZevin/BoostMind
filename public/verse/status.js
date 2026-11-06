@@ -2,7 +2,7 @@
 // as a tourist (תייר), an account makes you a resident (תושב), and the citizenship journey (soon) makes you a citizen
 // (אזרח). A small chip in the top bar says which you are; tapping it opens the window with the three and the way up.
 import { T } from './copy.js';
-import { I, esc, sheet, track } from './ui.js';
+import { I, esc, sheet, track, brand } from './ui.js';
 import { needFan, signedIn } from './state.js';
 
 const S = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -35,8 +35,8 @@ export function openStatus(where = 'chip') {
       <ul>${t.items.map((ic, k) => `<li>${ic}<span>${esc(T.status.gets[t.id][k])}</span></li>`).join('')}</ul></div>`;
   const h = sheet(`<div class="in sl">
       <img class="sl-logo" src="/verse/logo-160.png" alt="שלומיוורס">
-      <h2 class="vx-h">${esc(T.status.title)}</h2>
-      <p class="vx-sub">${esc(T.status.sub[me])}</p>
+      <h2 class="vx-h">${brand(T.status.title)}</h2>
+      <p class="vx-sub">${brand(T.status.sub[me])}</p>
       <div class="sl-path">${TIERS.map(tier).join('')}</div>
       ${me === 'tourist' ? `<button class="vx-btn main block" data-sl-go>${esc(T.status.go)}</button>` : `<p class="vx-small">${esc(T.status.residentNote)}</p>`}
     </div>`, { cls: 'status' });

@@ -3,7 +3,7 @@
 // (mockup A) and, the first time, the "your name in the verse" screen (mockup B).
 import { auth, db, A, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, esc, sheet, av, inApp, track, toast, catchphrase, openOutside } from './ui.js';
+import { I, esc, sheet, av, inApp, track, toast, catchphrase, openOutside, brand } from './ui.js';
 import { pickAndCrop } from './crop.js';
 
 export const st = { user: null, fan: null, follows: new Set(), saves: new Map(), notes: [], unread: 0, ready: false };
@@ -78,7 +78,7 @@ export function signInSheet(key, char, opt = {}) {
       ? opt.cut   // a finished die-cut sticker (the pack): shown as it is
         ? `<div class="vx-gain-st cut"><img src="${esc(opt.img)}" alt=""></div>`
         : `<div class="vx-gain-st"><span><img src="${esc(opt.img)}" alt="">${char && catchphrase(char) ? `<em>${esc(catchphrase(char))}</em>` : ''}</span></div>`
-      : `<div class="vx-hero-face">${c ? av({ char, ring: true }) : av({ planet: true })}</div>`;
+      : c ? `<div class="vx-hero-face">${av({ char, ring: true })}</div>` : `<img class="vx-si-logo" src="/verse/logo-160.png" alt="שלומיוורס">`;
     track('signin_ask', inApp() ? 'inapp' : 'browser');   // how many reach the sign-in, and how many of them can't (in-app browser)
     track('signin_from', key || 'default');                // and what brought them there (backstage: which ask works)
     // inside Instagram / TikTok / Facebook's own browser Google refuses to sign in: Miriam's counter, email + a code
@@ -88,19 +88,22 @@ export function signInSheet(key, char, opt = {}) {
          <button class="vx-btn white block" data-out>${esc(T.signinOut)}</button>
          <button class="vx-link" data-copy>${esc(T.signinCopy)}</button>`
       : `<button class="vx-btn white block" data-google>${I.google}${esc(T.signinGoogle)}</button>
-         <p class="vx-small">${esc(T.signinSmall)}</p>`;
+         ${MAIL_SIGNIN ? `<button class="vx-link si-mail" data-mail>${esc(T.signinMail)}</button>` : `<p class="vx-small">${esc(T.signinSmall)}</p>`}`;
     let done = false;
     const h = sheet(`<div class="in" style="text-align:center">
         ${face}
-        <h2 class="vx-h">${esc(fill(g.title))}</h2>
-        ${inApp() ? '' : `<p class="vx-sub vx-gain-sub">${esc(fill(g.sub))}</p>`}
-        <div class="vx-reasons">${g.rows.map((r, i) => `<div class="${i ? '' : 'hl'}"><span class="vx-round">${rowIcon(r)}</span><span>${esc(fill(r))}</span></div>`).join('')}</div>
+        <h2 class="vx-h">${brand(fill(g.title))}</h2>
+        ${inApp() ? '' : `<p class="vx-sub vx-gain-sub">${brand(fill(g.sub))}</p>`}
+        <div class="vx-reasons">${g.rows.map((r, i) => `<div class="${i ? '' : 'hl'}"><span class="vx-round">${rowIcon(r)}</span><span>${esc(fill(r))}</span></div>`).join('')}<div class="more"><span class="vx-round">${I.plus}</span><span>${esc(T.gainMore)}</span></div></div>
         ${body}
       </div>`, { cls: 'signin', onClose: () => { if (!done) resolve(false); } });
     const out = h.el.querySelector('[data-out]');
     if (out) out.onclick = () => openOutside(key);
     const copy = h.el.querySelector('[data-copy]');
     if (copy) copy.onclick = () => { navigator.clipboard?.writeText(location.href); toast(T.linkCopied); };
+    // whoever became a resident by email inside Instagram signs in here the same way (his point, 2026-11-06)
+    const mail = h.el.querySelector('[data-mail]');
+    if (mail) mail.onclick = () => { done = true; h.close('mail'); mailSheet(key, resolve); };
     const google = h.el.querySelector('[data-google]');
     if (google) google.onclick = async () => {
       google.disabled = true;

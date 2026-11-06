@@ -2,12 +2,12 @@
 // me (#/me), and the guide's contact card in the chat ("can't find a video?", collaborations).
 import { db, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, $, esc, av, ago, abs, toast, track, wordmark, sheet, LIKE } from './ui.js';
+import { I, $, esc, av, ago, abs, toast, track, wordmark, sheet, LIKE, brand } from './ui.js';
 import { st, needFan, signedIn, nameScreen, signOut, cachedMe, follow } from './state.js';
 import { ringsHtml, storyRing } from './stories.js';
 import { watched } from './player.js';
 import { pushState, enablePush } from './push.js';
-import { statusChip } from './status.js';
+import { statusChip, SI } from './status.js';
 
 // ---------- top bar ----------
 export function renderTop() {
@@ -23,7 +23,7 @@ export function renderTop() {
   const nav = document.querySelector('.nav-me');
   if (nav) nav.innerHTML = st.unread ? `אני <span class="vx-dot" style="display:inline-block;width:7px;height:7px;vertical-align:middle"></span>` : 'אני';
 }
-document.addEventListener('click', (e) => { if (e.target.closest('[data-signin]')) { e.preventDefault(); needFan(); } });
+document.addEventListener('click', (e) => { const s = e.target.closest('[data-signin]'); if (s) { e.preventDefault(); needFan(s.dataset.signin || undefined); } });
 
 // ---------- home ----------
 const vrow = (list) => `<div class="row">${list.map(vcard).join('')}</div>`;
@@ -82,8 +82,11 @@ export function homeSlot() {
   if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>';
   const rings = ringsHtml();
   return `${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}
-    <div class="signin-card"><div><h2>${esc(T.signinCardTitle)}</h2><p>${esc(T.signinCardText)}</p></div>
-      <button class="vx-btn white" data-signin>${I.google}${esc(T.signinCardBtn)}</button></div>
+    <div class="signin-card"><div class="sc-top"><h2>${brand(T.signinCardTitle)}</h2>${statusChip()}</div>
+      <ul class="sc-gets">${[I.comment, I.bell, I.comment, I.sticker, I.save, SI.bars].map((ic, i) => `<li>${ic}<span>${esc(T.signinCardGets[i])}</span></li>`).join('')}</ul>
+      <p class="sc-more">${I.plus}<span>${esc(T.signinCardMore)}</span></p>
+      <p class="sc-soon">${SI.id}<span>${esc(T.signinCardSoon)}</span></p>
+      <button class="vx-btn main block" data-signin="card">${esc(T.signinCardGo)}</button></div>
     ${continueRow()}${band()}`;
 }
 
