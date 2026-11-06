@@ -26,14 +26,20 @@ Miriam (a confused clerk who never stops talking and understands nothing; she as
 can skip), border control in a booth with Rabbi Demokratovich (his faith is democracy and the Supreme Court, he talks like the
 Talmud), a stamp, a citizen number, a flight in, and a Shlomiverse ID card.`;
 
+const ALIGN = `Layout precision matters: every element on one clean right-aligned grid with equal side margins, text and buttons
+lined up exactly, nothing crooked or overlapping.`;
+
 const JOBS = [
-  ['Q1-home', 'gpt-image-2.6-sunburst', [HOME], `${SCREEN}\n${QUIZ}\nDesign the HOME PAGE for a tourist exactly as the attached live home,
-with ONE new band right under the hero's question box that invites to the test: title "אתם חיים בסימולציה?", line "סוכן AI ישאל,
-אתם תענו, והמציאות תנסה להסביר את עצמה.", button "התחילו את המבחן". Make the band intriguing - a glitch in reality - without
-breaking the page.`],
-  ['Q2-intro', 'gpt-image-2.6-flare', [HOME], `${SCREEN}\n${QUIZ}\nDesign the TEST's OPENING screen (full page): title "בדיקת מציאות קצרה",
-line "כמה שאלות, קצת אמת, והרבה חשד שהכול תוכנן מראש.", main button "יאללה, תבדקו אותי", small line "כ-3 דקות, תלוי כמה אתם
-משתפים פעולה עם המציאות." It should feel like entering a strange lab that tests whether you are real.`],
+  ['Q1-home', 'gpt-image-2.6-sunburst', [HOME, YOTAM], `${SCREEN}\n${QUIZ}\n${ALIGN}\nDesign the HOME PAGE for a tourist exactly as the
+attached live home, with ONE new band right under the hero's question box that invites to the test. In the band: Yotam's face
+(the attached portrait - Techy-Tech's "System Architect of life") in a small round frame at the right, title "אתם חיים בסימולציה?",
+line "יותם מריץ בדיקה. כל תשובה שלכם משנה את השאלה הבאה.", button "התחילו להיבדק". Make the band intriguing - a small glitch in
+reality - without breaking the page.`],
+  ['Q2-intro', 'gpt-image-2.6-flare', [HOME, YOTAM], `${SCREEN}\n${QUIZ}\n${ALIGN}\nDesign the TEST's OPENING screen (full page),
+hosted by Yotam (exactly the man in the attached portrait), who runs the check like a system test at Techy-Tech: his portrait
+at the top with a small "בבדיקה" status light, title "יותם מריץ בדיקת מערכת", line "כמה שאלות עליכם. כל אחת יודעת מה עניתם
+קודם.", main button "תבדקו אותי" (first letter ת - tav, spelled exactly), small line "כשלוש דקות, תלוי כמה המציאות משתפת פעולה." It should feel like entering a
+strange lab that tests whether you are real.`],
   ['Q3-question', 'gpt-image-2.6-sunburst', [HOME], `${SCREEN}\n${QUIZ}\nDesign ONE QUESTION of the test (question 3 of about 7, a progress
 mark): the AI agent asks "כשאתם שומעים 'בואו נחשוב מחוץ לקופסה', מה קורה?" and four big tappable answers: "אני מחפש קופסה לצאת
 ממנה", "אני כבר בקופסה, עם קבלה", "אני מציע ישיבה על הקופסה", "טקי-טק אמר שזה בטיפול". Quick, playful, one thumb.`],
@@ -48,14 +54,15 @@ world's people (take Yotam from the attached portrait; the rest of the Techy-Tec
 phone UI). ${QUIZ} It is the result a person shares: big "17", "יצאתי 17 במבחן המציאות.", "אני חי בסימולציה של טקי-טק", the
 question to friends "באיזו סימולציה אתם חיים?", Yotam's face (attached portrait) as the world's face, and at the bottom the
 "שלומיוורס" wordmark (שלומי white, וורס orange) and shlomiverse.com/simulation. Hebrew spelled exactly.`],
-  ['Q7-chat', 'gpt-image-2.6-sunburst', [CHAT, HANI], `${SCREEN}\n${QUIZ}\nDesign the CHAT with Hani (attached portrait; the attached chat
-screenshot shows the chat's look): in the middle of a normal conversation Hani suggests the test - her bubble "תגידו, עשיתם כבר
-את מבחן הסימולציה? יש לי תחושה שאתם תוצאה מעניינת." and right under it a small card in the conversation with the button "למבחן
-המציאות".`],
-  ['C1-banner', 'gpt-image-2.6-flare', [HOME], `${SCREEN}\n${CITIZEN}\nDesign the HOME PAGE of a RESIDENT (signed in - the top shows their
-face and a "תושב" status chip) with a banner at the top of their page that invites to the journey: title "התושבות מסודרת. עכשיו
-אפשר להתאזרח.", line "מסע קצר דרך צ׳ק-אין, ביקורת גבולות וקצת בירוקרטיה עם נשמה.", button "צאו למסע האזרחות". Something like a
-boarding pass peeks out of it.`],
+  ['Q7-chat', 'gpt-image-2.6-sunburst', [CHAT, HANI], `${SCREEN}\n${QUIZ}\n${ALIGN}\nDesign the CHAT with Hani (attached portrait; the
+attached chat screenshot shows the chat's look) - CALM and uncluttered: the chat's own header, exactly two earlier messages - the visitor "חני, את מאמינה שאנחנו חיים בסימולציה?" and Hani "בעזרת השם הכול לטובה, אבל יש כמה רמזים." - then Hani's bubble "תגידו, עשיתם כבר את מבחן הסימולציה? יש לי תחושה שאתם תוצאה מעניינת." and right under it ONE
+small card inside the conversation with the title "אתם חיים בסימולציה?" and the button "למבחן המציאות", then the message box.
+Lots of breathing room, no extra decorations, no status bar or breadcrumbs, no English words.`],
+  ['C1-banner', 'gpt-image-2.6-flare', [HOME, MIRIAM, DEMO], `${SCREEN}\n${CITIZEN}\n${ALIGN}\nDesign the HOME PAGE of a RESIDENT (signed
+in - the top shows their face and a "תושב" status chip) with a banner at the top of their page that invites to the journey:
+title "התושבות הוסדרה. נא להתאזרח.", line "מרים מחכה בצ׳ק־אין. דמוקרטוביץ עם החותמת.", button "למסע האזרחות". In the banner
+Miriam (exactly the woman in the attached portrait) at a check-in counter with a small speech bubble "זוהרה, רגע, זה לא נותן."
+and Rabbi Demokratovich (the attached portrait) holding a stamp; a boarding pass peeks out of the banner.`],
   ['C2-boarding', 'gpt-image-2.6-sunburst', [HOME], `${SCREEN}\n${CITIZEN}\nDesign the BOARDING PASS screen - the first step of the journey:
 a real-looking boarding pass titled "כרטיס עלייה לשלומיוורס" with the passenger's name "דנה", fields "מאיפה: העולם שאתם מכירים",
 "לאן: שלומיוורס, פנים הארץ", "שער: ג׳, ליד המכונה שלא עובדת", "מושב: 17א׳, חלון למציאות חלופית", a barcode, and a button

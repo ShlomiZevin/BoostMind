@@ -26,9 +26,9 @@ if (cmd === 'publish') {
   if (!dir || !id) { console.error('publish <folder> --id <plan-id>'); process.exit(1); }
   const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
   const title = readOpt('title-file') || opt('title') || (html.match(/<title>([^<]+)<\/title>/) || [])[1]?.replace(/\s*·.*$/, '') || id;
-  // the pictures the page shows: <img src="img/NAME">
-  const names = [...new Set([...html.matchAll(/src="img\/([\w.-]+)"/g)].map((m) => m[1]))].filter((n) => fs.existsSync(path.join(dir, 'img', n)));
-  const type = (n) => (/\.png$/i.test(n) ? 'image/png' : /\.webp$/i.test(n) ? 'image/webp' : 'image/jpeg');
+  // the files the page shows: <img src="img/NAME">, <video src="img/NAME.mp4" poster="img/NAME.jpg">
+  const names = [...new Set([...html.matchAll(/(?:src|poster)="img\/([\w.-]+)"/g)].map((m) => m[1]))].filter((n) => fs.existsSync(path.join(dir, 'img', n)));
+  const type = (n) => (/\.png$/i.test(n) ? 'image/png' : /\.webp$/i.test(n) ? 'image/webp' : /\.mp4$/i.test(n) ? 'video/mp4' : 'image/jpeg');
   for (let i = 0; i < names.length; i += 4) {
     const files = names.slice(i, i + 4).map((n) => ({ name: n, type: type(n), b64: fs.readFileSync(path.join(dir, 'img', n)).toString('base64') }));
     const r = await api('planFiles', { id, files });

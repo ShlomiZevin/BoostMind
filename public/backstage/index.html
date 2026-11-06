@@ -816,7 +816,7 @@ function planView() {
   if (!PLAN) return openPlan(planId);
   const p = PLAN.plan, cs = PLAN.comments || [];
   // the session's pictures (img/NAME) -> their signed links
-  let html = p.html.replace(/(src|href)="img\/([\w.-]+)"/g, (m, a, n) => (p.files[n] ? `${a}="${p.files[n]}"` : m));
+  let html = p.html.replace(/(src|href|poster)="img\/([\w.-]+)"/g, (m, a, n) => (p.files[n] ? `${a}="${p.files[n]}"` : m));
   html = html.includes('</body>') ? html.replace('</body>', PLAN_FRAME + '</body>') : html + PLAN_FRAME;
   const open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
   $('#pane').innerHTML = `<div class="pl-head"><button class="pill" data-pl-back>${IC.back}כל התוכניות</button>
