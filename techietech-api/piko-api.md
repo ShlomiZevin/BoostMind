@@ -31,12 +31,13 @@ Wherever a picture goes in (`refs`, `start`, `end`), it can be:
 |---|---|
 | `GET /config` | models, sizes, qualities, max references, video $ per second, who you are |
 | `GET /balance` | EvoLink credit left: `{ credits, usd, usdPerCredit }` (`?fresh=1` asks EvoLink now) |
-| `POST /transcribe` | a recording → `{ text, prompt }`: the words, and a clean prompt in the same language |
+| `POST /transcribe` | a recording → `{ text, prompt }`: the words, and a clean prompt in English (the models read English best) |
 | `POST /images` | start a picture → the job (201) |
 | `POST /videos` | start a video → the job (201) |
 | `GET /jobs/:id` | the job; poll every few seconds until `status` is `done` or `failed` |
 | `GET /jobs?limit=40&before=<created ms>` | your jobs, newest first (`more: true` if there are older ones) |
 | `DELETE /jobs/:id` | off the list (the file stays in the library) |
+| `GET /presets` / `PUT /presets` | the caller's saved setups `[{ id, name, mode: "image" | "video", params }]` (PUT the whole list; Piko's buttons) |
 
 ### POST /transcribe
 ```json
@@ -46,17 +47,18 @@ Wherever a picture goes in (`refs`, `start`, `end`), it can be:
 
 ### POST /images
 ```json
-{ "prompt": "האיש מהתמונה כפיראט על סיפון ספינה", "refs": ["data:image/jpeg;base64,..."], "model": "flare", "size": "portrait", "quality": "medium" }
+{ "prompt": "האיש מהתמונה כפיראט על סיפון ספינה", "refs": ["data:image/jpeg;base64,..."], "model": "flare", "size": "story", "quality": "low", "count": 2 }
 ```
-`model`: `flare` | `sunburst`. `size`: `portrait` (1024×1536) | `square` | `landscape`. `quality`: `low` | `medium` | `high`.
-`refs`: up to 16 reference images. Takes ~20-60 s.
+`model`: `flare` (default) | `sunburst`. `size`: `story` (864×1536, 9:16 - default) | `portrait` (1024×1536) | `square` | `landscape`.
+`quality`: `low` (default, ~$0.005) | `medium` | `high`. `refs`: up to 16 reference images. `count`: 1-4 pictures made side by
+side (default 1) - the answer is the first job plus `jobs` (all of them, one `batch`). Takes ~20-60 s.
 
 ### POST /videos
 ```json
 { "prompt": "הילדים עולים על הספינה ומפליגים כמו פיראטים", "start": "data:image/jpeg;base64,...", "end": null, "duration": 6, "quality": "480p", "ratio": "adaptive" }
 ```
-`duration`: 4-15 s. `quality`: `480p` | `720p`. `ratio`: `adaptive` (follows the start picture) or `9:16`, `16:9`, `1:1`, `4:3`,
-`3:4`, `21:9`. No `start` = a video from text only. A Hebrew prompt is translated to English for the model. Real faces are
+`duration`: 4-15 s (default 6). `quality`: `480p` (default) | `720p`. `ratio`: `9:16` (default) or `adaptive` (follows the start
+picture), `16:9`, `1:1`, `4:3`, `3:4`, `21:9`. Sound is always on. The answer also carries `jobs: [the job]`. No `start` = a video from text only. A Hebrew prompt is translated to English for the model. Real faces are
 fine. Takes ~1-2 min. 6 s at 480p ≈ $0.11. Refused (402) when EvoLink's balance is below the video's price.
 
 ### The job

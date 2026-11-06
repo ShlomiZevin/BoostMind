@@ -40,9 +40,10 @@ const TEXT_MODEL = 'gpt-5.4-mini';   // the prompt rewrite and the translation f
 
 const IMAGE = {
   models: ['flare', 'sunburst'],
-  sizes: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
+  sizes: { story: '864x1536', portrait: '1024x1536', square: '1024x1024', landscape: '1536x1024' },   // story = 9:16 exactly (tested)
   qualities: ['low', 'medium', 'high'],
   maxRefs: 16,                                   // what /v1/images/edits takes
+  maxCount: 4,                                   // pictures per request, made side by side (one job each)
   price: { text: 5, image: 8, out: 30 },        // GPT Image 2.5 list price, $ per 1M tokens (the job's own cost line)
 };
 const VIDEO = {
@@ -51,6 +52,21 @@ const VIDEO = {
   ratios: ['adaptive', '9:16', '16:9', '1:1', '4:3', '3:4', '21:9'],
   min: 4, max: 15,
 };
+// his defaults (2026-11-07: "every time I do more or less the same thing"): story format (9:16), low quality, sound on;
+// 2 pictures at once, 1 video. The API's own default count stays 1 (another tool asks for what it wants).
+const DEFAULT = { image: { model: 'flare', size: 'story', quality: 'low' }, video: { duration: 6, quality: '480p', ratio: '9:16' } };
+// saved setups - one tap on the make screen (his ask, 2026-11-07); he edits them in the app, each caller has its own
+const PRESETS = [
+  { id: 'video-simple', name: 'פשוט', mode: 'video', params: { duration: 6, quality: '480p', ratio: '9:16' } },
+  { id: 'video-more', name: 'מתקדם', mode: 'video', params: { duration: 10, quality: '720p', ratio: '9:16' } },
+  { id: 'image-simple', name: 'פשוט', mode: 'image', params: { model: 'flare', size: 'story', quality: 'low', count: 2 } },
+  { id: 'image-more', name: 'מתקדם', mode: 'image', params: { model: 'flare', size: 'story', quality: 'high', count: 2 } },
+];
+const imageParams = (b = {}) => ({ model: IMAGE.models.includes(b.model) ? b.model : DEFAULT.image.model, size: IMAGE.sizes[b.size] ? b.size : DEFAULT.image.size,
+  quality: IMAGE.qualities.includes(b.quality) ? b.quality : DEFAULT.image.quality });
+const videoParams = (b = {}) => ({ duration: Math.min(VIDEO.max, Math.max(VIDEO.min, Math.round(+b.duration || DEFAULT.video.duration))),
+  quality: VIDEO.qualities.includes(b.quality) ? b.quality : DEFAULT.video.quality, ratio: VIDEO.ratios.includes(b.ratio) ? b.ratio : DEFAULT.video.ratio });
+const countOf = (b = {}, dflt = 1) => Math.min(IMAGE.maxCount, Math.max(1, Math.round(+b.count || dflt)));
 const R480 = 1.2555 / 2.7;   // EvoLink bills 480p at this share of 720p (credits per second, its own price page + a real charge, 2026-11-06)
 
 const db = () => admin.firestore();
@@ -122,7 +138,7 @@ async function gpt(instructions, input) {
   return (j.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('\n').trim();
 }
 
-// a recording -> the words -> a prompt that makes sense (in the language he spoke)
+// a recording -> the words -> a prompt that makes sense, in English (the models read English best - his note, 2026-11-07)
 async function transcribe(b) {
   const buf = Buffer.from(String(b.audio || '').replace(/^data:[^,]*,/, ''), 'base64');
   if (!buf.length || buf.length > 9e6) throw fail(400, 'audio');
@@ -142,24 +158,25 @@ async function transcribe(b) {
     ? `a short video made from ${b.hasStart ? 'a photo the user gave as the first frame' : 'text only'}${b.hasEnd ? ', ending on a second photo (the last frame)' : ''}: say what happens, the motion, and the sounds / what is said (the camera only if they mentioned it)`
     : `a picture${b.refs ? `, made from ${b.refs} reference image(s) the user gave` : ''}: say what is in it, the style, the framing`;
   const prompt = await gpt(
-    `You turn a spoken, transcribed request into a clear prompt for ${what}. Write it in the same language the user spoke (Hebrew stays Hebrew). ` +
+    `You turn a spoken, transcribed request (usually Hebrew) into a clear prompt for ${what}. Write the prompt in English. ` +
     'Keep every detail they asked for and their intent; drop filler, false starts and repetitions; fix what the transcription garbled when the meaning is obvious. ' +
     'Do not invent new content. Refer to people in the user\'s photo as "the people in the photo" / by what they said. One short paragraph, no quotes, no preface.', text);
   return { text, prompt: prompt || text };
 }
 
-// the video model reads English best: translate (Hebrew in, English out); an English prompt goes as it is
+// the models read English best: a typed Hebrew prompt is translated before it goes; an English one goes as it is
+async function toEnglish(prompt, what) {
+  if (!/[\u0590-\u05FF]/.test(prompt)) return prompt;
+  return await gpt(`Translate this ${what}-generation prompt into natural English for the model. Keep every detail, add nothing, no preface.`, prompt) || prompt;
+}
 async function forVideo(prompt, hasStart) {
-  let en = prompt;
-  if (/[\u0590-\u05FF]/.test(prompt)) {
-    en = await gpt('Translate this video-generation prompt into natural English for a video model. Keep every detail, add nothing, no preface.', prompt) || prompt;
-  }
+  const en = await toEnglish(prompt, 'video');
   return hasStart && !/faces?/i.test(en) ? `${en}\nKeep everyone's faces exactly as in the first frame.` : en;
 }
 
 async function image(job, refs) {
   const p = job.params;
-  const fields = { model: 'gpt-image-2.5-' + p.model, prompt: job.prompt, size: IMAGE.sizes[p.size], quality: p.quality, n: 1, output_format: 'jpeg', output_compression: 92 };
+  const fields = { model: 'gpt-image-2.5-' + p.model, prompt: job.promptEn || job.prompt, size: IMAGE.sizes[p.size], quality: p.quality, n: 1, output_format: 'jpeg', output_compression: 92 };
   const auth = { authorization: `Bearer ${OPENAI.value()}` };
   let r;
   if (refs.length) {
@@ -352,7 +369,7 @@ const signed = async (path) => (path ? (await bucket().file(path).getSignedUrl({
 async function view(id, j, full) {
   return {
     id, kind: j.kind, status: j.status, prompt: j.prompt, params: j.params, by: j.by, client: j.client,
-    progress: j.progress ?? null, error: j.error || null, created: ms(j.t), done: j.done || null,
+    progress: j.progress ?? null, error: j.error || null, created: ms(j.t), done: j.done || null, batch: j.batch || null,
     usd: j.usd ?? null, estimate: j.estimate ?? null, w: j.w || null, h: j.h || null, dur: j.dur || null,
     url: await signed(j.path), library: j.libraryId || null,
     poster: j.kind === 'video' && j.inputs?.start ? await signed(j.inputs.start) : null,
@@ -369,16 +386,18 @@ async function createJob(u, kind, b) {
   if (kind === 'image') {
     const refs = Array.isArray(b.refs) ? b.refs : [];
     if (refs.length > IMAGE.maxRefs) throw fail(400, 'too_many_refs');
-    const params = { model: IMAGE.models.includes(b.model) ? b.model : 'flare', size: IMAGE.sizes[b.size] ? b.size : 'portrait',
-      quality: IMAGE.qualities.includes(b.quality) ? b.quality : 'medium' };
+    const params = imageParams(b), count = countOf(b);
     const paths = [];
     for (const [i, x] of refs.entries()) paths.push(await keepInput(ref.id, `ref-${i + 1}`, await readInput(x, u.by)));
-    await ref.set({ ...base, params, inputs: { refs: paths } });
+    // several pictures = several jobs made side by side, one batch (the references are stored once)
+    const refsOut = [ref, ...Array.from({ length: count - 1 }, () => db().collection(JOBS).doc())];
+    await Promise.all(refsOut.map((r) => r.set({ ...base, params, inputs: { refs: paths }, ...(count > 1 ? { batch: ref.id } : {}) })));
+    const jobs = await Promise.all(refsOut.map(async (r) => ({ id: r.id, ...(await view(r.id, (await r.get()).data())) })));
+    return { ...jobs[0], jobs };
   } else {
     const start = await readInput(b.start, u.by), end = await readInput(b.end, u.by);
     if (end && !start) throw fail(400, 'end_needs_start');
-    const params = { duration: Math.min(VIDEO.max, Math.max(VIDEO.min, Math.round(+b.duration || 6))),
-      quality: VIDEO.qualities.includes(b.quality) ? b.quality : '480p', ratio: VIDEO.ratios.includes(b.ratio) ? b.ratio : 'adaptive' };
+    const params = videoParams(b);
     const estimate = videoUsd(await prices(), params.duration, params.quality);
     const bal = await balance(true);
     if (bal.usd < estimate) throw fail(402, 'balance');
@@ -387,7 +406,22 @@ async function createJob(u, kind, b) {
     if (end) inputs.end = await keepInput(ref.id, 'end', end);
     await ref.set({ ...base, params, inputs, estimate });
   }
-  return { id: ref.id, ...(await view(ref.id, (await ref.get()).data())) };
+  const job = { id: ref.id, ...(await view(ref.id, (await ref.get()).data())) };
+  return { ...job, jobs: [job] };
+}
+
+// saved setups: [{ id, name, mode: 'image' | 'video', params }] - the caller's own, else the starting ones
+async function presets(u, put) {
+  const ref = db().collection(META).doc('presets-' + u.by.replace(':', '-'));
+  if (!put) { const d = (await ref.get()).data(); return { presets: d?.presets || PRESETS }; }
+  if (!Array.isArray(put)) throw fail(400, 'presets');
+  const list = put.slice(0, 24).map((p, i) => {
+    const mode = p.mode === 'image' ? 'image' : 'video';
+    return { id: clip(p.id, 40) || `${mode}-${Date.now().toString(36)}-${i}`, name: clip(p.name, 24) || 'הגדרה', mode,
+      params: mode === 'image' ? { ...imageParams(p.params), count: countOf(p.params, 2) } : videoParams(p.params) };
+  });
+  await ref.set({ presets: list, at: Date.now() });
+  return { presets: list };
 }
 
 async function route(req, res) {
@@ -406,10 +440,11 @@ async function route(req, res) {
   const body = req.body || {};
   if (req.method === 'GET' && r0 === 'config') {
     const p = await prices();
-    return res.json({ image: { models: IMAGE.models, sizes: Object.keys(IMAGE.sizes), qualities: IMAGE.qualities, maxRefs: IMAGE.maxRefs },
-      video: { qualities: VIDEO.qualities, ratios: VIDEO.ratios, min: VIDEO.min, max: VIDEO.max, usdPerSecond: { '480p': +(p.usd720 * R480).toFixed(4), '720p': +p.usd720.toFixed(4) } },
+    return res.json({ image: { models: IMAGE.models, sizes: Object.keys(IMAGE.sizes), qualities: IMAGE.qualities, maxRefs: IMAGE.maxRefs, maxCount: IMAGE.maxCount, default: DEFAULT.image },
+      video: { qualities: VIDEO.qualities, ratios: VIDEO.ratios, min: VIDEO.min, max: VIDEO.max, default: DEFAULT.video, usdPerSecond: { '480p': +(p.usd720 * R480).toFixed(4), '720p': +p.usd720.toFixed(4) } },
       you: { name: u.name, owner: u.owner, library: u.library } });
   }
+  if (r0 === 'presets' && (req.method === 'GET' || req.method === 'PUT')) return res.json(await presets(u, req.method === 'PUT' ? body.presets : null));
   if (req.method === 'GET' && r0 === 'balance') return res.json(await balance(req.query.fresh === '1'));
   if (req.method === 'POST' && r0 === 'transcribe') return res.json(await transcribe(body));
   if (req.method === 'POST' && (r0 === 'images' || r0 === 'videos')) return res.status(201).json(await createJob(u, r0 === 'images' ? 'image' : 'video', body));
@@ -452,6 +487,8 @@ exports.pikoWork = onDocumentCreated({ document: `${JOBS}/{id}`, region: REGION,
   try {
     await ref.update({ status: 'working', started: Date.now() });
     if (job.kind === 'image') {
+      job.promptEn = await toEnglish(job.prompt, 'image');
+      if (job.promptEn !== job.prompt) await ref.update({ promptEn: job.promptEn });
       const refs = await Promise.all((job.inputs?.refs || []).map(loadInput));
       const out = await image(job, refs);
       const saved = await save(job, out.buf, 'image', { w: out.w, h: out.h });
