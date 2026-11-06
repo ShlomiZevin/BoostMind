@@ -13,7 +13,7 @@ const hint = hintAt >= 0 ? args.splice(hintAt, 2)[1] : '';
 const [src, out, ...areas] = args;
 if (!src || !out || !areas.length) { console.error('usage: node clean-words.mjs in.jpg out.jpg "x1,y1,x2,y2" ... [--hint "..."]'); process.exit(1); }
 const envKey = (file, name) => fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '');
-const OAI = process.env.OPENAI_API_KEY || envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');   // another computer: set OPENAI_API_KEY
+const OAI = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY') || process.env.OPENAI_API_KEY;   // the design key (node scripts/design-env.mjs)
 const tmp = path.join(path.dirname(out), '.clean-' + Date.now());
 fs.mkdirSync(tmp, { recursive: true });
 const py = (code, ...a) => execFileSync('python', ['-I', '-c', code, ...a], { encoding: 'utf8' }).trim();

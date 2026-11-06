@@ -5,7 +5,7 @@
 #   bash scripts/test.sh --quick    only the quick ones (no emulators)
 # The emulator tests run on project demo-shlomiverse (v2/firebase.json). Before them: nothing heavy running - Sketch
 # Studio's /api/jobs `busy` must be empty (one heavy job at a time). The chat replies need an OpenAI key: taken from
-# aspect-agent-server/.env, as v2/dev.mjs does, and never printed.
+# scripts/design.env (node scripts/design-env.mjs), and never printed.
 set -eo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -16,7 +16,7 @@ node -e "require('./techietech-api/index.js'); console.log('functions load')"
 [ "$1" = "--quick" ] && exit 0
 
 if curl -s --max-time 2 localhost:4747/api/jobs | grep -q '"busy":\[[^]]'; then echo "Sketch Studio is busy - run the emulator tests later"; exit 1; fi
-KEY=$(grep -h "^OPENAI_API_KEY=" /c/workspace/aspect/aspect-agent-server/.env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"\r')
+KEY=$(grep -h "^OPENAI_API_KEY=" "$(dirname "$0")/design.env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"\r')
 export VERSE_OPENAI_KEY="$KEY" WIKI_OPENAI_KEY="$KEY"
 export JAVA_HOME="${USERPROFILE:-$HOME}/.local/jre21" PATH="${USERPROFILE:-$HOME}/.local/jre21/bin:$PATH"
 cd v2

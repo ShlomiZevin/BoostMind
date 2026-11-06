@@ -1,5 +1,5 @@
 // pictures straight from OpenAI (gpt-image-2.5 flare / sunburst) - Shlomi's rule from 30 Oct 2026, no Leonardo.
-//   . ~/.plaxzy/openai-env.sh; node tools/oai-image.js --prompt-file p.txt --out art/x.png [--model flare|sunburst] [--size 1536x1024] [--quality medium] [--ref a.jpg --ref b.png] [--transparent]
+//   node tools/oai-image.js --prompt-file p.txt --out art/x.png [--model flare|sunburst] [--size 1536x1024] [--quality medium] [--ref a.jpg --ref b.png] [--transparent]
 // with --ref the pictures go to /v1/images/edits as references (style, the same character); without - /v1/images/generations.
 const fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), arg = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
@@ -7,8 +7,11 @@ const refs = args.flatMap((a, i) => a === '--ref' ? [args[i + 1]] : []);
 const MODELS = { flare: 'gpt-image-2.5-flare', sunburst: 'gpt-image-2.5-sunburst' };
 const model = MODELS[arg('model', 'flare')] || arg('model'), size = arg('size', '1536x1024'), quality = arg('quality', 'medium');
 const prompt = arg('prompt-file') ? fs.readFileSync(arg('prompt-file'), 'utf8') : arg('prompt');
-const transparent = args.includes('--transparent'), out = arg('out'), KEY = process.env.OPENAI_API_KEY;
-if (!KEY) { console.error('no OPENAI_API_KEY - run . ~/.plaxzy/openai-env.sh'); process.exit(1); }
+// the key: the Shlomiverse design key (scripts/design.env) before anything in the environment, so Backstage -> הוצאות
+// counts it as the verse's (it used to take Plaxzy's key and the verse's pictures showed as Plaxzy spend, 2026-11-06)
+const designKey = () => { try { return (fs.readFileSync(path.join(__dirname, '..', '..', '..', '..', 'scripts', 'design.env'), 'utf8').match(/^OPENAI_API_KEY=(.+)$/m) || [])[1]?.trim(); } catch { return null; } };
+const transparent = args.includes('--transparent'), out = arg('out'), KEY = designKey() || process.env.OPENAI_API_KEY;
+if (!KEY) { console.error('no OPENAI_API_KEY - run: node scripts/design-env.mjs (in c:/workspace/BoostMind)'); process.exit(1); }
 if (!prompt || !out) { console.error('need --prompt/--prompt-file and --out'); process.exit(1); }
 (async () => {
   let r;

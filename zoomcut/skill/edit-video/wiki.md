@@ -120,7 +120,7 @@ The steps it runs, for when one fails:
 1. **Web copy + poster:** `sh scripts/wiki/encode.sh <episode-id>` (720p, ~10 MB, into `public/wiki/v/`).
 2. **Fan copy** (the title and one-line teaser people see; a new character also gets a tagline, bio and 3 questions):
    `python scripts/wiki/copy_brief.py --only-missing`, then
-   `node ~/.claude/skills/sol-leonardo/scripts/sol.js --in scripts/wiki/work/copy-brief.txt --out scripts/wiki/work/copy-answer.md --model gpt-5.6-terra --env "C:/workspace/aspect/aspect-agent-server/.env"`,
+   `node ~/.claude/skills/sol-leonardo/scripts/sol.js --in scripts/wiki/work/copy-brief.txt --out scripts/wiki/work/copy-answer.md --model gpt-5.6-terra` (from the repo: it takes the design key, which Backstage counts),
    read the answer, then `python scripts/wiki/merge_copy.py`. **Terra, not SOL** (his call). The copy lives in
    `scripts/wiki/copy.json` - fix a line there by hand any time.
 3. **Build:** `python scripts/wiki/build.py` - it lists anything still MISSING (an encode, a copy line).

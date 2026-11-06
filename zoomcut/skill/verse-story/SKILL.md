@@ -16,7 +16,7 @@ Reply in English; Hebrew only in the story.
    is registered as `verse-story` only where `~/.claude/skills/verse-story` links to this folder.
 2. Needs: Node 18+, **ffmpeg + ffprobe** on PATH (a video story), `npm install` once in `zoomcut/render` (puppeteer-core
    for the preview), and Chrome or Edge (or `CHROME_PATH=<chrome.exe>`). Removing words from a picture
-   (`clean-words.mjs`) also needs `OPENAI_API_KEY` in the environment.
+   (`clean-words.mjs`) also needs the design key: `node scripts/design-env.mjs` once per computer.
 3. **Whose story**: `"char"` = the character's id - the folder name under `zoomcut/characters/` (hani, shterni, yotam,
    avraham-moshe...) or `verse` for the Shlomiverse's own account. Check the id exists there before posting; the story
    shows that character's name, face and ring, and their followers get the bell + push.

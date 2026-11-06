@@ -39,6 +39,10 @@ def env(path):
 
 
 E = env(os.path.join(ZC, '.env'))
+# OpenAI = the design key (scripts/design.env), so Backstage -> costs counts it as the verse's; the rest stays the studio's
+_D = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'design.env')
+if os.path.exists(_D):
+    E['OPENAI_API_KEY'] = env(_D)['OPENAI_API_KEY']
 load = lambda p, d=None: json.load(open(p, encoding='utf8')) if os.path.exists(p) else d
 
 

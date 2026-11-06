@@ -26,8 +26,8 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
   - pictures: `node tools/leonardo.mjs image <prompt.txt> <out.jpg> [flare|sunburst] [HIGH|MEDIUM] [WxH]`;
     a character from their portrait: `node tools/leonardo.mjs portrait <ref.png> <prompt.txt> <out.jpg> sunburst HIGH`
     (both call OpenAI GPT Image 2.5 directly). Several references at once (a character + a style + a layout):
-    `zoomcut/skill/marketing-stories/tools/oai-image.js --ref a --ref b ...` with `OPENAI_API_KEY` taken from
-    `zoomcut/.env`, then `tools/library_add.mjs` on the result.
+    `zoomcut/skill/marketing-stories/tools/oai-image.js --ref a --ref b ...` (it takes the design key,
+    `scripts/design.env`, by itself - Backstage counts it), then `tools/library_add.mjs` on the result.
   - sound effects: `node tools/leonardo.mjs sfx <prompt.txt> <out.mp3> <secs>` (ElevenLabs directly);
     loops: `... loop ...`; music: `node tools/elevenlabs_music.mjs <out.mp3> <secs> "<prompt>"`.
   - **Everything you make goes into the editor's asset library, labelled, right away** (his rule, 2026-11-02): pass

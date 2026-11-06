@@ -1,10 +1,10 @@
 // Side by side: the wiki chat's OLD answer (the whole brain on every question) vs the chain (techietech-api/wiki-chain.js).
-//   node scripts/wiki/chain_test.cjs [out.html]     (local Google credentials for the brain, the OpenAI key in zoomcut/.env)
+//   node scripts/wiki/chain_test.cjs [out.html]     (local Google credentials for the brain, the OpenAI key in scripts/design.env)
 // Writes an RTL page with both answers per question + cost and time, for Shlomi to judge. ~$3 (the old way is ~80K tokens a call).
 const fs = require('fs');
 const path = require('path');
 const API = path.resolve(__dirname, '..', '..', 'techietech-api');
-const env = Object.fromEntries(fs.readFileSync(path.resolve(__dirname, '..', '..', 'zoomcut', '.env'), 'utf8').split(/\r?\n/)
+const env = Object.fromEntries(fs.readFileSync(((f) => (fs.existsSync(f) ? f : path.resolve(__dirname, '..', '..', 'zoomcut', '.env')))(path.resolve(__dirname, '..', 'design.env')), 'utf8').split(/\r?\n/)
   .filter((l) => l.includes('=') && !l.startsWith('#')).map((l) => [l.split('=')[0].trim(), l.slice(l.indexOf('=') + 1).trim().replace(/^["']|["']$/g, '')]));
 const admin = require(path.join(API, 'node_modules', 'firebase-admin'));
 admin.initializeApp({ projectId: 'boostmind-b052c' });

@@ -537,15 +537,15 @@ one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.en
 ## Keys - where each one lives (read before saying "I have no key")
 Never print a key, never write one into a file in the repo, never ask him for one that is listed here.
 - **OpenAI (GPT: Terra, SOL, Luna, image models through OpenAI)** - two working keys:
-  - **Local scripts / tools:** `OPENAI_API_KEY` in `C:/workspace/aspect/aspect-agent-server/.env`. The one in
-    `BoostMind/.env` is **revoked** (401 on every call - it looks valid, it isn't). `sol.js` reads the cwd's `.env`
-    first, so always pass `--env "C:/workspace/aspect/aspect-agent-server/.env"`. Call it from a script under
-    `BoostMind/scripts/` that reads that path (ad-hoc `grep` of a key out of another project gets blocked).
+  - **Local scripts / sessions:** `OPENAI_API_KEY` in `scripts/design.env` (the Shlomiverse design key - Backstage →
+    הוצאות counts it; missing → `node scripts/design-env.mjs`). Never the Aspect or Plaxzy key (their spend doesn't
+    show as the verse's), never `BoostMind/.env` (revoked). `sol.js` run inside `c:/workspace/BoostMind` takes the
+    design key by itself - no `--env`. A script you write reads `scripts/design.env` (CLAUDE.md → AI keys).
   - **His own key** (he gave it 2026-10-24, "use it"): Google Secret Manager on boostmind-b052c as **`WIKI_OPENAI_KEY`** -
     it runs the live wiki chat (`techietech-api/wiki.js`, `defineSecret('WIKI_OPENAI_KEY')`). In a local script:
     `KEY=$(gcloud secrets versions access latest --secret=WIKI_OPENAI_KEY --project=boostmind-b052c)` into a variable,
     never echoed. The project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it.
-  - Models: `gpt-5.6-terra` (his pick for chat and Hebrew copy), `gpt-5.6-sol`; `node ~/.claude/skills/sol-leonardo/scripts/sol.js --models --env ...` lists them.
+  - Models: `gpt-5.6-terra` (his pick for chat and Hebrew copy), `gpt-5.6-sol`; `node ~/.claude/skills/sol-leonardo/scripts/sol.js --models` (from the repo) lists them.
 - **Pictures and sound effects** (`tools/leonardo.mjs`): `OPENAI_API_KEY` (pictures, direct), `ELEVENLABS_API_KEY`
   (sounds, direct) and `LEONARDO_API_KEY` (the fallback + video) - all in `zoomcut/.env`, the editor's own keys; the
   tool reads only that file. A missing OpenAI key = it says so and goes to Leonardo - never borrow another project's.

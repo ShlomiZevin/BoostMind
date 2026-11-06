@@ -45,6 +45,23 @@ Shlomi found new sites missing from his lists because some sessions never added 
   (a "Shlomiverse" job, through the Shlomiverse's publish API - the list of videos lives in the database since
   2026-11-05); one that missed it: `POST http://localhost:4747/api/ep/<id>/site`, or `node zoomcut/render/verse.mjs <id>`.
 
+## AI keys - every call is counted on Backstage → הוצאות (his rule, 2026-11-06)
+
+Backstage shows what the AI costs by asking OpenAI / ElevenLabs what each key spent - nothing is counted by us, so a
+call made with the wrong key is spent but never seen (or shows as someone else's). **Any OpenAI call a session makes
+for the Shlomiverse - an image, a mockup, copy, Terra/SOL, a transcript, a script you write yourself - uses the
+design key: `OPENAI_API_KEY` in `scripts/design.env`** (git-ignored; missing on a computer → `node scripts/design-env.mjs`
+writes it from Secret Manager). Read it from that file inside your script; never print it.
+- Never the Aspect key (`aspect-agent-server/.env`), never Plaxzy's (`~/.plaxzy/openai-env.sh`), never `BoostMind/.env`
+  (revoked) - their spend doesn't show as the verse's.
+- The studio's own code and its tools (`zoomcut/tools/leonardo.mjs`, `elevenlabs_music.mjs`) use `zoomcut/.env` - the
+  studio's OpenAI + ElevenLabs keys; that counts as the studio. ElevenLabs from a session = that same key.
+- The live site's features use their Secret Manager keys (`VERSE_SITE_OPENAI_KEY`, `WIKI_OPENAI_KEY` for the chat,
+  `MIND_OPENAI_KEY`); a new live feature takes the site key, or a new key named `shlomiverse-<area>` in the OpenAI
+  project "Shlomiverse" (costs.js reads the area from the name).
+- Already wired: `sol.js` (inside this folder it always takes the design key), `oai-image.js` (stories, games),
+  `clean-words.mjs`, `build.py`, `reel.py` and the design scripts under `scripts/`.
+
 ## Plans for his approval - Backstage → תוכניות (since 2026-11-06)
 
 A plan, brief, draft or set of mockups for something new in the Shlomiverse goes to **Backstage → תוכניות**, not to

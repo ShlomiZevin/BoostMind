@@ -60,7 +60,8 @@ Typical set: launch (host + cover + "עלה עכשיו!") · suspense (a story p
 play now (host + product + button + "הקישור בביו").
 
 ```
-. ~/.plaxzy/openai-env.sh        # OPENAI_API_KEY from gcloud secret (project plaxzy12); never print it
+# the key: oai-image.js takes the Shlomiverse design key (scripts/design.env) by itself - Backstage counts it.
+# A Plaxzy launch: run it with Plaxzy's own key from the Plaxzy repo, not from here.
 node tools/oai-image.js --model sunburst --size 1088x1920 --quality high \
   --prompt-file prompts/s1.txt --ref people/hani.png --ref art/cover.png --out out/story-1.png
 ```

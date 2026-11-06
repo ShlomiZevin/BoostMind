@@ -329,7 +329,7 @@ def cards(videos):
     todo = [v for v in videos if v.get('_transcript') and have.get(v['id'], {}).get('h') != h(v)]
     if todo:
         try:
-            env = dict(l.rstrip('\n').split('=', 1) for l in open(os.path.join(ZC, '.env'), encoding='utf8') if '=' in l and not l.startswith('#'))
+            env = dict(l.rstrip('\n').split('=', 1) for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'design.env') if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'design.env')) else os.path.join(ZC, '.env'), encoding='utf8') if '=' in l and not l.startswith('#'))   # the design key: Backstage counts it
             items = [{'id': v['id'], 'title': v['title'], 'cast': v['cast'], 'words': v['_transcript'][:4000]} for v in todo]
             prompt = ('Short Hebrew comedy videos (one actor, recurring characters). For each, write a "card" in Hebrew: '
                       'one sentence on what happens, then "נושאים:" and a comma list of EVERY topic, place, object, event, '
@@ -370,7 +370,7 @@ def site_topics(sites):
     todo = [s for s in sites if have.get(s['id'], {}).get('h') != h(s)]
     if todo:
         try:
-            env = dict(l.rstrip('\n').split('=', 1) for l in open(os.path.join(ZC, '.env'), encoding='utf8') if '=' in l and not l.startswith('#'))
+            env = dict(l.rstrip('\n').split('=', 1) for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'design.env') if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'design.env')) else os.path.join(ZC, '.env'), encoding='utf8') if '=' in l and not l.startswith('#'))   # the design key: Backstage counts it
             items = [{'id': s['id'], 'title': s['title'], 'about': s['about'][:400], 'owner': ', '.join(s['whose']),
                       **({'a game inside': s['in']} if s.get('in') else {})} for s in todo]
             prompt = ('These are the websites of characters in a Hebrew comedy world (each character treats their site as '
