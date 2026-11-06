@@ -982,6 +982,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
   try {
     // the mails: what we send, what was sent, the switch (mailer.js)
     if (String(op).startsWith('mail')) { const r = await require('./mailer').owner(op, b); if (r) return res.json(r); }
+    // plans: briefs + mockups he approves and comments on (plans.js)
+    if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);
       const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto] = await Promise.all([

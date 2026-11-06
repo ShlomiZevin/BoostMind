@@ -45,6 +45,16 @@ Shlomi found new sites missing from his lists because some sessions never added 
   (a "Shlomiverse" job, through the Shlomiverse's publish API - the list of videos lives in the database since
   2026-11-05); one that missed it: `POST http://localhost:4747/api/ep/<id>/site`, or `node zoomcut/render/verse.mjs <id>`.
 
+## Plans for his approval - Backstage → תוכניות (since 2026-11-06)
+
+A plan, brief, draft or set of mockups for something new in the Shlomiverse goes to **Backstage → תוכניות**, not to
+a loose file: he reads it there, comments on any part (a heading, a mockup, a table row) and approves or asks for changes.
+A plan = a folder with `index.html` (mockups as `<img src="img/NAME">`) + `img/`. Mockups by GPT Image (his rule).
+`OWNER_KEY=<his key> node scripts/plans/plan.mjs publish <folder> --id <plan-id> --title-file t.txt --summary-file s.txt`
+(Hebrew through files), `... comments <plan-id> --out c.md` (read it before building), `... reply <plan-id> --file r.txt --to <comment id>`.
+Re-publishing the same id = a new version, back to "waiting for him". Private: Firestore `plans` + the private bucket
+`shlomiverse-studio/plans/` (techietech-api/plans.js). Build only what he approved.
+
 ## Content - the database, never git (his rule, 2026-11-05)
 
 He works from two computers; **nothing either one has or lacks may break the site.** Everything the Shlomiverse shows -

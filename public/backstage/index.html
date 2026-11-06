@@ -86,6 +86,37 @@
   .pill:hover { border-color: rgba(255,255,255,.3); }
   .pill svg { width: 17px; height: 17px; }
   .empty { color: var(--dim); padding: 22px 0; text-align: center; }
+  /* plans (2026-11-06) */
+  .pl-lead { color: var(--dim); margin: 0 0 16px; max-width: 760px; }
+  .pl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .pl-card { display: flex; gap: 14px; text-align: start; padding: 12px; border-radius: 18px; border: 1px solid var(--line2); background: var(--card); width: 100%; }
+  .pl-card:hover { border-color: rgba(255,255,255,.3); }
+  .pl-card img, .pl-noimg { width: 92px; height: 138px; border-radius: 12px; object-fit: cover; object-position: top; flex: none; background: var(--card2); display: grid; place-items: center; color: var(--dim); }
+  .pl-noimg svg { width: 32px; height: 32px; }
+  .pl-card b { display: block; font-size: 1.08rem; line-height: 1.3; margin: 6px 0 4px; }
+  .pl-card p { color: var(--dim); font-size: .9rem; line-height: 1.45; margin: 0; }
+  .pl-top { display: flex; align-items: center; gap: 8px; } .pl-top small, .pl-t small { color: var(--faint); font-size: .8rem; }
+  .pl-open { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: #ff8c4d; font-weight: 700; font-size: .84rem; } .pl-open svg { width: 15px; height: 15px; }
+  .tag.ok { background: rgba(107,214,138,.15); color: #8ee6a6; border-color: rgba(107,214,138,.35); }
+  .tag.red { background: rgba(255,90,90,.14); color: #ff8a8a; border-color: rgba(255,90,90,.35); }
+  .pl-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pl-t { flex: 1; min-width: 220px; } .pl-t b { display: block; font-size: 1.2rem; line-height: 1.3; } .pl-t div { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+  .pl-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pl-hint { color: var(--dim); font-size: .88rem; display: flex; align-items: center; gap: 6px; margin: 4px 0 10px; } .pl-hint svg { width: 16px; height: 16px; color: var(--accent); }
+  .pl-frame { width: 100%; height: 900px; border: 1px solid var(--line2); border-radius: 18px; background: #0b0b0e; display: block; }
+  .pl-cs { margin-top: 16px; }
+  .pl-c { padding: 10px 0; border-top: 1px solid var(--line); } .pl-c.done { opacity: .55; }
+  .pl-c p { margin: 4px 0 0; white-space: pre-wrap; line-height: 1.5; }
+  .pl-cm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .pl-cm small { color: var(--faint); font-size: .8rem; }
+  .pl-who { font-weight: 800; } .pl-who.cl { color: #9fc3ff; }
+  .pl-on { color: var(--accent); font-weight: 700; font-size: .86rem; }
+  .pl-dn { margin-inline-start: auto; font-size: .8rem; color: var(--dim); border: 1px solid var(--line2); border-radius: 8px; padding: 2px 9px; }
+  .pl-sh { padding: 4px 20px 20px; } .pl-sh h2 { font-size: 1.2rem; margin: 6px 0 10px; }
+  .pl-sh textarea { width: 100%; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); padding: 12px 14px; font: inherit; resize: vertical; }
+  .pl-sh-a { display: flex; gap: 8px; margin-top: 10px; }
+  .pl-here { max-height: 34vh; overflow-y: auto; margin-bottom: 10px; }
+  @media (max-width: 900px) { .pl-acts .btn { flex: 1; height: 44px; padding: 0 12px; font-size: .9rem; } .pl-list { grid-template-columns: 1fr; } }
+
   /* inbox / lists */
   .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px; }
   .chips::-webkit-scrollbar { display: none; }
@@ -556,6 +587,7 @@ const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const abs = (p) => (!p ? '' : /^(https?:|\/)/.test(p) ? p : '/wiki/' + p);
 const s = (d, w = 1.8) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const IC = {
+  plan: s('<path d="M7 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 7 20z"/><path d="M15 3.5V8h4M9.5 12.5l1.8 1.8 3.4-3.6M9.5 17h5"/>'),
   home: s('<path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1H15v-6h-6v6H4.5a1 1 0 0 1-1-1z"/>'),
   inbox: s('<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke-width="2.6"/>'),
   idea: s('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2v.5h5V16c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/>'),
@@ -646,7 +678,7 @@ async function load() {
   W.characters.forEach((c) => (C[c.id] = c));
   C.verse = { id: 'verse', name: 'שלומיוורס', img: '/verse/icon-192.png', color: '#ff6a1f' };   // a story from the Shlomiverse itself
   W.videos.forEach((v) => (V[v.id] = v));
-  [L, S] = await Promise.all([api('list'), api('stats&days=45')]);
+  [L, S, PL] = await Promise.all([api('list'), api('stats&days=45'), api('plans').catch(() => ({ plans: [] }))]);
   await loadChats('today');
   api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {});
   draw();
@@ -661,6 +693,8 @@ async function refreshAll() {
   document.querySelectorAll('[data-refresh]').forEach((x) => x.classList.add('spin'));
   try {
     [L, S] = await Promise.all([api('list'), api('stats&days=45'), loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]);
+    PL = await api('plans').catch(() => PL);
+    if (planId) PLAN = await api('plan', { id: planId }).catch(() => PLAN);
   } catch (e) {}
   refreshing = false;
   const y = scrollY;
@@ -669,7 +703,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
+const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -682,6 +716,7 @@ const badges = () => ({
   requests: L.requests.filter((r) => !r.done && (r.t || 0) > seen('requests')).length,
   content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length,
   ideas: (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('ideas'), Date.now() - 7 * 864e5)).length,
+  plans: (PL.plans || []).filter((p) => p.status === 'waiting').length,   // plans waiting for his OK
 });
 function draw() {
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
@@ -689,8 +724,8 @@ function draw() {
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
   if (tab === 'requests' || tab === 'content' || tab === 'ideas') markSeen(tab);
   const badge = badges();
-  const phoneTab = ['requests', 'ideas', 'content', 'videos', 'publish', 'mail'].includes(tab) ? 'more' : tab;
-  const moreBadge = badge.requests + badge.ideas + badge.content;
+  const phoneTab = ['plans', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail'].includes(tab) ? 'more' : tab;
+  const moreBadge = badge.requests + badge.ideas + badge.content + badge.plans;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
       <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
@@ -698,7 +733,7 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, chats, data, people, requests, ideas, content, videos, publish, mail: mails, more })[tab]();
+  ({ overview, plans, chats, data, people, requests, ideas, content, videos, publish, mail: mails, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
@@ -706,9 +741,119 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
+}
+
+
+// ---------- plans (2026-11-06, his ask): briefs + mockups from the sessions; he reads, comments on any part, approves ----------
+// plans.js on the server; a session publishes with scripts/plans/plan.mjs. The page is the session's own HTML, shown in a
+// sandboxed frame (no access to this page or the key); a small script inside marks every part he can comment on.
+let PL = { plans: [] }, planId = null, PLAN = null;
+const PST = { draft: ['טיוטה', ''], waiting: ['מחכה לך', 'or'], approved: ['אושר', 'ok'], changes: ['צריך שינויים', 'red'] };
+const pTag = (st) => `<span class="tag ${PST[st]?.[1] || ''}">${PST[st]?.[0] || st}</span>`;
+function plans() {
+  if (planId) return planView();
+  const list = PL.plans || [];
+  $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס: בריף, סקיצות וזרימות. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים. הסשנים קוראים את ההערות שלך משם.</p>
+    ${list.length ? `<div class="pl-list">${list.map((p) => `<button class="pl-card" data-plan="${esc(p.id)}">
+      ${p.cover ? `<img src="${esc(p.cover)}" alt="">` : `<span class="pl-noimg">${IC.plan}</span>`}
+      <div><div class="pl-top">${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div>
+      <b>${esc(p.title)}</b>${p.summary ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות פתוחות</small>` : ''}</div></button>`).join('')}</div>`
+      : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`;
+  $('#pane').querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => openPlan(b.dataset.plan)));
+}
+async function openPlan(id) {
+  planId = id; PLAN = null;
+  $('#pane').innerHTML = '<div class="empty">טוען את התוכנית…</div>';
+  try { PLAN = await api('plan', { id }); } catch (e) { $('#pane').innerHTML = `<div class="empty">התוכנית לא נטענה (${esc(e.message)})</div>`; return; }
+  if (tab === 'plans') planView();
+}
+// the frame's own script: every heading, mockup, table row and box gets a comment button; counts come from here
+const PLAN_FRAME = `<style>.pc-b{position:absolute;top:6px;left:6px;z-index:5;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 9px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(11,11,14,.82);color:#fff;font:700 12px Heebo,Arial,sans-serif;cursor:pointer;opacity:.55;transition:opacity .15s}
+.pc-b:hover,.pc-b.has{opacity:1}.pc-b.has{background:#ff6a1f;border-color:#ff6a1f}.pc-b svg{width:14px;height:14px}[data-c]{position:relative}.step>.pc-b,.box>.pc-b{top:auto;bottom:6px}tr[data-c] td:first-child{padding-left:70px}h2[data-c],h3[data-c]{padding-left:80px}</style>
+<script>(function(){var I='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/></svg>';
+var parts=[].slice.call(document.querySelectorAll('h2,h3,.shot,tr,.box,.step'));
+parts.forEach(function(el){if(el.tagName==='TR'&&el.querySelector('th'))return;if(el.closest('.shot')&&el!==el.closest('.shot'))return;
+var img=el.classList.contains('shot')?el.querySelector('img'):null;var src=img?(img.getAttribute('src')||'').split('?')[0].split('/').pop():'';
+var lab=((el.querySelector('b,h4')||el).textContent||'').replace(/\\s+/g,' ').trim().slice(0,80);
+var key=el.getAttribute('data-c')||(src?'img:'+src:el.tagName.toLowerCase()+':'+(el.textContent||'').replace(/\\s+/g,' ').trim().slice(0,48));
+el.setAttribute('data-c',key);var b=document.createElement('button');b.className='pc-b';b.type='button';b.innerHTML=I+'<span></span>';
+b.onclick=function(e){e.preventDefault();e.stopPropagation();parent.postMessage({t:'c',key:key,label:lab},'*')};
+(el.tagName==='TR'?el.querySelector('td'):el).appendChild(b)});
+addEventListener('message',function(e){var d=e.data||{};if(d.t!=='n')return;[].slice.call(document.querySelectorAll('[data-c]')).forEach(function(el){var b=el.querySelector('.pc-b');if(!b)return;var n=d.n[el.getAttribute('data-c')]||0;b.classList.toggle('has',n>0);b.querySelector('span').textContent=n?n:''})});
+function h(){parent.postMessage({t:'h',h:document.documentElement.scrollHeight},'*')}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h();parent.postMessage({t:'ready'},'*')})();<\/script>`;
+function planView() {
+  if (!PLAN) return openPlan(planId);
+  const p = PLAN.plan, cs = PLAN.comments || [];
+  // the session's pictures (img/NAME) -> their signed links
+  let html = p.html.replace(/(src|href)="img\/([\w.-]+)"/g, (m, a, n) => (p.files[n] ? `${a}="${p.files[n]}"` : m));
+  html = html.includes('</body>') ? html.replace('</body>', PLAN_FRAME + '</body>') : html + PLAN_FRAME;
+  const open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
+  $('#pane').innerHTML = `<div class="pl-head"><button class="pill" data-pl-back>${IC.back}כל התוכניות</button>
+      <div class="pl-t"><b>${esc(p.title)}</b><div>${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div></div>
+      <div class="pl-acts"><button class="btn main" data-pl-st="approved">${IC.check}מאשר</button><button class="btn" data-pl-st="changes">צריך שינויים</button><button class="btn" data-pl-c="">${IC.comment}הערה כללית</button></div></div>
+    <p class="pl-hint">${IC.comment} כל חלק בתוכנית (כותרת, סקיצה, שורה בטבלה) מסומן בכפתור הערה. לחיצה עליו, וכותבים מה לשנות.</p>
+    <iframe class="pl-frame" sandbox="allow-scripts allow-popups" title="${esc(p.title)}"></iframe>
+    <div class="card pl-cs"><div class="card-h"><h2>הערות והחלטות</h2><small class="dim">${open ? `${open} פתוחות` : 'אין הערות פתוחות'}</small></div>
+      ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}</div>`;
+  const fr = $('#pane .pl-frame');
+  fr.srcdoc = html;
+  const counts = () => { const n = {}; cs.forEach((c) => { if (c.kind === 'comment' && c.anchor) n[c.anchor] = (n[c.anchor] || 0) + 1; }); return n; };
+  window.onmessage = (e) => {
+    if (e.source !== fr.contentWindow) return;
+    const d = e.data || {};
+    if (d.t === 'h') fr.style.height = Math.max(400, d.h + 4) + 'px';
+    if (d.t === 'ready') fr.contentWindow.postMessage({ t: 'n', n: counts() }, '*');
+    if (d.t === 'c') planCommentSheet(d.key, d.label);
+  };
+  $('#pane [data-pl-back]').onclick = () => { planId = null; PLAN = null; window.onmessage = null; plans(); scrollTo(0, 0); };
+  $('#pane').querySelectorAll('[data-pl-st]').forEach((b) => (b.onclick = () => planStatusSheet(b.dataset.plSt)));
+  $('#pane').querySelectorAll('[data-pl-c]').forEach((b) => (b.onclick = () => planCommentSheet(b.dataset.plC, b.dataset.plL || '')));
+  $('#pane').querySelectorAll('[data-pl-done]').forEach((b) => (b.onclick = async () => {
+    b.disabled = true;
+    try { await api('planDone', { id: planId, comment: b.dataset.plDone, done: b.dataset.v !== '0' }); PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL); planView(); } catch (e) { b.disabled = false; }
+  }));
+}
+function planCommentRow(c) {
+  const who = c.by === 'claude' ? '<b class="pl-who cl">Claude</b>' : '<b class="pl-who">אתה</b>';
+  if (c.kind === 'status') return `<div class="pl-c st"><div class="pl-cm">${who} ${pTag(c.status)}<small>${ago(c.t)}</small></div>${c.text ? `<p>${esc(c.text)}</p>` : ''}</div>`;
+  if (c.kind === 'version') return `<div class="pl-c ver"><div class="pl-cm"><span class="tag">גרסה חדשה</span><small>${ago(c.t)}</small></div>${c.text ? `<p>${esc(c.text)}</p>` : ''}</div>`;
+  return `<div class="pl-c ${c.done ? 'done' : ''}"><div class="pl-cm">${who}${c.label || c.anchor ? `<button class="pl-on" data-pl-c="${esc(c.anchor || '')}" data-pl-l="${esc(c.label || '')}">על: ${esc(c.label || c.anchor)}</button>` : '<span class="pl-on">על כל התוכנית</span>'}<small>${ago(c.t)}</small>
+    <button class="pl-dn" data-pl-done="${esc(c.id)}" data-v="${c.done ? '0' : '1'}">${c.done ? 'לפתוח שוב' : 'טופל'}</button></div><p>${esc(c.text)}</p></div>`;
+}
+function planCommentSheet(anchor, label) {
+  const here = (PLAN.comments || []).filter((c) => c.kind === 'comment' && (c.anchor || '') === (anchor || ''));
+  sheet(`<div class="pl-sh"><h2>${anchor ? `הערה על: ${esc(label || anchor)}` : 'הערה על כל התוכנית'}</h2>
+    ${here.length ? `<div class="pl-here">${here.map(planCommentRow).join('')}</div>` : ''}
+    <textarea id="pl-txt" rows="5" placeholder="מה לשנות, מה עובד, מה חסר…"></textarea>
+    <div class="pl-sh-a"><button class="btn main" id="pl-send">${IC.comment}לשמור הערה</button><button class="btn" data-close>ביטול</button></div></div>`, 'pl-sheet');
+  setTimeout(() => $('#pl-txt')?.focus(), 150);
+  $('#pl-send').onclick = async () => {
+    const text = $('#pl-txt').value.trim();
+    if (!text) return;
+    $('#pl-send').disabled = true;
+    try {
+      await api('planComment', { id: planId, anchor, label, text });
+      PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL);
+      closeSheet(); planView();
+    } catch (e) { $('#pl-send').disabled = false; }
+  };
+}
+function planStatusSheet(st) {
+  sheet(`<div class="pl-sh"><h2>${st === 'approved' ? 'מאשר את התוכנית' : 'צריך שינויים'}</h2>
+    <p class="dim">${st === 'approved' ? 'הסשן יתחיל לבנות לפי התוכנית וההערות שלך. אפשר להוסיף מילה.' : 'כתבו מה לשנות. ההערות שכבר כתבת על החלקים נשארות.'}</p>
+    <textarea id="pl-note" rows="4" placeholder="${st === 'approved' ? 'אופציונלי' : 'מה לשנות…'}"></textarea>
+    <div class="pl-sh-a"><button class="btn main" id="pl-go">${st === 'approved' ? 'מאשר' : 'לשלוח'}</button><button class="btn" data-close>ביטול</button></div></div>`, 'pl-sheet');
+  $('#pl-go').onclick = async () => {
+    $('#pl-go').disabled = true;
+    try {
+      await api('planStatus', { id: planId, status: st, note: $('#pl-note').value.trim() });
+      PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL);
+      closeSheet(); draw();
+    } catch (e) { $('#pl-go').disabled = false; }
+  };
 }
 
 // ---------- the numbers (the stats op: analytics_days for 2x the range, the newest events, every account) ----------
