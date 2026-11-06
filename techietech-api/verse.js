@@ -23,12 +23,16 @@ const db = admin.firestore();
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 
 const LOCAL = process.env.FUNCTIONS_EMULATOR === 'true';
+// one OpenAI key per area, so Backstage -> הוצאות reads each one's spend from OpenAI (2026-11-06): the characters'
+// replies are the chat's; moderation, stickers and the data analyst are the site's
 const OPENAI = defineSecret('WIKI_OPENAI_KEY');
+const OPENAI_SITE = defineSecret('VERSE_SITE_OPENAI_KEY');
 const VAPID_PRIVATE = defineSecret('VERSE_VAPID_PRIVATE');
 const GMAIL_USER = defineSecret('GMAIL_USER');
 const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
-const SECRETS = LOCAL ? [] : [OPENAI, VAPID_PRIVATE, GMAIL_USER, GMAIL_APP_PASSWORD];
+const SECRETS = LOCAL ? [] : [OPENAI, OPENAI_SITE, VAPID_PRIVATE, GMAIL_USER, GMAIL_APP_PASSWORD];
 const openaiKey = () => (LOCAL ? process.env.VERSE_OPENAI_KEY : OPENAI.value());
+const siteKey = () => (LOCAL ? process.env.VERSE_OPENAI_KEY : OPENAI_SITE.value());
 // the public half is in the page too (v2/site/verse/fb.js); the private half is a secret (locally: .env.local)
 const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';
 const vapidPublic = () => process.env.VERSE_VAPID_PUBLIC || VAPID_PUBLIC;
@@ -106,7 +110,7 @@ async function moderate(text) {
   if (!text) return { ok: true };
   try {
     const res = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST', headers: { authorization: `Bearer ${openaiKey()}`, 'content-type': 'application/json' },
+      method: 'POST', headers: { authorization: `Bearer ${siteKey()}`, 'content-type': 'application/json' },
       body: JSON.stringify({ model: 'omni-moderation-latest', input: text }),
     });
     if (!res.ok) throw new Error('moderation ' + res.status);
@@ -122,7 +126,7 @@ async function moderate(text) {
 async function moderateImage(dataUrl) {
   try {
     const res = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST', headers: { authorization: `Bearer ${openaiKey()}`, 'content-type': 'application/json' },
+      method: 'POST', headers: { authorization: `Bearer ${siteKey()}`, 'content-type': 'application/json' },
       body: JSON.stringify({ model: 'omni-moderation-latest', input: [{ type: 'image_url', image_url: { url: dataUrl } }] }),
     });
     if (!res.ok) throw new Error('moderation ' + res.status);
@@ -218,7 +222,7 @@ async function makeSticker(frameB64, text) {
   form.append('n', '1');
   form.append('image[]', new Blob([Buffer.from(frameB64, 'base64')], { type: 'image/jpeg' }), 'frame.jpg');
   form.append('image[]', new Blob([STICKER_STYLE], { type: 'image/jpeg' }), 'style.jpg');
-  const res = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { authorization: `Bearer ${openaiKey()}` }, body: form });
+  const res = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { authorization: `Bearer ${siteKey()}` }, body: form });
   const j = await res.json();
   if (!res.ok) throw Object.assign(new Error(`image ${res.status}: ${j.error?.message}`), { refused: j.error?.code === 'moderation_blocked' });
   console.log('sticker', j.usage ? `in ${j.usage.input_tokens} out ${j.usage.output_tokens}` : '');
@@ -960,7 +964,7 @@ async function askData(q) {
     requests: requests.docs.map((x) => { const c = x.data(); return { at: hm(c.t?.toMillis?.()), kind: c.kind, done: !!c.done, site: c.site || null }; }),
   };
   const r = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST', headers: { authorization: `Bearer ${openaiKey()}`, 'content-type': 'application/json' },
+    method: 'POST', headers: { authorization: `Bearer ${siteKey()}`, 'content-type': 'application/json' },
     body: JSON.stringify({
       model: 'gpt-5.6-terra', reasoning: { effort: 'medium' }, max_output_tokens: 4000, store: false,
       instructions: `You are the data analyst of Shlomi's admin page for שלומיוורס (his comedy universe site: videos, characters people chat with, games, character sites). Answer his question from the DATA only, in Hebrew, short and exact: first one line with the answer and the key number(s), then - only if it helps - a small markdown table (at most 12 rows) or 2-4 short bullet lines. Compute carefully (sum, compare periods, percentages). Dates are Israel time. If the data can't answer it, say exactly what is missing. Never invent numbers. No preamble.`,
@@ -975,7 +979,7 @@ async function askData(q) {
   return { answer, cost: (((u.input_tokens || 0) - (u.input_tokens_details?.cached_tokens || 0)) * 2 + (u.input_tokens_details?.cached_tokens || 0) * 0.2 + (u.output_tokens || 0) * 12) / 1e6 };
 }
 
-exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
+exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRETS, ...require('./costs').SECRETS], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
   if (!ownerOk(req, res)) return;
   const op = req.query.op;
   const b = req.body || {};
@@ -991,6 +995,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       return res.json({ ok: true });
     }
     // plans: briefs + mockups he approves and comments on (plans.js)
+    // הוצאות: the AI spend per area, asked from OpenAI / ElevenLabs (costs.js)
+    if (op === 'costs') return res.json(await require('./costs').owner(op, b));
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);

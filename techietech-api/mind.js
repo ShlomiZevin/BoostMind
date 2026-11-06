@@ -22,7 +22,7 @@ const ITEMS = db.collection('mind_items');
 const SESSIONS = db.collection('mind_sessions');
 const META = db.collection('mind_meta');
 const wrongKey = new Map();
-const OPENAI = defineSecret('WIKI_OPENAI_KEY');   // the voice notes on his page -> text
+const OPENAI = defineSecret('MIND_OPENAI_KEY');   // its own key (2026-11-06) - Mind isn't the Shlomiverse's spend   // the voice notes on his page -> text
 // notifications to his phone (the home-screen app): the same VAPID keys as the verse's push (verse.js)
 const VAPID_PRIVATE = defineSecret('VERSE_VAPID_PRIVATE');
 const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';

@@ -33,7 +33,7 @@ if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 const LOCAL = process.env.FUNCTIONS_EMULATOR === 'true';
 const PUBLISH_KEY = defineSecret('VERSE_PUBLISH_KEY');
-const OPENAI = defineSecret('WIKI_OPENAI_KEY');
+const OPENAI = defineSecret('VERSE_SITE_OPENAI_KEY');   // titles / teasers / cast: the site's key (one per area, 2026-11-06)
 const SITE = 'https://shlomiverse.com';
 const ID = /^[a-z0-9][a-z0-9_-]{1,80}$/i;
 const TYPES = { video: ['v', 'mp4', ['video/mp4']], poster: ['v', 'jpg', ['image/jpeg']], portrait: ['img/c', 'jpg', ['image/jpeg']] };
