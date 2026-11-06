@@ -5,6 +5,8 @@
 //               the organization's Costs API (admin key) by key and line item -> dollars per day, per area, per kind
 //               (images / text / audio / transcription). The old shared keys (Trader project: "Shlomi-Verse", "Plaxzy")
 //               stay in the history under their area.
+//   EvoLink     Piko's videos (piko.js): each finished job's cost as EvoLink reported it, per client, + the balance left
+//               (prepaid credits - he tops up by hand, so the balance is what he watches)
 //   ElevenLabs  credits per day by product (music, voices, sound effects...) and per API key, + the plan (credits only:
 //               a monthly price for a pile of credits - no invented price per credit).
 // Asked at most once an hour (owner/costs keeps the last answer); `fresh` asks again.
@@ -13,13 +15,13 @@ const { defineSecret } = require('firebase-functions/params');
 
 const OPENAI_ADMIN = defineSecret('OPENAI_ADMIN_KEY');
 const ELEVEN = defineSecret('ELEVENLABS_ADMIN_KEY');
-const SECRETS = [OPENAI_ADMIN, ELEVEN];
+const SECRETS = [OPENAI_ADMIN, ELEVEN, defineSecret('EVOLINK_API_KEY')];
 const DAYS = 90;
 const HOUR = 3600e3;
 
 // which area a key belongs to - by its project and name (new keys: name them <area>, or shlomiverse-<area>)
 const AREAS = {
-  studio: 'סטודיו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', plaxzy: 'Plaxzy',
+  studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', plaxzy: 'Plaxzy',
 };
 function areaOf(project, name) {
   const p = String(project || '').toLowerCase(), n = String(name || '').toLowerCase();
@@ -100,14 +102,15 @@ async function owner(op, b) {
   const db = admin.firestore(), ref = db.collection('owner').doc('costs'), was = (await ref.get()).data();
   if (was && !b.fresh && Date.now() - was.at < HOUR) return was;
   const out = { at: Date.now(), days: DAYS, areas: AREAS, rows: [], errors: [] };
-  const [oa, el] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value())]);
+  const [oa, el, pk] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS)]);
   if (oa.status === 'fulfilled') out.rows.push(...oa.value); else out.errors.push(String(oa.reason?.message || oa.reason));
   if (el.status === 'fulfilled') { out.rows.push(...el.value.rows); out.eleven = { ...el.value.plan, keys: el.value.keys }; } else out.errors.push(String(el.reason?.message || el.reason));
-  // one row per day / source / group / area / kind
+  if (pk.status === 'fulfilled') { out.rows.push(...pk.value.rows); out.evolink = pk.value.balance; } else out.errors.push('evolink: ' + String(pk.reason?.message || pk.reason));
+  // one row per day / source / group / area / kind (/ client - Piko's jobs know who made them)
   const sum = {};
   for (const r of out.rows) {
-    const k = [r.d, r.src, r.group, r.area, r.kind].join('|');
-    const s = (sum[k] ||= { d: r.d, src: r.src, group: r.group, area: r.area, kind: r.kind, usd: 0, credits: 0 });
+    const k = [r.d, r.src, r.group, r.area, r.kind, r.client || ''].join('|');
+    const s = (sum[k] ||= { d: r.d, src: r.src, group: r.group, area: r.area, kind: r.kind, ...(r.client ? { client: r.client } : {}), usd: 0, credits: 0 });
     s.usd += r.usd || 0; s.credits += r.credits || 0;
   }
   out.rows = Object.values(sum).map((s) => ({ ...s, usd: Math.round(s.usd * 10000) / 10000 }));

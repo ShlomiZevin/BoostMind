@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#120f0e">
+<title>פיקו</title>
+<link rel="manifest" href="/piko/manifest.webmanifest">
+<link rel="icon" href="/piko/icon-64.png">
+<link rel="apple-touch-icon" href="/piko/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="פיקו">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  Piko (פיקו) - his own picture + video maker (2026-11-06). Pictures: GPT Image 2.5 with reference images; videos:
+  Seedance 2.0 Mini from a start frame (+ an end frame); say it or type it. Everything goes into the Shlomiverse library.
+  The server is techietech-api/piko.js (shlomiverse.com/piko/api/ -> function piko); API docs: techietech-api/piko-api.md.
+  His Google account only (the owner gate in /studio/owner.js); his other tools use the same API with their own key.
+-->
+<style>
+:root{--bg:#120f0e;--card:#1c1917;--card2:#25211e;--line:rgba(255,255,255,.08);--text:#f4efe9;--dim:#a8a099;--acc1:#ffc15a;--acc2:#ff7b2e;--acc:linear-gradient(135deg,var(--acc1),var(--acc2));--ok:#7bd88f;--bad:#ff8a7a;--r:18px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Heebo,system-ui,sans-serif;font-size:16px}
+body{min-height:100dvh;padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+textarea,select,input{font:inherit;color:inherit}
+svg{width:22px;height:22px;flex:none}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;max-width:560px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:26px;background:var(--acc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand img{width:34px;height:34px;border-radius:9px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:14px;color:var(--text)}
+.chip svg{width:17px;height:17px;color:var(--acc1)}
+.chip.low{border-color:rgba(255,138,122,.5);color:var(--bad)}
+.seg{display:flex;background:var(--card);border-radius:999px;padding:5px;gap:4px;margin:6px 0 14px}
+.seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:999px;font-weight:700;font-size:17px;color:var(--dim)}
+.seg button.on{background:var(--acc);color:#2a1300}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.lbl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;margin:0 0 10px}
+.lbl small{color:var(--dim);font-weight:400}
+.drop{position:relative;display:grid;place-items:center;width:100%;min-height:190px;border:2px dashed rgba(255,193,90,.35);border-radius:14px;background:#171412;color:var(--dim);text-align:center;overflow:hidden}
+.drop img{width:100%;max-height:340px;object-fit:contain;display:block;background:#0c0a09}
+.drop .ph{display:grid;gap:6px;place-items:center;padding:20px;font-size:15px}
+.drop .ph svg{width:36px;height:36px;color:var(--acc1)}
+.x{position:absolute;top:8px;left:8px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.65);display:grid;place-items:center}
+.x svg{width:18px;height:18px}
+.link{display:inline-flex;align-items:center;gap:6px;color:#7fb2ff;font-size:15px;margin-top:10px}
+.link svg{width:18px;height:18px}
+.endrow{display:flex;gap:10px;align-items:stretch;margin-top:10px}
+.endrow .drop{min-height:120px;flex:1}
+.refs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.refs .t{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#0c0a09}
+.refs .t img{width:100%;height:100%;object-fit:cover}
+.refs .t .x{top:4px;left:4px;width:26px;height:26px}
+.refs .add{aspect-ratio:1;border-radius:12px;border:2px dashed rgba(255,193,90,.35);display:grid;place-items:center;color:var(--acc1)}
+.say{display:flex;gap:12px;align-items:stretch}
+.mic{flex:none;width:84px;display:grid;place-items:center;gap:6px;font-size:13px;color:var(--dim);text-align:center}
+.mic i{width:68px;height:68px;border-radius:50%;background:var(--acc);display:grid;place-items:center;color:#2a1300;box-shadow:0 6px 24px rgba(255,123,46,.35);transition:transform .1s}
+.mic i svg{width:30px;height:30px}
+.mic.rec i{background:#ff4d4d;color:#fff;animation:pulse 1.2s infinite}
+.mic.busy i{opacity:.6}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,77,.6)}100%{box-shadow:0 0 0 18px rgba(255,77,77,0)}}
+textarea{flex:1;min-height:110px;resize:vertical;background:#171412;border:1px solid var(--line);border-radius:14px;padding:12px;line-height:1.5;font-size:16px}
+textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
+.heard{font-size:13px;color:var(--dim);margin:8px 0 0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.opt{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.opt span{display:block;font-size:13px;color:var(--dim);margin-bottom:4px}
+.opt select{width:100%;background:none;border:0;font-weight:700;font-size:16px;appearance:none;-webkit-appearance:none}
+.opt select option{color:#000}
+.go{width:100%;height:64px;border-radius:999px;background:var(--acc);color:#2a1300;font-weight:800;font-size:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;box-shadow:0 8px 30px rgba(255,123,46,.3)}
+.go small{font-weight:600;font-size:13px;opacity:.75}
+.go[disabled]{opacity:.45}
+.go .row{display:flex;align-items:center;gap:8px}
+.running{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:12px;text-align:right;width:100%}
+.running img,.running .blank{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#0c0a09;flex:none}
+.running b{display:block;font-size:15px}
+.running small{display:block}
+.bar{display:block;height:6px;border-radius:9px;background:#2d2825;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#b07cff,#ff7b2e);transition:width .6s}
+.running small{color:var(--dim);font-size:12px}
+.media{border-radius:var(--r);overflow:hidden;background:#0c0a09;margin-bottom:12px;display:grid;place-items:center;min-height:200px}
+.media img,.media video{width:100%;max-height:70dvh;object-fit:contain;display:block}
+.wait{display:grid;place-items:center;gap:14px;padding:50px 20px;text-align:center;color:var(--dim)}
+.spin{width:46px;height:46px;border-radius:50%;border:4px solid #2d2825;border-top-color:var(--acc1);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ptxt{display:flex;gap:8px;color:var(--text);font-size:15px;line-height:1.5;margin:0 0 12px}
+.ptxt svg{color:var(--acc1);width:18px;height:18px;margin-top:3px}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.acts button{height:52px;border-radius:14px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px}
+.acts button.pri{background:var(--acc);color:#2a1300;border:0}
+.acts svg{width:19px;height:19px}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;font-size:13px;color:var(--dim);margin-bottom:14px;text-align:center}
+.err{background:rgba(255,138,122,.1);border:1px solid rgba(255,138,122,.35);color:var(--bad);border-radius:14px;padding:12px;font-size:14px;margin-bottom:12px;line-height:1.5}
+.sum{display:flex;justify-content:center;gap:14px;background:#1f1a16;border-radius:14px;padding:10px;font-size:14px;margin:4px 0 12px;color:var(--text)}
+.filt{display:flex;gap:8px;margin-bottom:12px}
+.filt button{padding:8px 16px;border-radius:999px;background:var(--card);font-weight:600;font-size:15px;color:var(--dim)}
+.filt button.on{background:var(--acc);color:#2a1300}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{position:relative;text-align:right}
+.tile .th{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#0c0a09}
+.tile .th img,.tile .th video{width:100%;height:100%;object-fit:cover;display:block}
+.tile .badge{position:absolute;bottom:8px;right:8px;display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.65);border-radius:8px;padding:3px 7px;font-size:12px}
+.tile .badge svg{width:12px;height:12px}
+.tile .st{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);font-size:13px}
+.tile small{display:block;color:var(--dim);font-size:12px;margin-top:5px}
+.empty{color:var(--dim);text-align:center;padding:40px 10px}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(18,15,14,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav button{flex:1;max-width:280px;height:68px;display:grid;place-items:center;align-content:center;gap:3px;color:var(--dim);font-size:13px;font-weight:600;position:relative}
+nav button.on{color:var(--acc1)}
+nav button.on::after{content:'';position:absolute;bottom:6px;width:56px;height:3px;border-radius:3px;background:var(--acc1)}
+nav button em{position:absolute;top:10px;margin-right:30px;min-width:18px;height:18px;border-radius:9px;background:var(--acc2);color:#fff;font-size:11px;font-style:normal;display:grid;place-items:center;padding:0 5px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet>div{width:100%;max-width:560px;background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 6px;font-size:18px}
+.sheet p{margin:0 0 16px;color:var(--dim);font-size:14px;line-height:1.5}
+.sheet .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet .row button{height:50px;border-radius:14px;background:var(--card2);font-weight:700}
+.sheet .row button.danger{background:#5a1f1a;color:#ffb3a8}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2d2825;color:var(--text);border-radius:12px;padding:11px 16px;font-size:14px;z-index:30;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><img src="/piko/icon-180.png" alt="">פיקו</div>
+  <button class="chip" id="bal" title="יתרה ב-EvoLink (לסרטונים)"></button>
+</header>
+<div class="wrap" id="view"></div>
+<nav>
+  <button data-go="make"></button>
+  <button data-go="gallery"></button>
+</nav>
+<input type="file" id="file" accept="image/*" hidden>
+<script type="module">
+const IC = {
+  video: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h11a2 2 0 0 1 2 2v1.5l3.4-2.3A1 1 0 0 1 22 8v8a1 1 0 0 1-1.6.8L17 14.5V16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>',
+  image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>',
+  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.6L19 9.5l-5.2 1.9L12 17l-1.8-5.6L5 9.5l5.2-1.9zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9zM5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8L2.5 17.5l1.8-.7z"/></svg>',
+  wand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20 15 9M14 4v3M18.5 5.5l-2 2M20 10h-3M9.5 5.5l2 2"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>',
+  coin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>',
+  again: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+};
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const usd = (v) => (v == null ? '' : `$${v < 1 ? v.toFixed(v < 0.1 ? 3 : 2) : v.toFixed(2)}`);
+const ERR = { balance: 'אין מספיק יתרה ב-EvoLink לסרטון הזה. צריך להטעין (evolink.ai)', prompt: 'כתבו או אמרו מה ליצור', image: 'התמונה לא נקראה, נסו תמונה אחרת',
+  image_too_big: 'התמונה גדולה מדי', too_many_refs: 'עד 16 תמונות השראה', auth: 'צריך להתחבר מחדש', audio: 'ההקלטה לא נקלטה', end_needs_start: 'תמונת סיום צריכה גם תמונת פתיחה', server: 'משהו השתבש בשרת, נסו שוב' };
+const toast = (t) => { const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 3200); };
+
+// ---- sign-in (his Google account - the owner gate) and the API ----
+const O = await import('/studio/owner.js');
+await O.gate();
+async function api(method, path, body) {
+  const token = await O.auth.currentUser.getIdToken();
+  const r = await fetch('/piko/api' + path, { method, headers: { authorization: 'Bearer ' + token, ...(body ? { 'content-type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(ERR[j.error] || j.detail || j.error || 'שגיאה ' + r.status);
+  return j;
+}
+
+// ---- state ----
+const S = JSON.parse(localStorage.getItem('piko') || 'null') || {};
+const st = {
+  view: 'make', mode: S.mode || 'video', prompt: '', heard: '',
+  start: null, end: null, showEnd: false, refs: [],                  // pictures: {src (data URL or a signed url), job?}
+  video: { duration: 6, quality: '480p', ...(S.video || {}) },
+  image: { model: 'flare', size: 'portrait', quality: 'medium', ...(S.image || {}) },
+  cfg: null, balance: null, jobs: [], more: false, filter: 'all', job: null, picking: null,
+};
+const keep = () => localStorage.setItem('piko', JSON.stringify({ mode: st.mode, video: st.video, image: st.image }));
+
+// ---- pictures in: smaller on the phone before they go (1536 px, JPEG) ----
+async function shrink(file, max = 1536) {
+  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => null);
+  if (!bmp) return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(file); });
+  const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.88);
+}
+$('#file').onchange = async (e) => {
+  const files = [...e.target.files]; e.target.value = '';
+  const slot = st.picking; st.picking = null;
+  if (!files.length || !slot) return;
+  for (const f of slot === 'refs' ? files : files.slice(0, 1)) {
+    const src = await shrink(f);
+    if (slot === 'refs') { if (st.refs.length < (st.cfg?.image.maxRefs || 16)) st.refs.push({ src }); }
+    else st[slot] = { src };
+  }
+  render();
+};
+function pick(slot) { st.picking = slot; const f = $('#file'); f.multiple = slot === 'refs'; f.click(); }
+// a picture goes as: a job made here ({job}), a link it came back from ({url}), or the picture itself (a data URL)
+const input = (p) => (p ? (p.job ? { job: p.job } : /^https:/.test(p.src) ? { url: p.src } : p.src) : undefined);
+
+// ---- the mic: say it, it comes back as a clean prompt ----
+let rec = null;
+async function mic() {
+  if (rec) { rec.mr.stop(); return; }
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return toast('הדפדפן הזה לא מקליט, אפשר להשתמש במיקרופון של המקלדת');
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch { return toast('צריך לאשר את המיקרופון'); }
+  const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+  const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined), chunks = [];
+  const r = rec = { mr, peak: 0 };
+  try {   // how loud: a silent recording is caught here instead of being sent
+    const ac = new (window.AudioContext || window.webkitAudioContext)(), an = ac.createAnalyser(), buf = new Float32Array(1024);
+    ac.createMediaStreamSource(stream).connect(an);
+    const tick = () => { if (rec !== r) return ac.close(); an.getFloatTimeDomainData(buf); for (const v of buf) r.peak = Math.max(r.peak, Math.abs(v)); requestAnimationFrame(tick); };
+    tick();
+  } catch { r.peak = 1; }
+  mr.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  mr.onstop = async () => {
+    stream.getTracks().forEach((t) => t.stop());
+    rec = null;
+    if (!chunks.length || r.peak < 0.008) { render(); return toast('לא שמעתי כלום, נסו שוב'); }
+    const btn = $('.mic'); if (btn) { btn.classList.remove('rec'); btn.classList.add('busy'); btn.querySelector('b').textContent = 'מבין…'; }
+    try {
+      const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
+      const audio = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = no; fr.readAsDataURL(blob); });
+      const out = await api('POST', '/transcribe', { audio, mime: blob.type, mode: st.mode, hasStart: !!st.start, hasEnd: !!st.end, refs: st.refs.length });
+      if (!out.prompt) toast('לא שמעתי מילים, נסו שוב');
+      else { st.prompt = out.prompt; st.heard = out.text; }
+    } catch (e) { toast(e.message); }
+    render();
+  };
+  mr.start();
+  render();
+}
+
+// ---- prices ----
+function estimate() {
+  if (st.mode === 'video') return st.cfg ? st.cfg.video.usdPerSecond[st.video.quality] * st.video.duration : null;
+  return ({ low: 0.01, medium: 0.02, high: 0.07 }[st.image.quality]) + st.refs.length * 0.006;   // GPT Image: the real cost shows when it's done
+}
+async function loadBalance(fresh) {
+  try { st.balance = await api('GET', '/balance' + (fresh ? '?fresh=1' : '')); } catch { st.balance = null; }
+  drawBalance();
+}
+function drawBalance() {
+  const b = st.balance, el = $('#bal');
+  el.innerHTML = `${IC.coin}${b ? `יתרה: ${usd(b.usd)}` : 'יתרה…'}`;
+  el.classList.toggle('low', !!b && b.usd < 1);
+}
+$('#bal').onclick = () => { $('#bal').innerHTML = `${IC.coin}בודק…`; loadBalance(true); };
+
+// ---- making ----
+async function make(again) {
+  const p = again || {
+    kind: st.mode, prompt: st.prompt.trim(),
+    body: st.mode === 'video'
+      ? { start: input(st.start), end: input(st.end), duration: st.video.duration, quality: st.video.quality }
+      : { refs: st.refs.map(input), model: st.image.model, size: st.image.size, quality: st.image.quality },
+  };
+  if (!p.prompt) return toast(ERR.prompt);
+  const go = $('.go'); if (go) { go.disabled = true; go.querySelector('.row').innerHTML = `<span class="spin" style="width:22px;height:22px;border-width:3px"></span> שולח…`; }
+  try {
+    const job = await api('POST', p.kind === 'video' ? '/videos' : '/images', { prompt: p.prompt, ...p.body });
+    job.again = p;
+    st.jobs.unshift(job);
+    st.job = job.id;
+    show('job');
+    watch();
+  } catch (e) { toast(e.message); render(); }
+}
+// a job "again" = the same request; a finished job seen later is rebuilt from what it keeps
+function againOf(j) {
+  if (j.again) return j.again;
+  const inp = j.inputs || {};
+  return { kind: j.kind, prompt: j.prompt, body: j.kind === 'video'
+    ? { start: inp.start ? { url: inp.start } : undefined, end: inp.end ? { url: inp.end } : undefined, duration: j.params?.duration, quality: j.params?.quality, ratio: j.params?.ratio }
+    : { refs: (inp.refs || []).map((u) => ({ url: u })), model: j.params?.model, size: j.params?.size, quality: j.params?.quality } };
+}
+
+// ---- following jobs that are still being made ----
+let polling = null;
+const live = (j) => ['queued', 'working', 'running', 'saving'].includes(j.status);
+function watch() {
+  if (polling) return;
+  polling = setInterval(async () => {
+    const open = st.jobs.filter(live);
+    if (!open.length) { clearInterval(polling); polling = null; return; }
+    for (const j of open) {
+      try {
+        const n = await api('GET', '/jobs/' + j.id);
+        const was = j.status;
+        Object.assign(j, n);
+        if (was !== n.status && n.status === 'done') { toast(j.kind === 'video' ? 'הסרטון מוכן' : 'התמונה מוכנה'); if (j.kind === 'video') loadBalance(true); }
+        if (was !== n.status && n.status === 'failed') toast('לא הצליח: ' + (n.error || ''));
+      } catch { /* next round */ }
+    }
+    render();
+  }, 4000);
+}
+
+// ---- views ----
+function show(v) { st.view = v; render(); scrollTo(0, 0); }
+document.querySelectorAll('nav button').forEach((b) => (b.onclick = () => show(b.dataset.go)));
+
+function runningCards() {
+  return st.jobs.filter(live).map((j) => `<button class="running" data-open="${j.id}">
+    ${j.poster || j.inputs?.start ? `<img src="${esc(j.poster || j.inputs.start)}" alt="">` : '<span class="blank"></span>'}
+    <span style="flex:1"><b>${j.kind === 'video' ? 'מכין סרטון…' : 'מצייר תמונה…'} ${j.progress ? j.progress + '%' : ''}</b>
+    <span class="bar"><i style="width:${Math.max(6, j.progress || (j.status === 'queued' ? 4 : 12))}%"></i></span>
+    <small>אפשר לסגור, זה ממשיך ונשמר לבד</small></span></button>`).join('');
+}
+
+function vMake() {
+  const v = st.mode === 'video', est = estimate();
+  const slot = (key, title, big) => {
+    const p = st[key];
+    return p ? `<div class="drop" style="${big ? '' : 'min-height:120px'}"><img src="${esc(p.src)}" alt=""><button class="x" data-clear="${key}">${IC.x}</button></div>`
+      : `<button class="drop" data-pick="${key}" style="${big ? '' : 'min-height:120px'}"><span class="ph">${IC.image}<span>${title}</span></span></button>`;
+  };
+  return `
+  <div class="seg"><button data-mode="video" class="${v ? 'on' : ''}">${IC.video}סרטון</button><button data-mode="image" class="${v ? '' : 'on'}">${IC.image}תמונה</button></div>
+  ${runningCards()}
+  ${v ? `<div class="card">
+      <p class="lbl">${IC.image}התמונה שממנה מתחילים <small>(אפשר גם בלי)</small></p>
+      ${slot('start', 'לחצו להוספת תמונה', true)}
+      ${st.end || st.showEnd ? `<p class="lbl" style="margin-top:14px">${IC.image}תמונת סיום <small>(הסרטון יגיע אליה)</small></p>${slot('end', 'תמונת הסיום')}`
+        : (st.start ? `<button class="link" data-showend>${IC.plus}תמונת סיום</button>` : '')}
+    </div>`
+    : `<div class="card">
+      <p class="lbl">${IC.image}תמונות השראה <small>(${st.refs.length ? `${st.refs.length} מתוך ${st.cfg?.image.maxRefs || 16}` : 'אפשר כמה, או בלי'})</small></p>
+      <div class="refs">${st.refs.map((r, i) => `<div class="t"><img src="${esc(r.src)}" alt=""><button class="x" data-unref="${i}">${IC.x}</button></div>`).join('')}
+        ${st.refs.length < (st.cfg?.image.maxRefs || 16) ? `<button class="add" data-pick="refs">${IC.plus}</button>` : ''}</div>
+    </div>`}
+  <div class="card">
+    <div class="say">
+      <button class="mic${rec ? ' rec' : ''}" data-mic><i>${rec ? IC.stop : IC.mic}</i><b style="font-weight:500">${rec ? 'לחצו לסיום' : (v ? 'ספרו מה יקרה' : 'ספרו מה לצייר')}</b></button>
+      <textarea id="prompt" placeholder="${v ? 'מה קורה בסרטון? למשל: הילדים עולים על הספינה ומפליגים כמו פיראטים' : 'מה בתמונה? למשל: האיש מהתמונה כפיראט על סיפון ספינה'}">${esc(st.prompt)}</textarea>
+    </div>
+    ${st.heard ? `<p class="heard">מה ששמעתי: ${esc(st.heard)}</p>` : ''}
+  </div>
+  ${v ? `<div class="opts">
+      <label class="opt"><span>אורך</span><select data-set="video.duration">${Array.from({ length: 12 }, (_, i) => i + 4).map((n) => `<option value="${n}" ${n === st.video.duration ? 'selected' : ''}>${n} שניות</option>`).join('')}</select></label>
+      <label class="opt"><span>איכות</span><select data-set="video.quality"><option value="480p" ${st.video.quality === '480p' ? 'selected' : ''}>רגילה (480p)</option><option value="720p" ${st.video.quality === '720p' ? 'selected' : ''}>גבוהה (720p)</option></select></label>
+    </div>`
+    : `<div class="opts">
+      <label class="opt"><span>צורה</span><select data-set="image.size"><option value="portrait" ${st.image.size === 'portrait' ? 'selected' : ''}>לאורך</option><option value="square" ${st.image.size === 'square' ? 'selected' : ''}>ריבוע</option><option value="landscape" ${st.image.size === 'landscape' ? 'selected' : ''}>לרוחב</option></select></label>
+      <label class="opt"><span>איכות</span><select data-set="image.quality"><option value="low" ${st.image.quality === 'low' ? 'selected' : ''}>טיוטה</option><option value="medium" ${st.image.quality === 'medium' ? 'selected' : ''}>רגילה</option><option value="high" ${st.image.quality === 'high' ? 'selected' : ''}>גבוהה</option></select></label>
+      <label class="opt" style="grid-column:1/-1"><span>דגם</span><select data-set="image.model"><option value="flare" ${st.image.model === 'flare' ? 'selected' : ''}>Flare</option><option value="sunburst" ${st.image.model === 'sunburst' ? 'selected' : ''}>Sunburst</option></select></label>
+    </div>`}
+  <button class="go" data-go-make><span class="row">${IC.spark}${v ? 'יוצרים סרטון' : 'יוצרים תמונה'}</span><small>${est != null ? '≈ ' + usd(est) : ''}</small></button>
+  <div style="height:16px"></div>`;
+}
+
+function vJob() {
+  const j = st.jobs.find((x) => x.id === st.job);
+  if (!j) return '<div class="empty">לא נמצא</div>';
+  const isV = j.kind === 'video';
+  const media = j.status === 'done' && j.url
+    ? (isV ? `<video src="${esc(j.url)}" ${j.poster ? `poster="${esc(j.poster)}"` : ''} controls playsinline autoplay loop></video>` : `<img src="${esc(j.url)}" alt="">`)
+    : j.status === 'failed' ? '' : `<div class="wait"><span class="spin"></span><b style="color:var(--text)">${isV ? 'מכין את הסרטון' : 'מצייר'}… ${j.progress ? j.progress + '%' : ''}</b><span>${isV ? 'בערך דקה-שתיים.' : 'בערך חצי דקה.'} אפשר לסגור, זה ממשיך ונשמר לבד.</span></div>`;
+  return `
+  ${j.status === 'failed' ? `<div class="err">לא הצליח${j.error ? ': ' + esc(j.error) : ''}</div>` : `<div class="media">${media}</div>`}
+  <p class="ptxt">${IC.spark}<span>${esc(j.prompt)}</span></p>
+  ${j.status === 'done' ? `<div class="acts">
+      <button class="pri" data-share>${IC.share}שיתוף</button>
+      <button data-save>${IC.down}שמירה</button>
+      <button data-again>${IC.again}עוד גרסה</button>
+    </div>
+    ${!isV ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button data-tovideo>${IC.video}להפוך לסרטון</button><button data-toref>${IC.image}להמשיך ממנה</button></div>` : ''}
+    <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span>${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
+    <button class="link" data-del style="width:100%;justify-content:center;color:var(--dim);margin:0 0 14px">${IC.trash}להוריד מהגלריה</button>`
+    : j.status === 'failed' ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button class="pri" data-again>${IC.again}לנסות שוב</button><button data-edit>${IC.edit}לשנות ולנסות</button></div>` : ''}
+  ${runningCards().replace(`data-open="${j.id}"`, `data-open="${j.id}" hidden`)}`;
+}
+
+function vGallery() {
+  const list = st.jobs.filter((j) => st.filter === 'all' || j.kind === st.filter);
+  const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
+  const mj = st.jobs.filter((j) => j.created >= +month && j.status === 'done');
+  const spent = mj.reduce((a, j) => a + (j.usd || 0), 0);
+  return `
+  <div class="sum"><span>החודש:</span><span>${mj.filter((j) => j.kind === 'video').length} סרטונים</span><span>${mj.filter((j) => j.kind === 'image').length} תמונות</span><span>${usd(spent)}</span></div>
+  <div class="filt">${[['all', 'הכל'], ['video', 'סרטונים'], ['image', 'תמונות']].map(([k, l]) => `<button data-filter="${k}" class="${st.filter === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+  ${list.length ? `<div class="grid">${list.map((j) => {
+    const pic = j.kind === 'video' ? (j.poster || '') : (j.url || '');
+    const when = new Date(j.created || Date.now());
+    const day = when.toDateString() === new Date().toDateString() ? 'היום' : when.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+    return `<button class="tile" data-open="${j.id}"><div class="th">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}
+      ${j.kind === 'video' && j.status === 'done' ? `<span class="badge">${IC.play}0:${String(Math.round(j.dur || j.params?.duration || 0)).padStart(2, '0')}</span>` : ''}
+      ${live(j) ? `<span class="st">${j.kind === 'video' ? 'מכין…' : 'מצייר…'}</span>` : j.status === 'failed' ? '<span class="st">לא הצליח</span>' : ''}</div>
+      <small>${day}${j.usd != null ? ' · ' + usd(j.usd) : ''}${j.by && j.by !== 'owner' ? ' · ' + esc(j.client) : ''}</small></button>`;
+  }).join('')}</div>${st.more ? '<button class="link" data-more style="width:100%;justify-content:center;margin:16px 0">עוד</button>' : ''}`
+    : '<div class="empty">עוד לא נוצר כלום. לכו ל"יצירה".</div>'}`;
+}
+
+function render() {
+  const busy = st.jobs.filter(live).length;
+  const nav = document.querySelectorAll('nav button');
+  nav[0].innerHTML = `${IC.wand}<span>יצירה</span>`; nav[1].innerHTML = `${IC.grid}<span>הגלריה</span>${busy ? `<em>${busy}</em>` : ''}`;
+  nav.forEach((b) => b.classList.toggle('on', b.dataset.go === st.view || (st.view === 'job' && b.dataset.go === 'gallery')));
+  const ta = $('#prompt'); if (ta) st.prompt = ta.value;
+  $('#view').innerHTML = st.view === 'make' ? vMake() : st.view === 'job' ? vJob() : vGallery();
+  wire();
+}
+
+function wire() {
+  const V = $('#view');
+  V.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => { st.mode = b.dataset.mode; keep(); render(); }));
+  V.querySelectorAll('[data-pick]').forEach((b) => (b.onclick = () => pick(b.dataset.pick)));
+  V.querySelectorAll('[data-clear]').forEach((b) => (b.onclick = () => { st[b.dataset.clear] = null; if (b.dataset.clear === 'start') st.end = null; render(); }));
+  V.querySelectorAll('[data-unref]').forEach((b) => (b.onclick = () => { st.refs.splice(+b.dataset.unref, 1); render(); }));
+  V.querySelector('[data-showend]')?.addEventListener('click', () => { st.showEnd = true; render(); });
+  V.querySelector('[data-mic]')?.addEventListener('click', mic);
+  const ta = V.querySelector('#prompt'); if (ta) ta.oninput = () => { st.prompt = ta.value; st.heard = ''; };
+  V.querySelectorAll('[data-set]').forEach((s) => (s.onchange = () => { const [a, k] = s.dataset.set.split('.'); st[a][k] = k === 'duration' ? +s.value : s.value; keep(); render(); }));
+  V.querySelector('[data-go-make]')?.addEventListener('click', () => make());
+  V.querySelectorAll('[data-open]').forEach((b) => (b.onclick = () => { st.job = b.dataset.open; show('job'); }));
+  V.querySelectorAll('[data-filter]').forEach((b) => (b.onclick = () => { st.filter = b.dataset.filter; render(); }));
+  V.querySelector('[data-more]')?.addEventListener('click', loadMore);
+  const j = st.jobs.find((x) => x.id === st.job);
+  if (st.view === 'job' && j) {
+    V.querySelector('[data-again]')?.addEventListener('click', () => make(againOf(j)));
+    V.querySelector('[data-edit]')?.addEventListener('click', () => { loadInto(j); show('make'); });
+    V.querySelector('[data-share]')?.addEventListener('click', () => share(j, false));
+    V.querySelector('[data-save]')?.addEventListener('click', () => share(j, true));
+    V.querySelector('[data-tovideo]')?.addEventListener('click', () => { st.mode = 'video'; st.start = { src: j.url, job: j.id }; st.end = null; st.prompt = ''; st.heard = ''; keep(); show('make'); });
+    V.querySelector('[data-toref]')?.addEventListener('click', () => { st.mode = 'image'; st.refs = [{ src: j.url, job: j.id }]; st.prompt = ''; st.heard = ''; keep(); show('make'); });
+    V.querySelector('[data-del]')?.addEventListener('click', () => askDelete(j));
+  }
+}
+// "change and try again": the failed request back on the make screen
+function loadInto(j) {
+  const a = againOf(j);
+  st.mode = a.kind; st.prompt = a.prompt; st.heard = '';
+  if (a.kind === 'video') { st.start = j.inputs?.start ? { src: j.inputs.start } : null; st.end = j.inputs?.end ? { src: j.inputs.end } : null; }
+  else st.refs = (j.inputs?.refs || []).map((u) => ({ src: u }));
+}
+async function share(j, save) {
+  try {
+    const blob = await (await fetch(j.url)).blob();
+    const name = `piko-${j.id.slice(0, 6)}.${j.kind === 'video' ? 'mp4' : 'jpg'}`;
+    const file = new File([blob], name, { type: blob.type });
+    if (navigator.canShare?.({ files: [file] }) && (!save || /iPhone|iPad|iPod/.test(navigator.userAgent))) return await navigator.share({ files: [file] });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  } catch (e) { if (e.name !== 'AbortError') toast('לא הצליח לשתף'); }
+}
+function askDelete(j) {
+  const el = document.createElement('div'); el.className = 'sheet';
+  el.innerHTML = `<div><h3>להוריד מהגלריה?</h3><p>זה יורד מהרשימה כאן. בספריית השלומיוורס הקובץ נשאר.</p><div class="row"><button data-no>ביטול</button><button class="danger" data-yes>${IC.trash} להוריד</button></div></div>`;
+  el.onclick = (e) => { if (e.target === el || e.target.closest('[data-no]')) el.remove(); };
+  el.querySelector('[data-yes]').onclick = async () => { el.remove(); try { await api('DELETE', '/jobs/' + j.id); st.jobs = st.jobs.filter((x) => x.id !== j.id); show('gallery'); } catch (e) { toast(e.message); } };
+  document.body.appendChild(el);
+}
+async function loadJobs() {
+  const r = await api('GET', '/jobs?limit=40');
+  st.jobs = r.jobs; st.more = r.more;
+  if (st.jobs.some(live)) watch();
+}
+async function loadMore() {
+  const last = st.jobs[st.jobs.length - 1];
+  const r = await api('GET', '/jobs?limit=40&before=' + (last?.created || Date.now()));
+  st.jobs.push(...r.jobs); st.more = r.more; render();
+}
+
+render();
+drawBalance();
+navigator.serviceWorker?.register('/piko/sw.js', { scope: '/piko/' }).catch(() => {});
+await Promise.all([api('GET', '/config').then((c) => (st.cfg = c)).catch(() => {}), loadBalance(false), loadJobs().catch((e) => toast(e.message))]);
+render();
+</script>
+</body>
+</html>

@@ -220,3 +220,9 @@ Object.assign(exports, require('./mind'));
 // its key: the VERSE_PUBLISH_KEY secret (Secret Manager; the studio reads the same value from studio-keys)
 exports.versePublish = require('./publish').versePublish;
 exports.verseHeal = require('./publish').verseHeal;
+// Piko (shlomiverse.com/piko/): his own picture + video maker - GPT Image pictures, Seedance videos through EvoLink, a
+// spoken prompt; one API for his app and his other tools (startdoing.co.il) - see piko.js, piko-api.md
+const piko = require('./piko');
+exports.piko = piko.piko;
+exports.pikoWork = piko.pikoWork;
+exports.pikoSweep = piko.pikoSweep;

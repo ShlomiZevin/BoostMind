@@ -799,10 +799,11 @@ function more() {
 
 // ---------- הוצאות (2026-11-06, his ask): what the AI costs, asked from OpenAI / ElevenLabs themselves (costs.js) ----------
 // one key per area (studio, chat, site, design; Mind and Plaxzy apart), so the providers say what each one spent - nothing
-// counted by us. ElevenLabs in credits (a monthly plan, no invented price per credit).
+// counted by us. ElevenLabs in credits (a monthly plan, no invented price per credit). EvoLink (Piko's videos): each job's
+// cost as EvoLink reported it, per client, + the balance he has left there (prepaid - he tops up by hand).
 let CS = null, csRange = 'month', csLoading = false;
-const CS_AREA = { studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
-const CS_KIND = { images: 'תמונות', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
+const CS_AREA = { piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
+const CS_KIND = { images: 'תמונות', video: 'וידאו', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
 const CS_EL = { Music: 'מוזיקה', 'Music - Stems': 'ערוצי מוזיקה', TTS: 'הקראה', STS: 'שינוי קול', STT: 'תמלול', 'Sound Effects': 'אפקטים', 'Voice Generation': 'יצירת קול', 'Voice Library': 'ספריית קולות', Dubbing: 'דיבוב' };
 const usd = (v) => `$${v >= 100 ? Math.round(v) : v.toFixed(2)}`;
 function loadCosts(fresh) {
@@ -825,10 +826,11 @@ function costs() {
   if (!CS && !csLoading) loadCosts(false);
   const seg = `<div class="seg">${[['month', 'החודש'], ['30', '30 יום'], ['90', '90 יום']].map(([k, l]) => `<button data-csr="${k}" class="${k === csRange ? 'on' : ''}">${l}</button>`).join('')}</div>`;
   if (!CS || CS.error) {
-    $('#pane').innerHTML = `${seg}<div class="empty">${CS?.error ? `לא נטען (${esc(CS.error)})` : 'שואל את OpenAI ו-ElevenLabs…'}</div>`;
+    $('#pane').innerHTML = `${seg}<div class="empty">${CS?.error ? `לא נטען (${esc(CS.error)})` : 'שואל את OpenAI, EvoLink ו-ElevenLabs…'}</div>`;
     return csWire();
   }
-  const from = csFrom(), rows = CS.rows.filter((r) => r.d >= from), oa = rows.filter((r) => r.src === 'openai');
+  // dollars: OpenAI + EvoLink (Piko's videos); ElevenLabs is credits, apart
+  const from = csFrom(), rows = CS.rows.filter((r) => r.d >= from), oa = rows.filter((r) => r.src === 'openai' || r.src === 'evolink');
   const sum = (f) => oa.filter(f).reduce((a, r) => a + r.usd, 0);
   const by = (list, k) => list.reduce((m, r) => ((m[r[k]] = (m[r[k]] || 0) + (r.src === 'elevenlabs' || r.credits ? r.credits || 0 : r.usd || 0)), m), {});
   const verse = oa.filter((r) => r.group === 'shlomiverse'), plax = oa.filter((r) => r.group === 'plaxzy');
@@ -837,12 +839,15 @@ function costs() {
   const n = csRange === 'month' ? +ilDay(Date.now()).slice(8, 10) : +csRange;
   const dayList = Array.from({ length: n }, (_, i) => ilDay(Date.now() - (n - 1 - i) * 864e5)).map((d) => [d, Math.round((days[d] || 0) * 100) / 100]);
   const el = rows.filter((r) => r.src === 'elevenlabs'), E = CS.eleven, elKeys = (E?.keys || []).filter((r) => r.d >= from);
+  const pk = oa.filter((r) => r.area === 'piko'), pkVid = pk.filter((r) => r.src === 'evolink'), EV = CS.evolink;
+  const pkClients = pkVid.reduce((m, r) => { const k = r.client || 'שלומי'; m[k] = (m[k] || 0) + r.usd; return m; }, {});
   $('#pane').innerHTML = `${seg}
     ${(CS.errors || []).map((e) => `<p class="cs-err">${esc(e)}</p>`).join('')}
     <div class="kpis">
       <div class="kpi"><span>סה"כ AI</span>${IC.dollar}<b>${usd(sum(() => true))}</b><small>שלומיוורס + Plaxzy${sum((r) => r.group === 'mind') ? ` + המוח ${usd(sum((r) => r.group === 'mind'))}` : ''}</small></div>
       <div class="kpi"><span>שלומיוורס</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'shlomiverse'))}</b><small>כל התחומים</small></div>
       <div class="kpi"><span>Plaxzy</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'plaxzy'))}</b><small>פרויקט נפרד</small></div>
+      <div class="kpi"><span>EvoLink: נשאר</span>${IC.dollar}<b style="${EV?.usd != null && EV.usd < 2 ? 'color:#ff8a7a' : ''}">${EV?.usd != null ? usd(EV.usd) : '-'}</b><small>${EV?.usd != null ? `${fmt(Math.round(EV.credits))} קרדיטים · לסרטונים של פיקו` : 'לא נטען'}</small></div>
       <div class="kpi"><span>ElevenLabs החודש</span>${IC.dollar}<b>${E ? Math.round(E.used / Math.max(1, E.limit) * 100) + '%' : '-'}</b><small>${E ? `${fmt(E.used)} מתוך ${fmt(E.limit)} קרדיטים` : 'לא נטען'}</small></div>
     </div>
     <div class="cols">
@@ -851,12 +856,16 @@ function costs() {
       <div class="card"><div class="card-h"><h2>לפי סוג</h2></div>${csBars(by(verse, 'kind'), CS_KIND, '$')}</div>
     </div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>שלומיוורס ביום</h2></div><div id="cs-ch"></div></div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h2>פיקו</h2><b style="color:var(--accent)">${usd(pk.reduce((a, r) => a + r.usd, 0))}</b></div>
+      ${csBars({ 'סרטונים (EvoLink)': pkVid.reduce((a, r) => a + r.usd, 0), 'תמונות ותמלול (OpenAI)': pk.filter((r) => r.src === 'openai').reduce((a, r) => a + r.usd, 0) }, {}, '$')}
+      ${Object.keys(pkClients).length > 1 ? `<h3 style="margin:14px 0 8px;font-size:1rem">סרטונים לפי מי שיצר</h3>${csBars(pkClients, {}, '$')}` : ''}
+      <p class="cs-note">${EV?.usd != null ? `נשארו ב-EvoLink ${usd(EV.usd)} · ` : ''}<a href="https://evolink.ai" target="_blank" style="color:var(--accent)">להטעין ב-EvoLink</a> · <a href="/piko/" target="_blank" style="color:var(--accent)">לפתוח את פיקו</a></p></div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>Plaxzy</h2><b style="color:var(--accent)">${usd(sum((r) => r.group === 'plaxzy'))}</b></div>${csBars(by(plax, 'kind'), CS_KIND, '$')}</div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>ElevenLabs</h2></div>
         ${E ? `<div class="cs-meter"><i style="width:${Math.min(100, E.used / Math.max(1, E.limit) * 100)}%"></i></div><p class="cs-note" style="margin:0 0 12px">תוכנית ${esc(E.tier)} · ${fmt(E.used)} מתוך ${fmt(E.limit)} קרדיטים החודש · מתאפס ב-${new Date(E.resets * 1000).toLocaleDateString('he-IL')}</p>` : ''}
         ${csBars(by(el, 'kind'), CS_EL, 'קרדיטים')}
         ${elKeys.length ? `<h3 style="margin:14px 0 8px;font-size:1rem">לפי מפתח</h3>${csBars(by(elKeys.map((r) => ({ ...r, src: 'elevenlabs' })), 'area'), CS_AREA, 'קרדיטים')}` : '<p class="cs-note">לפי מפתח: יופיע כשלכל תחום יהיה מפתח ElevenLabs משלו.</p>'}</div>
-    <p class="cs-note">נשאל מ-OpenAI ו-ElevenLabs עצמם · עודכן ${ago(CS.at)} · <button data-csfresh style="color:var(--accent);font-weight:700">לשאול עכשיו</button></p>`;
+    <p class="cs-note">נשאל מ-OpenAI, EvoLink ו-ElevenLabs עצמם · עודכן ${ago(CS.at)} · <button data-csfresh style="color:var(--accent);font-weight:700">לשאול עכשיו</button></p>`;
   bars($('#cs-ch'), dayList.slice().reverse(), '$', null);   // newest first = on the right, like the other day charts
   csWire();
 }

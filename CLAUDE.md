@@ -59,6 +59,9 @@ writes it from Secret Manager). Read it from that file inside your script; never
 - The live site's features use their Secret Manager keys (`VERSE_SITE_OPENAI_KEY`, `WIKI_OPENAI_KEY` for the chat,
   `MIND_OPENAI_KEY`); a new live feature takes the site key, or a new key named `shlomiverse-<area>` in the OpenAI
   project "Shlomiverse" (costs.js reads the area from the name).
+- **Piko** (shlomiverse.com/piko/, `techietech-api/piko.js`, API: `techietech-api/piko-api.md`) - his own picture + video
+  maker: OpenAI on `VERSE_PIKO_OPENAI_KEY` (key `shlomiverse-piko`), videos on EvoLink (`EVOLINK_API_KEY`, Seedance 2.0 Mini -
+  takes real faces, ~5x cheaper than Leonardo). Other tools call the same API with their own key (`scripts/piko/client.mjs`).
 - Already wired: `openai.js` - the OpenAI helper, any model (the openai-leonardo skill, in `zoomcut/skill/openai-leonardo`; a computer installs it once with `node zoomcut/skill/openai-leonardo/install.mjs`; inside this folder it always takes the design key), `oai-image.js` (stories, games),
   `clean-words.mjs`, `build.py`, `reel.py` and the design scripts under `scripts/`.
 

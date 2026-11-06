@@ -127,6 +127,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "pikoJobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "by",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "t",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [

@@ -65,6 +65,13 @@
     ],
     "rewrites": [
       {
+        "source": "/piko/api/**",
+        "function": {
+          "functionId": "piko",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "/mind/@(api|hook|mcp)",
         "function": {
           "functionId": "mind",
