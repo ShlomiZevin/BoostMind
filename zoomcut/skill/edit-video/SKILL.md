@@ -261,8 +261,9 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      main site). His browser caches techytech for an hour - tell him Ctrl+F5.
    - [ ] **Their own site** if they have one (a new video tile, its 540p copy) + its button on the links page.
    - [ ] **The Shlomiverse wiki** (step 11) - character page, portrait, the video, the fan copy.
-   - [ ] **The chat agent** - it learns ONLY from `techietech-api/wiki-brain.json`, written by `build.py`: after the
-     build, `firebase deploy --only functions:wikiChat` from `techietech-api/`, then TEST it: POST
+   - [ ] **The chat agent** - it learns from the brain the server composes from the database records (since
+     2026-11-05; `shlomiverse-content` skill): after `build.py` + `node scripts/wiki/push.cjs` it knows within ~3
+     minutes - no wikiChat deploy (only when wiki.js itself changes). Then TEST it: POST
      `https://europe-west1-boostmind-b052c.cloudfunctions.net/wikiChat` `{"mode": "<id>", "own": true,
      "messages": [{"role": "user", "content": "<a question about this video>"}]}` (Python, UTF-8; `own` keeps it
      out of his logs) and read the answer - it must know the new video. The chat answers 3 questions a day without an

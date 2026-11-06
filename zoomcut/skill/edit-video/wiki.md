@@ -146,8 +146,8 @@ redesign. (`scripts/wiki/clips.json` - a link-only TikTok/Instagram video - is t
 ## The chat (each character in their own voice)
 - `techietech-api/wiki.js` - OpenAI **gpt-5.6-terra** (his choice over Claude), key in Secret Manager as
   `WIKI_OPENAI_KEY` (the project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it).
-- It knows `techietech-api/wiki-brain.json` (written by build.py: full profiles + transcripts), read from
-  gs://shlomiverse-private/wiki-brain.json every 3 minutes - **push.cjs after every build**, no redeploy (the bundled
+- It knows the brain (full profiles + transcripts) the server composes from the database records (since 2026-11-05),
+  read from gs://shlomiverse-private/wiki-brain.json every 3 minutes - **push.cjs after every build**, no redeploy (the bundled
   copy is only the fallback; redeploy wikiChat only when wiki.js itself changes).
 - **The chain (2026-10-31, his ask - cheaper and smarter):** a question no longer carries the whole brain. The
   instructions = the rules + a short **map** (one line per character, an AI-written **card** per video - build.py writes
