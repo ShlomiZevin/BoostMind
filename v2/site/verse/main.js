@@ -4,7 +4,7 @@ import { T } from './copy.js';
 import { st, onState, needFan } from './state.js';
 import { openPlayer, openGame, closePlayer, followBtn, paintFollow, setBack } from './player.js';
 import { openStory, closeStory, storyRing, onStories, setStoryBack, paintStoryRing } from './stories.js';
-import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest } from './community.js';
+import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest, chatIdeaCard } from './community.js';
 import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
@@ -33,6 +33,7 @@ Object.assign(HOOK, {
   requestCard,
   signinCard,
   stickerCard,   // [[sticker:ID]] in a chat reply
+  ideaCard: chatIdeaCard,   // [[idea:KIND|TEXT]] in a chat reply: the visitor's idea, ready to send
   quizCard,      // [[quiz]] in a chat reply: the character suggests the simulation test (sim.js)
   nearestId: nearest,
   // the chat sends the account with each question (3 in total without an account, 10 a day signed in), and signs in from its note

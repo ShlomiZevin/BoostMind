@@ -171,11 +171,22 @@ document.addEventListener('click', async (e) => {
   waCard(p.img);
 });
 
+// ---------- an idea a visitor came up with in the chat: [[idea:KIND|TEXT]] - the character hands it over written up, one
+// tap opens the idea sheet filled in (his ask, 2026-11-06: "like a box already filled with their idea, and submit") ----------
+export function chatIdeaCard(kind, text, mode) {
+  const t = String(text || '').trim().slice(0, 300);
+  if (t.length < 4) return '';
+  const k = T.ideaKinds[kind] ? kind : 'other';
+  return `<div class="mi"><small>${esc(T.ideaChatT)} · ${esc(T.ideaKinds[k])}</small><blockquote>${esc(t)}</blockquote>
+    <button class="vx-btn main small" data-idea-chat data-ik="${k}" data-ic="${esc(C[mode] ? mode : '')}" data-it="${esc(t)}">${esc(T.ideaChatGo)}</button></div>`;
+}
+
 // ---------- suggest an idea (the sheet), then share it ----------
-async function ideaSheet() {
+// pre = {kind, text, chars}: the sheet opens filled in (an idea from the chat); they can still change anything
+async function ideaSheet(pre = {}) {
   if (!(await needFan('idea'))) return;
-  let kind = 'episode';
-  const chosen = [];   // up to 3, in the order they were picked
+  let kind = T.ideaKinds[pre.kind] ? pre.kind : 'episode';
+  const chosen = (pre.chars || []).filter((id) => C[id]).slice(0, 3);   // up to 3, in the order they were picked
   const all = W.characters.filter((c) => c.img || c.name);
   const h = sheet(`<div class="ids"><img class="ids-logo" src="/verse/logo-160.png" alt=""><h2 class="vx-h">${esc(T.ideaTitle)}</h2>
       <div class="ids-kinds">${Object.entries(T.ideaKinds).map(([k, l]) => `<button type="button" class="vx-pill ${k === kind ? 'on' : ''}" data-k="${k}">${esc(l)}</button>`).join('')}</div>
@@ -184,6 +195,7 @@ async function ideaSheet() {
       <div class="ids-who"></div>
       <button class="vx-btn main block" data-send>${esc(T.ideaSend)}</button><p class="ids-note">${esc(T.ideaNote)}</p></div>`, { cls: 'ids-sheet' });
   const ta = h.el.querySelector('textarea'), atBox = h.el.querySelector('.ids-at'), who = h.el.querySelector('.ids-who');
+  if (pre.text) { ta.value = String(pre.text).slice(0, 300); h.el.querySelector('[data-n]').textContent = ta.value.length; }
   window.atMirror?.(ta);   // an @tag stays coloured while typing
   // the faces row: whoever they picked comes first (even if they're far down the list), then everyone else
   const drawWho = () => {
@@ -328,11 +340,12 @@ document.addEventListener('submit', async (e) => {
 
 // ---------- one place for the clicks ----------
 document.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-do], [data-idea-new], [data-vote], [data-share-idea], [data-idea-sort], [data-form], [data-ask-char], [data-copy-idea]');
+  const b = e.target.closest('[data-do], [data-idea-new], [data-idea-chat], [data-vote], [data-share-idea], [data-idea-sort], [data-form], [data-ask-char], [data-copy-idea]');
   if (!b) return;
   e.preventDefault();
   if (b.matches('[data-do]')) canDo(b.dataset.do, storyFaces());
   else if (b.matches('[data-idea-new]')) ideaSheet();
+  else if (b.matches('[data-idea-chat]')) { track('idea_chat', b.dataset.ic || 'guide'); ideaSheet({ kind: b.dataset.ik, text: b.dataset.it, chars: b.dataset.ic ? [b.dataset.ic] : [] }); }
   else if (b.matches('[data-vote]')) vote(b);
   else if (b.matches('[data-share-idea]')) shareIdea(b.dataset.shareIdea);
   else if (b.matches('[data-idea-sort]')) { sort = b.dataset.ideaSort; emit(); }

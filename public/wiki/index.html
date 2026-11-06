@@ -974,8 +974,8 @@ function renderText(text, streaming) {
     const flush = () => { flushFaces(); if (para.length) parts.push(`<p>${para.map((l) => bold(links(esc(math(l))))).join('<br>')}</p>`); para = []; };
     for (const line of block.split('\n')) {
       // [[request:video|the text]] - a request the guide wrote for the visitor to approve (the text is optional)
-      const m = line.trim().match(/^\[\[(video|char|request|site|sticker):([^\]|]+)(?:\|([^\]]*))?\]\]$/);
-      if (m && m[1] !== 'request' && m[1] !== 'sticker') m[2] = cardId(m[1], m[2], text);
+      const m = line.trim().match(/^\[\[(video|char|request|site|sticker|idea):([^\]|]+)(?:\|([^\]]*))?\]\]$/);
+      if (m && !['request', 'sticker', 'idea'].includes(m[1])) m[2] = cardId(m[1], m[2], text);
       if (m && m[1] === 'video' && V[m[2]]) {
         flush();
         const v = V[m[2]];
@@ -993,6 +993,9 @@ function renderText(text, streaming) {
       } else if (m && m[1] === 'sticker' && HOOK.stickerCard) {   // the characters' ready stickers, one tap to WhatsApp
         flush();
         parts.push(HOOK.stickerCard(m[2]));
+      } else if (m && m[1] === 'idea' && HOOK.ideaCard) {   // the visitor's idea, written up and ready to send (wiki.js)
+        flush();
+        parts.push(streaming ? '' : HOOK.ideaCard(m[2].trim(), m[3], cxMode));
       } else if (m && m[1] === 'request' && HOOK.requestCard) {
         flush();
         parts.push(streaming ? '' : HOOK.requestCard(m[2], cxMode, m[3]));
@@ -1074,9 +1077,27 @@ function quotaNote(why) {
 }
 // cont = the visitor just signed up at the wall: the character's cut-off reply goes on from the word it stopped at
 // (wiki.js CONT) - no new question bubble, a hidden "המשך" carries it
+// "@name" in the question = talk to that character (the chat review, 2026-11-06: "@חני פרידמן שבת שלום" written in another
+// character's chat got that character's answer - only a tap in the @ list switched). The full name first, then a first
+// name that only one character has; the first one mentioned wins
+function atTarget(text) {
+  const hits = [];
+  const firsts = {};
+  for (const c of W.characters) if (c.name) { const f = c.name.split(' ')[0]; firsts[f] = (firsts[f] || 0) + 1; }
+  for (const c of W.characters) {
+    if (!c.name) continue;
+    let i = text.indexOf('@' + c.name);
+    const f = c.name.split(' ')[0];
+    if (i < 0 && firsts[f] === 1) { const r = new RegExp('@' + f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\u0590-\\u05FFA-Za-z])'); const mm = r.exec(text); i = mm ? mm.index : -1; }
+    if (i >= 0) hits.push([i, c.id]);
+  }
+  hits.sort((a, b) => a[0] - b[0]);
+  return hits.length ? hits[0][1] : null;
+}
 async function send(text, cont = false) {
   text = String(text || '').trim();
   if (!text || busy) return;
+  if (!cont) { const to = atTarget(text); if (to && to !== cxMode && C[to]) switchChat(to); }
   const mode = cxMode, ta = $('textarea', cx), btn = $('.composer button', cx), msgs = $('.msgs', cx);
   busy = true; btn.disabled = true; if (!cont) { ta.value = ''; ta.style.height = '48px'; }
   if (!cont) threads[mode].push({ role: 'user', content: text });

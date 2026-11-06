@@ -1615,6 +1615,10 @@ html.can-app .foot-app { display: inline-flex !important; }
 .sim-band-go { grid-area: go; height: 38px; padding: 0 14px; font-size: .88rem; }
 .sim-band.small { grid-template-areas: "face title go"; padding: 8px 10px; } .sim-band.small .sim-band-face { width: 44px; height: 44px; } .sim-band.small .sim-band-l { display: none; }
 .sim-skip { display: block; margin: 16px auto 0; color: var(--dim); font: inherit; font-size: .92rem; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 8px; }
+.mi { margin: 8px 0; padding: 12px 14px; border-radius: 16px; border: 1.5px dashed var(--vx-accent); background: var(--card); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 100%; }
+.mi small { font-size: .78rem; font-weight: 800; color: var(--vx-accent); }
+.mi blockquote { margin: 0; font-size: .98rem; line-height: 1.45; overflow-wrap: anywhere; }
+.mi .vx-btn { height: 40px; }
 .sim-chat { margin: 8px 0; padding: 14px 16px; border-radius: 18px; border: 1.5px solid var(--vx-accent); background: var(--card); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .sim-chat b { font-size: 1.1rem; font-weight: 900; }
 .sim-chat .vx-btn { height: 42px; }

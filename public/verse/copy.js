@@ -293,6 +293,7 @@ export const T = {
   ideaKinds: { episode: 'פרק חדש', character: 'דמות חדשה', meet: 'מפגש בין דמויות', other: 'משהו אחר' },
   // an idea's way, marked in /backstage/ (Terra, 2026-11-05): the badge on the wall, the credit on the video page
   ideaStep: { liked: 'השלומיוורס אהב', making: 'בדרך למסך', live: 'עלה לאוויר' }, ideaWatch: 'לצפייה', ideaCredit: 'רעיון של', ideaReplyBy: 'השלומיוורס',
+  ideaChatT: 'הרעיון שלכם, מוכן לשליחה', ideaChatGo: 'לשלוח לתיבת הרעיונות',
   ideaTitle: 'יש לכם רעיון לשלומיוורס?', ideaPh: 'מה הייתם רוצים לראות?', ideaWho: 'על מי זה?', ideaWhoHint: 'או כתבו @ ושם של דמות', ideaSend: 'לשלוח לשלומי',
   ideaNote: 'הרעיונות הכי אהובים מגיעים לשלומי ראשונים', ideaQuota: 'מספיק רעיונות להיום. מחר עוד.',
   ideaDoneTitle: 'הרעיון שלכם עלה', ideaDoneSub: 'תנו לחברים להצביע', ideaShareWa: 'לשתף בוואטסאפ', ideaCopy: 'העתקת קישור', ideaCopied: 'הקישור הועתק',
