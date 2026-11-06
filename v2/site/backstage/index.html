@@ -389,6 +389,12 @@
   .k .trend.up { color: #5fd58a; } .k .trend.down { color: #ff7a7a; }
   .k .spark { width: 64px; height: 22px; }
   .k small.note { color: var(--faint); font-size: .74rem; }
+  .k .fc { color: var(--dim); font-size: .8rem; font-weight: 700; margin-top: -2px; }
+  .fc-ch { position: relative; } .fc-ch svg { width: 100%; height: 170px; display: block; }
+  .fc-leg { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem; color: var(--dim); margin-top: 8px; }
+  .fc-leg i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-inline-end: 6px; }
+  .fc-leg .l-today { background: #ff6a1f; } .fc-leg .l-proj { background: repeating-linear-gradient(90deg, #ff6a1f 0 4px, transparent 4px 7px); } .fc-leg .l-y { background: rgba(255,255,255,.35); }
+  p.fc-how { margin: 8px 0 0; font-size: .78rem; color: var(--faint); }
   .live .row { padding: 11px 2px; align-items: center; }
   .live .row .vx-av, .live .row .ini { width: 40px; height: 40px; font-size: .9rem; }
   .live .row .l1 b { font-weight: 700; font-size: .93rem; }
@@ -942,6 +948,13 @@ const METRICS = {
 const mval = (m, list) => sum(list, METRICS[m][2]);
 // the change against the period before it, as "+12%" (a day: against yesterday)
 function trend(m) {
+  const f = FC(m);
+  if (f && f.yAt != null) {   // today: against yesterday by this same hour, not yesterday's whole day
+    const now = mval(m, period());
+    if (f.yAt < 0.5) return now ? { t: 'חדש', c: 'up' } : { t: '', c: '' };
+    const p = Math.round((now - f.yAt) / f.yAt * 100);
+    return { t: `${p > 0 ? '+' : ''}${p}%`, c: p > 0 ? 'up' : p < 0 ? 'down' : '', same: true };
+  }
   const n = range || 1, all = days(2 * n + (range === 0 ? 1 : 0)).slice(0, 2 * n), now = mval(m, all.slice(n)), before = mval(m, all.slice(0, n));
   if (!before) return now ? { t: 'חדש', c: 'up' } : { t: '', c: '' };
   const p = Math.round((now - before) / before * 100);
@@ -953,6 +966,44 @@ function spark(m) {
   return `<svg class="spark" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#ff6a1f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
 const RANGES = [[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים']];
+// ---------- how today will end (the stats op's forecast - techietech-api/forecast.js learns, from every day it has,
+// how much of a day has usually come by each hour; his ask 2026-11-06: "today always looks smaller than yesterday") ----------
+const FCAST = (m) => (S.forecast?.day === dayIL() ? S.forecast.metrics?.[m] || null : null);
+const FC = (m) => (range === 1 ? FCAST(m) : null);
+const about = (v) => fmt(Math.round(v));
+const fcLine = (m) => { const f = FC(m); return f ? `<span class="fc">צפי לסוף היום: כ-${about(f.proj)}</span>` : ''; };
+const ghostOf = (m) => { const f = FCAST(m); return f ? { [dayIL()]: f.proj } : null; };
+function todayCard(m, id) {
+  const f = FC(m);
+  if (!f) return '';
+  return `<div class="card" style="margin-top:16px"><div class="card-h"><h2>${METRICS[m][0]} היום, שעה אחרי שעה</h2></div>
+    <p class="hint" style="margin:-4px 0 8px">צפי לסוף היום: <b>כ-${about(f.proj)}</b>${f.lo != null ? ` · בדרך כלל בין ${about(f.lo)} ל-${about(f.hi)}` : ''}</p>
+    <div class="fc-ch" id="${id}"></div>
+    <div class="fc-leg"><span><i class="l-today"></i>היום עד עכשיו: ${fmt(f.sofar)}</span><span><i class="l-proj"></i>הצפי</span>
+      <span><i class="l-y"></i>אתמול: ${f.yAt != null ? `${about(f.yAt)} עד השעה הזאת, ` : ''}${fmt(f.yTotal)} בכל היום</span>
+      ${f.wAt != null && f.wTotal ? `<span>לפני שבוע: ${about(f.wAt)} עד השעה הזאת, ${fmt(f.wTotal)} בכל היום</span>` : ''}</div>
+    <p class="fc-how">לומד מ-${f.learned} ימים ומתעדכן בכל טעינה${f.usual != null ? ` · הטעות הרגילה של הצפי בשעה כזו: <bdi>${Math.round(f.usual * 100)}%</bdi>` : ' · עוד מעט ימים כדי לדעת כמה הוא מדויק'}</p></div>`;
+}
+// the day by the hour, right to left (midnight on the right): today so far, the projection to midnight, yesterday
+function hourChart(el, f) {
+  if (!el || !f) return;
+  const W_ = el.clientWidth || 600, H = 170, padB = 20, padT = 12, t = S.forecast.t;
+  const top = Math.max(1, f.proj, f.yTotal, f.sofar) * 1.08;
+  const X = (h) => W_ - (h / 24) * (W_ - 8), Y = (v) => H - padB - Math.min(v, top) / top * (H - padB - padT);
+  const path = (pts) => pts.map(([h, v], i) => `${i ? 'L' : 'M'}${X(h).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  const today = f.today ? [[0, 0], ...f.today.map((v, i) => [Math.min(i + 1, t), v])] : [[t, f.sofar]];
+  const F = f.share, rest = [[t, f.sofar]];
+  for (let h = Math.ceil(t + 1e-6); h <= 24; h++) rest.push([h, F < 0.999 ? f.sofar + (f.proj - f.sofar) * Math.max(0, (f.shape[h - 1] - F) / (1 - F)) : f.sofar]);
+  const grid = [0, .5, 1].map((k) => { const v = Math.round(top / 1.08 * k), yy = Y(v); return `<line x1="0" x2="${W_}" y1="${yy}" y2="${yy}" stroke="rgba(255,255,255,.07)"/><text x="${W_}" y="${yy - 3}" fill="#6f6c77" font-size="10" text-anchor="end">${fmt(v)}</text>`; }).join('');
+  const hrs = [6, 12, 18].map((h) => `<text x="${X(h)}" y="${H - 5}" fill="#6f6c77" font-size="10" text-anchor="middle">${h}:00</text>`).join('');
+  const band = f.lo != null ? `<line x1="${X(24) + 3}" x2="${X(24) + 3}" y1="${Y(f.hi)}" y2="${Y(f.lo)}" stroke="rgba(255,106,31,.35)" stroke-width="6" stroke-linecap="round"/>` : '';
+  el.innerHTML = `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${hrs}
+    <line x1="${X(t)}" x2="${X(t)}" y1="${padT}" y2="${H - padB}" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 4"/>
+    ${f.yest ? `<path d="${path([[0, 0], ...f.yest.map((v, i) => [i + 1, v])])}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linejoin="round"/>` : ''}
+    ${band}<path d="${path(rest)}" fill="none" stroke="#ff6a1f" stroke-opacity=".75" stroke-width="2.5" stroke-dasharray="5 5" stroke-linejoin="round"/>
+    <path d="${path(today)}" fill="none" stroke="#ff6a1f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(t)}" cy="${Y(f.sofar)}" r="4.5" fill="#ff6a1f"/><circle cx="${X(24) + 3}" cy="${Y(f.proj)}" r="4" fill="#0f0f12" stroke="#ff6a1f" stroke-width="2"/></svg>`;
+}
 const rangeSeg = (opts = RANGES) => `<div class="rng">${opts.map(([v, l]) => `<button data-range="${v}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 // what one chat answer cost on average (from the tokens wiki.js keeps on each answer) - the cost of a period is estimated from it
 const PRICE = (u) => (((u[0] || 0) - (u[1] || 0)) * 2 + (u[1] || 0) * 0.2 + (u[2] || 0) * 12) / 1e6;
@@ -986,7 +1037,7 @@ function timeKpi() {
 function kpi(m, extra) {
   const list = period(), v = mval(m, list), tr = trend(m), [label, icon] = METRICS[m];
   return `<button class="k" data-metric="${m}"><span class="kh">${IC[icon]}${label}${IC.chev.replace('<svg', '<svg class="chev"')}</span>
-    <b>${extra ?? fmt(v)}</b><span class="kf"><span class="trend ${tr.c}">${tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${range === 1 ? 'מאתמול' : range === 0 ? 'משלשום' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
+    <b>${extra ?? fmt(v)}</b>${extra == null ? fcLine(m) : ''}<span class="kf"><span class="trend ${tr.c}">${tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${tr.same ? 'מאתמול באותה שעה' : range === 1 ? 'מאתמול' : range === 0 ? 'משלשום' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
 }
 function overview() {
   const list = period(), msgs = mval('chat_message', list);
@@ -1007,16 +1058,18 @@ function overview() {
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}</p></div>${rangeSeg()}</div>
     <div class="kgrid">${kpi('visitors')}${timeKpi()}${kpi('joined')}${kpi('chat_message')}${kpi('video')}${kpi('game_start')}
       <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer).toFixed(2)}</b>
-        <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה</small>${spark('chat_message')}</span></button></div>
+        <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה${FC('chat_message') ? ` · צפי $${(FC('chat_message').proj * avgAnswer).toFixed(2)}` : ''}</small>${spark('chat_message')}</span></button></div>
     <div class="cols">
       <div class="card"><div class="card-h"><h2>צריך את תשומת הלב שלך</h2></div>
         <div class="rows">${attn.map(row).join('') || '<div class="empty">הכול מטופל. שקט.</div>'}</div></div>
       <div class="card live"><div class="card-h"><h2><span class="dot"></span> מה קורה עכשיו</h2><button data-tab="chats">לכל השיחות ${IC.back}</button></div>
         <div class="rows">${live.map(row).join('') || '<div class="empty">עוד שקט היום.</div>'}</div></div>
     </div>
+    ${todayCard('visitors', 'ov-fc')}
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>מבקרים ביום</h2><button data-metric="visitors">לנתונים ${IC.back}</button></div><div class="chart" id="ov-ch"></div></div>
     <div class="acts" style="margin-top:16px"><button class="btn" data-pub="video">${IC.video}להודיע על סרטון</button><button class="btn main" data-pub="story">${IC.plus}סטורי חדש</button></div>`;
-  bars($('#ov-ch'), days(14).map((d) => [d.d, d.visitors || 0]), 'מבקרים', (d) => { metric = 'visitors'; drillDay = d; go('data'); });
+  bars($('#ov-ch'), days(14).map((d) => [d.d, d.visitors || 0]), 'מבקרים', (d) => { metric = 'visitors'; drillDay = d; go('data'); }, null, ghostOf('visitors'));
+  hourChart($('#ov-fc'), FC('visitors'));
 }
 
 // ---------- שיחות: every conversation, as it happened ----------
@@ -1148,11 +1201,13 @@ function data() {
     <div class="tool">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}
       <select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <div class="kgrid">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => kpi(m)).join('')}</div>
+    ${todayCard(metric, 'd-fc').replace('margin-top:16px', 'margin:0 0 14px')}
     <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="d-ch"></div></div>
     ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
       <div class="kgrid" style="margin:4px 0 0">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
     ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}`;
-  bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay);
+  bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay, ghostOf(metric));
+  hourChart($('#d-fc'), FC(metric));
   $('#metric').onchange = (e) => { metric = e.target.value; data(); };
   $('#ask-f').onsubmit = (e) => { e.preventDefault(); ask($('#ask-q').value); };
 }
@@ -1182,21 +1237,23 @@ function md(t) {
   return out.join('').replace(/<\/ul><ul>/g, '').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 }
 // one-series bar chart: today on the left (right to left), hover = the number, click = drill into that day
-function bars(el, rows, unit, onPick, on) {
+function bars(el, rows, unit, onPick, on, ghost) {   // ghost: {day: projected total} - drawn pale above the bar
   if (!el) return;
+  ghost = ghost || {};
   const W_ = el.clientWidth || 600, H = 190, padB = 22, padT = 10, n = rows.length;
-  const max = Math.max(1, ...rows.map((r) => r[1])), step = W_ / n, bw = Math.max(3, Math.min(30, step - 3));
+  const max = Math.max(1, ...rows.map((r) => Math.max(r[1], ghost[r[0]] || 0))), step = W_ / n, bw = Math.max(3, Math.min(30, step - 3));
   const y = (v) => H - padB - (v / max) * (H - padB - padT), every = Math.ceil(n / 8);
   const grid = [0, .5, 1].map((f) => { const v = Math.round(max * f), yy = y(v); return `<line x1="0" x2="${W_}" y1="${yy}" y2="${yy}" stroke="rgba(255,255,255,.07)"/><text x="${W_}" y="${yy - 3}" fill="#6f6c77" font-size="10" text-anchor="end">${fmt(v)}</text>`; }).join('');
   const marks = rows.map(([d, v], i) => {
     const x = W_ - (i + 1) * step + (step - bw) / 2, top = y(v), sel = d === on;
     const lbl = i % every === 0 || i === n - 1 ? `<text x="${x + bw / 2}" y="${H - 6}" fill="#6f6c77" font-size="10" text-anchor="middle">${dm(d)}</text>` : '';
-    return `<g data-d="${d}" data-v="${v}"><rect x="${W_ - (i + 1) * step}" y="0" width="${step}" height="${H - padB}" fill="transparent"/>${v ? `<rect x="${x}" y="${top}" width="${bw}" height="${H - padB - top}" rx="${Math.min(4, bw / 2)}" fill="${sel ? '#ffb07a' : on ? 'rgba(255,106,31,.45)' : '#ff6a1f'}"/>` : ''}${lbl}</g>`;
+    const g = ghost[d] > v ? `<rect x="${x + 1}" y="${y(ghost[d])}" width="${bw - 2}" height="${Math.max(0, top - y(ghost[d]))}" rx="${Math.min(4, bw / 2)}" fill="rgba(255,106,31,.14)" stroke="#ff6a1f" stroke-opacity=".55" stroke-dasharray="3 3"/>` : '';
+    return `<g data-d="${d}" data-v="${v}"${ghost[d] ? ` data-g="${Math.round(ghost[d])}"` : ''}><rect x="${W_ - (i + 1) * step}" y="0" width="${step}" height="${H - padB}" fill="transparent"/>${g}${v ? `<rect x="${x}" y="${top}" width="${bw}" height="${H - padB - top}" rx="${Math.min(4, bw / 2)}" fill="${sel ? '#ffb07a' : on ? 'rgba(255,106,31,.45)' : '#ff6a1f'}"/>` : ''}${lbl}</g>`;
   }).reverse().join('');
   el.innerHTML = `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${marks}</svg><div class="tip"></div>`;
   const tip = el.querySelector('.tip');
   el.querySelectorAll('g[data-d]').forEach((g) => {
-    g.onmouseenter = () => { const r = g.getBoundingClientRect(), p = el.getBoundingClientRect(); tip.style.display = 'block'; tip.style.right = (p.right - r.right + r.width / 2) + 'px'; tip.textContent = `${dayName(g.dataset.d)} · ${fmt(+g.dataset.v)} ${unit}`; };
+    g.onmouseenter = () => { const r = g.getBoundingClientRect(), p = el.getBoundingClientRect(); tip.style.display = 'block'; tip.style.right = (p.right - r.right + r.width / 2) + 'px'; tip.textContent = `${dayName(g.dataset.d)} · ${fmt(+g.dataset.v)} ${unit}${g.dataset.g ? ` · צפי כ-${fmt(+g.dataset.g)}` : ''}`; };
     g.onmouseleave = () => (tip.style.display = 'none');
     if (onPick) g.onclick = () => onPick(g.dataset.d);
   });

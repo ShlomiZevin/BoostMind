@@ -82,6 +82,7 @@ const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\
 const clean = (v, n) => String(v ?? '').replace(/[^\p{L}\p{N} _\-./:]/gu, '').trim().slice(0, n);
 const key = (v) => clean(v, 40).toLowerCase().replace(/[^a-z0-9_-]/g, '_') || '_';   // a safe field name for counters
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);  // YYYY-MM-DD
+const hourIL = (d = new Date()) => String(+new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', hourCycle: 'h23' }).format(d));  // '0'..'23'
 
 // a few hundred events per address per hour, per instance - enough to stop a script filling the database
 const recent = new Map();
@@ -135,6 +136,12 @@ exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency
   if (b.e === 'view') day_.site = { [site]: inc };
   if (b.first) Object.assign(day_, { visitors: inc, src: { [src]: inc }, dev: { [b.m ? 'phone' : 'desktop']: inc } });  // the visitor's first event today
   if (b.fresh) day_.new_visitors = inc;                                 // a browser never seen before
+  // the same counts per hour of the day (Israel time) - what forecast.js learns "how much of a day has come by now" from
+  const hr = hourIL(now);
+  const h = b.e === 'time' ? {} : { [b.e]: { [hr]: inc } };
+  if (b.first) h.visitors = { [hr]: inc };
+  if (b.fresh) h.new_visitors = { [hr]: inc };
+  if (Object.keys(h).length) day_.h = h;   // never an empty map: with merge it would wipe the day's hours
   try {
     await Promise.all([db.collection('analytics_events').add(event), db.collection('analytics_days').doc(day).set(day_, { merge: true })]);
   } catch (e) { console.error('track failed', e.message); }

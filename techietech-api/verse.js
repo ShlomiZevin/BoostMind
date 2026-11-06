@@ -1021,13 +1021,17 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
     // the per-day counters (analytics.js) for the range and the one before it (the trend), the newest events, every account
     if (op === 'stats') {
       const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 180);
-      const from = dayIL(new Date(Date.now() - (2 * days - 1) * 864e5));
+      const from = dayIL(new Date(Date.now() - Math.max(2 * days - 1, 84) * 864e5));   // the forecast learns from 12 weeks
       const [d, ev, people] = await Promise.all([
         db.collection('analytics_days').where('d', '>=', from).orderBy('d').get(),
         db.collection('analytics_events').orderBy('t', 'desc').limit(400).get(),
         peopleList(),
       ]);
-      return res.json({ days: d.docs.map((x) => x.data()), people,
+      // how today will end (forecast.js): learned from the per-hour counters of every day it has, fresh on each load
+      const all = d.docs.map((x) => x.data());
+      let forecast = null;
+      try { forecast = require('./forecast').forecast({ days: all, joined: people.filter((p) => p.google && p.created).map((p) => p.created) }); } catch (e) { console.error('forecast', e.message); }
+      return res.json({ days: all.map(({ h, ...x }) => x), people, forecast,
         events: ev.docs.map((x) => { const e = x.data(); delete e.exp; return { ...e, t: e.t.toMillis() }; }) });
     }
     // the conversations (wiki.js keeps them): a time range (from / to in ms), or everything one account said (uid)
