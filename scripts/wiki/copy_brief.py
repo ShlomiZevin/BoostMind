@@ -35,7 +35,7 @@ parts.append("""אתה קופירייטר עברי לאתר מעריצים של 
 parts.append('## העולמות\n' + json.dumps(worlds, ensure_ascii=False, indent=1))
 parts.append('## הדמויות')
 for c in chars:
-    if only_missing and c['id'] in copy['characters']:
+    if only_missing and c.get('bio'):   # the fan copy is on the record (the database) since 2026-11-06
         continue
     parts.append(json.dumps({k: c[k] for k in KEEP if k in c}, ensure_ascii=False))
 parts.append('## הסרטונים (תמלול מלא)')

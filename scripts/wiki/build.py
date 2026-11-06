@@ -4,9 +4,10 @@
   sh scripts/wiki/encode.sh <episode-id>  # web copy + poster of a new export (build.py lists the missing ones)
 
 Sources, in order of authority:
-  zoomcut/characters/<id>/character.json  the bible of every character (the editor's; a new character is added there)
+  the database (catalogCharacters / catalogSeries) every character and world - the only copy since 2026-11-06
+                                          (canon.characters(); changed through content.mjs put / the studio)
   zoomcut/episodes/<id>                   finished exports + transcripts
-  scripts/wiki/copy.json                  fan-facing copy: tagline, bio, questions, video titles (hand-editable)
+  scripts/wiki/copy.json                  video titles / teasers (characters' tagline, bio, questions are on their record)
   scripts/wiki/portraits/<id>.jpg         a portrait made for the wiki (overrides the editor's)
   scripts/wiki/clips.json                 videos that live only on TikTok / Instagram: [{"url", "title", "cast": [ids]}]
   scripts/wiki/reels.json                 his old Instagram reels, imported with subtitles (scripts/insta): their own
@@ -14,7 +15,7 @@ Sources, in order of authority:
 Writes:
   public/wiki/data/wiki.json        what the site shows
   public/wiki/img/c/<id>.jpg        character portraits, 480x600
-  scripts/wiki/records.json         one record per character / series / game / site - what push.cjs syncs to the
+  scripts/wiki/records.json         one record per game / site - what push.cjs syncs to the
                                     database (techietech-api/content.js), the site's source since 2026-11-05
   techietech-api/wiki-brain.json    everything the chat agent knows (full bibles + transcripts + a card per video) -
                                     never served (the private bucket)
@@ -44,8 +45,11 @@ BRAIN_KEYS = ('id', 'name', 'name_en', 'aka', 'world', 'role', 'brief', 'persona
               'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules', 'relations', 'videos')
 
 
+WORLD_IDS = {}   # the studio's world name -> its series record's id (filled from the database by main)
+
+
 def series_id(world):
-    return SERIES.get(world) or (world or 'other').lower().replace(' ', '-')
+    return WORLD_IDS.get(world) or SERIES.get(world) or (world or 'other').lower().replace(' ', '-')
 
 
 def portrait(src, dst):
@@ -73,7 +77,8 @@ def interleave(chars):
 
 
 def main():
-    chars, worlds = characters()
+    chars, worlds = characters()   # from the database - the only copy since 2026-11-06
+    WORLD_IDS.update({k: w['id'] for k, w in worlds.items()})
     eps = episodes(chars)
     os.makedirs(os.path.join(PUB, 'data'), exist_ok=True)
     os.makedirs(os.path.join(PUB, 'img', 'c'), exist_ok=True)
@@ -119,9 +124,9 @@ def main():
     out_chars = []
     for ch in chars:
         cid = ch['id']
-        c = COPY.get('characters', {}).get(cid) or {}
-        if not c:
-            missing.append(f'copy: character {cid}')
+        c = ch   # the fan copy (tagline, bio, questions) is on the record itself
+        if not c.get('bio'):
+            missing.append(f'copy: character {cid} (no bio - content.mjs put)')
         img = None
         dst = os.path.join(PUB, 'img', 'c', cid + '.jpg')
         own = os.path.join(PORTRAITS, cid + '.jpg')
@@ -147,7 +152,7 @@ def main():
 
     out_series = []
     for key, w in worlds.items():
-        c = COPY.get('worlds', {}).get(key, {})
+        c = w   # its fan title / blurb are on the series record
         sid = series_id(key)
         out_series.append({'id': sid, 'title': c.get('title') or w['name'], 'blurb': c.get('blurb', ''), 'site': w.get('site') or None,
                            'characters': [ch['id'] for ch in out_chars if ch['series'] == sid],
@@ -172,15 +177,9 @@ def main():
         json.dump({v['id']: v.get('_t') or v.get('date') or '' for v in videos}, f, ensure_ascii=False, indent=0)
 
     # one record per thing for the database (techietech-api/content.js) - push.cjs syncs them, three-way per field
-    keys = ('name', 'name_en', 'aka', 'world', 'role', 'catchphrases', 'color', 'relations', 'brief', 'personality', 'speech',
-            'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules')
-    page = {c['id']: c for c in out_chars}
+    # (characters and series are no longer here: the database is their only copy since 2026-11-06 - changed through
+    # content.mjs put / the studio, never from a computer's files)
     records = {
-        'characters': [{'id': ch['id'], 'order': i, **{k: ch[k] for k in keys if k in ch}, 'series': series_id(ch.get('world')),
-                        'tagline': page[ch['id']]['tagline'], 'bio': page[ch['id']]['bio'], 'ask': page[ch['id']]['ask'],
-                        'site': page[ch['id']]['site']} for i, ch in enumerate(chars)],
-        'series': [{'id': series_id(k), 'order': i, 'title': s['title'], 'blurb': s['blurb'], 'site': s['site'],
-                    'brief': w.get('brief', '')} for i, (k, w) in enumerate(worlds.items()) for s in out_series if s['id'] == series_id(k)],
         'games': site['games'],
         'sites': [{'id': s['id'], 'order': i, 'url': s['url'], 'title': s['title'], 'about': s['about'], 'img': site_card[s['id']]['img'],
                    'host': site_card[s['id']]['host'], 'whose': s['whose'], 'in': s.get('in'), **topics.get(s['id'], {}),

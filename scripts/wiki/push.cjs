@@ -7,7 +7,7 @@
 //   2. files: public/wiki/v/* and public/wiki/img/c/* -> gs://shlomiverse-media/wiki/..., only a file that is different AND
 //      newer than the live one (a computer with an older portrait / video never puts it back)
 //   3. videos: a video the catalog doesn't have yet is ADDED (the catalog only grows; versePublish op=hide takes one off)
-//   4. characters, series, games, sites: scripts/wiki/records.json -> versePublish op=sync, three-way per field
+//   4. games, sites: scripts/wiki/records.json -> versePublish op=sync, three-way per field (characters / series live only in the database)
 //      (techietech-api/content.js): only the fields these files changed since they last reached the database are
 //      written; something this computer lacks is never removed or blanked; an edit made through the API stays
 //   5. the site (wiki.json) and the chat's brain are composed again from the database, on the server
@@ -117,7 +117,7 @@ async function main() {
   // 3. characters, series, games, sites - three-way per field on the server
   const records = JSON.parse(fs.readFileSync(path.join(__dirname, 'records.json'), 'utf8'));
   let changes = 0;
-  for (const [kind, items] of [['series', records.series], ['character', records.characters], ['game', records.games], ['site', records.sites]]) {
+  for (const [kind, items] of [['game', records.games], ['site', records.sites]]) {   // characters / series: the database is their only copy (2026-11-06)
     const r = await api({ op: 'sync', kind, items, noCompose: true, dryRun: dry });
     changes += r.added.length + r.changed.length;
     for (const a of r.added) console.log(`  + ${kind}: ${a} (new)`);

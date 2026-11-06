@@ -151,11 +151,12 @@ def ear(d, secs):
 
 
 def roster():
+    """Every character, from the database (the only copy since 2026-11-06)."""
+    sys.path.insert(0, os.path.join(ZC, '..', 'scripts', 'wiki'))
+    from canon import characters
     out = []
-    for cid in sorted(os.listdir(os.path.join(ZC, 'characters'))):
-        c = load(os.path.join(ZC, 'characters', cid, 'character.json'))
-        if not c:
-            continue
+    for c in sorted(characters()[0], key=lambda x: x['id']):
+        cid = c['id']
         txt = lambda v: (v if isinstance(v, str) else json.dumps(v, ensure_ascii=False))[:220]
         out.append({'id': cid, 'name': c.get('name'), 'aka': c.get('aka', [])[:3], 'world': c.get('world'),
                     'role': txt(c.get('role', '')), 'look': txt(c.get('look', '')), 'speech': txt(c.get('speech', ''))})

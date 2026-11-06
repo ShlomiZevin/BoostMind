@@ -18,16 +18,46 @@ def load_json(path, default=None):
         return json.load(f)
 
 
+VERSE = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/versePublish'
+
+
+def verse_key():
+    env = os.path.join(ZC, '.env')
+    if os.path.exists(env):
+        m = re.search(r'^VERSE_PUBLISH_KEY=(.+)$', open(env, encoding='utf8').read(), re.M)
+        if m:
+            return m.group(1).strip().strip('"' + "'")
+    import subprocess
+    return subprocess.check_output('gcloud secrets versions access latest --secret=VERSE_PUBLISH_KEY --project=boostmind-b052c', shell=True).decode().strip()
+
+
+def verse(body):
+    """versePublish (techietech-api/publish.js) - the one door to the Shlomiverse's records."""
+    import urllib.request
+    req = urllib.request.Request(VERSE, data=json.dumps(body).encode(), method='POST',
+                                 headers={'authorization': 'Key ' + verse_key(), 'content-type': 'application/json'})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        out = json.loads(r.read().decode('utf8'))
+    if out.get('error'):
+        raise RuntimeError(f"versePublish {body.get('op')}: {out}")
+    return out
+
+
 def characters():
-    index = load_json(os.path.join(ZC, 'characters', 'index.json'))
-    out = []
-    for cid in index['order']:
-        c = load_json(os.path.join(ZC, 'characters', cid, 'character.json'))
-        if c:
-            prof = os.path.join(ZC, 'characters', cid, 'profile.md')
-            c['_profile'] = open(prof, encoding='utf8').read() if os.path.exists(prof) else ''
-            out.append(c)
-    return out, index.get('worlds', {})
+    """Every character and world from the database - the only copy since 2026-11-06 (no character.json / index.json in
+    git, his ask: no duplication). A character in the old file shape: site = {url, notes}; worlds keyed by the studio's
+    world name: {name, site, brief, title, blurb, id}. Hidden ones are left out."""
+    chars = [c for c in verse({'op': 'list', 'kind': 'character', 'full': True})['items'] if not c.get('hidden')]
+    series = [s for s in verse({'op': 'list', 'kind': 'series', 'full': True})['items'] if not s.get('hidden')]
+    order = lambda x: (x.get('order') if x.get('order') is not None else 1e9, x['id'])
+    for c in chars:
+        url, notes = c.pop('site', None), c.pop('site_notes', None)
+        if url or notes:
+            c['site'] = {k: v for k, v in (('url', url), ('notes', notes)) if v}
+    worlds = {s.get('world') or s['id']: {'id': s['id'], 'name': s.get('name') or s.get('title') or s['id'], 'site': s.get('site'),
+                                          'brief': s.get('brief', ''), 'title': s.get('title', ''), 'blurb': s.get('blurb', '')}
+              for s in sorted(series, key=order)}
+    return sorted(chars, key=order), worlds
 
 
 def reels():

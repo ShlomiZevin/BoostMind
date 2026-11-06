@@ -123,8 +123,8 @@ def new_characters(cids):
     """python scripts/wiki/publish_site.py --characters <character-id>...  - only the characters' part: a character born
     in a video the studio sent through the publish API (render/verse.mjs) gets its fan copy (Terra), the build and the
     push (their records in the database + faces); the video itself is the API's (2026-11-05)."""
-    copy = load_json(os.path.join(HERE, 'copy.json'), {}) or {}
-    need = [c for c in cids if c not in copy.get('characters', {})]
+    have = {c['id']: c for c in characters()[0]}
+    need = [c for c in cids if not (have.get(c) or {}).get('bio')]   # its fan copy is on the record since 2026-11-06
     if need:
         run([sys.executable, 'scripts/wiki/copy_brief.py', '--only-missing'])
         work = tempfile.mkdtemp()  # sol.js reads ./.env first - a project folder's key is revoked
@@ -165,7 +165,8 @@ def main():
     eps = {e['id']: e for e in episodes(chars)}
     copy = load_json(os.path.join(HERE, 'copy.json'), {}) or {}
     need = [i for i in ids if i not in copy.get('videos', {})]
-    need += [c for i in ids for c in eps.get(i, {}).get('cast', []) if c not in copy.get('characters', {})]
+    have = {c['id']: c for c in chars}
+    need += [c for i in ids for c in eps.get(i, {}).get('cast', []) if not (have.get(c) or {}).get('bio')]
     if need:
         run([sys.executable, 'scripts/wiki/copy_brief.py', '--only-missing'])
         work = tempfile.mkdtemp()  # sol.js reads ./.env first - a project folder's key is revoked
