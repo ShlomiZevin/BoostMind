@@ -72,10 +72,10 @@
     .ladder { grid-template-columns: 1fr 1fr; gap: 8px; } .step { padding: 12px; } .step b { font-size: 1rem; padding-left: 40px; }
     .flow { flex-direction: column; overflow: visible; gap: 0; padding: 0; }
     .flow .arrow { flex: 0 0 auto; height: 22px; transform: rotate(-90deg); font-size: 1.2rem; }
-    .shot { flex: none; flex-direction: row; gap: 12px; align-items: flex-start; padding: 8px; max-width: none !important; }
-    .shot img, .shot .ph { width: 104px; flex: none; }
-    .shot .ph { font-size: .72rem; padding: 8px; }
-    .shot b { margin: 2px 0 4px; font-size: 1rem; } .shot small { margin: 0; font-size: .88rem; }
+    .shot { flex: none; flex-direction: column; gap: 0; padding: 8px; max-width: none !important; }
+    .shot img { width: 100%; aspect-ratio: auto; object-fit: contain; }
+    .shot .ph { width: 100%; aspect-ratio: 3 / 2; font-size: .9rem; }
+    .shot b { margin: 10px 4px 4px; font-size: 1.05rem; } .shot small { margin: 0 4px 4px; font-size: .92rem; }
     .shot > div, .shot > b, .shot > small { min-width: 0; }
     .grid2 { grid-template-columns: 1fr; }
     .where { grid-template-columns: 1fr; }

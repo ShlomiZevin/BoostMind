@@ -107,6 +107,17 @@
   .pl-hint { color: var(--dim); font-size: .88rem; display: flex; align-items: center; gap: 6px; margin: 4px 0 10px; } .pl-hint svg { width: 16px; height: 16px; color: var(--accent); }
   .pl-frame { width: 100%; height: 900px; border: 1px solid var(--line2); border-radius: 18px; background: #0b0b0e; display: block; }
   .pl-cs { margin-top: 16px; }
+  .pv { position: fixed; inset: 0; z-index: 200; background: #050507; display: flex; flex-direction: column; }
+  .pv-top { display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 12px 10px; }
+  .pv-top b { flex: 1; font-size: 1rem; line-height: 1.3; } .pv-top small { color: var(--dim); }
+  .pv-x { width: 40px; height: 40px; border-radius: 12px; background: var(--card2); border: 1px solid var(--line2); display: grid; place-items: center; flex: none; } .pv-x svg { width: 20px; height: 20px; }
+  .pv-img { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; touch-action: pan-y pinch-zoom; }
+  .pv-img img { width: 100%; max-width: 720px; height: auto; display: block; }
+  @media (min-width: 900px) { .pv-img { align-items: center; } .pv-img img { width: auto; max-width: 100%; max-height: calc(100vh - 150px); } }
+  .pv-bot { display: flex; align-items: center; gap: 10px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+  .pv-c { flex: 1; justify-content: center; height: 48px; }
+  .pv-nav { width: 48px; height: 48px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line2); display: grid; place-items: center; flex: none; }
+  .pv-nav svg { width: 22px; height: 22px; } .pv-nav.nx svg { transform: rotate(180deg); } .pv-nav:disabled { opacity: .3; }
   .pl-c { padding: 10px 0; border-top: 1px solid var(--line); } .pl-c.done { opacity: .55; }
   .pl-c p { margin: 4px 0 0; white-space: pre-wrap; line-height: 1.5; }
   .pl-cm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .pl-cm small { color: var(--faint); font-size: .8rem; }
@@ -779,8 +790,8 @@ async function openPlan(id) {
   if (tab === 'plans') planView();
 }
 // the frame's own script: every heading, mockup, table row and box gets a comment button; counts come from here
-const PLAN_FRAME = `<style>.pc-b{position:absolute;top:6px;left:6px;z-index:5;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 9px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(11,11,14,.82);color:#fff;font:700 12px Heebo,Arial,sans-serif;cursor:pointer;opacity:.55;transition:opacity .15s}
-.pc-b:hover,.pc-b.has{opacity:1}.pc-b.has{background:#ff6a1f;border-color:#ff6a1f}.pc-b svg{width:14px;height:14px}[data-c]{position:relative}.step>.pc-b,.box>.pc-b,.wcard>.pc-b{top:auto;bottom:6px}tr[data-c] td:first-child{padding-left:70px}h2[data-c],h3[data-c]{padding-left:80px}</style>
+const PLAN_FRAME = `<style>.zoom{display:none!important}img{cursor:pointer}.pc-b{position:absolute;top:6px;left:6px;z-index:5;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 9px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(11,11,14,.82);color:#fff;font:700 12px Heebo,Arial,sans-serif;cursor:pointer;opacity:.55;transition:opacity .15s}
+.pc-b:hover,.pc-b.has{opacity:1}.pc-b.has{background:#ff6a1f;border-color:#ff6a1f}.pc-b svg{width:14px;height:14px}[data-c]{position:relative}.step>.pc-b,.box>.pc-b,.wcard>.pc-b,.shot>.pc-b{top:auto;bottom:8px}.shot .st{padding-left:64px}tr[data-c] td:first-child{padding-left:70px}h2[data-c],h3[data-c]{padding-left:80px}</style>
 <script>(function(){var I='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/></svg>';
 var parts=[].slice.call(document.querySelectorAll('h2,h3,.shot,tr,.box,.step,.wcard'));
 parts.forEach(function(el){if(el.tagName==='TR'&&el.querySelector('th'))return;if(el.closest('.shot')&&el!==el.closest('.shot'))return;
@@ -791,6 +802,9 @@ el.setAttribute('data-c',key);var b=document.createElement('button');b.className
 b.onclick=function(e){e.preventDefault();e.stopPropagation();parent.postMessage({t:'c',key:key,label:lab},'*')};
 (el.tagName==='TR'?el.querySelector('td'):el).appendChild(b)});
 addEventListener('message',function(e){var d=e.data||{};if(d.t!=='n')return;[].slice.call(document.querySelectorAll('[data-c]')).forEach(function(el){var b=el.querySelector('.pc-b');if(!b)return;var n=d.n[el.getAttribute('data-c')]||0;b.classList.toggle('has',n>0);b.querySelector('span').textContent=n?n:''})});
+var imgs=[].slice.call(document.querySelectorAll('img')).filter(function(i){return !i.closest('.zoom')&&i.getAttribute('src')});
+var list=imgs.map(function(i){var sh=i.closest('.shot');var b=sh&&sh.querySelector('b');var src=(i.getAttribute('src')||'');return {src:src,label:b?b.textContent.trim():'',key:'img:'+src.split('?')[0].split('/').pop()}});
+imgs.forEach(function(i,n){i.onclick=function(e){e.preventDefault();e.stopPropagation();parent.postMessage({t:'img',i:n,list:list},'*')}});
 function h(){parent.postMessage({t:'h',h:document.documentElement.scrollHeight},'*')}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h();parent.postMessage({t:'ready'},'*')})();<\/script>`;
 function planView() {
   if (!PLAN) return openPlan(planId);
@@ -815,6 +829,7 @@ function planView() {
     if (d.t === 'h') fr.style.height = Math.max(400, d.h + 4) + 'px';
     if (d.t === 'ready') fr.contentWindow.postMessage({ t: 'n', n: counts() }, '*');
     if (d.t === 'c') planCommentSheet(d.key, d.label);
+    if (d.t === 'img') planViewer(d.list || [], d.i || 0);
   };
   $('#pane [data-pl-back]').onclick = () => { planId = null; PLAN = null; window.onmessage = null; plans(); scrollTo(0, 0); };
   $('#pane').querySelectorAll('[data-pl-st]').forEach((b) => (b.onclick = () => planStatusSheet(b.dataset.plSt)));
@@ -823,6 +838,40 @@ function planView() {
     b.disabled = true;
     try { await api('planDone', { id: planId, comment: b.dataset.plDone, done: b.dataset.v !== '0' }); PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL); planView(); } catch (e) { b.disabled = false; }
   }));
+}
+// the picture viewer (his phone, 2026-11-06): the screen at full width over everything, swipe / arrows between all the
+// plan's pictures, its title, and a comment on exactly this screen
+function planViewer(list, at) {
+  document.querySelectorAll('.pv').forEach((x) => x.remove());
+  if (!list.length) return;
+  const el = document.createElement('div');
+  el.className = 'pv';
+  document.body.append(el);
+  document.body.style.overflow = 'hidden';
+  const n = (PLAN.comments || []).filter((c) => c.kind === 'comment');
+  const draw = () => {
+    const x = list[at], cnt = n.filter((c) => c.anchor === x.key).length;
+    el.innerHTML = `<div class="pv-top"><button class="pv-x" data-pv-x aria-label="סגירה">${IC.x}</button><b>${esc(x.label || '')}</b><small>${at + 1} / ${list.length}</small></div>
+      <div class="pv-img"><img src="${esc(x.src)}" alt=""></div>
+      <div class="pv-bot"><button class="pv-nav nx" data-pv="-1" ${at <= 0 ? 'disabled' : ''} aria-label="הקודם">${IC.back}</button>
+        <button class="btn main pv-c" data-pv-c>${IC.comment}הערה על המסך הזה${cnt ? ` · ${cnt}` : ''}</button>
+        <button class="pv-nav" data-pv="1" ${at >= list.length - 1 ? 'disabled' : ''} aria-label="הבא">${IC.back}</button></div>`;
+    el.querySelector('.pv-img').scrollTop = 0;
+  };
+  const close = () => { el.remove(); document.body.style.overflow = ''; removeEventListener('keydown', key); };
+  const move = (d) => { const t = at + d; if (t >= 0 && t < list.length) { at = t; draw(); } };
+  const key = (e) => { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') move(1); if (e.key === 'ArrowRight') move(-1); };
+  addEventListener('keydown', key);
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('[data-pv-x]')) return close();
+    const nav = e.target.closest('[data-pv]'); if (nav) return move(+nav.dataset.pv);
+    if (e.target.closest('[data-pv-c]')) { const x = list[at]; close(); planCommentSheet(x.key, x.label); }
+  });
+  // swipe: right-to-left reading, so a swipe to the left = the next screen
+  let x0 = null, y0 = 0;
+  el.addEventListener('touchstart', (e) => { if (e.touches.length === 1) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; } else x0 = null; }, { passive: true });
+  el.addEventListener('touchend', (e) => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) move(dx < 0 ? 1 : -1); }, { passive: true });
+  draw();
 }
 function planCommentRow(c) {
   const who = c.by === 'claude' ? '<b class="pl-who cl">Claude</b>' : '<b class="pl-who">אתה</b>';
