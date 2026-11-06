@@ -61,7 +61,8 @@ const IDEA_COPY = {
 };
 const COMMENT_MAX = 500;
 const REGION = 'europe-west1';
-const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
+// techytech.web.app too: its job form signs up by email through emailCode / emailIn (site-signin.js, 2026-11-06)
+const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/, /^http:\/\/localhost(:\d+)?$/];
 
 // ---------- small helpers ----------
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);

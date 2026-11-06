@@ -109,7 +109,9 @@
   form.fake { display: grid; gap: 8px; max-width: 420px; margin: 10px auto 0; text-align: right; }
   form.book { display: grid; gap: 8px; max-width: 420px; margin: 10px auto 0; text-align: right; }
   form.book input, form.book textarea, form.book select { font: inherit; padding: 8px; border: 3px inset #c58cff; background: #fffaf0; color: #4b0082; width: 100%; box-sizing: border-box; }
-  form.book .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; border: 0; }
+  /* hidden in place (clip), never pushed off to the side: left -9999px in a right-to-left page made it 10,000px wide -
+     the phone zoomed out and the sign-in window opened off screen (2026-11-06) */
+  form.book .hp { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); opacity: 0; border: 0; }
   form.book .err { color: #c2185b; font-weight: bold; min-height: 1.2em; margin: 0; text-align: center; }
   form.fake input, form.fake textarea, form.fake select { font: inherit; padding: 8px; border: 3px inset #c58cff; background: #fffaf0; color: #4b0082; width: 100%; }
 
