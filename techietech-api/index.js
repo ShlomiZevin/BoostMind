@@ -196,6 +196,7 @@ exports.siteLead = onRequest({
 
 // the characters wiki's chat (/wiki/) - see wiki.js
 exports.wikiChat = require('./wiki').wikiChat;
+exports.verseSim = require('./sim').verseSim;   // "אתם חיים בסימולציה?" - the simulation test (sim.js, /simulation)
 
 // Shlomi's own analytics (public/t.js -> track, the /stats/ dashboard -> stats) - see analytics.js
 Object.assign(exports, require('./analytics'));

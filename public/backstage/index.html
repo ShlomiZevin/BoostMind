@@ -107,6 +107,18 @@
   .pl-hint { color: var(--dim); font-size: .88rem; display: flex; align-items: center; gap: 6px; margin: 4px 0 10px; } .pl-hint svg { width: 16px; height: 16px; color: var(--accent); }
   .pl-frame { width: 100%; height: 900px; border: 1px solid var(--line2); border-radius: 18px; background: #0b0b0e; display: block; }
   .pl-cs { margin-top: 16px; }
+  .seg.sm { margin: 0; } .seg.sm button { height: 32px; padding: 0 12px; font-size: .85rem; }
+  .sim-st .kgrid.sim-k { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); margin: 6px 0 12px; }
+  .sim-st .k small { display: block; color: var(--dim); font-size: .78rem; margin-top: 2px; }
+  .sim-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; } .sim-row b { font-size: .88rem; margin-left: 6px; }
+  .sim-drop { display: flex; align-items: flex-end; gap: 6px; height: 90px; margin: 6px 0 10px; direction: ltr; }
+  .sim-drop > div { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }
+  .sim-drop span { width: 100%; background: var(--accent, #ff6a1f); border-radius: 6px 6px 2px 2px; min-height: 2px; }
+  .sim-drop small { font-size: .72rem; color: var(--dim); margin-top: 3px; } .sim-drop em { font-style: normal; font-size: .72rem; position: absolute; top: -2px; }
+  .sim-recent { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .sim-recent a { display: flex; gap: 10px; align-items: center; color: inherit; text-decoration: none; padding: 6px; border-radius: 12px; background: var(--card2); }
+  .sim-recent img, .sim-recent .ph { width: 44px; height: 66px; border-radius: 8px; object-fit: cover; flex: none; background: var(--line2); }
+  .sim-recent span { display: flex; flex-direction: column; min-width: 0; } .sim-recent small { color: var(--dim); font-size: .8rem; }
   .pv { position: fixed; inset: 0; z-index: 200; background: #050507; display: flex; flex-direction: column; }
   .pv-top { display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 12px 10px; }
   .pv-top b { flex: 1; font-size: 1rem; line-height: 1.3; } .pv-top small { color: var(--dim); }
@@ -1286,11 +1298,43 @@ function data() {
     <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="d-ch"></div></div>
     ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
       <div class="kgrid" style="margin:4px 0 0">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
-    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}`;
+    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
+    <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>`;
   bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay, ghostOf(metric));
   hourChart($('#d-fc'), FC(metric));
   $('#metric').onchange = (e) => { metric = e.target.value; data(); };
   $('#ask-f').onsubmit = (e) => { e.preventDefault(); ask($('#ask-q').value); };
+  simCard();
+}
+// "אתם חיים בסימולציה?" (2026-11-06, stage 2 of the conversion plan): the funnel from the tests themselves (sim.js simStats)
+let SIMST = null, simAt = 0, simDays = 7;
+async function simCard(force) {
+  const el = $('#sim-st');
+  if (!el) return;
+  const draw = () => {
+    const x = SIMST;
+    if (!x || x.error) { el.innerHTML = `<div class="card-h"><h2>מבחן הסימולציה</h2></div><div class="empty">${x && x.error ? 'לא נטען' : 'טוען…'}</div>`; return; }
+    const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '-');
+    const FROM = { home: 'בית', chat: "צ'אט", share: 'שיתוף', instagram: 'אינסטגרם', direct: 'ישיר', other: 'אחר' };
+    const steps = x.drop.slice(0, 8), maxD = Math.max(1, ...steps);
+    el.innerHTML = `<div class="card-h"><h2>מבחן הסימולציה</h2><div class="seg sm">${[[1, 'היום'], [7, '7 ימים'], [30, '30 ימים']].map(([d, l]) => `<button data-simd="${d}" class="${simDays === d ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+      <div class="kgrid sim-k">
+        <div class="k"><span class="kh">התחילו</span><b>${fmt(x.started)}</b><small>${fmt(x.touristsStarted)} תיירים</small></div>
+        <div class="k"><span class="kh">סיימו</span><b>${fmt(x.finished)}</b><small>${pct(x.finished, x.started)}</small></div>
+        <div class="k"><span class="kh">נהיו תושבים דרכו</span><b>${fmt(x.becameResidents)}</b><small>${pct(x.becameResidents, x.touristsStarted)} מהתיירים</small></div>
+        <div class="k"><span class="kh">שיתפו</span><b>${fmt(x.shared)}</b><small>${fmt(x.fromShare)} הגיעו משיתוף</small></div>
+        <div class="k"><span class="kh">תמונות היום</span><b>${fmt(x.today.n)}</b><small>תקרה ${fmt(x.today.cap)}</small></div></div>
+      <div class="sim-row"><b>מאיפה נכנסו</b>${Object.entries(x.by).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tag">${esc(FROM[k] || k)} ${v}</span>`).join('') || '<span class="hint">עוד אין</span>'}</div>
+      <div class="sim-row"><b>איפה עצרו (שאלות שענו)</b></div>
+      <div class="sim-drop">${steps.map((v, i) => `<div><span style="height:${Math.round((v / maxD) * 100)}%"></span><small>${i}</small><em>${v}</em></div>`).join('')}</div>
+      <p class="hint">העלות: הוצאות ← המפתח "site" (נקרא מ-OpenAI).</p>
+      ${x.recent.length ? `<div class="sim-recent">${x.recent.map((r) => `<a href="https://shlomiverse.com/simulation?r=${r.rid}" target="_blank" rel="noopener">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="ph"></span>'}<span><b>${r.score} · ${esc(r.name)}</b><small>${esc(r.host || '')} · ${esc(FROM[r.from] || r.from || '')} · ${ago(r.t)}${r.uid ? ' · תושב' : ''}${r.shared ? ' · שותף' : ''}</small></span></a>`).join('')}</div>` : ''}`;
+    el.querySelectorAll('[data-simd]').forEach((b) => (b.onclick = () => { simDays = +b.dataset.simd; simCard(true); }));
+  };
+  if (!force && SIMST && Date.now() - simAt < 300e3) return draw();
+  if (!SIMST) draw();
+  try { SIMST = await api('simStats', { days: simDays }); simAt = Date.now(); } catch (e) { SIMST = { error: true }; }
+  if ($('#sim-st')) draw();
 }
 async function ask(q) {
   q = String(q || '').trim();

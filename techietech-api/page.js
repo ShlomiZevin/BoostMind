@@ -61,6 +61,20 @@ function preview(w, kind, id) {
   return null;
 }
 
+// /simulation (the simulation test, sim.js): a shared result shows its own picture and name; the test itself its question
+async function simPreview(rid) {
+  const base = { title: `אתם חיים בסימולציה? · ${NAME}`, desc: 'באיזו סימולציה אתם חיים?', img: null };
+  if (!/^[a-z0-9]{10,24}$/.test(String(rid || ''))) return base;
+  try {
+    const admin = require('firebase-admin');
+    if (!admin.apps.length) admin.initializeApp();
+    const g = await admin.firestore().collection('sims').doc(rid).get();
+    const d = g.exists ? g.data() : null;
+    if (!d || !d.shared || !d.result) return base;
+    return { title: `${d.result.score} · ${d.result.name} · ${NAME}`, desc: `${d.result.share} ${d.result.ask}`, img: d.img || null };
+  } catch (e) { return base; }
+}
+
 function inject(html, p, url) {
   const set = (re, tag) => (re.test(html) ? (html = html.replace(re, tag)) : (html = html.replace('</head>', tag + '\n</head>')));
   const title = esc(one(p.title, 90)), desc = esc(one(p.desc));
@@ -87,8 +101,8 @@ exports.versePage = onRequest({ region: 'europe-west1', memory: '256MiB', timeou
   try { html = await cached('t', TEMPLATE, 60e3, 'text'); } catch (e) { res.redirect(302, `/wiki/#${req.path}`); return; }
   try {
     const w = await cached('w', DATA, 120e3, 'json');
-    const p = preview(w, kind, id);
-    if (p) html = inject(html, p, SITE + req.path);
+    const p = kind === 'simulation' ? await simPreview(req.query.r) : preview(w, kind, id);
+    if (p) html = inject(html, p, SITE + req.path + (kind === 'simulation' && req.query.r ? `?r=${encodeURIComponent(req.query.r)}` : ''));
   } catch (e) { console.error('versePage', req.path, e.message); }
   res.set('Cache-Control', 'public, max-age=120, s-maxage=600');
   res.set('Content-Type', 'text/html; charset=utf-8');

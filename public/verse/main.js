@@ -9,6 +9,7 @@ import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, m
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
 import { appBoot } from './install.js';
+import { simPage, mountBand, quizCard } from './sim.js';
 appBoot();
 
 Object.assign(HOOK, {
@@ -31,6 +32,7 @@ Object.assign(HOOK, {
   requestCard,
   signinCard,
   stickerCard,   // [[sticker:ID]] in a chat reply
+  quizCard,      // [[quiz]] in a chat reply: the character suggests the simulation test (sim.js)
   nearestId: nearest,
   // the chat sends the account with each question (3 in total without an account, 10 a day signed in), and signs in from its note
   chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),
@@ -47,6 +49,7 @@ Object.assign(HOOK, {
     renderTop();
     paintFollow();
     if (page === 'notes') document.title = `${T.notesTitle} · שלומיוורס`;
+    if (!page) mountBand();   // "אתם חיים בסימולציה?" under the question box (sim.js)
     if (!page) recordsHome(); else if (!/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום" lives on the home
   },
 });
@@ -59,6 +62,7 @@ onIdeas(() => refresh());
 pages['my-characters'] = myCharactersPage;
 pages['my-stickers'] = myStickersPage;
 pages.install = installPage;
+pages.simulation = simPage;
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
 onStories(() => { refresh(); paintStoryRing(); });

@@ -59,6 +59,7 @@ What a visitor can do on this site (shlomiverse.com). When they ask how to do so
 - Talk to any character in this chat, or write @ and a name to switch to them.
 - "מה הלאה בשלומיוורס": suggest an idea for an episode, a new character or a meeting between characters, and vote for others' ideas - the most loved reach Shlomi first. Also: request a video, report something broken.
 - Characters' own sites (shops, companies, services - see the site cards) and Hani's games.
+- The test "אתם חיים בסימולציה?" (shlomiverse.com/simulation): a few silly questions about the visitor, asked by a character, and at the end a score and the simulation they live in - a mix of residents made just for them, with a picture of them together. You may suggest it, in your own voice and in one short sentence, when the talk itself comes to it - simulation, reality, fate, "who am I", what kind of person the visitor is - or when they ask what there is to do here; then put [[quiz]] on its own line (the page shows the test's card; it counts as one of the three cards). At most once in a conversation: never if you already suggested it, never in place of answering what they asked, and never in a reply that ends with [[signin]] or [[invite]].
 - A Google account (one tap, no password) is what sticker-making, following, saving, comments, voting and more chat messages need; with it the characters know their name. Inside Instagram / TikTok / Facebook's own browser Google sign-in doesn't work - open the link in a normal browser first.`;
 
 const canon = (brain) => {

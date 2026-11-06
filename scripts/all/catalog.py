@@ -52,6 +52,7 @@ EXTRA = [
     ('verse', 'קאבר פייסבוק', SITE + '/links/img/fb-cover-2x.jpg', 'תמונה'),
     ('characters', 'Techy-Tech (הדומיין שלו)', 'https://techytech.web.app', 'אתר'),
     ('verse', 'שלומידגם - ליל הבחירות', 'https://shlomidgam.web.app', 'אתר'),
+    ('verse', 'מבחן הסימולציה - "אתם חיים בסימולציה?"', SITE + '/simulation', 'אתר'),
     # his tools
     # personal tools - their own repo (c:\workspace\shlomi-tools) and project (shlomi-tools) since 2026-10-31
     ('tools', 'Vault', 'https://shlomi-vault.web.app', 'כספת'),

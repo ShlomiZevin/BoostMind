@@ -647,6 +647,7 @@ const pages = {
         <form class="ask" id="ask"><span class="spark">${ICON.spark}</span>
           <input id="ask-in" placeholder="שאלו משהו, או @ לדמות" autocomplete="off" maxlength="1200">
           <button aria-label="שליחה">${ICON.send}</button></form>
+        <div id="sim-band"></div>
         <div class="who" id="who"><div class="who-l">מי עונה?</div>
           ${who.map((c) => `<button type="button" data-who="${c.id}" class="${c.id === heroWho ? 'on' : ''}" style="--c:${color(c)}"><span class="av">${face(c)}</span>${esc(c.id === 'guide' ? 'כולם' : c.name)}</button>`).join('')}</div>
       </div>
@@ -736,7 +737,7 @@ const pages = {
 
 // ---------- router ----------
 // the verse's pages, by their first part (shlomiverse.com/<page>/...): anything else is another site of his (/links/, /hani-games/)
-const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install']);
+const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation']);
 const isPage = (pathname) => pathname === '/' || PAGES.has(pathname.split('/')[1]);
 function nav(url, replace = false) {
   if (typeof url === 'string' && url.startsWith('#/')) url = url.slice(1);   // an old-style link
@@ -998,6 +999,9 @@ function renderText(text, streaming) {
       } else if (line.trim() === '[[invite]]') {   // today's 10 are used: their own invite link (wiki.js LIMIT.done)
         flush();
         parts.push(streaming ? '' : inviteCard());
+      } else if (line.trim() === '[[quiz]]') {   // the character suggests the simulation test (wiki.js, verse/sim.js)
+        flush();
+        parts.push(streaming || !HOOK.quizCard ? '' : HOOK.quizCard(cxMode));
       } else if (line.trim() === '[[signin]]') {   // the character asks to sign in (the day's free questions are used)
         flush();
         parts.push(streaming || !HOOK.signinCard ? '' : HOOK.signinCard(true, cxMode));

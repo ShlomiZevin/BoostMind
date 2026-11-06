@@ -20,6 +20,7 @@ const KEEP_DAYS = 90;
 
 // what a visitor can do; anything else is dropped
 const EVENTS = new Set([
+  'sim_band', 'sim_card', 'sim_open', 'sim_start', 'sim_q', 'sim_done', 'sim_score', 'sim_join', 'sim_full', 'sim_img', 'sim_share', 'sim_ref', 'sim_meet',   // the simulation test (sim.js): x = host / from / question n / score / via
   'view',          // a page or a wiki screen was opened          x = page / route
   'character',     // a character's page or card was opened        x = character id
   'chat_open',     // a chat window opened                         x = character id or 'guide'
