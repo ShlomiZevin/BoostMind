@@ -27,12 +27,13 @@ def render(ep, project, n):
         # the clip wins (2026-11-03): a clip's own cleaning plays that cleaning's source, its own speech level its own
         # gain; its own voice / clarity / fx go to the graph (layergraph.soundOf)
         row_clean = props.get("clean") or "off"
+        t = layers_audio.tempo_of(l)  # (the row's own speed: its sources sped up, pitch kept - each item's in / t there)
         sources, levels = {}, {}
         for c in sorted({it.get("clean") or row_clean for it in items} or {row_clean}):
             srcs, lv = layers_audio.layer_sources(ep, project, l, c)
             for aid, x in srcs.items():
                 key = aid if c == row_clean else f"{aid}|{c}"
-                x = np.ascontiguousarray(x, dtype=np.float32)
+                x = np.ascontiguousarray(layers_audio.stretched(ep, x, t), dtype=np.float32)
                 p = os.path.join(d, f"{l['id']}__{key}.{hashlib.sha1(x[::997].tobytes() + str(len(x)).encode()).hexdigest()[:10]}.f32".replace("/", "_").replace("|", "_"))
                 if not os.path.exists(p):
                     x.tofile(p)
@@ -45,7 +46,7 @@ def render(ep, project, n):
             key = aid if c == row_clean else f"{aid}|{c}"
             speech = (it.get("level") if it.get("level") is not None else props.get("level")) == "speech"
             return {**{k: it.get(k) for k in ("from", "dur", "in", "rate", "gain", "fade_in", "fade_out", "fx", "soften", "voice", "presence")},
-                    "asset": key, "lvl": levels.get(key, 1.0) if speech else 1.0}
+                    **({"in": (it.get("in") or 0) / t} if abs(t - 1) > 1e-4 else {}), "asset": key, "lvl": levels.get(key, 1.0) if speech else 1.0}
         job["layers"].append({"id": l["id"],
                               "props": {k: props.get(k) for k in ("fx", "presence", "voice")},
                               "items": [one(it) for it in items],

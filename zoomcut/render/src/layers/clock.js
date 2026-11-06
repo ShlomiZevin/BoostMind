@@ -26,6 +26,14 @@ export function continues(a, b, fps) {
     && Math.abs(srcAt(a, a.from + a.dur, fps) - (b.in ?? 0)) < 1.5 / fps;
 }
 
+/** A sound row's own speed (props.tempo, 2026-11-06 - a music bed at 1.2x for a fast-talking character): its sound
+ *  plays that much faster, its pitch kept, on top of the project's speed (or alone, with own_pace). 0.5-2; 1 = off.
+ *  An item then takes rate x tempo seconds of its source per second of the timeline (the pitch follows rate only). */
+export function tempoOf(layer) {
+  const t = layer?.kind === 'audio' ? +layer.props?.tempo : NaN;
+  return t > 0 ? Math.min(2, Math.max(0.5, t)) : 1;
+}
+
 /** Seconds into the asset that part `p` shows at frame f. */
 export function srcAt(p, f, fps) {
   return (p.in ?? 0) + ((f - p.from) / fps) * (p.rate ?? 1);

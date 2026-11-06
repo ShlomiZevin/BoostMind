@@ -146,6 +146,16 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   wants at its real tempo while the video runs at 1.15×. Live: it plays at its own rate on the sped timeline; export:
   pipeline/layers_audio._own_pace renders it in real time and pre-stretches it so the export's speed-up lands it back on
   its own tempo (measured 1.00× vs 1.15×). Items still sit where they are on the timeline.
+- `tempo` (0.5-2, layer; Inspector: the row's window (Row) - "Extra speed (pitch kept)" / with own_pace "Its speed",
+  2026-11-06 - first ask: a music bed at 1.2× under a fast-talking character): the row's OWN speed, pitch kept, on top
+  of the project's (`speed` 1.15 x `tempo` 1.2 = the music at 1.38×) or alone with `own_pace` (exactly 1.2× of the
+  song). An item then takes `rate` x `tempo` seconds of its source per timeline second (`in` stays in the source's
+  seconds; split / trim count the tempo - clock.js `tempoOf`); the pitch follows only the item's `rate`. Live: ONE
+  pitch-kept copy at the two speeds together (`/pm-tempo?s=` 0.25-4, ffmpeg atempo) played from memory
+  (AudioTrack.tsx); export: the row's sources stretched by `tempo` (layers_audio `stretched`, the same atempo) with
+  each item's `in / tempo` there, through the same graph (audio_render.py) - then the project's speed-up / own_pace
+  as before. Measured on a copy of haredit-4: 1.26 / 1.20 / 0.84 s of the song per second in the editor and the
+  export alike. Set when the slider is let go (each value = one copy the studio makes).
 - **The clip wins over its row** (his rule, 2026-11-03 - layergraph.ts `soundOf`): an item may carry its own `clean`,
   `voice` (`false` = no voice chain for this clip), `presence`, `level` and `fx`; each replaces the row's for that clip
   (`fx` key by key - `filter: ""`, `pitch: 0`, `room: 0` mean "none here"), the rest comes from the row. Only loudness

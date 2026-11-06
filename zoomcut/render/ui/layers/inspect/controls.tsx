@@ -4,6 +4,7 @@
 import { ask } from '../ask';
 import React, { useEffect, useRef, useState } from 'react';
 import { newId } from '../../../src/layers/ops.js';
+import { tempoOf } from '../../../src/layers/clock.js';
 import { helpFor, labelText } from './help';
 
 export type InspectorProps = {
@@ -328,7 +329,7 @@ export function splitOps(layer: any, it: any, frame: number, fps: number) {
   if (k < 1 || k > it.dur - 1) return null;
   const { ref, user, ...rest } = it;
   const right: any = { ...rest, id: newId(String(it.id).split('~')[0] + '~'), from: it.from + k, dur: it.dur - k, fade_in: undefined };
-  if (it.in != null || layer.kind === 'video' || layer.kind === 'audio') right.in = +((it.in ?? 0) + (k / fps) * (it.rate ?? 1)).toFixed(4);
+  if (it.in != null || layer.kind === 'video' || layer.kind === 'audio') right.in = +((it.in ?? 0) + (k / fps) * (it.rate ?? 1) * tempoOf(layer)).toFixed(4);
   if (it.anim) delete right.anim;  // (an entrance plays once, on the first part)
   for (const key of Object.keys(right)) if (right[key] === undefined) delete right[key];
   return [{ op: 'item.update', layer: layer.id, id: it.id, set: { dur: k, fade_out: null } },

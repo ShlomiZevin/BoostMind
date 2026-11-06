@@ -1071,6 +1071,8 @@ app.get('/pm/:id', (q, res) => {
 // editor plays sound from memory on one clock (src/layers/AudioTrack.tsx) and needs the sped-up copy decoded, since a
 // buffer can't keep its pitch when played faster. Made once, cached by file + its date + speed.
 const tempoJobs = new Map();
+// atempo in steps of 0.5-2 (older ffmpeg builds take no more in one) - pipeline/layers_audio.atempo, the same chain
+const atempoChain = (s) => { const f = []; while (s > 2) { f.push(2); s /= 2; } while (s < 0.5) { f.push(0.5); s /= 0.5; } f.push(s); return f.map((x) => `atempo=${+x.toFixed(6)}`).join(','); };
 // the sped-up copies no one played for two weeks go (his rule, 2026-11-02: projects careful about space) - a copy is
 // made again in a second when it's played; each play marks it fresh. At start and once a day, never during a job
 function sweepTempo() {
@@ -1087,14 +1089,15 @@ if (!TEST) { setTimeout(sweepTempo, 60e3); setInterval(sweepTempo, 864e5).unref?
 app.get('/pm-tempo/:id', async (q, res) => {
   const f = path.resolve(epDir(q.params.id), String(q.query.p || ''));
   const s = +q.query.s;
-  if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory() || !(s >= 0.5 && s <= 2)) return res.status(404).end();
+  // (0.25-4: the project's speed x a sound row's own tempo - props.tempo 0.5-2)
+  if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory() || !(s >= 0.25 && s <= 4)) return res.status(404).end();
   const key = crypto.createHash('sha1').update(`${f}|${fs.statSync(f).mtimeMs}|${s}`).digest('hex').slice(0, 16);
   const dir = path.join(epDir(q.params.id), 'work', 'public', 'layers', 'tempo'), out = path.join(dir, key + '.wav');
   if (!fs.existsSync(out)) {
     if (!tempoJobs.has(out)) tempoJobs.set(out, new Promise((ok) => {
       fs.mkdirSync(dir, { recursive: true });
       const tmp = out + '.part.wav';
-      const p = spawn('ffmpeg', ['-y', '-v', 'error', '-i', f, '-vn', '-af', `atempo=${s}`, '-ac', '1', '-ar', '48000', '-c:a', 'pcm_f32le', tmp], { windowsHide: true });
+      const p = spawn('ffmpeg', ['-y', '-v', 'error', '-i', f, '-vn', '-af', atempoChain(s), '-ac', '1', '-ar', '48000', '-c:a', 'pcm_f32le', tmp], { windowsHide: true });
       p.on('close', (code) => { if (!code) fs.renameSync(tmp, out); tempoJobs.delete(out); ok(); });
       p.on('error', () => { tempoJobs.delete(out); ok(); });
     }));

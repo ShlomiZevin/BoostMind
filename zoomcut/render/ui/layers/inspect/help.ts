@@ -98,6 +98,8 @@ export const HELP: Record<string, string> = {
   'Heard': 'Off = this row is silent (nothing is deleted).',
   'Locked': 'Locked rows can\'t be moved or changed by accident.',
   'Keep its own pace (not sped up with the video)': 'When the video is sped up (1.3×), this row still plays at its real speed - for a song that must not sound faster.',
+  'Extra speed (pitch kept)': 'This row plays faster (or slower) on top of the video’s speed, its pitch kept - a music bed at 1.2× under a fast talker. The video at 1.15× and this at 1.2× = the music at 1.38×. Set when you let go.',
+  'Its speed (pitch kept)': 'This row’s own speed, its pitch kept - with "Keep its own pace" on, 1.2× is exactly 1.2× of the song, whatever the video’s speed. Set when you let go.',
 };
 
 /** the text of a label (a string, or a label with a "clip ×" mark beside it) */

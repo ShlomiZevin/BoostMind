@@ -143,7 +143,13 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
     </Sec>
 
     <PanelEnd P={P} timing={<ClipTiming P={P} source speedCtl fades={false} />}
-      lane={<LayerState P={P} sound><ToggleRow label="Keep its own pace (not sped up with the video)" on={!!props.own_pace} onChange={(on) => S.layer({ own_pace: on || null })} /></LayerState>} />
+      lane={<LayerState P={P} sound>
+        <ToggleRow label="Keep its own pace (not sped up with the video)" on={!!props.own_pace} onChange={(on) => S.layer({ own_pace: on || null })} />
+        {/* the row's own speed, pitch kept (props.tempo - src/layers/clock.js tempoOf): set when the slider is let go -
+            each value is one sped-up copy the studio makes */}
+        <Slider label={props.own_pace ? 'Its speed (pitch kept)' : 'Extra speed (pitch kept)'} v={props.tempo ?? 1} min={0.5} max={2} step={0.05} def={1} fmt={fmt.x}
+          onChange={(x, c) => { if (c) S.layer({ tempo: Math.abs(x - 1) < 1e-3 ? null : +x.toFixed(2) }); }} />
+      </LayerState>} />
   </div>;
 };
 

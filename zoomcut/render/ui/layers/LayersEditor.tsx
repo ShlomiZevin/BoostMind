@@ -8,6 +8,7 @@ import { Layers } from '../../src/Layers';
 import { clockFrame, soundDiag, soundClock, soundJump } from '../../src/layers/AudioTrack';
 import { useLayered, build, fmtT } from './api';
 import { apply } from '../../src/layers/ops.js';
+import { tempoOf } from '../../src/layers/clock.js';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
 import { Media } from './Media';
@@ -274,8 +275,8 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     const change = (ly: any, x: any) => {
       const set: any = side === 'm' ? { from: Math.max(0, x.from + d) }
         : side === 'r' ? { dur: Math.max(1, x.dur + d) }
-        : ripple ? { dur: Math.max(1, x.dur - d), ...(x.in != null ? { in: Math.max(0, +(x.in + (d / fps) * (x.rate || 1)).toFixed(4)) } : {}) }
-        : { from: Math.max(0, x.from + d), dur: Math.max(1, x.dur - d), ...(x.in != null ? { in: Math.max(0, +(x.in + (d / fps) * (x.rate || 1)).toFixed(4)) } : {}) };
+        : ripple ? { dur: Math.max(1, x.dur - d), ...(x.in != null ? { in: Math.max(0, +(x.in + (d / fps) * (x.rate || 1) * tempoOf(ly)).toFixed(4)) } : {}) }
+        : { from: Math.max(0, x.from + d), dur: Math.max(1, x.dur - d), ...(x.in != null ? { in: Math.max(0, +(x.in + (d / fps) * (x.rate || 1) * tempoOf(ly)).toFixed(4)) } : {}) };
       ops.push({ op: 'item.update', layer: ly.id, id: x.id, set, user: false });
       seen.add(ly.id + '|' + x.id);
     };

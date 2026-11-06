@@ -9,6 +9,7 @@ import './timeline.css';
 import { ask } from './ask';
 import { Note, NotePins, PRESETS, saveNotes, newNote } from './Notes';
 import { Find } from './Find';
+import { tempoOf } from '../../src/layers/clock.js';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -143,7 +144,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   // really moved (never past the take's ends). A drag and a nudge both go through here, so they behave the same
   const trimmer = (l: any, it: any, side: 'l' | 'r' | 'm', chain = false) => {
     const asset = project.assets?.[it.asset];
-    const rate = it.rate || 1;
+    const rate = (it.rate || 1) * tempoOf(l);  // (seconds of the source per second here - a sound row's tempo too)
     // never past the video's end: moved there it ends at the end, stretched there it stops at it (his takes excepted -
     // pulling back footage at the end makes the video longer, their builder re-plans the length)
     const take = it.ref?.take != null || it.ref?.line != null;

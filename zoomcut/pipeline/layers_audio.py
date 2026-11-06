@@ -6,6 +6,8 @@ Layer props (skill/edit-video/layers.md):
   volume  0..2 (live in the editor)          mute / hidden   silent
   clean   off | mild | strong | nn (RNNoise)  presence        dB at 2.8 kHz (clarity)
   level   "speech" = even out each source by its speech level, measured on the pieces used (voices)
+  tempo   0.5..2 - the row's own speed, pitch kept, on top of the project's (alone with own_pace): its sources are
+          stretched (atempo) and each item's `in` read in the stretched source (in / tempo) - `tempo_of`, `stretched`
 Item: asset, in (s), from / dur (frames), gain, fade_in / fade_out (s), soften (a shouted line made easier).
 
 The editor plays the stems (work/public/layers/stems/<layer>.wav, after the shared gain, before the layer's volume)
@@ -51,6 +53,45 @@ def _filtered(ep, path, props):
     if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(path):
         run([FFMPEG, "-y", "-v", "error", "-i", path, "-af", chain, "-ar", str(SR), "-ac", "1", out])
     return out
+
+
+def tempo_of(layer):
+    """A sound row's own speed (props.tempo, 2026-11-06 - render/src/layers/clock.js tempoOf, the same): 1 = off."""
+    try:
+        t = float((layer.get("props") or {}).get("tempo") or 1) if layer.get("kind") == "audio" else 1.0
+    except (TypeError, ValueError):
+        return 1.0
+    return min(2.0, max(0.5, t)) if t > 0 else 1.0
+
+
+def atempo(s):
+    """ffmpeg's atempo for any speed, in steps of 0.5-2 (render/server.mjs atempoChain, the same chain)."""
+    f = []
+    while s > 2:
+        f.append(2.0)
+        s /= 2
+    while s < 0.5:
+        f.append(0.5)
+        s /= 0.5
+    f.append(s)
+    return ",".join(f"atempo={x:.6f}" for x in f)
+
+
+def stretched(ep, x, t):
+    """Samples x played t x faster, pitch kept (ffmpeg atempo - the filter the editor's sped-up copies are made with,
+    /pm-tempo). Cached by content."""
+    if abs(t - 1) < 1e-4 or not len(x):
+        return x
+    x = np.ascontiguousarray(x, dtype=np.float32)
+    d = ep.work("layers", "tempo")
+    os.makedirs(d, exist_ok=True)
+    key = hashlib.sha1(x[::997].tobytes() + str(len(x)).encode() + f"{t:.4f}".encode()).hexdigest()[:12]
+    src, dst = os.path.join(d, key + ".in.f32"), os.path.join(d, key + ".f32")
+    if not os.path.exists(dst):
+        x.tofile(src)
+        run([FFMPEG, "-y", "-v", "error", "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", src, "-af", atempo(t), "-f", "f32le", "-ac", "1", "-ar", str(SR), dst])
+        os.remove(src)
+    return np.fromfile(dst, dtype=np.float32)
 
 
 CLEAN_VARIANTS = ("off", "mild", "strong", "fft", "nn")  # the Noise switch's choices made up front: switching plays another file, at once
@@ -109,10 +150,13 @@ def track(ep, project, layer, n, sources=None):
                 a = int(it.get("in", 0) * SR)
                 z = a + int(round(it["dur"] / fps * SR))
                 sources[f"{aid}@{it['id']}"] = audio.soften(cache[aid][a:z].copy() * level.get(aid, 1.0))
+    t = tempo_of(layer)
+    if abs(t - 1) > 1e-4:  # the row's own speed: its pieces come from the source sped up, pitch kept (in / tempo there)
+        cache = {aid: stretched(ep, x, t) for aid, x in cache.items()}
     for it in items:
         aid = it.get("asset") or props.get("asset")
         x = cache[aid]
-        a = int(it.get("in", 0) * SR)
+        a = int(it.get("in", 0) / t * SR)
         n_out = int(round(it["dur"] / fps * SR))
         rate = float(it.get("rate", 1) if it.get("rate") is not None else 1)
         if rate <= 1e-6:  # a held frame: no sound
