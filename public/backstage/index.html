@@ -168,6 +168,15 @@
   .item img.th { width: 50px; height: 88px; object-fit: cover; border-radius: 12px; flex: none; }
   .item .votes { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); font-weight: 800; }
   .item .votes img { width: 18px; }
+  .cs-bars { display: grid; gap: 10px; }
+  .cs-bar { display: grid; grid-template-columns: minmax(96px, 34%) 1fr auto; gap: 10px; align-items: center; font-size: .92rem; }
+  .cs-bar > span:first-child { color: var(--text); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cs-bar i { display: block; height: 10px; border-radius: 6px; background: var(--accent); min-width: 3px; }
+  .cs-bar b { font-weight: 800; color: var(--text); white-space: nowrap; }
+  .cs-bar small { color: var(--faint); font-weight: 600; }
+  .cs-note { color: var(--faint); font-size: .8rem; margin: 10px 0 0; }
+  .cs-err { color: #ff8a6e; font-size: .85rem; margin: 0 0 12px; }
+  .cs-meter { height: 12px; border-radius: 8px; background: var(--card2); overflow: hidden; margin: 8px 0 4px; } .cs-meter i { display: block; height: 100%; background: var(--accent); }
   .seg { display: inline-flex; padding: 4px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); margin-bottom: 16px; }
   .seg button { height: 38px; padding: 0 18px; border-radius: 10px; color: var(--dim); font-weight: 700; }
   .seg button.on { background: var(--card2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line2); }
@@ -709,6 +718,7 @@ async function refreshAll() {
   if (refreshing) return;
   refreshing = true;
   if (tab === 'mail') loadMail();
+  if (tab === 'costs') loadCosts(false);
   document.querySelectorAll('[data-refresh]').forEach((x) => x.classList.add('spin'));
   try {
     [L, S] = await Promise.all([api('list'), api('stats&days=45'), loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]);
@@ -722,7 +732,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail']];
+const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['costs', 'הוצאות', 'dollar']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -749,7 +759,7 @@ function draw() {
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
   if (tab === 'requests' || tab === 'content' || tab === 'ideas') markSeen(tab);
   const badge = badges();
-  const phoneTab = ['plans', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail'].includes(tab) ? 'more' : tab;
+  const phoneTab = ['plans', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'costs'].includes(tab) ? 'more' : tab;
   const moreBadge = badge.requests + badge.ideas + badge.content + badge.plans;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
@@ -758,7 +768,7 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, plans, chats, data, people, requests, ideas, content, videos, publish, mail: mails, more })[tab]();
+  ({ overview, plans, chats, data, people, requests, ideas, content, videos, publish, mail: mails, costs, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
@@ -766,11 +776,82 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
 }
 
+
+// ---------- הוצאות (2026-11-06, his ask): what the AI costs, asked from OpenAI / ElevenLabs themselves (costs.js) ----------
+// one key per area (studio, chat, site, design; Mind and Plaxzy apart), so the providers say what each one spent - nothing
+// counted by us. ElevenLabs in credits (a monthly plan, no invented price per credit).
+let CS = null, csRange = 'month', csLoading = false;
+const CS_AREA = { studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
+const CS_KIND = { images: 'תמונות', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
+const CS_EL = { Music: 'מוזיקה', 'Music - Stems': 'ערוצי מוזיקה', TTS: 'הקראה', STS: 'שינוי קול', STT: 'תמלול', 'Sound Effects': 'אפקטים', 'Voice Generation': 'יצירת קול', 'Voice Library': 'ספריית קולות', Dubbing: 'דיבוב' };
+const usd = (v) => `$${v >= 100 ? Math.round(v) : v.toFixed(2)}`;
+function loadCosts(fresh) {
+  if (csLoading) return;
+  csLoading = true;
+  api('costs', fresh ? { fresh: true } : {}).then((r) => (CS = r), (e) => { if (e.message !== 'key') CS = { error: e.message }; })
+    .finally(() => { csLoading = false; if (tab === 'costs') costs(); });
+}
+const ilDay = (ms) => new Date(ms + 2 * 3600e3).toISOString().slice(0, 10);   // the providers' days are UTC; close enough
+function csFrom() {
+  if (csRange === 'month') return ilDay(Date.now()).slice(0, 8) + '01';
+  return ilDay(Date.now() - (csRange === '30' ? 29 : 89) * 864e5);
+}
+function csBars(m, label, unit) {   // m: {key: value} -> bars, biggest first
+  const list = Object.entries(m).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]), top = Math.max(...list.map(([, v]) => v), 1e-9);
+  if (!list.length) return '<p class="cs-note">אין עדיין הוצאה בתקופה הזו.</p>';
+  return `<div class="cs-bars">${list.map(([k, v]) => `<div class="cs-bar"><span>${esc(label[k] || k)}</span><i style="width:${Math.max(1, v / top * 100)}%"></i><b>${unit === '$' ? usd(v) : `${fmt(Math.round(v))} <small>${unit}</small>`}</b></div>`).join('')}</div>`;
+}
+function costs() {
+  if (!CS && !csLoading) loadCosts(false);
+  const seg = `<div class="seg">${[['month', 'החודש'], ['30', '30 יום'], ['90', '90 יום']].map(([k, l]) => `<button data-csr="${k}" class="${k === csRange ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+  if (!CS || CS.error) {
+    $('#pane').innerHTML = `${seg}<div class="empty">${CS?.error ? `לא נטען (${esc(CS.error)})` : 'שואל את OpenAI ו-ElevenLabs…'}</div>`;
+    return csWire();
+  }
+  const from = csFrom(), rows = CS.rows.filter((r) => r.d >= from), oa = rows.filter((r) => r.src === 'openai');
+  const sum = (f) => oa.filter(f).reduce((a, r) => a + r.usd, 0);
+  const by = (list, k) => list.reduce((m, r) => ((m[r[k]] = (m[r[k]] || 0) + (r.src === 'elevenlabs' || r.credits ? r.credits || 0 : r.usd || 0)), m), {});
+  const verse = oa.filter((r) => r.group === 'shlomiverse'), plax = oa.filter((r) => r.group === 'plaxzy');
+  const days = {};
+  for (const r of verse) days[r.d] = (days[r.d] || 0) + r.usd;
+  const n = csRange === 'month' ? +ilDay(Date.now()).slice(8, 10) : +csRange;
+  const dayList = Array.from({ length: n }, (_, i) => ilDay(Date.now() - (n - 1 - i) * 864e5)).map((d) => [d, Math.round((days[d] || 0) * 100) / 100]);
+  const el = rows.filter((r) => r.src === 'elevenlabs'), E = CS.eleven, elKeys = (E?.keys || []).filter((r) => r.d >= from);
+  $('#pane').innerHTML = `${seg}
+    ${(CS.errors || []).map((e) => `<p class="cs-err">${esc(e)}</p>`).join('')}
+    <div class="kpis">
+      <div class="kpi"><span>שלומיוורס · OpenAI</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'shlomiverse'))}</b><small>כל התחומים</small></div>
+      <div class="kpi"><span>Plaxzy · OpenAI</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'plaxzy'))}</b><small>פרויקט נפרד</small></div>
+      <div class="kpi"><span>המוח</span>${IC.dollar}<b>${usd(sum((r) => r.group === 'mind'))}</b><small>לא חלק מהוורס</small></div>
+      <div class="kpi"><span>ElevenLabs החודש</span>${IC.dollar}<b>${E ? Math.round(E.used / Math.max(1, E.limit) * 100) + '%' : '-'}</b><small>${E ? `${fmt(E.used)} מתוך ${fmt(E.limit)} קרדיטים` : 'לא נטען'}</small></div>
+    </div>
+    <div class="cols">
+      <div class="card"><div class="card-h"><h2>שלומיוורס לפי תחום</h2></div>${csBars(by(verse, 'area'), CS_AREA, '$')}
+        <p class="cs-note">לכל תחום מפתח משלו, ו-OpenAI אומר כמה כל אחד הוציא. "המפתח הישן" = מה שהוצא לפני החלוקה.</p></div>
+      <div class="card"><div class="card-h"><h2>לפי סוג</h2></div>${csBars(by(verse, 'kind'), CS_KIND, '$')}</div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h2>שלומיוורס ביום</h2></div><div id="cs-ch"></div></div>
+    <div class="cols" style="margin-top:16px">
+      <div class="card"><div class="card-h"><h2>ElevenLabs</h2></div>
+        ${E ? `<div class="cs-meter"><i style="width:${Math.min(100, E.used / Math.max(1, E.limit) * 100)}%"></i></div><p class="cs-note" style="margin:0 0 12px">תוכנית ${esc(E.tier)} · ${fmt(E.used)} מתוך ${fmt(E.limit)} קרדיטים החודש · מתאפס ב-${new Date(E.resets * 1000).toLocaleDateString('he-IL')}</p>` : ''}
+        ${csBars(by(el, 'kind'), CS_EL, 'קרדיטים')}
+        ${elKeys.length ? `<h3 style="margin:14px 0 8px;font-size:1rem">לפי מפתח</h3>${csBars(by(elKeys.map((r) => ({ ...r, src: 'elevenlabs' })), 'area'), CS_AREA, 'קרדיטים')}` : '<p class="cs-note">לפי מפתח: יופיע כשלכל תחום יהיה מפתח ElevenLabs משלו.</p>'}</div>
+      <div class="card"><div class="card-h"><h2>Plaxzy לפי סוג</h2></div>${csBars(by(plax, 'kind'), CS_KIND, '$')}</div>
+    </div>
+    <p class="cs-note">נשאל מ-OpenAI ו-ElevenLabs עצמם · עודכן ${ago(CS.at)} · <button data-csfresh style="color:var(--accent);font-weight:700">לשאול עכשיו</button></p>`;
+  bars($('#cs-ch'), dayList, '$', null);
+  csWire();
+}
+function csWire() {
+  $('#pane').querySelectorAll('[data-csr]').forEach((b) => (b.onclick = () => { csRange = b.dataset.csr; costs(); }));
+  const f = $('#pane').querySelector('[data-csfresh]');
+  if (f) f.onclick = () => { f.textContent = 'שואל…'; loadCosts(true); };
+}
 
 // ---------- plans (2026-11-06, his ask): briefs + mockups from the sessions; he reads, comments on any part, approves ----------
 // plans.js on the server; a session publishes with scripts/plans/plan.mjs. The page is the session's own HTML, shown in a
