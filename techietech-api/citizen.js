@@ -1,7 +1,8 @@
 // The citizenship journey (stage 3 of the conversion plan; plan conversion-next v6, approved by him 2026-11-06): a resident
 // becomes a citizen - a boarding pass, check-in with Miriam (an AI agent in her own voice - confused, never stops talking - who
 // asks 4-6 questions about why they came; skippable; from the answers the AI writes their department and classification),
-// border control at Rabbi Demokratovich's booth (HIS script, word for word - every "(מקשיב)" is an answer they tap), the
+// border control at Rabbi Demokratovich's booth (HIS lines word for word; between them the AI reacts in his voice to what
+// they tapped or typed, and writes the next buttons), the
 // stamp with a real citizen number in order ("אזרח מייסד" for the first 1,000), the flight in (teaser 1) and the ID card.
 // The journey is saved as it goes (citizens/<uid>); the citizen's line on the account: fans/<uid>.citizen.
 // Key: VERSE_SITE_OPENAI_KEY (the site's features share it; Backstage → הוצאות shows its spend). The page: v2/site/verse/citizen.js.
@@ -18,8 +19,18 @@ const MODEL = 'gpt-5.6-terra';
 const FOUNDING = 1000;
 const MAX_Q = 5;
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
-// the booth: his script has 6 beats; the answers the visitor taps are in the page (copy.js T.cz.booth)
+// the booth (his ask, 2026-11-06: "buttons but a fixed script" felt dead): HIS lines stay, word for word and in order; before
+// each of them the AI writes a short reaction of his to what the visitor just said, and the 3 buttons for the next line (a typed
+// answer works too). Beat 6 = "טסים פנימה" after the stamp.
 const BOOTH_STEPS = 6;
+const SCRIPT = [
+  'שלום עכשיו. דרכון בבקשה.',
+  'מה מטרת כניסתך לארצנו?',
+  'מבקש אזרחות? יפה. אמור לי, האם אתה מקבל עליך עול מלכות דמוקרטיא?',
+  'והאם אתה מכיר בסמכותו העליונה של בית הדין הגבוה לצדק?',
+  'יפה מאוד. וכבר הורו שז״ל, שופטינו זכרונם לברכה: אין אזרחות בלא הסכמה, ואין הסכמה בלא טופס חתום כדין.',
+];
+const AFTER_STAMP = 'הרי אתה אזרח השלומיוורס לכל דבר ועניין.';
 
 let brain = bundled, brainMd5 = 'bundled', checked = 0;
 async function brainNow() {
@@ -48,6 +59,37 @@ Speak to the visitor in plural (אתם), Hebrew, no emoji. Nothing about politic
 
 Who you are:
 ${miriamText(b)}`;
+function demoText(b) {
+  const c = b.characters.find((x) => x.id === 'demokratovich') || {};
+  const F = [['brief', 'Who'], ['personality', 'Personality'], ['speech', 'How he talks'], ['catchphrases', 'Catchphrases'], ['behavior', 'Behaviour'], ['comedy', 'What is funny about him'], ['writing_rules', 'Writing notes'], ['dont', 'Never']];
+  return F.filter(([k]) => c[k]).map(([k, l]) => `${l}: ${short(c[k], 1200)}`).join('\n');
+}
+const BOOTH = (b) => `You are Rabbi Demokratovich (הרב דמוקרטוביץ'), sitting in the PASSPORT-CONTROL BOOTH at the entrance to שלומיוורס (the Shlomiverse - a world of comedy characters shown as real people). A resident of the site, just checked in with Miriam, comes to you to become a citizen. You stamp them in at the end.
+Shlomi wrote your lines for this scene. They are said word for word, in this order - you never change, skip or repeat them:
+${SCRIPT.map((l, i) => `${i + 1}. ${l}`).join('\n')}
+(then the stamp: "${AFTER_STAMP}" and your blessing)
+After each line the visitor answers - by tapping one of 3 buttons or by typing anything. Your job each turn:
+- "react": what you say FIRST, right after their answer and right before your next scripted line - up to 14 words, in your own voice (Talmudic form, democracy / the rule of law / בג"ץ as the content), reacting to what THEY said, picking up a word of theirs. It must flow into the next line (given below) without saying what that line says. If they mock you, refuse, or say something rude or off-topic, stay in character - offended in your learned way, or a ruling about it - never break, never preach. If they skipped Miriam or are new here, that is fine.
+- "opts": 3 answers the visitor might tap to your NEXT line - up to 5 words each, in the visitor's voice, grammar that agrees with itself; three different directions (one goes along, one cheeky, one confused or bargaining); funny on their own; never just "yes" in other words. Empty after your last line. Women and men tap them: avoid gendered verb forms (prefer "we" forms, nouns, infinitives or questions).
+Hebrew. You speak to the visitor in the singular as in your lines. No emoji. Nothing about real politicians, judges or parties; never mock religion or the religious. Never mention AI, buttons or that this is a site.
+
+Who you are:
+${demoText(b)}`;
+const BT = { type: 'object', additionalProperties: false, required: ['react', 'opts'], properties: { react: { type: 'string' }, opts: { type: 'array', items: { type: 'string' }, maxItems: 3 } } };
+// what happened so far, the answer just given (k = which line it answers; -1 = before the first line) and which line comes next
+function boothInput(d, fan, bt, k, a) {
+  const intro = `The visitor: ${fan.nick || '-'}. Miriam registered them as - department: ${d.dept || '-'}, classification: ${d.cls || '-'}.`
+    + ((d.turns || []).length ? '\nWhat they told Miriam: ' + d.turns.map((t) => `${t.q} -> ${t.a ?? '(skipped)'}`).join(' | ') : '\n(They skipped Miriam.)');
+  if (k < 0) return [{ role: 'user', content: `${intro}\n\nThey just stepped up to your booth. You are about to say line 1: "${SCRIPT[0]}". Leave "react" empty; write the 3 "opts" for line 1.` }];
+  const past = bt.slice(0, k).map((t, i) => `Line ${i + 1}: ${SCRIPT[i]}\nThey: ${t.a}\nYou reacted: ${t.react}`).join('\n');
+  const next = SCRIPT[k + 1];
+  return [{ role: 'user', content: `${intro}\n\n${past ? past + '\n' : ''}Line ${k + 1}: ${SCRIPT[k]}\nThey answered now: "${a}"\n\n`
+    + (next ? `Your next line (said right after your reaction): "${next}". Write "react" and the 3 "opts" for that line.` : `Next comes the stamp ("${AFTER_STAMP}"). Write "react" - your last word before you stamp, up to 12 words; do NOT say the stamp line, do not bless and do not grant citizenship yet (that comes right after). "opts" empty.`) }];
+}
+const btOf = (o) => ({ react: clip(String(o.react || '').split(AFTER_STAMP)[0].trim(), 160), opts: (o.opts || []).slice(0, 3).map((x) => clip(x, 50)) });
+const FALLBACK = ['כן', 'לא', 'תלוי'];
+const firstOpts = async (key, br, d, fan) => { try { return btOf(await ask(key, BOOTH(br), boothInput(d, fan, [], -1), BT, 'booth')).opts; } catch (e) { return null; } };
+
 const TURN = { type: 'object', additionalProperties: false, required: ['say', 'q', 'opts', 'done'], properties: { say: { type: 'string' }, q: { type: 'string' }, opts: { type: 'array', items: { type: 'string' }, maxItems: 3 }, done: { type: 'boolean' } } };
 const CLASS = { type: 'object', additionalProperties: false, required: ['dept', 'cls'], properties: { dept: { type: 'string' }, cls: { type: 'string' } } };
 
@@ -79,7 +121,7 @@ async function who(req) {
   try { return await admin.auth().verifyIdToken(m[1]); } catch (e) { return null; }
 }
 const view = (d, fan) => ({ step: d.step || 'boarding', turns: (d.turns || []).map((t) => ({ say: t.say, q: t.q, opts: t.opts, a: t.a ?? null })), pending: d.pending || null,
-  booth: d.booth || [], n: d.n || null, founding: !!d.founding, dept: d.dept || null, cls: d.cls || null, nick: fan.nick || '', photo: fan.photo || null, sim: fan.sim || null });
+  booth: d.booth || [], script: SCRIPT, bt: (d.bt || []).map((t) => ({ opts: t.opts || [], a: t.a ?? null, react: t.react || '' })), n: d.n || null, founding: !!d.founding, dept: d.dept || null, cls: d.cls || null, nick: fan.nick || '', photo: fan.photo || null, sim: fan.sim || null });
 
 async function handle(req) {
   const b = req.body || {}, op = b.op;
@@ -108,8 +150,10 @@ async function handle(req) {
     if (d.step !== 'checkin') return view(d, fan);
     if (b.all) {   // skip the whole check-in
       const c = await classify(key, br, turns.filter((t) => t.a !== undefined), fan.nick);
-      await ref.update({ step: 'booth', turns, dept: clip(c.dept, 60), cls: clip(c.cls, 80), skippedAll: true, pending: FieldValue.delete() });
-      return view({ ...d, step: 'booth', dept: c.dept, cls: c.cls, pending: null }, fan);
+      const o1 = await firstOpts(key, br, { ...d, turns, dept: c.dept, cls: c.cls }, fan);
+      const bt = o1 && o1.length ? [{ opts: o1 }] : [];
+      await ref.update({ step: 'booth', turns, dept: clip(c.dept, 60), cls: clip(c.cls, 80), skippedAll: true, bt, pending: FieldValue.delete() });
+      return view({ ...d, step: 'booth', dept: c.dept, cls: c.cls, bt, pending: null }, fan);
     }
     const pend = d.pending;
     if (pend && (b.pick !== undefined || b.text !== undefined || b.skip)) {
@@ -120,22 +164,67 @@ async function handle(req) {
     const o = turnOf(await ask(key, CHECKIN(br), talk(turns), TURN, 'turn'));
     if (o.done || turns.length >= MAX_Q) {
       const c = await classify(key, br, turns, fan.nick);
+      const o1 = await firstOpts(key, br, { ...d, turns, dept: c.dept, cls: c.cls }, fan);
+      const bt = o1 && o1.length ? [{ opts: o1 }] : [];
       const last = { say: o.say, q: '', opts: [], done: true };
-      await ref.update({ ...(d.why ? { why: d.why } : {}), step: 'booth', turns, closing: last.say, dept: clip(c.dept, 60), cls: clip(c.cls, 80), pending: FieldValue.delete() });
-      return { ...view({ ...d, step: 'booth', turns, dept: c.dept, cls: c.cls, pending: null }, fan), closing: last.say };
+      await ref.update({ ...(d.why ? { why: d.why } : {}), step: 'booth', turns, closing: last.say, dept: clip(c.dept, 60), cls: clip(c.cls, 80), bt, pending: FieldValue.delete() });
+      return { ...view({ ...d, step: 'booth', turns, dept: c.dept, cls: c.cls, bt, pending: null }, fan), closing: last.say };
     }
     await ref.update({ step: 'checkin', turns, pending: o, ...(d.why ? { why: d.why } : {}) });
     return view({ ...d, step: 'checkin', turns, pending: o }, fan);
   }
 
   // the booth: his script, an answer per beat; the 5th beat is the stamp - the number is given here, in order
+  // the buttons for a line that has none yet (a journey from before, or the first ones failed)
+  if (op === 'boothOpts') {
+    const bt = [...(d.bt || [])], i = (d.booth || []).length;
+    if (d.step !== 'booth' || i >= SCRIPT.length || (bt[i] && bt[i].opts && bt[i].opts.length)) return view(d, fan);
+    const br = await brainNow();
+    let opts = null;
+    if (i === 0) opts = await firstOpts(key, br, d, fan);
+    else { try { opts = btOf(await ask(key, BOOTH(br), boothInput(d, fan, bt, i - 1, bt[i - 1]?.a || d.booth[i - 1]), BT, 'booth')).opts; } catch (e) { opts = null; } }
+    bt[i] = { ...(bt[i] || {}), opts: opts && opts.length ? opts : FALLBACK };
+    await ref.update({ bt });
+    return view({ ...d, bt }, fan);
+  }
+  // while they read a line: his reaction + the next buttons, written ahead for each of its 3 buttons (a tap then answers at once)
+  if (op === 'boothPre') {
+    const bt = d.bt || [], i = (d.booth || []).length;
+    if (d.step !== 'booth' || Number(b.i) !== i || i >= SCRIPT.length || !bt[i]?.opts?.length || (d.bpre && d.bpre.i === i)) return { ok: true };
+    await ref.update({ bpre: { i, at: Date.now(), b: {} } });
+    const br = await brainNow();
+    const made = await Promise.all(bt[i].opts.map(async (o) => { try { return btOf(await ask(key, BOOTH(br), boothInput(d, fan, bt, i, o), BT, 'booth')); } catch (e) { return null; } }));
+    await ref.update({ bpre: { i, at: Date.now(), b: Object.fromEntries(made.map((x, k) => [k, x]).filter(([, x]) => x)) } });
+    return { ok: true };
+  }
   if (op === 'booth') {
     if (d.step !== 'booth') return view(d, fan);
     const booth = [...(d.booth || [])];
     const i = Number(b.i);
     if (i !== booth.length || i >= BOOTH_STEPS) return view(d, fan);
-    booth.push(clip(b.a, 60));
-    if (booth.length < 5) { await ref.update({ booth }); return view({ ...d, booth }, fan); }
+    const bt = [...(d.bt || [])];
+    if (i < SCRIPT.length) {
+      // their answer: a button (pick) or their own words (text); his reaction - the one written ahead, or now
+      const cur = bt[i] || { opts: [] }, pick = b.pick !== undefined ? Number(b.pick) : null;
+      const a = pick !== null ? cur.opts[pick] : clip(String(b.text || '').trim(), 120);
+      if (!a) return { error: 'answer' };
+      let step = null;
+      if (pick !== null) {
+        let pre = d.bpre && d.bpre.i === i ? d.bpre : null;
+        for (let t = 0; pre && !pre.b[pick] && Date.now() - pre.at < 9000 && t < 15; t++) {
+          await new Promise((r) => setTimeout(r, 400));
+          const again = (await ref.get()).data().bpre;
+          pre = again && again.i === i ? again : null;
+        }
+        step = pre && pre.b[pick];
+      }
+      if (!step) { try { step = btOf(await ask(key, BOOTH(await brainNow()), boothInput(d, fan, bt, i, a), BT, 'booth')); } catch (e) { step = { react: '', opts: [] }; } }
+      bt[i] = { ...cur, a, typed: pick === null, react: step.react };
+      if (i + 1 < SCRIPT.length) bt[i + 1] = { opts: step.opts.length ? step.opts : FALLBACK };
+      booth.push(clip(a, 120));
+    } else booth.push(clip(b.a, 60));
+    d.bt = bt;
+    if (booth.length < 5) { await ref.update({ booth, bt }); return view({ ...d, booth }, fan); }
     if (!d.n) {
       const n = await db().runTransaction(async (tx) => {
         const cRef = db().collection('verseMeta').doc('citizens'), c = await tx.get(cRef), me = await tx.get(ref);
@@ -149,7 +238,7 @@ async function handle(req) {
       await fanRef.set({ citizen: { n, founding: d.founding, dept: d.dept || null, cls: d.cls || null, t: Date.now() } }, { merge: true });
     }
     const step = booth.length >= BOOTH_STEPS ? 'flight' : 'booth';
-    await ref.update({ booth, step });
+    await ref.update({ booth, bt, step });
     return view({ ...d, booth, step }, fan);
   }
 

@@ -1763,6 +1763,7 @@ html.can-app .foot-app { display: inline-flex !important; }
 .cz-b.her b, .cz-b.rabbi b { display: block; margin-top: 4px; font-weight: 800; }
 .cz-b.her:not(.now), .cz-b.rabbi.past { opacity: .6; font-size: .92rem; }
 .cz-b.rabbi.now { font-size: 1.12rem; font-weight: 700; border-color: rgba(255, 106, 31, .5); }
+.cz-b.rabbi .cz-re { display: block; font-weight: 500; font-size: .95rem; color: var(--soft, #cfcfd8); margin-bottom: 6px; }
 .cz-b.me { align-self: flex-end; background: color-mix(in srgb, var(--vx-accent) 22%, var(--card)); border-top-left-radius: 4px; font-size: .92rem; }
 .cz-typing { align-self: flex-start; display: flex; gap: 5px; padding: 12px 14px; margin: 0; background: var(--card2); border-radius: 18px; }
 .cz-typing[hidden] { display: none; }

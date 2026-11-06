@@ -206,14 +206,19 @@ function idea(d, k) {
     pad(quote(d.idea)), spacer(20), pad(p(d.body)), spacer(26), pad(button(d.cta, track(d.href, k))), spacer(34)].join('');
 }
 
-// the citizenship journey's invitation (stage 4 of the conversion plan): the picture (Miriam at the counter, Demokratovich behind her
-// with the stamp), the words Terra wrote, one button to the journey
+// the citizenship journey's invitation (stage 4; his words, 2026-11-06): a letter from the Shlomiverse's embassy - the picture
+// (Miriam at the counter, Demokratovich behind her with the stamp), "לכבוד <their name>", the letter, one button, the signature
 function citizen(d, k) {
   const go = track('/citizenship', k);
-  return [spacer(14), pad(hero(d.hero, go, d.title)), spacer(26), pad(`<div style="text-align:center">${h1(d.title)}</div>`), spacer(14),
-    ...(d.paras || []).map((x) => pad(`<div style="text-align:center">${p(x)}</div>`) + spacer(4)), spacer(24),
-    pad(button(d.cta, go)), spacer(14),
-    d.small ? pad(`<div style="text-align:center;font:700 14px/1.5 ${FONT};color:${C.accent2}">${gm(esc(d.small))}</div>`) + spacer(22) : spacer(8)].join('');
+  const line = (t, st = '') => pad(`<div style="font:400 17px/1.7 ${FONT};color:${C.soft};${st}">${gm(esc(t))}</div>`) + spacer(12);
+  return [spacer(14), pad(hero(d.hero, go, d.title)), spacer(26),
+    d.to ? pad(`<div style="font:700 16px/1.4 ${FONT};color:${C.dim}">${gm(esc(d.to))}</div>`) + spacer(10) : '',
+    pad(h1(d.title)), spacer(18), ...(d.paras || []).map((x) => line(x)),
+    d.bold ? pad(`<div style="font:800 18px/1.6 ${FONT};color:${C.text}">${gm(esc(d.bold))}</div>`) + spacer(8) : '',
+    d.fine ? pad(`<div style="font:400 14px/1.6 ${FONT};color:${C.dim}">${gm(esc(d.fine))}</div>`) + spacer(26) : spacer(18),
+    pad(button(d.cta, go)), spacer(30),
+    pad(`<div style="font:400 16px/1.6 ${FONT};color:${C.soft}">${gm('בברכה,')}</div><div style="font:800 17px/1.5 ${FONT};color:${C.text}">${gm(esc(d.sign))}</div>
+<div style="font:400 14px/1.5 ${FONT};color:${C.dim}">${gm(esc(d.signRole))}</div>`), spacer(32)].join('');
 }
 
 const KINDS = { game: newGame, story, video, digest, welcome, reply, idea, citizen };

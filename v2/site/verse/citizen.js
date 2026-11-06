@@ -1,6 +1,6 @@
 // The citizenship journey's page (/citizenship; stage 3 of the conversion plan, plan conversion-next v6 - mockups C1-C6):
 // the boarding pass, check-in with Miriam (an AI agent in her voice - techietech-api/citizen.js), border control at Rabbi
-// Demokratovich's booth (his script; the visitor taps an answer at every "(מקשיב)"), the stamp with the citizen number,
+// Demokratovich's booth (his lines; between them the AI reacts in his voice to what they tapped or typed), the stamp with the citizen number,
 // the flight in (teaser 1, with its music) and the ID card, drawn here on a canvas to share. Saved as it goes on the server:
 // leave and come back to the same station. The stills (art/citizen-*.jpg) are replaced by his filmed clips later.
 import { T } from './copy.js';
@@ -120,27 +120,41 @@ function checkinDone(closing) {
   box().querySelector('[data-cz-go]').onclick = () => draw();
 }
 
-// 3. border control at the booth (C4): his script, an answer tapped at every "(מקשיב)"
+// 3. border control at the booth (C4): HIS lines in order; before each one, his short reaction (AI, in his voice) to what they
+// tapped or typed; 3 buttons per line written for them, or their own words
 function booth() {
-  const i = S.booth.length, beat = Z().booth[i], prev = i > 0 ? Z().booth[i - 1] : null;
-  box().innerHTML = `${stepTag(3)}<section class="cz-desk booth">
+  const i = S.booth.length, lines = S.script || [], bt = S.bt || [], cur = bt[i], el = box();
+  const prev = i > 0 ? bt[i - 1] : null;
+  const past = bt.slice(0, i).map((t, k) => `<p class="cz-b rabbi past">${k > 0 && bt[k - 1].react ? esc(bt[k - 1].react) + ' ' : ''}${esc(lines[k])}</p>${t.a ? `<p class="cz-b me">${esc(t.a)}</p>` : ''}`).join('');
+  const opts = cur && cur.opts && cur.opts.length ? cur.opts : null;
+  el.innerHTML = `${stepTag(3)}<section class="cz-desk booth">
     <div class="cz-scene"><img src="/verse/art/citizen-booth.jpg" alt=""></div>
-    <div class="cz-chat">${prev && prev.after ? `<p class="cz-b rabbi past">${esc(prev.after)}</p>` : ''}<p class="cz-b rabbi now">${esc(beat.say)}</p></div>
-    <div class="cz-opts">${beat.a.map((o, k) => `<button data-cz-a="${k}">${esc(o)}</button>`).join('')}</div></section>`;
+    <div class="cz-chat">${past}<p class="cz-b rabbi now">${prev && prev.react ? `<span class="cz-re">${esc(prev.react)}</span> ` : ''}${esc(lines[i] || '')}</p>
+      <p class="cz-typing" ${opts ? 'hidden' : ''}><i></i><i></i><i></i></p></div>
+    <div class="cz-opts">${(opts || []).map((o, k) => `<button data-cz-a="${k}">${esc(o)}</button>`).join('')}</div>
+    ${opts ? `<form class="cz-ask"><input maxlength="120" placeholder="${esc(Z().boothType)}"><button aria-label="שליחה">←</button></form>` : ''}</section>`;
+  const chat = el.querySelector('.cz-chat'); chat.scrollTop = chat.scrollHeight;
+  if (!opts) { api('boothOpts').then((x) => { S = x; booth(); }).catch(() => { toast(Z().fail, 3000); }); return; }
   showOpts();
-  box().querySelectorAll('[data-cz-a]').forEach((b) => (b.onclick = async () => {
+  api('boothPre', { i }).catch(() => {});   // his reaction to each button, written while they read
+  const answer = async (data, label) => {
     if (busy) return;
-    busy = true; b.classList.add('on');
-    try { S = await api('booth', { i, a: b.textContent }); busy = false; if (S.booth.length >= 5) { track('cz_stamp', String(S.n)); stamp(true); } else booth(); }
+    busy = true;
+    el.querySelectorAll('.cz-opts button, .cz-ask button').forEach((b) => (b.disabled = true));
+    el.querySelector('.cz-typing').insertAdjacentHTML('beforebegin', `<p class="cz-b me">${esc(label)}</p>`);
+    el.querySelector('.cz-typing').hidden = false; chat.scrollTop = chat.scrollHeight;
+    try { S = await api('booth', { i, ...data }); busy = false; if (S.booth.length >= 5) { track('cz_stamp', String(S.n)); stamp(true); } else booth(); }
     catch (e) { busy = false; toast(Z().fail, 3000); booth(); }
-  }));
+  };
+  el.querySelectorAll('[data-cz-a]').forEach((b) => (b.onclick = () => { b.classList.add('on'); answer({ pick: +b.dataset.czA }, b.textContent); }));
+  el.querySelector('.cz-ask').onsubmit = (e) => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v) answer({ text: v }, v); };
 }
 
 // 4. the stamp and the number (C5) + his blessing; "טסים פנימה" closes the booth (the script's last beat)
 function stamp(fresh) {
   box().innerHTML = `${stepTag(4)}<section class="cz-stamp ${fresh ? 'fresh' : ''}">
     <div class="cz-passport"><img class="cz-planet" src="/verse/logo-160.png" alt=""><div class="cz-ink"><span>${pad(S.n)}</span></div></div>
-    <p class="cz-b rabbi now">${esc(Z().stamped)}</p>
+    <p class="cz-b rabbi now">${S.bt && S.bt[4] && S.bt[4].react ? `<span class="cz-re">${esc(S.bt[4].react)}</span> ` : ''}${esc(Z().stamped)}</p>
     <h1>${esc(Z().stamp.title)}</h1>
     <div class="cz-num"><small>${esc(Z().stamp.number)}</small><b>${pad(S.n)}</b><em>${esc(S.founding ? Z().stamp.founding(S.n) : Z().stamp.regular)}</em></div>
     <p class="cz-bless">${esc(Z().blessing)}</p>

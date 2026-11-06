@@ -263,20 +263,18 @@ async function mailFor(p, w, now) {
 }
 
 // ---------- the citizenship journey's invitation, to a resident who hasn't started it (stage 4) ----------
-// Three versions Terra wrote (2026-11-06, he called the first words terrible); he picks one - 'a' is Terra's pick until then.
+// His own words (2026-11-06), a letter from the Shlomiverse's embassy, addressed by the name the resident registered with (fans.nick).
 const CZ_HERO = `${MEDIA}/mail/citizen-hero.jpg`;
-const CITIZEN_MAIL = {
-  a: { from: 'מרים | השלומיוורס', subject: 'נפתחה עמדת האזרחות שלכם', preheader: 'מרים מנסה למצוא את השם שלכם. זוהרה כבר בתמונה.',
-    title: 'הכרטיס שלכם כבר בדלפק', paras: ['מסע האזרחות נפתח היום.', 'מרים תשאל כמה שאלות, לא תבין אף תשובה ותסווג אתכם בהתאם.', 'בסוף: מספר אזרח, טיסה פנימה ותעודה לשיתוף.'],
-    cta: 'מתחילים צ׳ק־אין', small: 'לאלף הראשונים: מעמד אזרח מייסד.' },
-  b: { from: 'השלומיוורס | מסע האזרחות', subject: 'איזה אזרחים אתם, בעצם?', preheader: 'המחלקה, הסיווג ומספר האזרח נקבעים במסע קצר.',
-    title: 'התעודה שלכם עוד לא יודעת מי אתם', paras: ['שלוש דקות, כמה תשובות, והמערכת מחליטה עליכם.', 'מרים קובעת מחלקה וסיווג. הרב דמוקרטוביץ׳ מעניק את החותמת.', 'בסוף תצא לכם תעודת זהות שלומיוורסית עם תמונה ומספר.'],
-    cta: 'מנפיקים תעודה', small: 'האלף הראשונים יירשמו כאזרחים מייסדים.' },
-  c: { from: 'הרב דמוקרטוביץ׳ | ביקורת הגבולות', subject: 'מן הדין: לגשת לביקורת גבולות', preheader: 'הרב דמוקרטוביץ׳ כבר הכין את החותמת. מרים עדיין בודקת.',
-    title: 'הבוטקה פתוחה, החותמת מוכנה', paras: ['תנן במסכת שלטון ומשפט: תושב המבקש אזרחות, מה דינו?', 'עובר אצל מרים, נכנס לבוטקה ומקבל חותמת ומספר אזרח.', 'והלכתא: טיסה פנימה ותעודת זהות.'],
-    cta: 'ניגשים לבוטקה', small: 'האלף הראשונים: אזרחים מייסדים.' },
-};
-const citizenData = (v = 'a') => ({ ...CITIZEN_MAIL[v], hero: CZ_HERO, note: 'קיבלתם את המייל כי יש לכם חשבון בשלומיוורס.' });
+const citizenData = (name) => ({ from: 'שגרירות השלומיוורס', subject: 'נפתחה שגרירות השלומיוורס.', hero: CZ_HERO,
+  preheader: 'לאחר שנים של ניסיונות כושלים לתקן את המציאות, החלטנו לפתוח אחת נוספת.',
+  to: name ? `לכבוד ${name},` : '', title: 'נפתחה שגרירות השלומיוורס.',
+  paras: ['לאחר שנים של ניסיונות כושלים לתקן את המציאות, החלטנו לפתוח אחת נוספת.', 'החל מהיום ניתן להגיש בקשה לאזרחות ביקום מקביל.',
+    'כדי לעזוב את המציאות הנוכחית, תידרשו תחילה להוכיח שאתם קיימים. לשם כך הוקם מערך בירוקרטי שלם.',
+    'מרים תקבל את פניכם בדלפק הצ\'ק־אין, תשאל שאלות שאין לה סמכות לשאול, לא תבין את התשובות ותסווג אתכם בהתאם.',
+    'בתום ההליך יונפק לכם דרכון רשמי, מספר אזרח וכרטיס כניסה לשלומיוורס.'],
+  bold: 'לאלף הראשונים יוענק מעמד "אזרח מייסד".', fine: 'המעמד אינו מקנה זכויות או הטבות כלשהן. השגרירות שומרת לעצמה את הזכות לשלול אותן בכל עת.',
+  cta: 'להגשת בקשת אזרחות', sign: 'שגרירות השלומיוורס', signRole: 'אגף הגירה, רישום וסיווג שרירותי',
+  note: 'קיבלתם את המייל כי יש לכם חשבון בשלומיוורס.' });
 
 // ---------- an idea's step, to its writer (his ask, 2026-11-05) ----------
 // Personal, not marketing: it goes whatever the switch says and beside the day's one mail - but never to someone who
@@ -460,7 +458,7 @@ async function samples() {
   const out = [];
   const add = async (label, p) => { const x = await mailFor(p, w, now); if (x) out.push({ key: label, label, kind: x.kind, ...mail.render(x.kind, x.d) }); };
   await add('ברוכים הבאים', { ...P, kind: 'welcome', events: [] });
-  for (const v of Object.keys(CITIZEN_MAIL)) out.push({ key: 'אזרחות-' + v, label: `הזמנה למסע האזרחות (גרסה ${v})`, kind: 'citizen', from: CITIZEN_MAIL[v].from, ...mail.render('citizen', citizenData(v)) });
+  { const d = citizenData(P.name); out.push({ key: 'אזרחות', label: 'הזמנה למסע האזרחות (שגרירות)', kind: 'citizen', from: d.from, ...mail.render('citizen', d) }); }
   if (games[0]) await add('משחק חדש', { ...P, kind: 'game', events: [ev('game', games[0].id)] });
   if (videos[0]) await add('סרטון חדש', { ...P, kind: 'video', events: [ev('video', videos[0].id)] });
   if (stories[0]) await add('סטורי חדש', { ...P, kind: 'story', events: [ev('story', stories[0].id)] });
