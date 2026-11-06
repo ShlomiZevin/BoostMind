@@ -923,7 +923,9 @@ async function peopleList() {
   const site = Object.fromEntries(sites.docs.map((d) => [d.id, d.data().sites || []]));
   return users.map((u) => ({ uid: u.uid, email: u.email || null, name: u.displayName || null, photo: u.photoURL || null,
     created: Date.parse(u.metadata.creationTime) || null, last: Date.parse(u.metadata.lastRefreshTime || u.metadata.lastSignInTime) || null,
-    google: u.providerData.length > 0, fan: u.uid in fan, nick: fan[u.uid]?.nick || null, official: !!fan[u.uid]?.official, sites: site[u.uid] || [] }));
+    // a real account: Google, or an email proved by a code (emailIn - no provider on those, 2026-11-06: Backstage counted
+    // only the Google ones, so 5 sign-ups showed as 2); anonymous visitors have neither
+    google: u.providerData.length > 0 || (!!u.email && !!u.emailVerified), fan: u.uid in fan, nick: fan[u.uid]?.nick || null, official: !!fan[u.uid]?.official, sites: site[u.uid] || [] }));
 }
 
 // the numbers Terra answers from: 90 days of counters (without page routes / search words), every account (no emails -
