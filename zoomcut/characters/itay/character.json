@@ -56,7 +56,7 @@
   "themes": [
     "ישיבה בחדר הישיבות: בק-טו-בק עד עשר, נשאר עד אחת עשרה, גלעד אמר לפשט, 8200, סקילס/גארדריילס/סיקיוריטי, \"לא אפשרי - אפשר לסגור את החברה\", שש דקות לדקה, שיחה עם גלעד (itay-1)"
   ],
-  "look": "איש הייטק מידל-מנג'מנט: חולצה מכופתרת תכלת מתחת לסווטשירט קווטר-זיפ כחול כהה, שעון חכם, לפטופ ביד. מצולם בחדר הישיבות של טקי-טק, יושב ליד הצופה (ה-POV: אתה הבחור שלידו).",
+  "look": "שיער חום פרוע (פאה), משקפיים דקים מלבניים, זיפים; פליז ירוק כהה עם צווארון אפור מעל טישירט תכלת. מצולם בסלפי צמוד וזז (הוא נוטה לעבר הצופה = הבחור שלידו), מוחלף ברקע חדר הישיבות של טקי-טק (seat-itay.jpg).",
   "voice": {
     "notes": "מהיר, מבולגן, חוזר על עצמו; צוחק מעצמו. Office setup בחדר ישיבות."
   },
@@ -102,7 +102,8 @@
   "portrait": "c:/workspace/BoostMind/zoomcut/episodes/_assets/itay/portrait.jpg",
   "assets": {
     "portraits": [
-      "c:/workspace/BoostMind/zoomcut/episodes/_assets/itay/portrait.jpg"
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/itay/portrait.jpg",
+      "c:/workspace/BoostMind/zoomcut/episodes/_assets/itay/li-a.jpg"
     ],
     "backgrounds": [
       "c:/workspace/BoostMind/zoomcut/episodes/_assets/itay/seat-itay.jpg"
