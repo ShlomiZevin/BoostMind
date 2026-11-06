@@ -982,11 +982,19 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
   try {
     // the mails: what we send, what was sent, the switch (mailer.js)
     if (String(op).startsWith('mail')) { const r = await require('./mailer').owner(op, b); if (r) return res.json(r); }
+    // what he already looked at (פניות / רעיונות / תוכן / תוכניות), kept here so his phone, his computer and the home-screen
+    // app agree - it was per device, so a mark he had cleared came back on the other one (his note, 2026-11-06)
+    if (op === 'seen') {
+      const k = String(b.k || '');
+      if (!['requests', 'ideas', 'content', 'plans'].includes(k)) return res.status(400).json({ error: 'k' });
+      await db.collection('owner').doc('seen').set({ [k]: Date.now() }, { merge: true });
+      return res.json({ ok: true });
+    }
     // plans: briefs + mockups he approves and comments on (plans.js)
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);
-      const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto] = await Promise.all([
+      const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto, seen] = await Promise.all([
         db.collection('comments').orderBy('t', 'desc').limit(120).get(),
         db.collection('stickers').where('status', '==', 'live').orderBy('t', 'desc').limit(60).get(),
         db.collection('requests').orderBy('t', 'desc').limit(60).get(),
@@ -996,6 +1004,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
         db.collection('ideas').orderBy('t', 'desc').limit(120).get(),
         db.collection('fans').where('created', '>=', week).count().get(),
         db.collection('verseMeta').doc('autoAnnounce').get(),
+        db.collection('owner').doc('seen').get(),
       ]);
       // how many follow each character (the new story window says how many a story reaches)
       const followers = {};
@@ -1003,7 +1012,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, m
       const rows = (s) => s.docs.map((d) => ({ id: d.id, ...d.data(), t: d.data().t?.toMillis?.() || null }));
       return res.json({ comments: rows(comments), stickers: rows(stickers), requests: rows(requests), stories: rows(stories),
         announced: Object.fromEntries(announced.docs.map((d) => [d.id, d.data().t?.toMillis?.() || 1])), fans: fans.data().count, ideas: rows(ideas),
-        fansWeek: fansWeek.data().count, autoSince: auto.exists ? auto.data().since?.toMillis?.() || null : null, followers });
+        fansWeek: fansWeek.data().count, autoSince: auto.exists ? auto.data().since?.toMillis?.() || null : null, followers, seen: seen.exists ? seen.data() : {} });
     }
     // everyone with an account (his ask, 2026-11-01): the verse's fans and whoever signed in on a character's site to
     // send something - from Firebase Auth itself, so nobody is missing, with where they came from

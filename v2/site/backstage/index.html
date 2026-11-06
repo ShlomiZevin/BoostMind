@@ -710,8 +710,14 @@ const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.no
 const unchecked = () => L.comments.filter((c) => c.unchecked && !c.hidden).length;
 // the numbers on the menu = what is NEW since he last opened that part (his ask: "can I make the mark disappear?") -
 // opening פניות / תוכן clears it; something new brings it back. Kept on this device.
-const seen = (k) => { try { return +localStorage.getItem('bs-seen-' + k) || 0; } catch (e) { return 0; } };
-const markSeen = (k) => { try { localStorage.setItem('bs-seen-' + k, String(Date.now())); } catch (e) {} };
+// since 2026-11-06 also on the server (owner/seen): one look clears the mark on the phone, the computer and the home-screen app
+const seenHere = (k) => { try { return +localStorage.getItem('bs-seen-' + k) || 0; } catch (e) { return 0; } };
+const seen = (k) => Math.max(seenHere(k), (L && L.seen && L.seen[k]) || 0);
+const markSeen = (k) => {
+  const now = Date.now();
+  try { localStorage.setItem('bs-seen-' + k, String(now)); } catch (e) {}
+  if (L && (!L.seen || !L.seen[k] || now - L.seen[k] > 60e3)) { L.seen = { ...(L.seen || {}), [k]: now }; api('seen', { k }).catch(() => {}); }
+};
 const badges = () => ({
   requests: L.requests.filter((r) => !r.done && (r.t || 0) > seen('requests')).length,
   content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length,
@@ -772,9 +778,9 @@ async function openPlan(id) {
 }
 // the frame's own script: every heading, mockup, table row and box gets a comment button; counts come from here
 const PLAN_FRAME = `<style>.pc-b{position:absolute;top:6px;left:6px;z-index:5;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 9px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(11,11,14,.82);color:#fff;font:700 12px Heebo,Arial,sans-serif;cursor:pointer;opacity:.55;transition:opacity .15s}
-.pc-b:hover,.pc-b.has{opacity:1}.pc-b.has{background:#ff6a1f;border-color:#ff6a1f}.pc-b svg{width:14px;height:14px}[data-c]{position:relative}.step>.pc-b,.box>.pc-b{top:auto;bottom:6px}tr[data-c] td:first-child{padding-left:70px}h2[data-c],h3[data-c]{padding-left:80px}</style>
+.pc-b:hover,.pc-b.has{opacity:1}.pc-b.has{background:#ff6a1f;border-color:#ff6a1f}.pc-b svg{width:14px;height:14px}[data-c]{position:relative}.step>.pc-b,.box>.pc-b,.wcard>.pc-b{top:auto;bottom:6px}tr[data-c] td:first-child{padding-left:70px}h2[data-c],h3[data-c]{padding-left:80px}</style>
 <script>(function(){var I='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/></svg>';
-var parts=[].slice.call(document.querySelectorAll('h2,h3,.shot,tr,.box,.step'));
+var parts=[].slice.call(document.querySelectorAll('h2,h3,.shot,tr,.box,.step,.wcard'));
 parts.forEach(function(el){if(el.tagName==='TR'&&el.querySelector('th'))return;if(el.closest('.shot')&&el!==el.closest('.shot'))return;
 var img=el.classList.contains('shot')?el.querySelector('img'):null;var src=img?(img.getAttribute('src')||'').split('?')[0].split('/').pop():'';
 var lab=((el.querySelector('b,h4')||el).textContent||'').replace(/\\s+/g,' ').trim().slice(0,80);

@@ -49,7 +49,8 @@ Shlomi found new sites missing from his lists because some sessions never added 
 
 A plan, brief, draft or set of mockups for something new in the Shlomiverse goes to **Backstage → תוכניות**, not to
 a loose file: he reads it there, comments on any part (a heading, a mockup, a table row) and approves or asks for changes.
-A plan = a folder with `index.html` (mockups as `<img src="img/NAME">`) + `img/`. Mockups by GPT Image (his rule).
+A plan = a folder with `index.html` (mockups as `<img src="img/NAME">`) + `img/` - **start from `scripts/plans/template/`**
+(mobile first: he reads it on his phone; check it at 360px, no sideways scroll). Mockups by GPT Image (his rule).
 `OWNER_KEY=<his key> node scripts/plans/plan.mjs publish <folder> --id <plan-id> --title-file t.txt --summary-file s.txt`
 (Hebrew through files), `... comments <plan-id> --out c.md` (read it before building), `... reply <plan-id> --file r.txt --to <comment id>`.
 Re-publishing the same id = a new version, back to "waiting for him". Private: Firestore `plans` + the private bucket

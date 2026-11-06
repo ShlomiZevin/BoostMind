@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>כותרת התוכנית · שלומיוורס</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #0b0b0e; --card: #15151a; --card2: #1c1c22; --line: rgba(255,255,255,.12); --dim: rgba(255,255,255,.62); --acc: #ff6a1f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: #fff; font-family: Heebo, Arial, sans-serif; line-height: 1.6; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 36px 22px 80px; }
+  .b { font-weight: 900; } .b i { font-style: normal; color: var(--acc); }
+  h1 { font-size: 2.3rem; line-height: 1.15; margin: 0 0 6px; font-weight: 900; }
+  h2 { font-size: 1.7rem; margin: 54px 0 6px; font-weight: 900; display: flex; align-items: center; gap: 12px; }
+  h2 .n { width: 42px; height: 42px; border-radius: 12px; background: var(--acc); display: grid; place-items: center; font-size: 1.2rem; flex: none; }
+  h3 { font-size: 1.18rem; margin: 30px 0 10px; }
+  p { margin: 6px 0; } .dim { color: var(--dim); }
+  .lead { font-size: 1.1rem; color: var(--dim); max-width: 820px; }
+  .done { display: inline-block; margin-top: 14px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-size: .95rem; }
+  .done b { color: #6bd68a; }
+  /* the ladder */
+  .ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 26px 0 0; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; position: relative; }
+  .step b { font-size: 1.15rem; display: block; } .step small { color: var(--dim); display: block; margin-top: 4px; font-size: .88rem; line-height: 1.45; }
+  .step.live { border-color: rgba(107,214,138,.6); } .step.next { border-color: var(--acc); }
+  .tag { position: absolute; top: 12px; left: 12px; font-size: .72rem; font-weight: 800; padding: 2px 8px; border-radius: 7px; background: rgba(255,255,255,.1); }
+  .live .tag { background: rgba(107,214,138,.18); color: #8ee6a6; } .next .tag { background: var(--acc); }
+  /* tables */
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: .95rem; }
+  th, td { text-align: right; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 700; font-size: .85rem; }
+  td b { white-space: nowrap; }
+  .pill { display: inline-block; font-size: .75rem; font-weight: 800; padding: 1px 8px; border-radius: 7px; background: rgba(255,106,31,.16); color: #ffb48a; margin-inline-start: 6px; }
+  .pill.g { background: rgba(107,214,138,.15); color: #8ee6a6; } .pill.x { background: rgba(255,255,255,.08); color: var(--dim); }
+  /* flows */
+  .flow { display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 16px; align-items: stretch; }
+  .shot { flex: 0 0 220px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 8px; display: flex; flex-direction: column; }
+  .shot img { width: 100%; border-radius: 10px; display: block; cursor: zoom-in; aspect-ratio: 2 / 3; object-fit: cover; object-position: top; }
+  .shot .st { min-width: 0; }
+  .shot b { display: block; margin: 8px 4px 2px; font-size: .95rem; } .shot small { display: block; margin: 0 4px 4px; color: var(--dim); font-size: .82rem; line-height: 1.4; }
+  .arrow { flex: 0 0 22px; display: grid; place-items: center; color: var(--acc); font-size: 1.6rem; font-weight: 900; }
+  .ph { aspect-ratio: 2 / 3; border-radius: 10px; border: 1px dashed var(--line); display: grid; place-items: center; text-align: center; padding: 14px; color: var(--dim); font-size: .85rem; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+  .box h4 { margin: 0 0 8px; font-size: 1.02rem; }
+  ul { margin: 4px 0; padding-inline-start: 20px; } li { margin: 3px 0; }
+  .ask { border-color: var(--acc); }
+  .ask li { margin: 6px 0; }
+  .order { counter-reset: o; list-style: none; padding: 0; }
+  .order li { counter-increment: o; display: flex; gap: 12px; margin: 10px 0; }
+  .order li::before { content: counter(o); flex: none; width: 28px; height: 28px; border-radius: 8px; background: var(--card2); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 800; }
+  /* zoom */
+  .zoom { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: none; place-items: center; z-index: 9; cursor: zoom-out; padding: 20px; }
+  .zoom.on { display: grid; } .zoom img { max-height: 94vh; max-width: 94vw; border-radius: 14px; }
+
+  /* mobile first (his note, 2026-11-06): nothing wider than the screen; on a phone the flows are a list, the tables are cards */
+  html, body { overflow-x: hidden; }
+  .where { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin: 8px 0; }
+  .wcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .wcard .wt { font-weight: 800; font-size: 1.02rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .wcard .wt b { white-space: normal; }
+  .wcard .wwho { color: var(--dim); font-size: .86rem; margin-top: 2px; }
+  .wcard p { margin: 6px 0 0; font-size: .95rem; }
+  .wcard.off { background: transparent; border-style: dashed; } .wcard.off p { color: var(--dim); }
+  .wshot { display: inline-block; margin-top: 8px; font-size: .78rem; font-weight: 800; padding: 2px 8px; border-radius: 7px; background: var(--card2); border: 1px solid var(--line); color: var(--dim); }
+  img { max-width: 100%; }
+  @media (max-width: 700px) {
+    .wrap { padding: 20px 14px 60px; }
+    h1 { font-size: 1.55rem; } h2 { font-size: 1.3rem; margin-top: 40px; } h2 .n { width: 34px; height: 34px; font-size: 1rem; }
+    .lead { font-size: 1rem; }
+    .ladder { grid-template-columns: 1fr 1fr; gap: 8px; } .step { padding: 12px; } .step b { font-size: 1rem; padding-left: 40px; }
+    .flow { flex-direction: column; overflow: visible; gap: 0; padding: 0; }
+    .flow .arrow { flex: 0 0 auto; height: 22px; transform: rotate(-90deg); font-size: 1.2rem; }
+    .shot { flex: none; flex-direction: row; gap: 12px; align-items: flex-start; padding: 8px; max-width: none !important; }
+    .shot img, .shot .ph { width: 104px; flex: none; }
+    .shot .ph { font-size: .72rem; padding: 8px; }
+    .shot b { margin: 2px 0 4px; font-size: 1rem; } .shot small { margin: 0; font-size: .88rem; }
+    .shot > div, .shot > b, .shot > small { min-width: 0; }
+    .grid2 { grid-template-columns: 1fr; }
+    .where { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) { .ladder, .grid2 { grid-template-columns: 1fr; } h1 { font-size: 1.8rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- A plan for Backstage → תוכניות. Mobile first: he reads it on his phone (check it at 360px wide - no sideways scroll).
+       Building blocks below: copy what you need, delete the rest. Mockups = GPT Image, files in img/, <img src="img/NAME">.
+       Every h2 / h3 / .shot / .wcard / .box / .step gets a comment button in Backstage by itself.
+       Publish: OWNER_KEY=... node scripts/plans/plan.mjs publish <folder> --id <id> --title-file t.txt --summary-file s.txt -->
+  <h1>כותרת התוכנית</h1>
+  <p class="lead">במשפט או שניים: מה בונים, למה, ומה צריך ממנו.</p>
+
+  <div class="ladder">
+    <div class="step live"><span class="tag">באוויר</span><b>1 · שלב</b><small>מה כבר קיים</small></div>
+    <div class="step next"><span class="tag">הבא</span><b>2 · שלב</b><small>מה בונים עכשיו</small></div>
+  </div>
+
+  <h2><span class="n">1</span> חלק ראשון</h2>
+  <p class="lead">מה זה ולמה.</p>
+  <h3>איפה רואים את זה</h3>
+  <div class="where">
+    <div class="wcard"><div class="wt"><b>מקום</b> <span class="pill">העיקרי</span></div><div class="wwho">מי רואה: ...</div><p>מתי ואיך.</p><span class="wshot">סקיצה A1</span></div>
+    <div class="wcard off"><div class="wt"><b>לא שם</b> <span class="pill x">בכוונה</span></div><p>איפה זה בכוונה לא מופיע, ולמה.</p></div>
+  </div>
+  <h3>הזרימה</h3>
+  <div class="flow">
+    <div class="shot"><img src="img/A1.jpg" alt=""><div class="st"><b>1. שלב</b><small>מה קורה פה.</small></div></div><div class="arrow">←</div>
+    <div class="shot"><div class="ph">מסך בלי סקיצה עדיין</div><div class="st"><b>2. שלב</b><small>מה קורה פה.</small></div></div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h4>איך זה עובד</h4><ul><li>...</li></ul></div>
+    <div class="box"><h4>מה נמדד</h4><ul><li>...</li></ul></div>
+  </div>
+
+  <h2><span class="n">←</span> הסדר, ומה אני צריך ממך</h2>
+  <div class="grid2">
+    <div class="box"><h4>הסדר</h4><ol class="order"><li>...</li></ol></div>
+    <div class="box ask"><h4>החלטות שלך</h4><ul><li><b>שאלה</b>: ההמלצה שלי.</li></ul></div>
+  </div>
+</div>
+<div class="zoom" id="zoom"><img alt=""></div>
+<script>
+  const z = document.getElementById('zoom');
+  document.querySelectorAll('.shot img').forEach((im) => im.onclick = () => { z.querySelector('img').src = im.src; z.classList.add('on'); });
+  z.onclick = () => z.classList.remove('on');
+  // the name in two colours, everywhere it appears in a heading
+  document.querySelectorAll('h1, h2, h3, h4, .step b').forEach((h) => { h.innerHTML = h.innerHTML.replace(/שלומיוורס/g, '<span class="b">שלומי<i>וורס</i></span>'); });
+</script>
+</body>
+</html>
