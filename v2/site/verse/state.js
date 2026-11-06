@@ -80,6 +80,9 @@ export function signInSheet(key, char, opt = {}) {
         : `<div class="vx-gain-st"><span><img src="${esc(opt.img)}" alt="">${char && catchphrase(char) ? `<em>${esc(catchphrase(char))}</em>` : ''}</span></div>`
       : `<div class="vx-hero-face">${c ? av({ char, ring: true }) : av({ planet: true })}</div>`;
     track('signin_ask', inApp() ? 'inapp' : 'browser');   // how many reach the sign-in, and how many of them can't (in-app browser)
+    track('signin_from', key || 'default');                // and what brought them there (backstage: which ask works)
+    // inside Instagram / TikTok / Facebook's own browser Google refuses to sign in: Miriam's counter, email + a code
+    if (inApp() && MAIL_SIGNIN) return mailSheet(key, resolve);
     const body = inApp()
       ? `<p class="vx-sub" style="margin-top:6px">${esc(T.signinInApp)}</p>
          <button class="vx-btn white block" data-out>${esc(T.signinOut)}</button>
@@ -94,6 +97,10 @@ export function signInSheet(key, char, opt = {}) {
         <div class="vx-reasons">${g.rows.map((r, i) => `<div class="${i ? '' : 'hl'}"><span class="vx-round">${rowIcon(r)}</span><span>${esc(fill(r))}</span></div>`).join('')}</div>
         ${body}
       </div>`, { cls: 'signin', onClose: () => { if (!done) resolve(false); } });
+    const out = h.el.querySelector('[data-out]');
+    if (out) out.onclick = () => openOutside(key);
+    const copy = h.el.querySelector('[data-copy]');
+    if (copy) copy.onclick = () => { navigator.clipboard?.writeText(location.href); toast(T.linkCopied); };
     const google = h.el.querySelector('[data-google]');
     if (google) google.onclick = async () => {
       google.disabled = true;
@@ -103,6 +110,7 @@ export function signInSheet(key, char, opt = {}) {
         const r = await A.signInWithPopup(auth, provider);
         const isNew = A.getAdditionalUserInfo(r)?.isNewUser;
         track('sign_in', isNew ? 'new' : 'back');
+        if (isNew) { track('joined', key || 'default'); track('join_via', 'google'); }
         done = true; h.close('ok'); resolve(true);
       } catch (e) {
         google.disabled = false;
@@ -110,11 +118,79 @@ export function signInSheet(key, char, opt = {}) {
         if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') toast(T.signinFailed);
       }
     };
-    const out = h.el.querySelector('[data-out]');
-    if (out) out.onclick = () => openOutside(key);
-    const copy = h.el.querySelector('[data-copy]');
-    if (copy) copy.onclick = () => { navigator.clipboard?.writeText(location.href); toast(T.linkCopied); };
   });
+}
+
+// the email way is on once the functions may sign people in (createCustomToken needs "Service Account Token Creator" on
+// the functions' own service account - his approval, pending 2026-11-06); off = the old "open in browser" sheet in the apps
+const MAIL_SIGNIN = false;
+// ---------- A2: residency by email, inside the apps' own browsers (2026-11-06, mockups conversion/S1-email, S2-code) ----------
+// Miriam's counter: an email, a 6-digit code from verse.js (emailCode / emailIn), and the code opens the account - the
+// same one a Google sign-in with that address has. "Open in the browser" stays, small, for whoever prefers Google.
+function mailSheet(key, resolve) {
+  let done = false, email = '';
+  const h = sheet(`<div class="ms-art"><img src="/verse/art/miriam-counter.jpg" alt=""></div><div class="in ms-in"></div>`,
+    { cls: 'signin mail', onClose: () => { if (!done) resolve(false); } });
+  const box = h.el.querySelector('.ms-in');
+  const busy = (b, on, label) => { b.disabled = on; b.innerHTML = on ? '<span class="vx-spin"></span>' : esc(label); };
+  const err = (code) => T.mail.err[code] || T.mail.err.other;
+  const step1 = () => {
+    box.innerHTML = `<h2 class="vx-h">${esc(T.mail.title)}</h2><p class="vx-sub">${esc(T.mail.line)}</p>
+      <form class="ms-form"><input class="vx-field" type="email" inputmode="email" autocomplete="email" dir="ltr" required
+        placeholder="${esc(T.mail.placeholder)}" value="${esc(email)}">
+      <p class="ms-err" role="alert"></p>
+      <button class="vx-btn main block">${esc(T.mail.send)}</button></form>
+      <p class="vx-small">${esc(T.mail.small)}</p>
+      <button class="vx-link ms-out" type="button">${esc(T.mail.google)}</button>`;
+    const f = box.querySelector('form'), input = f.querySelector('input'), b = f.querySelector('button'), e = f.querySelector('.ms-err');
+    setTimeout(() => input.focus(), 250);
+    box.querySelector('.ms-out').onclick = () => openOutside(key);
+    f.onsubmit = async (ev) => {
+      ev.preventDefault();
+      email = input.value.trim().toLowerCase();
+      e.textContent = '';
+      busy(b, true);
+      try { await call('emailCode', { email }); track('email_code', 'sent'); step2(); }
+      catch (x) { busy(b, false, T.mail.send); e.textContent = err(x.code); track('email_code', x.code || 'fail'); }
+    };
+  };
+  const step2 = () => {
+    box.innerHTML = `<h2 class="vx-h">${esc(T.mail.title2)}</h2><p class="vx-sub">${esc(T.mail.sent)} <b dir="ltr">${esc(email)}</b></p>
+      <form class="ms-form"><input class="vx-field ms-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr"
+        pattern="[0-9]*" placeholder="······" required>
+      <p class="ms-err" role="alert"></p>
+      <button class="vx-btn main block">${esc(T.mail.confirm)}</button></form>
+      <div class="ms-again"><button class="vx-link" type="button" data-again>${esc(T.mail.again)}</button>
+      <button class="vx-link" type="button" data-other>${esc(T.mail.other)}</button></div>`;
+    const f = box.querySelector('form'), input = f.querySelector('input'), b = f.querySelector('button'), e = f.querySelector('.ms-err');
+    setTimeout(() => input.focus(), 250);
+    input.oninput = () => { input.value = input.value.replace(/\D/g, '').slice(0, 6); if (input.value.length === 6) f.requestSubmit(); };
+    box.querySelector('[data-other]').onclick = step1;
+    box.querySelector('[data-again]').onclick = async (ev) => {
+      ev.target.disabled = true;
+      try { await call('emailCode', { email }); toast(T.mail.resent); } catch (x) { e.textContent = err(x.code); }
+      setTimeout(() => { ev.target.disabled = false; }, 20000);
+    };
+    f.onsubmit = async (ev) => {
+      ev.preventDefault();
+      if (b.disabled) return;
+      e.textContent = '';
+      busy(b, true);
+      try {
+        const r = await call('emailIn', { email, code: input.value });
+        await A.signInWithCustomToken(auth, r.token);
+        track('email_code', 'ok');
+        track('sign_in', r.isNew ? 'new' : 'back');
+        if (r.isNew) { track('joined', key || 'default'); track('join_via', 'email'); }
+        done = true; h.close('ok'); resolve(true);
+      } catch (x) {
+        busy(b, false, T.mail.confirm);
+        e.textContent = err(x.code); input.select();
+        track('email_code', x.code || 'fail');
+      }
+    };
+  };
+  step1();
 }
 
 // ---------- B: your name in the verse (first sign-in; also "edit my name") ----------

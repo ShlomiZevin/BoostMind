@@ -1000,7 +1000,7 @@ function renderText(text, streaming) {
         parts.push(streaming ? '' : inviteCard());
       } else if (line.trim() === '[[signin]]') {   // the character asks to sign in (the day's free questions are used)
         flush();
-        parts.push(streaming || !HOOK.signinCard ? '' : HOOK.signinCard(true));
+        parts.push(streaming || !HOOK.signinCard ? '' : HOOK.signinCard(true, cxMode));
       } else if (!m) para.push(line);
     }
     flush();
@@ -1065,15 +1065,17 @@ function inviteDone(r) {
 // the questions are used (3 in total without an account, 10 a day signed in): say so in the chat; signed out = a Google button,
 // and their question goes out by itself once they are in
 function quotaNote(why) {
-  if (why === 'signin' && HOOK.signinCard) return `<p>3 השאלות החינמיות שלכם כבר נשאלו. התחברו עם Google בחינם וקבלו 10 שאלות בכל יום.</p>${HOOK.signinCard(false)}`;
+  if (why === 'signin' && HOOK.signinCard) return HOOK.signinCard(false, cxMode);
   return `<p>${why === 'full' ? 'הדמויות מוצפות היום. נסו שוב מחר.' : '10 השאלות של היום כבר נשאלו. מחר יש עוד - או שמזמינים חבר, ושניכם מקבלים עוד 10 כבר היום.'}</p>${why === 'done' ? inviteCard() : ''}`;
 }
-async function send(text) {
+// cont = the visitor just signed up at the wall: the character's cut-off reply goes on from the word it stopped at
+// (wiki.js CONT) - no new question bubble, a hidden "המשך" carries it
+async function send(text, cont = false) {
   text = String(text || '').trim();
   if (!text || busy) return;
   const mode = cxMode, ta = $('textarea', cx), btn = $('.composer button', cx), msgs = $('.msgs', cx);
-  busy = true; btn.disabled = true; ta.value = ''; ta.style.height = '48px';
-  threads[mode].push({ role: 'user', content: text });
+  busy = true; btn.disabled = true; if (!cont) { ta.value = ''; ta.style.height = '48px'; }
+  if (!cont) threads[mode].push({ role: 'user', content: text });
   t('chat_message', mode);
   drawMsgs();
   const bubble = document.createElement('div');
@@ -1084,11 +1086,11 @@ async function send(text) {
   msgs.scrollTop = msgs.scrollHeight;
   let out = '';
   try {
-    const history = threads[mode].filter((m) => m.role !== 'note').slice(-16);
+    const history = threads[mode].filter((m) => m.role !== 'note').slice(-16).concat(cont ? [{ role: 'user', content: 'המשך' }] : []);
     // signed in: the account goes with the question (10 a day after the first 3 - wiki.js counts them)
     const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
     const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) },
-      body: JSON.stringify({ mode, messages: history, contact: true, ...visitor() }) });
+      body: JSON.stringify({ mode, messages: history, contact: true, ...(cont ? { cont: true } : {}), ...visitor() }) });
     if (res.status === 429) { const j = await res.json().catch(() => ({})); inviteDone(j.invite); if (j.error === 'quota' && quota) { quota.left = 0; paintLeft(); } throw Object.assign(new Error(j.error === 'quota' ? 'quota' : 'busy'), { why: j.why }); }
     if (!res.ok || !res.body) throw new Error('fail');
     inviteDone(res.headers.get('X-Invite'));
@@ -1107,9 +1109,10 @@ async function send(text) {
     }
     threads[mode].push({ role: 'assistant', content: out.trim() });
     save(mode);
+    if (/\[\[signin\]\]/.test(out)) t('wall', mode);   // the character stopped mid-story for a tourist
   } catch (e) {
-    threads[mode].pop();
-    if (cxMode === mode) { $('textarea', cx).value = text; bubble.classList.remove('wait'); bubble.innerHTML = e.message === 'quota' ? quotaNote(e.why)
+    if (!cont) threads[mode].pop();
+    if (cxMode === mode) { if (!cont) $('textarea', cx).value = text; bubble.classList.remove('wait'); bubble.innerHTML = e.message === 'quota' ? quotaNote(e.why)
       : `<p>${e.message === 'busy' ? 'הרבה הודעות בבת אחת. נסו שוב עוד מעט.' : 'משהו נתקע בדרך. נסו לשלוח שוב.'}</p>`; }
     busy = false; btn.disabled = false;
     return;
@@ -1124,7 +1127,7 @@ function leftLine() {
   const n = quota.left, dots = `<span class="qd">${Array.from({ length: quota.limit }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
   const words = quota.signed
     ? (n > 1 ? `נשארו היום ${n} מתוך ${quota.limit} שאלות` : n === 1 ? `נשארה היום שאלה אחת מתוך ${quota.limit}` : `${quota.limit} השאלות של היום כבר נשאלו. מחר יש עוד`)
-    : (n > 1 ? `נשארו ${n} שאלות בלי חשבון · עם Google 10 בכל יום` : n === 1 ? 'נשארה שאלה אחת בלי חשבון · עם Google 10 בכל יום' : 'השאלות בלי חשבון נגמרו · עם Google 10 בכל יום');
+    : (n > 1 ? `נשארו ${n} שאלות לתיירים` : n === 1 ? 'נשארה שאלה אחת לתיירים' : 'תושבים ממשיכים לדבר עם כל הדמויות');
   return `${dots}<span>${words}</span>`;
 }
 const paintLeft = () => { const el = $('.cx-left', cx); if (el) el.innerHTML = leftLine(); };
@@ -1204,10 +1207,7 @@ document.addEventListener('click', (e) => {
       if (!ok) return;
       quota = null; peekLeft();   // now the account's own count (10)
       if (si.dataset.chatSignin !== 'again') return send($('textarea', cx).value);
-      const t = threads[cxMode]; let i = t.length - 1;
-      while (i >= 0 && t[i].role !== 'user') i--;
-      if (i < 0) return drawMsgs();
-      const q = t[i].content; t.splice(i); save(cxMode); drawMsgs(); send(q);
+      drawMsgs(); send('המשך', true);   // the story goes on from the word it stopped at
     });
     return;
   }

@@ -412,4 +412,4 @@ async function owner(op, b = {}) {
   return null;
 }
 
-module.exports = { ...exports, reply, replyMail, ideaMail, owner, plan, il, sendingHours, MAIL_SECRETS: SECRETS };
+module.exports = { ...exports, reply, replyMail, ideaMail, owner, plan, il, sendingHours, deliver, MAIL_SECRETS: SECRETS };

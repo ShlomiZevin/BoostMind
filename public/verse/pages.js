@@ -7,6 +7,7 @@ import { st, needFan, signedIn, nameScreen, signOut, cachedMe, follow } from './
 import { ringsHtml, storyRing } from './stories.js';
 import { watched } from './player.js';
 import { pushState, enablePush } from './push.js';
+import { statusChip } from './status.js';
 
 // ---------- top bar ----------
 export function renderTop() {
@@ -15,9 +16,10 @@ export function renderTop() {
   const bell = `<button class="icon-btn" data-bell aria-label="${esc(T.notesTitle)}">${I.bell}${st.unread ? '<span class="vx-dot"></span>' : ''}</button>`;
   // before Firebase answers: the last signed-in look (or nothing), never a "sign in" button that flips a second later
   const me = signedIn() ? st.fan : !st.ready ? cachedMe() : null;
+  // the status chip (tourist / resident) sits with the bell - same height, same line (his note on mockup C-chip)
   box.innerHTML = me
-    ? `${bell}<button class="me-btn" data-me-menu aria-label="${esc(T.mmProfile)}">${av({ fan: me })}</button>`
-    : st.ready ? `${bell}<button class="in-btn" data-signin>כניסה</button>` : '';
+    ? `${st.ready ? statusChip() : ''}${bell}<button class="me-btn" data-me-menu aria-label="${esc(T.mmProfile)}">${av({ fan: me })}</button>`
+    : st.ready ? `${statusChip()}${bell}<button class="in-btn" data-signin>כניסה</button>` : '';
   const nav = document.querySelector('.nav-me');
   if (nav) nav.innerHTML = st.unread ? `אני <span class="vx-dot" style="display:inline-block;width:7px;height:7px;vertical-align:middle"></span>` : 'אני';
 }
@@ -301,11 +303,17 @@ export function requestCard(kind, mode, text) {
     <button class="rq-go">${I.plane}<span>${esc(text ? T.rqApprove : T.rqSend)}</span></button>
     <small>${esc(T.rqNote)}</small></form>`;
 }
-// a character asks the visitor to sign in, in their own voice, when the 3 free questions are used (wiki.js puts
-// [[signin]] under that reply): one Google button inside the bubble. Signed in already = nothing.
-export function signinCard(again) {
+// the wall (2026-11-06, mockup conversion/W-wall): the character stopped mid-story for a tourist (wiki.js puts [[signin]]
+// under that reply) - a card in the conversation: "{name} is ready to go on, first they need to know who you are" and
+// one button to become a resident; after it the story goes on from the same word. `again` false = the box's refused
+// question (no story to finish). Signed in already = nothing.
+const ID_CARD = '<svg viewBox="0 0 48 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="42" height="30" rx="5"/><path d="M18 7V4h12v3"/><circle cx="31" cy="20" r="4.5"/><path d="M23.5 31c1.4-3.6 4.2-5.4 7.5-5.4s6.1 1.8 7.5 5.4"/><path d="M9 17c3-1.6 7-1.6 9.5 0M9 23h7M9 28h5"/></svg>';
+export function signinCard(again, mode) {
   if (st.user) return '';
-  return `<div class="si"><button data-chat-signin="${again ? 'again' : 'box'}">${I.google}<span>${esc(T.signinGoogle)}</span></button><small>${esc(T.chatFree)}</small></div>`;
+  const c = mode && mode !== 'guide' && typeof C !== 'undefined' ? C[mode] : null;
+  const g = c && typeof GENDER !== 'undefined' ? GENDER[mode] : 'm';
+  const line = again ? T.wall.line(c ? c.name : T.wall.guide, g) : T.wall.box;
+  return `<div class="si si-wall"><span class="si-id">${ID_CARD}</span><div><p>${esc(line)}</p><button data-chat-signin="${again ? 'again' : 'box'}">${esc(T.wall.btn)}</button></div></div>`;
 }
 document.addEventListener('submit', async (e) => {
   const f = e.target.closest('[data-rq]');

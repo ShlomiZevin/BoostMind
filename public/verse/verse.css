@@ -1481,3 +1481,74 @@ html.can-app .foot-app { display: inline-flex !important; }
 .ig-note { margin-top: 10px; color: var(--vx-accent); font-weight: 700; }
 .ig-ok .vx-btn svg, .ap .vx-btn svg { width: 18px; height: 18px; vertical-align: -3px; margin-inline-end: 6px; }
 .ig-ok.col { flex-wrap: wrap; } .ig-ok.col p { flex: 1 1 60%; color: var(--text); } .ig-ok.col .vx-btn { flex: 1 1 100%; justify-content: center; }
+
+/* ---- residency by email inside the apps' browsers (2026-11-06, mockups conversion/S1-email, S2-code): Miriam's counter
+   on top, the form under it; the keyboard comes up, so the art shrinks on short screens ---- */
+.vx-sheet.signin.mail { overflow: hidden; }
+.vx-sheet.signin.mail .grab { position: absolute; inset-inline: 0; top: 0; z-index: 2; background: rgba(255, 255, 255, .7); }
+.ms-art { position: relative; flex: none; height: clamp(120px, 26svh, 230px); overflow: hidden; }
+.ms-art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+.ms-art::after { content: ''; position: absolute; inset: auto 0 0; height: 46%; background: linear-gradient(to bottom, transparent, var(--vx-glass-solid, #141317)); }
+.vx-sheet.signin.mail .ms-in { text-align: center; padding: 0 22px 18px; margin-top: -18px; position: relative; }
+.vx-sheet.signin.mail .vx-h { margin-top: 0; white-space: normal; }
+.ms-form { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.ms-form .vx-field { text-align: center; font-size: 1.08rem; }
+.ms-form .ms-code { font-size: 1.9rem; font-weight: 800; letter-spacing: .5em; text-indent: .5em; height: 66px; }
+.ms-err { min-height: 1.2em; color: #ffb199; font-size: .9rem; }
+.ms-err:empty { min-height: 0; }
+.ms-again { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+.ms-again .vx-link { margin: 0; font-size: .92rem; }
+.ms-out { font-size: .9rem; }
+@media (max-height: 640px) { .ms-art { height: 96px; } }
+
+/* the wall in the chat (2026-11-06, mockup conversion/W-wall): a card in the conversation, an ID card, one button */
+.si.si-wall { flex-direction: row; align-items: center; gap: 14px; margin-top: 12px; padding: 14px 16px; border-radius: 18px;
+  border: 1.5px solid var(--vx-accent, #ff6a1f); background: color-mix(in srgb, var(--vx-accent, #ff6a1f) 9%, rgba(20, 20, 24, .92));
+  box-shadow: 0 0 22px -10px rgba(255, 106, 31, .9); }
+.si.si-wall > div { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.si.si-wall p { margin: 0; font-weight: 600; line-height: 1.45; color: #fff; }
+.si.si-wall button { align-self: flex-start; height: 44px; padding: 0 22px; background: var(--vx-accent, #ff6a1f); color: #fff; border: 0; font-weight: 800; font-size: 1rem; }
+.si-id { flex: none; width: 58px; height: 50px; color: var(--vx-accent, #ff6a1f); filter: drop-shadow(0 0 8px rgba(255, 106, 31, .65)); order: 2; }
+.si-id svg { width: 100%; height: 100%; }
+
+/* ---- your status: the chip in the top bar + the window (2026-11-06, mockups conversion/C-chip, L1-ladder) ---- */
+/* the chip has the bell's height, border and corner, so the three sit on one line (his note on C-chip) */
+.vx-top .st-chip { height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line);
+  color: var(--text, #fff); font-weight: 800; font-size: .9rem; flex: none; transition: border-color .15s; }
+.vx-top .st-chip:hover { border-color: var(--accent); }
+.vx-top .st-chip svg { width: 18px; height: 18px; color: var(--accent); }
+@media (max-width: 820px) { .vx-top .st-chip { height: 36px; padding: 0 7px; gap: 4px; font-size: .82rem; } .vx-top .st-chip svg { width: 15px; height: 15px; } .vx-top { gap: 6px; } }
+
+.vx-sheet.status { border: 1.5px solid var(--vx-accent); border-bottom: 0; box-shadow: 0 -10px 40px -12px rgba(255, 106, 31, .45); }
+.sl { text-align: center; }
+.sl-logo { width: 116px; display: block; margin: 0 auto 2px; filter: drop-shadow(0 0 14px rgba(255, 106, 31, .45)); }
+.sl .vx-h { margin-top: 4px; }
+.sl .vx-sub { margin-bottom: 14px; }
+.sl-path { position: relative; display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px; padding-inline-end: 26px; text-align: right; }
+.sl-path::before { content: ''; position: absolute; inset-inline-end: 9px; top: 26px; bottom: 26px; border-inline-start: 2px dashed rgba(255, 255, 255, .22); }
+.sl-tier { position: relative; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--vx-glass-line); background: rgba(255, 255, 255, .035); }
+.sl-tier::after { content: ''; position: absolute; inset-inline-end: -26px; top: 22px; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .45); background: #121216; }
+.sl-tier.here { border: 1.5px solid var(--vx-accent); background: color-mix(in srgb, var(--vx-accent) 12%, rgba(20, 20, 24, .9)); box-shadow: 0 0 24px -10px rgba(255, 106, 31, .9); }
+.sl-tier.here::after, .sl-tier.past::after { border-color: var(--vx-accent); background: var(--vx-accent); box-shadow: 0 0 10px rgba(255, 106, 31, .8); }
+.sl-head { display: flex; align-items: center; gap: 10px; }
+.sl-head b { font-size: 1.28rem; font-weight: 900; }
+.sl-ic { width: 34px; height: 34px; color: var(--vx-accent); flex: none; }
+.sl-ic svg { width: 100%; height: 100%; }
+.sl-here, .sl-soon { margin-inline-start: auto; font-style: normal; font-size: .76rem; font-weight: 800; padding: 3px 10px; border-radius: 8px; }
+.sl-here { background: var(--vx-accent); color: #fff; }
+.sl-soon { background: rgba(255, 255, 255, .12); color: rgba(255, 255, 255, .8); }
+.sl-tier p { margin: 4px 0 8px; font-size: .9rem; color: rgba(255, 255, 255, .72); }
+.sl-tier ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.sl-tier li { display: flex; align-items: center; gap: 6px; font-size: .78rem; line-height: 1.25; color: rgba(255, 255, 255, .88); }
+.sl-tier li svg { width: 20px; height: 20px; flex: none; color: var(--vx-accent); }
+.sl-tier.past { opacity: .6; }
+
+/* the ask after 3 videos (2026-11-06, mockup conversion/A-3videos): the faces they met, one warm step in */
+.vx-sheet.ask3 { border: 1.5px solid var(--vx-accent); border-bottom: 0; }
+.a3 { text-align: center; padding-top: 6px; }
+.a3-faces { display: flex; justify-content: center; gap: 0; margin: 4px 0 6px; }
+.a3-faces span { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-inline: -6px; }
+.a3-faces img { width: 92px; height: 92px; border-radius: 50%; object-fit: cover; border: 3px solid #141317; box-shadow: 0 0 0 2px var(--vx-accent), 0 0 26px -6px rgba(255, 106, 31, .9); }
+.a3-faces span:nth-child(2) img { width: 104px; height: 104px; margin-top: -8px; }
+.a3-faces b { font-size: .82rem; font-weight: 700; color: rgba(255, 255, 255, .78); }

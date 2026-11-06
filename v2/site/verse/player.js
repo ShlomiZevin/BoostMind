@@ -9,6 +9,7 @@ import { st, onState, needFan, follow, save, signedIn } from './state.js';
 import { openBoard, onScore, TROPHY } from './records.js';
 import { appMoment } from './install.js';
 import { offerPush } from './push.js';
+import { videoDone, ask3Moment } from './status.js';
 
 let P = null;   // the open player
 let backTo = '/';
@@ -127,7 +128,7 @@ export function openPlayer(id, q = {}) {
   video.addEventListener('loadedmetadata', () => { $('[data-dur]', el).textContent = mmss(video.duration); });
   video.addEventListener('play', () => { el.classList.remove('paused'); $('[data-pp]', el).innerHTML = I.pause; flashLine(); });
   video.addEventListener('pause', () => { el.classList.add('paused'); $('[data-pp]', el).innerHTML = I.play; });
-  video.addEventListener('ended', () => { remember(id, video.duration, video.duration); setUi(true); P.liked = true; });
+  video.addEventListener('ended', () => { remember(id, video.duration, video.duration); setUi(true); P.liked = true; videoDone(id, lead); ask3Moment(); });
   $('[data-scrub]', el).addEventListener('input', (e) => {
     const p = e.target.value / 10;
     e.target.style.setProperty('--p', p + '%');
@@ -381,7 +382,9 @@ function destroy() {
   if (!P) return;
   // a video watched (to its end, or 20 s) or a game played: once the layer is gone, a good moment to offer the home screen
   const liked = P.liked || (P.video && P.video.currentTime > 20), lead = P.lead, kind = P.video ? 'video' : 'game';
-  if (liked) setTimeout(() => appMoment(kind, lead), 400);   // appMoment waits until no other layer is open
+  // finished (80%+): it counts toward the tourist's 3 - and the ask after 3 videos goes before the home-screen invite
+  if (P.video && P.video.duration && P.video.currentTime / P.video.duration >= 0.8) videoDone(P.v.id, lead);
+  if (liked) setTimeout(() => { if (!(kind === 'video' && ask3Moment())) appMoment(kind, lead); }, 400);   // both wait until no other layer is open
   if (P.cm) P.cm.close('away');
   P.off.forEach((u) => u && u());
   document.removeEventListener('keydown', P.key);

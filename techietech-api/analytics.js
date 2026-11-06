@@ -40,6 +40,14 @@ const EVENTS = new Set([
   'sign_in',       // a fan signed in with Google                  x = 'new' | 'back'
   'signin_ask',    // the sign-in window opened                    x = 'inapp' (Instagram / TikTok / FB browser) | 'browser'
   'open_out',      // "open in browser" pressed in the sign-in     x = 'ios' | 'android' | 'other'
+  // the conversion funnel (2026-11-06): tourist (no account) -> resident (an account) -> citizen
+  'signin_from',   // what opened the sign-in window               x = the ask: chat / three / status / pack / sticker / follow / record / ...
+  'joined',        // a NEW account was made                       x = the ask that brought it (same keys as signin_from)
+  'join_via',      // how the new account signed up                x = 'google' | 'email'
+  'email_code',    // residency by email (inside the apps' browsers) x = 'sent' | 'ok' | 'code_bad' | 'code_old' | 'email_bad' | 'slow_down' | ...
+  'status_open',   // the "תייר" chip opened the status window      x = where it was tapped
+  'ask3',          // the ask after 3 videos watched to the end     x = 'show' | 'yes' | 'later'
+  'wall',          // the chat stopped mid-story for a tourist      x = character id or 'guide'
   'cando',         // a home "what you can do" tile was pressed    x = sticker | chat | follow | stories | games | sites | pack
   'pack_get',      // a ready sticker from the pack taken          x = sticker id
   'st_copy',       // a sticker copied (to paste into WhatsApp)    x = video id

@@ -593,9 +593,75 @@ async function request(d, auth, ip) {
   return { ok: true };
 }
 
+// ---------- signing up by email (2026-11-06): Instagram / Facebook / TikTok's own browsers refuse Google's sign-in, and half
+// of the sign-in sheets open there. So the sheet there asks for an email, we send a 6-digit code, and the code opens the
+// account - the same account a Google sign-in with that email has. Only the code's hash is kept: 10 minutes, 5 tries.
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,24}$/i;
+const emailDoc = (email) => db.collection('emailCodes').doc(crypto.createHash('sha256').update(email).digest('hex').slice(0, 40));
+const codeHash = (email, code) => crypto.createHash('sha256').update(email + '|' + code).digest('hex');
+const CODES_A_DAY = 300;   // under Gmail's ~500 a day, which the news mails share
+function codeMail(code) {
+  const subject = `${code} - הקוד שלכם לשלומיוורס`;
+  const text = `הקוד להנפקת התושבות שלכם בשלומיוורס: ${code}\n\nהוא בתוקף 10 דקות. לא ביקשתם? אפשר פשוט להתעלם.\n\nשלומיוורס. אנשים אמיתיים. יקום מקביל.\n${SITE}`;
+  const html = `<div dir="rtl" style="background:#0b0b0e;padding:32px 16px;font-family:Heebo,Arial,sans-serif;text-align:center;color:#f4efe8">
+  <img src="${SITE}/verse/logo-160.png" width="120" alt="שלומיוורס" style="display:block;margin:0 auto 18px">
+  <div style="font-size:18px;font-weight:700;margin-bottom:8px">הקוד להנפקת התושבות שלכם</div>
+  <div style="font-size:40px;font-weight:900;letter-spacing:10px;color:#ff6a1f;direction:ltr;margin:14px 0">${code}</div>
+  <div style="font-size:14px;color:#a8a2a0">בתוקף 10 דקות. לא ביקשתם? אפשר פשוט להתעלם.</div>
+  <div style="font-size:12px;color:#6f6a68;margin-top:28px">שלומיוורס. אנשים אמיתיים. יקום מקביל.</div></div>`;
+  return { subject, text, html };
+}
+async function emailCode(d, ip) {
+  const email = String(d.email || '').trim().toLowerCase();
+  if (!EMAIL_RE.test(email)) fail('invalid-argument', 'email_bad');
+  if (burst('mc' + ip, 8, 3600e3) || burst('me' + email, 4, 3600e3)) fail('resource-exhausted', 'slow_down');
+  const day = dayIL(), cap = db.collection('verseMeta').doc('emailCodes');
+  const n = await db.runTransaction(async (tx) => {
+    const x = (await tx.get(cap)).data() || {}, c = x.d === day ? x.n || 0 : 0;
+    if (c >= CODES_A_DAY) return -1;
+    tx.set(cap, { d: day, n: c + 1 });
+    return c + 1;
+  });
+  if (n < 0) fail('resource-exhausted', 'mail_full');
+  const code = String(crypto.randomInt(0, 1e6)).padStart(6, '0');
+  await emailDoc(email).set({ h: codeHash(email, code), tries: 0, exp: Timestamp.fromMillis(Date.now() + 10 * 60e3) });
+  if (LOCAL) console.log('[local] the code for', email, 'is', code);
+  const ok = await require('./mailer').deliver({ to: email, kind: 'code', m: codeMail(code), replyTo: null });
+  if (!ok) fail('unavailable', 'mail_failed');
+  return { ok: true };
+}
+async function emailIn(d) {
+  const email = String(d.email || '').trim().toLowerCase(), code = String(d.code || '').replace(/\D/g, '');
+  if (!EMAIL_RE.test(email) || code.length !== 6) fail('invalid-argument', 'code_bad');
+  const ref = emailDoc(email);
+  const r = await db.runTransaction(async (tx) => {
+    const s = await tx.get(ref);
+    if (!s.exists) return 'old';
+    const x = s.data();
+    if (x.exp.toMillis() < Date.now() || x.tries >= 5) { tx.delete(ref); return 'old'; }
+    if (x.h !== codeHash(email, code)) { tx.update(ref, { tries: x.tries + 1 }); return 'bad'; }
+    tx.delete(ref);
+    return 'ok';
+  });
+  if (r === 'bad') fail('permission-denied', 'code_bad');
+  if (r === 'old') fail('deadline-exceeded', 'code_old');
+  let user, isNew = false;
+  try { user = await admin.auth().getUserByEmail(email); }
+  catch (e) {
+    if (e.code !== 'auth/user-not-found') throw e;
+    user = await admin.auth().createUser({ email, emailVerified: true });
+    isNew = true;
+  }
+  if (!user.emailVerified) await admin.auth().updateUser(user.uid, { emailVerified: true });   // the code proved it
+  // signing a custom token needs the functions' service account to hold "Service Account Token Creator" on itself
+  return { token: await admin.auth().createCustomToken(user.uid), isNew };
+}
+
 exports.verse = onCall({ region: REGION, secrets: SECRETS, cors: CORS, maxInstances: 6, concurrency: 40, memory: '512MiB', timeoutSeconds: 120 }, async (req) => {
   const { op, ...d } = req.data || {};
   if (op === 'request') return request(d, req.auth, req.rawRequest.ip);
+  if (op === 'emailCode') return emailCode(d, req.rawRequest.ip);
+  if (op === 'emailIn') return emailIn(d);
   if (!req.auth) fail('unauthenticated', 'sign_in');
   if (!ops[op]) fail('invalid-argument', 'op');
   if (burst('u' + req.auth.uid, 120, 60e3)) fail('resource-exhausted', 'slow_down');

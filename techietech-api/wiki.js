@@ -100,11 +100,15 @@ Once they say yes: if it is about reaching Shlomi for something other than video
 // the one reply after the limit (spendQuestion's grace), in the speaker's own voice - the whole invitation is theirs
 // The reply that meets the wall answers first, then invites (his ask, 2026-11-05: 92 visitors left right after a reply
 // that only said "sign in" - the moment broke; "אין לי כח" got an invitation instead of an answer)
+// 2026-11-06 (his call, the conversion plan): the wall is an unfinished story, never a quota - a real start of the answer
+// that stops at the best moment, nothing about questions, Google or accounts; the page shows the invitation under it, and
+// once they sign up the reply goes on from the very word it stopped at (CONT)
+const CONT = `The visitor has just become a resident of the Shlomiverse, so you can go on. Your previous reply stopped in the middle of a sentence at the em dash (—), and their last message ("המשך") only means "go on". Continue EXACTLY from the word where you stopped: begin with the very next word after the dash - never repeat any words you already wrote, no greeting, no thanks, nothing about signing up - finish what you were telling, and make sure the question they asked before is answered.`;
 const LIMIT = {
-  signin: `The visitor has used their free questions (3 without an account). First answer their last message briefly - one or two short sentences, a real answer in your own voice (cards only if they asked to find something). Then, in your own voice and style - your words, your world, your humour - in one short sentence invite them to sign in with Google (free, one tap) so you can keep talking: 10 questions every day. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last (the page shows a Google button there). Don't sound like a system message and don't apologise.`,
+  signin: `The visitor has used their free questions. Start answering their last message for real, in your own voice and world - and at the most interesting moment (the juiciest detail, the name, the twist, the punchline) stop in the middle of the sentence, ending with an em dash (—). It must be something they will badly want the rest of, true to what they asked and to your character. Never mention questions, limits, accounts, Google, signing up or "residents", and don't invite them to anything - the page shows the invitation right under your words. Then put [[signin]] on its own line, last. Don't sound like a system message and don't apologise.`,
   // the last free answer when the visitor asked to FIND something (8 visitors got "sign in" exactly when the chat had
   // found the video they asked for): what was found comes first, the wall moves to their next question (wiki.js below)
-  soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: answer it briefly - one or two short sentences, a real answer in your own voice; then, in one short sentence in your own voice, invite them to sign in with Google (free, one tap) so you can keep talking: 10 questions every day. Speak to them in plural (אתם) in the invitation. Then put [[signin]] on its own line, last.`,
+  soft: `This is the visitor's last free answer before they need an account. If their last message asks to find a video, a character, a site or a sticker and the material has it, answer it normally and show its card(s) - no sign-in, nothing about questions or accounts. Anything else: start answering it for real, in your own voice and world - and at the most interesting moment (the juiciest detail, the name, the twist, the punchline) stop in the middle of the sentence, ending with an em dash (—). Never mention questions, limits, accounts, Google or signing up, and don't invite them to anything - the page shows the invitation under your words. Then put [[signin]] on its own line, last.`,
   // today's 10 are used (his ask, 2026-11-05): a real answer, then in voice - come back tomorrow, or bring a friend now;
   // [[invite]] = the page's invite card (their own link, WhatsApp / copy): a friend who signs in with it = 10 more today for both
   done: `The visitor has used today's questions (an account gets 10 every day). First answer their last message briefly - one or two short sentences, a real answer in your own voice. Then, in your own voice and style - your words, your world, your humour, the way you yourself would put it - in two short sentences tell them clearly BOTH ways to go on: (1) tomorrow they get 10 new questions and you'll be glad to go on; (2) or right now - bring a friend: when a friend signs in with their invite link below, both of them get 10 more questions today. Never leave out the friend. Speak to them in plural (אתם) in this part. Then put [[invite]] on its own line, last (the page shows their invite link there, to send on WhatsApp or copy). Don't sound like a system message and don't apologise.`,
@@ -204,7 +208,7 @@ async function stream(key, mode, turns, onText, opts = {}) {
   };
   // soft: found first, the wall later; signin / done: a short real answer, then the wall (sign in / tomorrow or a friend)
   // - all with the look-up, so the answer is right
-  const note = chain.lookupNote(b), soft = opts.limit ? '\n\n' + LIMIT[opts.limit] : '';
+  const note = chain.lookupNote(b), soft = (opts.limit ? '\n\n' + LIMIT[opts.limit] : '') + (opts.cont ? '\n\n' + CONT : '');
   const first = await safe(dev(b) + note + soft + '\n\nNow reply to the visitor\'s last message.', note ? [chain.lookupTool(b)] : null);
   if (!first.lookup) {
     console.log('wikiChat one call', mode, JSON.stringify({ c: b.characters, v: b.videos.slice(0, 8) }));
@@ -361,7 +365,7 @@ exports.wikiChat = onRequest({
   try {
     let reply = '';
     const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); },
-      { contact: req.body.contact === true, limit: ok.grace });
+      { contact: req.body.contact === true, limit: ok.grace, cont: req.body.cont === true && !!who.uid });
     if (ok.grace === 'soft' && !reply.includes('[[signin]]')) await putOff(req, who);
     await keep(req.body, mode, turns, reply, u, who).catch((e) => console.error('keep failed', e.message));
     console.log('wikiChat', mode, turns.length, 'in', u.input_tokens, 'cached', u.input_tokens_details?.cached_tokens, 'out', u.output_tokens);

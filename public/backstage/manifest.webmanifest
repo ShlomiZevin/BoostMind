@@ -1,0 +1,15 @@
+{
+  "name": "מאחורי הקלעים · שלומיוורס",
+  "short_name": "Backstage",
+  "start_url": "/backstage/",
+  "scope": "/backstage/",
+  "display": "standalone",
+  "background_color": "#0b0b0e",
+  "theme_color": "#0b0b0e",
+  "dir": "rtl",
+  "lang": "he",
+  "icons": [
+    { "src": "/backstage/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/backstage/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
