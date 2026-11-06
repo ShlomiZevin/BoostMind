@@ -239,7 +239,9 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
   const cfg = (await db.collection('verseMeta').doc('mail').get()).data() || { on: false, only: [OWNER] };
   const users = [];
   let next;
-  do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users.filter((u) => u.email && !u.disabled).map((u) => ({ uid: u.uid, email: u.email, name: u.displayName || '' }))); next = r.pageToken; } while (next);
+  // addresses that can't receive mail (test accounts: @x.invalid, @example.com) are skipped - a bounce costs the sender's name at Gmail
+  const realMail = (e) => !/\.(invalid|test|example|localhost)$|@example\.(com|org|net)$/i.test(e);
+  do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users.filter((u) => u.email && !u.disabled && realMail(u.email)).map((u) => ({ uid: u.uid, email: u.email, name: u.displayName || '' }))); next = r.pageToken; } while (next);
   const [st, fans, evs] = await Promise.all([db.collection('mailUsers').get(), db.collection('fans').select('follows').get(),
     db.collection('mailEvents').where('t', '>', Timestamp.fromMillis(now - MAX_AGE)).get()]);
   const state = Object.fromEntries(st.docs.map((d) => [d.id, d.data()]));
