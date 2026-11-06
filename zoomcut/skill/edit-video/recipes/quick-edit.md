@@ -99,6 +99,24 @@ it's very slow")
     `of: "person"`).
 - Measured: 87.6 s take -> 11 pieces, 62 s at 1.15 + a 4 s end card.
 
+## A fast talker, several takes (itay-1, 2026-11-06 - his notes on the first cut)
+- **Transcribe with a PAID model, not the local one** (his words: "words I'm saying very, very fast that you didn't
+  catch... try to transcribe it with money"): ElevenLabs Scribe (`POST /v1/speech-to-text`, `model_id scribe_v2`,
+  `language_code heb`, `timestamps_granularity word`) heard what ivrit-ai and gpt-4o-transcribe both missed. gpt-4o on
+  short clips invents text (it read back the prompt); use it only on whole takes. Strip stutters ("א-א-אני" -> "אני").
+- **Silent acting only where he means it** - the first take's nervous opening (phone, face rubbing, an aside) stays
+  (`lead_in` + `keep_pauses`); every OTHER take starts exactly on his first word ("you see me start filming").
+- **The builder's word ends are early** (ivrit alignment): pieces ended on / before their last word ("פה", "יכול",
+  "פרסית" were faded by the join). After the build compare each piece's voice end with Scribe's last-word end and set
+  `cut.edges` [[voice end, word end + 0.12 + join]]. An edge moves EVERY piece boundary of that take within 0.12 s - two
+  sequence parts of one take meeting at the same second (a reorder) collide; set that end with the sequence `to` instead.
+- **Reorders he asks for = `sequence` parts of the same take** ("put the 12 o'clock emails right after 'I stayed till
+  11'"); split only where there is a real gap between words, else move the whole block with it.
+- **A cut-out set must fit where he sits**: he sits at the table next to the viewer, so behind him is the room's wall at
+  seated eye height - never a table behind him ("you just didn't think about the scene").
+- A subtitle you once fixed by hand (`user`) survives every rebuild with its OLD text - remove it after a captions.txt
+  change, or it doubles.
+
 ## Measured on asaf-1
 Two files (95 s + 30 s, 14 recording segments) -> 74.5 s at 1.15. His notes after the first tight cut were ALL
 pause-audit items (four 0.16-0.19 s pauses, three 0.3-0.5 s tails) plus one off-script line - the audit above
