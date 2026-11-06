@@ -2,7 +2,7 @@
 
 This repo and its Firebase project (`boostmind-b052c`) are **the Shlomiverse**: Shlomi's comedy world and the business
 built on it - the links page (his bio link), the characters' wiki, the characters' sites, Hani's games, the stats, and
-Sketch Studio (`zoomcut/`), the editor he makes his videos with.
+Shlomiverse Studio (`zoomcut/`, was "Sketch Studio"), the editor he makes his videos with.
 
 **Only the Shlomiverse lives here** (since 2026-10-31). Everything else has its own repo and Firebase project, so a
 Shlomiverse deploy never touches it:
@@ -33,15 +33,15 @@ Shlomi found new sites missing from his lists because some sessions never added 
 - **/all/** - his private index of everything: `python scripts/all/catalog.py`, then
   `firebase deploy --only functions:stats` from `techietech-api/`.
 - **A character's site / part of his comedy world (the Shlomiverse):** also the sites strip of the links page
-  (`public/links/index.html`), the character's profile in Sketch Studio (`site.url`) and its world in
-  `zoomcut/characters/index.json`, and the sites table in `zoomcut/skill/edit-video/wiki.md`.
+  (`public/links/index.html`), the character's record (`site`, through Shlomiverse Studio or `content.mjs put`) and
+  its world (a series record), and the sites table in `zoomcut/skill/edit-video/wiki.md`.
 - **A form that sends anything** (an order, a booking, a question, a CV) needs a Google account first - his rule,
   so every sender's email reaches /backstage/ (אנשים): load `/verse/site-signin.js`, `await SiteSignIn.ensure('<site>')`,
   send its token as `authorization: Bearer`; add the site to `SITE_NAMES` in `techietech-api/index.js` and `SITES` in
   `public/backstage/index.html`.
 - **A game for a character** (Hani's playhouse or anyone in the verse): load the `make-verse-game` skill
   (`zoomcut/skill/make-verse-game/`) - games live at /hani-games/<slug>/ or /<character>-games/<slug>/ (on the character's wiki page), never on Plaxzy.
-- **A finished video** reaches the wiki and the links page by itself when it is published from Sketch Studio
+- **A finished video** reaches the wiki and the links page by itself when it is published from Shlomiverse Studio
   (a "Shlomiverse" job, through the Shlomiverse's publish API - the list of videos lives in the database since
   2026-11-05); one that missed it: `POST http://localhost:4747/api/ep/<id>/site`, or `node zoomcut/render/verse.mjs <id>`.
 
@@ -60,7 +60,9 @@ Re-publishing the same id = a new version, back to "waiting for him". Private: F
 
 He works from two computers; **nothing either one has or lacks may break the site.** Everything the Shlomiverse shows -
 videos, characters, profiles, family links, portraits, games, sites, stories - lives in the database (one record each;
-portraits = files in the bucket), and the site + the chat are composed from it on the server. One door (versePublish):
+portraits = files in the bucket), and the site + the chat are composed from it on the server. **Characters and worlds
+have no files at all since 2026-11-06** (no character.json / profile.md / index.json): Shlomiverse Studio and
+`content.mjs put | profile` read and write the records. One door (versePublish):
 `node scripts/wiki/push.cjs` after build.py (sends only what this computer's files changed; never removes, never blanks,
 stops when behind git) or `node scripts/verse/content.mjs put | portrait | hide | log` from anywhere. **Read the
 `shlomiverse-content` skill** (zoomcut/skill/shlomiverse-content) before adding or changing any content;

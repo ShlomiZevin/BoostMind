@@ -1,4 +1,4 @@
-# Sketch Studio (zoomcut)
+# Shlomiverse Studio (zoomcut - was "Sketch Studio")
 
 Shlomi's own video editor for his TikTok/Instagram comedy sketches: raw takes + a Hebrew script → a finished vertical
 MP4. **Load the `edit-video` skill** before working on any video - it holds the protocol and the rules he signed off on.

@@ -134,3 +134,6 @@ scripts/wiki/records.json
 
 # a character's profile.md is gone from git (2026-11-06): the database is the only copy - node scripts/verse/content.mjs profile <id>
 zoomcut/characters/**/profile.md
+# characters live only in the database since 2026-11-06 (Shlomiverse Studio + content.mjs) - never a file copy
+zoomcut/characters/**/character.json
+zoomcut/characters/index.json

@@ -13,7 +13,7 @@ shouldn't come from git."**
 
 | What | Lives in | Written by |
 |---|---|---|
-| Videos | Firestore `catalogVideos` + `catalogTranscripts`, files `gs://shlomiverse-media/wiki/v/` | versePublish `op: video` (Sketch Studio's Send, `zoomcut/render/verse.mjs`, insta-to-verse, push.cjs adds missed ones) |
+| Videos | Firestore `catalogVideos` + `catalogTranscripts`, files `gs://shlomiverse-media/wiki/v/` | versePublish `op: video` (Shlomiverse Studio's Send, `zoomcut/render/verse.mjs`, insta-to-verse, push.cjs adds missed ones) |
 | Characters (page + the chat's full profile) | Firestore `catalogCharacters/<id>` | versePublish `op: sync` (push.cjs) / `op: put` (content.mjs) |
 | Series (worlds) | `catalogSeries/<id>` | the same |
 | Games | `catalogGames/<id>` (from each game's `game.json`) | the same |
@@ -26,8 +26,9 @@ shouldn't come from git."**
 change, and again every 15 minutes (`verseHeal` - anything that wrote them behind the records' back is put right).
 Nobody writes them by hand, and nothing a computer has or lacks can take anything off the site.
 
-The files in git (`zoomcut/characters/<id>/character.json`, `scripts/wiki/copy.json`, `game.json`, the pages) are the
-**workshop** where you write a profile or a bio - they are not the site. They reach the site only as changes.
+Characters and worlds have NO files (since 2026-11-06): their records are the only copy, changed through the studio or
+content.mjs. The files still in git (`scripts/wiki/copy.json` for videos' titles, `game.json`, the pages) are the
+**workshop** for those - not the site; they reach it only as changes (build.py + push.cjs syncs games and sites).
 
 ## The rules the door keeps (techietech-api/content.js)
 
@@ -48,25 +49,26 @@ The files in git (`zoomcut/characters/<id>/character.json`, `scripts/wiki/copy.j
 
 Run from `c:\workspace\BoostMind`. `git pull` first, always.
 
-**A new character, a bio, family links, a tagline, catchphrases** - write it in the workshop, then send the change:
-1. `zoomcut/characters/<id>/character.json` (+ `index.json` `order` for a new one), the copy in `scripts/wiki/copy.json`
-   (Terra writes site copy in Hebrew - the sol-leonardo skill). Family links go BOTH ways (each side's `relations`).
-2. `python scripts/wiki/build.py` (PYTHONIOENCODING=utf-8) - it writes `scripts/wiki/records.json` + the local preview.
-3. `node scripts/wiki/push.cjs --dry` - read the lines: `+ character: x (new)`, `~ character x: bio, relations`.
-   Only what you meant to change may appear. Anything else = stop and find out why (an un-pulled file? another session?).
-4. `node scripts/wiki/push.cjs` - live in seconds, the chat within 3 minutes. Then commit + push your workshop files.
-
-**A quick fix with no workshop file** (from any computer, even without the repo's portraits):
-`node scripts/verse/content.mjs put character <id> --file patch.json` - `patch.json` = `{"tagline": "...", "bio": "..."}`
-(Hebrew ALWAYS through a file - the console mangles it). Then put the same change in the workshop files (character.json /
-copy.json) and commit, so the workshop matches - a later sync of the old text would otherwise count as an edit.
+**A new character, a bio, family links, a tagline, catchphrases, a world** - straight into its record (the database is
+the ONLY copy since 2026-11-06 - no character.json / profile.md / index.json anywhere, his ask: "I don't want duplication
+and git stuff where we don't need it"):
+- in Shlomiverse Studio's Characters page (localhost:4747 - it reads and saves the records), or
+- `node scripts/verse/content.mjs put character <id> --file patch.json` - `patch.json` = `{"tagline": "...", "bio": "..."}`
+  (Hebrew ALWAYS through a file - the console mangles it). A new one needs `name` (+ `world`, `role`, `brief`...); a new
+  world = `put series <url-id>` with title, world (the studio's world name), name, blurb, brief. Family links go BOTH
+  ways (each side's `relations`). Emptying a field = `--clear <field>`.
+- Live in seconds (the site + the chat composed again). Nothing to build, push or commit for a character.
+- Read one: `content.mjs profile <id> --out p.md` (the writer's profile), `content.mjs get character <id> --out c.json`
+  (the whole record). `content.mjs log character <id>` = who changed what.
+- Fan copy for new characters (Terra): `copy_brief.py --only-missing` -> sol.js -> `merge_copy.py <answer.md>` puts it
+  onto the records.
 
 **A portrait / profile picture:** `node scripts/verse/content.mjs portrait <id> <image>` - cropped 4:5 from the top to
 480x600, live at once. Keep the original in `zoomcut/characters/<id>/portrait.jpg` on the computer that made it (git
 ignores pictures; the live face is the bucket's file, not the folder's). Changing a face = edit THAT picture, change only
 what he asked (feedback_change_only_what_asked).
 
-**A video:** never through these files. Sketch Studio's Send (or `node zoomcut/render/verse.mjs <id>`), insta-to-verse for
+**A video:** never through these files. Shlomiverse Studio's Send (or `node zoomcut/render/verse.mjs <id>`), insta-to-verse for
 old reels; `POST http://localhost:4747/api/ep/<id>/site` for one that missed it. It is a record by id: calling again
 never duplicates.
 
