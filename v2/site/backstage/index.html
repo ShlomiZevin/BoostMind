@@ -86,6 +86,8 @@
   .pill:hover { border-color: rgba(255,255,255,.3); }
   .pill svg { width: 17px; height: 17px; }
   .empty { color: var(--dim); padding: 22px 0; text-align: center; }
+  .ml-bo { margin-top: 14px; } .ml-b .l2 { color: var(--dim); font-size: .85rem; word-break: break-word; } .ml-b .l1 b { word-break: break-all; } .ml-b .btn.ml-back { height: 36px; padding: 0 12px; font-size: .85rem; }
+  .ml-ic.red { color: #ff8a8a; }
   /* plans (2026-11-06) */
   .pl-lead { color: var(--dim); margin: 0 0 16px; max-width: 760px; }
   .pl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
@@ -1571,7 +1573,7 @@ function video() {
 // ---------- מיילים: the switch, every mail we send, what went out, what happened (mailer.js, 2026-11-04) ----------
 // mailState = the switch + counts + what happened + a dry run of the next run; mailLog = what went out; mailSamples = every
 // kind of mail rendered with real data. Each part draws into its own box as it arrives (the samples are slow to render).
-let MST = null, MLG = null, MSM = null, mlLoaded = false, mlKind = 'all', mlShown = 40, mlNote = '';
+let MST = null, MLG = null, MSM = null, MBO = null, mlLoaded = false, mlKind = 'all', mlShown = 40, mlNote = '';
 const mlHtml = {};
 const MK = { welcome: ['ברוכים הבאים', 'or'], game: ['משחק חדש', 'gr'], video: ['סרטון חדש', 'bl'], story: ['סטורי חדש', 'pu'], digest: ['כמה דברים יחד', 'wh'], reply: ['תשובה מדמות', 'ye'] };
 const EVK = { game: ['משחק', 'gr', 'game'], video: ['סרטון', 'bl', 'video'], story: ['סטורי', 'pu', 'story'] };
@@ -1596,17 +1598,44 @@ function loadMail() {
   get('mailState', {}, (r) => (MST = r), () => { mlStatus(); mlEvents(); });
   get('mailLog', { limit: 300 }, (r) => (MLG = r), mlLog);
   get('mailSamples', {}, (r) => (MSM = r), mlSamples);
+  get('mailBounces', {}, (r) => (MBO = r), mlBounces);
 }
 const mlWait = (x) => `<div class="empty">${x ? `לא נטען (${esc(x.error)})` : 'טוען…'}</div>`;
 function mails() {
   if (!mlLoaded) loadMail();
   $('#pane').innerHTML = `<div class="top"><div><h1>מיילים</h1><p>מה יוצא, למי, ומה ייצא בריצה הבאה.</p></div></div>
     <div class="card" id="ml-st"></div>
+    <div class="card ml-bo" id="ml-bo"></div>
     <div class="card-h ml-sec"><h2>כל המיילים שלנו</h2><button data-mtest="">${IC.mail}לשלוח אליי את כולם</button></div>
     <p class="hint">כל סוג מייל שאנחנו שולחים, עם נתונים אמיתיים. לחיצה פותחת בגודל מלא.</p>
     <div id="ml-sm"></div>
     <div class="cols"><div class="card ml-log" id="ml-lg"></div><div class="card ml-ev" id="ml-ev"></div></div>`;
-  mlStatus(); mlSamples(); mlLog(); mlEvents();
+  mlStatus(); mlSamples(); mlLog(); mlEvents(); mlBounces();
+}
+// addresses our mails don't reach (2026-11-06, his ask): Gmail's failure notices are read every run (mailer.js scanBounces);
+// a permanent failure stops the news to that address at once, a temporary one after the 2nd time. He can put one back.
+function mlBounces() {
+  const el = $('#ml-bo');
+  if (!el) return;
+  if (!MBO || MBO.error) { el.innerHTML = `<div class="card-h"><h2>לא מגיע</h2></div>${mlWait(MBO)}`; return; }
+  const list = MBO.bounces || [], stopped = list.filter((x) => x.stop);
+  el.innerHTML = `<div class="card-h"><h2>לא מגיע${stopped.length ? ` · ${stopped.length}` : ''}</h2><button data-mbscan>${IC.refresh}לבדוק עכשיו</button></div>
+    <p class="hint">כתובות שהמייל חזר מהן. כתובת שלא קיימת נעצרת מיד, תיבה מלאה אחרי פעמיים. מי שנעצר לא מקבל יותר עדכונים.${MBO.at ? ` נבדק ${ago(MBO.at)}.` : ''}</p>
+    ${list.length ? list.map((x) => `<div class="row ml-b ${x.stop ? '' : 'old'}"><span class="ml-ic ${x.stop ? 'red' : ''}">${IC.mail}</span><div class="body">
+      <div class="l1"><b dir="ltr">${esc(x.email)}</b> ${x.stop ? '<span class="tag red">נעצר</span>' : `<span class="tag">פעם ${x.soft}</span>`} <span class="tag">${x.hard ? 'לא קיים / חסום' : 'זמני'}</span></div>
+      <div class="l2">${ago(x.last)} · ${esc(x.reason || x.code || '')}</div></div>${x.stop ? `<button class="btn ml-back" data-mback="${esc(x.email)}">להחזיר</button>` : ''}</div>`).join('')
+      : '<div class="empty">אין כתובות שהמייל חזר מהן.</div>'}`;
+  el.querySelector('[data-mbscan]').onclick = async (e) => {
+    e.currentTarget.disabled = true;
+    try { await api('mailBounceScan', {}); MBO = await api('mailBounces', {}); } catch (err) {}
+    mlBounces();
+  };
+  el.querySelectorAll('[data-mback]').forEach((b) => (b.onclick = async () => {
+    if (!(await askBox(`להחזיר את ${b.dataset.mback}? העדכונים יתחדשו, ואם המייל יחזור שוב הכתובת תיעצר שוב.`, { ok: 'להחזיר' }))) return;
+    b.disabled = true;
+    try { await api('mailUnbounce', { email: b.dataset.mback }); MBO = await api('mailBounces', {}); } catch (err) {}
+    mlBounces();
+  }));
 }
 function mlStatus() {
   const el = $('#ml-st');

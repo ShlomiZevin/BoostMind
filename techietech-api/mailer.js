@@ -56,6 +56,75 @@ function sendingHours(t) {
 }
 const heDate = (t) => new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', day: 'numeric', month: 'long' }).format(new Date(t));
 
+
+// ---------- bounces (2026-11-06, his ask: "for some emails I receive a failure in sending - if it repeats, remove it from
+// the list, or at least mark it as failed"). Gmail accepts every mail at sending time; the failure comes back later as a
+// mail to the sending account. Every run reads the new ones (IMAP, the same app password), takes the address and the
+// reason; a permanent failure (no such address, account gone) stops the news to that address at once, a temporary one
+// (mailbox full, server refused for a while) after the 2nd time. mailBounces/<address> keeps them; Backstage shows them
+// ("לא מגיע") and can put an address back.
+const BOUNCE_SOFT_MAX = 2;
+const bounceDoc = (email) => db.collection('mailBounces').doc(encodeURIComponent(String(email).toLowerCase()).slice(0, 1400));
+async function recordBounce(email, { hard, code = '', reason = '', via = 'notice', when = Date.now() }) {
+  email = String(email || '').toLowerCase().trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  const ref = bounceDoc(email);
+  const stop = await db.runTransaction(async (tx) => {
+    const x = (await tx.get(ref)).data() || {};
+    const h = (x.hard || 0) + (hard ? 1 : 0), sft = (x.soft || 0) + (hard ? 0 : 1);
+    const st = h > 0 || sft >= BOUNCE_SOFT_MAX;
+    tx.set(ref, { email, hard: h, soft: sft, stop: st, last: Timestamp.fromMillis(when), code: String(code).slice(0, 20), reason: String(reason).slice(0, 300), via,
+      ...(st && !x.stop ? { stopped: Timestamp.fromMillis(Date.now()) } : {}) }, { merge: true });
+    return st;
+  });
+  if (stop) {   // the account(s) with this address get no more news; the reason stays on them
+    const us = await db.collection('mailUsers').where('email', '==', email).get();
+    await Promise.all(us.docs.map((d) => d.ref.set({ bounced: { at: Timestamp.fromMillis(Date.now()), reason: String(reason).slice(0, 300), hard: !!hard } }, { merge: true })));
+  }
+  return stop;
+}
+// a failure notice -> {email, hard, code, reason}; delay warnings ("will retry") are not failures
+function parseBounce(raw, subject) {
+  const head = raw.slice(0, 120000);
+  if (/delay|delayed|will (keep|continue) trying|retry/i.test(subject) && !/fail/i.test(subject)) return null;
+  const pick = (re) => { const m = head.match(re); return m ? m[1].trim() : ''; };
+  const email = (pick(/^X-Failed-Recipients:\s*([^\s,;]+)/im) || pick(/^Final-Recipient:\s*rfc822;\s*<?([^\s>]+)/im) || pick(/^Original-Recipient:\s*rfc822;\s*<?([^\s>]+)/im)
+    || pick(/wasn't delivered to\s+<?([^\s<>]+@[^\s<>]+?)>?[\s.]/i) || pick(/delivery to the following recipient[s]? failed[^\n]*\n\s*<?([^\s<>]+@[^\s<>]+)/i)).toLowerCase();
+  if (!email || !email.includes('@')) return null;
+  const status = pick(/^Status:\s*([245]\.\d{1,3}\.\d{1,3})/im) || pick(/\b([45]\.\d\.\d{1,3})\b/);
+  const diag = pick(/^Diagnostic-Code:\s*(?:smtp;)?\s*([^\r\n]+)/im) || pick(/\b(5\d\d[ -][^\r\n]{10,200})/) || pick(/\b(4\d\d[ -][^\r\n]{10,200})/);
+  // permanent: a 5.x.x status, except a full mailbox (5.2.2) which can empty again
+  const hard = /^5\./.test(status) ? status !== '5.2.2' && !/quota|mailbox (is )?full|over (the )?quota/i.test(diag) : /does not exist|no such user|user unknown|address not found|account (is )?disabled|NoSuchUser/i.test(head) && !/quota|mailbox full/i.test(head);
+  return { email, hard, code: status, reason: (diag || subject).replace(/\s+/g, ' ').slice(0, 300) };
+}
+async function scanBounces() {
+  if (LOCAL) return { found: 0, local: true };
+  const { ImapFlow } = require('imapflow');
+  const meta = db.collection('verseMeta').doc('mailBounces'), st = (await meta.get()).data() || {};
+  const c = new ImapFlow({ host: 'imap.gmail.com', port: 993, secure: true, auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() }, logger: false });
+  await c.connect();
+  let found = 0, stopped = 0, last = 0, validity = '', box = 'INBOX';
+  try {
+    // "All Mail" (by its special use, whatever the language), so a notice he archived or read still counts
+    box = ((await c.list()).find((b) => b.specialUse === '\\All') || {}).path || 'INBOX';
+    const lock = await c.getMailboxLock(box);
+    try {
+      validity = String(c.mailbox.uidValidity);
+      last = st.box === box && st.validity === validity ? st.lastUid || 0 : 0;
+      const uids = (await c.search({ since: new Date(Date.now() - 21 * 864e5), or: [{ from: 'mailer-daemon' }, { from: 'postmaster' }] }, { uid: true })) || [];
+      for (const uid of uids.filter((u) => u > last).sort((a, b) => a - b).slice(0, 150)) {
+        const m = await c.fetchOne(String(uid), { source: true, envelope: true }, { uid: true });
+        const r = m && m.source ? parseBounce(m.source.toString('utf8'), (m.envelope && m.envelope.subject) || '') : null;
+        if (r) { found++; if (await recordBounce(r.email, { ...r, when: m.envelope && m.envelope.date ? +new Date(m.envelope.date) : Date.now() })) stopped++; }
+        last = Math.max(last, uid);
+      }
+    } finally { lock.release(); }
+  } finally { await c.logout().catch(() => {}); }
+  await meta.set({ box, validity, lastUid: last, at: Timestamp.fromMillis(Date.now()) }, { merge: true });
+  if (found) console.log('bounces', JSON.stringify({ found, stopped }));
+  return { found, stopped };
+}
+
 // ---------- sending + the log ----------
 let transport;
 // one pooled connection: logging in for every mail made Gmail answer "too many login attempts" (launch night)
@@ -68,7 +137,11 @@ async function deliver({ to, uid = null, kind, m, fromName = 'השלומיוור
     if (LOCAL) console.log('[local] mail not sent:', kind, to, m.subject);
     else await gmail().sendMail({ from: `${fromName} <${GMAIL_USER.value()}>`, to, subject: m.subject, html: m.html, text: m.text, headers: m.headers, ...(replyTo ? { replyTo } : {}) });
     log.ok = true;
-  } catch (e) { log.error = String(e.message).slice(0, 300); console.error('mail failed', kind, to, e.message); }
+  } catch (e) {
+    log.error = String(e.message).slice(0, 300); console.error('mail failed', kind, to, e.message);
+    // the address itself refused at sending time (not a login / server hiccup): a permanent failure for that address
+    if (e.code === 'EENVELOPE' || (e.responseCode >= 550 && e.responseCode < 560)) await recordBounce(to, { hard: true, code: String(e.responseCode || ''), reason: String(e.message).slice(0, 240), via: 'smtp' }).catch(() => {});
+  }
   await db.collection('mailLog').add({ ...log, html: m.html.length < 300000 ? m.html : null }).catch((e) => console.error('mail log failed', e.message));
   return log.ok;
 }
@@ -236,6 +309,7 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
   const queued = dry ? 0 : await drainQueue(now).catch((e) => { console.error('mail queue', e.message); return 0; });
   if (queued) console.log('idea mails from the queue', queued);
   const swept = await sweepEvents(now);
+  if (!dry) await scanBounces().catch((e) => console.error('bounces', e.message));   // failures first, so no mail goes to them now
   const cfg = (await db.collection('verseMeta').doc('mail').get()).data() || { on: false, only: [OWNER] };
   const users = [];
   let next;
@@ -247,7 +321,7 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
   const state = Object.fromEntries(st.docs.map((d) => [d.id, d.data()]));
   const follows = Object.fromEntries(fans.docs.map((d) => [d.id, d.data().follows || []]));
   const events = evs.docs.map((d) => ({ id: d.id, ...d.data() }));
-  const due = plan({ users, state, follows, events, now, cfg });
+  const due = plan({ users: users.filter((u) => !(state[u.uid] || {}).bounced), state, follows, events, now, cfg });   // failing addresses get nothing
   if (dry) return { swept, cfg, due: due.map((p) => ({ email: p.email, kind: p.kind, events: p.events.map((e) => e.id) })) };
   // one run at a time (launch night, 2026-11-04: a manual run next to the scheduled one mailed 6 people twice)
   if (!(await lock(now))) return { swept, due: due.length, sent: 0, skipped: 'busy' };
@@ -398,6 +472,20 @@ async function owner(op, b = {}) {
     return { cfg: cfg.data() || { on: false, only: [OWNER] }, users: users.data().count, off: offs.data().count, events: events.docs.map((d) => ({ id: d.id, ...d.data(), t: ms(d.data().t), seen: undefined })),
       plan: await run({ dry: true, force: true }) };
   }
+  if (op === 'mailBounces') {
+    const q = await db.collection('mailBounces').orderBy('last', 'desc').limit(200).get();
+    const meta = (await db.collection('verseMeta').doc('mailBounces').get()).data() || {};
+    return { at: ms(meta.at), bounces: q.docs.map((d) => { const x = d.data(); return { email: x.email, hard: x.hard || 0, soft: x.soft || 0, stop: !!x.stop, code: x.code || '', reason: x.reason || '', via: x.via || '', last: ms(x.last), stopped: ms(x.stopped) }; }) };
+  }
+  if (op === 'mailBounceScan') return scanBounces();
+  if (op === 'mailUnbounce') {   // he puts an address back: the count starts again, the news resumes
+    const email = String(b.email || '').toLowerCase().trim();
+    if (!email) return { error: 'email' };
+    await bounceDoc(email).set({ stop: false, hard: 0, soft: 0, back: FieldValue.serverTimestamp() }, { merge: true });
+    const us = await db.collection('mailUsers').where('email', '==', email).get();
+    await Promise.all(us.docs.map((d) => d.ref.update({ bounced: FieldValue.delete() })));
+    return { ok: true };
+  }
   if (op === 'mailConfig') {
     const cfg = { on: !!b.on, only: (Array.isArray(b.only) ? b.only : [OWNER]).map((x) => String(x).toLowerCase().trim()).filter(Boolean).slice(0, 50) };
     await db.collection('verseMeta').doc('mail').set({ ...cfg, changed: FieldValue.serverTimestamp() });
@@ -414,4 +502,4 @@ async function owner(op, b = {}) {
   return null;
 }
 
-module.exports = { ...exports, reply, replyMail, ideaMail, owner, plan, il, sendingHours, deliver, MAIL_SECRETS: SECRETS };
+module.exports = { ...exports, reply, replyMail, ideaMail, owner, plan, il, sendingHours, deliver, MAIL_SECRETS: SECRETS, _parseBounce: parseBounce };
