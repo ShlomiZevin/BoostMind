@@ -265,7 +265,7 @@ async function mailFor(p, w, now) {
 // ---------- the citizenship journey's invitation, to a resident who hasn't started it (stage 4) ----------
 // His own words (2026-11-06), a letter from the Shlomiverse's embassy, addressed by the name the resident registered with (fans.nick).
 const CZ_HERO = `${MEDIA}/mail/citizen-hero.jpg`;
-const citizenData = (name) => ({ from: 'שגרירות השלומיוורס', subject: 'נפתחה שגרירות השלומיוורס.', hero: CZ_HERO,
+const citizenData = (name) => ({ from: 'שגרירות השלומיוורס', subject: name ? `${name}, נפתחה שגרירות השלומיוורס` : 'נפתחה שגרירות השלומיוורס', hero: CZ_HERO,   // a subject: no full stop, their name first
   preheader: 'לאחר שנים של ניסיונות כושלים לתקן את המציאות, החלטנו לפתוח אחת נוספת.',
   to: name ? `לכבוד ${name},` : '', title: 'נפתחה שגרירות השלומיוורס.',
   paras: ['לאחר שנים של ניסיונות כושלים לתקן את המציאות, החלטנו לפתוח אחת נוספת.', 'החל מהיום ניתן להגיש בקשה לאזרחות ביקום מקביל.',
