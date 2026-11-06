@@ -138,7 +138,7 @@ async function handle(b) {
   const by = b.by || '';
   if (b.op === 'sync') { const r = await content.sync(b.kind, Array.isArray(b.items) ? b.items : [], by, !!b.dryRun); if (!r.error && !b.dryRun && !b.noCompose && (r.added.length || r.changed.length)) r.composed = (await compose(admin)).characters; return r; }
   if (b.op === 'log') return content.history(b);
-  if (b.op === 'list') return b.kind && b.kind !== 'video' ? content.list(b.kind) : { videos: (await db.collection('catalogVideos').select('title', 'hidden', 'date').get()).docs.map((d) => ({ id: d.id, ...d.data() })) };
+  if (b.op === 'list') return b.kind && b.kind !== 'video' ? content.list(b.kind, !!b.full) : { videos: (await db.collection('catalogVideos').select('title', 'hidden', 'date').get()).docs.map((d) => ({ id: d.id, ...d.data() })) };
   if (b.op === 'rebuild') { const c = await compose(admin); return { ok: true, videos: c.videos, characters: c.characters }; }
   if (!ID.test(b.id || '')) return { error: 'id', detail: 'letters, digits, - and _ only' };
   if (b.op === 'uploadUrl') {
@@ -149,7 +149,8 @@ async function handle(b) {
     return { uri, path };
   }
   if (b.kind && b.kind !== 'video') {
-    if (b.op === 'put') { const r = await content.put(b, by); if (r.ok && r.changed.length) await compose(admin); return r; }
+    // (the studio's own fields - a pace from the Reader, a voice preset - aren't on the site: no compose for those)
+    if (b.op === 'put') { const r = await content.put(b, by); if (r.ok && r.changed.some((f) => !content.STUDIO.includes(f))) await compose(admin); return r; }
     if (b.op === 'get') return content.get(b.kind, b.id);
     if (b.op === 'hide') { const r = await content.hide(b.kind, b.id, b.hidden, by); if (r.ok) await compose(admin); return r; }
     return { error: 'op' };

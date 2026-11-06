@@ -19,14 +19,19 @@ const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 const crypto = require('crypto');
 
-const LISTS = ['aka', 'ask', 'catchphrases', 'relations', 'personality', 'behavior', 'themes', 'dont', 'writing_rules', 'chars', 'whose', 'mainOf'];
+const LISTS = ['aka', 'ask', 'catchphrases', 'relations', 'personality', 'behavior', 'themes', 'dont', 'writing_rules', 'chars', 'whose', 'mainOf', 'links', 'videos', 'sources'];
 const KINDS = {
   character: { col: 'catalogCharacters', need: ['name'], fields: ['order', 'name', 'name_en', 'aka', 'world', 'series', 'role', 'tagline', 'bio', 'ask',
-    'catchphrases', 'color', 'site', 'relations', 'brief', 'personality', 'speech', 'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules'] },
-  series: { col: 'catalogSeries', need: ['title'], fields: ['order', 'title', 'blurb', 'site', 'brief'] },
+    'catchphrases', 'color', 'site', 'relations', 'brief', 'personality', 'speech', 'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules',
+    // the studio's own (since 2026-11-06 the record is the ONLY copy - no character.json in git): the voice preset, the
+    // Reader's pace, links, the projects it's in, sources, and paths to its pictures / sounds on the computers
+    'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets'] },
+  // world = the studio's name for it (character.world), name = its full name there (was characters/index.json)
+  series: { col: 'catalogSeries', need: ['title'], fields: ['order', 'title', 'blurb', 'site', 'brief', 'world', 'name'] },
   game: { col: 'catalogGames', need: ['url', 'title'], fields: ['url', 'title', 'tagline', 'img', 'chars', 'site', 'date', 'record'] },
   site: { col: 'catalogSites', need: ['url'], fields: ['order', 'url', 'title', 'about', 'img', 'host', 'whose', 'in', 'topic', 'tagline', 'mainOf'] },
 };
+const STUDIO = ['voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets'];   // not on the site
 const ID = /^[a-z0-9][a-z0-9_-]{0,80}$/i;
 const db = () => admin.firestore();
 const hash = (v) => crypto.createHash('md5').update(JSON.stringify(v ?? null)).digest('hex').slice(0, 12);
@@ -115,10 +120,12 @@ async function get(kind, id) {
   return { kind, id, ...rest };
 }
 
-async function list(kind) {
+// full: every record whole (the studio and the scripts read the characters / worlds from here - the only copy)
+async function list(kind, full = false) {
   const K = KINDS[kind];
   if (!K) return { error: 'kind' };
   const s = await db().collection(K.col).get();
+  if (full) return { kind, items: s.docs.map((d) => { const { _src, created, updated, ...rest } = d.data(); return { id: d.id, ...rest, updated: updated?.toMillis?.() || null }; }) };
   return { kind, items: s.docs.map((d) => ({ id: d.id, name: d.data().name || d.data().title || d.data().url, hidden: !!d.data().hidden })) };
 }
 
@@ -128,4 +135,4 @@ async function history(b) {
   return { log: s.docs.map((d) => ({ ...d.data(), t: d.data().t?.toDate?.().toISOString() })).filter((x) => (!b.kind || x.kind === b.kind) && (!b.id || x.id === b.id)) };
 }
 
-module.exports = { KINDS, sync, put, hide, get, list, history, hash };
+module.exports = { KINDS, STUDIO, sync, put, hide, get, list, history, hash };
