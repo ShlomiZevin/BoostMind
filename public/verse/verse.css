@@ -1590,18 +1590,31 @@ html.can-app .foot-app { display: inline-flex !important; }
 
 /* ---------- the simulation test (sim.js; plan conversion-next v6, mockups Q1-Q7) ---------- */
 #sim-band:empty { display: none; }
-.sim-band { display: flex; align-items: center; gap: 10px; margin: 12px 0 2px; padding: 8px 10px 8px 8px; border-radius: 20px; text-decoration: none; color: var(--text);
-  background: linear-gradient(110deg, rgba(120, 60, 255, .22), rgba(255, 106, 31, .16) 60%, rgba(18, 18, 22, .7)); border: 1px solid rgba(160, 110, 255, .45);
-  box-shadow: 0 0 0 1px rgba(255, 106, 31, .12), 0 8px 26px rgba(90, 40, 200, .25); position: relative; overflow: hidden; text-align: right; }
-.sim-band::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .035) 0 2px, transparent 2px 5px); pointer-events: none; animation: sim-glitch 6s steps(1) infinite; }
-@keyframes sim-glitch { 0%, 92%, 100% { transform: none; opacity: 1; } 93% { transform: translateX(3px); opacity: .6; } 95% { transform: translateX(-2px); } }
-.sim-band-face { flex: none; width: 46px; height: 46px; border-radius: 50%; padding: 2px; background: linear-gradient(140deg, #a46bff, var(--vx-accent)); }
-.sim-band-face img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
-.sim-band-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.sim-band-t b { font-size: clamp(.92rem, 4.1vw, 1.05rem); font-weight: 900; line-height: 1.2; white-space: nowrap; }
-.sim-band-t small { font-size: .8rem; color: var(--dim); line-height: 1.3; min-height: 1.1em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.sim-band .vx-btn { flex: none; height: 38px; padding: 0 12px; font-size: .85rem; }
-.sim-band.small { padding: 6px 8px; } .sim-band.small .sim-band-face { width: 40px; height: 40px; } .sim-band.small .sim-band-t small { display: none; }
+.sim-band { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "face title title" "face line go"; align-items: center; column-gap: 12px; row-gap: 4px;
+  margin: 14px 0 4px; padding: 12px 14px 12px 12px; border-radius: 22px; text-decoration: none; color: #fff; position: relative; overflow: hidden; text-align: right;
+  background: radial-gradient(120% 140% at 100% 50%, rgba(150, 70, 255, .38), transparent 60%), linear-gradient(105deg, rgba(40, 14, 70, .92), rgba(22, 10, 34, .92) 55%, rgba(60, 22, 8, .9));
+  border: 1px solid rgba(178, 120, 255, .7); box-shadow: 0 0 0 1px rgba(255, 106, 31, .18), 0 0 26px rgba(150, 70, 255, .45), inset 0 0 30px rgba(150, 70, 255, .18); }
+.sim-band::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .05) 0 1px, transparent 1px 4px); pointer-events: none; mix-blend-mode: overlay; }
+.sim-band::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(90deg, #b278ff, var(--vx-accent), #47d7ff, #b278ff); background-size: 300% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: sim-edge 5s linear infinite; pointer-events: none; }
+@keyframes sim-edge { to { background-position: 300% 0; } }
+.sim-g { position: absolute; left: -10%; width: 38%; height: 3px; pointer-events: none; opacity: 0; mix-blend-mode: screen; }
+.sim-g.g1 { top: 22%; background: linear-gradient(90deg, transparent, #47d7ff, transparent); animation: sim-bar 4.6s steps(1) infinite; }
+.sim-g.g2 { top: 58%; height: 5px; background: linear-gradient(90deg, transparent, #ff3df0, transparent); animation: sim-bar 4.6s steps(1) infinite .35s; }
+.sim-g.g3 { top: 80%; height: 2px; background: linear-gradient(90deg, transparent, var(--vx-accent), transparent); animation: sim-bar 4.6s steps(1) infinite .7s; }
+@keyframes sim-bar { 0%, 84%, 100% { opacity: 0; transform: none; } 86% { opacity: .9; transform: translateX(40%); } 89% { opacity: .7; transform: translateX(120%) scaleY(2); } 92% { opacity: 0; } }
+.sim-band-face { grid-area: face; width: 64px; height: 64px; border-radius: 50%; padding: 3px; position: relative;
+  background: conic-gradient(from 0deg, #b278ff, var(--vx-accent), #47d7ff, #b278ff); box-shadow: 0 0 18px rgba(178, 120, 255, .7); animation: sim-ring 6s linear infinite; }
+.sim-band-face img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; border: 2px solid #160a22; animation: sim-ring 6s linear infinite reverse; }
+@keyframes sim-ring { to { transform: rotate(360deg); } }
+.sim-band-h { grid-area: title; font-size: clamp(1.08rem, 5vw, 1.3rem); font-weight: 900; line-height: 1.15; white-space: nowrap; position: relative;
+  text-shadow: -1.5px 0 rgba(71, 215, 255, .75), 1.5px 0 rgba(255, 61, 240, .65); animation: sim-rgb 4.6s steps(1) infinite; }
+@keyframes sim-rgb { 0%, 85%, 100% { text-shadow: -1.5px 0 rgba(71, 215, 255, .75), 1.5px 0 rgba(255, 61, 240, .65); transform: none; }
+  86% { text-shadow: -4px 0 rgba(71, 215, 255, .9), 4px 0 rgba(255, 61, 240, .9); transform: translateX(2px) skewX(-6deg); } 89% { transform: translateX(-2px); } 91% { transform: none; } }
+.sim-band-l { grid-area: line; font-size: .84rem; color: rgba(255, 255, 255, .78); line-height: 1.35; min-height: 1.2em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sim-band-go { grid-area: go; height: 38px; padding: 0 14px; font-size: .88rem; }
+.sim-band.small { grid-template-areas: "face title go"; padding: 8px 10px; } .sim-band.small .sim-band-face { width: 44px; height: 44px; } .sim-band.small .sim-band-l { display: none; }
+.sim-skip { display: block; margin: 16px auto 0; color: var(--dim); font: inherit; font-size: .92rem; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 8px; }
 .sim-chat { margin: 8px 0; padding: 14px 16px; border-radius: 18px; border: 1.5px solid var(--vx-accent); background: var(--card); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .sim-chat b { font-size: 1.1rem; font-weight: 900; }
 .sim-chat .vx-btn { height: 42px; }
@@ -1697,3 +1710,12 @@ html.can-app .foot-app { display: inline-flex !important; }
 .sim-sh img { width: 56%; margin: 0 auto 6px; border-radius: 14px; display: block; box-shadow: 0 10px 30px rgba(0, 0, 0, .4); }
 .sim .vx-btn:not(.main), .sim-sh .vx-btn:not(.main) { background: var(--card2); border: 1px solid var(--line2); color: var(--text); }
 .sim-sh a.vx-btn, .sim-band .vx-btn, .sim-chat a.vx-btn { text-decoration: none; }
+/* the residency card right under the stories (his note: "a bit far from the stories panel") */
+.sec + .signin-card { margin-top: 10px; }
+/* desktop: every sheet is a centered modal - the same look as on the phone, not a sheet rising from the bottom (his note) */
+@media (min-width: 900px) {
+  .vx-sheet { top: 50%; bottom: auto; max-height: 88vh; border-bottom: 1px solid var(--vx-glass-line); border-radius: var(--vx-r);
+    transform: translateY(-46%) scale(.97); opacity: 0; transition: transform .26s cubic-bezier(.2, .8, .2, 1), opacity .2s; padding-bottom: 0; }
+  .vx-sheet.open { transform: translateY(-50%); opacity: 1; }
+  .vx-sheet > .grab { visibility: hidden; height: 2px; margin: 6px auto 0; }
+}

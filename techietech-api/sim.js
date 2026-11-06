@@ -22,7 +22,7 @@ const IMG_MODEL = 'gpt-image-2.6-flare';
 const STEPS = 7;
 const MEDIA = 'shlomiverse-media';
 const IMG_CAP = 200;          // pictures a day for everyone together (Backstage shows the count)
-const STARTS_A_DAY = 25;      // tests a day per visitor / address
+const STARTS_A_DAY = 10;      // tests a day per address (one per person on the page - his rule; this only stops a flood)
 // hosts for the home page (a different one each visit) - residents with a strong voice of their own
 const HOSTS = ['yotam', 'hani', 'demokratovich', 'rosenblum', 'miriam', 'gilad', 'nahor', 'dorit', 'ayelet', 'vova', 'genz', 'yudit'];
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
@@ -112,6 +112,18 @@ Now the test is over. Decide the result:
 
 The residents (id | name | world | tagline | who):
 ${castList(b)}`;
+
+// the result: score, the mixed simulation, the share lines - from the answers given (all 7, or 3+ when they skipped)
+async function finish(key, ref, d, steps, br, skipped = false) {
+  const C = byId(br);
+  const done = await ask(key, rPrompt(br), [{ role: 'user', content: "The visitor's test:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${s.a[s.pick]}`).join('\n') }], RESULT_SCHEMA, 'result', 'low');
+  const o = done.out;
+  const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
+  if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });
+  const result = { score: Math.max(0, Math.min(100, Math.round(o.score))), name: clip(o.name, 60), verdict: clip(o.verdict, 200), cast, share: clip(o.share, 80), ask: clip(o.ask, 40), setting: clip(o.setting, 300) };
+  await ref.update({ steps, result, skipped, u: (d.u || [0, 0, 0]).map((x, i) => x + (done.u[i] || 0)), finished: FieldValue.serverTimestamp(), pre: FieldValue.delete() });
+  return { done: true, score: result.score, ms: done.ms };
+}
 
 const ipOf = (req) => String(req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
 const hash = (s) => crypto.createHash('sha256').update(String(s)).digest('hex').slice(0, 16);
@@ -234,13 +246,19 @@ async function handle(req, res) {
       await ref.update({ steps: [...steps, step], u: add(u), pre: FieldValue.delete() });
       return { n: steps.length + 1, of: STEPS, ...step, ready: !!(pre && pre.b[pick]) };
     }
-    const done = await ask(key, rPrompt(br), [{ role: 'user', content: 'The visitor\'s test:\n' + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${s.a[s.pick]}`).join('\n') }], RESULT_SCHEMA, 'result', 'low');
-    const o = done.out;
-    const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
-    if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });
-    const result = { score: Math.max(0, Math.min(100, Math.round(o.score))), name: clip(o.name, 60), verdict: clip(o.verdict, 200), cast, share: clip(o.share, 80), ask: clip(o.ask, 40), setting: clip(o.setting, 300) };
-    await ref.update({ steps, result, u: add(done.u), finished: FieldValue.serverTimestamp() });
-    return { done: true, score: result.score, ms: done.ms };
+    return finish(key, ref, d, steps, br);
+  }
+
+  // "skip to the result" after 3 answers (his ask, 2026-11-06): the result from what they answered so far
+  if (op === 'finish') {
+    if (!RID.test(b.rid || '')) return { error: 'rid' };
+    const ref = sims.doc(b.rid), got = await ref.get();
+    if (!got.exists) return { error: 'gone' };
+    const d = got.data();
+    if (d.result) return { done: true, score: d.result.score };
+    const steps = (d.steps || []).filter((x) => x.pick !== undefined);
+    if (steps.length < 3) return { error: 'step' };
+    return finish(key, ref, d, steps, await brainNow(), true);
   }
 
   // the result: the score for anyone; all of it for its owner (signed in - the test sticks to the account here) or once shared
