@@ -83,13 +83,14 @@ function boarding() {
 }
 
 // one question per screen (his notes 2026-11-07): the scene, their speech bubble under it, the answers - all in one phone
-// screen; an answer moves on to the next screen (no running chat)
+// screen; an answer moves on to the next screen (no running chat). "Write something" + skip sit pinned to the bottom of
+// the screen (his note on plan open-cz-sim)
 function desk(n, img, bubble, opts, place, extra = '') {
   return `${stepTag(n)}<section class="cz-desk">
     <div class="cz-scene"><img src="/verse/art/${img}" alt=""></div>
     <div class="cz-say2">${bubble}</div>
     ${opts.length ? `<div class="cz-opts ${opts.length === 2 ? 'two' : ''}">${opts.map((o, i) => `<button data-cz-a="${i}">${esc(o)}</button>`).join('')}</div>` : ''}
-    <form class="cz-ask"><input maxlength="160" placeholder="${esc(place)}"><button aria-label="שליחה">←</button></form>${extra}</section>`;
+    <div class="cz-dock"><form class="cz-ask"><input maxlength="160" placeholder="${esc(place)}"><button aria-label="שליחה">←</button></form>${extra}</div></section>`;
 }
 // the answer is in: the tapped button lit, the bubble turns to dots until the next screen
 function waiting(b) {
@@ -151,15 +152,24 @@ function booth() {
   window.scrollTo(0, 0);
 }
 
+// the passport's visa page with the entry stamp and his signature (his note on plan open-cz-sim: "show the inner pages with a
+// stamp, like a real passport; the logo flattened onto the page like a watermark" - art/citizen-visa.jpg). The stamp is drawn in
+// code: the number and the date are live.
+const SIGN = '<svg class="cz-sign" viewBox="0 0 200 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 42c10-26 26-34 26-12 0 16-12 18-6 2 5-12 16-16 18 0 1 10 8 10 14-4 4-10 10-8 9 4-1 9 7 9 12-1 4-8 9-7 8 3 0 8 9 7 15-4l8-12c-2 14 4 18 12 6 6-9 14-10 22-6"/><path d="M24 54c46-8 104-2 160-10"/></svg>';
+function visaPage(fresh) {
+  const d = issued().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' }), V = Z().visa;
+  return `<div class="cz-visa ${fresh ? 'fresh' : ''}" aria-label="${esc(V.page)}">
+    <div class="cz-es"><small>${esc(V.office)}</small><b>${esc(V.entry)}</b><span>${pad(S.n)}</span><small>${d}</small><small>${esc(V.status)}</small></div>
+    <div class="cz-visa-sign">${SIGN}<small>${esc(V.by)}</small></div></div>`;
+}
+
 // 4. the stamp and the number (C5) + his blessing; "טסים פנימה" closes the booth (the script's last beat)
 function stamp(fresh) {
   box().innerHTML = `${stepTag(4)}<section class="cz-stamp ${fresh ? 'fresh' : ''}">
-    <div class="cz-passport"><div class="cz-ink"><small>${esc(Z().stamp.entry)}</small><span>${pad(S.n)}</span><small>${new Date().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' })}</small></div></div>
-    <div class="cz-say2"><b>${esc(Z().stamped)}</b></div>
-    <h1>${esc(Z().stamp.title)}</h1>
+    ${visaPage(fresh)}
+    <div class="cz-say2"><b>${esc(Z().stamped)}</b><span class="cz-re">${esc(Z().blessing)}</span></div>
     <div class="cz-num"><em>${esc(S.founding ? Z().stamp.founding(S.n) : Z().stamp.regular)}</em></div>
-    <p class="cz-bless">${esc(Z().blessing)}</p>
-    <button class="vx-btn main block" data-cz-go>${esc(Z().stamp.go)}</button></section>`;
+    <div class="cz-dock"><button class="vx-btn main block" data-cz-go>${esc(Z().stamp.go)}</button></div></section>`;
   box().querySelector('[data-cz-go]').onclick = async (e) => {
     e.currentTarget.classList.add('wait');
     try { S = await api('booth', { i: 5, a: Z().stamp.go }); flight(true); } catch (err) { toast(Z().fail, 3000); }
@@ -216,6 +226,7 @@ function idCard() {
       <div class="cz-pp-f">${ppFields().map((row) => row.map(([k, v, span, cls]) => `<div class="c${span}"><small>${esc(k)}</small><b class="${cls || ''}">${esc(v)}</b></div>`).join('')).join('')}</div>
       <div class="cz-pp-mrz" dir="ltr">${mrz().map(esc).join('<br>')}</div>
     </div>
+    ${visaPage()}
     ${(sim && sim.name) || !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</a>`}
     <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a></section>`;
   // no "share the passport" for now (his note 2026-11-07: it gives nothing yet) - shareId() + drawId() stay ready

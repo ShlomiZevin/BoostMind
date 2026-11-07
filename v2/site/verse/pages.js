@@ -9,11 +9,15 @@ import { watched } from './player.js';
 import { pushState, enablePush } from './push.js';
 import { statusChip, SI } from './status.js';
 import { citizenBanner } from './citizen.js';
+import { nextBar } from './gates.js';
 
 // ---------- top bar ----------
 export function renderTop() {
   const box = $('#vx-top');
   if (!box) return;
+  document.documentElement.classList.toggle('nb', nextBar());   // the new phone top bar (verse.css .nb) - his eyes only for now
+  // in the new bar the search field sits by the logo with its words showing - short ones on a phone, so they fit whole
+  const q = $('#q'); if (q) q.placeholder = nextBar() && matchMedia('(max-width: 760px)').matches ? 'חיפוש' : 'חיפוש דמות, סדרה או סרטון';
   const bell = `<button class="icon-btn" data-bell aria-label="${esc(T.notesTitle)}">${I.bell}${st.unread ? '<span class="vx-dot"></span>' : ''}</button>`;
   // before Firebase answers: the last signed-in look (or nothing), never a "sign in" button that flips a second later
   const me = signedIn() ? st.fan : !st.ready ? cachedMe() : null;

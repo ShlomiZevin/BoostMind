@@ -32,7 +32,7 @@ const SCRIPT = [
   'והאם אתה מכיר בסמכותו העליונה של בית הדין הגבוה לצדק?',
   'יפה מאוד. וכבר הורו שז״ל, שופטינו זכרונם לברכה: אין אזרחות בלא הסכמה, ואין הסכמה בלא טופס חתום כדין.',
 ];
-const AFTER_STAMP = 'הרי אתה אזרח השלומיוורס לכל דבר ועניין.';
+const AFTER_STAMP = 'הכניסה אושרה. מעמד: אזרח. משך השהייה: עד שבג״ץ יפסוק אחרת.';
 const OPTS = [['הנה הדרכון'], [], ['מקבל/ת', 'לא מקבל/ת'], ['מכיר/ה', 'לא מכיר/ה'], ['חותמים', 'לא חותמים']];
 // Miriam's first question is always why they came (his ask: keep their reasons) - the same plain answers for everyone, so they count
 const WHY_Q = 'למה באתם לשלומיוורס?';

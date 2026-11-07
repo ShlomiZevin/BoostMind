@@ -4,6 +4,7 @@
 //   OWNER_KEY=... node scripts/plans/plan.mjs list
 //   OWNER_KEY=... node scripts/plans/plan.mjs comments <plan-id> --out comments.md     (read it with the Read tool - Hebrew)
 //   OWNER_KEY=... node scripts/plans/plan.mjs reply <plan-id> --file reply.txt [--anchor <part>] [--to <comment id>]
+//   OWNER_KEY=... node scripts/plans/plan.mjs archive <plan-id> [--back]      (off his list - a newer round replaced it; --back returns it)
 // Hebrew always through files (the console mangles it). Re-publishing the same id = a new version, back to "waiting for him".
 import fs from 'node:fs';
 import path from 'node:path';
@@ -51,6 +52,9 @@ if (cmd === 'publish') {
   const out = opt('out') || `plan-${arg}-comments.md`;
   fs.writeFileSync(out, lines.join('\n') + '\n', 'utf8');
   console.log(`${comments.filter((c) => c.kind === 'comment' && !c.done && c.by !== 'claude').length} open comments from him -> ${out}`);
+} else if (cmd === 'archive') {
+  await api('planArchive', { id: arg, archived: !process.argv.includes('--back') });
+  console.log(`plan "${arg}" ${process.argv.includes('--back') ? 'is back on' : 'is off'} his list`);
 } else if (cmd === 'reply') {
   const text = readOpt('file');
   if (!arg || !text) { console.error('reply <plan-id> --file reply.txt [--anchor x] [--to id]'); process.exit(1); }

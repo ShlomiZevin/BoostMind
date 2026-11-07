@@ -27,7 +27,7 @@ async function owner(op, b) {
   const plans = db().collection('plans');
   if (op === 'plans') {
     const snap = await plans.orderBy('updated', 'desc').limit(100).get();
-    const out = await Promise.all(snap.docs.map(async (d) => {
+    const out = await Promise.all(snap.docs.filter((d) => !d.data().archived).map(async (d) => {
       const x = d.data(), open = await d.ref.collection('comments').where('done', '==', false).count().get();
       return { id: d.id, title: x.title, summary: x.summary || '', status: x.status, version: x.version || 1, updated: ms(x.updated), created: ms(x.created), open: open.data().count, cover: x.cover ? await urlOf(`plans/${d.id}/${x.cover}`) : null };
     }));
@@ -88,6 +88,12 @@ async function owner(op, b) {
   if (op === 'planDone') {   // a comment handled (or opened again)
     if (!idOk(b.id) || !idOk(String(b.comment || '').toLowerCase())) return { error: 'id' };
     await db().collection('plans').doc(b.id).collection('comments').doc(b.comment).update({ done: b.done !== false });
+    return { ok: true };
+  }
+  // a round that a newer plan replaced leaves his list (his ask 2026-11-07: "take the two previous rounds off the list"); kept, not deleted
+  if (op === 'planArchive') {
+    if (!idOk(b.id)) return { error: 'id' };
+    await plans.doc(b.id).set({ archived: b.archived !== false, updated: FieldValue.serverTimestamp() }, { merge: true });
     return { ok: true };
   }
   if (op === 'planStatus') {   // his verdict on the whole plan, with an optional note

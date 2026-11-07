@@ -4,7 +4,7 @@
 import { T } from './copy.js';
 import { I, esc, sheet, track, brand } from './ui.js';
 import { st, needFan, signedIn } from './state.js';
-import { czOpen } from './gates.js';
+import { czOpen, nextBar } from './gates.js';
 
 const S = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 export const SI = {
@@ -24,7 +24,9 @@ const TIERS = [
 export const myStatus = () => (!signedIn() ? 'tourist' : st.fan && st.fan.citizen && st.fan.citizen.n ? 'citizen' : 'resident');
 
 // the chip in the top bar (pages.js renderTop)
-export const statusChip = () => `<button class="st-chip" data-status aria-label="${esc(T.status.title)}">${myStatus() === 'tourist' ? SI.passport : myStatus() === 'citizen' ? SI.id : SI.house}<span>${esc(T.status.name[myStatus()])}</span></button>`;
+// a citizen's chip in the new bar: their passport (the gold logo on navy, with a light rim so it reads on the dark bar - his note on plan open-cz-sim)
+const chipIcon = (me) => (me === 'citizen' && nextBar() ? '<img class="st-pp" src="/verse/art/passport-chip.png" alt="">' : me === 'tourist' ? SI.passport : me === 'citizen' ? SI.id : SI.house);
+export const statusChip = () => `<button class="st-chip" data-status aria-label="${esc(T.status.title)}">${chipIcon(myStatus())}<span>${esc(T.status.name[myStatus()])}</span></button>`;
 
 export function openStatus(where = 'chip') {
   track('status_open', where);
@@ -39,7 +41,7 @@ export function openStatus(where = 'chip') {
       <h2 class="vx-h">${brand(T.status.title)}</h2>
       <p class="vx-sub">${brand(me === 'citizen' ? T.cz.citizenSub : T.status.sub[me])}</p>
       <div class="sl-path">${TIERS.map(tier).join('')}</div>
-      ${me === 'tourist' ? `<button class="vx-btn main block" data-sl-go>${esc(T.status.go)}</button>` : !czOpen() ? (me === 'resident' ? `<p class="vx-sub">${esc(T.status.residentNote)}</p>` : '') : me === 'resident' ? `<a class="vx-btn main block" href="/citizenship" data-sl-cz>${esc(T.cz.statusGo)}</a>` : `<a class="sl-pp" href="/citizenship" data-sl-cz><img src="/verse/art/passport-icon.png" alt=""><span><b>${esc(T.cz.id.title)}</b><small>${esc(T.cz.id.open(st.fan && st.fan.citizen ? String(st.fan.citizen.n).padStart(4, '0') : ''))}</small></span><i>‹</i></a>`}
+      ${me === 'tourist' ? `<button class="vx-btn main block" data-sl-go>${esc(T.status.go)}</button>` : !czOpen() ? (me === 'resident' ? `<p class="vx-sub">${esc(T.status.residentNote)}</p>` : '') : me === 'resident' ? `<a class="vx-btn main block" href="/citizenship" data-sl-cz>${esc(T.cz.statusGo)}</a>` : `<a class="sl-pp" href="/citizenship" data-sl-cz><img src="/verse/art/passport-icon.png" alt=""><span><b>${esc(T.cz.id.title)}</b><small>${esc(T.cz.id.open(st.fan && st.fan.citizen ? String(st.fan.citizen.n).padStart(4, '0') : ''))}</small></span><i>${I.next}</i></a>`}
     </div>`, { cls: 'status' });
   h.el.querySelector('[data-sl-go]')?.addEventListener('click', () => { h.close('go'); needFan('status'); });
   h.el.querySelector('[data-sl-cz]')?.addEventListener('click', () => { track('cz_banner', 'status'); h.close('go'); });

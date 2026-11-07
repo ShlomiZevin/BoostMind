@@ -1864,3 +1864,62 @@ body:not([data-page="home"]) > footer { display: none !important; }
 @media (max-width: 760px) { .search { margin-left: 8px !important; } }   /* the search icon and the status chip stood glued */
 .cz-load { display: grid; place-items: center; min-height: 60svh; }
 .cz-load video { width: min(62vw, 260px); aspect-ratio: 1; border-radius: 50%; object-fit: cover; -webkit-mask: radial-gradient(circle, #000 58%, transparent 71%); mask: radial-gradient(circle, #000 58%, transparent 71%); }
+
+/* ---- the new phone top bar (his notes on plan open-cz-sim, option 3): the logo, the search field right by it with its word
+   showing, then the status chip (a citizen: their passport), the bell and me - one height (38px), one line. html.nb = his eyes only ---- */
+@media (max-width: 760px) {
+  .nb .top .wrap { gap: 8px; padding-inline: 12px; }
+  .nb .top .brand { margin-inline-end: 0; flex: none; }
+  .nb .top .brand .brand-logo { width: 52px; margin-block: -8px; }
+  .nb .search { flex: 1 1 auto !important; width: auto !important; min-width: 64px; margin: 0 !important; }
+  .nb .search input { height: 38px; padding: 0 32px 0 8px; color: var(--text); cursor: text; caret-color: auto; background: var(--card); border-color: var(--line2); font-size: 16px; }
+  .nb .search input::placeholder { color: var(--dim); }
+  .nb .search > svg { right: 9px; top: 10px; width: 18px; height: 18px; color: var(--dim); }
+  .nb .search.s-open { position: absolute; inset-inline: 12px; top: 10px; width: auto !important; z-index: 5; }
+  .nb .vx-top { gap: 6px; flex: none; }
+  .nb .vx-top .icon-btn, .nb .vx-top .me-btn, .nb .vx-top .in-btn { height: 38px; }
+  .nb .vx-top .icon-btn, .nb .vx-top .me-btn { width: 38px; }
+  .nb .vx-top .st-chip { height: 38px; padding: 0 9px 0 10px; gap: 6px; }
+  .nb .vx-top .st-chip .st-pp { width: auto; height: 26px; filter: drop-shadow(0 0 4px rgba(236, 196, 120, .35)); }
+}
+.sl-pp i svg { width: 22px; height: 22px; display: block; }
+
+/* ---- the citizenship desk: "write something" + skip pinned to the bottom of the screen (his note on plan open-cz-sim); the
+   phone's bottom nav steps aside inside the journey, so nothing covers them ---- */
+@media (max-width: 900px) { body[data-page="citizenship"] .nav { display: none !important; } }
+.cz-desk { padding-bottom: 118px; }
+.cz-dock { position: fixed; z-index: 37; bottom: 0; left: 50%; transform: translateX(-50%); width: min(560px, 100%); display: flex; flex-direction: column; gap: 4px;
+  padding: 18px 16px calc(8px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 16px); }
+.cz-dock .cz-skips { gap: 22px; }
+
+/* ---- the passport's visa page: the entry stamp and his signature, inked into the page (his note on plan open-cz-sim) ---- */
+.cz-visa { position: relative; container-type: inline-size; width: 100%; max-width: 330px; margin: 0 auto; aspect-ratio: 700 / 1050; background: url(/verse/art/citizen-visa.jpg) center / 100% 100%; border-radius: 12px 4px 4px 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, .55); overflow: hidden; }
+.cz-stamp .cz-visa { width: min(50vw, 200px); margin-bottom: 12px; }
+.cz-es { position: absolute; top: 13%; right: 9%; width: 70cqw; padding: 3.5cqw 3cqw; display: flex; flex-direction: column; align-items: center; gap: .6cqw; text-align: center;
+  color: #3a3196; border: 1.3cqw solid currentColor; outline: .5cqw solid currentColor; outline-offset: 1.2cqw; border-radius: 5cqw; transform: rotate(-9deg);
+  font-family: Arial, 'Noto Sans Hebrew', sans-serif; mix-blend-mode: multiply; opacity: .9; line-height: 1.15; }
+.cz-es small { font-size: 4.6cqw; font-weight: 800; white-space: nowrap; }
+.cz-es b { font-size: 6cqw; font-weight: 900; letter-spacing: .02em; }
+.cz-es span { font-size: 13cqw; font-weight: 900; letter-spacing: .08em; font-family: "Courier New", monospace; line-height: 1; }
+.cz-visa-sign { position: absolute; top: 58%; right: 14%; width: 56cqw; color: #1b2a6b; mix-blend-mode: multiply; text-align: center; }
+.cz-sign { width: 100%; height: auto; display: block; transform: rotate(-4deg); }
+.cz-visa-sign small { display: block; font: 700 4.4cqw Arial, 'Noto Sans Hebrew', sans-serif; color: #2b2f55; margin-top: -1cqw; }
+.cz-visa.fresh .cz-es { animation: cz-es .55s cubic-bezier(.2, 1.4, .4, 1) .35s both; }
+.cz-visa.fresh .cz-sign path { stroke-dasharray: 600; stroke-dashoffset: 600; animation: cz-sign 1.1s ease-out 1.1s forwards; }
+@keyframes cz-es { from { transform: rotate(-9deg) scale(2.4); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: .9; } }
+@keyframes cz-sign { to { stroke-dashoffset: 0; } }
+.cz-stamp { padding-bottom: 84px; }
+
+/* round 2 fits (360px phones): the tourist's search word whole; the stamp screen in one screen (his line + blessing in one bubble) */
+@media (max-width: 760px) {
+  .nb .top .wrap { gap: 6px; }
+  .nb .top .brand .brand-logo { width: 48px; }
+  .nb .search { min-width: 84px; }
+  .nb .search input { padding: 0 30px 0 6px; }
+  .nb .search > svg { right: 8px; }
+  .nb .vx-top .in-btn { padding: 0 14px; }
+  .nb .vx-top .st-chip { padding: 0 8px; gap: 5px; }
+  .nb .vx-top .st-chip .st-pp { height: 32px; }
+}
+.cz-stamp .cz-visa { width: min(42vw, 165px); margin-bottom: 10px; }
+.cz-stamp .cz-say2 .cz-re { margin: 4px 0 0; font-size: .88rem; }
