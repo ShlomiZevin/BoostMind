@@ -612,6 +612,17 @@
 .cz-ans{margin-top:12px}.cz-ans summary{cursor:pointer;font-weight:700;padding:6px 0}
 .cz-a{border-top:1px solid rgba(255,255,255,.08);padding:10px 0}.cz-a .l1{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.cz-a time{opacity:.6;font-size:12px}
 .cz-a .qa{display:grid;gap:2px;margin:6px 0}.cz-a .qa span{opacity:.65;font-size:13px}.cz-a .qa b{font-weight:600}.cz-a .qa i{opacity:.6}
+/* "מה למדנו" (mockup r3-learned-1): bars per answer, two blocks side by side on a wide screen */
+.ab-st .card-h{flex-wrap:wrap;gap:4px 10px}
+.ab-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media (max-width:700px){.ab-2{grid-template-columns:1fr}}
+.ab-bl{border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-top:12px;background:var(--card2)}.ab-2 .ab-bl{margin-top:12px}
+.ab-bl h3{font-size:1rem;font-weight:900;margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}.ab-bl h3 small{font-size:.75rem;color:var(--dim);font-weight:600}
+.ab-b{display:grid;grid-template-columns:auto minmax(0,7.5em) 1fr 3em;align-items:center;gap:8px;margin:7px 0}.ab-b:not(:has(.vx-av)){grid-template-columns:minmax(0,7.5em) 1fr 3em}
+.ab-b .vx-av{width:30px;height:30px}.ab-b span{font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ab-b i{height:10px;border-radius:9px;background:rgba(255,255,255,.07);overflow:hidden}.ab-b i b{display:block;height:100%;border-radius:9px;background:linear-gradient(270deg,#ff6a1f,#ff9a55)}
+.ab-b em{font-style:normal;font-weight:800;text-align:left;font-size:.9rem}
+.ab-bd{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}.ab-bd span{font-weight:700;direction:ltr}
+.ab-q{display:grid;gap:8px}.ab-q p{margin:0;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);font-size:.92rem}.ab-q small{display:block;color:var(--dim);font-size:.72rem;margin-top:2px}
 </style>
 </head>
 <body>
@@ -1331,13 +1342,51 @@ function data() {
       <div class="kgrid" style="margin:4px 0 0">${['visitors', 'joined', 'chat_message', 'video', 'game_start', 'sign_in'].map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
     ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
     <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>
-    <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>`;
+    <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>
+    <div class="card sim-st ab-st" id="ab-st" style="margin-top:14px"></div>`;
   bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay, ghostOf(metric));
   hourChart($('#d-fc'), FC(metric));
   $('#metric').onchange = (e) => { metric = e.target.value; data(); };
   $('#ask-f').onsubmit = (e) => { e.preventDefault(); ask($('#ask-q').value); };
   simCard();
   czCard();
+  learnedCard();
+}
+// "מה למדנו" (plan cz-sim-r3, mockup r3-learned-1): what the residents told Miriam, Demokratovich and Yotam - one profile each
+// (about.js aboutStats). Real counts only; the faces from the wiki's data.
+let ABST = null, abAt = 0;
+async function learnedCard() {
+  const el = $('#ab-st');
+  if (!el) return;
+  const draw = () => {
+    const x = ABST;
+    if (!x || x.error) { el.innerHTML = `<div class="card-h"><h2>מה למדנו</h2></div><div class="empty">${x && x.error ? 'לא נטען' : 'טוען…'}</div>`; return; }
+    const F = x.fields || {}, c = (k) => (x.count || {})[k] || { asked: 0, skipped: 0, v: {} };
+    const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '-');
+    const push = c('push'), said = (k) => c(k).asked - c(k).skipped;
+    // bars: label (+ a face), a bar against the biggest, the count or the share of those who answered
+    const bars = (k, label, opt = {}) => {
+      const e = Object.entries(c(k).v).sort((a, b) => b[1] - a[1]).slice(0, opt.n || 8), max = Math.max(1, ...e.map(([, v]) => v)), tot = said(k);
+      const name = (v) => (k === 'fav' ? C[v]?.name || v : k === 'world' ? (W.series || []).find((s) => s.id === v)?.title || v : (F[k]?.opts || {})[v] || v);
+      return `<div class="ab-bl"><h3>${label}<small>${fmt(tot)} ענו${c(k).skipped ? ` · ${fmt(c(k).skipped)} דילגו` : ''}</small></h3>${e.length ? e.map(([v, n]) => `<div class="ab-b">${k === 'fav' ? face(v) : ''}<span>${esc(name(v))}</span><i><b style="width:${Math.max(4, Math.round((n / max) * 100))}%"></b></i><em>${opt.pct ? pct(n, tot) : fmt(n)}</em></div>`).join('') : '<p class="hint">עוד אין</p>'}</div>`;
+    };
+    const wishes = (x.recent || []).filter((p) => p.wish).slice(0, 12);
+    el.innerHTML = `<div class="card-h"><h2>מה למדנו</h2><small class="hint">מה שסיפרו למרים, לרב דמוקרטוביץ׳ וליותם - פרופיל אחד לכל אחד</small></div>
+      <div class="kgrid sim-k">
+        <div class="k"><span class="kh">סיפרו משהו</span><b>${fmt(x.people)}</b><small>תושבים עם פרופיל</small></div>
+        <div class="k"><span class="kh">הסכימו להתראות</span><b>${pct((push.v || {}).yes || 0, push.asked)}</b><small>${fmt((push.v || {}).yes || 0)} מתוך ${fmt(push.asked)} שנשאלו</small></div>
+        <div class="k"><span class="kh">ימי הולדת השבוע</span><b>${fmt((x.week || []).length)}</b><small>${fmt(said('bday'))} נתנו תאריך</small></div></div>
+      ${bars('fav', 'הדמויות שבאו לבקר', { n: 8 })}
+      <div class="ab-2">${bars('source', 'מאיפה מגיעים', { pct: true })}${bars('stage', 'שלב בחיים', { pct: true })}</div>
+      <div class="ab-2">${bars('world', 'העולם שמצחיק אותם', { n: 6 })}${bars('first', 'מה עושים פה קודם', { pct: true })}</div>
+      <div class="ab-2">${bars('channel', 'איך לספר להם על משהו חדש', { pct: true })}
+        <div class="ab-bl"><h3>ימי הולדת השבוע</h3>${(x.week || []).length ? x.week.map((w) => `<div class="ab-bd"><b>${esc(w.nick || 'בלי שם')}</b><span>${w.bday.d}.${w.bday.m}</span></div>`).join('') : '<p class="hint">אין השבוע</p>'}</div></div>
+      <div class="ab-bl"><h3>מה הם רוצים לעשות כאן<small>${fmt(said('wish'))} כתבו</small></h3>${wishes.length ? `<div class="ab-q">${wishes.map((p) => `<p>"${esc(p.wish)}"<small>${esc(p.nick || '')}</small></p>`).join('')}</div>` : '<p class="hint">עוד אין</p>'}</div>`;
+  };
+  if (ABST && Date.now() - abAt < 300e3) return draw();
+  draw();
+  try { ABST = await api('aboutStats', {}); abAt = Date.now(); } catch (e) { ABST = { error: true }; }
+  if ($('#ab-st')) draw();
 }
 // the citizenship journey (stage 3, citizen.js citizenStats): where the residents are in it
 let CZST = null, czAt = 0;

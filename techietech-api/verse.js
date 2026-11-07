@@ -560,6 +560,33 @@ const ops = {
     await batch.commit();
     return { ok: true, n: snap.size };
   },
+
+  // ---------- "מה סיפרתם לנו" (about.js, plan cz-sim-r3 - his yes 2026-11-07) ----------
+  // the person's own profile: read it, and change any field of it ("שינוי" on the אני page - their own word wins over what
+  // Miriam / Demokratovich / Yotam wrote). A birthday in free words is read by the AI first; `add` (the simulation's "עקבו אחרי
+  // שלושתם") adds characters to the ones they visit, up to 3, keeping the ones already there.
+  async aboutGet(uid) {
+    const about = require('./about');
+    return { about: about.view(await about.get(uid)), fields: about.FIELDS };
+  },
+  async aboutPut(uid, d) {
+    const about = require('./about');
+    await fanOf(uid);
+    if (burst('ab' + uid, 30, 60e3)) fail('resource-exhausted', 'slow_down');
+    const patch = {}, raw = {};
+    for (const [k, v] of Object.entries(d.patch || {})) if (about.FIELDS[k]) patch[k] = v;
+    if (!Object.keys(patch).length) fail('invalid-argument', 'field');
+    if (typeof patch.bday === 'string') {
+      const date = await about.parseDate(siteKey(), patch.bday);
+      if (!date) fail('invalid-argument', 'date');
+      raw.bday = patch.bday; patch.bday = date;
+    }
+    if (d.add && Array.isArray(patch.fav)) patch.fav = [...(((await about.get(uid)).fav || {}).v || []), ...patch.fav];
+    const I = await about.ids();
+    const out = await about.save(uid, patch, d.add ? 'sim' : 'me', { force: true, raw, ids: new Set([...I.chars, ...I.worlds]) });
+    if (!Object.keys(out).length) fail('invalid-argument', 'value');
+    return { ok: true, about: about.view(await about.get(uid)) };
+  },
 };
 
 // the guide's smart contact: "can't find a video?" / collaborations / a bug. Signed in only (his rule, 2026-11-01:
@@ -1007,6 +1034,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (op === 'costs') return res.json(await require('./costs').owner(op, b));
     if (op === 'citizenStats') return res.status(200).json(await require('./citizen').owner(op, b));   // the citizenship journey (citizen.js)
     if (op === 'simStats') { const r = await require('./sim').owner(op, b); return res.status(200).json(r); }   // the simulation test's funnel (sim.js)
+    if (op === 'aboutStats') return res.status(200).json(await require('./about').stats());   // "מה למדנו" - the residents' profiles (about.js)
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);

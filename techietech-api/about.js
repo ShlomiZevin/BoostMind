@@ -24,6 +24,76 @@ const FIELDS = {
 };
 const BY = ['miriam', 'demokratovich', 'yotam', 'me', 'sim'];
 const clip = (s, n) => String(s ?? '').slice(0, n);
+const short = (s, n) => { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
+const MODEL = 'gpt-5.6-terra';
+
+// the characters and the worlds (series), from the same brain as the chat (gs://shlomiverse-private/wiki-brain.json, looked at
+// every 3 minutes) - the ids a fav / world answer may hold, and the worlds the simulation's world question offers
+const bundled = require('./wiki-brain.json');
+let brainNow = bundled, brainMd5 = 'bundled', checked = 0;
+async function brain() {
+  if (Date.now() - checked < 180e3) return brainNow;
+  checked = Date.now();
+  try {
+    const f = admin.storage().bucket('shlomiverse-private').file('wiki-brain.json');
+    const [m] = await f.getMetadata();
+    if (m.md5Hash !== brainMd5) { const [buf] = await f.download(); brainNow = JSON.parse(buf.toString('utf8')); brainMd5 = m.md5Hash; }
+  } catch (e) { console.error('about brain', e.message); }
+  return brainNow;
+}
+// the worlds people know: the ones with the most videos first (the simulation offers 4 of these)
+const worldsOf = (b) => {
+  const n = {};
+  for (const c of b.characters) for (const v of c.videos || []) n[c.world] = (n[c.world] || 0) + 1;
+  return (b.worlds || []).map((w) => ({ id: w.id, title: w.title, blurb: w.blurb || '', n: n[w.title] || 0 })).sort((p, q) => q.n - p.n);
+};
+async function ids() {
+  const b = await brain();
+  return { chars: new Set(b.characters.map((c) => c.id)), worlds: new Set((b.worlds || []).map((w) => w.id)), worldList: worldsOf(b), names: Object.fromEntries(b.characters.map((c) => [c.id, c.name])) };
+}
+// which id set a field's value is checked against
+const idsFor = (k, I) => (FIELDS[k] && FIELDS[k].kind === 'chars' ? I.chars : FIELDS[k] && FIELDS[k].kind === 'series' ? I.worlds : null);
+
+// one short structured answer from OpenAI (the caller's key: the site's - Backstage → הוצאות counts it under "site")
+async function llm(key, instructions, input, schema, name, effort = 'low') {
+  const r = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST', headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ model: MODEL, instructions, input, reasoning: { effort }, max_output_tokens: 800, store: false, prompt_cache_key: 'about-' + name,
+      text: { format: { type: 'json_schema', name, strict: true, schema } } }),
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(`openai ${r.status} ${j.error?.message || ''}`);
+  return JSON.parse((j.output || []).flatMap((o) => o.content || []).find((c) => c.type === 'output_text')?.text || '{}');
+}
+
+// their own words for a field with fixed answers -> its value, or null when the words don't say (the answer is still kept raw)
+async function mapText(key, k, text, worldList = []) {
+  const f = FIELDS[k];
+  if (!f || !String(text || '').trim()) return null;
+  let vals, list;
+  if (f.kind === 'pick') { vals = Object.keys(f.opts); list = Object.entries(f.opts).map(([v, l]) => `${v} = ${l}`).join('\n'); }
+  else if (f.kind === 'series') { vals = worldList.map((w) => w.id); list = worldList.map((w) => `${w.id} = ${w.title}: ${short(w.blurb, 90)}`).join('\n'); }
+  else return null;
+  if (!vals.length) return null;
+  try {
+    const o = await llm(key, `A visitor of a Hebrew comedy site answered a question in their own words. The question was about: ${f.label}. Pick the one value their answer clearly means, or null when it doesn't clearly say any of them (a joke, a refusal, something else). The values:\n${list}`,
+      [{ role: 'user', content: clip(text, 200) }], { type: 'object', additionalProperties: false, required: ['v'], properties: { v: { anyOf: [{ type: 'string', enum: vals }, { type: 'null' }] } } }, 'map-' + k);
+    return vals.includes(o.v) ? o.v : null;
+  } catch (e) { console.error('about mapText', k, e.message); return null; }
+}
+
+// a birthday in free words ("ט״ו באב, 1994", "3.3", "שלושה במרץ") -> { d, m, y? } on the Gregorian calendar, or null
+async function parseDate(key, text) {
+  const t = clip(String(text || '').trim(), 80);
+  if (!t) return null;
+  const today = new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10);
+  const n = { type: ['integer', 'null'] };
+  try {
+    const o = await llm(key, `Turn a birthday a visitor wrote in Hebrew (or digits, or English) into a Gregorian date. Today is ${today}. Day-first when it is digits (3.3 = 3 March; 22/8/94 = 22 August 1994; a two-digit year = the likely year of birth). A Hebrew-calendar date (like ט״ו באב תשנ״ד, or ט״ו באב 1994) -> its Gregorian date in that year; a Hebrew date without a year -> its Gregorian date this year, y = null. No year given -> y = null. ok = false (and d, m, y null) when it isn't a date at all or is impossible.`,
+      [{ role: 'user', content: t }], { type: 'object', additionalProperties: false, required: ['ok', 'd', 'm', 'y'], properties: { ok: { type: 'boolean' }, d: n, m: n, y: n } }, 'date', 'medium');
+    return o.ok ? clean('bday', o) || null : null;
+  } catch (e) { console.error('about parseDate', e.message); return null; }
+}
 
 // a value as the field allows it, or undefined when it isn't one (null = skipped on purpose)
 function clean(k, v, ids = null) {
@@ -95,4 +165,4 @@ async function stats() {
   return { fields: FIELDS, people: snap.size, count, week: week.map((w) => ({ ...w, nick: nick[w.uid] || '' })), recent: people.slice(0, 300) };
 }
 
-module.exports = { FIELDS, clean, get, save, missing, view, stats };
+module.exports = { FIELDS, BY, clean, get, save, missing, view, stats, brain, ids, idsFor, worldsOf, mapText, parseDate, llm };

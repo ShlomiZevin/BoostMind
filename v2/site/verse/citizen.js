@@ -8,14 +8,15 @@ import { esc, track, sheet, toast } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
 import { LOCAL, db, F, call } from './fb.js';
 import { dayIL } from './records.js';
-import { simOpen, czOpen, flyOpen } from './gates.js';
+import { simOpen, czOpen, flyOpen, him } from './gates.js';
+import { charsPicker, AI, fmtDate } from './about.js';
+import { pushState, enablePush } from './push.js';
 
 const API = LOCAL ? '/api/verseCitizen' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseCitizen';
 const Z = () => T.cz;
 const own = () => { try { return !!localStorage.getItem('t-ignore'); } catch (e) { return false; } };
 const ready = () => new Promise((res) => { const t0 = Date.now(); (function w() { if (st.ready || Date.now() - t0 > 5000) res(); else setTimeout(w, 80); })(); });
 const pad = (n) => String(n || 0).padStart(4, '0');
-const face = (id) => (C[id] && C[id].img) || '';
 
 async function api(op, data = {}) {
   const headers = { 'content-type': 'application/json' };
@@ -66,7 +67,7 @@ function draw() {
   window.scrollTo(0, 0);
   if (S.step === 'boarding') return boarding();
   if (S.step === 'checkin') return checkin();
-  if (S.step === 'booth') return S.booth.length >= 5 ? stamp() : booth();
+  if (S.step === 'booth') return S.booth.length >= S.script.length ? stamp() : booth();
   if (S.step === 'flight') return flight();
   return idCard();
 }
@@ -86,26 +87,41 @@ function boarding() {
 // one question per screen (his notes 2026-11-07): the scene, their speech bubble under it, the answers - all in one phone
 // screen; an answer moves on to the next screen (no running chat). "Write something" + skip sit pinned to the bottom of
 // the screen (his note on plan open-cz-sim)
-function desk(n, img, bubble, opts, place, extra = '') {
-  return `${stepTag(n)}<section class="cz-desk">
+const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
+const scene = (n, img, bubble, body, dock) => `${stepTag(n)}<section class="cz-desk">
     <div class="cz-scene"><img src="/verse/art/${img}" alt=""></div>
-    <div class="cz-say2">${bubble}</div>
-    ${opts.length ? `<div class="cz-opts ${opts.length === 2 ? 'two' : ''}">${opts.map((o, i) => `<button data-cz-a="${i}">${esc(o)}</button>`).join('')}</div>` : ''}
-    <div class="cz-dock"><form class="cz-ask"><input maxlength="160" placeholder="${esc(place)}"><button aria-label="שליחה">←</button></form>${extra}</div></section>`;
+    <div class="cz-say2">${bubble}</div>${body}
+    <div class="cz-dock">${dock}</div></section>`;
+const askBox = (place, max = 160) => `<form class="cz-ask"><input maxlength="${max}" placeholder="${esc(place)}" enterkeyhint="send"><button aria-label="שליחה">←</button></form>`;
+// the answers: plain buttons, or (a profile question - plan cz-sim-r3 mockups source / wish) rows with a line icon per answer
+function optsHtml(opts, field, after = '') {
+  if (!opts.length) return after;
+  const icon = (i) => (field === 'source' ? AI[['tiktok', 'instagram', 'youtube', 'friend', 'other'][i]] : field === 'first' ? AI[['videos', 'chat', 'games', 'stickers'][i]] : '') || '';
+  const cls = field === 'source' ? 'rows' : field === 'first' ? 'grid' : opts.length === 2 ? 'two' : '';
+  return `<div class="cz-opts ${cls}">${opts.map((o, i) => `<button data-cz-a="${i}">${icon(i)}<span>${esc(o)}</span></button>`).join('')}</div>${after}`;
+}
+function desk(n, img, bubble, opts, place, extra = '', field = null, after = '') {
+  return scene(n, img, bubble, optsHtml(opts, field, after), askBox(place) + extra);
 }
 // the answer is in: the tapped button lit, the bubble turns to dots until the next screen
 function waiting(b) {
   const el = box(); if (!el) return;
-  if (b) b.classList.add('on');
-  el.querySelectorAll('.cz-opts button, .cz-ask button, .cz-skip').forEach((x) => (x.disabled = true));
+  if (b) b.classList.add(b.classList.contains('vx-btn') ? 'wait' : 'on');
+  el.querySelectorAll('.cz-opts button, .cz-ask button, .cz-skip, .cz-sugg button').forEach((x) => (x.disabled = true));
   const say = el.querySelector('.cz-say2'); if (say) say.innerHTML = '<span class="cz-dots"><i></i><i></i><i></i></span>';
 }
 function answers(el, go) {
   el.querySelectorAll('[data-cz-a]').forEach((b) => (b.onclick = () => go({ pick: +b.dataset.czA }, b.textContent, b)));
-  el.querySelector('.cz-ask').onsubmit = (e) => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v) { e.target.querySelector('input').blur(); go({ text: v }, v); } };
+  const f = el.querySelector('.cz-ask');
+  if (!f) return;
+  const field = f.querySelector('input, textarea');
+  f.onsubmit = (e) => { e.preventDefault(); const v = field.value.trim(); if (v) { field.blur(); go({ text: v }, v); } };
+  // a two-line box: Enter sends, Shift+Enter is a new line
+  if (field.tagName === 'TEXTAREA') field.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); f.requestSubmit(); } };
 }
 
-// 2. check-in with Miriam (C3): her turn, 3 quick answers, a text box, skip / skip it all
+// 2. check-in with Miriam (C3): her words + the registry's question - its own answer UI per kind (plan cz-sim-r3): 'pick' = buttons
+// (the profile's fixed answers, or 3 of hers), 'chars' = the characters picker, 'text' = a two-line box + suggestions; skip / skip it all
 let busy = false;
 async function talk(data, b) {
   if (busy) return;
@@ -121,11 +137,28 @@ async function talk(data, b) {
 function checkin() {
   const p = S.pending, el = box();
   if (!p) return talk({});
-  el.innerHTML = desk(2, 'citizen-checkin.jpg', `${esc(p.say)}<b>${esc(p.q)}</b>`, p.opts || [], Z().checkin.type,
-    `<div class="cz-skips"><button class="cz-skip" data-cz-skip>${esc(Z().checkin.skip)}</button><button class="cz-skip" data-cz-all>${esc(Z().checkin.skipAll)}</button></div>`);
-  answers(el, (data, label, b) => talk(data, b));
+  const bubble = `${esc(p.say)}<b>${esc(p.q)}</b>`;
+  const skip = `<button class="cz-skip" data-cz-skip>${esc(Z().checkin.skip)}</button>`;
+  const skips = `<div class="cz-skips">${skip}<button class="cz-skip" data-cz-all>${esc(Z().checkin.skipAll)}</button></div>`;
+  if (p.kind === 'chars') {
+    // "את מי באתם לבקר?" (mockup r3-visit-1): search, round faces, up to 3; "המשך" + "דלגו" pinned
+    el.innerHTML = scene(2, 'citizen-checkin.jpg', bubble, '<div class="cz-chars" data-cz-chars></div>',
+      `<div class="cz-go">${skip}<button class="vx-btn main" data-cz-next disabled>${esc(Z().go)}${ARROW}</button></div>`);
+    const pk = charsPicker(el.querySelector('[data-cz-chars]'), { max: 3, onChange: (ids) => { el.querySelector('[data-cz-next]').disabled = !ids.length; } });
+    el.querySelector('[data-cz-next]').onclick = (e) => talk({ chars: pk.get() }, e.currentTarget);
+  } else if (p.kind === 'text') {
+    // "ומה הייתם רוצים לעשות כאן?" (mockup r3-wish-1): suggestions fill the two-line box, they send it
+    el.innerHTML = scene(2, 'citizen-checkin.jpg', bubble,
+      (p.sugg || []).length ? `<div class="cz-sugg">${p.sugg.map((x) => `<button type="button" data-cz-sugg>${esc(x)}</button>`).join('')}</div>` : '',
+      `<form class="cz-ask cz-ask2"><textarea rows="2" maxlength="200" placeholder="${esc(Z().wishType)}" enterkeyhint="send"></textarea><button aria-label="שליחה">←</button></form>${skips}`);
+    el.querySelectorAll('[data-cz-sugg]').forEach((b) => (b.onclick = () => { const t = el.querySelector('.cz-ask textarea'); t.value = b.textContent; t.focus(); el.querySelectorAll('[data-cz-sugg]').forEach((x) => x.classList.toggle('on', x === b)); }));
+    answers(el, (data, label, b) => talk(data, b));
+  } else {
+    el.innerHTML = desk(2, 'citizen-checkin.jpg', bubble, p.opts || [], Z().checkin.type, skips, p.field);
+    answers(el, (data, label, b) => talk(data, b));
+  }
   el.querySelector('[data-cz-skip]').onclick = () => talk({ skip: true });
-  el.querySelector('[data-cz-all]').onclick = () => talk({ all: true });
+  el.querySelector('[data-cz-all]')?.addEventListener('click', () => talk({ all: true }));
   window.scrollTo(0, 0);
 }
 function checkinDone(closing) {
@@ -137,21 +170,74 @@ function checkinDone(closing) {
 }
 
 // 3. border control at the booth (C4): HIS lines in order, one per screen; above each, his short reaction (AI, in his voice) to
-// what they answered; simple fixed answers on the yes/no lines, their own words always (line 2: only their own words)
+// what they answered; simple fixed answers on the yes/no lines, their own words always (line 2: only their own words).
+// Two lines come only when the profile misses them (plan cz-sim-r3): the birthday (free words -> a date) and the notifications.
 function booth() {
-  const i = S.booth.length, el = box(), prev = i > 0 ? (S.bt || [])[i - 1] : null, opts = (S.opts || [])[i] || [];
-  el.innerHTML = desk(3, 'citizen-booth.jpg', `${prev && prev.react ? `<span class="cz-re">${esc(prev.react)}</span>` : ''}<b>${esc((S.script || [])[i] || '')}</b>`,
-    opts, opts.length ? Z().boothType : Z().boothOpen);
+  const i = S.booth.length, el = box(), prev = i > 0 ? (S.bt || [])[i - 1] : null, opts = (S.opts || [])[i] || [], L = (S.lines || [])[i] || { kind: 'line' };
+  const bubble = `${prev && prev.react ? `<span class="cz-re">${esc(prev.react)}</span>` : ''}${L.pre ? `<span class="cz-re cz-pre">${esc(L.pre)}</span>` : ''}<b>${esc((S.script || [])[i] || '')}</b>`;
+  if (L.kind === 'bday') return boothBday(i, bubble);
+  el.innerHTML = desk(3, 'citizen-booth.jpg', bubble, opts, opts.length ? Z().boothType : Z().boothOpen, '', null, L.note ? `<p class="cz-note">${esc(L.note)}</p>` : '');
   if (opts.length) api('boothPre', { i }).catch(() => {});   // his reaction to each button, written while they read
   answers(el, async (data, label, b) => {
     if (busy) return;
-    busy = true;
-    waiting(b);
-    try { S = await api('booth', { i, ...data }); busy = false; if (S.booth.length >= 5) { track('cz_stamp', String(S.n)); stamp(true); } else booth(); }
-    catch (e) { busy = false; toast(Z().fail, 3000); booth(); }
+    // "מסכים/ה" to the authorities' orders = the site's real notifications: the browser asks now, inside the tap (iPhone outside
+    // the home-screen app can't - push.js shows the way there later, never in the middle of the journey)
+    if (L.kind === 'push' && data.pick === 0 && pushState() === 'default') enablePush().catch(() => {});
+    boothStep(i, data, b);
   });
   window.scrollTo(0, 0);
 }
+async function boothStep(i, data, b) {
+  if (busy) return;
+  busy = true;
+  waiting(b);
+  try { S = await api('booth', { i, ...data }); busy = false; if (S.booth.length >= S.script.length) { track('cz_stamp', String(S.n)); stamp(true); } else booth(); }
+  catch (e) { busy = false; toast(Z().fail, 3000); booth(); }
+}
+// the birthday line (mockup r3-bday-1): they write it as they like, the AI reads a date - "נרשם: 3 במרץ 1990" + "לא נכון? כתבו שוב"
+function boothBday(i, bubble) {
+  const el = box(), B = S.bday && S.bday.raw ? S.bday : null;
+  const got = !B ? '' : `<div class="cz-mine">${esc(B.raw)}</div>${B.date
+    ? `<div class="cz-got">${AI.check}<span>${esc(Z().bdayGot)} ${esc(fmtDate(B.date))}</span></div><button class="cz-skip cz-again" data-cz-again>${esc(Z().bdayAgain)}</button>
+       <button class="vx-btn main block" data-cz-ok>${esc(Z().go)}${ARROW}</button>`
+    : `<div class="cz-got bad"><span>${esc(Z().bdayBad)}</span></div>`}`;
+  el.innerHTML = scene(3, 'citizen-booth.jpg', bubble, got,
+    `${askBox(Z().boothBday, 80)}<div class="cz-skips"><button class="cz-skip" data-cz-nobday>${esc(Z().bdayNo)}</button></div>`);
+  const input = el.querySelector('.cz-ask input');
+  el.querySelector('.cz-ask').onsubmit = async (e) => {
+    e.preventDefault();
+    const v = input.value.trim();
+    if (!v || busy) return;
+    busy = true; input.blur();
+    const btn = e.target.querySelector('button'); btn.disabled = true; btn.classList.add('wait');
+    try { S = await api('bday', { i, text: v }); } catch (err) { toast(Z().fail, 3000); }
+    busy = false;
+    boothBday(i, bubble);
+  };
+  el.querySelector('[data-cz-again]')?.addEventListener('click', () => { input.focus(); });
+  el.querySelector('[data-cz-ok]')?.addEventListener('click', (e) => boothStep(i, { date: true }, e.currentTarget));
+  el.querySelector('[data-cz-nobday]').onclick = () => boothStep(i, { skip: true });
+  if (!B) window.scrollTo(0, 0);
+}
+
+// start over (his ask 2026-11-07): the journey from zero for HIS account (and test accounts) without touching his real citizen
+// number or profile - the server keeps them aside (citizen.js reset / restore). On the passport page and in the status sheet.
+export const czTools = () => (him() && signedIn() ? `<div class="cz-tools"><button class="cz-skip" data-cz-reset>${esc(Z().reset)}</button><button class="cz-skip" data-cz-restore>${esc(Z().restore)}</button></div>` : '');
+document.addEventListener('click', async (e) => {
+  const r = e.target.closest('[data-cz-reset], [data-cz-restore]');
+  if (!r) return;
+  e.preventDefault();
+  const reset = r.matches('[data-cz-reset]');
+  if (reset && !confirm(Z().resetAsk)) return;
+  r.disabled = true;
+  try {
+    await api(reset ? 'reset' : 'restore');
+    try { localStorage.removeItem('vx-sim'); } catch (x) {}   // the simulation test can be taken again too
+    track('cz_test', reset ? 'reset' : 'restore');
+    if (reset) location.href = '/citizenship';
+    else { toast(Z().restored); setTimeout(() => location.reload(), 600); }
+  } catch (x) { r.disabled = false; toast(Z().fail, 3000); }
+});
 
 // the passport's visa page with the entry stamp and his signature (his note on plan open-cz-sim: "show the inner pages with a
 // stamp, like a real passport; the logo flattened onto the page like a watermark" - art/citizen-visa.jpg). The stamp is drawn in
@@ -174,7 +260,7 @@ function stamp(fresh) {
   if (flyOpen()) import('./fly.js').then((m) => m.prefetch()).catch(() => {});   // the game's first screen loads while they read the stamp
   box().querySelector('[data-cz-go]').onclick = async (e) => {
     e.currentTarget.classList.add('wait');
-    try { S = await api('booth', { i: 5, a: Z().stamp.go }); flight(true); } catch (err) { toast(Z().fail, 3000); }
+    try { S = await api('booth', { i: S.script.length, a: Z().stamp.go }); flight(true); } catch (err) { toast(Z().fail, 3000); }
   };
 }
 
@@ -252,7 +338,7 @@ function idCard() {
     </div>
     ${visaPage()}
     ${(sim && sim.name) || !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</a>`}
-    <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a></section>`;
+    <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a>${czTools()}</section>`;
   // no "share the passport" for now (his note 2026-11-07: it gives nothing yet) - shareId() + drawId() stay ready
   box().querySelector('[data-cz-share]')?.addEventListener('click', () => shareId());
 }

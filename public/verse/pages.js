@@ -10,6 +10,9 @@ import { pushState, enablePush } from './push.js';
 import { statusChip, SI } from './status.js';
 import { citizenBanner } from './citizen.js';
 import { nextBar } from './gates.js';
+import { aboutCard } from './about.js';
+// "מה סיפרתם לנו" arrived or changed (verse/about.js): the אני page draws again
+window.addEventListener('vx-about', () => { if (cur.page === 'me') refresh(true); });
 
 // ---------- top bar ----------
 export function renderTop() {
@@ -197,6 +200,7 @@ export function mePage() {
       ${tile('/my-stickers', I.sticker, T.mmStickers, myStickers ? myStickers.length : null)}
       ${tile('/notes', I.bell, T.mmBell, st.unread || null)}
     </div>
+    ${aboutCard()}
   </div>`;
 }
 export function myCharactersPage() {

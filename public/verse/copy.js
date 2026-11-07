@@ -367,6 +367,11 @@ export const T = {
     developing: 'מרכיבים לכם מציאות חלופית', picFail: 'הפנים הגיעו, התמונה התעכבה.', friend: 'מישהו חי ככה. ואתם?', askFriends: 'באיזו סימולציה אתם חיים?',
     wa: 'שלחו בוואטסאפ', copy: 'העתיקו קישור', copied: 'הקישור הועתק', save: 'שמרו לטלפון',
     limit: 'המציאות ביקשה שתניחו לה עד מחר.', fail: 'הבדיקה השתבשה. נסו שוב בעוד רגע.',
+    // the free answer + the classification screen (plan cz-sim-r3 mockups simfree / result-2)
+    free: 'או כתבו תשובה משלכם', freeSend: 'שליחת התשובה',
+    cert: 'הסיווג שלכם בשלומיוורס', signed: 'יותם, ארכיטקט המערכת', castH: 'הדמויות של הסימולציה שלכם',
+    followAll: (n) => (n === 2 ? 'עקבו אחרי שניהם' : 'עקבו אחרי שלושתם'), following: 'אתם עוקבים אחרי כולם', followed: 'נוספו לדמויות שלכם',
+    nextK: 'השלב הבא:', nextT: 'אזרחות', nextL: 'מרים מחכה בצ׳ק־אין', locked: 'שם הסיווג נחשף לתושבים',
   },
   // the citizenship journey (verse/citizen.js; plan conversion-next v6 - the mockups' words + Terra's, 2026-11-06). The booth = his
   // script for Rabbi Demokratovich, word for word; the visitor taps an answer at every "(מקשיב)"
@@ -388,6 +393,20 @@ export const T = {
     statusGo: 'למסע האזרחות', citizenSub: 'התאזרחתם. מספר האזרח כבר אצלכם.', citizenLine: 'אזרחים נכנסים פנימה, בלי להציג דרכון.',
     soonLine: 'מסע האזרחות פתוח לתושבים', bell: ['זוהרה, זה נפתח', 'לא מבינה איך, אבל מסע האזרחות פתוח.'],
     fail: 'זה לא נותן כרגע. נסו שוב.',
+    // "ספרו לנו עליכם" at the counter and the booth (plan cz-sim-r3 mockups visit / source / wish / bday / push)
+    go: 'המשך', wishType: 'למשל: לדבר עם חני, לראות את כל הסדרה של טקי־טק…', boothBday: 'כתבו איך שנוח לכם: 3 במרץ, 3.3, ט״ו בשבט…',
+    bdayGot: 'נרשם:', bdayAgain: 'לא נכון? כתבו שוב', bdayBad: 'לא הצלחנו לקרוא את התאריך. נסו לכתוב אחרת.', bdayNo: 'מעדיפים לא לומר',
+    // start over, his account only (gates.js him()): the journey from zero without touching his real one
+    reset: 'להתחיל מחדש (בדיקה)', restore: 'להחזיר את המצב שלי', resetAsk: 'להתחיל את המסע מאפס? המצב האמיתי שלכם נשמר בצד.', restored: 'המצב שלכם חזר',
+  },
+  // "מה סיפרתם לנו" - the person's own profile on the אני page (plan cz-sim-r3 mockup me; the answers' own words come from the server, about.js)
+  about: {
+    title: 'מה סיפרתם לנו', sub: 'מרים, הרב דמוקרטוביץ׳ ויותם רשמו. אפשר לשנות הכול.',
+    empty: 'עוד לא סיפרתם', change: 'שינוי', add: 'להוסיף', save: 'שמירה', saved: 'נשמר', fail: 'לא נשמר. נסו שוב.',
+    labels: { fav: 'הדמויות שבאתם לבקר', source: 'מאיפה הגעתם', bday: 'יום הולדת', push: 'התראות', world: 'העולם שמצחיק אתכם', wish: 'מה הייתם רוצים לעשות כאן', stage: 'שלב בחיים', first: 'מה עושים פה קודם', channel: 'איך לספר לכם על משהו חדש' },
+    search: 'חיפוש דמות', picked: (n, of) => `נבחרו ${n} מתוך ${of}`, none: 'לא נמצאה דמות כזאת',
+    bdayPh: 'כתבו איך שנוח לכם: 3 במרץ, 3.3, ט״ו בשבט…', bdayNo: 'מעדיפים לא לומר', wishPh: 'מה הייתם רוצים לעשות בשלומיוורס?',
+    months: ['בינואר', 'בפברואר', 'במרץ', 'באפריל', 'במאי', 'ביוני', 'ביולי', 'באוגוסט', 'בספטמבר', 'באוקטובר', 'בנובמבר', 'בדצמבר'],
   },
   // the flight in as a game (verse/fly.js, his idea 2026-11-07 - a draft behind gates.js FLY_OPEN): a spaceship to the planet,
   // the characters in the way. No character speaks here except their own quotes from the wiki.

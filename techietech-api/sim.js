@@ -15,6 +15,7 @@ const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
 const material = require('./character-material');
 const proc = require('./process');
+const about = require('./about');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -30,6 +31,18 @@ const STARTS_A_DAY = 10;      // tests a day per address (one per person on the 
 const HOST = 'yotam';
 const HOSTS = ['yotam', 'hani', 'demokratovich', 'rosenblum', 'miriam', 'gilad', 'nahor', 'dorit', 'ayelet', 'vova', 'genz', 'yudit'];
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
+// "ספרו לנו עליכם" (plan cz-sim-r3, his yes 2026-11-07): three of the 7 questions also fill the person's profile (about.js), at
+// fixed places - asked only when the field is still missing for a signed-in person, always for a tourist (it moves in when they
+// sign in). Each of its 4 answers carries a fixed value; their own words are read by the AI (a value or nothing).
+const PURPOSE = { 2: 'stage', 4: 'world', 6: 'channel' };
+const GOAL = {
+  stage: 'where the visitor is in life (school, army or national service, studies, work, parenting, retirement)',
+  world: 'which world (series) of the Shlomiverse makes them laugh most - each answer clearly evokes a different world from the list (its place, its kind of people or humour; you may name it)',
+  channel: 'how they would want to hear when something new happens in the Shlomiverse',
+};
+const WORLDS_OFFERED = 12;   // the world question picks its 4 from the worlds with the most videos
+const answered = (s) => s.pick !== undefined || s.free !== undefined;
+const answerOf = (s) => (s.free !== undefined ? `(in their own words) "${s.free}"` : s.a[s.pick]);
 
 // the characters, from the same brain as the chat (gs://shlomiverse-private/wiki-brain.json, looked at every 3 minutes)
 let brain = bundled, brainMd5 = 'bundled', checked = 0;
@@ -61,6 +74,7 @@ It is like the silly quizzes of the 90s Israeli teen magazines (מעריב לנ�
 THE HOST ASKS. Every question, every answer and every reaction is written in the host's own voice - their way of talking, their worldview, their obsessions, their phrases from the material below - the way THEY would ask about someone's life (a businessman turns your morning into a business question, a rabbi into a ruling, a mother of eight into a question about the house). Someone who has never met the host still understands each question at once: one idea per question, short, at most one word of the host's jargon in it, never a pile of it.
 The TOPIC is always the visitor: each question visits a DIFFERENT corner of everyday life (mornings, the phone, the family WhatsApp group, food, work or school, sleep, friends, shopping, driving, holidays...) - never two in a row about the same thing. At most two callbacks in the whole test (a quick nod to something they answered, inside a NEW topic) - never a chain where each question follows the previous answer's object.
 The 4 answers are what the visitor would say: short phrases, ideally with no subject; if they have one, the grammar must agree ("אני קם" / "אנחנו קמים", never "אני קמים").
+HEBREW GRAMMAR, checked before you answer (it went wrong in tests): prefer answers with no verb at all - a noun phrase ("צלצול של בית הספר", "ישיבת צוות שאף אחד לא ביקש"), which also stays gender-neutral. An answer with "אני" takes a SINGULAR verb ("אני קם") - never "אני" with a plural verb ("אני קמים" is wrong). Only the question and your reactions speak to the visitor in plural (אתם). Re-read each answer for agreement of subject, verb and adjective.
 Hebrew, addressed in plural (אתם) and gender-neutral. No emoji. Nothing about politics, religious observance, health, sex, money amounts, minors or anything that could hurt. Never explain how the test works or mention AI.`;
 
 // OpenAI Responses API with a JSON schema - one short structured answer
@@ -102,14 +116,19 @@ const qPrompt = (host, b) => `${GAME}
 
 The host of this test - you write as them:
 ${hostMaterial(host, b || brain)}`;
-function qInput(steps) {
-  const done = steps.filter((s) => s.pick !== undefined);
-  const lines = done.map((s, i) => `${i + 1}. ${s.react ? `(your reaction before it: ${s.react}) ` : ''}${s.q}\n   answered: ${s.a[s.pick]}`).join('\n');
+// purpose = { field, vals: [[value, meaning]] } when this question also fills a profile field (PURPOSE)
+function qInput(steps, purpose) {
+  const done = steps.filter(answered);
+  const lines = done.map((s, i) => `${i + 1}. ${s.react ? `(your reaction before it: ${s.react}) ` : ''}${s.q}\n   answered: ${answerOf(s)}`).join('\n');
   const n = done.length + 1;
+  const last = done[done.length - 1];
   return [{ role: 'user', content: `${done.length ? 'The test so far:\n' + lines + '\n\n' : ''}Write question ${n} of ${STEPS}.
-- react: ${done.length ? "the host's quick reaction to the last answer, in their voice, up to 9 words (funny, never mean). Every reaction opens differently from your earlier ones; a catchphrase at most twice in the whole test, never in two reactions in a row" : 'empty string'}.
+- react: ${done.length ? `the host's quick reaction to the last answer, in their voice, up to 9 words (funny, never mean)${last && last.free !== undefined ? ' - they wrote it in their own words: react to exactly what they wrote' : ''}. Every reaction opens differently from your earlier ones; a catchphrase at most twice in the whole test, never in two reactions in a row` : 'empty string'}.
 - q: the question, up to 14 words, about the visitor${done.length ? ', building on what they already answered' : ''}.
-- a: exactly 4 answers, each up to 6 words, all funny and all tempting - no "correct" one, no "none of the above".${n === STEPS ? ' This is the last question: make it the most absurd one.' : ''}` }];
+- a: exactly 4 answers, each up to 6 words, all funny and all tempting - no "correct" one, no "none of the above".${n === STEPS ? ' This is the last question: make it the most absurd one.' : ''}${purpose ? `
+THIS QUESTION ALSO FILLS THE REGISTRY: it finds out ${GOAL[purpose.field]}. It stays a funny question about the visitor in your voice and the game's tone - never a form question, never say why you ask. Each of the 4 answers points to a DIFFERENT one of these values, and the visitor must be able to tell which: a[i].t = the answer as the visitor says it, a[i].v = its value.
+The values (value = what it means):
+${purpose.vals.map(([v, m]) => `${v} = ${m}`).join('\n')}` : ''}` }];
 }
 
 
@@ -119,7 +138,29 @@ async function askAs(key, hostId, task, schema, name) {
   const r = await proc.run(key, hostId, [], task, schema, name);
   return { ...r, ms: Date.now() - t0 };
 }
-const qTask = (steps) => GAME + '\n\n' + qInput(steps)[0].content;
+const qTask = (steps, purpose) => GAME + '\n\n' + qInput(steps, purpose)[0].content;
+// the values a purposeful question offers: the field's fixed answers, or for the world question the worlds people know
+async function purposeOf(field) {
+  if (!field) return null;
+  const f = about.FIELDS[field];
+  if (f.kind === 'pick') return { field, vals: Object.entries(f.opts) };
+  const I = await about.ids();
+  return { field, vals: I.worldList.slice(0, WORLDS_OFFERED).map((w) => [w.id, `${w.title}: ${short(w.blurb, 90)}`]) };
+}
+// question n (1-based) for this test: a plain one, or one that also fills a field (its 4 answers then carry values)
+async function makeQ(key, hostId, steps, d) {
+  const n = steps.filter(answered).length + 1, field = (d.purpose || {})[n] || null;
+  const purpose = await purposeOf(field);
+  if (!purpose) {
+    const r = await askAs(key, hostId, qTask(steps), Q_SCHEMA, 'q');
+    return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x, 80)), react: clip(r.out.react || '', 120) }, u: r.u, ms: r.ms };
+  }
+  const vals = purpose.vals.map(([v]) => v);
+  const schema = S({ react: str, q: str, a: { type: 'array', minItems: 4, maxItems: 4, items: S({ t: str, v: { type: 'string', enum: vals } }) } });
+  const r = await askAs(key, hostId, qTask(steps, purpose), schema, 'qp-' + field);
+  return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x.t, 80)), v: r.out.a.map((x) => (vals.includes(x.v) ? x.v : null)), field, react: clip(r.out.react || '', 120) }, u: r.u, ms: r.ms };
+}
+const qOut = (s) => ({ q: s.q, a: s.a, react: s.react || '' });
 
 const rPrompt = (b) => `${GAME}
 
@@ -138,13 +179,21 @@ ${castList(b)}`;
 // the result: score, the mixed simulation, the share lines - from the answers given (all 7, or 3+ when they skipped)
 async function finish(key, ref, d, steps, br, skipped = false) {
   const C = byId(br);
-  const done = await askAs(key, HOST, rPrompt(br) + "\n\nThe visitor's answers:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${s.a[s.pick]}`).join('\n'), RESULT_SCHEMA, 'result');
+  const done = await askAs(key, HOST, rPrompt(br) + "\n\nThe visitor's answers:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${answerOf(s)}`).join('\n'), RESULT_SCHEMA, 'result');
   const o = done.out;
   const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
   if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });
   const result = { score: Math.max(0, Math.min(100, Math.round(o.score))), name: clip(o.name, 60), verdict: clip(o.verdict, 200), cast, share: clip(o.share, 80), ask: clip(o.ask, 40), setting: clip(o.setting, 300) };
   await ref.update({ steps, result, skipped, u: (d.u || [0, 0, 0]).map((x, i) => x + (done.u[i] || 0)), finished: FieldValue.serverTimestamp(), pre: FieldValue.delete() });
+  if (d.uid) await toProfile(d.uid, d);   // a resident: the profile fields it found go in now (a tourist's wait for the claim)
   return { done: true, score: result.score, ms: done.ms };
+}
+// the fields this test found (d.vals; their own words in d.raw) -> the person's profile; only fields still empty are filled
+async function toProfile(uid, d) {
+  const vals = d.vals || {};
+  if (!Object.keys(vals).length) return;
+  try { const I = await about.ids(); await about.save(uid, vals, 'yotam', { raw: d.raw || {}, ids: new Set([...I.chars, ...I.worlds]) }); }
+  catch (e) { console.error('sim about', uid, e.message); }
 }
 
 const ipOf = (req) => String(req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
@@ -160,7 +209,7 @@ const RID = /^[a-z0-9]{10,24}$/;
 
 // what the page may see of a test: a tourist the score; the owner (signed in) or anyone once it was shared - all of it
 function view(d, full) {
-  const v = { rid: d.rid, host: d.host, score: d.result ? d.result.score : null, done: !!d.result, step: (d.steps || []).filter((s) => s.pick !== undefined).length };
+  const v = { rid: d.rid, host: d.host, score: d.result ? d.result.score : null, done: !!d.result, step: (d.steps || []).filter(answered).length };
   if (full && d.result) Object.assign(v, { name: d.result.name, verdict: d.result.verdict, cast: d.result.cast.map((c) => ({ id: c.id, role: c.role })),
     share: d.result.share, ask: d.result.ask, img: d.img || null, imgState: d.imgState || null, shared: !!d.shared });
   return v;
@@ -209,13 +258,16 @@ async function handle(req, res) {
     const n = await db().runTransaction(async (tx) => { const g = await tx.get(rate); const k = (g.exists ? g.data().n : 0) + 1; tx.set(rate, { n: k, exp: Timestamp.fromMillis(Date.now() + 2 * 864e5) }); return k; });
     if (n > STARTS_A_DAY) return { error: 'limit' };
     const rid = crypto.randomBytes(9).toString('hex').slice(0, 14);
-    const first = await askAs(key, host.id, qTask([]), Q_SCHEMA, 'q');
-    const step = { q: clip(first.out.q, 200), a: first.out.a.map((x) => clip(x, 80)), react: '' };
     const user = await who(req);
+    // which questions also fill the profile: a resident - only the fields still missing; a tourist - all three
+    const miss = new Set(user ? about.missing(await about.get(user.uid), Object.values(PURPOSE)) : Object.values(PURPOSE));
+    const purpose = Object.fromEntries(Object.entries(PURPOSE).filter(([, f]) => miss.has(f)));
+    const first = await makeQ(key, host.id, [], { purpose });
+    const step = { ...first.step, react: '' };
     await sims.doc(rid).set({ rid, host: { id: host.id, name: host.name }, from: clip(b.from || '', 20), ref: RID.test(b.ref || '') ? b.ref : null,
       v: clip(String(b.v || '').replace(/[^a-z0-9]/gi, ''), 12), ip, uid: user ? user.uid : null, resident: !!user, own: !!b.own,
-      steps: [step], u: first.u, created: FieldValue.serverTimestamp(), day: day() });
-    return { rid, n: 1, of: STEPS, ...step, ms: first.ms };
+      purpose, vals: {}, raw: {}, steps: [step], u: first.u, created: FieldValue.serverTimestamp(), day: day() });
+    return { rid, n: 1, of: STEPS, ...qOut(step), ms: first.ms };
   }
 
   // while the visitor reads question n, the next question is written for each of its 4 answers (one model call takes 3-4 s,
@@ -226,14 +278,13 @@ async function handle(req, res) {
     const ref = sims.doc(b.rid), got = await ref.get();
     if (!got.exists) return { error: 'gone' };
     const d = got.data(), steps = d.steps || [], n = steps.length;
-    if (d.result || n >= STEPS || Number(b.n) !== n || steps[n - 1].pick !== undefined || (d.pre && d.pre.n === n)) return { ok: true };
+    if (d.result || n >= STEPS || Number(b.n) !== n || answered(steps[n - 1]) || (d.pre && d.pre.n === n)) return { ok: true };
     await ref.update({ pre: { n, at: Date.now(), b: {} } });
     const br = await brainNow(), C = byId(br), host = C[d.host.id] || C[HOSTS[0]];
     const made = await Promise.all([0, 1, 2, 3].map(async (pick) => {
       try {
         const st = steps.map((x, i) => (i === n - 1 ? { ...x, pick } : x));
-        const r = await askAs(key, host.id, qTask(st), Q_SCHEMA, 'q');
-        return { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x, 80)), react: clip(r.out.react, 120) };
+        return (await makeQ(key, host.id, st, d)).step;
       } catch (e) { return null; }
     }));
     await ref.update({ pre: { n, at: Date.now(), b: Object.fromEntries(made.map((x, i) => [i, x]).filter(([, x]) => x)) } });
@@ -247,27 +298,35 @@ async function handle(req, res) {
     if (!got.exists) return { error: 'gone' };
     const d = got.data(), steps = d.steps || [], cur = steps[steps.length - 1];
     if (d.result) return { done: true, score: d.result.score };
-    const pick = Number(b.pick);
-    if (!(pick >= 0 && pick < 4) || cur.pick !== undefined || Number(b.n) !== steps.length) return { error: 'step' };
-    cur.pick = pick;
+    // a tapped answer (pick 0-3) or their own words (text - "או כתבו תשובה משלכם", plan cz-sim-r3)
+    const text = b.text !== undefined ? clip(String(b.text).replace(/\s+/g, ' ').trim(), 120) : null;
+    const pick = text === null ? Number(b.pick) : null;
+    if ((text === null && !(pick >= 0 && pick < 4)) || text === '' || answered(cur) || Number(b.n) !== steps.length) return { error: 'step' };
+    if (text !== null) cur.free = text; else cur.pick = pick;
+    // a question that fills the profile: the tapped answer's value, or what the AI reads in their words (alongside the next question)
+    d.vals = d.vals || {}; d.raw = d.raw || {};
+    let mapping = null;
+    if (cur.field && text === null) d.vals[cur.field] = (cur.v || [])[pick] ?? null;
+    if (cur.field && text !== null) { d.raw[cur.field] = text; mapping = about.ids().then((I) => about.mapText(key, cur.field, text, I.worldList.slice(0, WORLDS_OFFERED * 2))); }
     const br = await brainNow(), C = byId(br), host = C[d.host.id] || C[HOSTS[0]];
     const add = (u) => d.u.map((x, i) => x + (u[i] || 0));
     if (steps.length < STEPS) {
-      // the branch written in advance (op pre) - waited for up to 6 s while it is still being written
-      let pre = d.pre && d.pre.n === steps.length ? d.pre : null;
+      // the branch written in advance (op pre) - waited for up to 6 s while it is still being written (their own words: none, written now)
+      let pre = text === null && d.pre && d.pre.n === steps.length ? d.pre : null;
       for (let i = 0; pre && !pre.b[pick] && Date.now() - pre.at < 9000 && i < 15; i++) {
         await new Promise((r) => setTimeout(r, 400));
         const again = (await ref.get()).data().pre;
         pre = again && again.n === steps.length ? again : null;
       }
       let step = pre && pre.b[pick], u = [0, 0, 0];
-      if (!step) {
-        const next = await askAs(key, host.id, qTask(steps), Q_SCHEMA, 'q');
-        step = { q: clip(next.out.q, 200), a: next.out.a.map((x) => clip(x, 80)), react: clip(next.out.react, 120) }; u = next.u;
-      }
-      await ref.update({ steps: [...steps, step], u: add(u), pre: FieldValue.delete() });
-      return { n: steps.length + 1, of: STEPS, ...step, ready: !!(pre && pre.b[pick]) };
+      const [next, mv] = await Promise.all([step ? null : makeQ(key, host.id, steps, d), mapping]);
+      if (next) { step = next.step; u = next.u; }
+      if (mapping) d.vals[cur.field] = mv;
+      await ref.update({ steps: [...steps, step], vals: d.vals, raw: d.raw, u: add(u), pre: FieldValue.delete() });
+      return { n: steps.length + 1, of: STEPS, ...qOut(step), ready: !!(pre && pre.b[pick]) };
     }
+    if (mapping) d.vals[cur.field] = await mapping;
+    await ref.update({ vals: d.vals, raw: d.raw });
     return finish(key, ref, d, steps, br);
   }
 
@@ -278,7 +337,7 @@ async function handle(req, res) {
     if (!got.exists) return { error: 'gone' };
     const d = got.data();
     if (d.result) return { done: true, score: d.result.score };
-    const steps = (d.steps || []).filter((x) => x.pick !== undefined);
+    const steps = (d.steps || []).filter(answered);
     if (steps.length < 3) return { error: 'step' };
     return finish(key, ref, d, steps, await brainNow(), true);
   }
@@ -293,6 +352,7 @@ async function handle(req, res) {
     if (mine && !d.uid && d.result) {
       await ref.update({ uid: user.uid, claimed: FieldValue.serverTimestamp() });
       await db().collection('fans').doc(user.uid).set({ sim: { rid: d.rid, name: d.result.name, score: d.result.score, t: Date.now() } }, { merge: true });
+      await toProfile(user.uid, d);   // the tourist's answers move into their new profile (only fields still empty)
       d.uid = user.uid;
     } else if (mine && d.result && !d.fullSeen) await ref.update({ fullSeen: FieldValue.serverTimestamp() });
     return { ...view(d, (mine || d.shared) && !!d.result), mine: !!mine };
@@ -362,7 +422,7 @@ exports.owner = async (op, b) => {
   let finished = 0, residentsAtStart = 0, claimed = 0, shared = 0, fromShare = 0, imgs = 0;
   for (const d of all) {
     by[d.from || 'other'] = (by[d.from || 'other'] || 0) + 1;
-    const n = (d.steps || []).filter((s) => s.pick !== undefined).length;
+    const n = (d.steps || []).filter(answered).length;
     drop[n]++;
     if (d.result) finished++;
     if (d.resident) residentsAtStart++;
@@ -378,4 +438,4 @@ exports.owner = async (op, b) => {
     by, drop, today: { n: cap.exists && cap.data().day === day() ? cap.data().n : 0, cap: (cap.exists && cap.data().cap) || IMG_CAP }, recent };
 };
 
-exports._test = { ask, qPrompt, hostMaterial, qInput, rPrompt, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS };
+exports._test = { ask, qPrompt, hostMaterial, qInput, rPrompt, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS, PURPOSE, purposeOf, makeQ, answered, toProfile, handle };

@@ -5,11 +5,12 @@
 // A tourist sees the score; the full result after "מסדירים תושבות" - then it sticks to their account.
 // The share card is drawn here on a canvas (the picture + the words in code, so the Hebrew is always right).
 import { T } from './copy.js';
-import { esc, track, sheet, toast } from './ui.js';
-import { st, onState, needFan, signedIn } from './state.js';
+import { esc, track, sheet, toast, brand } from './ui.js';
+import { st, onState, needFan, signedIn, follow } from './state.js';
 import { LOCAL } from './fb.js';
 import { isCitizen } from './citizen.js';
 import { simOpen, czOpen } from './gates.js';
+import { putAbout } from './about.js';
 
 const API = LOCAL ? '/api/verseSim' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseSim';
 const S = () => T.sim;
@@ -18,6 +19,7 @@ const mine = () => { try { return JSON.parse(localStorage.getItem(LS) || 'null')
 const keep = (x) => { try { localStorage.setItem(LS, JSON.stringify(x)); } catch (e) {} };
 const own = () => { try { return !!localStorage.getItem('t-ignore'); } catch (e) { return false; } };
 const img = (id) => (C[id] && C[id].img) || '';
+const SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 12 20 4.5 16.5 12 20 19.5z"/></svg>';   // the send arrow points left (RTL; mockup simfree)
 
 // the account is known (a resident's own result needs their token - right after a page load it isn't there yet)
 const ready = () => new Promise((res) => { const t0 = Date.now(); (function w() { if (st.ready || Date.now() - t0 > 5000) res(); else setTimeout(w, 80); })(); });
@@ -164,27 +166,30 @@ function questionView() {
     <div class="sim-ask"><img src="${esc(img(run.host))}" alt="${esc(c.name)}"><div>
       ${run.react ? `<p class="sim-react">${esc(run.react)}</p>` : ''}<p class="sim-bubble">${esc(run.q)}</p></div></div>
     <div class="sim-as">${run.a.map((x, i) => `<button data-sim-a="${i}">${esc(x)}</button>`).join('')}</div>
+    <form class="sim-free"><input maxlength="120" placeholder="${esc(S().free)}" enterkeyhint="send"><button aria-label="${esc(S().freeSend)}">${SEND}</button></form>
     ${run.n > 3 ? `<button class="sim-skip" data-sim-skip>${esc(S().skip)}</button>` : ''}</section>`;
-  el.querySelectorAll('[data-sim-a]').forEach((btn) => (btn.onclick = () => answer(+btn.dataset.simA, btn)));
+  el.querySelectorAll('[data-sim-a]').forEach((btn) => (btn.onclick = () => answer({ pick: +btn.dataset.simA }, btn)));
+  // their own answer (plan cz-sim-r3 mockup simfree): Yotam reacts to it in the next question
+  el.querySelector('.sim-free').onsubmit = (e) => { e.preventDefault(); const inp = e.target.querySelector('input'), v = inp.value.trim(); if (v) { inp.blur(); answer({ text: v }, e.target.querySelector('button')); } };
   el.querySelector('[data-sim-skip]')?.addEventListener('click', skipToEnd);
   window.scrollTo(0, 0);
   // the next question for each of the 4 answers, written while they read this one
   if (run.n < run.of) api('pre', { rid: run.rid, n: run.n }).catch(() => {});
 }
 
-async function answer(pick, btn) {
+async function answer(data, btn) {
   if (run.busy) return;
   run.busy = true;
   btn.classList.add('on');
-  box().querySelectorAll('[data-sim-a]').forEach((b) => (b.disabled = true));
+  box().querySelectorAll('[data-sim-a], .sim-free button').forEach((b) => (b.disabled = true));
   const last = run.n === run.of;
   let slow = setTimeout(() => btn.classList.add('wait'), 600);
   if (last) setTimeout(computingView, 350);
   try {
-    const r = await api('answer', { rid: run.rid, n: run.n, pick });
+    const r = await api('answer', { rid: run.rid, n: run.n, ...data });
     clearTimeout(slow);
     run.busy = false;
-    track('sim_q', String(run.n));
+    track('sim_q', String(run.n) + (data.text ? 't' : ''));
     if (r.done) {
       keep({ rid: run.rid, done: true, score: r.score, host: run.host });
       track('sim_done', String(r.score));
@@ -196,7 +201,7 @@ async function answer(pick, btn) {
     clearTimeout(slow);
     run.busy = false;
     toast(S().fail, 3000);
-    if (last) questionView(); else { btn.classList.remove('on', 'wait'); box().querySelectorAll('[data-sim-a]').forEach((b) => (b.disabled = false)); }
+    if (last) questionView(); else { btn.classList.remove('on', 'wait'); box().querySelectorAll('[data-sim-a], .sim-free button').forEach((b) => (b.disabled = false)); }
   }
 }
 
@@ -240,12 +245,29 @@ async function resultView(rid, fresh) {
   fullView(r, fresh);
 }
 
+// the classification certificate (plan cz-sim-r3 mockup result-2): "הסיווג שלכם בשלומיוורס", the score, the classification's
+// name and Yotam's signature. A tourist sees it with the name locked until they sign in.
+const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const SIGN = '<svg class="sim-sign" viewBox="0 0 140 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 30c6-14 14-20 14-9 0 9-7 10-3 1 3-7 10-9 11 1 1 6 6 5 9-3 3-6 7-4 6 3s5 6 9-1c3-5 7-4 6 2 0 5 7 4 11-3l6-8c-1 9 3 11 9 4 4-6 10-6 15-3"/><path d="M18 38c32-5 72-2 108-7"/></svg>';
+const ARROW_L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>';
+function cert(r, locked) {
+  return `<div class="sim-cert">
+    <div class="sim-cert-h"><span>${brand(S().cert)}</span></div>
+    <div class="sim-cert-row">
+      <img class="sim-cert-logo" src="/verse/logo-160.png" alt="שלומיוורס">
+      <div class="sim-cert-score"><b>${r.score}</b><small>${esc(S().of100)}</small></div>
+      <div class="sim-cert-sign">${SIGN}<small>${esc(S().signed)}</small></div>
+    </div>
+    ${locked ? `<div class="sim-cert-name locked">${LOCK}<span>${esc(S().locked)}</span></div>` : `<h1 class="sim-cert-name">${esc(r.name)}</h1>`}
+  </div>`;
+}
+
 function scoreView(r, fresh) {
   const el = box(), c = C[r.host?.id] || C.yotam;
-  el.innerHTML = `<section class="sim-score">
-    <div class="sim-big"><small>${esc(S().yourScore)}</small><b>${r.score}</b><span>${esc(S().of100)}</span></div>
+  el.innerHTML = `<section class="sim-res2">
+    ${cert(r, true)}
     <div class="sim-sealed"><div class="sim-blur">${[c, ...Object.values(C).filter((x) => x.img && x.id !== c.id).slice(0, 2)].map((x) => `<img src="${esc(x.img)}" alt="">`).join('')}</div>
-      <span class="sim-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+      <span class="sim-lock">${LOCK}</span>
       <p>${esc(S().sealed)}</p></div>
     <button class="vx-btn main block" data-sim-join>${esc(S().join)}</button>
 </section>`;
@@ -262,21 +284,35 @@ function fullView(r, fresh) {
   shown = r;
   keep({ rid: r.rid, done: true, full: true, score: r.score, host: r.host?.id, name: r.name, img: r.img || null });
   const lines = String(r.verdict || '').split('\n');
-  el.innerHTML = `<section class="sim-res">
-    <div class="sim-pic ${r.img ? 'ok' : 'dev'}">${r.img ? `<img src="${esc(r.img)}" alt="">` : `<div class="sim-faces3">${r.cast.map((x) => `<img src="${esc(img(x.id))}" alt="">`).join('')}</div><span class="sim-dev">${esc(S().developing)}</span>`}
-      <div class="sim-badge"><b>${r.score}</b><small>${esc(S().yourScore)}</small></div></div>
-    <div class="sim-body">
-      <div class="sim-k">${esc(S().yours)}</div><h1>${esc(r.name)}</h1>
-      <p class="sim-verdict">${lines.map(esc).join('<br>')}</p>
-      <div class="sim-cast-h">${esc(S().who)}</div>
-      <div class="sim-cast">${r.cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><span><b>${esc(C[x.id]?.name || x.id)}</b><small>${esc(x.role || '')}</small></span></a>`).join('')}</div>
-      <button class="vx-btn main block" data-sim-share>${esc(S().share)}</button>
-      ${czOpen() && signedIn() && !isCitizen() ? `<a class="vx-btn block" href="/citizenship" onclick="window.track&&window.track('cz_banner','sim')">${esc(T.cz.id.add)}</a>` : ''}
-      <button class="vx-btn block" data-sim-meet>${esc(S().meet)}</button>
-</div></section>`;
+  const cast = r.cast.filter((x) => C[x.id]), ids = cast.map((x) => x.id);
+  const allFollowed = () => ids.every((id) => st.follows.has(id));
+  el.innerHTML = `<section class="sim-res2">
+    ${cert(r)}
+    <div class="sim-pic ${r.img ? 'ok' : 'dev'}">${r.img ? `<img src="${esc(r.img)}" alt="">` : `<div class="sim-faces3">${r.cast.map((x) => `<img src="${esc(img(x.id))}" alt="">`).join('')}</div><span class="sim-dev">${esc(S().developing)}</span>`}</div>
+    <p class="sim-verdict">${lines.map(esc).join('<br>')}</p>
+    <div class="sim-sec-h"><span>${esc(S().castH)}</span></div>
+    <div class="sim-cast3">${cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><b>${esc(C[x.id].name)}</b><small>${esc(x.role || '')}</small></a>`).join('')}</div>
+    <button class="vx-btn main block" data-sim-follow ${allFollowed() ? 'disabled' : ''}>${esc(allFollowed() ? S().following : S().followAll(ids.length))}</button>
+    ${czOpen() && signedIn() && !isCitizen() ? `<a class="sim-next" href="/citizenship" onclick="window.track&&window.track('cz_banner','sim')"><img src="/verse/art/passport-icon.png" alt="">
+      <span><small>${esc(S().nextK)}</small><b>${esc(S().nextT)}</b><em>${esc(S().nextL)}</em></span><i>${ARROW_L}</i></a>` : ''}
+    <button class="vx-btn block" data-sim-share>${esc(S().share)}</button>
+    <button class="vx-btn block" data-sim-meet>${esc(S().meet)}</button>
+</section>`;
   if (fresh || !sessionStorage.getItem('vx-sim-full-' + r.rid)) { track('sim_full', r.rid); try { sessionStorage.setItem('vx-sim-full-' + r.rid, '1'); } catch (e) {} }
   el.querySelector('[data-sim-share]').onclick = () => shareSheet(r);
   el.querySelector('[data-sim-meet]').onclick = () => { track('sim_meet', r.cast[0]?.id); if (typeof openChat === 'function') openChat(r.cast[0]?.id || 'guide'); };
+  // "עקבו אחרי שלושתם": follows them (the site's follow) and adds them to the characters they came to visit (their profile, up to 3)
+  el.querySelector('[data-sim-follow]').onclick = async (e) => {
+    const b = e.currentTarget;
+    b.classList.add('wait');
+    let ok = true;
+    for (const id of ids) ok = (await follow(id, true)) && ok;
+    if (ok) putAbout({ fav: ids }, { add: true }).catch((x) => console.error('sim fav', x));
+    b.classList.remove('wait');
+    if (!ok) return;
+    track('sim_follow', ids.join(','));
+    b.disabled = true; b.textContent = S().following; toast(S().followed);
+  };
   window.scrollTo(0, 0);
   if (!r.img && r.mine) picture(r);
 }
