@@ -666,6 +666,7 @@ const IC = {
   check: s('<path d="m5 12.5 4.5 4.5L19 7.5"/>', 2.4),
   search: s('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
   back: s('<path d="m15 6-6 6 6 6"/>', 2.2),
+  prev: s('<path d="m9 6 6 6-6 6"/>', 2.2),   // "back" in right-to-left points right (his note 2026-11-07)
   chev: s('<path d="m14 6-6 6 6 6"/>', 2.2),
   file: s('<path d="M4 16.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2.5M12 4v11M7.5 8.5 12 4l4.5 4.5"/>'),
   x: s('<path d="M6 6l12 12M18 6 6 18"/>', 2),
@@ -802,7 +803,7 @@ function draw() {
   ({ overview, plans, chats, data, people, requests, ideas, content, videos, publish, mail: mails, costs, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
-const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
+const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
 // the tab marks again without drawing the page (a plan he just opened stops counting)
 function reBadge() {
   const b = badges(), more = b.requests + b.ideas + b.content + b.plans;
@@ -909,7 +910,7 @@ function plans() {
   // one column, top-down (his ask 2026-11-07): what waits for him first, the newest on top and marked "מתחילים כאן";
   // a plan a newer round replaced, or one already decided, sinks below, greyed
   const all = (PL.plans || []).slice().sort((a, b) => (b.published || b.updated || 0) - (a.published || a.updated || 0));
-  const old = (p) => !!p.replacedBy || (p.status !== 'waiting' && !p.open);
+  const old = (p) => !!p.replacedBy || ((p.status !== 'waiting' || planRead(p)) && !p.open);   // read = no longer waiting for him, until a new version (his note)
   const now = all.filter((p) => !old(p)), past = all.filter(old);
   const title = (id) => (all.find((x) => x.id === id) || {}).title || '';
   const card = (p, i, isPast) => `<button class="pl-card${isPast ? ' past' : ''}${!isPast && i === 0 ? ' first' : ''}" data-plan="${esc(p.id)}">
@@ -919,7 +920,7 @@ function plans() {
       <b>${esc(p.title)}</b>${p.replacedBy ? `<p>הוחלפה ב"${esc(title(p.replacedBy))}"</p>` : p.summary ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות שלך פתוחות</small>` : ''}</div></button>`;
   $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס. מה שמחכה לך למעלה, החדשה ביותר ראשונה. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים.</p>
     ${all.length ? `${now.length ? `<h3 class="pl-sec">מחכה לך (${now.length})</h3><div class="pl-list">${now.map((p, i) => card(p, i, false)).join('')}</div>` : '<div class="empty">אין כרגע שום דבר שמחכה לך.</div>'}
-      ${past.length ? `<h3 class="pl-sec dim">קודמות (${past.length})</h3><div class="pl-list">${past.map((p, i) => card(p, i, true)).join('')}</div>` : ''}`
+      ${past.length ? `<h3 class="pl-sec dim">נקראו וקודמות (${past.length})</h3><div class="pl-list">${past.map((p, i) => card(p, i, true)).join('')}</div>` : ''}`
       : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`;
   $('#pane').querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => openPlan(b.dataset.plan)));
 }
@@ -962,7 +963,7 @@ function planView() {
   let html = p.html.replace(/(src|href|poster)="img\/([\w.-]+)"/g, (m, a, n) => (p.files[n] ? `${a}="${p.files[n]}"` : m));
   html = html.includes('</body>') ? html.replace('</body>', PLAN_FRAME + '</body>') : html + PLAN_FRAME;
   const open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
-  $('#pane').innerHTML = `<div class="pl-head"><button class="pill" data-pl-back>${IC.back}כל התוכניות</button>
+  $('#pane').innerHTML = `<div class="pl-head"><button class="pill" data-pl-back>${IC.prev}כל התוכניות</button>
       <div class="pl-t"><b>${esc(p.title)}</b><div>${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div></div>
       <div class="pl-acts">${planRead(p) ? `<button class="btn" disabled>${IC.check}נקרא</button>` : `<button class="btn" data-pl-read>${IC.check}קראתי</button>`}<button class="btn main" data-pl-st="approved">${IC.check}מאשר</button><button class="btn" data-pl-st="changes">צריך שינויים</button><button class="btn" data-pl-c="">${IC.comment}הערה כללית</button></div></div>
     <p class="pl-hint">${IC.comment} כל חלק בתוכנית (כותרת, סקיצה, שורה בטבלה) מסומן בכפתור הערה. לחיצה עליו, וכותבים מה לשנות.</p>
