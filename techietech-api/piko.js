@@ -436,6 +436,8 @@ async function route(req, res) {
     await checkVideo(ref, j);
     return res.json({ ok: true });
   }
+  // the docs, open to anyone (no keys in them): any session on any computer reads what is deployed
+  if (r0 === 'docs') return res.type('text/markdown; charset=utf-8').send(require('fs').readFileSync(require('path').join(__dirname, 'piko-api.md'), 'utf8'));
   const u = await who(req);
   if (!u) return res.status(401).json({ error: 'auth' });
   const body = req.body || {};

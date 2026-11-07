@@ -4,6 +4,8 @@ The server behind Piko (shlomiverse.com/piko/): pictures from GPT Image 2.5 (wit
 Seedance 2.0 Mini (a start frame, optionally an end frame, with sound). Shlomi's app and his other tools
 (startdoing.co.il) use this same API. Code: `piko.js`.
 
+This page online (always the deployed version): https://shlomiverse.com/piko/api/docs
+
 ## Base URL and sign-in
 
 `https://shlomiverse.com/piko/api` (or the function directly: `https://europe-west1-boostmind-b052c.cloudfunctions.net/piko`)
