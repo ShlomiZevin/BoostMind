@@ -138,7 +138,8 @@ async function gpt(instructions, input) {
   return (j.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('\n').trim();
 }
 
-// a recording -> the words -> a prompt that makes sense, in English (the models read English best - his note, 2026-11-07)
+// a recording -> the words -> a prompt that makes sense. A video prompt comes back in English (Seedance reads English
+// best); a picture prompt stays in the language he spoke (GPT Image reads Hebrew fine - his note, 2026-11-07)
 async function transcribe(b) {
   const buf = Buffer.from(String(b.audio || '').replace(/^data:[^,]*,/, ''), 'base64');
   if (!buf.length || buf.length > 9e6) throw fail(400, 'audio');
@@ -158,13 +159,13 @@ async function transcribe(b) {
     ? `a short video made from ${b.hasStart ? 'a photo the user gave as the first frame' : 'text only'}${b.hasEnd ? ', ending on a second photo (the last frame)' : ''}: say what happens, the motion, and the sounds / what is said (the camera only if they mentioned it)`
     : `a picture${b.refs ? `, made from ${b.refs} reference image(s) the user gave` : ''}: say what is in it, the style, the framing`;
   const prompt = await gpt(
-    `You turn a spoken, transcribed request (usually Hebrew) into a clear prompt for ${what}. Write the prompt in English. ` +
+    `You turn a spoken, transcribed request (usually Hebrew) into a clear prompt for ${what}. ${video ? "Write the prompt in English." : "Write the prompt in the same language they spoke (Hebrew stays Hebrew)."} ` +
     'Keep every detail they asked for and their intent; drop filler, false starts and repetitions; fix what the transcription garbled when the meaning is obvious. ' +
     'Do not invent new content. Refer to people in the user\'s photo as "the people in the photo" / by what they said. One short paragraph, no quotes, no preface.', text);
   return { text, prompt: prompt || text };
 }
 
-// the models read English best: a typed Hebrew prompt is translated before it goes; an English one goes as it is
+// a video prompt typed in Hebrew is translated before it goes to Seedance; an English one goes as it is
 async function toEnglish(prompt, what) {
   if (!/[\u0590-\u05FF]/.test(prompt)) return prompt;
   return await gpt(`Translate this ${what}-generation prompt into natural English for the model. Keep every detail, add nothing, no preface.`, prompt) || prompt;
@@ -487,8 +488,6 @@ exports.pikoWork = onDocumentCreated({ document: `${JOBS}/{id}`, region: REGION,
   try {
     await ref.update({ status: 'working', started: Date.now() });
     if (job.kind === 'image') {
-      job.promptEn = await toEnglish(job.prompt, 'image');
-      if (job.promptEn !== job.prompt) await ref.update({ promptEn: job.promptEn });
       const refs = await Promise.all((job.inputs?.refs || []).map(loadInput));
       const out = await image(job, refs);
       const saved = await save(job, out.buf, 'image', { w: out.w, h: out.h });

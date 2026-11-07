@@ -31,7 +31,7 @@ Wherever a picture goes in (`refs`, `start`, `end`), it can be:
 |---|---|
 | `GET /config` | models, sizes, qualities, max references, video $ per second, who you are |
 | `GET /balance` | EvoLink credit left: `{ credits, usd, usdPerCredit }` (`?fresh=1` asks EvoLink now) |
-| `POST /transcribe` | a recording → `{ text, prompt }`: the words, and a clean prompt in English (the models read English best) |
+| `POST /transcribe` | a recording → `{ text, prompt }`: the words, and a clean prompt - in English for `mode: video` (Seedance reads English best), in the language spoken for `mode: image` |
 | `POST /images` | start a picture → the job (201) |
 | `POST /videos` | start a video → the job (201) |
 | `GET /jobs/:id` | the job; poll every few seconds until `status` is `done` or `failed` |
@@ -50,7 +50,7 @@ Wherever a picture goes in (`refs`, `start`, `end`), it can be:
 { "prompt": "האיש מהתמונה כפיראט על סיפון ספינה", "refs": ["data:image/jpeg;base64,..."], "model": "flare", "size": "story", "quality": "low", "count": 2 }
 ```
 `model`: `flare` (default) | `sunburst`. `size`: `story` (864×1536, 9:16 - default) | `portrait` (1024×1536) | `square` | `landscape`.
-`quality`: `low` (default, ~$0.005) | `medium` | `high`. `refs`: up to 16 reference images. `count`: 1-4 pictures made side by
+`quality`: `low` (default, ~$0.005) | `medium` | `high`. `refs`: up to 16 reference images. The prompt goes to GPT Image as written (Hebrew is fine). `count`: 1-4 pictures made side by
 side (default 1) - the answer is the first job plus `jobs` (all of them, one `batch`). Takes ~20-60 s.
 
 ### POST /videos
