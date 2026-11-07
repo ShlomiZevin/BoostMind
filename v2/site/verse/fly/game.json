@@ -1,0 +1,20 @@
+{
+  "slug": "fly",
+  "title": "הטיסה פנימה",
+  "tagline": "חללית אחת, כל הדמויות בדרך, והכוכב של השלומיוורס בסוף.",
+  "status": "draft",
+  "cover": "cover.jpg",
+  "badges": [
+    "משחק קצר",
+    "שיא יומי"
+  ],
+  "best": {
+    "key": "verse:fly:best",
+    "label": "נקודות"
+  },
+  "record": {
+    "unit": "נקודות",
+    "better": "high",
+    "max": 5000
+  }
+}
