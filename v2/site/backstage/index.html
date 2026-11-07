@@ -972,7 +972,7 @@ function planView() {
       ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}</div>`;
   const fr = $('#pane .pl-frame');
   fr.srcdoc = html;
-  const counts = () => { const n = {}; cs.forEach((c) => { if (c.kind === 'comment' && c.anchor) n[c.anchor] = (n[c.anchor] || 0) + 1; }); return n; };
+  const counts = () => { const n = {}; (PLAN.comments || []).forEach((c) => { if (c.kind === 'comment' && c.anchor) n[c.anchor] = (n[c.anchor] || 0) + 1; }); return n; };
   window.onmessage = (e) => {
     if (e.source !== fr.contentWindow) return;
     const d = e.data || {};
@@ -985,11 +985,26 @@ function planView() {
   const rd = $('#pane [data-pl-read]');
   if (rd) rd.onclick = () => { markPlanRead(p); rd.outerHTML = `<button class="btn" disabled>${IC.check}נקרא</button>`; };
   $('#pane').querySelectorAll('[data-pl-st]').forEach((b) => (b.onclick = () => planStatusSheet(b.dataset.plSt)));
-  $('#pane').querySelectorAll('[data-pl-c]').forEach((b) => (b.onclick = () => planCommentSheet(b.dataset.plC, b.dataset.plL || '')));
-  $('#pane').querySelectorAll('[data-pl-done]').forEach((b) => (b.onclick = async () => {
+  planBind($('#pane'));
+}
+function planBind(root) {
+  root.querySelectorAll('[data-pl-c]').forEach((b) => (b.onclick = () => planCommentSheet(b.dataset.plC, b.dataset.plL || '')));
+  root.querySelectorAll('[data-pl-done]').forEach((b) => (b.onclick = async () => {
     b.disabled = true;
-    try { await api('planDone', { id: planId, comment: b.dataset.plDone, done: b.dataset.v !== '0' }); PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL); planView(); } catch (e) { b.disabled = false; }
+    try { await api('planDone', { id: planId, comment: b.dataset.plDone, done: b.dataset.v !== '0' }); PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL); planRefresh(); } catch (e) { b.disabled = false; }
   }));
+}
+// after a comment is saved / handled: only the comments card and the frame's counts change - the plan itself stays where he
+// was reading (his note 2026-11-07: "saving a comment refreshes the whole page and I lose my place")
+function planRefresh() {
+  const box = $('#pane .pl-cs'), fr = $('#pane .pl-frame');
+  if (!box || !PLAN) return planView();
+  const cs = PLAN.comments || [], open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
+  box.innerHTML = `<div class="card-h"><h2>הערות והחלטות</h2><small class="dim">${open ? `${open} פתוחות` : 'אין הערות פתוחות'}</small></div>
+      ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}`;
+  planBind(box);
+  const n = {}; cs.forEach((c) => { if (c.kind === 'comment' && c.anchor) n[c.anchor] = (n[c.anchor] || 0) + 1; });
+  if (fr && fr.contentWindow) fr.contentWindow.postMessage({ t: 'n', n }, '*');
 }
 // the picture viewer (his phone, 2026-11-06): the screen at full width over everything, swipe / arrows between all the
 // plan's pictures, its title, and a comment on exactly this screen
@@ -1046,7 +1061,7 @@ function planCommentSheet(anchor, label) {
     try {
       await api('planComment', { id: planId, anchor, label, text });
       PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL);
-      closeSheet(); planView();
+      closeSheet(); planRefresh();
     } catch (e) { $('#pl-send').disabled = false; }
   };
 }
