@@ -992,6 +992,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     // app agree - it was per device, so a mark he had cleared came back on the other one (his note, 2026-11-06)
     if (op === 'seen') {
       const k = String(b.k || '');
+      // a plan counts as read once he opened its latest version: 'plan:<id>' keeps the version he saw (his ask, 2026-11-07)
+      if (/^plan:[\w-]{1,80}$/.test(k)) { await db.collection('owner').doc('seen').set({ [k]: Math.max(1, Math.floor(Number(b.v) || 1)) }, { merge: true }); return res.json({ ok: true }); }
       if (!['requests', 'ideas', 'content', 'plans'].includes(k)) return res.status(400).json({ error: 'k' });
       await db.collection('owner').doc('seen').set({ [k]: Date.now() }, { merge: true });
       return res.json({ ok: true });

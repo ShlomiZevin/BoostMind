@@ -7,6 +7,7 @@ import { st } from './state.js';
 const SIM_OPEN = false;
 const CZ_OPEN = false;
 const NEXT_BAR = false;   // the phone top bar he chose on plan open-cz-sim (option 3 + his notes) - his eyes only until he approves
+const FLY_OPEN = false;   // the flight in as a game instead of the video (his idea 2026-11-07, verse/fly.js) - a draft for him to play first
 const HIM = new Set(['rJLlCV393shl7njhzWZmoaE15Yp2']);   // shlomi@boostart.io
 // a test browser sees what he sees (localStorage vx-preview = 1) - only for the sessions' phone checks and screenshots
 const peek = () => { try { return localStorage.getItem('vx-preview') === '1'; } catch (e) { return false; } };
@@ -14,3 +15,4 @@ export const him = () => !!(st.user && HIM.has(st.user.uid)) || peek();
 export const simOpen = () => SIM_OPEN || him();
 export const czOpen = () => CZ_OPEN || him();
 export const nextBar = () => NEXT_BAR || him();
+export const flyOpen = () => FLY_OPEN || him();

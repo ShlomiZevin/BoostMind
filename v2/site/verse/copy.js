@@ -389,6 +389,17 @@ export const T = {
     soonLine: 'מסע האזרחות פתוח לתושבים', bell: ['זוהרה, זה נפתח', 'לא מבינה איך, אבל מסע האזרחות פתוח.'],
     fail: 'זה לא נותן כרגע. נסו שוב.',
   },
+  // the flight in as a game (verse/fly.js, his idea 2026-11-07 - a draft behind gates.js FLY_OPEN): a spaceship to the planet,
+  // the characters in the way. No character speaks here except their own quotes from the wiki.
+  fly: {
+    skip: 'דלגו', sound: 'קול', progress: 'המרחק לשלומיוורס',
+    verb: 'גררו', how: 'כדי לנווט, התחמקו מהדמויות', howSmall: 'שלושה מגנים לכל הדרך. כוכבים זה בונוס.',
+    lost: 'נגמרו המגנים', lostLine: 'הדמויות לא זזות מהדרך. אתם כן.', easier: 'הפעם הן יזוזו קצת יותר לאט.', retry: 'נסו שוב',
+    paused: 'נגיעה וממשיכים',
+    landed: 'נחתתם בשלומיוורס',
+    result: (sec, stars, shields) => [`${sec} שניות טיסה`, stars === 1 ? 'כוכב אחד' : `${stars} כוכבים`, shields === 1 ? 'מגן אחד נשאר' : `${shields} מגנים נשארו`].join(' · '),
+    go: 'המשך',
+  },
   rqSent: 'נשלח לשלומי. זה מגיע אליו, בלי הבטחה למענה.',
   rqNote: 'זה מגיע ישר לשלומי, בלי הבטחה למענה.',
   rqFailed: 'לא נשלח. נסו שוב עוד רגע.',

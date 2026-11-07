@@ -7,7 +7,7 @@ import { T } from './copy.js';
 import { esc, track, sheet, toast } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
 import { LOCAL } from './fb.js';
-import { simOpen, czOpen } from './gates.js';
+import { simOpen, czOpen, flyOpen } from './gates.js';
 
 const API = LOCAL ? '/api/verseCitizen' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseCitizen';
 const Z = () => T.cz;
@@ -178,6 +178,7 @@ function stamp(fresh) {
 
 // 5. the flight in: the first Shlomiverse teaser with its music (his choice), skippable; then the landing
 function flight(played) {
+  if (flyOpen()) return flyGame();
   const el = box();
   el.innerHTML = `<section class="cz-flight"><video src="/verse/art/flight.mp4" poster="/verse/art/flight-poster.jpg" playsinline preload="auto"></video>
     <button class="cz-fskip" data-cz-skip>${esc(Z().flight.skip)}</button></section>`;
@@ -191,11 +192,26 @@ function flight(played) {
   v.play().catch(() => { v.muted = true; v.play().catch(() => land()); });
   v.onclick = () => { v.muted = false; };
 }
+// 5b. ...or the flight as a game (his idea 2026-11-07: "a spaceship flying to the Shlomiverse, dodge the characters on the way" -
+// gates.js FLY_OPEN, his eyes only for now): verse/fly.js, loaded only here. Its stats (time, stars, shields) wait in `flown`
+// for the entry stamp later; nothing goes to the server yet.
+let flown = null;
+async function flyGame() {
+  const el = box();
+  el.innerHTML = loader();
+  let fly;
+  try { fly = await import('./fly.js'); } catch (e) { return landing(); }
+  el.innerHTML = '';
+  // landed in the game = its own "נחתתם בשלומיוורס" was the landing, so straight on to the passport (no second landing screen)
+  const end = (how) => (s) => { flown = s; track('cz_flight', how); if (how === 'done') toPassport(); else landing(); };
+  fly.play(el, { onDone: end('done'), onSkip: end('skip') });
+}
 async function landing() {
   box().innerHTML = `<section class="cz-land"><img src="/verse/logo-512.png" alt=""><h1>${esc(Z().flight.landing)}</h1><p>${esc(Z().flight.landing2)}</p>
     <button class="vx-btn main block" data-cz-go>${esc(Z().flight.toId)}</button></section>`;
-  box().querySelector('[data-cz-go]').onclick = async () => { box().innerHTML = loader(); try { S = await api('landed'); } catch (e) {} track('cz_done', String(S.n)); idCard(); };
+  box().querySelector('[data-cz-go]').onclick = toPassport;
 }
+async function toPassport() { box().innerHTML = loader(); try { S = await api('landed'); } catch (e) {} track('cz_done', String(S.n)); idCard(); }
 
 // 6. the citizen's passport (his note 2026-11-07: "a passport, no 'שלומיוורסית', sounds and looks real"): a real data page
 // (GPT Image, art/citizen-datapage.jpg - no text in it) with the fields, the photo and the machine-readable lines laid over it.

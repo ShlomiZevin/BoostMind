@@ -38,6 +38,9 @@ const p = (t, size = 17) => `<div style="font:400 ${size}px/1.65 ${FONT};color:$
 const button = (label, href) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
 <td bgcolor="${C.accent}" style="border-radius:999px;background:linear-gradient(180deg,${C.accent2},${C.accent});box-shadow:0 8px 24px rgba(255,106,31,.45)">
 <a href="${esc(href)}" style="display:inline-block;padding:17px 44px;font:800 19px/1 ${FONT};color:#ffffff;text-decoration:none;border-radius:999px">${gmi(esc(label))}</a></td></tr></table>`;
+// the second button beside an orange one: the same shape, outlined
+const outline = (label, href) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+<td style="border-radius:999px;border:2px solid ${C.accent}"><a href="${esc(href)}" style="display:inline-block;padding:14px 38px;font:800 17px/1 ${FONT};color:${C.accent2};text-decoration:none;border-radius:999px">${gmi(esc(label))}</a></td></tr></table>`;
 const ghost = (label, href) => `<a href="${esc(href)}" style="font:700 15px/1 ${FONT};color:${C.accent2};text-decoration:none">${gmi(esc(label) + ' &larr;')}</a>`;
 
 const hero = (src, href, alt, radius = 20) => `<a href="${esc(href)}"><img src="${esc(src)}" alt="${esc(alt)}" width="536" style="display:block;width:100%;max-width:536px;height:auto;border:0;border-radius:${radius}px"></a>`;
@@ -208,15 +211,18 @@ function idea(d, k) {
 
 // the citizenship journey's invitation (stage 4; his words, 2026-11-06): a letter from the Shlomiverse's embassy - the picture
 // (Miriam at the counter, Demokratovich behind her with the stamp), "לכבוד <their name>", the letter, one button, the signature
+// + the simulation test in the same letter (his ask, 2026-11-07: "put them together"): its paragraph at d.sim.at, its own button
 function citizen(d, k) {
   const go = track('/citizenship', k);
+  const paras = [...(d.paras || [])];
+  if (d.sim) paras.splice(d.sim.at ?? paras.length, 0, d.sim.para);
   const line = (t, st = '') => pad(`<div style="font:400 17px/1.7 ${FONT};color:${C.soft};${st}">${gm(esc(t))}</div>`) + spacer(12);
   return [spacer(14), pad(hero(d.hero, go, d.title)), spacer(26),
     d.to ? pad(`<div style="font:700 16px/1.4 ${FONT};color:${C.dim}">${gm(esc(d.to))}</div>`) + spacer(10) : '',
-    pad(h1(d.title)), spacer(18), ...(d.paras || []).map((x) => line(x)),
+    pad(h1(d.title)), spacer(18), ...paras.map((x) => line(x)),
     d.bold ? pad(`<div style="font:800 18px/1.6 ${FONT};color:${C.text}">${gm(esc(d.bold))}</div>`) + spacer(8) : '',
     d.fine ? pad(`<div style="font:400 14px/1.6 ${FONT};color:${C.dim}">${gm(esc(d.fine))}</div>`) + spacer(26) : spacer(18),
-    pad(button(d.cta, go)), spacer(30),
+    pad(button(d.cta, go)), d.sim ? spacer(14) + pad(outline(d.sim.cta, track('/simulation', k))) : '', spacer(30),
     pad(`<div style="font:400 16px/1.6 ${FONT};color:${C.soft}">${gm('בברכה,')}</div><div style="font:800 17px/1.5 ${FONT};color:${C.text}">${gm(esc(d.sign))}</div>
 <div style="font:400 14px/1.5 ${FONT};color:${C.dim}">${gm(esc(d.signRole))}</div>`), spacer(32)].join('');
 }

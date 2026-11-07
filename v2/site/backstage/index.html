@@ -101,6 +101,7 @@
   .pl-open { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: #ff8c4d; font-weight: 700; font-size: .84rem; } .pl-open svg { width: 15px; height: 15px; }
   .tag.ok { background: rgba(107,214,138,.15); color: #8ee6a6; border-color: rgba(107,214,138,.35); }
   .tag.red { background: rgba(255,90,90,.14); color: #ff8a8a; border-color: rgba(255,90,90,.35); }
+  .pl-new { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: #ff6a1f; color: #fff; font-size: .72rem; font-weight: 800; }
   .pl-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
   .pl-t { flex: 1; min-width: 220px; } .pl-t b { display: block; font-size: 1.2rem; line-height: 1.3; } .pl-t div { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
   .pl-acts { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -766,7 +767,8 @@ const badges = () => ({
   requests: L.requests.filter((r) => !r.done && (r.t || 0) > seen('requests')).length,
   content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length,
   ideas: (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('ideas'), Date.now() - 7 * 864e5)).length,
-  plans: (PL.plans || []).filter((p) => p.status === 'waiting').length,   // plans waiting for his OK
+  // plans waiting for his OK that he hasn't opened in their latest version - reading one clears it (his ask, 2026-11-07)
+  plans: (PL.plans || []).filter((p) => p.status === 'waiting' && ((L && L.seen && L.seen['plan:' + p.id]) || 0) < (p.version || 1)).length,
 });
 function draw() {
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
@@ -787,6 +789,13 @@ function draw() {
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { tab = t; draw(); scrollTo(0, 0); };
+// the tab marks again without drawing the page (a plan he just opened stops counting)
+function reBadge() {
+  const b = badges(), more = b.requests + b.ideas + b.content + b.plans;
+  const set = (btn, n) => { if (!btn) return; let em = btn.querySelector('em'); if (!n) { if (em) em.remove(); return; } if (!em) { em = document.createElement('em'); btn.append(em); } em.textContent = n; };
+  document.querySelectorAll('.nav button[data-tab]').forEach((btn) => set(btn, b[btn.dataset.tab]));
+  set(document.querySelector('.tabbar button[data-tab="more"]'), more);
+}
 const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
@@ -887,7 +896,7 @@ function plans() {
   $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס: בריף, סקיצות וזרימות. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים. הסשנים קוראים את ההערות שלך משם.</p>
     ${list.length ? `<div class="pl-list">${list.map((p) => `<button class="pl-card" data-plan="${esc(p.id)}">
       ${p.cover ? `<img src="${esc(p.cover)}" alt="">` : `<span class="pl-noimg">${IC.plan}</span>`}
-      <div><div class="pl-top">${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div>
+      <div><div class="pl-top">${pTag(p.status)}${planRead(p) ? '' : '<span class="pl-new">חדש</span>'}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div>
       <b>${esc(p.title)}</b>${p.summary ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות פתוחות</small>` : ''}</div></button>`).join('')}</div>`
       : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`;
   $('#pane').querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => openPlan(b.dataset.plan)));
@@ -915,6 +924,15 @@ var imgs=[].slice.call(document.querySelectorAll('img')).filter(function(i){retu
 var list=imgs.map(function(i){var sh=i.closest('.shot');var b=sh&&sh.querySelector('b');var src=(i.getAttribute('src')||'');return {src:src,label:b?b.textContent.trim():'',key:'img:'+src.split('?')[0].split('/').pop()}});
 imgs.forEach(function(i,n){i.onclick=function(e){e.preventDefault();e.stopPropagation();parent.postMessage({t:'img',i:n,list:list},'*')}});
 function h(){parent.postMessage({t:'h',h:document.documentElement.scrollHeight},'*')}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h();parent.postMessage({t:'ready'},'*')})();<\/script>`;
+// "קראתי" (his ask, 2026-11-07): a plan stops counting when he marks its version as read - a new version counts again and
+// shows "חדש" in the list. Saying מאשר / צריך שינויים marks it too.
+const planRead = (p) => ((L && L.seen && L.seen['plan:' + p.id]) || 0) >= (p.version || 1);
+function markPlanRead(p) {
+  if (!L || planRead(p)) return;
+  L.seen = { ...(L.seen || {}), ['plan:' + p.id]: p.version || 1 };
+  api('seen', { k: 'plan:' + p.id, v: p.version || 1 }).catch(() => {});
+  reBadge();
+}
 function planView() {
   if (!PLAN) return openPlan(planId);
   const p = PLAN.plan, cs = PLAN.comments || [];
@@ -924,7 +942,7 @@ function planView() {
   const open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
   $('#pane').innerHTML = `<div class="pl-head"><button class="pill" data-pl-back>${IC.back}כל התוכניות</button>
       <div class="pl-t"><b>${esc(p.title)}</b><div>${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div></div>
-      <div class="pl-acts"><button class="btn main" data-pl-st="approved">${IC.check}מאשר</button><button class="btn" data-pl-st="changes">צריך שינויים</button><button class="btn" data-pl-c="">${IC.comment}הערה כללית</button></div></div>
+      <div class="pl-acts">${planRead(p) ? `<button class="btn" disabled>${IC.check}נקרא</button>` : `<button class="btn" data-pl-read>${IC.check}קראתי</button>`}<button class="btn main" data-pl-st="approved">${IC.check}מאשר</button><button class="btn" data-pl-st="changes">צריך שינויים</button><button class="btn" data-pl-c="">${IC.comment}הערה כללית</button></div></div>
     <p class="pl-hint">${IC.comment} כל חלק בתוכנית (כותרת, סקיצה, שורה בטבלה) מסומן בכפתור הערה. לחיצה עליו, וכותבים מה לשנות.</p>
     <iframe class="pl-frame" sandbox="allow-scripts allow-popups" title="${esc(p.title)}"></iframe>
     <div class="card pl-cs"><div class="card-h"><h2>הערות והחלטות</h2><small class="dim">${open ? `${open} פתוחות` : 'אין הערות פתוחות'}</small></div>
@@ -941,6 +959,8 @@ function planView() {
     if (d.t === 'img') planViewer(d.list || [], d.i || 0);
   };
   $('#pane [data-pl-back]').onclick = () => { planId = null; PLAN = null; window.onmessage = null; plans(); scrollTo(0, 0); };
+  const rd = $('#pane [data-pl-read]');
+  if (rd) rd.onclick = () => { markPlanRead(p); rd.outerHTML = `<button class="btn" disabled>${IC.check}נקרא</button>`; };
   $('#pane').querySelectorAll('[data-pl-st]').forEach((b) => (b.onclick = () => planStatusSheet(b.dataset.plSt)));
   $('#pane').querySelectorAll('[data-pl-c]').forEach((b) => (b.onclick = () => planCommentSheet(b.dataset.plC, b.dataset.plL || '')));
   $('#pane').querySelectorAll('[data-pl-done]').forEach((b) => (b.onclick = async () => {
@@ -1016,6 +1036,7 @@ function planStatusSheet(st) {
     $('#pl-go').disabled = true;
     try {
       await api('planStatus', { id: planId, status: st, note: $('#pl-note').value.trim() });
+      if (PLAN) markPlanRead(PLAN.plan);
       PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL);
       closeSheet(); draw();
     } catch (e) { $('#pl-go').disabled = false; }

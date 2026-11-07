@@ -62,11 +62,12 @@ function yourBlock() {
       ${continueRow()}
     </section>`;
 }
-// the fans' best stickers: under the games row (his note 2026-11-07: games before stickers) - the home's #stk-slot
+// the fans' best stickers: under the games row (his note 2026-11-07: games before stickers) - the home's #stk-slot;
+// the "what's next" band (its first tile is the sticker) comes under the games too, signed in or out
 export function stickersSlot() {
-  if (!signedIn()) return '';
+  if (!signedIn()) return band();
   const hot = hotStickers();
-  return `${hot.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvStickers)}</h2></div><div class="yv-st">${hot.map((s) => `<button class="yv-stk" data-wa-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}"><img src="${esc(s.img)}" alt="${esc(s.text)}" loading="lazy"><span>${LIKE}${s.stampCount || ''}</span></button>`).join('')}</div></section>` : ''}`;
+  return `${hot.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvStickers)}</h2></div><div class="yv-st">${hot.map((s) => `<button class="yv-stk" data-wa-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}"><img src="${esc(s.img)}" alt="${esc(s.text)}" loading="lazy"><span>${LIKE}${s.stampCount || ''}</span></button>`).join('')}</div></section>` : ''}${band()}`;
 }
 export const yourVerse = () => null; // the hero stays for everyone now (kept so the page's hook stays harmless)
 // the fans' best stickers across the verse, read once a visit (tapping one = the WhatsApp sticker card)
@@ -87,7 +88,7 @@ document.addEventListener('click', async (e) => {
 });
 // signed out: today's wiki home, with stories and a clear reason to sign in
 export function homeSlot() {
-  if (signedIn()) return citizenBanner() + yourBlock() + band();   // the citizenship journey's banner until they finish it (citizen.js)
+  if (signedIn()) return citizenBanner() + yourBlock();   // the citizenship journey's banner until they finish it (citizen.js)
   if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>';
   const rings = ringsHtml();
   return `${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}
@@ -96,7 +97,7 @@ export function homeSlot() {
       <p class="sc-more">${I.plus}<span>${esc(T.signinCardMore)}</span></p>
       <p class="sc-soon">${SI.id}<span>${esc(T.signinCardSoon)}</span></p>
       <button class="vx-btn main block" data-signin="card">${esc(T.signinCardGo)}</button></div>
-    ${continueRow()}${band()}`;
+    ${continueRow()}`;
 }
 
 // the community band (ideas wall + ask / business) - lives in community.js, imported lazily to avoid a cycle

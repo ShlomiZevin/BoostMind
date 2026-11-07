@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#050302">
+<title>הטיסה פנימה · שלומיוורס</title>
+<link rel="icon" href="/verse/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<!-- The flight-in game on its own address, for him to play before it goes into the citizenship journey (verse/fly.js,
+     gates.js FLY_OPEN). Not linked from anywhere. -->
+<style>
+  html, body { margin: 0; height: 100%; background: #050302; overflow: hidden; font-family: 'Heebo', sans-serif; color: #fff; }
+  .again { position: fixed; inset: 0; display: grid; place-content: center; gap: 14px; text-align: center; }
+  .again b { font-size: 22px; } .again small { color: #c9b8a8; font-size: 14px; }
+  .again button { height: 50px; padding: 0 28px; border-radius: 99px; border: 0; background: #ff6a1f; color: #fff; font: inherit; font-weight: 800; font-size: 18px; }
+</style>
+</head>
+<body>
+<script type="module">
+import { play } from '/verse/fly.js';
+// the characters as the site has them (the bucket's wiki.json; a local preview reads the site's own copy)
+const DATA = /^(localhost|127\.)/.test(location.hostname) ? '/wiki/data/wiki.json' : 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json';
+const chars = await fetch(DATA, { cache: 'no-cache' }).then((r) => r.json()).then((w) => w.characters).catch(() => []);
+const seed = new URLSearchParams(location.search).get('seed');
+function start() {
+  document.body.innerHTML = '';
+  const end = (what) => (s) => {
+    document.body.innerHTML = `<div class="again"><b>${what}</b><small>${s.time} שניות · ${s.stars} כוכבים · ${s.shields} מגנים · ניסיון ${s.tries}</small><button>שוב</button></div>`;
+    document.querySelector('.again button').onclick = start;
+    window.FLY_RESULT = { what, ...s };
+  };
+  play(document.body, { chars, seed: seed != null ? Number(seed) : undefined, onDone: end('נחתתם'), onSkip: end('דילגתם') });
+}
+start();
+</script>
+</body>
+</html>
