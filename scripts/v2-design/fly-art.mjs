@@ -29,6 +29,16 @@ it carries the Shlomiverse emblem from the second attached logo: the glowing ora
 painted BIG and bold on the top of the hull between the wings, like a squadron insignia, bright orange and gold on the navy so it reads even when
 the ship is shown tiny (about 50 pixels wide). Symmetric, top-down, the ship alone, centered, about 70% of the picture, fully transparent background -
 no shadow, no space, no stars, no text, no letters.` },
+  // round 3 (his note 2026-11-07: "a branding spaceship - with all the colours it's hard to see the logo; maybe white with the
+  // logo, the logo much more clear"): a white ship carrying the whole logo, the planet WITH its word, big
+  ship3: { size: '1024x1024', transparent: true, refs: [LOGO, S + 'ship2-1.png'], prompt: `A game sprite: ONE sleek spaceship seen from straight above (top-down), nose pointing UP, symmetric, wide swept wings - a BRANDED ship.
+Its hull and wings are clean GLOSSY WHITE (like a white sports car / a white airliner), with only small warm orange (#ff6a1f) accents: the
+wing tips, a thin pinstripe and the glowing engine nozzle at the tail with a short orange flame. Printed BIG across the middle of the ship -
+spanning the hull and onto both wings, filling most of the ship's width - is the attached logo (the FIRST image): the glowing orange ringed
+planet with the Hebrew word "שלומיוורס" on its ring, exactly as in the logo - "שלומי" in white with a dark outline and "וורס" in orange,
+every Hebrew letter correct and unmirrored, sharp and high-contrast so it reads even when the ship is shown small. The second attached image
+shows only the general ship shape to keep. The ship alone, centered, about 80% of the picture, on a fully transparent background - no shadow,
+no space, no stars, no other text.` },
   spark: { size: '1024x1024', transparent: true, prompt: `A game sprite: ONE small collectible star for a space arcade game - a plump five-pointed star of warm glowing gold
 with a bright white-hot center and a soft orange glow around it, a tiny sparkle. Painted, polished. Alone, centered, filling about 60% of the picture,
 on a fully transparent background - no text, nothing else.` },

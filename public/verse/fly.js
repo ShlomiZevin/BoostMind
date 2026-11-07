@@ -6,10 +6,12 @@
 // One thumb: drag anywhere and the ship moves with the finger (relative, so it never hides under it) and fires while the
 // finger is down - a cannon that overheats, so dodging still matters (round 2, his notes 2026-11-07). Arrows + space on a
 // computer. The characters come down in their round bubbles like in the flight teaser; 3 shields, a few more to pick up;
-// two lost runs and the next one is calmer. The goal at the top is the logo itself, the planet with its word; the landing
-// hands over to the teaser's own moment where the word turns onto the ring (art/fly-end.mp4, played to the end of the
-// animation - scripts/v2-design/fly-end.py), then the score goes on today's table (opts.records, from citizen.js).
-// Art: scripts/v2-design/fly-art.mjs (GPT Image). Music: the teaser's own, a seamless 8 s loop + its landing bars.
+// two lost runs and the next one is calmer. The goal at the top is the planet seen from behind, as the teaser's turn begins
+// (round 3, his note: "we should see the star first from behind, so when it circles around at the end it makes sense"); the
+// landing hands over to that very moment and the word turns onto the ring (art/fly-end.mp4 - re-rendered clean by the teaser's
+// own compositor, scripts/v2-design/fly-comp-v4.py), then the score goes on today's table (opts.records, from citizen.js).
+// Art: scripts/v2-design/fly-art.mjs (GPT Image). Music: the teaser's own, a seamless 8 s loop + its landing bars. Effects:
+// real sound effects (scripts/v2-design/fly-sfx.mjs - round 3: "the sounds are terrible, it should be immersive").
 import { T } from './copy.js';
 
 const ART = '/verse/art/';
@@ -32,8 +34,7 @@ const TUNE = {
 // the teaser's first frame of the turning logo (540x960): the planet's ring centre and width, so the game's planet ends there
 const CLIP = { w: 540, h: 960, cx: 267, cy: 444.5, ring: 292 };
 const PLANET_RING = 0.66;   // the ring's share of fly-planet.webp's width (its faint glow edge counted - matched on screen to the clip)
-const GOAL_RING = 0.8;      // the same for fly-goal.webp (the logo with its word, as the teaser leaves it)
-const FIRST = ['fly-space.webp', 'fly-ship.webp', 'fly-goal.webp', 'fly-star.webp'];
+const FIRST = ['fly-space.webp', 'fly-ship.webp', 'fly-planet.webp', 'fly-star.webp'];
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -51,6 +52,7 @@ export function prefetch(chars) {
   FIRST.forEach((n) => pic(ART + n));
   castOf(chars || wikiChars()).slice(0, EARLY).forEach((c) => pic(absImg(c.img), true));
   if (!PRE.music) PRE.music = fetch(ART + 'fly-music.mp3').then((r) => r.arrayBuffer()).catch(() => null);
+  ['laser-1', 'boom-1', 'engine'].forEach((n) => fetch(ART + `fly-${n}.mp3`).catch(() => {}));   // into the cache for the first shots
 }
 
 const SHIELD_D = 'M12 2.5 4 5.6v6.1c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-4.9 8-9.8V5.6z';
@@ -130,7 +132,7 @@ export function play(el, opts = {}) {
     <canvas></canvas>
     <video muted playsinline preload="none"></video>
     <div class="fly-hud"><div class="fly-shields">${SVG.shield.repeat(TUNE.shields)}</div>
-      <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i><img src="${ART}fly-goal.webp" alt=""></div>
+      <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i><img src="${ART}fly-planet.webp" alt=""></div>
       <button class="fly-btn fly-mute" aria-label="${Z.sound}">${SVG.sound}</button><button class="fly-btn fly-skip">${Z.skip}</button></div>
     <div class="fly-score">0</div>
     <div class="fly-say"></div><div class="fly-say"></div>
@@ -147,7 +149,7 @@ export function play(el, opts = {}) {
   const tut = $('.fly-tut'), over = $('.fly-over'), res = $('.fly-res'), hud = $('.fly-hud'), muteBtn = $('.fly-mute');
 
   // ---------- art ----------
-  const A = { space: pic(ART + 'fly-space.webp'), ship: pic(ART + 'fly-ship.webp'), star: pic(ART + 'fly-star.webp'), goal: pic(ART + 'fly-goal.webp'), planet: pic(ART + 'fly-planet.webp', true) };
+  const A = { space: pic(ART + 'fly-space.webp'), ship: pic(ART + 'fly-ship.webp'), star: pic(ART + 'fly-star.webp'), planet: pic(ART + 'fly-planet.webp') };
   const ok = (i) => i.complete && i.naturalWidth;
   // the faces, each drawn once into its own round bubble with the teaser's orange rim (no pixel reads - cross-origin is fine)
   const FS = 176;
@@ -189,7 +191,9 @@ export function play(el, opts = {}) {
   };
   let W = 360, H = 740, u = 1, dpr = 1, R = rng(opts.seed != null ? opts.seed : (Date.now() ^ 0x5eed));
   const ship = G.ship;
-  const shipW = () => 56 * u, shipH = () => 56 * u * 1.29, shipR = () => 14.5 * u;
+  // round 3 ("a branding spaceship... the logo much more clear; maybe change the proportions"): a white ship carrying the whole
+  // logo, ~a quarter of the screen wide so the word reads on a phone; its hit circle is the logo's disc in the middle
+  const shipW = () => 92 * u, shipH = () => 92 * u * 1.018, shipR = () => 18 * u;
 
   function layout() {
     const vw = innerWidth, vh = root.clientHeight || innerHeight;
@@ -204,9 +208,9 @@ export function play(el, opts = {}) {
     if (!G.dots.length) for (let i = 0; i < 70; i++) G.dots.push({ x: R(), y: R(), z: 0.35 + R() * 0.65 });
   }
   layout();
-  function home() { ship.x = ship.tx = W / 2; ship.y = ship.ty = H * 0.78; ship.vx = 0; ship.tilt = 0; ship.s = 1; ship.a = 1; ship.blink = 0; }
+  function home() { ship.x = ship.tx = W / 2; ship.y = ship.ty = H * 0.76; ship.vx = 0; ship.tilt = 0; ship.s = 1; ship.a = 1; ship.blink = 0; }
   home();
-  const lim = () => ({ x0: shipW() * 0.5, x1: W - shipW() * 0.5, y0: H * 0.34, y1: H - shipH() * 0.72 });
+  const lim = () => ({ x0: shipW() * 0.34, x1: W - shipW() * 0.34, y0: H * 0.36, y1: H - shipH() * 0.52 });   // the wing tips may leave the screen
   const K = () => (G.easy ? TUNE.easy : TUNE.normal);
   const level = () => ease(clamp(G.p / TUNE.calm, 0, 1));
   const vyNow = () => lerp(K().vy[0], K().vy[1], level()) * u;
@@ -222,7 +226,7 @@ export function play(el, opts = {}) {
   }
   function bubble(x, mode, extra = {}) {
     const f = pickFace(); if (!f) return null;
-    const r = (25 + R() * 12) * u;
+    const r = (23 + R() * 11) * u;   // a touch smaller since round 3's bigger ship
     const e = { f, x, x0: x, y: -r - 8 * u, r, vy: vyNow() * (0.9 + R() * 0.22), vx: 0, mode, t: 0, amp: 0, w: 0, ph: R() * 6.28,
       rot: (R() - 0.5) * 0.5, spin: (R() < 0.25 ? (R() - 0.5) * 1.6 : 0), wob: 0.15 + R() * 0.3, knocked: false, flash: 0, ...extra };
     e.hp = e.r > 31 * u ? 3 : 2;   // two shots, the big ones three - shooting your way through is never free
@@ -257,7 +261,7 @@ export function play(el, opts = {}) {
     }
   }
   function wall(gap) {   // a row with one way through - the tense part (or shoot your own way)
-    const r = 27 * u, gx = gap / 2 + 60 * u + R() * (W - gap - 120 * u), vy = vyNow() * 0.9;
+    const r = 25 * u, gx = gap / 2 + 60 * u + R() * (W - gap - 120 * u), vy = vyNow() * 0.9;
     for (let x = gx - gap / 2 - r; x > -r; x -= 2.15 * r) bubble(x, 'line', { r, vy, spin: 0 });
     for (let x = gx + gap / 2 + r; x < W + r; x += 2.15 * r) bubble(x, 'line', { r, vy, spin: 0 });
   }
@@ -432,7 +436,7 @@ export function play(el, opts = {}) {
     if (!firing || G.hot || G.gunIn > 0) return;
     G.gunIn = g.every; G.heat += g.heat;
     if (G.heat >= 1) { G.heat = 1; G.hot = true; au && au.overheat(); }
-    G.shots.push({ x: ship.x, y: ship.y - shipH() * 0.36, v: g.speed * u });
+    G.shots.push({ x: ship.x, y: ship.y - shipH() * 0.45, v: g.speed * u });
     au && au.pew();
   }
   function boom(e) {   // a comic pop: the face swells and bursts, a spiky star, confetti
@@ -456,7 +460,7 @@ export function play(el, opts = {}) {
     burst((e.x + ship.x) / 2, (e.y + ship.y) / 2, 16, '#ff8a3d', 260);
     const s = shieldEls[G.shields]; if (s) { s.classList.add('pop'); setTimeout(() => { s.classList.remove('pop'); s.classList.add('lost'); }, 160); }
     try { navigator.vibrate && navigator.vibrate(G.shields > 0 ? 60 : [80, 40, 120]); } catch (err) {}
-    if (au) { au.hit(); au.shield(); }
+    au && au.hit();
     if (G.shields <= 0) { G.phase = 'crash'; G.crashT = 0.7; drag = null; burst(ship.x, ship.y, 40, '#ffb347', 340); au && au.crash(); ship.a = 0; }
   }
   function lost() {
@@ -567,11 +571,10 @@ export function play(el, opts = {}) {
     c.fillStyle = streak > 1.5 ? '#ffd9b8' : '#fff';
     for (const d of G.dots) { c.globalAlpha = (0.25 + d.z * 0.6) * (streak > 1.5 ? 0.45 : 1); c.fillRect(d.x * W, d.y * H, d.z * 1.6 * u * (streak > 1.5 ? 0.6 : 1), d.z * 1.6 * u * streak); }
     c.globalAlpha = 1;
-    // the goal: the logo with its word all the way; in the flash it becomes the teaser's planet, whose word turns back on in the clip
-    {
-      const P = planetNow(), pul = G.phase === 'done' ? 1 : 1 + Math.sin(performance.now() / 600) * 0.012;
-      const im = G.flashed && ok(A.planet) ? A.planet : A.goal, w = (P.ring / (im === A.planet ? PLANET_RING : GOAL_RING)) * pul;
-      if (ok(im)) c.drawImage(im, P.x - w / 2, P.y - w / 2, w, w);
+    // the goal: the planet from behind, its word not on the ring yet - it turns on only in the clip, at the landing
+    if (ok(A.planet)) {
+      const P = planetNow(), pul = G.phase === 'done' ? 1 : 1 + Math.sin(performance.now() / 600) * 0.012, w = (P.ring / PLANET_RING) * pul;
+      c.drawImage(A.planet, P.x - w / 2, P.y - w / 2, w, w);
     }
     // stars and shields to pick up
     if (ok(A.star)) for (const g of G.gems) { const s = (20 + Math.sin(g.ph) * 2) * u; c.drawImage(A.star, g.x - s / 2, g.y - s / 2, s, s); }
@@ -601,16 +604,16 @@ export function play(el, opts = {}) {
       const w = shipW() * ship.s, h = shipH() * ship.s;
       c.save(); c.globalAlpha = ship.a; c.translate(ship.x, ship.y); c.rotate(ship.tilt);
       c.globalCompositeOperation = 'lighter';
-      const fl = 0.85 + Math.random() * 0.3, gr = c.createRadialGradient(0, h * 0.45, 0, 0, h * 0.45, w * 0.5 * fl);
+      const fl = 0.85 + Math.random() * 0.3, gr = c.createRadialGradient(0, h * 0.4, 0, 0, h * 0.4, w * 0.3 * fl);
       gr.addColorStop(0, 'rgba(255,190,110,.55)'); gr.addColorStop(1, 'rgba(255,90,20,0)');
-      c.fillStyle = gr; c.fillRect(-w, h * 0.45 - w, w * 2, w * 2);
+      c.fillStyle = gr; c.fillRect(-w, h * 0.4 - w, w * 2, w * 2);
       c.globalCompositeOperation = 'source-over';
-      c.drawImage(A.ship, -w / 2, -h * 0.33, w, h);
+      c.drawImage(A.ship, -w / 2, -h * 0.52, w, h);   // the logo's disc (52% down the picture) sits on the ship's point
       c.restore();
     }
     if (G.phase === 'fly' && G.heat > 0.04) {   // the heat: an arc under the ship, orange to red, blinking when it is too hot
-      const r = 26 * u, a0 = Math.PI * 0.2, a1 = Math.PI * 0.8;
-      c.save(); c.translate(ship.x, ship.y + 6 * u); c.lineCap = 'round'; c.lineWidth = 3.5 * u;
+      const r = 30 * u, a0 = Math.PI * 0.2, a1 = Math.PI * 0.8;
+      c.save(); c.translate(ship.x, ship.y + 16 * u); c.lineCap = 'round'; c.lineWidth = 3.5 * u;
       c.strokeStyle = 'rgba(255,255,255,.16)'; c.beginPath(); c.arc(0, 0, r, a0, a1); c.stroke();
       c.strokeStyle = G.hot ? (Math.floor(performance.now() / 120) % 2 ? '#ff3b1f' : '#ffb347') : G.heat > 0.7 ? '#ff5a1f' : '#ffb347';
       c.beginPath(); c.arc(0, 0, r, a1 - (a1 - a0) * G.heat, a1); c.stroke(); c.restore();
@@ -670,65 +673,74 @@ export function play(el, opts = {}) {
   return { stop, stats };
 }
 
-// ---------- sound ----------
+// ---------- sound: real effects (fly-sfx.mjs) on WebAudio - several takes for what repeats, never the same one twice running,
+// a little pitch play on the shots; the music and an engine hum under everything ----------
+const SFX = { pew: ['laser-1', 'laser-2', 'laser-3'], boom: ['boom-1', 'boom-2'], hit: ['hit'], life: ['life'], star: ['star'], whoosh: ['whoosh'], engine: ['engine'] };
 function makeAudio(muted) {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return null;
   const ctx = new AC();
   const master = ctx.createGain(); master.gain.value = muted ? 0 : 1; master.connect(ctx.destination);
-  const mus = ctx.createGain(); mus.gain.value = 0.6; mus.connect(master);
-  const fx = ctx.createGain(); fx.gain.value = 0.75; fx.connect(master);
+  const mus = ctx.createGain(); mus.gain.value = 0.55; mus.connect(master);
+  const fx = ctx.createGain(); fx.gain.value = 0.85; fx.connect(master);
   const buf = {};
   const decode = (b) => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no));
   const load = (k, url, pre) => (pre || fetch(url).then((r) => r.arrayBuffer())).then((b) => (b ? decode(b.slice(0)) : null)).then((b) => { if (b) buf[k] = b; }).catch(() => {});
-  const ready = { music: load('music', ART + 'fly-music.mp3', PRE.music), land: null };
-  const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); { const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-  let loop = null, wantMusic = false, closed = false;
+  const ready = { music: load('music', ART + 'fly-music.mp3', PRE.music), land: null, fx: null };
+  // the effects load in two steps: what the flight needs at once, then the rest
+  const loadFx = () => {
+    if (ready.fx) return ready.fx;
+    const first = ['laser-1', 'laser-2', 'laser-3', 'boom-1', 'boom-2', 'star', 'hit', 'engine'];
+    ready.fx = Promise.all(first.map((n) => load(n, ART + `fly-${n}.mp3`))).then(() => Promise.all(['life', 'whoosh'].map((n) => load(n, ART + `fly-${n}.mp3`))));
+    return ready.fx;
+  };
+  let loop = null, hum = null, wantMusic = false, closed = false;
   const now = () => ctx.currentTime;
-  const det = () => (Math.random() - 0.5) * 60;   // never the same sound twice
-  function env(g, t, peak, a, d) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); }
-  function tone(type, f0, f1, dur, peak, delay = 0, out = fx) {
-    const t = now() + delay, o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur); o.detune.value = det();
-    env(g, t, peak, 0.006, dur); o.connect(g).connect(out); o.start(t); o.stop(t + dur + 0.05);
+  const last = {};
+  function play(kind, gain = 1, rate = 1) {
+    const L = SFX[kind].filter((n) => buf[n]); if (!L.length || closed) return;
+    let n = L[Math.floor(Math.random() * L.length)]; if (L.length > 1 && n === last[kind]) n = L[(L.indexOf(n) + 1) % L.length];
+    last[kind] = n;
+    const s = ctx.createBufferSource(), g = ctx.createGain();
+    s.buffer = buf[n]; s.playbackRate.value = rate; g.gain.value = gain;
+    s.connect(g).connect(fx); s.start();
   }
-  function hiss(dur, type, f0, f1, peak, q = 1, attack = 0.01) {
-    const t = now(), s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noise; s.loop = true; s.loopStart = Math.random() * 0.5; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    env(g, t, peak, attack, dur); s.connect(f).connect(g).connect(fx); s.start(t, Math.random() * 0.5); s.stop(t + dur + attack + 0.05);
+  const jit = (a) => 1 + (Math.random() - 0.5) * a;
+  function bed(k, gain, out) {   // a loop that fades in
+    const s = ctx.createBufferSource(), g = ctx.createGain();
+    s.buffer = buf[k]; s.loop = true; if (k === 'engine') { s.loopStart = 0.03; s.loopEnd = buf[k].duration - 0.03; }
+    g.gain.setValueAtTime(0.0001, now()); g.gain.exponentialRampToValueAtTime(gain, now() + 0.6);
+    s.connect(g).connect(out); s.g = g; s.start(); return s;
   }
-  function startLoop() {
-    if (loop || !buf.music || closed) return;
-    loop = ctx.createBufferSource(); loop.buffer = buf.music; loop.loop = true;
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, now()); g.gain.exponentialRampToValueAtTime(1, now() + 0.6);
-    loop.connect(g).connect(mus); loop.g = g; loop.start();
-  }
+  const fade = (s) => { if (!s) return; s.g.gain.setTargetAtTime(0.0001, now(), 0.18); setTimeout(() => { try { s.stop(); } catch (e) {} }, 900); };
   return {
-    unlock() { if (ctx.state === 'suspended') ctx.resume().catch(() => {}); },
+    unlock() { if (ctx.state === 'suspended') ctx.resume().catch(() => {}); loadFx(); },
     pause() { ctx.suspend().catch(() => {}); },
     mute(m) { master.gain.setTargetAtTime(m ? 0 : 1, now(), 0.05); },
-    music() { wantMusic = true; ready.music.then(() => wantMusic && startLoop()); },
+    music() {
+      wantMusic = true;
+      ready.music.then(() => { if (wantMusic && !loop && buf.music && !closed) loop = bed('music', 1, mus); });
+      loadFx().then(() => { if (wantMusic && !hum && buf.engine && !closed) hum = bed('engine', 0.32, fx); });
+    },
     prepLand() { if (!ready.land) ready.land = load('land', ART + 'fly-land.mp3'); },
-    duck(on) { mus.gain.setTargetAtTime(on ? 0.22 : 0.6, now(), 0.15); },
-    star(n) { const f = 988 * Math.pow(2, (Math.min(n, 12) % 6) / 12); tone('sine', f, 0, 0.16, 0.22); tone('sine', f * 1.5, 0, 0.2, 0.12, 0.05); },
-    pew() { tone('square', 1500 + Math.random() * 200, 520, 0.07, 0.035); },
-    tick() { tone('triangle', 900, 600, 0.05, 0.12); },
-    // the face pops: a thump, a crackle and a cartoon "pop" falling in pitch
-    boom() { tone('sine', 420, 70, 0.22, 0.7); hiss(0.32, 'bandpass', 2600, 300, 0.55, 0.9); tone('square', 230, 60, 0.18, 0.08, 0.02); },
-    overheat() { tone('sawtooth', 220, 110, 0.35, 0.08); hiss(0.4, 'highpass', 5000, 2500, 0.15, 0.7); },
-    life() { [660, 880, 1320].forEach((f, i) => tone('triangle', f, 0, 0.16, 0.2, i * 0.07)); tone('sine', 1760, 0, 0.3, 0.1, 0.21); },
-    hit() { hiss(0.28, 'lowpass', 1400, 200, 0.7); tone('sine', 150, 42, 0.3, 0.9); },
-    shield() { tone('triangle', 560, 170, 0.34, 0.22, 0.04); tone('square', 280, 90, 0.3, 0.05, 0.04); },
-    crash() { hiss(1.0, 'lowpass', 2400, 120, 0.8, 0.8); tone('sine', 95, 28, 1.0, 0.9); },
-    whoosh() { hiss(1.4, 'bandpass', 260, 2800, 0.5, 1.4, 0.7); },
+    duck(on) { mus.gain.setTargetAtTime(on ? 0.2 : 0.55, now(), 0.15); if (hum) hum.g.gain.setTargetAtTime(on ? 0.06 : 0.32, now(), 0.15); },
+    star(n) { play('star', 0.75, 1 + (Math.min(n, 12) % 6) * 0.05); },
+    pew() { play('pew', 0.5, jit(0.14)); },
+    tick() { play('hit', 0.22, 1.9 * jit(0.1)); },
+    boom() { play('boom', 0.95, jit(0.18)); },
+    overheat() { play('hit', 0.3, 0.55); },
+    life() { play('life', 0.9); },
+    hit() { play('hit', 1, jit(0.08)); },
+    crash() { play('boom', 1, 0.62); play('hit', 0.8, 0.8); },
+    whoosh() { play('whoosh', 0.95); fade(hum); hum = null; },
     // the landing bars of the teaser's music take over from the loop, the same piece going on
     land() {
       wantMusic = false;
-      if (loop) { const l = loop; l.g.gain.setTargetAtTime(0.0001, now(), 0.18); setTimeout(() => { try { l.stop(); } catch (e) {} }, 900); loop = null; }
+      fade(loop); loop = null; fade(hum); hum = null;
       const go = () => { if (closed || !buf.land) return; const s = ctx.createBufferSource(); s.buffer = buf.land; s.connect(mus); s.start(); };
       if (buf.land) go(); else { this.prepLand(); ready.land.then(go); }
       mus.gain.setTargetAtTime(0.75, now(), 0.1);
     },
-    close() { closed = true; try { loop && loop.stop(); } catch (e) {} ctx.close().catch(() => {}); },
+    close() { closed = true; try { loop && loop.stop(); hum && hum.stop(); } catch (e) {} ctx.close().catch(() => {}); },
   };
 }

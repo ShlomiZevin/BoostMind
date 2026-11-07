@@ -1825,10 +1825,10 @@ body:not([data-page="home"]) > footer { display: none !important; }
 
 /* the citizen's passport in the status chip and the status sheet (his note 2026-11-07: a real passport, clearly tappable) */
 .vx-top .st-chip .st-pp { width: 17px; height: auto; display: block; }
-.sl-pp { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 18px; background: linear-gradient(135deg, #1d2547, #12172c); border: 1.5px solid rgba(214, 174, 92, .55); color: #fff; text-decoration: none; margin-top: 6px; }
-.sl-pp img { width: 46px; height: auto; flex: none; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
-.sl-pp span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.sl-pp b { font-size: 1.1rem; font-weight: 900; } .sl-pp small { color: #d8c48f; font-weight: 700; font-size: .88rem; }
+.sl-pp { display: flex; align-items: center; gap: 14px; padding: 7px 14px; border-radius: 16px; background: linear-gradient(135deg, #1d2547, #12172c); border: 1.5px solid rgba(214, 174, 92, .55); color: #fff; text-decoration: none; margin-top: 6px; }
+.sl-pp img { width: 34px; height: auto; flex: none; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
+.sl-pp span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0; }
+.sl-pp b { font-size: 1rem; font-weight: 900; } .sl-pp small { color: #d8c48f; font-weight: 700; font-size: .82rem; }   /* lower (his note on plan cz-sim-r2, 2026-11-07) */
 .sl-pp i { font-style: normal; font-size: 1.6rem; color: #d8c48f; line-height: 1; }
 /* the simulation band (his note 2026-11-07: less glow; the button was cut off on a phone - the title no longer pushes it out) */
 .sim-band { grid-template-columns: auto minmax(0, 1fr) auto; box-shadow: 0 0 0 1px rgba(255, 106, 31, .12), 0 0 10px rgba(150, 70, 255, .2); border-color: rgba(178, 120, 255, .45); }

@@ -1,0 +1,417 @@
+# fly-comp-v4.py - the Shlomiverse intro's compositor exactly as it rendered v4 (zoomcut/episodes/shlomiverse-intro/comp_sd.py at
+# commit db28e16, "the landing on the logo without a jump"), copied here for the flight game's ending clip (verse/fly.js, round 3
+# of his notes 2026-11-07: "the painted-out text shows - re-render it clean"). Additions, nothing else changed:
+#   --no-url        no address and no "פרטים בביו" (the tagline stays, his OK); --no-tag: no tagline either
+#   --range a,b     render only seconds a..b, silent - the game needs the logo's turn and settle, not the whole trailer
+#   always story-only (no 4:5 post)
+#   python scripts/v2-design/fly-comp-v4.py --name fly-clean --approach --smooth-end --cast --space --sheen --no-url --range 7,14.5
+# The Seedance version: AI clips of the real logo pulling back into space, played BACKWARDS (so they end exactly on
+# the real logo frame), then the exact logo locked on the music's final hit with a flash + flare, tagline and address.
+#   python comp_sd.py [--beats beats-A3.json] [--clips media/sd-2-...mp4,media/sd-1-...mp4] [--name v1]
+#   -> out/shlomiverse-intro-<name>-story.mp4 (1080x1920) and -post.mp4 (1080x1350), 24 fps, music muxed
+import os, sys, json, subprocess, glob, shutil, math
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
+sys.path.insert(0, 'C:/workspace/BoostMind/zoomcut/episodes/shlomiverse-intro')
+from make_frames import backdrop, paste_logo, logo_rgba, LOGO_W, LOGO_CX, LOGO_CY, W, H
+
+HERE = 'C:/workspace/BoostMind/zoomcut/episodes/shlomiverse-intro'
+def arg(n, d=None):
+    return sys.argv[sys.argv.index(n) + 1] if n in sys.argv else d
+B = json.load(open(os.path.join(HERE, arg('--beats', 'beats-A3.json'))))
+CLIPS = arg('--clips', 'media/sd-2-pullback-far-mini.mp4,media/sd-1-pullback-mini.mp4').split(',')
+NAME = arg('--name', 'v1')
+FPS = 24
+T_LOGO, DUR = B['logo'], B['duration']
+TAG, URL = 'אנשים אמיתיים. יקום מקביל.', 'shlomiverse.com'
+POST_TOP = 320                       # 4:5 window: rows 320..1670 of the story frame (logo at ~40%)
+
+# ---- 1. the clips, reversed and scaled, one PNG per frame
+tmp = os.path.join(HERE, 'out/sd_frames'); shutil.rmtree(tmp, ignore_errors=True); os.makedirs(tmp)
+seq = []
+for i, c in enumerate(CLIPS):
+    pat = os.path.join(tmp, f'c{i}_%04d.png')
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', os.path.join(HERE, c), '-vf',
+                    f'reverse,fps={FPS},scale={W}:{H}:flags=lanczos', pat], check=True)
+    seq += sorted(glob.glob(os.path.join(tmp, f'c{i}_*.png')))
+n_seq = len(seq)
+t_seq0 = T_LOGO - n_seq / FPS        # the clips end exactly on the logo hit
+print('clip frames', n_seq, 'start at', round(t_seq0, 2))
+
+# ---- v3: the planet is there from the first second, small and far, and grows continuously into the AI clip
+APPROACH = '--approach' in sys.argv
+if APPROACH:
+    import cv2
+    seqA = sorted(glob.glob(os.path.join(tmp, 'c0_*.png')))      # reversed far clip: the galaxy dive (its planet never shown)
+    seqB = sorted(glob.glob(os.path.join(tmp, 'c1_*.png')))      # reversed near clip: the planet turning onto the logo
+    SPEED_B = float(arg('--speed-b', '1.33'))                    # the near clip a bit faster, so its growth matches ours
+    T_HAND = T_LOGO - (len(seqB) - 1) / FPS / SPEED_B            # where the near clip takes over
+    first = np.asarray(Image.open(seqB[0]).convert('RGB')).astype(np.float32) / 255   # = the far-planet frame
+    # the planet in that frame (measured: centre 351,610 and 258x179 incl. ring in the 720x1280 clip)
+    PCX, PCY, PW, PH = 351 * 1.5, 610 * 1.5, 258 * 1.5, 179 * 1.5
+    SW, SH = int(PW * 1.55), int(PH * 1.9)
+    x0, y0 = int(PCX - SW / 2), int(PCY - SH / 2)
+    sprite = first[y0:y0 + SH, x0:x0 + SW].copy()
+    gy, gx = np.mgrid[0:SH, 0:SW].astype(np.float32)
+    er = np.sqrt(((gx - SW / 2) / (SW / 2)) ** 2 + ((gy - SH / 2) / (SH / 2)) ** 2)
+    smask = np.clip((1.0 - er) / 0.28, 0, 1)[..., None] ** 1.2     # soft ellipse round planet, ring and glow
+    # the plate: the same frame with the planet replaced by stars from higher up the same picture
+    plate = first.copy()
+    donor = first[90:90 + SH, x0:x0 + SW]
+    plate[y0:y0 + SH, x0:x0 + SW] = plate[y0:y0 + SH, x0:x0 + SW] * (1 - smask) + donor * smask
+    S0 = float(arg('--s0', '0.15'))
+    A_END = 2.3                                                  # galaxy dive shown until here, then into the plate
+    print('hand-over at', round(T_HAND, 2), 's; far planet starts at', S0)
+    def frame_at(seq_, pos):                                     # fractional frame: blend the two nearest
+        pos = min(max(pos, 0), len(seq_) - 1); i = int(pos); f_ = pos - i
+        a_ = np.asarray(Image.open(seq_[i]).convert('RGB')).astype(np.float32) / 255
+        if f_ < 0.02 or i + 1 >= len(seq_): return a_
+        b_ = np.asarray(Image.open(seq_[i + 1]).convert('RGB')).astype(np.float32) / 255
+        return a_ * (1 - f_) + b_ * f_
+    # v4: no jump onto the exact logo. Measure the clip's last frame against the logo frame (ECC, affine) and its colour,
+    # ease the clip onto that geometry/colour before the hit, then dissolve slowly to the logo under the glow swell.
+    SMOOTH_END = '--smooth-end' in sys.argv
+    if SMOOTH_END:
+        def _g(a): return cv2.cvtColor((np.clip(a, 0, 1) * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY).astype(np.float32) / 255
+        last = np.asarray(Image.open(seqB[-1]).convert('RGB')).astype(np.float32) / 255
+        _lf = paste_logo(backdrop())
+        _m = np.zeros((H, W), np.uint8); _m[380:1340, 60:1020] = 255
+        _cc, WARP = cv2.findTransformECC(_g(_lf), _g(last), np.eye(2, 3, dtype=np.float32), cv2.MOTION_AFFINE,
+                                         (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 300, 1e-6), _m, 5)
+        _al = cv2.warpAffine(last, WARP, (W, H), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_REFLECT)
+        GAIN = (_lf[380:1340, 60:1020].reshape(-1, 3).mean(0) + 1e-3) / (_al[380:1340, 60:1020].reshape(-1, 3).mean(0) + 1e-3)
+        print('ECC', round(float(_cc), 4), 'warp', WARP.round(4).tolist(), 'gain', GAIN.round(3))
+    def align_to_logo(img, w):
+        if w <= 0: return img
+        M = np.eye(2, 3, dtype=np.float32) + (WARP - np.eye(2, 3, dtype=np.float32)) * w
+        out = cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_REFLECT)
+        out = out * (1 + (GAIN - 1) * w)
+        blur = cv2.GaussianBlur(out, (0, 0), 1.6)                 # a touch crisper, towards the sharp logo
+        return np.clip(out + (out - blur) * 0.6 * w, 0, 1)
+    # the near clip's own motion is fast right to its last frame; a speed curve lets it settle instead of stopping dead
+    CLIP_S = (len(seqB) - 1) / FPS
+    T_STOP = T_LOGO + 0.35; DEC = 1.2; T_DEC = T_STOP - DEC
+    V0 = CLIP_S / ((T_DEC - T_HAND) + DEC / 2)
+    def clip_pos(t):           # seconds into the reversed near clip
+        if t <= T_DEC: return (t - T_HAND) * V0
+        u = min(t, T_STOP) - T_DEC
+        return (T_DEC - T_HAND) * V0 + V0 * (u - u * u / (2 * DEC))
+    def end_clip_frame(t):
+        fr_ = frame_at(seqB, clip_pos(t) * FPS)
+        return align_to_logo(fr_, sm((t - (T_LOGO - 0.6)) / (T_STOP - T_LOGO + 0.6)))
+    def approach_bg(t):
+        if t >= T_HAND:
+            fr_ = frame_at(seqB, (t - T_HAND) * FPS * SPEED_B)
+            if SMOOTH_END:   # the clip slows to a stop (no freeze) and is eased onto the logo's geometry and colour
+                return end_clip_frame(t)
+            lock = sm((t - (T_LOGO - 0.30)) / 0.30)
+            return fr_ * (1 - lock) + logo_frame * lock
+        # far part: galaxy dive -> plate, and the planet sprite growing at a constant rate (no pop-in)
+        ka = (t + 0.24) * FPS * 0.62                             # the dive, slowed a little
+        mix = sm((t - A_END) / 1.0)
+        bgf = plate if mix >= 1 else frame_at(seqA, ka) * (1 - mix) + plate * mix
+        bgf = bgf.copy()
+        sc = S0 ** (1 - t / T_HAND)                              # exponential growth = steady approach, scale 1 at hand-over
+        w_, h_ = max(2, int(SW * sc)), max(2, int(SH * sc))
+        spr = cv2.resize(sprite, (w_, h_), interpolation=cv2.INTER_AREA)
+        msk = cv2.resize(smask, (w_, h_), interpolation=cv2.INTER_AREA)[..., None]
+        cx_, cy_ = PCX, PCY
+        xa, ya = int(round(cx_ - w_ / 2)), int(round(cy_ - h_ / 2))
+        region = bgf[ya:ya + h_, xa:xa + w_]
+        a_in = min(1.0, t / 0.6 + 0.35)                         # there from the start, just eases in with the fade
+        bgf[ya:ya + h_, xa:xa + w_] = region * (1 - msk * a_in) + spr * msk * a_in
+        return bgf
+
+# ---- 2. fixed layers
+logo_frame = paste_logo(backdrop())                 # the exact logo, as the AI clips' first frame was built
+bg = backdrop()
+lg = np.asarray(logo_rgba()).astype(np.float32) / 255
+def place(canvas_shape, img, cx, cy):
+    out = np.zeros(canvas_shape, np.float32); h, w = img.shape[:2]
+    x0, y0 = int(cx - w / 2), int(cy - h / 2); out[y0:y0 + h, x0:x0 + w] = img; return out
+# blurred on the whole canvas, so the glow is never cut at the logo picture's edge
+glow_src = Image.fromarray((place((H, W, 3), lg[..., :3] * lg[..., 3:4], LOGO_CX, LOGO_CY) * 255).astype(np.uint8))
+glow_full = np.asarray(glow_src.filter(ImageFilter.GaussianBlur(38))).astype(np.float32) / 255
+
+# ---- v2: his characters flying at the camera out of the depth (round portraits with an orange rim glow)
+import cv2
+CAST = '--cast' in sys.argv
+MAIN = 'yotam hani rosenblum demokratovich ayelet osnat dorit avram'.split()
+REST = ('amir ofer daniel ronit gilad vova news-anchor genz savta shloimi yuval malki brachi esther rina sruli tzvika lola '
+        'gym-guy dr-samer matan shuki ruchami').split()
+def round_portrait(name, D=512):
+    im = Image.open(f'C:/workspace/BoostMind/public/wiki/img/c/{name}.jpg').convert('RGB')
+    s = im.width * 0.86; cx, cy = im.width / 2, im.height * 0.40     # the face sits in the upper middle
+    face = im.crop((int(cx - s / 2), int(cy - s / 2), int(cx + s / 2), int(cy + s / 2))).resize((int(D * 0.80), int(D * 0.80)), Image.LANCZOS)
+    out = np.zeros((D, D, 4), np.float32)
+    yy_, xx_ = np.mgrid[0:D, 0:D].astype(np.float32); r = np.sqrt((xx_ - D / 2) ** 2 + (yy_ - D / 2) ** 2) / (D * 0.40)
+    # outer glow, then the orange rim, then the face
+    glow_a = np.exp(-((r - 1.0) / 0.12) ** 2) * (r > 1.0) * 0.85
+    out[..., :3] = np.array([1.0, 0.42, 0.10]); out[..., 3] = glow_a
+    rim = np.clip(1 - np.abs(r - 0.985) / 0.03, 0, 1)
+    out[..., :3] = out[..., :3] * (1 - rim[..., None]) + np.array([1.0, 0.62, 0.25]) * rim[..., None]
+    out[..., 3] = np.maximum(out[..., 3], rim)
+    f = np.zeros((D, D, 3), np.float32); o = int(D * 0.10)
+    f[o:o + face.height, o:o + face.width] = np.asarray(face).astype(np.float32) / 255
+    inside = np.clip((0.965 - r) / 0.01, 0, 1)[..., None]
+    out[..., :3] = out[..., :3] * (1 - inside) + f * inside
+    out[..., 3] = np.maximum(out[..., 3], inside[..., 0])
+    return out
+flyers = []
+if CAST:
+    rng = np.random.default_rng(11)
+    order = MAIN[:4] + REST[:6] + MAIN[4:] + REST[6:] + MAIN[:3]
+    rng.shuffle(order[10:])
+    sprites = {n: round_portrait(n) for n in set(order)}
+    t_first, t_last, life = 0.15, 4.9, 2.7
+    for i, n in enumerate(order):
+        ang = rng.uniform(0, 2 * np.pi)
+        rr = rng.uniform(0.75, 1.3) * (1.1 if n in MAIN else 1.0) * (1 + 0.35 * i / len(order))
+        flyers.append({'name': n, 't0': t_first + (t_last - t_first) * i / (len(order) - 1) + rng.uniform(-0.12, 0.12), 'life': life * rng.uniform(0.9, 1.1),
+                       'x': rr * np.cos(ang) * 0.85, 'y': rr * np.sin(ang) * 1.25, 'big': 1.15 if n in MAIN else rng.uniform(0.8, 1.0)})
+VP = (LOGO_CX, LOGO_CY - 60)       # they come out of the depth where the planet will be
+SOFT_FACES = '--soft-faces' in sys.argv
+def draw_flyers(fr, t):
+    global VP
+    if APPROACH: VP = (PCX, PCY)
+    live = []
+    for fl in flyers:
+        u = (t - fl['t0']) / fl['life']
+        if 0 <= u <= 1:
+            z = 16.0 * (0.045) ** u                     # constant-ratio approach: the feeling of flying
+            live.append((z, fl))
+    for z, fl in sorted(live, key=lambda p: -p[0]):
+        size = int(470 * fl['big'] / z)
+        if size < 6: continue
+        cx = VP[0] + fl['x'] * 760 / z; cy = VP[1] + fl['y'] * 760 / z
+        if cx + size < 0 or cx - size > W or cy + size < 0 or cy - size > H: continue
+        alpha = min(1.0, max(0.0, (16.0 - z) / 9.0)) ** 1.4
+        if SOFT_FACES:   # see-through: ~0.5 when far, up to 0.85 close, stars and dust show through
+            alpha = min(1.0, max(0.0, (16.0 - z) / 5.0)) * (0.5 + 0.35 * min(1.0, max(0.0, (14.0 - z) / 12.0)))
+        spr = cv2.resize(sprites[fl['name']], (size, size), interpolation=cv2.INTER_AREA if size < 512 else cv2.INTER_LINEAR)
+        x0, y0 = int(cx - size / 2), int(cy - size / 2)
+        xa, ya, xb, yb = max(0, x0), max(0, y0), min(W, x0 + size), min(H, y0 + size)
+        if xa >= xb or ya >= yb: continue
+        s = spr[ya - y0:yb - y0, xa - x0:xb - x0]
+        a = s[..., 3:4] * alpha
+        fr[ya:yb, xa:xb] = fr[ya:yb, xa:xb] * (1 - a) + s[..., :3] * a
+
+# ---- v2: richer space - a Milky-Way band of thin orange dust, a soft orange haze drifting, fine glowing particles
+SPACE = '--space' in sys.argv
+def fbm(h, w, seed, octaves=6, base=6, persist=0.55):
+    r = np.random.default_rng(seed); acc = np.zeros((h, w), np.float32); amp, tot = 1.0, 0.0
+    for o in range(octaves):
+        n = base * 2 ** o
+        g = r.random((max(2, int(n * h / w)), n)).astype(np.float32)
+        acc += cv2.resize(g, (w, h), interpolation=cv2.INTER_CUBIC) * amp; tot += amp; amp *= persist
+    acc /= tot
+    return (acc - acc.min()) / (acc.max() - acc.min() + 1e-6)
+if SPACE:
+    PAD = 360
+    TW, TH = W + PAD, H + PAD
+    _ty, _tx = np.mgrid[0:TH, 0:TW].astype(np.float32)
+    # the band: diagonal through the frame, dusty filaments with darker lanes
+    ang_ = math.radians(-58)
+    dist_ = (_tx - TW * 0.5) * math.sin(ang_) - (_ty - TH * 0.42) * math.cos(ang_)
+    band = np.exp(-(dist_ / 300) ** 2)
+    fil = fbm(TH, TW, 5, octaves=7, base=5) ** 2.2
+    lanes = 1 - 0.75 * np.clip((fbm(TH, TW, 9, octaves=6, base=8) - 0.45) / 0.3, 0, 1)
+    micro = (np.random.default_rng(4).random((TH, TW)) > 0.9965).astype(np.float32) * np.random.default_rng(6).random((TH, TW)).astype(np.float32)
+    micro = cv2.GaussianBlur(micro, (0, 0), 0.7) * 2.2
+    band_rgb = (band * fil * lanes)[..., None] * np.array([1.0, 0.42, 0.10], np.float32) * 1.05 \
+        + (band ** 1.5 * micro)[..., None] * np.array([1.0, 0.85, 0.7], np.float32)
+    # soft haze, everywhere but faint
+    haze_ = (np.clip((fbm(TH, TW, 21, octaves=5, base=3) - 0.35) / 0.65, 0, 1) ** 2)[..., None] * np.array([0.9, 0.30, 0.06], np.float32) * 0.26
+    SKY = (band_rgb + haze_).astype(np.float32)
+    # fine glowing orange particles in 3D, drifting toward the camera
+    pr = np.random.default_rng(31)
+    NP_ = 520
+    P = np.stack([pr.uniform(-1, 1, NP_) * 1.3, pr.uniform(-1, 1, NP_) * 2.2, pr.uniform(0.3, 6.0, NP_)], 1).astype(np.float32)
+    PB = pr.uniform(0.25, 1.0, NP_).astype(np.float32) ** 2
+    PC = np.where(pr.random(NP_) < 0.75, 0, 1)
+def space_fx(fr, t, strength=1.0):
+    ox = int(PAD / 2 + 70 * math.sin(t * 0.21)); oy = int(PAD / 2 - 12 * t)     # slow drift
+    oy = max(0, min(PAD, oy))
+    sky = SKY[oy:oy + H, ox:ox + W]
+    lay = np.zeros((H, W, 3), np.float32)
+    z = (P[:, 2] - t * 0.55) % 6.0 + 0.25            # flying through them
+    sx = W / 2 + P[:, 0] * 520 / z; sy = H * 0.45 + P[:, 1] * 520 / z
+    for i in np.nonzero((sx > -10) & (sx < W + 10) & (sy > -10) & (sy < H + 10))[0]:
+        zi = float(z[i]); rad_ = max(1, int(2.4 / zi + 0.5)); b = float(PB[i]) * min(1.0, (6.2 - zi) / 2.0)
+        col = (1.0 * b, 0.48 * b, 0.12 * b) if PC[i] == 0 else (1.0 * b, 0.82 * b, 0.62 * b)
+        cv2.circle(lay, (int(sx[i]), int(sy[i])), rad_, col, -1, lineType=cv2.LINE_AA)
+    lay = lay * 1.3 + cv2.GaussianBlur(lay, (0, 0), 4) * 2.4
+    add = (sky + lay * 0.9) * strength
+    return 1 - (1 - fr) * (1 - np.clip(add, 0, 1))
+
+# ---- v2: a star glint blinking on the planet's rim on the final hit
+GLINT = '--glint' in sys.argv
+# the logo's planet: centre (250, 218), radius 155 in logo-512 pixels -> story pixels
+_k = LOGO_W / 508.0
+PL_CX, PL_CY, PL_R = LOGO_CX + (250 - 254) * _k, LOGO_CY + (218 - 215.5) * _k, 155 * _k
+GL_X, GL_Y = PL_CX + PL_R * math.cos(math.radians(-128)), PL_CY + PL_R * math.sin(math.radians(-128))   # upper-left rim
+_gy, _gx = np.mgrid[0:H, 0:W].astype(np.float32); _gdx, _gdy = _gx - GL_X, _gy - GL_Y
+_gr = np.sqrt(_gdx ** 2 + _gdy ** 2)
+def star(scale, rot):
+    c, s = math.cos(rot), math.sin(rot)
+    u, v = _gdx * c + _gdy * s, -_gdx * s + _gdy * c
+    L = 330 * scale
+    rays = (np.exp(-(v / 2.2) ** 2) * np.exp(-np.abs(u) / L) + np.exp(-(u / 2.2) ** 2) * np.exp(-np.abs(v) / L))
+    d1, d2 = (u + v) / 1.414, (u - v) / 1.414
+    rays += 0.45 * (np.exp(-(d2 / 1.8) ** 2) * np.exp(-np.abs(d1) / (L * 0.4)) + np.exp(-(d1 / 1.8) ** 2) * np.exp(-np.abs(d2) / (L * 0.4)))
+    core = np.exp(-(_gr / (14 * scale + 1)) ** 2) * 1.2 + np.exp(-(_gr / (70 * scale + 1)) ** 2) * 0.35
+    return (rays + core)[..., None] * np.array([1.0, 0.86, 0.66], np.float32)
+
+FONT = 'C:/Windows/Fonts/Heebo-VariableFont_wght.ttf'
+def text_layer(txt, size, weight, color, spacing=0, rtl=False):
+    f = ImageFont.truetype(FONT, size); f.set_variation_by_axes([weight])
+    s = txt[::-1] if rtl else txt            # no RTL shaping in this PIL: Hebrew written right to left by hand
+    if spacing:
+        widths = [f.getbbox(ch)[2] - f.getbbox(ch)[0] if ch != ' ' else size * 0.3 for ch in s]
+        tw = int(sum(widths) + spacing * (len(s) - 1)) + 20
+    else:
+        tw = int(f.getlength(s)) + 20
+    im = Image.new('RGBA', (tw, int(size * 1.6)), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    if spacing:
+        x = 10
+        for ch, w_ in zip(s, widths):
+            d.text((x, size * 0.2), ch, font=f, fill=color); x += w_ + spacing
+    else:
+        d.text((10, size * 0.2), s, font=f, fill=color)
+    a = np.asarray(im).astype(np.float32) / 255
+    return a
+tag = text_layer(TAG, 66, 700, (255, 255, 255, 255), rtl=True)
+url = text_layer(URL, 50, 600, (255, 122, 48, 255), spacing=4)
+TAG_Y, URL_Y = 1335, 1430
+NO_URL = '--no-url' in sys.argv     # the flight game's clip: the tagline only
+NO_TAG = '--no-tag' in sys.argv     # ...or no words at all: the game's result card sits where the tagline would be
+BIO = '--bio' in sys.argv           # his words for the end card
+bio = text_layer('פרטים בביו', 58, 700, (255, 255, 255, 255), rtl=True)
+BIO_Y = 1530
+
+def over(dst, rgba, cx, cy, alpha, dy=0):
+    h, w = rgba.shape[:2]; x0, y0 = int(cx - w / 2), int(cy - h / 2 + dy)
+    a = rgba[..., 3:4] * alpha
+    dst[y0:y0 + h, x0:x0 + w] = dst[y0:y0 + h, x0:x0 + w] * (1 - a) + rgba[..., :3] * a
+
+yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+rad = np.sqrt((xx - LOGO_CX) ** 2 + (yy - LOGO_CY) ** 2)
+flash_shape = (np.exp(-(rad / 380) ** 2) * 0.9 + np.exp(-(rad / 1100) ** 2) * 0.5)[..., None] * np.array([1.0, 0.62, 0.32], np.float32)
+streak = (np.exp(-((yy - LOGO_CY) / 5.0) ** 2) * np.exp(-((xx - LOGO_CX) / 900) ** 2) +
+          0.5 * np.exp(-((yy - LOGO_CY) / 22.0) ** 2) * np.exp(-((xx - LOGO_CX) / 520) ** 2))[..., None] * np.array([1.0, 0.55, 0.22], np.float32)
+vign = (1 - 0.45 * np.clip((np.sqrt(((xx - W / 2) / (W * 0.75)) ** 2 + ((yy - H * 0.45) / (H * 0.62)) ** 2) - 0.55) / 0.6, 0, 1) ** 1.5)[..., None]
+def sm(t): t = min(1, max(0, t)); return t * t * (3 - 2 * t)
+SHEEN = '--sheen' in sys.argv
+LOGO_A = place((H, W, 1), lg[..., 3:4], LOGO_CX, LOGO_CY)[..., 0]   # where the logo is, for the sweep
+
+def zoom(img, s, cx=LOGO_CX, cy=LOGO_CY):
+    if abs(s - 1) < 1e-4: return img
+    M = np.float32([[s, 0, cx - s * cx], [0, s, cy - s * cy]])
+    import cv2
+    return cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+
+# ---- 3. render, straight into ffmpeg (story) - the post is cropped from the same frames
+outs = {k: os.path.join(HERE, f'out/shlomiverse-intro-{NAME}-{k}.mp4') for k in ('story', 'post')}
+music = os.path.join(HERE, B['music'])
+SFX = arg('--sfx')
+if SFX:   # the glint's sparkle under the music, on the hit
+    mixed = os.path.join(HERE, f'out/mix-{NAME}.wav')
+    ms = int((T_LOGO + 0.04) * 1000)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', music, '-i', os.path.join(HERE, SFX), '-filter_complex',
+                    f'[1:a]volume={arg("--sfx-vol", "0.9")},adelay={ms}|{ms}[s];[0:a][s]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95',
+                    mixed], check=True)
+    music = mixed
+def enc(path, crop):
+    return subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
+                             '-i', music, '-vf', crop, '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
+                             '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', path], stdin=subprocess.PIPE)
+NF = int(round(DUR * FPS))
+END_CLIP = None
+if not APPROACH: SMOOTH_END = False
+NO_HIT = '--no-hit' in sys.argv   # for measuring the base hand-over without the hit's light
+def frame(f):
+    t = f / FPS
+    k = int(round((t - t_seq0) * FPS))
+    if APPROACH and t < T_LOGO:
+        fr = approach_bg(t)
+    elif t < T_LOGO and 0 <= k < n_seq:
+        fr = np.asarray(Image.open(seq[k]).convert('RGB')).astype(np.float32) / 255
+        lock = sm((t - (T_LOGO - 0.30)) / 0.30)                    # glide onto the exact logo
+        fr = fr * (1 - lock) + logo_frame * lock
+    elif t < T_LOGO:
+        fr = bg.copy() if k < 0 else logo_frame.copy()
+    else:
+        base = logo_frame
+        if APPROACH and SMOOTH_END:
+            d = sm((t - T_LOGO - 0.15) / 0.95)                     # long, eased dissolve under the glow swell
+            if d < 1:
+                base = end_clip_frame(t) * (1 - d) + logo_frame * d
+        fr = zoom(base, 1.0 + 0.035 * sm((t - T_LOGO) / (DUR - T_LOGO)))
+    fr = fr.copy()
+    if SPACE:   # under the characters; a touch lighter over the AI galaxy, a whisper on the end card
+        fr = space_fx(fr, t, 1.0 - 0.2 * sm((t - T_LOGO) / 1.5) if SMOOTH_END else (1.0 if t < T_LOGO else 0.8))
+    if flyers and t < T_LOGO:
+        draw_flyers(fr, t)
+    fade_in = sm(t / 0.9)
+    # the final hit: flash, flare streak, the logo's glow pulsing
+    if SHEEN and SMOOTH_END and not NO_HIT and t > T_LOGO - 0.6:
+        # one continuous light curve: a build before the hit, the swell on it, settling after - nothing switches on at once
+        u = t - T_LOGO
+        pre_ = sm((u + 0.6) / 0.6)
+        swell = sm(u / 0.14) * math.exp(-max(0.0, u - 0.14) * 1.1) if u > 0 else 0.0
+        rise = sm(u / 0.30) * math.exp(-max(0.0, u - 0.30) * 0.9) if u > 0 else 0.0
+        st_ = 0.6 * pre_ * (math.exp(-max(0.0, u) * 1.2)) + 1.1 * rise
+        gl_ = 0.2 * pre_ + 0.75 * swell
+        fr = 1 - (1 - fr) * (1 - np.clip(flash_shape * 0.22 * swell + streak * st_ + glow_full * gl_, 0, 1))
+        if 0.12 <= u <= 1.5:
+            p_ = -1.0 + 2.2 * sm((u - 0.12) / 1.25)
+            band_ = np.exp(-(((xx - LOGO_CX) * 0.82 + (yy - LOGO_CY) * 0.57) / (LOGO_W * 0.5) - p_) ** 2 / 0.012)
+            fr = 1 - (1 - fr) * (1 - np.clip((band_ * LOGO_A)[..., None] * np.array([1.0, 0.86, 0.66], np.float32) * 0.55 * sm((u - 0.12) / 0.2), 0, 1))
+    elif NO_HIT:
+        pass
+    elif SHEEN and t >= T_LOGO - 0.04:
+        u = t - T_LOGO
+        swell = sm(u / 0.14) * math.exp(-max(0.0, u - 0.14) * 1.1)          # rim glow swells and settles
+        rise = sm(u / 0.30) * math.exp(-max(0.0, u - 0.30) * 0.9)            # a soft anamorphic streak rises and fades
+        fr = 1 - (1 - fr) * (1 - np.clip(flash_shape * 0.22 * swell + streak * 1.1 * rise + glow_full * (0.2 + 0.75 * swell), 0, 1))
+        if 0.12 <= u <= 1.5:                                                   # a light sweep gliding across ring and wordmark
+            p_ = -1.0 + 2.2 * sm((u - 0.12) / 1.25)
+            band_ = np.exp(-(((xx - LOGO_CX) * 0.82 + (yy - LOGO_CY) * 0.57) / (LOGO_W * 0.5) - p_) ** 2 / 0.012)
+            fr = 1 - (1 - fr) * (1 - np.clip((band_ * LOGO_A)[..., None] * np.array([1.0, 0.86, 0.66], np.float32) * 0.55, 0, 1))
+    elif t >= T_LOGO - 0.04:
+        e = math.exp(-(t - T_LOGO) * 3.2)
+        fr = 1 - (1 - fr) * (1 - np.clip(flash_shape * 0.6 * e + streak * 1.6 * math.exp(-(t - T_LOGO) * 1.6), 0, 1))
+        fr = 1 - (1 - fr) * (1 - np.clip(glow_full * (0.25 + 0.8 * e), 0, 1))
+    # a soft build of glow + flare in the half second before the hit
+    pre = sm((t - (T_LOGO - 0.6)) / 0.6) if t < T_LOGO and not SMOOTH_END and not NO_HIT else 0
+    if pre > 0:
+        fr = 1 - (1 - fr) * (1 - np.clip(streak * 0.6 * pre, 0, 1))
+    if GLINT and T_LOGO <= t < T_LOGO + 1.4:
+        u = t - T_LOGO - 0.04
+        sc_ = sm(u / 0.09) * math.exp(-max(0.0, u - 0.09) * 2.6)
+        if sc_ > 0.01:
+            fr = 1 - (1 - fr) * (1 - np.clip(star(0.35 + 0.75 * sc_, 0.25 + 0.5 * u) * sc_, 0, 1))
+    if t >= B['tagline'] and not NO_TAG:
+        a = sm((t - B['tagline']) / 0.55); over(fr, tag, W / 2, TAG_Y, a, dy=(1 - a) * 24)
+    if t >= B['url'] and not NO_URL:
+        a = sm((t - B['url']) / 0.55); over(fr, url, W / 2, URL_Y, a, dy=(1 - a) * 18)
+    if BIO and not NO_URL and t >= B['url'] + 0.6:
+        a = sm((t - B['url'] - 0.6) / 0.55); over(fr, bio, W / 2, BIO_Y, a, dy=(1 - a) * 18)
+    return np.clip(fr * vign * fade_in, 0, 1)
+
+if arg('--preview'):   # a few frames as PNG, no video
+    for f in [int(x) for x in arg('--preview').split(',')]:
+        Image.fromarray((frame(f) * 255 + 0.5).astype(np.uint8)).save(os.path.join(HERE, f'out/test/{NAME}-{f:04d}.png'))
+    sys.exit(0)
+RANGE = arg('--range')
+if RANGE:   # a silent piece of the story, for the game
+    a_, b_ = [float(x) for x in RANGE.split(',')]
+    pS = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
+                           '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', outs['story']], stdin=subprocess.PIPE)
+    frames_ = range(int(round(a_ * FPS)), min(NF, int(round(b_ * FPS))))
+else:
+    pS = enc(outs['story'], 'null'); frames_ = range(NF)
+for f in frames_:
+    pS.stdin.write((frame(f) * 255 + 0.5).astype(np.uint8).tobytes())
+pS.stdin.close(); pS.wait()
+print(outs['story'])
