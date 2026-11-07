@@ -52,7 +52,7 @@ export function prefetch(chars) {
   FIRST.forEach((n) => pic(ART + n));
   castOf(chars || wikiChars()).slice(0, EARLY).forEach((c) => pic(absImg(c.img), true));
   if (!PRE.music) PRE.music = fetch(ART + 'fly-music.mp3').then((r) => r.arrayBuffer()).catch(() => null);
-  ['laser-1', 'boom-1', 'engine'].forEach((n) => fetch(ART + `fly-${n}.mp3`).catch(() => {}));   // into the cache for the first shots
+  ['laser-3', 'boom-1', 'engine'].forEach((n) => fetch(ART + `fly-${n}.mp3`).catch(() => {}));   // into the cache for the first shots
 }
 
 const SHIELD_D = 'M12 2.5 4 5.6v6.1c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-4.9 8-9.8V5.6z';
@@ -130,7 +130,7 @@ export function play(el, opts = {}) {
   root.className = 'fly';
   root.innerHTML = `<div class="fly-stage">
     <canvas></canvas>
-    <video muted playsinline preload="none"></video>
+    <video src="${ART}fly-end.mp4" muted playsinline webkit-playsinline preload="metadata"></video>
     <div class="fly-hud"><div class="fly-shields">${SVG.shield.repeat(TUNE.shields)}</div>
       <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i><img src="${ART}fly-planet.webp" alt=""></div>
       <button class="fly-btn fly-mute" aria-label="${Z.sound}">${SVG.sound}</button><button class="fly-btn fly-skip">${Z.skip}</button></div>
@@ -292,7 +292,8 @@ export function play(el, opts = {}) {
     ship.tx += (e.clientX - drag.x) * g; ship.ty += (e.clientY - drag.y) * g; drag.x = e.clientX; drag.y = e.clientY;
     const L = lim(); ship.tx = clamp(ship.tx, L.x0, L.x1); ship.ty = clamp(ship.ty, L.y0, L.y1);
   };
-  const onUp = (e) => { if (drag && e.pointerId === drag.id) drag = null; };
+  const onUp = (e) => { armClip(); if (drag && e.pointerId === drag.id) drag = null; };
+  const onTouchEnd = () => armClip();
   const KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, a: 1, d: 1, w: 1, s: 1, ' ': 1 };
   const onKey = (e) => {
     if (!KEYS[e.key]) return;
@@ -301,6 +302,7 @@ export function play(el, opts = {}) {
   };
   const onVis = () => { if (document.hidden && G.phase === 'fly') { G.phase = 'paused'; drag = null; au && au.pause(); showTut(true); } };
   stage.addEventListener('pointerdown', onDown);
+  stage.addEventListener('touchend', onTouchEnd, { passive: true });
   addEventListener('pointermove', onMove); addEventListener('pointerup', onUp); addEventListener('pointercancel', onUp);
   addEventListener('keydown', onKey); addEventListener('keyup', onKey);
   document.addEventListener('visibilitychange', onVis);
@@ -322,8 +324,22 @@ export function play(el, opts = {}) {
     G.ents = []; G.gems = []; G.pick = []; G.shots = []; G.booms = []; G.parts = []; G.spawnIn = 1.2; G.gemIn = 2; G.slow = 1; G.shake = 0; G.heat = 0; G.hot = false;
     G.livesAt = K().lives.slice(); G.stretch = false;
   }
+  // the ending clip, unlocked by the first touch (round 4 - on his iPhone the landing showed no turn: iOS lets a video play later from
+  // code only if a touch played it once, and it loads nothing without one): play it for a blink inside the touch, invisible, and
+  // stop. If even that is refused (Low Power Mode...), the turn is drawn from a sheet of the clip's own frames instead.
+  // (a touch "counts" for media on its end - touchend / pointerup - on iPhones, so every touch end tries until one is accepted)
+  function armClip() {
+    if (G.clipOk || G.arming || G.clip) return; G.arming = true;
+    video.muted = true; video.preload = 'auto';
+    let p; try { p = video.play(); } catch (e) { p = null; }
+    if (p && p.then) p.then(() => { G.arming = false; if (!G.clip) { video.pause(); video.currentTime = 0; } G.clipOk = true; })
+      .catch(() => { G.arming = false; G.clipOk = false; });
+    else G.arming = false;
+  }
+  const loadTurn = () => { if (!A.turn) A.turn = pic(ART + 'fly-turn.webp'); };
   function begin() {
     tut.classList.add('hide');
+    armClip();
     if (G.phase === 'intro') { fresh(); loadRest(); }
     G.phase = 'fly';
     au && au.music();
@@ -354,6 +370,7 @@ export function play(el, opts = {}) {
   function step(dt) {
     const L = lim();
     if (G.phase === 'fly' || G.phase === 'crash') dt *= G.slow;
+    if (G.phase === 'done') return turnStep(dt);   // the space stands still under the clip (or the drawn turn)
     G.bgY += (14 * u + (G.phase === 'end' ? 0 : vyNow() * 0.1)) * dt * (G.phase === 'end' ? 1 + 5 * Math.sin(Math.min(1, G.endT / 1.5) * Math.PI) : 1);
     for (const d of G.dots) { d.y += (d.z * (G.phase === 'end' ? 3 : 1) * (60 + vyNow() * 0.35)) * dt / H; if (d.y > 1) { d.y -= 1; d.x = R(); } }
     if (G.phase === 'intro' || G.phase === 'paused' || G.phase === 'over' || G.phase === 'done') return fx(dt);
@@ -378,7 +395,7 @@ export function play(el, opts = {}) {
         G.gemIn -= dt; if (G.gemIn <= 0) { G.gemIn = 1.6 + R() * 1.2; gemRow(); }
         if (G.livesAt.length && G.p >= G.livesAt[0]) { G.livesAt.shift(); life(); }
       } else if (!G.stretch) { G.stretch = true; homeStretch(); }
-      if (G.p > 0.5 && !G.clipReady) { G.clipReady = true; video.preload = 'auto'; video.src = ART + 'fly-end.mp4'; au && au.prepLand(); }   // the end, fetched while they fly
+      if (G.p > 0.5 && !G.clipReady) { G.clipReady = true; video.preload = 'auto'; au && au.prepLand(); if (!G.clipOk) loadTurn(); }   // the end, fetched while they fly (the drawn turn only where the clip was refused)
       if (G.p >= 1) { G.phase = 'end'; G.endT = 0; G.end0 = { x: ship.x, y: ship.y }; G.stretch = false; au && au.whoosh(); }
     }
     // the characters
@@ -528,14 +545,30 @@ export function play(el, opts = {}) {
       G.clip = true; G.phase = 'done';
       G.score += G.shields * TUNE.score.shield;   // every shield brought home counts
       au && au.land();
-      if (!video.src) video.src = ART + 'fly-end.mp4';
-      video.muted = true;
+      video.muted = true; try { video.currentTime = 0; } catch (e) {}
       const c = clipPlanet(); video.style.transformOrigin = `${c.x}px ${c.y}px`;
-      const show = () => { video.classList.add('on'); setTimeout(() => { G.clipOn = true; }, 600); setTimeout(() => video.classList.add('settle'), 1800); };
-      video.play().then(show).catch(() => {});   // no clip (a slow line, a refusal): the game's own planet stays and the result still comes
-      let shown = false; const result = () => { if (shown || dead) return; shown = true; showResult(); };
-      video.onended = result; setTimeout(result, 6400);   // the clip runs 5.6 s: the word turns on, the glow settles
+      let shown = false; G.result = () => { if (shown || dead) return; shown = true; showResult(); };
+      const show = () => {
+        if (G.turn) { video.pause(); return; }   // too late: the drawn turn already runs
+        G.playing = true; video.classList.add('on'); setTimeout(() => { G.clipOn = true; }, 600); setTimeout(() => video.classList.add('settle'), 1800);
+        video.onended = G.result; setTimeout(G.result, 6400);   // the clip runs 6 s: the word turns on, the glow settles
+      };
+      let p; try { p = G.clipOk === false ? null : video.play(); } catch (e) { p = null; }
+      if (p && p.then) p.then(show).catch(drawnTurn); else drawnTurn();
+      setTimeout(() => { if (!G.playing) drawnTurn(); }, 900);   // refused in silence, or stuck loading: never a frozen planet
     }
+    fx(dt);
+  }
+  // the turn drawn on the canvas from the clip's own frames (fly-turn.webp: 24 frames, 7.4-9.8 s of the teaser, 10 a second), the
+  // planet exactly where the clip would have it; the last frame stays and the result comes as with the clip
+  function drawnTurn() {
+    if (G.turn || G.playing || dead) return;
+    loadTurn(); G.turn = { t: 0 };
+    try { video.pause(); } catch (e) {}
+    setTimeout(G.result, 9000);   // the sheet never came: the result still does
+  }
+  function turnStep(dt) {
+    if (G.turn && ok(A.turn)) { G.turn.t += dt; if (G.turn.t > 3.6) G.result(); }   // starts when the sheet is in; 2.4 s of turn, a beat, the result
     fx(dt);
   }
   function showResult() {
@@ -572,7 +605,11 @@ export function play(el, opts = {}) {
     for (const d of G.dots) { c.globalAlpha = (0.25 + d.z * 0.6) * (streak > 1.5 ? 0.45 : 1); c.fillRect(d.x * W, d.y * H, d.z * 1.6 * u * (streak > 1.5 ? 0.6 : 1), d.z * 1.6 * u * streak); }
     c.globalAlpha = 1;
     // the goal: the planet from behind, its word not on the ring yet - it turns on only in the clip, at the landing
-    if (ok(A.planet)) {
+    if (G.turn && ok(A.turn)) {
+      const s = Math.max(W / CLIP.w, H / CLIP.h), ox = (W - CLIP.w * s) / 2, oy = (H - CLIP.h * s) / 2;
+      const f = Math.min(23, Math.floor(G.turn.t * 10)), w = 480 * s, sw = A.turn.naturalWidth / 6;
+      c.drawImage(A.turn, (f % 6) * sw, Math.floor(f / 6) * sw, sw, sw, 269 * s + ox - w / 2, 440 * s + oy - w / 2, w, w);
+    } else if (ok(A.planet)) {
       const P = planetNow(), pul = G.phase === 'done' ? 1 : 1 + Math.sin(performance.now() / 600) * 0.012, w = (P.ring / PLANET_RING) * pul;
       c.drawImage(A.planet, P.x - w / 2, P.y - w / 2, w, w);
     }
@@ -659,7 +696,7 @@ export function play(el, opts = {}) {
   function stop() {
     if (dead) return; dead = true;
     cancelAnimationFrame(raf);
-    stage.removeEventListener('pointerdown', onDown);
+    stage.removeEventListener('pointerdown', onDown); stage.removeEventListener('touchend', onTouchEnd);
     removeEventListener('pointermove', onMove); removeEventListener('pointerup', onUp); removeEventListener('pointercancel', onUp);
     removeEventListener('keydown', onKey); removeEventListener('keyup', onKey); removeEventListener('resize', onResize);
     document.removeEventListener('visibilitychange', onVis);
@@ -675,7 +712,9 @@ export function play(el, opts = {}) {
 
 // ---------- sound: real effects (fly-sfx.mjs) on WebAudio - several takes for what repeats, never the same one twice running,
 // a little pitch play on the shots; the music and an engine hum under everything ----------
-const SFX = { pew: ['laser-1', 'laser-2', 'laser-3'], boom: ['boom-1', 'boom-2'], hit: ['hit'], life: ['life'], star: ['star'], whoosh: ['whoosh'], engine: ['engine'] };
+// round 4: the shots and the pop are the takes with real mid / high punch and a fast attack (laser-2, laser-3, boom-1 - measured:
+// the bass-only takes vanish on a phone's speaker), the pop's pitch moves so it never repeats exactly
+const SFX = { pew: ['laser-3', 'laser-2'], boom: ['boom-1'], hit: ['hit'], whoosh: ['whoosh'], engine: ['engine'] };
 function makeAudio(muted) {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return null;
@@ -690,8 +729,8 @@ function makeAudio(muted) {
   // the effects load in two steps: what the flight needs at once, then the rest
   const loadFx = () => {
     if (ready.fx) return ready.fx;
-    const first = ['laser-1', 'laser-2', 'laser-3', 'boom-1', 'boom-2', 'star', 'hit', 'engine'];
-    ready.fx = Promise.all(first.map((n) => load(n, ART + `fly-${n}.mp3`))).then(() => Promise.all(['life', 'whoosh'].map((n) => load(n, ART + `fly-${n}.mp3`))));
+    const first = ['laser-2', 'laser-3', 'boom-1', 'hit', 'engine'];
+    ready.fx = Promise.all(first.map((n) => load(n, ART + `fly-${n}.mp3`))).then(() => load('whoosh', ART + 'fly-whoosh.mp3'));
     return ready.fx;
   };
   let loop = null, hum = null, wantMusic = false, closed = false;
@@ -706,6 +745,14 @@ function makeAudio(muted) {
     s.connect(g).connect(fx); s.start();
   }
   const jit = (a) => 1 + (Math.random() - 0.5) * a;
+  // the two pickups stay drawn in code, as in round 2 (he liked them better than the recorded ones)
+  function env(g, t, peak, a, d) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); }
+  function tone(type, f0, f1, dur, peak, delay = 0) {
+    if (closed) return;
+    const t = now() + delay, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur); o.detune.value = (Math.random() - 0.5) * 60;
+    env(g, t, peak, 0.006, dur); o.connect(g).connect(fx); o.start(t); o.stop(t + dur + 0.05);
+  }
   function bed(k, gain, out) {   // a loop that fades in
     const s = ctx.createBufferSource(), g = ctx.createGain();
     s.buffer = buf[k]; s.loop = true; if (k === 'engine') { s.loopStart = 0.03; s.loopEnd = buf[k].duration - 0.03; }
@@ -724,12 +771,12 @@ function makeAudio(muted) {
     },
     prepLand() { if (!ready.land) ready.land = load('land', ART + 'fly-land.mp3'); },
     duck(on) { mus.gain.setTargetAtTime(on ? 0.2 : 0.55, now(), 0.15); if (hum) hum.g.gain.setTargetAtTime(on ? 0.06 : 0.32, now(), 0.15); },
-    star(n) { play('star', 0.75, 1 + (Math.min(n, 12) % 6) * 0.05); },
+    star(n) { const f = 988 * Math.pow(2, (Math.min(n, 12) % 6) / 12); tone('sine', f, 0, 0.16, 0.22); tone('sine', f * 1.5, 0, 0.2, 0.12, 0.05); },
     pew() { play('pew', 0.5, jit(0.14)); },
     tick() { play('hit', 0.22, 1.9 * jit(0.1)); },
-    boom() { play('boom', 0.95, jit(0.18)); },
+    boom() { play('boom', 0.95, jit(0.24)); },
     overheat() { play('hit', 0.3, 0.55); },
-    life() { play('life', 0.9); },
+    life() { [660, 880, 1320].forEach((f, i) => tone('triangle', f, 0, 0.16, 0.2, i * 0.07)); tone('sine', 1760, 0, 0.3, 0.1, 0.21); },
     hit() { play('hit', 1, jit(0.08)); },
     crash() { play('boom', 1, 0.62); play('hit', 0.8, 0.8); },
     whoosh() { play('whoosh', 0.95); fade(hum); hum = null; },

@@ -13,12 +13,17 @@ const TOOL = 'C:/workspace/BoostMind/zoomcut/tools/leonardo.mjs';
 // then each is cut to the length it plays in the game (KEEP, seconds, with a short fade out)
 // and levelled (dB, measured with ffmpeg volumedetect): every effect sits together, the shots well under the rest - they play
 // three times a second
-const GAIN = { 'laser-1': -14, 'laser-2': -6.5, 'laser-3': -12.5, 'boom-1': 0, 'boom-2': -6, hit: -1, life: 7, star: 19, engine: -12, whoosh: -3 };
-const KEEP = { 'laser-1': 0.38, 'laser-2': 0.38, 'laser-3': 0.38, 'boom-1': 1.1, 'boom-2': 1.1, hit: 0.9, life: 1.3, star: 0.6, whoosh: 2.0 };
+const GAIN = { 'laser-4': 0, 'laser-5': 0, 'boom-3': 0, 'laser-1': -14, 'laser-2': -6.5, 'laser-3': -12.5, 'boom-1': 0, 'boom-2': -6, hit: -1, life: 7, star: 19, engine: -12, whoosh: -3 };
+const KEEP = { 'laser-4': 0.42, 'laser-5': 0.42, 'boom-3': 1.2, 'laser-1': 0.38, 'laser-2': 0.38, 'laser-3': 0.38, 'boom-1': 1.1, 'boom-2': 1.1, hit: 0.9, life: 1.3, star: 0.6, whoosh: 2.0 };
 const SFX = {
   'laser-1': [1, false, 'A single short punchy sci-fi blaster shot from a small fighter spaceship, a tight bright "pew" with a quick zap tail, clean, no reverb tail, no music. One shot only.'],
   'laser-2': [1, false, 'One short soft energy laser pulse fired from a spaceship cannon, a crisp electric zip, light and pleasant to hear many times in a row, no music, one shot only.'],
   'laser-3': [1, false, 'One quick plasma bolt shot, a short bright synth zap with a tiny low thump under it, cinematic sci-fi game, no music, one shot only.'],
+  // round 4 ("fire and blast are okay, not great"): deeper, more cinematic takes - measured as almost all sub-bass (gone on a
+  // phone's speaker), so the game kept laser-2, laser-3 and boom-1; star and life are drawn in code again (his ear, round 4)
+  'laser-4': [1, false, 'A deep punchy cinematic sci-fi blaster shot: a heavy bass thump with a bright crisp laser crack on top, like a starfighter cannon in a space movie, very short, dry, no music, one shot only.'],
+  'laser-5': [1, false, 'A powerful short space-fighter laser cannon blast, chunky low punch and a sharp electric snap, modern sci-fi movie sound design, no reverb tail, no music, one shot only.'],
+  'boom-3': [2, false, 'A chunky cinematic sci-fi explosion: a deep sub-bass boom, a punchy blast and metal debris crackling and scattering, big but short, space battle, no music.'],
   'boom-1': [2, false, 'A satisfying cartoon-cinematic space explosion pop: a balloon-like pop and a punchy burst with sparkly debris crackle, short and fun, arcade game, no music.'],
   'boom-2': [2, false, 'A punchy small sci-fi explosion: a deep thump, a bright crackling burst and glittering sparks fading fast, satisfying arcade space shooter, no music.'],
   'hit': [1, false, 'A heavy metallic impact on a spaceship hull: a hard crunching hit, an energy shield cracking with an electric fizz and a low rumble, alarming, no music.'],
