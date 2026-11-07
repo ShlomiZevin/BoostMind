@@ -7,7 +7,8 @@
   --vx-blur: blur(22px) saturate(150%);
   --vx-r: 28px; --vx-r2: 18px;
   --vx-shadow: 0 18px 50px rgba(0, 0, 0, .45);
-  --vx-glow: 0 0 0 1px rgba(255, 106, 31, .35), 0 10px 34px rgba(255, 106, 31, .45);
+  /* the main buttons' halo: a soft lift, not a glow (round 4, his note 2026-11-07: "too much glow" - was 0 10px 34px at .45) */
+  --vx-glow: 0 0 0 1px rgba(255, 106, 31, .22), 0 6px 16px -8px rgba(255, 106, 31, .38);
 }
 
 /* ---------- the pieces every screen uses ---------- */
@@ -2028,6 +2029,137 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .sim-next i { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--vx-accent); display: grid; place-items: center; color: var(--vx-accent); flex: none; }
 .sim-next i svg { width: 22px; height: 22px; }
 
+/* ---------- round 4 - the journeys (plan cz-sim-r4, his notes 2026-11-07): one writing bar for Yotam, Miriam and the rabbi,
+   Yotam's stages, the thinking line, "יותם מסווג אתכם", the end of the test, the passport on one screen ---------- */
+/* ONE writing bar (mockup input): a rounded field with a pencil + a send button of exactly its height; two lines grow both; no
+   focus ring / border jump, no Windows scrollbar line on the empty field */
+.vx-write { display: flex; align-items: stretch; gap: 8px; width: 100%; margin: 0; }
+.vx-write-f { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; margin: 0; padding: 0 14px; border-radius: 16px; border: 1.5px solid var(--line2); background: var(--card); cursor: text; transition: border-color .15s; }
+.vx-write-f:focus-within { border-color: rgba(255, 106, 31, .75); }
+.vx-write textarea { flex: 1; min-width: 0; display: block; box-sizing: border-box; height: 48px; margin: 0; padding: 13px 0; border: 0; border-radius: 0; outline: 0; box-shadow: none; background: none;
+  color: var(--text); font: inherit; font-size: 16px; line-height: 22px; resize: none; overflow-y: auto; scrollbar-width: none; -webkit-appearance: none; appearance: none; }
+.vx-write textarea::-webkit-scrollbar { display: none; width: 0; }
+.vx-write textarea:focus, .vx-write textarea:focus-visible { outline: 0; box-shadow: none; border: 0; }
+.vx-write textarea::placeholder { color: var(--dim); opacity: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vx-write textarea:disabled { opacity: .6; background: none; }
+.vx-write-pen { width: 19px; height: 19px; flex: none; color: var(--dim); }
+.vx-write-go { flex: none; width: 52px; min-height: 51px; margin: 0; padding: 0; border: 0; border-radius: 16px; background: var(--vx-accent); color: #fff; display: grid; place-items: center; box-shadow: none; cursor: pointer; }
+.vx-write-go svg { width: 22px; height: 22px; }
+.vx-write-go:disabled { opacity: .55; cursor: default; }
+.vx-write-go.wait { opacity: 1; }
+.vx-write-go.wait svg { display: none; }
+.vx-write-go.wait::after { content: ""; width: 18px; height: 18px; border: 2px solid #fff; border-left-color: transparent; border-radius: 50%; animation: sim-spin .8s linear infinite; }
+.vx-pick-hint { margin: 0; text-align: center; color: var(--dim); font-size: .85rem; line-height: 1.3; }
+
+/* Yotam's stages (mockup simq-a + his correction: one stage at a time, no running chat) */
+/* the stage's parts move, never .sim-q itself: a transform there would carry the fixed writing bar along with it */
+.sim-q { padding-bottom: 128px; }
+.sim-q > :not(.sim-dock) { animation: sim-in .32s ease-out both; }
+.sim-q > .sim-as { animation-delay: .06s; }
+.sim-q.out > :not(.sim-dock) { opacity: 0; transform: translateY(-8px); transition: opacity .16s, transform .16s; }
+@keyframes sim-in { from { opacity: 0; transform: translateY(10px); } }
+.sim-qh { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--line2); }
+.sim-qh > img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--vx-accent); flex: none; }
+.sim-qh-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.sim-qh-t b { font-size: .95rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sim-qh-t small { font-size: .78rem; color: var(--dim); }
+.sim-dots { display: flex; gap: 6px; flex: none; }
+.sim-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line2); }
+.sim-dots i.done { background: var(--vx-accent); }
+.sim-dots i.now { background: none; box-shadow: inset 0 0 0 2px var(--vx-accent); }
+.sim-stage { display: flex; flex-direction: column; gap: 10px; }
+.sim-stage:has(.sim-mine) { min-height: 12.5rem; }   /* stages 2-7 keep their cards at about the same height */
+.sim-mine { align-self: flex-start; max-width: 82%; margin: 0; padding: 10px 16px; border-radius: 18px 18px 4px 18px; background: var(--vx-accent); color: #fff; font-weight: 800; font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; }
+.sim-re { display: flex; align-items: flex-start; gap: 8px; }
+.sim-re img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--vx-accent); flex: none; }
+.sim-re p { margin: 0; max-width: 86%; padding: 9px 14px; border-radius: 18px 4px 18px 18px; background: var(--card2); border: 1px solid var(--line2); color: #cfc8c0; font-style: italic; font-size: .95rem; line-height: 1.4; }
+.sim-q .sim-bubble { margin-top: 2px; border-radius: 18px; padding: 15px 18px; font-size: 1.22rem; font-weight: 900; }
+.sim-q .vx-pick-hint { margin: 12px 0 8px; }
+.sim-q .sim-as { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sim-q .sim-as button { position: relative; display: flex; align-items: center; gap: 10px; min-height: 66px; padding: 10px 12px; border-radius: 16px; font-size: .98rem; text-align: right; }
+.sim-as button > i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #8a837c; flex: none; transition: border-color .15s, background .15s; }
+.sim-as button.on > i { border-color: var(--vx-accent); background: radial-gradient(circle, var(--vx-accent) 0 4px, transparent 4.5px); }
+.sim-as button > span { min-width: 0; }
+.sim-dock { position: fixed; z-index: 37; bottom: 0; left: 50%; transform: translateX(-50%); width: min(520px, 100%); display: flex; flex-direction: column; gap: 2px;
+  padding: 18px 18px calc(10px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 16px); }
+.sim-dock .sim-skip { margin: 2px auto 0; padding: 4px 8px; }
+@media (max-width: 900px) { body[data-page="simulation"]:has(.sim-q) .nav { display: none !important; } }
+@media (max-width: 370px) { .sim-q .sim-as button { min-height: 58px; font-size: .92rem; } .sim-stage:has(.sim-mine) { min-height: 11rem; } .sim-q .sim-bubble { font-size: 1.12rem; } }
+
+/* Miriam / the rabbi think (mockup think): their bubble keeps its height, a short line of theirs typed with a caret; the picture breathes */
+.cz-say2.thinking { display: flex; align-items: center; }
+.cz-think { display: inline-flex; align-items: center; gap: 1px; min-width: 0; color: #5d544c; font-size: 1rem; }
+.cz-think em { font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cz-think i { width: 2px; height: 1.15em; flex: none; background: currentColor; animation: cz-caret 1s steps(1) infinite; }
+@keyframes cz-caret { 50% { opacity: 0; } }
+.cz-desk.thinking .cz-scene img { animation: cz-breathe 6s ease-in-out infinite alternate; }
+@keyframes cz-breathe { to { transform: scale(1.05); } }
+.cz-desk .vx-pick-hint { margin: 2px 0 -2px; }
+@media (max-height: 760px) {   /* "מאיפה טסתם" (5 rows) on a short phone: all five above the bar */
+  .cz-desk:has(.cz-opts.rows) .vx-pick-hint { display: none; }
+  .cz-desk:has(.cz-opts.rows) .cz-scene { height: 80px; }
+}
+.cz-dock .vx-write { margin-bottom: 2px; }
+
+/* "יותם מסווג אתכם" (mockup classify): nothing spins but a thin scan line; one face lit at a time, the others dimmed */
+.sim-calc { padding-top: 7svh; }
+.sim-ring { position: relative; width: 280px; height: 280px; margin: 0 auto 28px; display: grid; place-items: center; }
+.sim-ring::before { content: ""; position: absolute; inset: 30px; border-radius: 50%; border: 1px solid rgba(255, 106, 31, .2); }
+.sim-ring img { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; margin: -30px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255, 106, 31, .3);
+  transform: rotate(calc(var(--i) * 60deg)) translateY(-110px) rotate(calc(var(--i) * -60deg)); filter: brightness(.42) saturate(.5); transition: filter .6s, transform .6s, border-color .6s, box-shadow .6s; }
+.sim-ring img.on { z-index: 1; filter: none; border-color: var(--vx-accent); box-shadow: 0 0 0 3px rgba(255, 106, 31, .18), 0 0 18px rgba(255, 106, 31, .25);
+  transform: rotate(calc(var(--i) * 60deg)) translateY(-110px) rotate(calc(var(--i) * -60deg)) scale(1.16); }
+.sim-scan { width: 124px; height: 124px; border-radius: 50%; border: 1px solid rgba(255, 106, 31, .4);
+  background: conic-gradient(from 0deg, transparent 0 290deg, rgba(255, 106, 31, .16) 356deg, rgba(255, 150, 70, .85) 359deg 360deg); animation: sim-spin 7s linear infinite; }
+.sim-calc p { min-height: 1.5em; transition: opacity .3s; }
+
+/* the end of the test (mockup simend): a smaller certificate with the department, the three, home first, passport + profile, share quiet */
+.sim-cert-row:has(.sim-cert-dept) { grid-template-columns: auto minmax(0, 1fr) auto; }
+.sim-cert-row:has(.sim-cert-dept) .sim-cert-sign small { max-width: 76px; }
+.sim-cert-row:has(.sim-cert-dept) .sim-cert-logo, .sim-cert-row:has(.sim-cert-dept) .sim-sign { width: min(17vw, 70px); }
+.sim-cert-dept { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 12px; border-inline: 1px solid rgba(214, 174, 92, .35); min-width: 0; }
+.sim-cert-dept small { color: #cfc6bb; font-size: .78rem; font-weight: 700; }
+.sim-cert-dept b { font-size: clamp(1.02rem, 4.8vw, 1.25rem); font-weight: 900; line-height: 1.2; color: var(--vx-accent); }
+.sim-end { gap: 12px; }
+.sim-end .sim-cert { padding: 10px 14px 12px; }
+.sim-end .sim-cert-logo, .sim-end .sim-sign { width: min(17vw, 70px); }
+.sim-end .sim-cert-name { font-size: clamp(1.2rem, 5.6vw, 1.5rem); }
+.sim-end .sim-sec-h { margin-top: 0; font-size: 1.02rem; }
+.sim-end .sim-cast3 img { width: min(19vw, 76px); height: min(19vw, 76px); }
+.sim-end .sim-follow { height: 44px; font-size: .95rem; }
+.sim-end .sim-home { box-shadow: none; text-decoration: none; }
+.sim-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sim-two:has(> :only-child) { grid-template-columns: 1fr; }
+.sim .sim-two .vx-btn { height: 50px; padding: 0 10px; gap: 8px; background: none; border: 1.5px solid var(--line2); color: var(--text); text-decoration: none; font-weight: 700; font-size: .98rem; }
+.sim-two .vx-btn svg { width: 20px; height: 20px; }
+.sim-quiet { align-self: center; background: none; border: 0; color: var(--dim); font: inherit; font-size: .92rem; text-decoration: underline; text-underline-offset: 3px; padding: 2px 8px; }
+.sim-end .sim-pic { margin-top: 8px; }
+.sim-badge.dept { max-width: 64%; text-align: right; padding: 8px 12px; }
+.sim-badge.dept small { display: block; }
+.sim-badge.dept b { font-size: 1.05rem; line-height: 1.25; }
+
+/* the passport on one screen (mockup passport): the stamp pressed over the data page's lower corner, the rabbi's signature, one
+   small row to the simulation, home first; .cz-pp-stamp / .cz-pp-sign = drawPassport's places */
+.cz-id { gap: 10px; }
+.cz-pp-f b.d { font-size: 3.1cqw; }
+.cz-pp-stamp { position: absolute; right: 9.35cqw; top: 43.35cqw; width: 23.3cqw; height: 23.3cqw; box-sizing: border-box; border-radius: 50%; border: .7cqw solid currentColor; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15cqw;
+  color: #3a3196; transform: rotate(-12deg); mix-blend-mode: multiply; opacity: .85; font-family: Arial, 'Noto Sans Hebrew', sans-serif; line-height: 1.1; text-align: center; }
+.cz-pp-stamp::before { content: ""; position: absolute; inset: .75cqw; border-radius: 50%; border: .3cqw solid currentColor; }
+.cz-pp-stamp small { font-size: 1.6cqw; font-weight: 800; white-space: nowrap; max-width: 17cqw; overflow: hidden; text-overflow: ellipsis; }
+.cz-pp-stamp small:last-child { font-size: 1.7cqw; font-weight: 700; }
+.cz-pp-stamp b { font-size: 2.3cqw; font-weight: 900; }
+.cz-pp-stamp span { font: 900 4.6cqw/1 "Courier New", monospace; letter-spacing: .04em; }
+.cz-pp-sign { position: absolute; left: 5cqw; top: 43cqw; width: 20cqw; color: #1b2a6b; mix-blend-mode: multiply; text-align: center; }
+.cz-pp-sign .cz-sign { transform-origin: 0 0; }
+.cz-pp-sign small { display: block; font: 700 1.8cqw Arial, 'Noto Sans Hebrew', sans-serif; color: #2b2f55; margin-top: .3cqw; white-space: nowrap; }
+.cz-id-sim { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); text-decoration: none; font-weight: 600; font-size: .84rem; text-align: right; }
+.cz-id-sim > span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cz-id-sim > svg { width: 20px; height: 20px; flex: none; color: var(--vx-accent); }
+.cz-id-sim > svg:last-child { width: 18px; height: 18px; color: var(--dim); margin-inline-start: auto; }
+.cz-id .vx-btn.main { box-shadow: none; margin-top: 2px; }
+.cz-id-share { align-self: center; margin-top: -2px; }
+.cz-id .cz-tools { margin-top: 4px; }
+
 /* "מה סיפרתם לנו" on the אני page (mockup r3-me-1): a row per field, its answer, "שינוי" / "להוסיף"; notifications = a switch */
 .ab-card { max-width: 760px; margin: 22px auto 0; padding: 18px 18px 6px; border-radius: 24px; background: var(--card); border: 1.5px solid rgba(255, 106, 31, .75); }
 .ab-card h2 { font-size: 1.4rem; font-weight: 900; margin: 0; }
@@ -2059,3 +2191,85 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .vx-sheet.ab .ab-dock { position: sticky; bottom: -22px; margin: 0 -22px -22px; padding: 12px 22px 22px; background: linear-gradient(transparent, rgba(18, 18, 22, .94) 14px); }
 .vx-sheet.ab .ab-dock .vx-btn.block { margin-top: 0; }
 @media (max-width: 370px) { .ab-row { gap: 8px; } .ab-faces { gap: 4px; } .ab-faces > span { width: 31px; } .ab-faces .vx-av { width: 30px; height: 30px; } }
+
+/* ========== round 4, site-wide (plan cz-sim-r4, his notes 2026-11-07) ========== */
+/* ---- the page loader (item 1-2, mockup r4 loader): the official logo standing still (no spin), a soft glow breathing into
+   the dark - a radial fade, so no square edge (his screenshot: the turning logo's glow cut in a square) - a thin orange line
+   drawing itself and a small grey "נכנסים לשלומיוורס". ui.js loader() / the wiki router: .vx-loader; the journeys' own loaders
+   (.cz-load with its turning-logo video, .sim-load with its planet) take the same look while they still hold only that ---- */
+@property --vxl-g { syntax: '<number>'; inherits: false; initial-value: .6; }
+.vx-loader, .cz-load:is(:has(> video:only-child)), .sim-load:is(:has(> .sim-planet:only-child)) {
+  position: relative; min-height: 62svh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(circle 170px at 50% calc(50% - 24px), rgba(255, 106, 31, calc(.2 * var(--vxl-g))), rgba(255, 106, 31, calc(.06 * var(--vxl-g))) 52%, transparent 100%);
+  animation: vxl-breathe 3.2s ease-in-out infinite; }
+.vx-loader::before, .cz-load:is(:has(> video:only-child))::before, .sim-load:is(:has(> .sim-planet:only-child))::before {
+  content: ''; width: 132px; aspect-ratio: 508 / 431; background: url(/verse/logo-512.png) center / contain no-repeat; }
+.vx-loader::after, .cz-load:is(:has(> video:only-child))::after, .sim-load:is(:has(> .sim-planet:only-child))::after {
+  content: attr(data-say); width: 150px; margin-top: 22px; padding-top: 14px; text-align: center; color: var(--faint, #6f6c77); font-size: .8rem; font-weight: 500; letter-spacing: .01em;
+  background: linear-gradient(var(--vx-accent), var(--vx-accent)) right top / 0 2px no-repeat, linear-gradient(rgba(255, 255, 255, .12), rgba(255, 255, 255, .12)) center top / 100% 1px no-repeat;
+  animation: vxl-line 1.9s ease-in-out infinite; }
+.cz-load:is(:has(> video:only-child))::after, .sim-load:is(:has(> .sim-planet:only-child))::after { content: '\05E0\05DB\05E0\05E1\05D9\05DD  \05DC\05E9\05DC\05D5\05DE\05D9\05D5\05D5\05E8\05E1'; }
+.cz-load:is(:has(> video:only-child)) > video, .sim-load:is(:has(> .sim-planet:only-child)) > .sim-planet { display: none; }
+#app > .vx-loader { margin-top: 16px; }   /* where the journeys' own loaders stand (their page's top padding), so nothing jumps */
+@keyframes vxl-breathe { 0%, 100% { --vxl-g: .55; } 50% { --vxl-g: 1; } }
+@keyframes vxl-line {
+  0% { background-size: 0 2px, 100% 1px; background-position: right top, center top; }
+  60% { background-size: 100% 2px, 100% 1px; background-position: right top, center top; }
+  100% { background-size: 0 2px, 100% 1px; background-position: left top, center top; } }
+@media (prefers-reduced-motion: reduce) { .vx-loader, .vx-loader::after { animation: none; } }
+
+/* ---- less glow (item 11, his screenshot of "עקבו אחרי שלושתם"): the main buttons' halo is --vx-glow (top of this file); here the
+   other orange halos on buttons and cards come down too. Glow stays where it means something: the logo, the app icon, the game ---- */
+.rq-go { box-shadow: 0 4px 12px -8px rgba(255, 106, 31, .5); }
+.si button { box-shadow: none; }
+.nk-cam { box-shadow: 0 0 0 4px #0b0b0e; }
+.nc-card .nc-yes { box-shadow: 0 4px 12px -8px rgba(255, 106, 31, .4); }
+.cd-ic { box-shadow: none; }
+.vx-sheet.signin .vx-reasons .hl .vx-round { box-shadow: none; }
+.rm-face .vx-av { box-shadow: 0 0 12px rgba(255, 106, 31, .16); }
+.ab-c.on .vx-av { box-shadow: none; }
+.idea.hl { box-shadow: 0 0 0 2px rgba(255, 106, 31, .1); }
+.gfeat { box-shadow: none; }
+@keyframes vp-pulse { 0%, 100% { box-shadow: var(--vx-glow); } 50% { box-shadow: 0 0 0 7px rgba(255, 106, 31, .18), 0 6px 16px -8px rgba(255, 106, 31, .4); } }
+
+/* ---- the new top bar, option A (item 10, mockup r4 topbar-a; html.nb = his eyes only, gates.js NEXT_BAR): the logo smaller and
+   calmer, search, the bell in the search field's own style, and their round picture with a tiny passport on its corner instead
+   of the "אזרח" box (pages.js renderTop). The passport opens the status window; a resident's is greyed (not theirs yet) ---- */
+.nb .top .brand .brand-logo { filter: none; }
+.nb .vx-top .icon-btn { background: var(--card); border-color: var(--line2); }
+.nb .vx-top .me-wrap { position: relative; display: inline-flex; flex: none; }
+.nb .vx-top .me-btn { border-color: var(--line2); }
+.me-pass { position: absolute; bottom: -3px; inset-inline-start: -4px; width: 14px; padding: 0; border: 0; background: none; cursor: pointer; line-height: 0; }
+.me-pass img { width: 100%; height: auto; display: block; border-radius: 3px; box-shadow: 0 0 0 2px var(--bg, #0b0b0e); }
+.me-pass::before { content: ''; position: absolute; inset: -3px -9px -9px -2px; }   /* a bigger target, grown outward only - the picture's middle stays the menu's */
+.me-pass.not-yet img, .mm-status.not-yet img { filter: grayscale(1) brightness(.8); opacity: .75; }
+@media (max-width: 760px) {
+  .nb .top .brand .brand-logo { width: 42px; margin-block: -4px; }
+  .nb .vx-top { gap: 8px; }
+  .nb .vx-top .me-wrap { margin-inline-start: 2px; }
+}
+/* its row in the menu behind the picture: the same passport, the status window one tap away */
+.mm-status { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px; margin-bottom: 4px; border: 0; border-radius: 12px; background: none; color: inherit;
+  font: inherit; font-weight: 600; font-size: .95rem; text-align: start; cursor: pointer; }
+.mm-status:hover { background: rgba(255, 255, 255, .06); }
+.mm-status img { width: 15px; height: auto; flex: none; margin-inline: 2px; border-radius: 2px; }
+.mm-status .mm-l { flex: 1; }
+.mm-status small { font-size: .78rem; color: rgba(255, 255, 255, .5); font-weight: 700; }
+
+/* ---- the profile picture's frame (item 9, mockup r4 crop): a sheet from the bottom over the dimmed screen - the photo under the
+   round frame, a small live preview of the round picture by the title, the zoom (out below "cover" too), save / cancel side by side ---- */
+.crop { background: rgba(4, 4, 6, .72); place-items: end center; padding: 0; overflow: hidden; opacity: 0; transition: opacity .2s; }
+.crop.open { opacity: 1; }
+.crop-in { position: relative; width: min(480px, 100%); max-height: 100%; overflow-y: auto; background: #141418; border: 1px solid var(--vx-glass-line); border-bottom: 0;
+  border-radius: 26px 26px 0 0; padding: 22px 20px calc(16px + env(safe-area-inset-bottom)); transform: translateY(28px); transition: transform .28s cubic-bezier(.2, 1.1, .4, 1); }
+.crop.open .crop-in { transform: none; }
+.crop-in::before { content: ''; position: absolute; top: 9px; left: 50%; width: 40px; height: 4px; margin-left: -20px; border-radius: 4px; background: rgba(255, 255, 255, .22); }
+.crop-head { position: relative; display: flex; align-items: center; justify-content: center; min-height: 58px; padding-inline: 66px; }
+.crop .crop-head .vx-h { font-size: 1.3rem; }
+.crop-pv { position: absolute; inset-inline-start: 0; top: 0; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: #0b0b0e; border: 1.5px solid rgba(255, 255, 255, .22); }
+.crop-pv img { position: absolute; max-width: none; pointer-events: none; }
+.crop-stage { width: min(72vw, 300px); margin: 12px auto 16px; border-radius: 20px; background: #0b0b0e; }
+.crop-zoom { width: min(80vw, 330px); margin: 0 auto 6px; }
+.crop .crop-in > .vx-sub { margin: 0 0 16px; font-size: .86rem; }
+.crop-btns { display: flex; gap: 10px; }
+.crop-btns .vx-btn { flex: 1; height: 52px; }

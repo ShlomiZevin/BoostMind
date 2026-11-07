@@ -92,32 +92,64 @@ const scene = (n, img, bubble, body, dock) => `${stepTag(n)}<section class="cz-d
     <div class="cz-scene"><img src="/verse/art/${img}" alt=""></div>
     <div class="cz-say2">${bubble}</div>${body}
     <div class="cz-dock">${dock}</div></section>`;
-const askBox = (place, max = 160) => `<form class="cz-ask"><input maxlength="${max}" placeholder="${esc(place)}" enterkeyhint="send"><button aria-label="שליחה">←</button></form>`;
+
+// ONE writing bar for every question of Yotam, Miriam and the rabbi (plan cz-sim-r4 mockup input, his notes 2026-11-07): a rounded
+// field with a pencil and a send button of exactly its height; it grows to two lines and the button grows with it (no border
+// jump, no Windows scrollbar line on the empty field). sim.js uses it too.
+const PENCIL = '<svg class="vx-write-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>';
+export const writeBar = (place, max = 160) => `<form class="vx-write"><label class="vx-write-f"><textarea rows="1" maxlength="${max}" placeholder="${esc(place)}" enterkeyhint="send" aria-label="${esc(place)}"></textarea>${PENCIL}</label><button class="vx-write-go" aria-label="${esc(Z().send)}">${ARROW}</button></form>`;
+export function wireWrite(form, send) {
+  const t = form.querySelector('textarea');
+  const fit = () => {
+    t.style.height = '';
+    if (!t.value) return;   // empty: one line, whatever the placeholder does
+    const cs = getComputedStyle(t), one = t.offsetHeight, two = one + parseFloat(cs.lineHeight);
+    if (t.scrollHeight > one + 2) t.style.height = Math.min(t.scrollHeight, two) + 'px';   // up to two lines, then it scrolls (no scrollbar)
+  };
+  t.addEventListener('input', fit);
+  t.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } };   // Enter sends, Shift+Enter = a new line
+  form.onsubmit = (e) => { e.preventDefault(); const v = t.value.trim(); if (v) { t.blur(); send(v, form.querySelector('.vx-write-go')); } };
+  return t;
+}
 // the answers: plain buttons, or (a profile question - plan cz-sim-r3 mockups source / wish) rows with a line icon per answer
+const hint = () => `<p class="vx-pick-hint">${esc(Z().pickHint)}</p>`;
 function optsHtml(opts, field, after = '') {
   if (!opts.length) return after;
   const icon = (i) => (field === 'source' ? AI[['tiktok', 'instagram', 'youtube', 'friend', 'other'][i]] : field === 'first' ? AI[['videos', 'chat', 'games', 'stickers'][i]] : '') || '';
   const cls = field === 'source' ? 'rows' : field === 'first' ? 'grid' : opts.length === 2 ? 'two' : '';
-  return `<div class="cz-opts ${cls}">${opts.map((o, i) => `<button data-cz-a="${i}">${icon(i)}<span>${esc(o)}</span></button>`).join('')}</div>${after}`;
+  return `${hint()}<div class="cz-opts ${cls}">${opts.map((o, i) => `<button data-cz-a="${i}">${icon(i)}<span>${esc(o)}</span></button>`).join('')}</div>${after}`;
 }
 function desk(n, img, bubble, opts, place, extra = '', field = null, after = '') {
-  return scene(n, img, bubble, optsHtml(opts, field, after), askBox(place) + extra);
+  return scene(n, img, bubble, optsHtml(opts, field, after), writeBar(place) + extra);
 }
-// the answer is in: the tapped button lit, the bubble turns to dots until the next screen
-function waiting(b) {
+// the answer is in: the tapped button stays lit and the bubble - at the height it had, so nothing under it moves (his note
+// 2026-11-07) - shows a short line of theirs typed with a caret, a new one every couple of seconds (Terra's; mockup think)
+let thinkT = 0;
+function think(say, lines) {
+  clearTimeout(thinkT);
+  say.style.height = say.offsetHeight + 'px';
+  say.classList.add('thinking');
+  say.innerHTML = '<span class="cz-think"><em></em><i></i></span>';
+  const em = say.querySelector('em');
+  let k = Math.floor(Math.random() * lines.length), c = 0;
+  (function type() {
+    if (!say.isConnected) return;
+    const line = lines[k % lines.length];
+    if (c <= line.length) { em.textContent = line.slice(0, c++); thinkT = setTimeout(type, 32); return; }
+    thinkT = setTimeout(() => { k++; c = 0; type(); }, 1500);
+  })();
+}
+function waiting(b, lines) {
   const el = box(); if (!el) return;
-  if (b) b.classList.add(b.classList.contains('vx-btn') ? 'wait' : 'on');
-  el.querySelectorAll('.cz-opts button, .cz-ask button, .cz-skip, .cz-sugg button').forEach((x) => (x.disabled = true));
-  const say = el.querySelector('.cz-say2'); if (say) say.innerHTML = '<span class="cz-dots"><i></i><i></i><i></i></span>';
+  if (b) b.classList.add(b.classList.contains('vx-btn') || b.classList.contains('vx-write-go') ? 'wait' : 'on');
+  el.querySelectorAll('.cz-opts button, .vx-write button, .vx-write textarea, .cz-skip, .cz-sugg button').forEach((x) => (x.disabled = true));
+  el.querySelector('.cz-desk')?.classList.add('thinking');
+  const say = el.querySelector('.cz-say2'); if (say) think(say, lines);
 }
 function answers(el, go) {
   el.querySelectorAll('[data-cz-a]').forEach((b) => (b.onclick = () => go({ pick: +b.dataset.czA }, b.textContent, b)));
-  const f = el.querySelector('.cz-ask');
-  if (!f) return;
-  const field = f.querySelector('input, textarea');
-  f.onsubmit = (e) => { e.preventDefault(); const v = field.value.trim(); if (v) { field.blur(); go({ text: v }, v); } };
-  // a two-line box: Enter sends, Shift+Enter is a new line
-  if (field.tagName === 'TEXTAREA') field.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); f.requestSubmit(); } };
+  const f = el.querySelector('.vx-write');
+  if (f) wireWrite(f, (v, btn) => go({ text: v }, v, btn));
 }
 
 // 2. check-in with Miriam (C3): her words + the registry's question - its own answer UI per kind (plan cz-sim-r3): 'pick' = buttons
@@ -126,7 +158,7 @@ let busy = false;
 async function talk(data, b) {
   if (busy) return;
   busy = true;
-  waiting(b);
+  waiting(b, Z().thinkM);
   try {
     S = await api('checkin', data);
     busy = false;
@@ -147,11 +179,12 @@ function checkin() {
     const pk = charsPicker(el.querySelector('[data-cz-chars]'), { max: 3, onChange: (ids) => { el.querySelector('[data-cz-next]').disabled = !ids.length; } });
     el.querySelector('[data-cz-next]').onclick = (e) => talk({ chars: pk.get() }, e.currentTarget);
   } else if (p.kind === 'text') {
-    // "ומה הייתם רוצים לעשות כאן?" (mockup r3-wish-1): suggestions fill the two-line box, they send it
+    // "ומה הייתם רוצים לעשות כאן?" (mockup r3-wish-1): a suggestion is an answer - a tap chooses it and moves on (his note
+    // 2026-11-07: it only filled the box), or they write their own in the bar
     el.innerHTML = scene(2, 'citizen-checkin.jpg', bubble,
-      (p.sugg || []).length ? `<div class="cz-sugg">${p.sugg.map((x) => `<button type="button" data-cz-sugg>${esc(x)}</button>`).join('')}</div>` : '',
-      `<form class="cz-ask cz-ask2"><textarea rows="2" maxlength="200" placeholder="${esc(Z().wishType)}" enterkeyhint="send"></textarea><button aria-label="שליחה">←</button></form>${skips}`);
-    el.querySelectorAll('[data-cz-sugg]').forEach((b) => (b.onclick = () => { const t = el.querySelector('.cz-ask textarea'); t.value = b.textContent; t.focus(); el.querySelectorAll('[data-cz-sugg]').forEach((x) => x.classList.toggle('on', x === b)); }));
+      (p.sugg || []).length ? `${hint()}<div class="cz-sugg">${p.sugg.map((x) => `<button type="button" data-cz-sugg>${esc(x)}</button>`).join('')}</div>` : '',
+      `${writeBar(Z().checkin.type, 200)}${skips}`);
+    el.querySelectorAll('[data-cz-sugg]').forEach((b) => (b.onclick = () => talk({ text: b.textContent.trim() }, b)));
     answers(el, (data, label, b) => talk(data, b));
   } else {
     el.innerHTML = desk(2, 'citizen-checkin.jpg', bubble, p.opts || [], Z().checkin.type, skips, p.field);
@@ -190,7 +223,7 @@ function booth() {
 async function boothStep(i, data, b) {
   if (busy) return;
   busy = true;
-  waiting(b);
+  waiting(b, Z().thinkR);
   try { S = await api('booth', { i, ...data }); busy = false; if (S.booth.length >= S.script.length) { track('cz_stamp', String(S.n)); stamp(true); } else booth(); }
   catch (e) { busy = false; toast(Z().fail, 3000); booth(); }
 }
@@ -202,18 +235,15 @@ function boothBday(i, bubble) {
        <button class="vx-btn main block" data-cz-ok>${esc(Z().go)}${ARROW}</button>`
     : `<div class="cz-got bad"><span>${esc(Z().bdayBad)}</span></div>`}`;
   el.innerHTML = scene(3, 'citizen-booth.jpg', bubble, got,
-    `${askBox(Z().boothBday, 80)}<div class="cz-skips"><button class="cz-skip" data-cz-nobday>${esc(Z().bdayNo)}</button></div>`);
-  const input = el.querySelector('.cz-ask input');
-  el.querySelector('.cz-ask').onsubmit = async (e) => {
-    e.preventDefault();
-    const v = input.value.trim();
-    if (!v || busy) return;
-    busy = true; input.blur();
-    const btn = e.target.querySelector('button'); btn.disabled = true; btn.classList.add('wait');
+    `${writeBar(Z().boothBday, 80)}<div class="cz-skips"><button class="cz-skip" data-cz-nobday>${esc(Z().bdayNo)}</button></div>`);
+  const input = wireWrite(el.querySelector('.vx-write'), async (v, btn) => {
+    if (busy) return;
+    busy = true;
+    btn.disabled = true; btn.classList.add('wait');
     try { S = await api('bday', { i, text: v }); } catch (err) { toast(Z().fail, 3000); }
     busy = false;
     boothBday(i, bubble);
-  };
+  });
   el.querySelector('[data-cz-again]')?.addEventListener('click', () => { input.focus(); });
   el.querySelector('[data-cz-ok]')?.addEventListener('click', (e) => boothStep(i, { date: true }, e.currentTarget));
   el.querySelector('[data-cz-nobday]').onclick = () => boothStep(i, { skip: true });
@@ -232,7 +262,7 @@ document.addEventListener('click', async (e) => {
   r.disabled = true;
   try {
     await api(reset ? 'reset' : 'restore');
-    try { localStorage.removeItem('vx-sim'); } catch (x) {}   // the simulation test can be taken again too
+    try { localStorage.removeItem('vx-sim'); localStorage.removeItem('vx-sim-pre'); } catch (x) {}   // the simulation test can be taken again too
     track('cz_test', reset ? 'reset' : 'restore');
     if (reset) location.href = '/citizenship';
     else { toast(Z().restored); setTimeout(() => location.reload(), 600); }
@@ -318,14 +348,26 @@ function mrz() {
   const fill = (t) => (t + '<'.repeat(44)).slice(0, 44);
   return [fill(`P<SLVSHLOMIVERSE<<CITIZEN<${pad(S.n)}`), fill(`${String(S.n || 0).padStart(9, '0')}0SLV${ymd}0${S.founding ? 'F' : 'C'}`).slice(0, 43) + '0'];
 }
+// the department: the one Yotam gave in the simulation test, else the registry's from the check-in (plan cz-sim-r4)
+const ppDept = () => (S.sim && S.sim.dept) || S.dept || '';
 const ppFields = () => [
   [[P().type, 'P', 2], [P().code, 'SLV', 3], [P().no, pad(S.n), 7, 'n']],
-  [[P().name, S.nick || '-', 12]],
+  ppDept() ? [[P().name, S.nick || '-', 4], [P().dept, ppDept(), 8, 'd']] : [[P().name, S.nick || '-', 12]],
   // only fields a real passport has, filled in deadpan (his note 2026-11-07: no 'סיווג', no 'סימנים מיוחדים')
   [[P().nat, P().natV, 5], [P().birth, P().birthV, 7]],
   [[P().issued, ddmmyy(issued()), 4], [P().exp, P().expV, 8]],
   [[P().auth, P().authV, 8], [P().status, S.founding ? Z().id.founding : Z().id.citizen, 4]],
 ];
+// the passport on ONE screen (plan cz-sim-r4 mockup passport, his note 2026-11-07: "why both the upper and the lower - one screen,
+// the button included"): the data page with the border-control stamp pressed over its lower corner and the rabbi's signature,
+// no visa page under it; a not-yet-classified citizen gets one small row to the simulation (Terra's line)
+const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>';
+function ppStamp() {
+  const d = issued().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' }), V = Z().visa;
+  return `<div class="cz-pp-stamp"><small>${esc(V.office)}</small><b>${esc(V.entry)}</b><span>${pad(S.n)}</span><small>${d}</small></div>
+    <div class="cz-pp-sign">${SIGN}<small>${esc(V.by)}</small></div>`;
+}
 function idCard() {
   const sim = S.sim;
   box().innerHTML = `<section class="cz-id">
@@ -335,11 +377,11 @@ function idCard() {
       <div class="cz-pp-photo">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : `<span>${esc((S.nick || '?').slice(0, 1))}</span>`}</div>
       <div class="cz-pp-f">${ppFields().map((row) => row.map(([k, v, span, cls]) => `<div class="c${span}"><small>${esc(k)}</small><b class="${cls || ''}">${esc(v)}</b></div>`).join('')).join('')}</div>
       <div class="cz-pp-mrz" dir="ltr">${mrz().map(esc).join('<br>')}</div>
+      ${ppStamp()}
     </div>
-    ${visaPage()}
-    ${(sim && sim.name) || !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</a>`}
-    <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a>${czTools()}</section>`;
-  // no "share the passport" for now (his note 2026-11-07: it gives nothing yet) - shareId() + drawId() stay ready
+    ${(sim && sim.name) || !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${CLOCK}<span>${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</span>${CHEV}</a>`}
+    <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a>
+    <button class="cz-skip cz-id-share" data-cz-share>${esc(Z().id.share)}</button>${czTools()}</section>`;
   box().querySelector('[data-cz-share]')?.addEventListener('click', () => shareId());
 }
 const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
@@ -367,13 +409,29 @@ async function drawPassport(x, X, Y, W) {
     for (const [k, v, span, cls] of row) {
       const rx = R - at * colW, top = Y + 11 * u + r * 8 * u, w = span * colW - 1 * u;
       x.fillStyle = '#5b607c'; x.font = `600 ${2 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, k, w), rx, top + 2.2 * u);
-      x.fillStyle = cls === 'n' ? '#b3261e' : '#14162a'; x.font = `800 ${3.7 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, v, w), rx, top + 6.2 * u);
+      x.fillStyle = cls === 'n' ? '#b3261e' : '#14162a'; x.font = `800 ${(cls === 'd' ? 3.1 : 3.7) * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, v, w), rx, top + 6.2 * u);
       at += span;
     }
   });
   // the machine-readable lines
   x.direction = 'ltr'; x.textAlign = 'left'; x.fillStyle = '#1c1d26'; x.font = `700 ${3.4 * u}px "OCR B", "OCR-B", "Courier New", monospace`;
   mrz().forEach((l, k) => x.fillText(l, X + 4 * u, Y + (59.2 + k * 4.6) * u));
+  // the border-control stamp over the lower corner and the rabbi's signature (the same places as .cz-pp-stamp / .cz-pp-sign)
+  const V = Z().visa, ink = '#3a3196';
+  x.save(); x.translate(X + 79 * u, Y + 55 * u); x.rotate(-12 * Math.PI / 180); x.globalAlpha = 0.85;
+  x.strokeStyle = ink; x.fillStyle = ink; x.lineWidth = 0.7 * u; x.beginPath(); x.arc(0, 0, 11.65 * u, 0, Math.PI * 2); x.stroke();
+  x.lineWidth = 0.3 * u; x.beginPath(); x.arc(0, 0, 10.3 * u, 0, Math.PI * 2); x.stroke();
+  x.direction = 'rtl'; x.textAlign = 'center';
+  x.font = `800 ${1.6 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, V.office, 17 * u), 0, -5.2 * u);
+  x.font = `900 ${2.3 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(V.entry, 0, -2 * u);
+  x.direction = 'ltr'; x.font = `900 ${4.6 * u}px "Courier New", monospace`; x.fillText(pad(S.n), 0, 2.8 * u);
+  x.font = `700 ${1.7 * u}px Arial, sans-serif`; x.fillText(issued().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' }), 0, 6.2 * u);
+  x.restore();
+  x.save(); x.translate(X + 5 * u, Y + 43 * u); x.rotate(-4 * Math.PI / 180); x.scale(20 * u / 200, 20 * u / 200);
+  x.strokeStyle = '#1b2a6b'; x.lineWidth = 2.6; x.lineCap = 'round'; x.lineJoin = 'round';
+  for (const [, d] of SIGN.matchAll(/ d="([^"]+)"/g)) x.stroke(new Path2D(d));
+  x.restore();
+  x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#2b2f55'; x.font = `700 ${1.8 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(V.by, X + 15 * u, Y + 51.6 * u);
   x.globalCompositeOperation = 'source-over';
 }
 async function drawId() {

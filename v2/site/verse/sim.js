@@ -1,14 +1,15 @@
 // "אתם חיים בסימולציה?" - the simulation test's page (/simulation), the home band and the chat card (plan conversion-next v6,
 // approved 2026-11-06; mockups Documents/shlomiverse-v2-design/next-plan Q1-Q7). The server is techietech-api/sim.js:
 // the host's opening, 7 questions written one after the other (the next one is written for all 4 answers while the
-// visitor reads), the score, and a simulation the AI mixes from 2-3 real characters with a picture of them together.
-// A tourist sees the score; the full result after "מסדירים תושבות" - then it sticks to their account.
+// visitor reads), the department Yotam assigns (round 4: instead of the score), and a simulation the AI mixes from 2-3 real
+// characters with a picture of them together. A tourist sees the department; the full result after "מסדירים תושבות" - then it
+// sticks to their account.
 // The share card is drawn here on a canvas (the picture + the words in code, so the Hebrew is always right).
 import { T } from './copy.js';
 import { esc, track, sheet, toast, brand } from './ui.js';
 import { st, onState, needFan, signedIn, follow } from './state.js';
 import { LOCAL } from './fb.js';
-import { isCitizen } from './citizen.js';
+import { isCitizen, writeBar, wireWrite } from './citizen.js';
 import { simOpen, czOpen } from './gates.js';
 import { putAbout } from './about.js';
 
@@ -19,7 +20,6 @@ const mine = () => { try { return JSON.parse(localStorage.getItem(LS) || 'null')
 const keep = (x) => { try { localStorage.setItem(LS, JSON.stringify(x)); } catch (e) {} };
 const own = () => { try { return !!localStorage.getItem('t-ignore'); } catch (e) { return false; } };
 const img = (id) => (C[id] && C[id].img) || '';
-const SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 12 20 4.5 16.5 12 20 19.5z"/></svg>';   // the send arrow points left (RTL; mockup simfree)
 
 // the account is known (a resident's own result needs their token - right after a page load it isn't there yet)
 const ready = () => new Promise((res) => { const t0 = Date.now(); (function w() { if (st.ready || Date.now() - t0 > 5000) res(); else setTimeout(w, 80); })(); });
@@ -68,25 +68,15 @@ async function openOf(h) {
   return r.open;
 }
 const done = () => !!(mine()?.done || st.fan?.sim);
-const myTest = () => { const m = mine(); if (m && m.done) return m; const f = st.fan && st.fan.sim; return f ? { rid: f.rid, done: true, score: f.score, name: f.name, full: true } : null; };
+const myTest = () => { const m = mine(); if (m && m.done) return m; const f = st.fan && st.fan.sim; return f ? { rid: f.rid, done: true, score: f.score, dept: f.dept || null, name: f.name, full: true } : null; };
 
 // ---------- the home band (Q1): under the question box, for tourists and residents who haven't done it ----------
 export function mountBand() {
   const el = document.getElementById('sim-band');
   if (!el) return;
   if (!simOpen()) { el.innerHTML = ''; return; }   // no way in for now (gates.js)
-  const t = myTest();
-  if (t) {
-    const full = !!(t.name && (t.full || signedIn()));
-    const h = C[t.host] ? t.host : visitHost();
-    el.innerHTML = `<a class="sim-band" href="/simulation" data-sim-band>
-      <i class="sim-g g1"></i><i class="sim-g g2"></i><i class="sim-g g3"></i>
-      <span class="sim-band-face"><img src="${esc(t.img || img(h))}" alt=""></span>
-      <b class="sim-band-h">${esc(full ? t.name : `${S().yourScore}: ${t.score}`)}</b>
-      <small class="sim-band-l">${esc(full ? `${S().yours} · ${t.score}` : S().sealed)}</small>
-      <span class="vx-btn main small sim-band-go">${esc(full ? S().toResult : S().toFull)}</span></a>`;
-    return;
-  }
+  // after the test the band is gone (plan cz-sim-r4, his note 2026-11-07): the result lives in the passport and the profile
+  if (myTest()) { el.innerHTML = ''; return; }
   const h = visitHost(), c = C[h], o = openCached(h);
   el.innerHTML = `<a class="sim-band ${signedIn() ? 'small' : ''}" href="/simulation?host=${h}&from=home" data-sim-band>
     <i class="sim-g g1"></i><i class="sim-g g2"></i><i class="sim-g g3"></i>
@@ -142,46 +132,77 @@ function openingView() {
   const o = openCached(run.host);
   paint(o);
   if (!o) openOf(run.host).then((x) => { if (box() && !run.rid) paint(x); }).catch(() => paint({ title: c.name, line: '', btn: S().go }));
+  firstQ().catch(() => {});
+}
+
+// the first question is written as the page opens (plan cz-sim-r4, his note 2026-11-07: the wait after "תבדקו אותי" was too long),
+// so the tap shows it at once. Kept in the browser for a few hours: a reload never writes (or counts) another one.
+const PRE = 'vx-sim-pre';
+function firstQ() {
+  if (run.first) return run.first;
+  const uid = st.user ? st.user.uid : null;
+  try { const c = JSON.parse(localStorage.getItem(PRE) || 'null'); if (c && c.uid === uid && Date.now() - c.t < 6 * 3600e3) return (run.first = Promise.resolve(c.r)); } catch (e) {}
+  run.first = api('start', { host: run.host, from: run.from, ref: run.ref, own: own(), v: (localStorage.getItem('t-v') || ''), pre: true })
+    .then((r) => { try { localStorage.setItem(PRE, JSON.stringify({ uid, t: Date.now(), r })); } catch (e) {} return r; });
+  run.first.catch(() => { run.first = null; });
+  return run.first;
 }
 
 async function start() {
-  const b = box().querySelector('[data-sim-go]');
+  const b = box().querySelector('[data-sim-go]'), line = box().querySelector('.sim-line');
   b.disabled = true; b.classList.add('wait');
+  // still being written: Yotam runs his "system check", a line a second (Terra's)
+  let k = 0, roll = 0;
+  const next = () => { if (line) line.textContent = S().check[k++ % S().check.length]; roll = setTimeout(next, 1000); };
+  roll = setTimeout(next, 150);
   try {
-    const r = await api('start', { host: run.host, from: run.from, ref: run.ref, own: own(), v: (localStorage.getItem('t-v') || '') });
-    Object.assign(run, r);
+    const r = await firstQ();
+    clearTimeout(roll);
+    Object.assign(run, r, { last: '' });
+    try { localStorage.removeItem(PRE); } catch (e) {}
+    api('go', { rid: run.rid }).catch(() => {});   // the tap = a real start (Backstage's funnel)
     track('sim_start', run.host);
     questionView();
   } catch (e) {
+    clearTimeout(roll);
     b.disabled = false; b.classList.remove('wait');
     toast(e.code === 'limit' ? S().limit : S().fail, 3200);
   }
 }
 
+// one stage at a time (plan cz-sim-r4 mockup simq-a, his correction 2026-11-07: "not a whole conversation - stages that move on"):
+// a small header (Yotam, the 7 stations), their last answer as their own bubble, Yotam's reaction to THAT answer right under it,
+// then the new question; earlier exchanges are gone. The answers are tappable cards; the writing bar sits pinned at the bottom.
+const dots = (n, of) => Array.from({ length: of }, (_, i) => `<i class="${i < n - 1 ? 'done' : i === n - 1 ? 'now' : ''}"></i>`).join('');
 function questionView() {
   const el = box(), c = C[run.host];
   el.innerHTML = `<section class="sim-q">
-    <div class="sim-prog"><span style="width:${Math.round(((run.n - 1) / run.of) * 100)}%"></span></div>
-    <div class="sim-qn">${esc(S().qOf(run.n, run.of))}</div>
-    <div class="sim-ask"><img src="${esc(img(run.host))}" alt="${esc(c.name)}"><div>
-      ${run.react ? `<p class="sim-react">${esc(run.react)}</p>` : ''}<p class="sim-bubble">${esc(run.q)}</p></div></div>
-    <div class="sim-as">${run.a.map((x, i) => `<button data-sim-a="${i}">${esc(x)}</button>`).join('')}</div>
-    <form class="sim-free"><input maxlength="120" placeholder="${esc(S().free)}" enterkeyhint="send"><button aria-label="${esc(S().freeSend)}">${SEND}</button></form>
-    ${run.n > 3 ? `<button class="sim-skip" data-sim-skip>${esc(S().skip)}</button>` : ''}</section>`;
-  el.querySelectorAll('[data-sim-a]').forEach((btn) => (btn.onclick = () => answer({ pick: +btn.dataset.simA }, btn)));
-  // their own answer (plan cz-sim-r3 mockup simfree): Yotam reacts to it in the next question
-  el.querySelector('.sim-free').onsubmit = (e) => { e.preventDefault(); const inp = e.target.querySelector('input'), v = inp.value.trim(); if (v) { inp.blur(); answer({ text: v }, e.target.querySelector('button')); } };
+    <header class="sim-qh"><img src="${esc(img(run.host))}" alt="${esc(c.name)}"><span class="sim-qh-t"><b>${esc(c.name)} · ${esc(S().hostTag)}</b><small>${esc(S().stage(run.n, run.of))}</small></span>
+      <span class="sim-dots" aria-hidden="true">${dots(run.n, run.of)}</span></header>
+    <div class="sim-stage">
+      ${run.last ? `<p class="sim-mine">${esc(run.last)}</p>` : ''}
+      ${run.react ? `<div class="sim-re"><img src="${esc(img(run.host))}" alt=""><p>${esc(run.react)}</p></div>` : ''}
+      <p class="sim-bubble">${esc(run.q)}</p></div>
+    <p class="vx-pick-hint">${esc(S().pickHint)}</p>
+    <div class="sim-as">${run.a.map((x, i) => `<button data-sim-a="${i}"><i></i><span>${esc(x)}</span></button>`).join('')}</div>
+    <div class="sim-dock">${writeBar(S().free, 120)}${run.n > 3 ? `<button class="sim-skip" data-sim-skip>${esc(S().skip)}</button>` : ''}</div></section>`;
+  el.querySelectorAll('[data-sim-a]').forEach((btn) => (btn.onclick = () => answer({ pick: +btn.dataset.simA }, btn, run.a[+btn.dataset.simA])));
+  // their own answer (plan cz-sim-r3 mockup simfree): Yotam reacts to it in the next stage
+  wireWrite(el.querySelector('.vx-write'), (v, btn) => answer({ text: v }, btn, v));
   el.querySelector('[data-sim-skip]')?.addEventListener('click', skipToEnd);
   window.scrollTo(0, 0);
   // the next question for each of the 4 answers, written while they read this one
   if (run.n < run.of) api('pre', { rid: run.rid, n: run.n }).catch(() => {});
 }
+const lock = (on) => box()?.querySelectorAll('[data-sim-a], .sim-dock button, .sim-dock textarea').forEach((b) => (b.disabled = on));
+// the stage moves on: the old one fades out, the new one comes in (CSS sim-in)
+const moveOn = () => new Promise((res) => { const q = box()?.querySelector('.sim-q'); if (!q) return res(); q.classList.add('out'); setTimeout(res, 170); });
 
-async function answer(data, btn) {
+async function answer(data, btn, label) {
   if (run.busy) return;
   run.busy = true;
   btn.classList.add('on');
-  box().querySelectorAll('[data-sim-a], .sim-free button').forEach((b) => (b.disabled = true));
+  lock(true);
   const last = run.n === run.of;
   let slow = setTimeout(() => btn.classList.add('wait'), 600);
   if (last) setTimeout(computingView, 350);
@@ -191,17 +212,19 @@ async function answer(data, btn) {
     run.busy = false;
     track('sim_q', String(run.n) + (data.text ? 't' : ''));
     if (r.done) {
-      keep({ rid: run.rid, done: true, score: r.score, host: run.host });
+      keep({ rid: run.rid, done: true, score: r.score, dept: r.dept || null, host: run.host });
       track('sim_done', String(r.score));
       return resultView(run.rid, true);
     }
-    Object.assign(run, r);
+    await moveOn();
+    Object.assign(run, r, { last: label || '' });
     questionView();
   } catch (e) {
     clearTimeout(slow);
     run.busy = false;
+    if (e.code === 'gone' || (e.code === 'step' && run.n === 1)) { try { localStorage.removeItem(PRE); } catch (x) {} run = null; return boot({}); }   // a first question kept from before, gone on the server
     toast(S().fail, 3000);
-    if (last) questionView(); else { btn.classList.remove('on', 'wait'); box().querySelectorAll('[data-sim-a], .sim-free button').forEach((b) => (b.disabled = false)); }
+    if (last) questionView(); else { btn.classList.remove('on', 'wait'); lock(false); }
   }
 }
 
@@ -214,18 +237,37 @@ async function skipToEnd() {
   try {
     const r = await api('finish', { rid: run.rid });
     run.busy = false;
-    keep({ rid: run.rid, done: true, score: r.score, host: run.host });
+    keep({ rid: run.rid, done: true, score: r.score, dept: r.dept || null, host: run.host });
     track('sim_done', String(r.score));
     resultView(run.rid, true);
   } catch (e) { run.busy = false; toast(S().fail, 3000); questionView(); }
 }
 
+// "יותם מסווג אתכם" (plan cz-sim-r4 mockup classify, his note 2026-11-07: no spinning logo - "we are a serious immersive site"):
+// six random faces on a circle (his choice), one lit at a time as if asked right now, a thin scan line sweeping slowly in the
+// middle, and the line under the title says whom Yotam asks - Terra's line for that face, else a plain one. Up to three of the
+// six are drawn from the characters Terra wrote lines for, so her lines turn up.
+let calcT = 0;
+const plain = (c) => String(c.name || '').replace(/\s*\([^)]*\)/g, '').trim();   // 'נהור (ציון) מינוף' -> 'נהור מינוף'
 function computingView() {
   const el = box();
   if (!el) return;
-  const faces = Object.values(C).filter((c) => c.img).sort(() => Math.random() - 0.5).slice(0, 6);
-  el.innerHTML = `<section class="sim-calc"><div class="sim-orbit">${faces.map((c, i) => `<img src="${esc(c.img)}" alt="" style="--i:${i}">`).join('')}<span class="sim-planet"></span></div>
+  clearTimeout(calcT);
+  const all = Object.values(C).filter((c) => c.img && c.id !== 'guide' && c.id !== 'yotam').sort(() => Math.random() - 0.5);
+  const told = all.filter((c) => S().asks[c.id]).slice(0, 3);
+  const faces = [...told, ...all.filter((c) => !told.includes(c))].slice(0, 6).sort(() => Math.random() - 0.5);
+  el.innerHTML = `<section class="sim-calc"><div class="sim-ring">${faces.map((c, i) => `<img src="${esc(c.img)}" alt="" style="--i:${i}">`).join('')}<span class="sim-scan"></span></div>
     <h2>${esc(S().computing)}</h2><p data-sim-c2>${esc(S().computing2)}</p></section>`;
+  const ims = [...el.querySelectorAll('.sim-ring img')], line = el.querySelector('[data-sim-c2]');
+  let k = 0;
+  const lit = () => {
+    if (!line.isConnected) return;
+    const i = k++ % faces.length;
+    ims.forEach((im, j) => im.classList.toggle('on', j === i));
+    line.textContent = S().asks[faces[i].id] || S().askAny(plain(faces[i]));
+    calcT = setTimeout(lit, 2300);
+  };
+  calcT = setTimeout(lit, 900);
 }
 
 // ---------- the result: the score (tourist) or all of it (resident) ----------
@@ -241,28 +283,33 @@ async function resultView(rid, fresh) {
     el.innerHTML = `<div class="empty">${esc(S().fail)}</div>`; return;
   }
   if (!box()) return;
-  if (!r.name) return scoreView(r, fresh);
+  if (!r.name) return lockedView(r, fresh);
   fullView(r, fresh);
 }
 
-// the classification certificate (plan cz-sim-r3 mockup result-2): "הסיווג שלכם בשלומיוורס", the score, the classification's
-// name and Yotam's signature. A tourist sees it with the name locked until they sign in.
+// the classification certificate (plan cz-sim-r3 mockup result-2): "הסיווג שלכם בשלומיוורס", the department Yotam gave (plan
+// cz-sim-r4: instead of the score - "the 0-100 means nothing"), the classification's name and Yotam's signature. A tourist sees
+// the department with the name locked until they sign in. Old results have no department: the name alone (the score only
+// where nothing else would show - a tourist's locked one).
 const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 const SIGN = '<svg class="sim-sign" viewBox="0 0 140 44" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 30c6-14 14-20 14-9 0 9-7 10-3 1 3-7 10-9 11 1 1 6 6 5 9-3 3-6 7-4 6 3s5 6 9-1c3-5 7-4 6 2 0 5 7 4 11-3l6-8c-1 9 3 11 9 4 4-6 10-6 15-3"/><path d="M18 38c32-5 72-2 108-7"/></svg>';
-const ARROW_L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>';
+const PASS_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M9 16h6"/></svg>';
+const ME_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
 function cert(r, locked) {
+  const mid = r.dept ? `<div class="sim-cert-dept"><small>${esc(S().dept)}</small><b>${esc(r.dept)}</b></div>`
+    : locked ? `<div class="sim-cert-score"><b>${r.score}</b><small>${esc(S().of100)}</small></div>` : '<span></span>';
   return `<div class="sim-cert">
     <div class="sim-cert-h"><span>${brand(S().cert)}</span></div>
     <div class="sim-cert-row">
       <img class="sim-cert-logo" src="/verse/logo-160.png" alt="שלומיוורס">
-      <div class="sim-cert-score"><b>${r.score}</b><small>${esc(S().of100)}</small></div>
+      ${mid}
       <div class="sim-cert-sign">${SIGN}<small>${esc(S().signed)}</small></div>
     </div>
     ${locked ? `<div class="sim-cert-name locked">${LOCK}<span>${esc(S().locked)}</span></div>` : `<h1 class="sim-cert-name">${esc(r.name)}</h1>`}
   </div>`;
 }
 
-function scoreView(r, fresh) {
+function lockedView(r, fresh) {
   const el = box(), c = C[r.host?.id] || C.yotam;
   el.innerHTML = `<section class="sim-res2">
     ${cert(r, true)}
@@ -282,25 +329,28 @@ let shown = null;   // the result on screen (its picture arrives later - the sha
 function fullView(r, fresh) {
   const el = box();
   shown = r;
-  keep({ rid: r.rid, done: true, full: true, score: r.score, host: r.host?.id, name: r.name, img: r.img || null });
+  keep({ rid: r.rid, done: true, full: true, score: r.score, dept: r.dept || null, host: r.host?.id, name: r.name, img: r.img || null });
   const lines = String(r.verdict || '').split('\n');
   const cast = r.cast.filter((x) => C[x.id]), ids = cast.map((x) => x.id);
   const allFollowed = () => ids.every((id) => st.follows.has(id));
-  el.innerHTML = `<section class="sim-res2">
+  // where to go next (plan cz-sim-r4 mockup simend, 2026-11-07): home first, then the passport (a non-citizen: get one) and the
+  // profile side by side, sharing quiet. The certificate, the three and these fit the first screen; the picture + verdict below.
+  const pass = isCitizen() ? S().myPass : S().getPass;
+  el.innerHTML = `<section class="sim-res2 sim-end">
     ${cert(r)}
-    <div class="sim-pic ${r.img ? 'ok' : 'dev'}">${r.img ? `<img src="${esc(r.img)}" alt="">` : `<div class="sim-faces3">${r.cast.map((x) => `<img src="${esc(img(x.id))}" alt="">`).join('')}</div><span class="sim-dev">${esc(S().developing)}</span>`}</div>
-    <p class="sim-verdict">${lines.map(esc).join('<br>')}</p>
     <div class="sim-sec-h"><span>${esc(S().castH)}</span></div>
     <div class="sim-cast3">${cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><b>${esc(C[x.id].name)}</b><small>${esc(x.role || '')}</small></a>`).join('')}</div>
-    <button class="vx-btn main block" data-sim-follow ${allFollowed() ? 'disabled' : ''}>${esc(allFollowed() ? S().following : S().followAll(ids.length))}</button>
-    ${czOpen() && signedIn() && !isCitizen() ? `<a class="sim-next" href="/citizenship" onclick="window.track&&window.track('cz_banner','sim')"><img src="/verse/art/passport-icon.png" alt="">
-      <span><small>${esc(S().nextK)}</small><b>${esc(S().nextT)}</b><em>${esc(S().nextL)}</em></span><i>${ARROW_L}</i></a>` : ''}
-    <button class="vx-btn block" data-sim-share>${esc(S().share)}</button>
-    <button class="vx-btn block" data-sim-meet>${esc(S().meet)}</button>
+    <button class="vx-btn block sim-follow" data-sim-follow ${allFollowed() ? 'disabled' : ''}>${esc(allFollowed() ? S().following : S().followAll(ids.length))}</button>
+    <a class="vx-btn main block sim-home" href="/">${esc(S().home)}</a>
+    <div class="sim-two">${czOpen() && signedIn() ? `<a class="vx-btn" href="/citizenship" data-sim-pass>${PASS_IC}<span>${esc(pass)}</span></a>` : ''}
+      ${signedIn() ? `<a class="vx-btn" href="/me">${ME_IC}<span>${esc(S().myProfile)}</span></a>` : ''}</div>
+    <button class="sim-quiet" data-sim-share>${esc(S().share)}</button>
+    <div class="sim-pic ${r.img ? 'ok' : 'dev'}">${r.img ? `<img src="${esc(r.img)}" alt="">` : `<div class="sim-faces3">${r.cast.map((x) => `<img src="${esc(img(x.id))}" alt="">`).join('')}</div><span class="sim-dev">${esc(S().developing)}</span>`}</div>
+    <p class="sim-verdict">${lines.map(esc).join('<br>')}</p>
 </section>`;
   if (fresh || !sessionStorage.getItem('vx-sim-full-' + r.rid)) { track('sim_full', r.rid); try { sessionStorage.setItem('vx-sim-full-' + r.rid, '1'); } catch (e) {} }
   el.querySelector('[data-sim-share]').onclick = () => shareSheet(r);
-  el.querySelector('[data-sim-meet]').onclick = () => { track('sim_meet', r.cast[0]?.id); if (typeof openChat === 'function') openChat(r.cast[0]?.id || 'guide'); };
+  el.querySelector('[data-sim-pass]')?.addEventListener('click', () => track('cz_banner', 'sim'));
   // "עקבו אחרי שלושתם": follows them (the site's follow) and adds them to the characters they came to visit (their profile, up to 3)
   el.querySelector('[data-sim-follow]').onclick = async (e) => {
     const b = e.currentTarget;
@@ -349,7 +399,7 @@ async function friendView(rid, q) {
   track('sim_ref', rid);
   el.innerHTML = `<section class="sim-res friend">
     <div class="sim-pic ${r.img ? 'ok' : ''}">${r.img ? `<img src="${esc(r.img)}" alt="">` : `<div class="sim-faces3">${r.cast.map((x) => `<img src="${esc(img(x.id))}" alt="">`).join('')}</div>`}
-      <div class="sim-badge"><b>${r.score}</b><small>${esc(S().yourScore)}</small></div></div>
+      ${r.dept ? `<div class="sim-badge dept"><small>${esc(S().dept)}</small><b>${esc(r.dept)}</b></div>` : ''}</div>
     <div class="sim-body"><div class="sim-k">${esc(S().friend)}</div><h1>${esc(r.name)}</h1>
       <p class="sim-verdict">${esc(r.share || '')}</p>
       <button class="vx-btn main block" data-sim-mine>${esc(S().askFriends)}</button></div></section>`;
@@ -373,7 +423,8 @@ async function drawCard(r) {
   await document.fonts.load('900 80px Heebo').catch(() => {});
   x.direction = 'rtl'; x.textAlign = 'right';
   const R = W - 64;
-  x.fillStyle = '#fc7211'; x.font = '900 190px Heebo'; x.fillText(String(r.score), R, 230);
+  // the department on top (plan cz-sim-r4: no score); old results: the name alone
+  if (r.dept) { let f = 80; do { x.font = `900 ${f}px Heebo`; f -= 4; } while (f > 44 && x.measureText(r.dept).width > W - 128); x.fillStyle = '#fc7211'; x.fillText(r.dept, R, 220); }
   x.fillStyle = '#fff'; x.font = '800 64px Heebo'; wrap(x, r.name, R, 330, W - 128, 74, 2);
   x.fillStyle = '#e8e2dc'; x.font = '500 44px Heebo'; wrap(x, r.share || '', R, 500, W - 128, 56, 2);
   x.fillStyle = '#fff'; x.font = '800 60px Heebo'; x.fillText(r.ask || S().askFriends, R, H - 200);

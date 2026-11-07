@@ -263,7 +263,7 @@ async function visitorLine(who) {
     if (f.nick) bits.push(`their name is ${String(f.nick).slice(0, 40)}`);
     if (f.citizen && f.citizen.n) bits.push(`they are citizen no. ${String(f.citizen.n).padStart(4, '0')} of the Shlomiverse${f.citizen.founding ? ' (a founding citizen)' : ''}${f.citizen.dept ? `, department: ${f.citizen.dept}` : ''}${f.citizen.cls ? `, classification: ${f.citizen.cls}` : ''}`);
     else bits.push('they are a resident (signed up), not yet a citizen');
-    if (f.sim && f.sim.name) bits.push(`the simulation test says they live in "${f.sim.name}"`);
+    if (f.sim && f.sim.name) bits.push(`the simulation test says they live in "${f.sim.name}"${f.sim.dept ? `, assigned to ${f.sim.dept}` : ''}`);
     return `About the visitor (you know them): ${bits.join('; ')}. Use their name now and then, naturally; bring up the rest only when it fits the talk, rarely, never as a list.`;
   } catch (e) { return ''; }
 }

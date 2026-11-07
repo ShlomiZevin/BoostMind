@@ -77,7 +77,7 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   .eov h1 { font-size: clamp(2rem, 7vw, 3.4rem); font-weight: 900; line-height: 1.1; color: #fff; letter-spacing: -.01em; text-shadow: 0 2px 30px rgba(0, 0, 0, .8); }
   .eov p { margin-top: 12px; color: rgba(255, 255, 255, .72); font-size: 1.08rem; max-width: 420px; }
   .eov .eov-home { margin-top: 26px; display: inline-flex; align-items: center; gap: 0; height: 56px; padding: 0 28px; border-radius: 99px; background: #141418; color: #fff; border: 1.5px solid #ff6a1f;
-    font-weight: 900; font-size: 1.08rem; box-shadow: 0 0 32px rgba(255, 106, 31, .45); text-decoration: none; }
+    font-weight: 900; font-size: 1.08rem; box-shadow: 0 0 14px rgba(255, 106, 31, .2); text-decoration: none; }   /* round 4: less glow (was 32px at .45) */
   .eov .eov-wm { font-weight: 900; letter-spacing: -.03em; font-size: 1.2em; } .eov .eov-wm b { color: #ff6a1f; font-weight: inherit; }
   @media (max-width: 700px) { .eov { background-size: 165% auto; background-position: 10% top; } }
   body { background: var(--bg); color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.55; min-height: 100svh; overflow-x: hidden; }
@@ -791,14 +791,22 @@ function route() {
   document.body.classList.toggle('at-home', !page);
   NF = false;
   document.documentElement.classList.remove('opening');   // a page, not a video / game layer: nothing to wait for
-  $('#app').innerHTML = (pages[page || 'home'] || pages.notFound)(q, decodeURIComponent(id || ''));
+  // a page of the social layer (/citizenship, /simulation, /me, /notes...) before /verse/main.js is here: the loader, never the
+  // end of the verse - he saw three screens on a refresh (round 4, 2026-11-07). main.js routes again the moment it arrives;
+  // only if it never does (a broken load) is it the end of the verse after all
+  const waiting = page && PAGES.has(page) && !pages[page];
+  clearTimeout(route.gaveUp);
+  if (waiting) route.gaveUp = setTimeout(() => { if (!pages[page] && location.pathname.split('/')[1] === page) window.showNotFound(); }, 15000);
+  $('#app').innerHTML = waiting ? `<div class="vx-loader" role="status" aria-label="נכנסים לשלומיוורס" data-say="נכנסים לשלומיוורס"></div>`
+    : (pages[page || 'home'] || pages.notFound)(q, decodeURIComponent(id || ''));
   document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('on', a.dataset.nav === (page === 'c' ? 'characters' : page === 's' ? 'series' : page)));
   if (HOOK.afterRoute) HOOK.afterRoute(page, id);
   const c = page === 'c' && C[id];
-  t('view', page ? page + (id ? '/' + id : '') : 'home');
+  if (!waiting) t('view', page ? page + (id ? '/' + id : '') : 'home');   // counted once, when the real page is drawn
   if (c) t('character', id);
   if (!NF) document.title = titleOf(page, id);
-  $('#fab').style.display = page && !NF ? '' : 'none';
+  // the journeys hide the floating chat button themselves once they boot - hidden from the start, so it doesn't flash in and out
+  $('#fab').style.display = page && !NF && !waiting && page !== 'simulation' && page !== 'citizenship' ? '' : 'none';
   if (!page) bindHero();
   window.scrollTo(0, 0);
   onScroll();

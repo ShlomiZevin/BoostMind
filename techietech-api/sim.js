@@ -96,7 +96,7 @@ const S = (props) => ({ type: 'object', additionalProperties: false, required: O
 const str = { type: 'string' };
 const Q_SCHEMA = S({ react: str, q: str, a: { type: 'array', items: str, minItems: 4, maxItems: 4 } });
 const OPEN_SCHEMA = S({ title: str, line: str, btn: str });
-const RESULT_SCHEMA = S({ score: { type: 'integer' }, name: str, verdict: str, cast: { type: 'array', minItems: 2, maxItems: 3, items: S({ id: str, role: str, scene: str }) },
+const RESULT_SCHEMA = S({ score: { type: 'integer' }, dept: str, name: str, verdict: str, cast: { type: 'array', minItems: 2, maxItems: 3, items: S({ id: str, role: str, scene: str }) },
   share: str, ask: str, setting: str });
 
 // the host's opening screen: written once per host and kept (simHosts/<id>); Yotam's is the one he approved in the plan
@@ -166,6 +166,7 @@ const rPrompt = (b) => `${GAME}
 
 Now the classification is over. Classify this visitor - the result is the Shlomiverse's official classification, signed by Yotam:
 - score: an integer 0-100, how much this visitor lives in a simulation - your judgement from the answers, not a formula.
+- dept: the department of the Shlomiverse this visitor is assigned to, in Hebrew, up to 5 words, starting with "מחלקת", in the registry's dry bureaucratic tone, fitting THEIR answers - invent it for this visitor (example of the tone: "מחלקת תלונות על המציאות").
 - cast: mix a simulation for THIS visitor from 2 or 3 residents below, from at least 2 different worlds, who fit their answers in a surprising, funny way. For each: id (exactly from the list), role - in Hebrew, up to 8 words, what they do in the visitor's simulation; scene - in English, what they physically do in ONE shared picture (action, prop, place in the frame).
 - setting: in English, the one place where the picture happens (it mixes their worlds), one sentence.
 - name: the name of the simulation they are classified into, in Hebrew, up to 6 words (example of the tone: "מבחן פתע אצל השכן").
@@ -183,11 +184,16 @@ async function finish(key, ref, d, steps, br, skipped = false) {
   const o = done.out;
   const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
   if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });
-  const result = { score: Math.max(0, Math.min(100, Math.round(o.score))), name: clip(o.name, 60), verdict: clip(o.verdict, 200), cast, share: clip(o.share, 80), ask: clip(o.ask, 40), setting: clip(o.setting, 300) };
+  // the department replaces the score on screen (his decision, plan cz-sim-r4 2026-11-07: "the 0-100 means nothing"); score stays in the data
+  const result = { score: Math.max(0, Math.min(100, Math.round(o.score))), dept: clip(o.dept, 60), name: clip(o.name, 60), verdict: clip(o.verdict, 200), cast, share: clip(o.share, 80), ask: clip(o.ask, 40), setting: clip(o.setting, 300) };
   await ref.update({ steps, result, skipped, u: (d.u || [0, 0, 0]).map((x, i) => x + (done.u[i] || 0)), finished: FieldValue.serverTimestamp(), pre: FieldValue.delete() });
-  if (d.uid) await toProfile(d.uid, d);   // a resident: the profile fields it found go in now (a tourist's wait for the claim)
-  return { done: true, score: result.score, ms: done.ms };
+  // a resident: the result goes on the account now (it never did - the home band invited him again after a finished test,
+  // 2026-11-07) and the profile fields it found go in; a tourist's wait for the claim
+  if (d.uid) await Promise.all([toFan(d.uid, d.rid, result), toProfile(d.uid, d)]);
+  return { done: true, score: result.score, dept: result.dept, ms: done.ms };
 }
+// the test's line on the account (fans/<uid>.sim): the home band, the passport and the chat read it
+const toFan = (uid, rid, r) => db().collection('fans').doc(uid).set({ sim: { rid, name: r.name, dept: r.dept || null, score: r.score, t: Date.now() } }, { merge: true });
 // the fields this test found (d.vals; their own words in d.raw) -> the person's profile; only fields still empty are filled
 async function toProfile(uid, d) {
   const vals = d.vals || {};
@@ -209,7 +215,7 @@ const RID = /^[a-z0-9]{10,24}$/;
 
 // what the page may see of a test: a tourist the score; the owner (signed in) or anyone once it was shared - all of it
 function view(d, full) {
-  const v = { rid: d.rid, host: d.host, score: d.result ? d.result.score : null, done: !!d.result, step: (d.steps || []).filter(answered).length };
+  const v = { rid: d.rid, host: d.host, score: d.result ? d.result.score : null, dept: d.result ? d.result.dept || null : null, done: !!d.result, step: (d.steps || []).filter(answered).length };
   if (full && d.result) Object.assign(v, { name: d.result.name, verdict: d.result.verdict, cast: d.result.cast.map((c) => ({ id: c.id, role: c.role })),
     share: d.result.share, ask: d.result.ask, img: d.img || null, imgState: d.imgState || null, shared: !!d.shared });
   return v;
@@ -266,8 +272,17 @@ async function handle(req, res) {
     const step = { ...first.step, react: '' };
     await sims.doc(rid).set({ rid, host: { id: host.id, name: host.name }, from: clip(b.from || '', 20), ref: RID.test(b.ref || '') ? b.ref : null,
       v: clip(String(b.v || '').replace(/[^a-z0-9]/gi, ''), 12), ip, uid: user ? user.uid : null, resident: !!user, own: !!b.own,
-      purpose, vals: {}, raw: {}, steps: [step], u: first.u, created: FieldValue.serverTimestamp(), day: day() });
+      purpose, vals: {}, raw: {}, steps: [step], u: first.u, created: FieldValue.serverTimestamp(), day: day(), ...(b.pre ? { pre1: true } : {}) });
     return { rid, n: 1, of: STEPS, ...qOut(step), ms: first.ms };
+  }
+  // the first question is written as the page opens (pre: true - plan cz-sim-r4, 2026-11-07: the wait after "תבדקו אותי" was too
+  // long); the tap on the button marks the test as really started, so Backstage counts only those (simStats)
+  if (op === 'go') {
+    if (!RID.test(b.rid || '')) return { error: 'rid' };
+    const ref = sims.doc(b.rid), got = await ref.get();
+    if (!got.exists) return { error: 'gone' };
+    if (got.data().pre1 && !got.data().tapped) await ref.update({ tapped: FieldValue.serverTimestamp() });
+    return { ok: true };
   }
 
   // while the visitor reads question n, the next question is written for each of its 4 answers (one model call takes 3-4 s,
@@ -297,7 +312,7 @@ async function handle(req, res) {
     const ref = sims.doc(b.rid), got = await ref.get();
     if (!got.exists) return { error: 'gone' };
     const d = got.data(), steps = d.steps || [], cur = steps[steps.length - 1];
-    if (d.result) return { done: true, score: d.result.score };
+    if (d.result) return { done: true, score: d.result.score, dept: d.result.dept || null };
     // a tapped answer (pick 0-3) or their own words (text - "או כתבו תשובה משלכם", plan cz-sim-r3)
     const text = b.text !== undefined ? clip(String(b.text).replace(/\s+/g, ' ').trim(), 120) : null;
     const pick = text === null ? Number(b.pick) : null;
@@ -336,7 +351,7 @@ async function handle(req, res) {
     const ref = sims.doc(b.rid), got = await ref.get();
     if (!got.exists) return { error: 'gone' };
     const d = got.data();
-    if (d.result) return { done: true, score: d.result.score };
+    if (d.result) return { done: true, score: d.result.score, dept: d.result.dept || null };
     const steps = (d.steps || []).filter(answered);
     if (steps.length < 3) return { error: 'step' };
     return finish(key, ref, d, steps, await brainNow(), true);
@@ -351,7 +366,7 @@ async function handle(req, res) {
     let mine = user && (!d.uid || d.uid === user.uid);
     if (mine && !d.uid && d.result) {
       await ref.update({ uid: user.uid, claimed: FieldValue.serverTimestamp() });
-      await db().collection('fans').doc(user.uid).set({ sim: { rid: d.rid, name: d.result.name, score: d.result.score, t: Date.now() } }, { merge: true });
+      await toFan(user.uid, d.rid, d.result);
       await toProfile(user.uid, d);   // the tourist's answers move into their new profile (only fields still empty)
       d.uid = user.uid;
     } else if (mine && d.result && !d.fullSeen) await ref.update({ fullSeen: FieldValue.serverTimestamp() });
@@ -417,7 +432,7 @@ exports.owner = async (op, b) => {
   const days = Math.min(30, Math.max(1, Number(b.days) || 7));
   const since = Timestamp.fromMillis(Date.now() - days * 864e5);
   const snap = await db().collection('sims').where('created', '>=', since).get();
-  const all = snap.docs.map((x) => x.data()).filter((d) => !d.own);
+  const all = snap.docs.map((x) => x.data()).filter((d) => !d.own && !(d.pre1 && !d.tapped && !(d.steps || []).some(answered)));   // written ahead, never tapped = not a start
   const by = {}, drop = Array(STEPS + 1).fill(0);
   let finished = 0, residentsAtStart = 0, claimed = 0, shared = 0, fromShare = 0, imgs = 0;
   for (const d of all) {
@@ -433,7 +448,7 @@ exports.owner = async (op, b) => {
   }
   const cap = await db().collection('verseMeta').doc('simImages').get();
   const recent = all.filter((d) => d.result).sort((a, b) => (b.created?.toMillis?.() || 0) - (a.created?.toMillis?.() || 0)).slice(0, 12)
-    .map((d) => ({ rid: d.rid, t: d.created?.toMillis?.() || 0, host: d.host?.name, from: d.from, score: d.result.score, name: d.result.name, cast: d.result.cast.map((c) => c.id), img: d.img || null, uid: !!d.uid, shared: !!d.shared }));
+    .map((d) => ({ rid: d.rid, t: d.created?.toMillis?.() || 0, host: d.host?.name, from: d.from, score: d.result.score, dept: d.result.dept || null, name: d.result.name, cast: d.result.cast.map((c) => c.id), img: d.img || null, uid: !!d.uid, shared: !!d.shared }));
   return { days, started: all.length, finished, residentsAtStart, touristsStarted: all.length - residentsAtStart, becameResidents: claimed, shared, fromShare, imgs,
     by, drop, today: { n: cap.exists && cap.data().day === day() ? cap.data().n : 0, cap: (cap.exists && cap.data().cap) || IMG_CAP }, recent };
 };

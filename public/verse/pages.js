@@ -7,7 +7,7 @@ import { st, needFan, signedIn, nameScreen, signOut, cachedMe, follow } from './
 import { ringsHtml, storyRing } from './stories.js';
 import { watched } from './player.js';
 import { pushState, enablePush } from './push.js';
-import { statusChip, SI } from './status.js';
+import { statusChip, SI, myStatus } from './status.js';
 import { citizenBanner } from './citizen.js';
 import { nextBar } from './gates.js';
 import { aboutCard } from './about.js';
@@ -25,8 +25,14 @@ export function renderTop() {
   // before Firebase answers: the last signed-in look (or nothing), never a "sign in" button that flips a second later
   const me = signedIn() ? st.fan : !st.ready ? cachedMe() : null;
   // the status chip (tourist / resident) sits with the bell - same height, same line (his note on mockup C-chip)
+  // round 4, the new bar (option A he approved, plan cz-sim-r4 2026-11-07): no separate status box - their own round picture
+  // carries a tiny passport on its corner. The picture opens the menu as before; the passport opens the status window (and the
+  // menu has a row for it too). A resident's passport is greyed - not theirs yet.
+  const pass = nextBar() && st.ready ? `<button class="me-pass${myStatus() === 'citizen' ? '' : ' not-yet'}" data-status aria-label="${esc(T.status.title)}"><img src="/verse/art/passport-chip.png" alt=""></button>` : '';
   box.innerHTML = me
-    ? `${st.ready ? statusChip() : ''}${bell}<button class="me-btn" data-me-menu aria-label="${esc(T.mmProfile)}">${av({ fan: me })}</button>`
+    ? nextBar()
+      ? `${bell}<span class="me-wrap"><button class="me-btn" data-me-menu aria-label="${esc(T.mmProfile)}">${av({ fan: me })}</button>${pass}</span>`
+      : `${st.ready ? statusChip() : ''}${bell}<button class="me-btn" data-me-menu aria-label="${esc(T.mmProfile)}">${av({ fan: me })}</button>`
     : st.ready ? `${statusChip()}${bell}<button class="in-btn" data-signin>כניסה</button>` : '';
   const nav = document.querySelector('.nav-me');
   if (nav) nav.innerHTML = st.unread ? `אני <span class="vx-dot" style="display:inline-block;width:7px;height:7px;vertical-align:middle"></span>` : 'אני';
@@ -251,7 +257,7 @@ function pop(kind, anchor, html, cls) {
     menu = { el, close };
   }
   menu.kind = kind;
-  menu.el.addEventListener('click', (e) => { const a = e.target.closest('a, [data-rename], [data-signout], [data-signin]'); if (a && menu) menu.close(); });
+  menu.el.addEventListener('click', (e) => { const a = e.target.closest('a, [data-rename], [data-signout], [data-signin], [data-status]'); if (a && menu) menu.close(); });
   return menu;
 }
 function bellMenu(anchor) {
@@ -267,6 +273,7 @@ function meMenu(anchor) {
   const n = (x) => (x ? `<small>${x}</small>` : '');
   const html = `<div class="mm">
     <a class="mm-head" href="/me">${av({ fan: st.fan })}<span class="mm-who"><b>${esc(st.fan.nick)}</b><small>${esc(T.mmProfile)}</small></span>${I.next}</a>
+    ${nextBar() ? `<button class="mm-status${myStatus() === 'citizen' ? '' : ' not-yet'}" data-status><img src="/verse/art/passport-chip.png" alt=""><span class="mm-l">${esc(T.status.title)}</span><small>${esc(T.status.name[myStatus()])}${st.fan.citizen && st.fan.citizen.n ? ' #' + String(st.fan.citizen.n).padStart(4, '0') : ''}</small></button>` : ''}
     <div class="mm-g">${esc(T.mmMine)}</div>
     <div class="mm-list">
       ${row('a', 'href="/my-characters"', I.people, T.mmFollows, n(follows))}

@@ -1462,7 +1462,7 @@ async function simCard(force) {
       <div class="sim-row"><b>איפה עצרו (שאלות שענו)</b></div>
       <div class="sim-drop">${steps.map((v, i) => `<div><span style="height:${Math.round((v / maxD) * 100)}%"></span><small>${i}</small><em>${v}</em></div>`).join('')}</div>
       <p class="hint">העלות: הוצאות ← המפתח "site" (נקרא מ-OpenAI).</p>
-      ${x.recent.length ? `<div class="sim-recent">${x.recent.map((r) => `<a href="https://shlomiverse.com/simulation?r=${r.rid}" target="_blank" rel="noopener">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="ph"></span>'}<span><b>${r.score} · ${esc(r.name)}</b><small>${esc(r.host || '')} · ${esc(FROM[r.from] || r.from || '')} · ${ago(r.t)}${r.uid ? ' · תושב' : ''}${r.shared ? ' · שותף' : ''}</small></span></a>`).join('')}</div>` : ''}`;
+      ${x.recent.length ? `<div class="sim-recent">${x.recent.map((r) => `<a href="https://shlomiverse.com/simulation?r=${r.rid}" target="_blank" rel="noopener">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="ph"></span>'}<span><b>${esc(r.name)}${r.dept ? ` · ${esc(r.dept)}` : ''}</b><small>${esc(r.host || '')} · ${esc(FROM[r.from] || r.from || '')} · ${ago(r.t)}${r.uid ? ' · תושב' : ''}${r.shared ? ' · שותף' : ''}</small></span></a>`).join('')}</div>` : ''}`;
     el.querySelectorAll('[data-simd]').forEach((b) => (b.onclick = () => { simDays = +b.dataset.simd; simCard(true); }));
   };
   if (!force && SIMST && Date.now() - simAt < 300e3) return draw();

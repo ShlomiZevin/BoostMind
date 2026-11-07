@@ -70,8 +70,9 @@ export const T = {
   photoUpload: 'העלאת תמונה',
   photoGoogle: 'התמונה מ-Google',
   photoNone: 'בלי תמונה',
-  cropTitle: 'גררו והגדילו לעיגול',
-  cropHint: 'מקמו את הפנים בתוך המסגרת',
+  // round 4 (mockup r4 crop, 2026-11-07): choosing what shows in the round picture
+  cropTitle: 'מה יופיע בתמונה',
+  cropHint: 'גררו והגדילו עד שזה נראה טוב',
   cropSave: 'שמירה',
   cropCancel: 'ביטול',
   photoBad: 'סליחה, התמונה לא מתאימה כאן',
@@ -320,7 +321,7 @@ export const T = {
   signinCardText: 'מדברים עם הדמויות, עוקבים, מגיבים ושומרים רגעים.',
   // the home card lists everything a resident gets now, that there is more, and what is coming (his note, 2026-11-06; Terra's lines)
   signinCardGets: ["הצ'אט ממשיך, בשם שלכם", 'עוקבים ומקבלים התראות', 'מתייגים ומקבלים תשובות', 'סטיקרים מכל רגע לוואטסאפ', 'שומרים סרטונים', 'השם שלכם בטבלת השיאים'],
-  signinCardMore: 'ועוד הרבה דברים שתושבים עושים פה', signinCardSoon: 'מסע האזרחות פתוח לתושבים',   // the journey is open (2026-11-06) signinCardGo: 'להפוך לתושבים',
+  signinCardMore: 'ועוד הרבה דברים שתושבים עושים פה', signinCardSoon: 'מסע האזרחות פתוח לתושבים', signinCardGo: 'להפוך לתושבים',   // the journey is open (2026-11-06); round 4: signinCardGo had slipped into this comment - the home card's button was empty
   signinCardBtn: 'כניסה עם Google',
   residentBtn: 'מסדירים תושבות',
 
@@ -338,6 +339,7 @@ export const T = {
   rqSend: 'לשלוח לשלומי',
   rqApprove: 'אשרו ושלחו לשלומי',
   chatFree: 'מתחברים בחינם, 10 שאלות בכל יום',
+  loading: 'נכנסים לשלומיוורס',   // the page loader's small line (round 4, mockup loader - ui.js loader(); the wiki router has its own copy)
   // tourist -> resident -> citizen (Terra, 2026-11-06; mockups conversion/C-chip, L1-ladder, A-3videos)
   status: {
     title: 'המעמד שלכם בשלומיוורס', here: 'אתם כאן', soon: 'בקרוב', go: 'להפוך לתושבים',
@@ -368,10 +370,19 @@ export const T = {
     wa: 'שלחו בוואטסאפ', copy: 'העתיקו קישור', copied: 'הקישור הועתק', save: 'שמרו לטלפון',
     limit: 'המציאות ביקשה שתניחו לה עד מחר.', fail: 'הבדיקה השתבשה. נסו שוב בעוד רגע.',
     // the free answer + the classification screen (plan cz-sim-r3 mockups simfree / result-2)
-    free: 'או כתבו תשובה משלכם', freeSend: 'שליחת התשובה',
+    free: 'או כתבו ליותם תשובה משלכם', freeSend: 'שליחת התשובה',
     cert: 'הסיווג שלכם בשלומיוורס', signed: 'יותם, ארכיטקט המערכת', castH: 'הדמויות של הסימולציה שלכם',
     followAll: (n) => (n === 2 ? 'עקבו אחרי שניהם' : 'עקבו אחרי שלושתם'), following: 'אתם עוקבים אחרי כולם', followed: 'נוספו לדמויות שלכם',
     nextK: 'השלב הבא:', nextT: 'אזרחות', nextL: 'מרים מחכה בצ׳ק־אין', locked: 'שם הסיווג נחשף לתושבים',
+    // round 4 (plan cz-sim-r4, his notes 2026-11-07; Terra's lines): stages that move on, the department instead of the score,
+    // "system check" while the first question loads, the classification screen's lines, where to go after the result
+    stage: (n, of) => `שלב ${n} מתוך ${of}`, hostTag: 'בדיקת מערכת', pickHint: 'בחרו, או כתבו בעצמכם למטה', dept: 'מחלקה',
+    check: ['בדיקת מערכת: המשתמש נראה סביר מדי.', 'סורק עקביות מול המציאות המפוקפקת.', 'מאתר ביטחון עצמי ללא גיבוי.', 'בודק אותיות קטנות שנקראו בדיעבד.',
+      'מחפש באג בין כוונה לביצוע.', 'טוען ספקות ישנים. זה לוקח רגע.', 'דיפלוי מסקנה זמנית. לא להיבהל.', 'הלוג שומר הכול, לצערך.'],
+    asks: { neighbor: 'שואל את השכן המציק. הוא כבר ענה.', rosenblum: 'מבקש מהמורה רוזנבלום הערכה בלתי נמנעת.', avram: 'מתייעץ עם אברם. המידע חלקי כרגיל.',
+      hani: 'מבקש מחני חוות דעת לא מחייבת.', demokratovich: 'מבקש מהרב דמוקרטוביץ׳ אישור שלא יגיע.', miriam: 'שואל את מרים איפה נשמר הסיווג.' },
+    askAny: (name) => `שואל את ${name}…`,
+    home: 'לדף הבית', myPass: 'הדרכון שלי', getPass: 'להוציא דרכון', myProfile: 'הפרופיל שלי',
   },
   // the citizenship journey (verse/citizen.js; plan conversion-next v6 - the mockups' words + Terra's, 2026-11-06). The booth = his
   // script for Rabbi Demokratovich, word for word; the visitor taps an answer at every "(מקשיב)"
@@ -379,16 +390,16 @@ export const T = {
     bannerTitle: 'התושבות הוסדרה. נא להתאזרח.', bannerLine: 'מרים מחכה בצ׳ק־אין. דמוקרטוביץ עם החותמת.', bannerGo: 'למסע האזרחות', bannerSay: 'זוהרה, רגע, זה לא נותן.',
     step: (n) => `שלב ${n} מתוך 4`,
     pass: { title: 'כרטיס עלייה לשלומיוורס', passenger: 'נוסע', rows: ['מאיפה: העולם שאתם מכירים', 'לאן: שלומיוורס, פנים הארץ', 'שער: ג׳, ליד המכונה שלא עובדת', 'מושב: 17א׳, חלון למציאות חלופית'], go: 'לצ׳ק-אין אצל מרים' },
-    checkin: { skip: 'דלגו', skipAll: 'דלגו על הכול', type: 'כתבו למרים משהו', toBooth: 'לביקורת הגבולות', done: 'זוהרה, רגע, זה לא נותן, אבל יצא ירוק. תעברו, לפני שישתנה.' },
-    boothType: 'או כתבו לרב משהו', boothOpen: 'כתבו לרב את מטרת כניסתכם',   // his lines themselves live on the server (citizen.js SCRIPT) - the AI reacts between them
+    checkin: { skip: 'דלגו', skipAll: 'דלגו על הכול', type: 'או כתבו למרים מה שבא לכם', toBooth: 'לביקורת הגבולות', done: 'זוהרה, רגע, זה לא נותן, אבל יצא ירוק. תעברו, לפני שישתנה.' },
+    boothType: 'או כתבו לרב מה שבא לכם', boothOpen: 'כתבו לרב את מטרת כניסתכם',   // his lines themselves live on the server (citizen.js SCRIPT) - the AI reacts between them
     stamped: 'הכניסה אושרה. מעמד: אזרח. משך השהייה: עד שבג״ץ יפסוק אחרת.', blessing: 'תזכה לשנים רבות, נעימות וטובות, ולישועת בג״ץ במהרה בימינו. אמן.',
     stamp: { title: 'החותמת התקבלה', number: 'מספר האזרח שלכם', founding: (n) => `אזרח מייסד · ${n} מתוך 1,000 הראשונים`, regular: 'אזרח שלומיוורס מן המניין', go: 'טסים פנימה', entry: 'כניסה · שלומיוורס' },
     visa: { office: 'ביקורת הגבולות · השלומיוורס', entry: 'כניסה · ENTRY', status: 'מעמד: אזרח', by: 'הרב דמוקרטוביץ׳', page: 'עמוד הוויזה' },
     flight: { skip: 'דלגו', landing: 'ברוכים הבאים, אזרחים', landing2: 'נחתתם פנימה. העולם שאתם מכירים נשאר בחוץ.', toId: 'לדרכון שלכם' },
     id: { title: 'הדרכון שלכם', open: (n) => (n ? `מספר ${n} · לפתיחה` : 'לפתיחה'), pp: { head: 'דרכון · PASSPORT', issuer: 'השלומיוורס · THE SHLOMIVERSE', type: 'סוג / Type', code: 'קוד / Code', no: 'מספר דרכון / Passport No.',
         name: 'שם / Name', nat: 'אזרחות / Nationality', natV: 'השלומיוורס', birth: 'מקום לידה / Place of birth', birthV: 'העולם שאתם מכירים',
-        issued: 'הונפק / Issued', exp: 'בתוקף עד / Expiry', expV: 'עד שהמציאות תשתנה', auth: 'רשות מנפיקה / Authority', authV: 'ביקורת הגבולות, הרב דמוקרטוביץ׳', status: 'מעמד / Status' }, number: 'מספר אזרח', dept: 'מחלקה', cls: 'סיווג', status: 'מעמד', founding: 'אזרח מייסד', citizen: 'אזרח', sim: 'בסימולציה של',
-      noSim: 'טרם סווגתם', noSimGo: 'למבחן הסימולציה', share: 'שתפו את הדרכון', home: 'חזרה לאתר', add: 'הוסיפו לדרכון' },
+        issued: 'הונפק / Issued', exp: 'בתוקף עד / Expiry', expV: 'עד שהמציאות תשתנה', auth: 'רשות מנפיקה / Authority', authV: 'ביקורת הגבולות, הרב דמוקרטוביץ׳', status: 'מעמד / Status', dept: 'מחלקה / Department' }, number: 'מספר אזרח', dept: 'מחלקה', cls: 'סיווג', status: 'מעמד', founding: 'אזרח מייסד', citizen: 'אזרח', sim: 'בסימולציה של',
+      noSim: 'שלוש דקות, שבע שאלות', noSimGo: 'תעודת סיווג לדרכון', share: 'שתפו את הדרכון', home: 'לדף הבית', add: 'הוסיפו לדרכון' },   // Terra's line (plan cz-sim-r4)
     gate: { title: 'עוד לא תושבים', line: 'הסדירו תושבות כדי להתחיל במסע האזרחות.' },
     statusGo: 'למסע האזרחות', citizenSub: 'התאזרחתם. מספר האזרח כבר אצלכם.', citizenLine: 'אזרחים נכנסים פנימה, בלי להציג דרכון.',
     soonLine: 'מסע האזרחות פתוח לתושבים', bell: ['זוהרה, זה נפתח', 'לא מבינה איך, אבל מסע האזרחות פתוח.'],
@@ -398,6 +409,12 @@ export const T = {
     bdayGot: 'נרשם:', bdayAgain: 'לא נכון? כתבו שוב', bdayBad: 'לא הצלחנו לקרוא את התאריך. נסו לכתוב אחרת.', bdayNo: 'מעדיפים לא לומר',
     // start over, his account only (gates.js him()): the journey from zero without touching his real one
     reset: 'להתחיל מחדש (בדיקה)', restore: 'להחזיר את המצב שלי', resetAsk: 'להתחיל את המסע מאפס? המצב האמיתי שלכם נשמר בצד.', restored: 'המצב שלכם חזר',
+    // while Miriam / the rabbi think (plan cz-sim-r4 mockup think, Terra's lines): one of theirs instead of three dots
+    thinkM: ['רגע, המחשב רושם את ההיסוס.', 'אני רק מחכה שהשורה תתיישר.', 'זה נטען, כנראה לפי סדר אלפביתי.', 'רשמתי. למה, אני לא יודעת.',
+      'המחשב ביקש לחשוב במקומי.', 'יש פה חלון. לא לצאת ממנו.', 'אני בודקת אם זה נקלט במערכת.', 'זה נשמר. או שזה רק נראה כך.'],
+    thinkR: ['נבדקת התאמה בין התשובה לצו.', 'התשובה הועברה למדור החותמות.', 'נא להמתין להכרעת הרשות המוסמכת.', 'נפתח תיק זמני לצורך הבדיקה.',
+      'יש עיכוב מנהלי, כמקובל.', 'הטופס קורא את עצמו מחדש.', 'החותמת טרם הביעה עמדה.', 'הליך הבירור מתקדם בהתאם לנוהל.'],
+    pickHint: 'בחרו, או כתבו בעצמכם למטה', send: 'שליחה',
   },
   // "מה סיפרתם לנו" - the person's own profile on the אני page (plan cz-sim-r3 mockup me; the answers' own words come from the server, about.js)
   about: {
@@ -406,6 +423,7 @@ export const T = {
     labels: { fav: 'הדמויות שבאתם לבקר', source: 'מאיפה הגעתם', bday: 'יום הולדת', push: 'התראות', world: 'העולם שמצחיק אתכם', wish: 'מה הייתם רוצים לעשות כאן', stage: 'שלב בחיים', first: 'מה עושים פה קודם', channel: 'איך לספר לכם על משהו חדש' },
     search: 'חיפוש דמות', picked: (n, of) => `נבחרו ${n} מתוך ${of}`, none: 'לא נמצאה דמות כזאת',
     bdayPh: 'כתבו איך שנוח לכם: 3 במרץ, 3.3, ט״ו בשבט…', bdayNo: 'מעדיפים לא לומר', wishPh: 'מה הייתם רוצים לעשות בשלומיוורס?',
+    worldPh: 'או כתבו במילים שלכם',   // round 4: "העולם שמצחיק אתכם" can also be written, not only picked (his note 2026-11-07)
     months: ['בינואר', 'בפברואר', 'במרץ', 'באפריל', 'במאי', 'ביוני', 'ביולי', 'באוגוסט', 'בספטמבר', 'באוקטובר', 'בנובמבר', 'בדצמבר'],
   },
   // the flight in as a game (verse/fly.js, his idea 2026-11-07 - a draft behind gates.js FLY_OPEN): a spaceship to the planet,
@@ -414,7 +432,7 @@ export const T = {
     skip: 'דלגו', sound: 'קול', progress: 'המרחק לשלומיוורס',
     verb: 'גררו', how: 'כדי לנווט. כל עוד האצבע על המסך, הספינה יורה.', howSmall: 'התחמקו מהדמויות או פוצצו אותן. שלושה מגנים לכל הדרך.',
     lost: 'נגמרו המגנים', lostLine: 'הדמויות לא זזות מהדרך. אתם כן.', easier: 'הפעם הן יזוזו קצת יותר לאט.', retry: 'נסו שוב',
-    paused: 'נגיעה וממשיכים', hot: 'התותח מתקרר',
+    paused: 'נגיעה וממשיכים', hot: 'התותחים התחממו · מתקררים…',   // round 4: a small line by the ship while they cool (his note 2026-11-07)
     landed: 'נחתתם בשלומיוורס',
     points: (n) => `${n} נקודות`,
     result: (sec, stars, shot, shields) => [`${sec} שניות`, stars === 1 ? 'כוכב אחד' : `${stars} כוכבים`, shot === 1 ? 'פיצוץ אחד' : `${shot} פיצוצים`, shields === 1 ? 'מגן אחד' : `${shields} מגנים`].join(' · '),

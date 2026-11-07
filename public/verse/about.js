@@ -100,6 +100,7 @@ export const putAbout = put;
 // what a field's answer looks like in its row
 const optLabel = (k, v) => (fields && fields[k] && fields[k].opts && fields[k].opts[v]) || v;
 function answer(k, x) {
+  if (k === 'world' && x && x.raw) return esc(x.raw);   // round 4: a world written in their own words shows as they wrote it
   const v = x && x.v;
   if (v === null || v === undefined || (Array.isArray(v) && !v.length)) return '';
   if (k === 'fav') return `<span class="ab-faces">${v.filter((id) => C[id]).map((id) => `<span>${av({ char: id })}<small>${esc(first(C[id].name))}</small></span>`).join('')}</span>`;
@@ -138,8 +139,14 @@ function editSheet(k) {
   }
   if (f.kind === 'pick' || f.kind === 'series') {
     const opts = f.kind === 'pick' ? Object.entries(f.opts) : (W.series || []).filter((s) => s.characters && s.characters.length).map((s) => [s.id, s.title]);
-    const h = sheet(`${head}<div class="ab-opts ${f.kind === 'series' ? 'series' : ''}">${opts.map(([v, l]) => `<button class="${v === cur ? 'on' : ''}" data-ab-v="${esc(v)}">${AI[v] || ''}<span>${esc(l)}</span></button>`).join('')}</div></div>`, { cls: 'ab' });
+    // a world can also just be written (round 4, his note 2026-11-07) - the same box as the birthday's; the server keeps their
+    // words as typed (raw) and maps them to a world when they clearly say one
+    const typed = f.kind === 'series' && x && x.raw ? x.raw : '';
+    const free = f.kind === 'series' ? `<div class="ab-dock"><form class="cz-ask ab-date ab-free"><input maxlength="120" placeholder="${esc(A().worldPh)}" value="${esc(typed)}"><button aria-label="${esc(A().save)}">←</button></form></div>` : '';   // pinned under the long list of worlds, always in view
+    const h = sheet(`${head}<div class="ab-opts ${f.kind === 'series' ? 'series' : ''}">${opts.map(([v, l]) => `<button class="${v === cur && !typed ? 'on' : ''}" data-ab-v="${esc(v)}">${AI[v] || ''}<span>${esc(l)}</span></button>`).join('')}</div>${free}</div>`, { cls: 'ab' });
     h.el.querySelectorAll('[data-ab-v]').forEach((b) => (b.onclick = () => { b.classList.add('on', 'wait'); done(h)(put({ [k]: b.dataset.abV })); }));
+    const form = h.el.querySelector('.ab-free');
+    if (form) form.onsubmit = (e) => { e.preventDefault(); const v = form.querySelector('input').value.trim(); if (!v) return; form.querySelector('button').classList.add('wait'); done(h)(put({ [k]: v }, { text: true })).finally(() => form.querySelector('button')?.classList.remove('wait')); };
     return;
   }
   if (f.kind === 'text') {

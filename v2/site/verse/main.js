@@ -1,6 +1,7 @@
 // The Shlomiverse's social layer, wired into the wiki page (/wiki/): the page calls HOOK.* at its seams, this file fills
 // them. Loaded as a module after the wiki's own script; if the wiki rendered first, it routes again.
 import { T } from './copy.js';
+import { loader } from './ui.js';
 import { st, onState, needFan } from './state.js';
 import { openPlayer, openGame, closePlayer, followBtn, paintFollow, setBack } from './player.js';
 import { openStory, closeStory, storyRing, onStories, setStoryBack, paintStoryRing } from './stories.js';
@@ -56,14 +57,17 @@ Object.assign(HOOK, {
     if (!page) recordsHome(); else if (!/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום" lives on the home
   },
 });
-pages.notes = notesPage;
-pages.me = mePage;
-pages.saved = savedPage;
+// the account's pages wait for Firebase to say who this is: the loader until then, never a "sign in" card that flips a
+// second later (round 4, his note 2026-11-07: three screens on a refresh) - onState's refresh() draws them once it knows
+const known = (fn) => (...a) => (st.ready ? fn(...a) : loader());
+pages.notes = known(notesPage);
+pages.me = known(mePage);
+pages.saved = known(savedPage);
 pages.community = communityPage;
 pages.business = businessPage;
 onIdeas(() => refresh());
-pages['my-characters'] = myCharactersPage;
-pages['my-stickers'] = myStickersPage;
+pages['my-characters'] = known(myCharactersPage);
+pages['my-stickers'] = known(myStickersPage);
 pages.install = installPage;
 pages.simulation = simPage;
 pages.citizenship = citizenPage;

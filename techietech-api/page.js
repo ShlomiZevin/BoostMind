@@ -71,7 +71,8 @@ async function simPreview(rid) {
     const g = await admin.firestore().collection('sims').doc(rid).get();
     const d = g.exists ? g.data() : null;
     if (!d || !d.shared || !d.result) return base;
-    return { title: `${d.result.score} · ${d.result.name} · ${NAME}`, desc: `${d.result.share} ${d.result.ask}`, img: d.img || null };
+    // no score (plan cz-sim-r4: the department instead)
+    return { title: `${d.result.dept ? d.result.dept + ' · ' : ''}${d.result.name} · ${NAME}`, desc: `${d.result.share} ${d.result.ask}`, img: d.img || null };
   } catch (e) { return base; }
 }
 

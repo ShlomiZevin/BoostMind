@@ -129,15 +129,17 @@ async function save(uid, patch, by, { force = false, raw = {}, ids = null } = {}
     for (const [k, v] of Object.entries(patch || {})) {
       const c = clean(k, v, ids);
       if (c === undefined || (!force && cur[k])) continue;
-      out[k] = { v: c, by, t: now, ...(raw[k] ? { raw: clip(raw[k], 200) } : {}) };
+      // a new answer replaces the old one whole: its words, or none (set + merge would keep an older answer's raw words)
+      out[k] = { v: c, by, t: now, ...(raw[k] ? { raw: clip(raw[k], 200) } : cur[k] && cur[k].raw ? { raw: FieldValue.delete() } : {}) };
     }
     if (Object.keys(out).length) tx.set(ref(uid), { ...out, updated: FieldValue.serverTimestamp() }, { merge: true });
     return out;
   });
 }
 
-// what the page shows: the fields with their labels and the person's answers (never the raw text of someone else)
-const view = (about) => Object.fromEntries(Object.keys(FIELDS).map((k) => [k, about && about[k] ? { v: about[k].v, by: about[k].by, t: about[k].t } : null]));
+// what the page shows: the fields with their labels and the person's answers (never the raw text of someone else). A world written
+// in their own words comes back as they wrote it (round 4) - aboutGet / aboutPut only ever return the person's own record
+const view = (about) => Object.fromEntries(Object.keys(FIELDS).map((k) => [k, about && about[k] ? { v: about[k].v, by: about[k].by, t: about[k].t, ...(k === 'world' && about[k].raw ? { raw: about[k].raw } : {}) } : null]));
 
 // Backstage "מה למדנו" (verseOwner op aboutStats): counts per field and value, birthdays this week, everyone's answers
 async function stats() {

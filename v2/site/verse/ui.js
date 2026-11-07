@@ -1,5 +1,6 @@
 // The pieces every new screen is built from (one of each - see verse.css): icons, the sheet, the card, the toast,
 // avatars, time. No emoji anywhere.
+import { T } from './copy.js';
 const s = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"${extra}>${d}</svg>`;
 export const I = {
   // the logo's planet without its word (the full logo can't be read at like-button size): a back ring, the planet, the
@@ -44,6 +45,9 @@ export const I = {
   whatsapp: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2A9.8 9.8 0 0 0 3.6 17l-1.4 4.8 4.9-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.8a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.2.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6a2.5 2.5 0 0 0 1.7-1.2 2 2 0 0 0 .1-1.2c0-.2-.2-.2-.4-.3z"/></svg>',
 };
 
+// the page loader (round 4, his note 2026-11-07): the official logo still, a breathing glow, a line drawing itself - all CSS
+// (verse.css .vx-loader); the wiki router shows the same one while this layer is still on its way
+export const loader = () => `<div class="vx-loader" role="status" aria-label="${T.loading}" data-say="${T.loading}"></div>`;
 // the like / stamp: the real logo, grey until it's theirs, lit up orange when it is (verse.css .lk)
 export const LIKE = '<img class="lk" src="/verse/logo-160.png" alt="" draggable="false">';
 export const $ = (q, el = document) => el.querySelector(q);

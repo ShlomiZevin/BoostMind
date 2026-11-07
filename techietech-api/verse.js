@@ -47,7 +47,9 @@ const OWNER_KEY_SHA256 = require('./owner.json').ownerKeySha256;
 const TO = 'shlomi@boostart.io';
 // his own account IS the Shlomiverse (his ask, 2026-11-01: "when I reply to someone it's the verse"): its profile is
 // always this name + the logo, marked official - set here only, never by a fan; the name is reserved for him
-const OFFICIAL = { nick: 'שלומיוורס', photo: 'https://shlomiverse.com/verse/logo-512.png', official: true };
+// the photo: the logo whole inside the circle on the dark background (round 4, his note 2026-11-07: "the Shlomiverse is cut at
+// the sides" - the wide logo-512.png was cropped by the round frame)
+const OFFICIAL = { nick: 'שלומיוורס', photo: 'https://storage.googleapis.com/shlomiverse-media/verse/fans/rJLlCV393shl7njhzWZmoaE15Yp2/logo-round.jpg', official: true };
 const isOwner = (auth) => auth?.token?.email === TO && auth.token.email_verified;
 const reserved = (nick) => /שלומיוורס|shlomi\s*verse/i.test(nick);
 
@@ -583,6 +585,12 @@ const ops = {
     }
     if (d.add && Array.isArray(patch.fav)) patch.fav = [...(((await about.get(uid)).fav || {}).v || []), ...patch.fav];
     const I = await about.ids();
+    // "העולם שמצחיק אתכם" in their own words (round 4, his note 2026-11-07): kept as typed, mapped to a world when it clearly says one
+    if (d.text && typeof patch.world === 'string') {
+      const words = patch.world.trim().slice(0, 120);
+      if (!words) fail('invalid-argument', 'value');
+      raw.world = words; patch.world = await about.mapText(siteKey(), 'world', words, I.worldList);
+    }
     const out = await about.save(uid, patch, d.add ? 'sim' : 'me', { force: true, raw, ids: new Set([...I.chars, ...I.worlds]) });
     if (!Object.keys(out).length) fail('invalid-argument', 'value');
     return { ok: true, about: about.view(await about.get(uid)) };

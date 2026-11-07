@@ -1,5 +1,5 @@
 // Their face for the Shlomiverse: a photo from the phone, moved and zoomed into the circle, out as a square JPEG.
-// Drag to move, pinch / wheel / the slider to zoom; the photo always covers the circle.
+// Drag to move, pinch / wheel / the slider to zoom - in to fill the circle, or out until a wide picture fits whole inside it.
 import { T } from './copy.js';
 import { I, esc, toast } from './ui.js';
 
@@ -26,32 +26,41 @@ function cropFile(file) {
 }
 
 function open(img, url, resolve) {
+  // round 4 (mockup r4 crop, his note 2026-11-07: "can I choose what exactly shows? mine cuts the Shlomiverse at the sides"):
+  // a sheet - the photo under a round frame (outside dimmed), a small live preview of the round picture, and zooming OUT below
+  // "cover" too, so a wide picture (a logo) fits whole inside the circle; the rest is the site's dark background
   const el = document.createElement('div');
   el.className = 'crop';
   el.innerHTML = `<div class="crop-in">
-      <h2 class="vx-h">${esc(T.cropTitle)}</h2><p class="vx-sub">${esc(T.cropHint)}</p>
+      <div class="crop-head"><span class="crop-pv"><img alt="" draggable="false"></span><h2 class="vx-h">${esc(T.cropTitle)}</h2></div>
       <div class="crop-stage"><img alt="" draggable="false"><div class="crop-ring"></div></div>
-      <div class="crop-zoom"><span>${I.minus}</span><input type="range" min="1" max="4" step="0.01" value="1" aria-label="זום"><span>${I.plus}</span></div>
-      <button class="vx-btn main block" data-save>${esc(T.cropSave)}</button>
-      <button class="vx-link" data-cancel>${esc(T.cropCancel)}</button></div>`;
+      <div class="crop-zoom"><span>${I.minus}</span><input type="range" min="0.5" max="4" step="0.01" value="1" aria-label="זום"><span>${I.plus}</span></div>
+      <p class="vx-sub">${esc(T.cropHint)}</p>
+      <div class="crop-btns"><button class="vx-btn main" data-save>${esc(T.cropSave)}</button><button class="vx-btn glass" data-cancel>${esc(T.cropCancel)}</button></div></div>`;
   document.body.append(el);
+  requestAnimationFrame(() => el.classList.add('open'));
   const stage = el.querySelector('.crop-stage'), pic = stage.querySelector('img'), range = el.querySelector('input');
-  pic.src = url;
+  const pv = el.querySelector('.crop-pv'), pvPic = pv.querySelector('img');
+  pic.src = url; pvPic.src = url;
   const W = img.naturalWidth, H = img.naturalHeight;
+  // z = 1 is "cover" (the photo fills the circle); the smallest zoom shows the whole picture inside the circle with room around it
+  const zMin = Math.min(1, (Math.min(W, H) / Math.max(W, H)) * 0.8);
+  range.min = String(zMin);
   let S = stage.clientWidth, z = 1, x = 0, y = 0;
   const base = () => S / Math.min(W, H);
-  const clamp = () => {
-    const sc = base() * z, mx = Math.max(0, (W * sc - S) / 2), my = Math.max(0, (H * sc - S) / 2);
+  const clamp = () => {   // bigger than the frame: no empty edge; smaller: it stays inside the frame
+    const sc = base() * z, mx = Math.abs(W * sc - S) / 2, my = Math.abs(H * sc - S) / 2;
     x = Math.min(mx, Math.max(-mx, x)); y = Math.min(my, Math.max(-my, y));
   };
+  const place = (node, k) => { const sc = base() * z * k; Object.assign(node.style, { width: `${W * sc}px`, height: `${H * sc}px`, left: `${(S / 2 - (W * base() * z) / 2 + x) * k}px`, top: `${(S / 2 - (H * base() * z) / 2 + y) * k}px` }); };
   const draw = () => {
     clamp();
-    const sc = base() * z;
-    Object.assign(pic.style, { width: `${W * sc}px`, height: `${H * sc}px`, left: `${S / 2 - (W * sc) / 2 + x}px`, top: `${S / 2 - (H * sc) / 2 + y}px` });
+    place(pic, 1);
+    place(pvPic, pv.clientWidth / S);   // the live round preview: the same framing, small
     range.value = z;
   };
   const zoomTo = (nz, cx = 0, cy = 0) => { // keep the point under the fingers / cursor in place
-    nz = Math.min(4, Math.max(1, nz));
+    nz = Math.min(4, Math.max(zMin, nz));
     x = cx - ((cx - x) * nz) / z; y = cy - ((cy - y) * nz) / z; z = nz; draw();
   };
   draw();
@@ -77,13 +86,15 @@ function open(img, url, resolve) {
 
   const done = (v) => { URL.revokeObjectURL(url); el.remove(); resolve(v); };
   el.querySelector('[data-cancel]').onclick = () => done(null);
+  el.addEventListener('click', (e) => { if (e.target === el) done(null); });   // a tap on the dimmed screen above the sheet
   el.querySelector('[data-save]').onclick = () => {
-    const sc = base() * z;
+    // the frame as it shows, drawn whole (also when the picture is smaller than the frame) onto the site's dark background
+    const k = OUT / S, sc = base() * z;
     const c = Object.assign(document.createElement('canvas'), { width: OUT, height: OUT });
     const g = c.getContext('2d');
-    g.fillStyle = '#111'; g.fillRect(0, 0, OUT, OUT);
+    g.fillStyle = '#0b0b0e'; g.fillRect(0, 0, OUT, OUT);
     g.imageSmoothingQuality = 'high';
-    g.drawImage(img, ((W * sc - S) / 2 - x) / sc, ((H * sc - S) / 2 - y) / sc, S / sc, S / sc, 0, 0, OUT, OUT);
+    g.drawImage(img, (S / 2 - (W * sc) / 2 + x) * k, (S / 2 - (H * sc) / 2 + y) * k, W * sc * k, H * sc * k);
     done(c.toDataURL('image/jpeg', 0.88));
   };
 }
