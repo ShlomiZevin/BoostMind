@@ -73,6 +73,8 @@ const CSS = `
 .fly video.settle { transform: scale(1.05); }
 .fly .fly-last { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .5s ease; pointer-events: none; transform: scale(1.05); }
 .fly .fly-last.on { opacity: 1; }
+.fly .fly-anim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .55s ease, transform 4.5s cubic-bezier(.2, .6, .3, 1); pointer-events: none; }
+.fly .fly-anim.on { opacity: 1; } .fly .fly-anim.settle { transform: scale(1.05); }
 .fly-hud { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); inset-inline: 10px; display: flex; align-items: center; gap: 10px; direction: rtl; pointer-events: none; z-index: 5; transition: opacity .4s; }
 .fly-hud.gone { opacity: 0; }
 .fly-shields { display: flex; gap: 3px; flex: none; }
@@ -134,6 +136,7 @@ export function play(el, opts = {}) {
     <canvas></canvas>
     <video src="${ART}fly-end.mp4" muted playsinline webkit-playsinline preload="metadata"></video>
     <img class="fly-last" src="" alt="">
+    <img class="fly-anim" alt="">
     <div class="fly-hud"><div class="fly-shields">${SVG.shield.repeat(TUNE.shields)}</div>
       <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i><img src="${ART}fly-planet.webp" alt=""></div>
       <button class="fly-btn fly-mute" aria-label="${Z.sound}">${SVG.sound}</button><button class="fly-btn fly-skip">${Z.skip}</button></div>
@@ -147,7 +150,7 @@ export function play(el, opts = {}) {
   el.appendChild(root);
   const $ = (s) => root.querySelector(s);
   const stage = $('.fly-stage'), cv = $('canvas'), cx = cv.getContext('2d'), video = $('video');
-  const lastFrame = $('.fly-last'); lastFrame.src = ART + 'fly-end-last.webp';
+  const lastFrame = $('.fly-last'); lastFrame.src = ART + 'fly-end-last.webp'; const anim = $('.fly-anim');
   const shieldEls = [...root.querySelectorAll('.fly-shields svg')], fill = $('.fly-prog i'), scoreEl = $('.fly-score');
   const says = [...root.querySelectorAll('.fly-say')].map((d) => ({ d, f: null, until: 0 }));
   const tut = $('.fly-tut'), over = $('.fly-over'), res = $('.fly-res'), hud = $('.fly-hud'), muteBtn = $('.fly-mute');
@@ -344,10 +347,9 @@ export function play(el, opts = {}) {
   // the whole clip in memory before the landing (his note 2026-11-07: on his iPhone the ending froze on a frame mid-flare - it was
   // still streaming): fetched while they fly, then the same element plays it from memory (the touch's blessing stays with the element)
   function wholeClip() {
-    fetch(ART + 'fly-end.mp4').then((r) => (r.ok ? r.blob() : null)).then((b) => {
-      if (!b || dead || G.clip) return;
-      G.clipUrl = URL.createObjectURL(b); video.src = G.clipUrl; video.muted = true; try { video.load(); } catch (e) {}
-    }).catch(() => {});
+    // the ending as an animated picture (his iPhone, 2026-11-07: the video played once and froze the next time - iOS starts a video
+    // from code only when it feels like it); a picture plays on every phone, no permission. Fetched whole while they fly.
+    if (!G.animP) G.animP = fetch(ART + 'fly-end.webp').then((r) => (r.ok ? r.blob() : null)).then((b) => { G.animBlob = b; return b; }).catch(() => null);
     A.last = A.last || pic(ART + 'fly-end-last.webp');   // the settled planet, for a clip that stalls anyway
   }
   // the clip played to its real end - the flare gone, the planet as it is - and only then the landing notice; if it stops moving
@@ -573,16 +575,32 @@ export function play(el, opts = {}) {
       G.score += G.shields * TUNE.score.shield;   // every shield brought home counts
       au && au.land();
       video.muted = true; try { video.currentTime = 0; } catch (e) {}
-      const c = clipPlanet(); video.style.transformOrigin = `${c.x}px ${c.y}px`;
+      const c = clipPlanet(); video.style.transformOrigin = anim.style.transformOrigin = `${c.x}px ${c.y}px`;
       let shown = false; G.result = () => { if (shown || dead) return; shown = true; showResult(); };
       const show = () => {
         if (G.turn) { video.pause(); return; }   // too late: the drawn turn already runs
         G.playing = true; video.classList.add('on'); setTimeout(() => { G.clipOn = true; }, 600); setTimeout(() => video.classList.add('settle'), 1800);
         video.onended = G.result; watchClip();   // the clip runs 6 s: the word turns on, the glow settles - the notice only after it
       };
-      let p; try { p = G.clipOk === false ? null : video.play(); } catch (e) { p = null; }
-      if (p && p.then) p.then(show).catch(drawnTurn); else drawnTurn();
-      setTimeout(() => { if (!G.playing) drawnTurn(); }, 900);   // refused in silence, or stuck loading: never a frozen planet
+      const viaVideo = () => {
+        let p; try { p = G.clipOk === false ? null : video.play(); } catch (e) { p = null; }
+        if (p && p.then) p.then(show).catch(drawnTurn); else drawnTurn();
+        setTimeout(() => { if (!G.playing) drawnTurn(); }, 900);   // refused in silence, or stuck loading: never a frozen planet
+      };
+      // a fresh address each time, so the picture starts from its first frame (two copies of one address share one timeline)
+      const viaAnim = (b) => {
+        anim.src = G.animUrl = URL.createObjectURL(b);
+        (anim.decode ? anim.decode() : Promise.resolve()).then(() => {
+          if (dead || G.turn || G.playing) return;
+          G.playing = true; try { video.pause(); } catch (e) {}
+          anim.classList.add('on'); setTimeout(() => { G.clipOn = true; }, 600); setTimeout(() => anim.classList.add('settle'), 1800);
+          setTimeout(G.result, 6100);   // the picture runs 6 s once and stays on its last frame: the planet as it is, then the notice
+        }).catch(viaVideo);
+      };
+      if (G.animBlob) viaAnim(G.animBlob);
+      else if (G.animP) { let done = false; G.animP.then((b) => { if (done) return; done = true; b ? viaAnim(b) : viaVideo(); });
+        setTimeout(() => { if (!done) { done = true; viaVideo(); } }, 2500); }   // still downloading after 2.5 s: the video
+      else viaVideo();
     }
     fx(dt);
   }
@@ -729,6 +747,7 @@ export function play(el, opts = {}) {
     document.removeEventListener('visibilitychange', onVis);
     try { video.pause(); video.removeAttribute('src'); video.load(); } catch (e) {}
     if (G.clipUrl) URL.revokeObjectURL(G.clipUrl);
+    if (G.animUrl) URL.revokeObjectURL(G.animUrl);
     au && au.close();
     if (window.FLY === G) delete window.FLY;
     root.remove();
