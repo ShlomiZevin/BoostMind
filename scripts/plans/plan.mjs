@@ -1,6 +1,6 @@
 // Plans in Backstage - the session's side (2026-11-06). A plan is a folder with index.html (the brief, its mockups as
 // <img src="img/NAME">) + img/. Backstage (תוכניות) shows it; he comments on any part and approves / asks for changes.
-//   OWNER_KEY=<his key> node scripts/plans/plan.mjs publish <folder> --id <plan-id> [--title-file t.txt] [--summary-file s.txt] [--cover NAME] [--note-file n.txt]
+//   OWNER_KEY=<his key> node scripts/plans/plan.mjs publish <folder> --id <plan-id> [--title-file t.txt] [--summary-file s.txt] [--cover NAME] [--note-file n.txt] [--replaces old-id,old-id2]
 //   OWNER_KEY=... node scripts/plans/plan.mjs list
 //   OWNER_KEY=... node scripts/plans/plan.mjs comments <plan-id> --out comments.md     (read it with the Read tool - Hebrew)
 //   OWNER_KEY=... node scripts/plans/plan.mjs reply <plan-id> --file reply.txt [--anchor <part>] [--to <comment id>]
@@ -35,7 +35,7 @@ if (cmd === 'publish') {
     const r = await api('planFiles', { id, files });
     console.log(`pictures ${i + r.files}/${names.length}`);
   }
-  const r = await api('planPut', { id, title, html, summary: readOpt('summary-file') || '', cover: opt('cover') || names[0] || null, note: readOpt('note-file') || '' });
+  const r = await api('planPut', { id, title, html, summary: readOpt('summary-file') || '', cover: opt('cover') || names[0] || null, note: readOpt('note-file') || '', replaces: (opt('replaces') || '').split(',').filter(Boolean) });
   console.log(`plan "${id}" is in Backstage (תוכניות) - ${names.length} pictures`, r.ok ? '' : r);
 } else if (cmd === 'list') {
   const { plans } = await api('plans');

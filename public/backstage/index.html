@@ -90,7 +90,10 @@
   .ml-ic.red { color: #ff8a8a; }
   /* plans (2026-11-06) */
   .pl-lead { color: var(--dim); margin: 0 0 16px; max-width: 760px; }
-  .pl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .pl-list { display: flex; flex-direction: column; gap: 12px; max-width: 760px; }
+  .pl-sec { margin: 18px 0 10px; font-size: 1rem; } .pl-sec.dim { color: var(--faint); }
+  .pl-card.first { border-color: #ff6a1f; box-shadow: 0 0 0 1px #ff6a1f inset; } .pl-card.past { opacity: .5; } .pl-card.past img { filter: grayscale(1); }
+  .pl-start { display: inline-block; margin-bottom: 6px; color: #ff8c4d; font-weight: 800; font-size: .84rem; }
   .pl-card { display: flex; gap: 14px; text-align: start; padding: 12px; border-radius: 18px; border: 1px solid var(--line2); background: var(--card); width: 100%; }
   .pl-card:hover { border-color: rgba(255,255,255,.3); }
   .pl-card img, .pl-noimg { width: 92px; height: 138px; border-radius: 12px; object-fit: cover; object-position: top; flex: none; background: var(--card2); display: grid; place-items: center; color: var(--dim); }
@@ -903,12 +906,20 @@ const PST = { draft: ['טיוטה', ''], waiting: ['מחכה לך', 'or'], appro
 const pTag = (st) => `<span class="tag ${PST[st]?.[1] || ''}">${PST[st]?.[0] || st}</span>`;
 function plans() {
   if (planId) return planView();
-  const list = PL.plans || [];
-  $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס: בריף, סקיצות וזרימות. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים. הסשנים קוראים את ההערות שלך משם.</p>
-    ${list.length ? `<div class="pl-list">${list.map((p) => `<button class="pl-card" data-plan="${esc(p.id)}">
+  // one column, top-down (his ask 2026-11-07): what waits for him first, the newest on top and marked "מתחילים כאן";
+  // a plan a newer round replaced, or one already decided, sinks below, greyed
+  const all = (PL.plans || []).slice().sort((a, b) => (b.published || b.updated || 0) - (a.published || a.updated || 0));
+  const old = (p) => !!p.replacedBy || (p.status !== 'waiting' && !p.open);
+  const now = all.filter((p) => !old(p)), past = all.filter(old);
+  const title = (id) => (all.find((x) => x.id === id) || {}).title || '';
+  const card = (p, i, isPast) => `<button class="pl-card${isPast ? ' past' : ''}${!isPast && i === 0 ? ' first' : ''}" data-plan="${esc(p.id)}">
       ${p.cover ? `<img src="${esc(p.cover)}" alt="">` : `<span class="pl-noimg">${IC.plan}</span>`}
-      <div><div class="pl-top">${pTag(p.status)}${planRead(p) ? '' : '<span class="pl-new">חדש</span>'}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div>
-      <b>${esc(p.title)}</b>${p.summary ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות פתוחות</small>` : ''}</div></button>`).join('')}</div>`
+      <div>${!isPast && i === 0 ? '<div class="pl-start">מתחילים כאן</div>' : ''}
+      <div class="pl-top">${p.replacedBy ? '<span class="tag">הוחלפה</span>' : pTag(p.status)}${!isPast && !planRead(p) ? '<span class="pl-new">חדש</span>' : ''}<small>גרסה ${p.version} · ${ago(p.published || p.updated)}</small></div>
+      <b>${esc(p.title)}</b>${p.replacedBy ? `<p>הוחלפה ב"${esc(title(p.replacedBy))}"</p>` : p.summary ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות שלך פתוחות</small>` : ''}</div></button>`;
+  $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס. מה שמחכה לך למעלה, החדשה ביותר ראשונה. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים.</p>
+    ${all.length ? `${now.length ? `<h3 class="pl-sec">מחכה לך (${now.length})</h3><div class="pl-list">${now.map((p, i) => card(p, i, false)).join('')}</div>` : '<div class="empty">אין כרגע שום דבר שמחכה לך.</div>'}
+      ${past.length ? `<h3 class="pl-sec dim">קודמות (${past.length})</h3><div class="pl-list">${past.map((p, i) => card(p, i, true)).join('')}</div>` : ''}`
       : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`;
   $('#pane').querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => openPlan(b.dataset.plan)));
 }
@@ -921,7 +932,7 @@ async function openPlan(id) {
 // the frame's own script: every heading, mockup, table row and box gets a comment button; counts come from here
 const PLAN_FRAME = `<style>.zoom{display:none!important}img{cursor:pointer}.pc-b{position:absolute;top:6px;left:6px;z-index:5;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 9px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(11,11,14,.82);color:#fff;font:700 12px Heebo,Arial,sans-serif;cursor:pointer;opacity:.55;transition:opacity .15s}
 .pc-b:hover,.pc-b.has{opacity:1}.pc-b.has{background:#ff6a1f;border-color:#ff6a1f}.pc-b svg{width:14px;height:14px}[data-c]{position:relative}.step>.pc-b,.box>.pc-b,.wcard>.pc-b,.shot>.pc-b{top:auto;bottom:8px}.shot .st{padding-left:64px}tr[data-c] td:first-child{padding-left:70px}h2[data-c],h3[data-c]{padding-left:80px}</style>
-<script>(function(){var I='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/></svg>';
+<script>(function(){[].slice.call(document.querySelectorAll('a[href]')).forEach(function(a){a.target='_blank';a.rel='noopener'});var I='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/></svg>';
 var parts=[].slice.call(document.querySelectorAll('h2,h3,.shot,tr,.box,.step,.wcard'));
 parts.forEach(function(el){if(el.tagName==='TR'&&el.querySelector('th'))return;if(el.closest('.shot')&&el!==el.closest('.shot'))return;
 var img=el.classList.contains('shot')?el.querySelector('img'):null;var src=img?(img.getAttribute('src')||'').split('?')[0].split('/').pop():'';
@@ -955,7 +966,7 @@ function planView() {
       <div class="pl-t"><b>${esc(p.title)}</b><div>${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div></div>
       <div class="pl-acts">${planRead(p) ? `<button class="btn" disabled>${IC.check}נקרא</button>` : `<button class="btn" data-pl-read>${IC.check}קראתי</button>`}<button class="btn main" data-pl-st="approved">${IC.check}מאשר</button><button class="btn" data-pl-st="changes">צריך שינויים</button><button class="btn" data-pl-c="">${IC.comment}הערה כללית</button></div></div>
     <p class="pl-hint">${IC.comment} כל חלק בתוכנית (כותרת, סקיצה, שורה בטבלה) מסומן בכפתור הערה. לחיצה עליו, וכותבים מה לשנות.</p>
-    <iframe class="pl-frame" sandbox="allow-scripts allow-popups" title="${esc(p.title)}"></iframe>
+    <iframe class="pl-frame" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" title="${esc(p.title)}"></iframe>
     <div class="card pl-cs"><div class="card-h"><h2>הערות והחלטות</h2><small class="dim">${open ? `${open} פתוחות` : 'אין הערות פתוחות'}</small></div>
       ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}</div>`;
   const fr = $('#pane .pl-frame');

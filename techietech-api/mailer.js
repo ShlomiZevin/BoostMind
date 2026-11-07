@@ -267,7 +267,7 @@ async function mailFor(p, w, now) {
 // the residents' mail, round 2 (his notes 2026-11-07, plan mail-cz-sim): the simulation test in the same letter (Terra's paragraph +
 // its own button, the text he called perfect), and his pick for the picture - C, the passport on a mountain of paperwork with Miriam
 // and Demokratovich behind it (the book turned into a Hebrew one, his note: "it opens left to right - a recurring problem")
-const CZ_HERO = `${MEDIA}/mail/residents-hero.jpg`;
+const CZ_HERO = `${MEDIA}/mail/residents-hero-2.jpg`;
 const citizenData = (name) => ({ from: 'שגרירות השלומיוורס', subject: name ? `${name}, נפתחו הליכי סיווג מציאות ואזרחות` : 'נפתחו הליכי סיווג מציאות ואזרחות', hero: CZ_HERO,   // a subject: no full stop, their name first
   preheader: 'שבע שאלות ליותם, בקשת אזרחות אחת, ואפס זכויות לאזרחים מייסדים',
   to: name ? `לכבוד ${name},` : '', title: 'נפתחה שגרירות השלומיוורס.',

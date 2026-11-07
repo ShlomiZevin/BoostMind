@@ -28,8 +28,8 @@ async function owner(op, b) {
   if (op === 'plans') {
     const snap = await plans.orderBy('updated', 'desc').limit(100).get();
     const out = await Promise.all(snap.docs.filter((d) => !d.data().archived).map(async (d) => {
-      const x = d.data(), open = await d.ref.collection('comments').where('done', '==', false).count().get();
-      return { id: d.id, title: x.title, summary: x.summary || '', status: x.status, version: x.version || 1, updated: ms(x.updated), created: ms(x.created), open: open.data().count, cover: x.cover ? await urlOf(`plans/${d.id}/${x.cover}`) : null };
+      const x = d.data(), open = await d.ref.collection('comments').where('done', '==', false).where('by', '==', 'shlomi').count().get();   // only his own open notes count
+      return { id: d.id, title: x.title, summary: x.summary || '', status: x.status, version: x.version || 1, updated: ms(x.updated), created: ms(x.created), published: ms(x.published || x.updated), replacedBy: x.replacedBy || null, open: open.data().count, cover: x.cover ? await urlOf(`plans/${d.id}/${x.cover}`) : null };
     }));
     return { plans: out };
   }
@@ -57,7 +57,9 @@ async function owner(op, b) {
     }
     const files = [...new Set([...(got.exists ? got.data().files || [] : []), ...names])];
     await ref.set({ title: clip(b.title, 200), summary: clip(b.summary, 600), html: clip(b.html, 900000), files, cover: nameOk(b.cover) ? b.cover : (had.exists ? had.data().cover || null : null),
-      status: STATUS.includes(b.status) ? b.status : 'waiting', version: had.exists ? (had.data().version || 1) + 1 : 1, updated: now, ...(had.exists ? {} : { created: now }) }, { merge: true });
+      status: STATUS.includes(b.status) ? b.status : 'waiting', version: had.exists ? (had.data().version || 1) + 1 : 1, updated: now, published: now, replacedBy: null, ...(had.exists ? {} : { created: now }) }, { merge: true });
+    // a newer round replaces older plans (his ask 2026-11-07): they stay on his list, greyed, "replaced by" this one
+    for (const old of (Array.isArray(b.replaces) ? b.replaces : []).slice(0, 10)) if (idOk(old) && old !== b.id) await plans.doc(old).set({ replacedBy: b.id }, { merge: true });
     if (had.exists) await ref.collection('comments').add({ kind: 'version', text: clip(b.note || 'גרסה חדשה', 2000), by: 'claude', t: now, done: true });
     return { ok: true, id: b.id, files: names.length };
   }
@@ -81,7 +83,7 @@ async function owner(op, b) {
     const ref = plans.doc(b.id);
     if (!(await ref.get()).exists) return { error: 'missing' };
     const c = await ref.collection('comments').add({ kind: 'comment', anchor: clip(b.anchor, 120), label: clip(b.label, 200), text, by: b.by === 'claude' ? 'claude' : 'shlomi',
-      reply: clip(b.reply, 40) || null, t: FieldValue.serverTimestamp(), done: false });
+      reply: clip(b.reply, 40) || null, t: FieldValue.serverTimestamp(), done: b.by === 'claude' });   // a session's answer is never open
     await ref.set({ updated: FieldValue.serverTimestamp() }, { merge: true });
     return { ok: true, id: c.id };
   }
