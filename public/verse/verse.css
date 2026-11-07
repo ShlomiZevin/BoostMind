@@ -1813,7 +1813,7 @@ html.can-app .foot-app { display: inline-flex !important; }
 .cz-pp-photo { position: absolute; left: 3.7cqw; top: 11.7cqw; width: 24.7cqw; height: 36.7cqw; background: #dcd6ce; display: grid; place-items: center; overflow: hidden; }
 .cz-pp-photo img { width: 100%; height: 100%; object-fit: cover; } .cz-pp-photo span { font-size: 14cqw; font-weight: 900; color: #7a7f9a; }
 .cz-pp-f { position: absolute; right: 4cqw; left: 31.5cqw; top: 11cqw; display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 8cqw; }
-.cz-pp-f > div { min-width: 0; padding-left: 1cqw; } .cz-pp-f .c2 { grid-column: span 2; } .cz-pp-f .c3 { grid-column: span 3; } .cz-pp-f .c4 { grid-column: span 4; } .cz-pp-f .c5 { grid-column: span 5; } .cz-pp-f .c7 { grid-column: span 7; } .cz-pp-f .c12 { grid-column: span 12; }
+.cz-pp-f > div { min-width: 0; padding-left: 1cqw; } .cz-pp-f .c2 { grid-column: span 2; } .cz-pp-f .c3 { grid-column: span 3; } .cz-pp-f .c4 { grid-column: span 4; } .cz-pp-f .c5 { grid-column: span 5; } .cz-pp-f .c7 { grid-column: span 7; } .cz-pp-f .c8 { grid-column: span 8; } .cz-pp-f .c12 { grid-column: span 12; }
 .cz-pp-f small, .cz-pp-f b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cz-pp-f small { font-size: 2cqw; font-weight: 600; color: #5b607c; line-height: 1.2; }
 .cz-pp-f b { font-size: 3.7cqw; font-weight: 700; line-height: 1.25; color: #1d1f33; } .cz-pp-f b.n { color: #b3261e; letter-spacing: .04em; }

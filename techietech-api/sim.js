@@ -14,6 +14,7 @@ const crypto = require('crypto');
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
 const material = require('./character-material');
+const proc = require('./process');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -111,6 +112,15 @@ function qInput(steps) {
 - a: exactly 4 answers, each up to 6 words, all funny and all tempting - no "correct" one, no "none of the above".${n === STEPS ? ' This is the last question: make it the most absurd one.' : ''}` }];
 }
 
+
+// the chat's own character runs the test (process.js - his ask 2026-11-07: "exactly the chat, told it runs a process")
+async function askAs(key, hostId, task, schema, name) {
+  const t0 = Date.now();
+  const r = await proc.run(key, hostId, [], task, schema, name);
+  return { ...r, ms: Date.now() - t0 };
+}
+const qTask = (steps) => GAME + '\n\n' + qInput(steps)[0].content;
+
 const rPrompt = (b) => `${GAME}
 
 Now the classification is over. Classify this visitor - the result is the Shlomiverse's official classification, signed by Yotam:
@@ -128,7 +138,7 @@ ${castList(b)}`;
 // the result: score, the mixed simulation, the share lines - from the answers given (all 7, or 3+ when they skipped)
 async function finish(key, ref, d, steps, br, skipped = false) {
   const C = byId(br);
-  const done = await ask(key, rPrompt(br), [{ role: 'user', content: "The visitor's test:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${s.a[s.pick]}`).join('\n') }], RESULT_SCHEMA, 'result', 'low');
+  const done = await askAs(key, HOST, rPrompt(br) + "\n\nThe visitor's answers:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${s.a[s.pick]}`).join('\n'), RESULT_SCHEMA, 'result');
   const o = done.out;
   const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
   if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });
@@ -199,7 +209,7 @@ async function handle(req, res) {
     const n = await db().runTransaction(async (tx) => { const g = await tx.get(rate); const k = (g.exists ? g.data().n : 0) + 1; tx.set(rate, { n: k, exp: Timestamp.fromMillis(Date.now() + 2 * 864e5) }); return k; });
     if (n > STARTS_A_DAY) return { error: 'limit' };
     const rid = crypto.randomBytes(9).toString('hex').slice(0, 14);
-    const first = await ask(key, qPrompt(host, br), qInput([]), Q_SCHEMA, 'q-' + host.id, 'low');
+    const first = await askAs(key, host.id, qTask([]), Q_SCHEMA, 'q');
     const step = { q: clip(first.out.q, 200), a: first.out.a.map((x) => clip(x, 80)), react: '' };
     const user = await who(req);
     await sims.doc(rid).set({ rid, host: { id: host.id, name: host.name }, from: clip(b.from || '', 20), ref: RID.test(b.ref || '') ? b.ref : null,
@@ -222,7 +232,7 @@ async function handle(req, res) {
     const made = await Promise.all([0, 1, 2, 3].map(async (pick) => {
       try {
         const st = steps.map((x, i) => (i === n - 1 ? { ...x, pick } : x));
-        const r = await ask(key, qPrompt(host, br), qInput(st), Q_SCHEMA, 'q-' + host.id, 'low');
+        const r = await askAs(key, host.id, qTask(st), Q_SCHEMA, 'q');
         return { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x, 80)), react: clip(r.out.react, 120) };
       } catch (e) { return null; }
     }));
@@ -252,7 +262,7 @@ async function handle(req, res) {
       }
       let step = pre && pre.b[pick], u = [0, 0, 0];
       if (!step) {
-        const next = await ask(key, qPrompt(host, br), qInput(steps), Q_SCHEMA, 'q-' + host.id, 'low');
+        const next = await askAs(key, host.id, qTask(steps), Q_SCHEMA, 'q');
         step = { q: clip(next.out.q, 200), a: next.out.a.map((x) => clip(x, 80)), react: clip(next.out.react, 120) }; u = next.u;
       }
       await ref.update({ steps: [...steps, step], u: add(u), pre: FieldValue.delete() });

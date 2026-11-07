@@ -11,7 +11,7 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
-const material = require('./character-material');
+const proc = require('./process');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -52,42 +52,25 @@ async function brainNow() {
 const short = (s, n) => { s = Array.isArray(s) ? s.join(' · ') : String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
 const clip = (s, n) => String(s ?? '').slice(0, n);
 
-// the full material, as the chat gets it (his rule 2026-11-07: as funny as the chat, even if it costs more)
-const miriamText = (b) => material(b, 'miriam');
-const CHECKIN = (b) => `You are Miriam (מרים), the clerk at the CHECK-IN COUNTER for flights into שלומיוורס (the Shlomiverse - a world of comedy characters shown as real people). A resident of the site is checking in for their citizenship; after you comes Rabbi Demokratovich's passport control.
-You ask them a few short questions, one at a time - who they already know here, what they bring with them, what they hope to find, how they heard of the place... - each following what they said.
-
-The heart of her (Shlomi's notes):
-- She breathes heavily. Her breath out comes as a long "אהההה..." - so people think she is understanding, but she isn't, she just breathes like that. Her recurring beat: "אהההה... לא, אני לא הבנתי. אני פשוט נושמת ככה. מחניק פה."
-- She doesn't understand, the screen doesn't let her ("זה לא נותן לי"), she calls Zohara at the next counter ("זוהרה!"). Kind, slow, never wants to bother anyone.
-- Her own words in her videos: "אתה מחשבון? אהההה... לא, אני לא יודעת." / "לא, אני לא הבנתי, אני פשוט נושמת ככה. נורא מחניק פה במטוס." / "טוב, זה בטרמינל 1 או 3?" / "כן, מה אפשר לעזור?"
-
-WRITE SHORT. Short and true beats long and trying - never try to be funny, no wordplay, no puns, no explaining. Her few words and her breathing are the joke.
-Each turn: "say" = up to 10 words - her reaction to their last answer. Vary it: a "אהההה..." in some turns (never in two turns in a row), Zohara in another, a plain word in another; "q" = the question, plain, up to 8 words - the visitor must understand it even though she doesn't; "opts" = 3 plain answers a real visitor would really give (up to 4 words each, true answers, not jokes, grammar that agrees with itself); "done" = true only after at least 4 answered questions (then "q" and "opts" are empty and "say" closes the check-in in up to 12 words and sends them on to the rabbi).
-Never write the bare name "שלומי" - the place is "השלומיוורס". Speak to the visitor in plural (אתם), Hebrew, no emoji. Nothing about politics, religion, health, money amounts or anything that could hurt. Never mention AI or forms or that this is a test. Be as funny and specific as you are in the Shlomiverse chat: use everything you know as this person - your world, your people, your phrases from your videos, real knowledge - but keep to the length above.
-
-Who she is (her full profile and her own videos):
-${miriamText(b)}`;
-const demoText = (b) => material(b, 'demokratovich');
-const BOOTH = (b) => `You are Rabbi Demokratovich (הרב דמוקרטוביץ'), sitting in the PASSPORT-CONTROL BOOTH at the entrance to שלומיוורס (the Shlomiverse - a world of comedy characters shown as real people). A resident of the site, just checked in with Miriam, comes to you to become a citizen. You stamp them in at the end.
+// Miriam and Demokratovich are the chat's own characters (process.js: the same chat - map, voice, full material), told that this
+// is a process and what its steps are (his ask 2026-11-07: "exactly the chat, with a clear instruction that it runs a process")
+const CHECKIN = `You are at the CHECK-IN COUNTER for flights into the Shlomiverse. A resident of the site is checking in for their citizenship; after you comes Rabbi Demokratovich's passport control, where they get stamped.
+The steps: you ask them 4 or 5 questions, one at a time, each following what they said (the first is always why they came - its question and answers are fixed). You don't really understand their answers, in your own way, but you're kind.
+Shlomi's note for this scene: you breathe heavily; your breath out comes as a long "אהההה..." so people think you understood - but you didn't, you just breathe like that ("לא, אני לא הבנתי. אני פשוט נושמת ככה. מחניק פה."). Use it once or twice in the check-in, not every turn.
+Each turn: "say" = your reaction to their last answer (on the first turn: your hello), one or two short sentences; "q" = the next question, plain and clear, up to 9 words - the visitor must understand it even though you don't; "opts" = 3 answers the visitor might tap, up to 5 words each, in the visitor's voice - real answers a person could give (they may be funny); "done" = true only after at least 4 answered questions - then "q" and "opts" are empty and "say" closes the check-in and sends them on to the rabbi.
+Never write the bare name "שלומי" - the place is "השלומיוורס". Speak to the visitor in plural (אתם).`;
+const BOOTH = `You sit in the PASSPORT-CONTROL BOOTH at the entrance to the Shlomiverse. The visitor, just checked in with Miriam, wants to become a citizen; you stamp them in at the end.
 Shlomi wrote your lines for this scene. They are said word for word, in this order - you never change, skip or repeat them:
 ${SCRIPT.map((l, i) => `${i + 1}. ${l}`).join('\n')}
-(then the stamp: "${AFTER_STAMP}" and your blessing)
-After each line the visitor answers - with a simple button ("מקבל/ת", "חותמים"...) or in their own words. You write "react": what you say right after their answer and right before your next scripted line - ONE short sentence, up to 10 words.
-- It answers what THEY said now (if they typed something, pick up their word). Dry and learned in form (a quick ruling, "נרשם", "כך הלכה"), but plain and clear.
-- Short and true beats trying: never try hard to be funny, no wordplay, no chains of Aramaic, no puns, nothing about traffic or anything from the check-in unless they said it now.
-- It leads into the next line without saying what that line says.
-- If they mock you, refuse or say something rude or off-topic, stay in character - a dry ruling about it - never break, never preach.
-Hebrew. You speak to the visitor in the singular as in your lines. No emoji. Nothing about real politicians, judges or parties; never mock religion or the religious. Never mention AI, buttons or that this is a site. Be as funny and specific as you are in the Shlomiverse chat: use everything you know as this person - your world, your people, your phrases from your videos, real knowledge - but keep to the length above.
-
-Who you are (your full profile and your own videos):
-${demoText(b)}`;
+(then you stamp: "${AFTER_STAMP}")
+After each line the visitor answers - with a simple button ("מקבל/ת", "חותמים"...) or in their own words. Your part now is "react": what you say right after their answer and right before your next line - one or two short sentences, reacting to exactly what they said, funny and in your voice. It must flow into your next line without saying what that line says. If they mock you or refuse, stay in character.
+You speak to the visitor in the singular, as in your lines.`;
 const BT = { type: 'object', additionalProperties: false, required: ['react'], properties: { react: { type: 'string' } } };
 // what happened so far, the answer just given (k = which line it answers) and which line comes next
 function boothInput(d, fan, bt, k, a) {
-  const intro = `The visitor: ${fan.nick || '-'}.`;
+  const intro = `The visitor: ${fan.nick || '-'}.` + ((d.turns || []).length ? ' What they told Miriam: ' + d.turns.map((t) => `${t.q} -> ${t.a ?? '(skipped)'}`).join(' | ') : '');
   const past = bt.slice(0, k).map((t, i) => `Line ${i + 1}: ${SCRIPT[i]}\nThey: ${t.a}\nYou reacted: ${t.react}`).join('\n');
-  return [{ role: 'user', content: `${intro}\n\n${past ? past + '\n' : ''}Line ${k + 1}: ${SCRIPT[k]}\nThey answered now: "${a}"\n\nYour next line (said right after your reaction): "${SCRIPT[k + 1]}". Write "react".` }];
+  return `${BOOTH}\n\n${intro}\n\n${past ? past + '\n' : ''}Line ${k + 1}: ${SCRIPT[k]}\nThey answered now: "${a}"\n\nYour next line (said right after your reaction): "${SCRIPT[k + 1]}". Write "react".`;
 }
 const btOf = (o) => ({ react: clip(String(o.react || '').split(AFTER_STAMP)[0].trim(), 140) });
 const reacts = (i) => i + 1 < SCRIPT.length;   // the last answer goes straight to the stamp line
@@ -105,10 +88,9 @@ async function ask(key, instructions, input, schema, name, effort = 'low') {
   if (!r.ok) throw new Error(`openai ${r.status} ${j.error?.message || ''}`);
   return JSON.parse((j.output || []).flatMap((o) => o.content || []).find((c) => c.type === 'output_text')?.text || '{}');
 }
-const talk = (turns) => [{ role: 'user', content: turns.length
+const talk = (turns) => CHECKIN + '\n\n' + (turns.length
   ? 'The check-in so far:\n' + turns.map((t, i) => `${i + 1}. you said: ${t.say} | asked: ${t.q} | they answered: ${t.a === null ? '(skipped this question)' : t.a}`).join('\n') + `\n\nYour next turn (${turns.filter((t) => t.a !== null).length} answered so far${turns.length >= MAX_Q ? ' - this is the last: close the check-in, done=true' : ''}).`
-    + (turns.length === 2 ? ' This turn "say" is your recurring beat: "אהההה... לא, אני לא הבנתי. אני פשוט נושמת ככה. מחניק פה." (those words, maybe one word changed).' : '')
-  : `They just arrived at your counter. Your first turn: "say" = your hello (up to 10 words); "q" = "${WHY_Q}".` }];
+  : `They just arrived at your counter. Your first turn: "say" = your hello; "q" = "${WHY_Q}".`);
 const turnOf = (o) => ({ say: clip(o.say, 260), q: clip(o.q, 160), opts: (o.opts || []).slice(0, 3).map((x) => clip(x, 60)), done: !!o.done });
 
 async function classify(key, b, turns, nick) {
@@ -163,7 +145,7 @@ async function handle(req) {
       turns.push({ ...pend, a });
       if (turns.length === 1) d.why = { a, typed: b.text !== undefined };   // the first question = why they came (his ask: keep their reasons)
     } else if (pend) return view(d, fan);   // nothing answered: the same question again (a reload)
-    const o = turnOf(await ask(key, CHECKIN(br), talk(turns), TURN, 'turn'));
+    const o = turnOf((await proc.run(key, 'miriam', [], talk(turns), TURN, 'turn')).out);
     if (!turns.length) { o.q = WHY_Q; o.opts = WHY_OPTS; o.done = false; }
     if (o.done || turns.length >= MAX_Q) {
       const c = await classify(key, br, turns, fan.nick);
@@ -183,7 +165,7 @@ async function handle(req) {
     if (d.step !== 'booth' || Number(b.i) !== i || !reacts(i) || !OPTS[i].length || (d.bpre && d.bpre.i === i)) return { ok: true };
     await ref.update({ bpre: { i, at: Date.now(), b: {} } });
     const br = await brainNow();
-    const made = await Promise.all(OPTS[i].map(async (o) => { try { return btOf(await ask(key, BOOTH(br), boothInput(d, fan, bt, i, o), BT, 'booth')); } catch (e) { return null; } }));
+    const made = await Promise.all(OPTS[i].map(async (o) => { try { return btOf((await proc.run(key, 'demokratovich', [], boothInput(d, fan, bt, i, o), BT, 'booth')).out); } catch (e) { return null; } }));
     await ref.update({ bpre: { i, at: Date.now(), b: Object.fromEntries(made.map((x, k) => [k, x]).filter(([, x]) => x)) } });
     return { ok: true };
   }
@@ -208,7 +190,7 @@ async function handle(req) {
         }
         step = pre && pre.b[pick];
       }
-      if (!step) { try { step = btOf(await ask(key, BOOTH(await brainNow()), boothInput(d, fan, bt, i, a), BT, 'booth')); } catch (e) { step = { react: '' }; } }
+      if (!step) { try { step = btOf((await proc.run(key, 'demokratovich', [], boothInput(d, fan, bt, i, a), BT, 'booth')).out); } catch (e) { step = { react: '' }; } }
       bt[i] = { a, typed: pick === null, react: step.react };
       booth.push(clip(a, 120));
     } else booth.push(clip(b.a, 60));

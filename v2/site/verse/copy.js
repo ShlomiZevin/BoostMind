@@ -358,7 +358,7 @@ export const T = {
   },
   // the simulation test (verse/sim.js; plan conversion-next v6 - the mockups' words + Terra's, 2026-11-06)
   sim: {
-    title: 'באיזו סימולציה אתם חיים?', go: 'לסיווג', chatGo: 'לסיווג', live: 'בסיווג',
+    title: 'בואו לבדוק באיזו סימולציה אתם חיים?', go: 'לסיווג', chatGo: 'לסיווג', live: 'בסיווג',
     small: 'כשלוש דקות, תלוי כמה המציאות משתפת פעולה.', qOf: (n, of) => `שאלה ${n} מתוך ${of}`,
     computing: 'יותם מסווג אתכם', computing2: 'המציאות מתייעצת עם החשודים',
     yourScore: 'הציון שלכם', of100: 'מתוך 100', sealed: 'התוצאה המלאה כבר יודעת בדיוק איפה אתם חיים.', join: 'הופכים לתושבים ורואים הכול',   // not 'מסדירים תושבות' here: next to a quiz it reads as 'תשובות' (his note)
@@ -380,7 +380,8 @@ export const T = {
     stamp: { title: 'החותמת התקבלה', number: 'מספר האזרח שלכם', founding: (n) => `אזרח מייסד · ${n} מתוך 1,000 הראשונים`, regular: 'אזרח שלומיוורס מן המניין', go: 'טסים פנימה', entry: 'כניסה · שלומיוורס' },
     flight: { skip: 'דלגו', landing: 'ברוכים הבאים, אזרחים', landing2: 'נחתתם פנימה. העולם שאתם מכירים נשאר בחוץ.', toId: 'לדרכון שלכם' },
     id: { title: 'הדרכון שלכם', open: (n) => (n ? `מספר ${n} · לפתיחה` : 'לפתיחה'), pp: { head: 'דרכון · PASSPORT', issuer: 'השלומיוורס · THE SHLOMIVERSE', type: 'סוג / Type', code: 'קוד / Code', no: 'מספר דרכון / Passport No.',
-        name: 'שם / Name', dept: 'מחלקה / Department', cls: 'סיווג / Classification', status: 'מעמד / Status', issued: 'הונפק / Issued', sim: 'סימולציה / Simulation' }, number: 'מספר אזרח', dept: 'מחלקה', cls: 'סיווג', status: 'מעמד', founding: 'אזרח מייסד', citizen: 'אזרח', sim: 'בסימולציה של',
+        name: 'שם / Name', nat: 'אזרחות / Nationality', natV: 'השלומיוורס', birth: 'מקום לידה / Place of birth', birthV: 'העולם שאתם מכירים',
+        issued: 'הונפק / Issued', exp: 'בתוקף עד / Expiry', expV: 'עד שהמציאות תשתנה', auth: 'רשות מנפיקה / Authority', authV: 'ביקורת הגבולות, הרב דמוקרטוביץ׳', status: 'מעמד / Status' }, number: 'מספר אזרח', dept: 'מחלקה', cls: 'סיווג', status: 'מעמד', founding: 'אזרח מייסד', citizen: 'אזרח', sim: 'בסימולציה של',
       noSim: 'טרם סווגתם', noSimGo: 'למבחן הסימולציה', share: 'שתפו את הדרכון', home: 'חזרה לאתר', add: 'הוסיפו לדרכון' },
     gate: { title: 'עוד לא תושבים', line: 'הסדירו תושבות כדי להתחיל במסע האזרחות.' },
     statusGo: 'למסע האזרחות', citizenSub: 'התאזרחתם. מספר האזרח כבר אצלכם.', citizenLine: 'אזרחים נכנסים פנימה, בלי להציג דרכון.',

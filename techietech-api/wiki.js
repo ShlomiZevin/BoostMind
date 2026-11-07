@@ -232,7 +232,17 @@ async function stream(key, mode, turns, onText, opts = {}) {
 }
 exports._stream = stream;
 exports._canon = canonNow;   // the Shlomiverse's social layer (verse.js): characters answering in the comments
-exports._test = { RULES, canon, modeText };  // the side-by-side test of the old full-canon answer (scripts/wiki/chain_test.cjs)
+exports._test = { RULES, canon, modeText };
+// the very same character the chat speaks as, for the site's processes - Miriam's check-in, Demokratovich's booth, the simulation
+// test (his ask 2026-11-07: "exactly the chat we built for the characters, with a clear instruction that it runs a process -
+// it invents well in the chat"). The chat's map as the (cached) instructions, the character's part as in the chat; the process
+// adds its own task and a JSON schema after the conversation (process.js).
+exports.persona = async (mode) => {
+  const cur = await canonNow();
+  const b = chain.base(cur, mode, []);
+  const material = chain.material(cur, b.characters, b.videos);
+  return { instructions: cur.map, dev: modeText(mode, cur.byId) + (b.scope ? '\n' + b.scope : '') + (material ? '\n\n' + material : '') };
+};  // the side-by-side test of the old full-canon answer (scripts/wiki/chain_test.cjs)
 
 // 3 questions without an account, IN TOTAL (no exp - it never resets), then 10 a day with an account (his call,
 // 2026-11-05: 11 of the first 32 accounts used all 10 - the people most into the characters were locked out for good;

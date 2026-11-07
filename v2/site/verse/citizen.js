@@ -201,9 +201,10 @@ function mrz() {
 const ppFields = () => [
   [[P().type, 'P', 2], [P().code, 'SLV', 3], [P().no, pad(S.n), 7, 'n']],
   [[P().name, S.nick || '-', 12]],
-  [[P().dept, S.dept || '-', 12]],
-  [[P().cls, S.cls || '-', 12]],
-  [[P().status, S.founding ? Z().id.founding : Z().id.citizen, 4], [P().issued, ddmmyy(issued()), 3], [P().sim, S.sim && S.sim.name ? S.sim.name : '-', 5]],
+  // only fields a real passport has, filled in deadpan (his note 2026-11-07: no 'סיווג', no 'סימנים מיוחדים')
+  [[P().nat, P().natV, 5], [P().birth, P().birthV, 7]],
+  [[P().issued, ddmmyy(issued()), 4], [P().exp, P().expV, 8]],
+  [[P().auth, P().authV, 8], [P().status, S.founding ? Z().id.founding : Z().id.citizen, 4]],
 ];
 function idCard() {
   const sim = S.sim;
