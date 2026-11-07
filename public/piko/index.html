@@ -476,7 +476,6 @@ function render() {
   const nav = document.querySelectorAll('nav button');
   nav[0].innerHTML = `${IC.wand}<span>יצירה</span>`; nav[1].innerHTML = `${IC.grid}<span>הגלריה</span>${busy ? `<em>${busy}</em>` : ''}`;
   nav.forEach((b) => b.classList.toggle('on', b.dataset.go === st.view || (st.view === 'job' && b.dataset.go === 'gallery')));
-  const ta = $('#prompt'); if (ta) st.prompt = ta.value;
   $('#view').innerHTML = st.view === 'make' ? vMake() : st.view === 'job' ? vJob() : vGallery();
   wire();
 }
