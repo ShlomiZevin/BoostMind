@@ -27,7 +27,8 @@ import { play } from '/verse/fly.js';
 // the characters as the site has them (the bucket's wiki.json; a local preview reads the site's own copy)
 const DATA = /^(localhost|127\.)/.test(location.hostname) ? '/wiki/data/wiki.json' : 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json';
 const chars = fetch(DATA, { cache: 'no-cache' }).then((r) => r.json()).then((w) => w.characters).catch(() => []);   // the game starts without waiting for it
-const seed = new URLSearchParams(location.search).get('seed');
+const qs = new URLSearchParams(location.search), seed = qs.get('seed');
+const quickEnd = qs.get('end') === '1';   // ?end=1: one tap and you are at the landing (his ask: see only the ending, quickly)
 function start() {
   document.body.innerHTML = '';
   const end = (what) => (s) => {
@@ -35,7 +36,7 @@ function start() {
     document.querySelector('.again button').onclick = start;
     window.FLY_RESULT = { what, ...s };
   };
-  play(document.body, { chars, seed: seed != null ? Number(seed) : undefined, onDone: end('נחתתם'), onSkip: end('דילגתם') });
+  play(document.body, { chars, quickEnd, seed: seed != null ? Number(seed) : undefined, onDone: end('נחתתם'), onSkip: end('דילגתם') });
 }
 start();
 </script>

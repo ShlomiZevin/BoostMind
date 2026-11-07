@@ -71,6 +71,8 @@ const CSS = `
 .fly video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .55s ease, transform 4.5s cubic-bezier(.2, .6, .3, 1); pointer-events: none; }
 .fly video.on { opacity: 1; }
 .fly video.settle { transform: scale(1.05); }
+.fly .fly-last { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .5s ease; pointer-events: none; transform: scale(1.05); }
+.fly .fly-last.on { opacity: 1; }
 .fly-hud { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); inset-inline: 10px; display: flex; align-items: center; gap: 10px; direction: rtl; pointer-events: none; z-index: 5; transition: opacity .4s; }
 .fly-hud.gone { opacity: 0; }
 .fly-shields { display: flex; gap: 3px; flex: none; }
@@ -131,6 +133,7 @@ export function play(el, opts = {}) {
   root.innerHTML = `<div class="fly-stage">
     <canvas></canvas>
     <video src="${ART}fly-end.mp4" muted playsinline webkit-playsinline preload="metadata"></video>
+    <img class="fly-last" src="" alt="">
     <div class="fly-hud"><div class="fly-shields">${SVG.shield.repeat(TUNE.shields)}</div>
       <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i><img src="${ART}fly-planet.webp" alt=""></div>
       <button class="fly-btn fly-mute" aria-label="${Z.sound}">${SVG.sound}</button><button class="fly-btn fly-skip">${Z.skip}</button></div>
@@ -144,6 +147,7 @@ export function play(el, opts = {}) {
   el.appendChild(root);
   const $ = (s) => root.querySelector(s);
   const stage = $('.fly-stage'), cv = $('canvas'), cx = cv.getContext('2d'), video = $('video');
+  const lastFrame = $('.fly-last'); lastFrame.src = ART + 'fly-end-last.webp';
   const shieldEls = [...root.querySelectorAll('.fly-shields svg')], fill = $('.fly-prog i'), scoreEl = $('.fly-score');
   const says = [...root.querySelectorAll('.fly-say')].map((d) => ({ d, f: null, until: 0 }));
   const tut = $('.fly-tut'), over = $('.fly-over'), res = $('.fly-res'), hud = $('.fly-hud'), muteBtn = $('.fly-mute');
@@ -337,10 +341,33 @@ export function play(el, opts = {}) {
     else G.arming = false;
   }
   const loadTurn = () => { if (!A.turn) A.turn = pic(ART + 'fly-turn.webp'); };
+  // the whole clip in memory before the landing (his note 2026-11-07: on his iPhone the ending froze on a frame mid-flare - it was
+  // still streaming): fetched while they fly, then the same element plays it from memory (the touch's blessing stays with the element)
+  function wholeClip() {
+    fetch(ART + 'fly-end.mp4').then((r) => (r.ok ? r.blob() : null)).then((b) => {
+      if (!b || dead || G.clip) return;
+      G.clipUrl = URL.createObjectURL(b); video.src = G.clipUrl; video.muted = true; try { video.load(); } catch (e) {}
+    }).catch(() => {});
+    A.last = A.last || pic(ART + 'fly-end-last.webp');   // the settled planet, for a clip that stalls anyway
+  }
+  // the clip played to its real end - the flare gone, the planet as it is - and only then the landing notice; if it stops moving
+  // for 1.2 s (a stall), its clean last frame fades in and the notice comes
+  function watchClip() {
+    let last = -1, still = 0;
+    const tick = setInterval(() => {
+      if (dead) return clearInterval(tick);
+      const t = video.currentTime, d = video.duration || 6;
+      if (video.ended || t >= d - 0.08) { clearInterval(tick); return G.result(); }
+      if (Math.abs(t - last) < 0.01) still += 0.2; else still = 0;
+      last = t;
+      if (still >= 1.2) { clearInterval(tick); lastFrame.classList.add('on'); setTimeout(G.result, 500); }
+    }, 200);
+  }
   function begin() {
     tut.classList.add('hide');
     armClip();
     if (G.phase === 'intro') { fresh(); loadRest(); }
+    if (opts.quickEnd && !G.quick) { G.quick = true; G.t = TUNE.dur - 2.5; G.ents = []; G.clipReady = false; }   // ?end=1: straight to the last seconds and the landing
     G.phase = 'fly';
     au && au.music();
   }
@@ -395,7 +422,7 @@ export function play(el, opts = {}) {
         G.gemIn -= dt; if (G.gemIn <= 0) { G.gemIn = 1.6 + R() * 1.2; gemRow(); }
         if (G.livesAt.length && G.p >= G.livesAt[0]) { G.livesAt.shift(); life(); }
       } else if (!G.stretch) { G.stretch = true; homeStretch(); }
-      if (G.p > 0.5 && !G.clipReady) { G.clipReady = true; video.preload = 'auto'; au && au.prepLand(); if (!G.clipOk) loadTurn(); }   // the end, fetched while they fly (the drawn turn only where the clip was refused)
+      if (G.p > 0.5 && !G.clipReady) { G.clipReady = true; video.preload = 'auto'; au && au.prepLand(); if (!G.clipOk) loadTurn(); wholeClip(); }   // the end, fetched while they fly (the drawn turn only where the clip was refused)
       if (G.p >= 1) { G.phase = 'end'; G.endT = 0; G.end0 = { x: ship.x, y: ship.y }; G.stretch = false; au && au.whoosh(); }
     }
     // the characters
@@ -551,7 +578,7 @@ export function play(el, opts = {}) {
       const show = () => {
         if (G.turn) { video.pause(); return; }   // too late: the drawn turn already runs
         G.playing = true; video.classList.add('on'); setTimeout(() => { G.clipOn = true; }, 600); setTimeout(() => video.classList.add('settle'), 1800);
-        video.onended = G.result; setTimeout(G.result, 6400);   // the clip runs 6 s: the word turns on, the glow settles
+        video.onended = G.result; watchClip();   // the clip runs 6 s: the word turns on, the glow settles - the notice only after it
       };
       let p; try { p = G.clipOk === false ? null : video.play(); } catch (e) { p = null; }
       if (p && p.then) p.then(show).catch(drawnTurn); else drawnTurn();
@@ -701,6 +728,7 @@ export function play(el, opts = {}) {
     removeEventListener('keydown', onKey); removeEventListener('keyup', onKey); removeEventListener('resize', onResize);
     document.removeEventListener('visibilitychange', onVis);
     try { video.pause(); video.removeAttribute('src'); video.load(); } catch (e) {}
+    if (G.clipUrl) URL.revokeObjectURL(G.clipUrl);
     au && au.close();
     if (window.FLY === G) delete window.FLY;
     root.remove();
