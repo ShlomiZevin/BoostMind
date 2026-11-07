@@ -83,6 +83,14 @@ async function brainNow() {
   return brain;
 }
 const clip = (s, n) => String(s ?? '').slice(0, n);
+// what a character SAYS is never cut mid-word (round 4 check: the rabbi's reaction ended "...כבר ק"): over the limit it ends at
+// the last full sentence, else at the last word
+const sayClip = (s, n) => {
+  const t = String(s ?? '').trim();
+  if (t.length <= n) return t;
+  const cut = t.slice(0, n), end = Math.max(...['.', '?', '!', '…', ':'].map((c) => cut.lastIndexOf(c)));
+  return end > n * 0.4 ? cut.slice(0, end + 1) : cut.slice(0, cut.lastIndexOf(' ')).replace(/[,\s]+$/, '') + '…';
+};
 
 // Miriam and Demokratovich are the chat's own characters (process.js: the same chat - map, voice, full material), told that this
 // is a process and what its steps are (his ask 2026-11-07: "exactly the chat, with a clear instruction that it runs a process")
@@ -105,7 +113,7 @@ function boothInput(d, fan, bt, k, a) {
   const past = bt.slice(0, k).map((t, i) => `Line ${i + 1}: ${said(lines[i])}\nThey: ${t.a}\nYou reacted: ${t.react}`).join('\n');
   return `${boothPrompt(lines)}\n\n${intro}\n\n${past ? past + '\n' : ''}Line ${k + 1}: ${said(lines[k])}\nThey answered now: "${a}"\n\nYour next line (said right after your reaction): "${said(lines[k + 1])}". Write "react".`;
 }
-const btOf = (o) => ({ react: clip(String(o.react || '').split(AFTER_STAMP)[0].trim(), 140) });
+const btOf = (o) => ({ react: sayClip(String(o.react || '').split(AFTER_STAMP)[0].trim(), 200) });
 const reacts = (d, i) => i + 1 < scriptOf(d).length;   // the last answer goes straight to the stamp line
 
 const SAY = { type: 'object', additionalProperties: false, required: ['say'], properties: { say: { type: 'string' } } };
@@ -135,14 +143,14 @@ async function nextTurn(key, d, turns, I) {
   const k = turns.length, plan = d.plan || [], slot = plan[k];
   if (!slot) {
     const o = (await proc.run(key, 'miriam', [], talk(turns, 'close'), SAY, 'say')).out;
-    return { close: clip(o.say, 260) };
+    return { close: sayClip(o.say, 260) };
   }
   if (slot === 'own') {
     const o = (await proc.run(key, 'miriam', [], talk(turns, 'own'), OWN, 'turn')).out;
-    return { say: clip(o.say, 260), q: clip(o.q, 160), kind: 'pick', opts: (o.opts || []).slice(0, 3).map((x) => clip(x, 60)) };
+    return { say: sayClip(o.say, 260), q: clip(o.q, 160), kind: 'pick', opts: (o.opts || []).slice(0, 3).map((x) => clip(x, 60)) };
   }
   const o = (await proc.run(key, 'miriam', [], talk(turns, slot), SAY, 'say')).out;
-  const f = about.FIELDS[slot], t = { say: clip(o.say, 260), q: SLOTS[slot].q, kind: SLOTS[slot].kind, field: slot, opts: [] };
+  const f = about.FIELDS[slot], t = { say: sayClip(o.say, 260), q: SLOTS[slot].q, kind: SLOTS[slot].kind, field: slot, opts: [] };
   if (f.kind === 'pick') { t.vals = Object.keys(f.opts); t.opts = Object.values(f.opts); }
   if (slot === 'wish') {
     const fav = (turns.find((x) => x.field === 'fav') || {}).v || ((await about.get(d.uid)).fav || {}).v;

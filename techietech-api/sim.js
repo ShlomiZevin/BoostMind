@@ -153,12 +153,12 @@ async function makeQ(key, hostId, steps, d) {
   const purpose = await purposeOf(field);
   if (!purpose) {
     const r = await askAs(key, hostId, qTask(steps), Q_SCHEMA, 'q');
-    return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x, 80)), react: clip(r.out.react || '', 120) }, u: r.u, ms: r.ms };
+    return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x, 80)), react: sayClip(r.out.react || '', 160) }, u: r.u, ms: r.ms };
   }
   const vals = purpose.vals.map(([v]) => v);
   const schema = S({ react: str, q: str, a: { type: 'array', minItems: 4, maxItems: 4, items: S({ t: str, v: { type: 'string', enum: vals } }) } });
   const r = await askAs(key, hostId, qTask(steps, purpose), schema, 'qp-' + field);
-  return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x.t, 80)), v: r.out.a.map((x) => (vals.includes(x.v) ? x.v : null)), field, react: clip(r.out.react || '', 120) }, u: r.u, ms: r.ms };
+  return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x.t, 80)), v: r.out.a.map((x) => (vals.includes(x.v) ? x.v : null)), field, react: sayClip(r.out.react || '', 160) }, u: r.u, ms: r.ms };
 }
 const qOut = (s) => ({ q: s.q, a: s.a, react: s.react || '' });
 
@@ -211,6 +211,13 @@ async function who(req) {
   try { return await admin.auth().verifyIdToken(m[1]); } catch (e) { return null; }
 }
 const clip = (s, n) => String(s ?? '').slice(0, n);
+// Yotam's reaction is never cut mid-word (same rule as citizen.js sayClip): the last full sentence, else the last word
+const sayClip = (s, n) => {
+  const t = String(s ?? '').trim();
+  if (t.length <= n) return t;
+  const cut = t.slice(0, n), end = Math.max(...['.', '?', '!', '…', ':'].map((c) => cut.lastIndexOf(c)));
+  return end > n * 0.4 ? cut.slice(0, end + 1) : cut.slice(0, cut.lastIndexOf(' ')).replace(/[,\s]+$/, '') + '…';
+};
 const RID = /^[a-z0-9]{10,24}$/;
 
 // what the page may see of a test: a tourist the score; the owner (signed in) or anyone once it was shared - all of it

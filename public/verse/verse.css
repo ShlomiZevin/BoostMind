@@ -2153,7 +2153,7 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .cz-pp-sign .cz-sign { transform-origin: 0 0; }
 .cz-pp-sign small { display: block; font: 700 1.8cqw Arial, 'Noto Sans Hebrew', sans-serif; color: #2b2f55; margin-top: .3cqw; white-space: nowrap; }
 .cz-id-sim { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); text-decoration: none; font-weight: 600; font-size: .84rem; text-align: right; }
-.cz-id-sim > span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cz-id-sim > span { flex: 1; min-width: 0; line-height: 1.35; }   /* wraps on a narrow phone instead of '...' (round 4 check at 360) */
 .cz-id-sim > svg { width: 20px; height: 20px; flex: none; color: var(--vx-accent); }
 .cz-id-sim > svg:last-child { width: 18px; height: 18px; color: var(--dim); margin-inline-start: auto; }
 .cz-id .vx-btn.main { box-shadow: none; margin-top: 2px; }

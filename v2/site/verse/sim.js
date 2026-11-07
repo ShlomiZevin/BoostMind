@@ -70,6 +70,10 @@ async function openOf(h) {
 const done = () => !!(mine()?.done || st.fan?.sim);
 const myTest = () => { const m = mine(); if (m && m.done) return m; const f = st.fan && st.fan.sim; return f ? { rid: f.rid, done: true, score: f.score, dept: f.dept || null, name: f.name, full: true } : null; };
 
+// a name with English in brackets ("הקופאית (Gen Z)") kept whole and in its own direction - else it breaks across the line with
+// the brackets flipped (round 4 check)
+const nameHtml = (n) => esc(n).replace(/\(([^)]*)\)/g, (m) => `<bdi>${m.replace(/ /g, '&nbsp;')}</bdi>`);
+
 // ---------- the home band (Q1): under the question box, for tourists and residents who haven't done it ----------
 export function mountBand() {
   const el = document.getElementById('sim-band');
@@ -339,7 +343,7 @@ function fullView(r, fresh) {
   el.innerHTML = `<section class="sim-res2 sim-end">
     ${cert(r)}
     <div class="sim-sec-h"><span>${esc(S().castH)}</span></div>
-    <div class="sim-cast3">${cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><b>${esc(C[x.id].name)}</b><small>${esc(x.role || '')}</small></a>`).join('')}</div>
+    <div class="sim-cast3">${cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><b>${nameHtml(C[x.id].name)}</b><small>${esc(x.role || '')}</small></a>`).join('')}</div>
     <button class="vx-btn block sim-follow" data-sim-follow ${allFollowed() ? 'disabled' : ''}>${esc(allFollowed() ? S().following : S().followAll(ids.length))}</button>
     <a class="vx-btn main block sim-home" href="/">${esc(S().home)}</a>
     <div class="sim-two">${czOpen() && signedIn() ? `<a class="vx-btn" href="/citizenship" data-sim-pass>${PASS_IC}<span>${esc(pass)}</span></a>` : ''}
