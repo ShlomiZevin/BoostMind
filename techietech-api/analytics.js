@@ -21,6 +21,7 @@ const KEEP_DAYS = 90;
 // what a visitor can do; anything else is dropped
 const EVENTS = new Set([
   'sim_band', 'sim_card', 'sim_open', 'sim_start', 'sim_q', 'sim_done', 'sim_score', 'sim_join', 'sim_full', 'sim_img', 'sim_share', 'sim_ref', 'sim_meet', 'sim_skip', 'cz_banner', 'cz_open', 'cz_checkin', 'cz_stamp', 'cz_flight', 'cz_done', 'cz_share',   // the simulation test (sim.js): x = host / from / question n / score / via
+  'cookie_show', 'cookie_ok', 'cookie_prefs', 'cookie_row', 'cookie_save',   // the cookie notice (verse/cookie.js): x = character / character:row
   'view',          // a page or a wiki screen was opened          x = page / route
   'character',     // a character's page or card was opened        x = character id
   'chat_open',     // a chat window opened                         x = character id or 'guide'

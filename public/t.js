@@ -10,6 +10,17 @@
   var ss = function (k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } };
   var rnd = function () { return Math.random().toString(36).slice(2, 10); };
 
+  // the cookie notice (his idea, plan "cookie" 2026-11-07): once per visitor, ever, on the Shlomiverse's own pages - not the frozen
+  // Wholos pages, the owner's tools, inside a game being played, or in a frame (games play in the verse in one). /verse/cookie.js decides who
+  try {
+    var ck = new URLSearchParams(location.search).get('cookie');
+    if ((ck || !localStorage.getItem('ck-seen')) && window.top === window
+        && /(^|\.)shlomiverse\.com$|^boostmind-b052c\.web\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)
+        && !/^\/(backstage|wholos|matzav|marketing|mind|stats|all|studio|drop|shoot|karaoke|piko|breathe|wellbeing|uploads|meeting-sergio|trial-options|brand-strip|play)(\/|$|-|\.)|^\/[\w-]+-games\/[\w-]+/.test(location.pathname)) {
+      var cks = document.createElement('script'); cks.src = '/verse/cookie.js'; cks.async = true; document.head.appendChild(cks);
+    }
+  } catch (e) {}
+
   // Shlomi's own devices don't count: ?notrack=1 (or opening /stats/ signed in) marks this browser, ?track=1 unmarks it
   var qs = new URLSearchParams(location.search);
   try { if (qs.has('notrack')) localStorage.setItem('t-ignore', '1'); if (qs.has('track')) localStorage.removeItem('t-ignore'); } catch (e) {}
