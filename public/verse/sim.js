@@ -9,6 +9,7 @@ import { esc, track, sheet, toast } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
 import { LOCAL } from './fb.js';
 import { isCitizen } from './citizen.js';
+import { simOpen, czOpen } from './gates.js';
 
 const API = LOCAL ? '/api/verseSim' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseSim';
 const S = () => T.sim;
@@ -70,6 +71,7 @@ const myTest = () => { const m = mine(); if (m && m.done) return m; const f = st
 export function mountBand() {
   const el = document.getElementById('sim-band');
   if (!el) return;
+  if (!simOpen()) { el.innerHTML = ''; return; }   // no way in for now (gates.js)
   const t = myTest();
   if (t) {
     const full = !!(t.name && (t.full || signedIn()));
@@ -95,6 +97,7 @@ export function mountBand() {
 
 // ---------- the chat card (Q7): [[quiz]] in a reply - the character suggests the test when it fits the talk ----------
 export function quizCard(mode) {
+  if (!simOpen()) return '';
   const h = C[mode] ? mode : visitHost();
   return `<div class="sim-chat"><b>${esc(S().title)}</b><a class="vx-btn main small" href="/simulation?host=${h}&from=chat" onclick="window.track&&window.track('sim_card','${h}')">${esc(S().chatGo)}</a></div>`;
 }
@@ -267,7 +270,7 @@ function fullView(r, fresh) {
       <div class="sim-cast-h">${esc(S().who)}</div>
       <div class="sim-cast">${r.cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><span><b>${esc(C[x.id]?.name || x.id)}</b><small>${esc(x.role || '')}</small></span></a>`).join('')}</div>
       <button class="vx-btn main block" data-sim-share>${esc(S().share)}</button>
-      ${signedIn() && !isCitizen() ? `<a class="vx-btn block" href="/citizenship" onclick="window.track&&window.track('cz_banner','sim')">${esc(T.cz.id.add)}</a>` : ''}
+      ${czOpen() && signedIn() && !isCitizen() ? `<a class="vx-btn block" href="/citizenship" onclick="window.track&&window.track('cz_banner','sim')">${esc(T.cz.id.add)}</a>` : ''}
       <button class="vx-btn block" data-sim-meet>${esc(S().meet)}</button>
 </div></section>`;
   if (fresh || !sessionStorage.getItem('vx-sim-full-' + r.rid)) { track('sim_full', r.rid); try { sessionStorage.setItem('vx-sim-full-' + r.rid, '1'); } catch (e) {} }

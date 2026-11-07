@@ -7,6 +7,7 @@ import { T } from './copy.js';
 import { esc, track, sheet, toast } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
 import { LOCAL } from './fb.js';
+import { simOpen, czOpen } from './gates.js';
 
 const API = LOCAL ? '/api/verseCitizen' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseCitizen';
 const Z = () => T.cz;
@@ -27,7 +28,7 @@ export const isCitizen = () => !!(st.fan && st.fan.citizen && st.fan.citizen.n);
 
 // ---------- the resident's home banner (C1): until they finish the journey ----------
 export function citizenBanner() {
-  if (!signedIn() || isCitizen()) return '';
+  if (!czOpen() || !signedIn() || isCitizen()) return '';   // no way in for now (gates.js)
   return `<a class="cz-banner" href="/citizenship" onclick="window.track&&window.track('cz_banner','home')">
     <span class="cz-banner-pic"><img src="/verse/art/citizen-checkin.jpg" alt=""><span class="cz-say">${esc(Z().bannerSay)}</span></span>
     <span class="cz-banner-t"><b>${esc(Z().bannerTitle)}</b><small>${esc(Z().bannerLine)}</small><span class="vx-btn main small">${esc(Z().bannerGo)}</span></span>
@@ -211,7 +212,7 @@ function idCard() {
       <div class="cz-pp-f">${ppFields().map((row) => row.map(([k, v, span, cls]) => `<div class="c${span}"><small>${esc(k)}</small><b class="${cls || ''}">${esc(v)}</b></div>`).join('')).join('')}</div>
       <div class="cz-pp-mrz" dir="ltr">${mrz().map(esc).join('<br>')}</div>
     </div>
-    ${sim && sim.name ? '' : `<a class="cz-id-sim" href="/simulation">${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</a>`}
+    ${(sim && sim.name) || !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</a>`}
     <button class="vx-btn main block" data-cz-share>${esc(Z().id.share)}</button>
     <a class="vx-btn block" href="/">${esc(Z().id.home)}</a></section>`;
   box().querySelector('[data-cz-share]').onclick = () => shareId();

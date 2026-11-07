@@ -4,6 +4,7 @@
 import { T } from './copy.js';
 import { I, esc, sheet, track, brand } from './ui.js';
 import { st, needFan, signedIn } from './state.js';
+import { czOpen } from './gates.js';
 
 const S = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 export const SI = {
@@ -38,7 +39,7 @@ export function openStatus(where = 'chip') {
       <h2 class="vx-h">${brand(T.status.title)}</h2>
       <p class="vx-sub">${brand(me === 'citizen' ? T.cz.citizenSub : T.status.sub[me])}</p>
       <div class="sl-path">${TIERS.map(tier).join('')}</div>
-      ${me === 'tourist' ? `<button class="vx-btn main block" data-sl-go>${esc(T.status.go)}</button>` : me === 'resident' ? `<a class="vx-btn main block" href="/citizenship" data-sl-cz>${esc(T.cz.statusGo)}</a>` : `<a class="sl-pp" href="/citizenship" data-sl-cz><img src="/verse/art/passport-icon.png" alt=""><span><b>${esc(T.cz.id.title)}</b><small>${esc(T.cz.id.open(st.fan && st.fan.citizen ? String(st.fan.citizen.n).padStart(4, '0') : ''))}</small></span><i>‹</i></a>`}
+      ${me === 'tourist' ? `<button class="vx-btn main block" data-sl-go>${esc(T.status.go)}</button>` : !czOpen() ? (me === 'resident' ? `<p class="vx-sub">${esc(T.status.residentNote)}</p>` : '') : me === 'resident' ? `<a class="vx-btn main block" href="/citizenship" data-sl-cz>${esc(T.cz.statusGo)}</a>` : `<a class="sl-pp" href="/citizenship" data-sl-cz><img src="/verse/art/passport-icon.png" alt=""><span><b>${esc(T.cz.id.title)}</b><small>${esc(T.cz.id.open(st.fan && st.fan.citizen ? String(st.fan.citizen.n).padStart(4, '0') : ''))}</small></span><i>‹</i></a>`}
     </div>`, { cls: 'status' });
   h.el.querySelector('[data-sl-go]')?.addEventListener('click', () => { h.close('go'); needFan('status'); });
   h.el.querySelector('[data-sl-cz]')?.addEventListener('click', () => { track('cz_banner', 'status'); h.close('go'); });
