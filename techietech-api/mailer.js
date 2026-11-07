@@ -264,14 +264,18 @@ async function mailFor(p, w, now) {
 
 // ---------- the citizenship journey's invitation, to a resident who hasn't started it (stage 4) ----------
 // His own words (2026-11-06), a letter from the Shlomiverse's embassy, addressed by the name the resident registered with (fans.nick).
-const CZ_HERO = `${MEDIA}/mail/citizen-hero.jpg`;
-const citizenData = (name) => ({ from: 'שגרירות השלומיוורס', subject: name ? `${name}, נפתחה שגרירות השלומיוורס` : 'נפתחה שגרירות השלומיוורס', hero: CZ_HERO,   // a subject: no full stop, their name first
-  preheader: 'לאחר שנים של ניסיונות כושלים לתקן את המציאות, החלטנו לפתוח אחת נוספת.',
+// the residents' mail, round 2 (his notes 2026-11-07, plan mail-cz-sim): the simulation test in the same letter (Terra's paragraph +
+// its own button, the text he called perfect), and his pick for the picture - C, the passport on a mountain of paperwork with Miriam
+// and Demokratovich behind it (the book turned into a Hebrew one, his note: "it opens left to right - a recurring problem")
+const CZ_HERO = `${MEDIA}/mail/residents-hero.jpg`;
+const citizenData = (name) => ({ from: 'שגרירות השלומיוורס', subject: name ? `${name}, נפתחו הליכי סיווג מציאות ואזרחות` : 'נפתחו הליכי סיווג מציאות ואזרחות', hero: CZ_HERO,   // a subject: no full stop, their name first
+  preheader: 'שבע שאלות ליותם, בקשת אזרחות אחת, ואפס זכויות לאזרחים מייסדים',
   to: name ? `לכבוד ${name},` : '', title: 'נפתחה שגרירות השלומיוורס.',
   paras: ['לאחר שנים של ניסיונות כושלים לתקן את המציאות, החלטנו לפתוח אחת נוספת.', 'החל מהיום ניתן להגיש בקשה לאזרחות ביקום מקביל.',
     'כדי לעזוב את המציאות הנוכחית, תידרשו תחילה להוכיח שאתם קיימים. לשם כך הוקם מערך בירוקרטי שלם.',
     'מרים תקבל את פניכם בדלפק הצ\'ק־אין, תשאל שאלות שאין לה סמכות לשאול, לא תבין את התשובות ותסווג אתכם בהתאם.',
     'בתום ההליך יונפק לכם דרכון רשמי, מספר אזרח וכרטיס כניסה לשלומיוורס.'],
+  sim: { at: 3, cta: 'לבדיקת הסימולציה', para: 'טרם עזיבת המציאות הנוכחית, מומלץ לברר באיזו סימולציה אתם חיים בכלל. לצורך כך נפתח מבחן בן שבע שאלות, שבו יותם, ארכיטקט המערכת של החיים, יגיב לכל תשובה ויסווג אתכם. בתום המבחן יימסרו שם הסימולציה והדמויות החיות בה עמכם.' },
   bold: 'לאלף הראשונים יוענק מעמד "אזרח מייסד".', fine: 'המעמד אינו מקנה זכויות או הטבות כלשהן. השגרירות שומרת לעצמה את הזכות לשלול אותן בכל עת.',
   cta: 'להגשת בקשת אזרחות', sign: 'שגרירות השלומיוורס', signRole: 'אגף הגירה, רישום וסיווג שרירותי',
   note: 'קיבלתם את המייל כי יש לכם חשבון בשלומיוורס.' });
