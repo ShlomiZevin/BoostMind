@@ -5,7 +5,7 @@ import { st, onState, needFan } from './state.js';
 import { openPlayer, openGame, closePlayer, followBtn, paintFollow, setBack } from './player.js';
 import { openStory, closeStory, storyRing, onStories, setStoryBack, paintStoryRing } from './stories.js';
 import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest, chatIdeaCard } from './community.js';
-import { renderTop, yourVerse, homeSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
+import { renderTop, yourVerse, homeSlot, stickersSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
 import { appBoot } from './install.js';
@@ -30,6 +30,7 @@ Object.assign(HOOK, {
   yourVerse,
   heroHi,
   homeSlot,
+  stickersSlot,
   requestCard,
   signinCard,
   stickerCard,   // [[sticker:ID]] in a chat reply

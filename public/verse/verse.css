@@ -1757,41 +1757,37 @@ html.can-app .foot-app { display: inline-flex !important; }
 .cz-pass li b { font-size: .95rem; font-weight: 800; line-height: 1.25; }
 .cz-bar { height: 44px; margin-top: 16px; background: repeating-linear-gradient(90deg, #17161a 0 3px, transparent 3px 5px, #17161a 5px 6px, transparent 6px 10px); opacity: .85; border-radius: 3px; }
 
-.cz-desk { display: flex; flex-direction: column; }
-.cz-scene { border-radius: 20px; overflow: hidden; aspect-ratio: 16 / 9; max-height: 26svh; width: 100%; border: 1px solid var(--line2); }
-.cz-scene img { object-position: center 28%; }
-.cz-scene img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cz-chat { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 10px; max-height: 30svh; overflow-y: auto; }
-.cz-b { margin: 0; padding: 11px 14px; border-radius: 18px; font-size: 1.02rem; line-height: 1.45; max-width: 92%; }
-.cz-b.her, .cz-b.rabbi { align-self: flex-start; background: var(--card2); border: 1px solid var(--line2); border-top-right-radius: 4px; }
-.cz-b.her b, .cz-b.rabbi b { display: block; margin-top: 4px; font-weight: 800; }
-.cz-b.her:not(.now), .cz-b.rabbi.past { opacity: .6; font-size: .92rem; }
-.cz-b.rabbi.now { font-size: 1.12rem; font-weight: 700; border-color: rgba(255, 106, 31, .5); }
-.cz-b.rabbi .cz-re { display: block; font-weight: 500; font-size: .95rem; color: var(--soft, #cfcfd8); margin-bottom: 6px; }
-.cz-b.me { align-self: flex-end; background: color-mix(in srgb, var(--vx-accent) 22%, var(--card)); border-top-left-radius: 4px; font-size: .92rem; }
-.cz-typing { align-self: flex-start; display: flex; gap: 5px; padding: 12px 14px; margin: 0; background: var(--card2); border-radius: 18px; }
-.cz-typing[hidden] { display: none; }
-.cz-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); animation: sim-blink 1s infinite; }
-.cz-typing i:nth-child(2) { animation-delay: .2s; } .cz-typing i:nth-child(3) { animation-delay: .4s; }
-.cz-opts { display: flex; flex-direction: column; gap: 8px; }
-.cz-opts button { min-height: 52px; padding: 10px 16px; border-radius: 16px; background: var(--card); border: 1.5px solid var(--line2); color: var(--text); font: inherit; font-weight: 700; font-size: 1rem; text-align: right; }
-.cz-opts button.on { border-color: var(--vx-accent); background: color-mix(in srgb, var(--vx-accent) 18%, var(--card)); }
-.cz-opts button:disabled:not(.on) { opacity: .45; }
-.cz-ask { display: flex; gap: 8px; margin-top: 10px; }
-.cz-ask input { flex: 1; min-width: 0; height: 48px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); padding: 0 14px; font: inherit; }
-.cz-ask button { width: 48px; height: 48px; border-radius: 14px; background: var(--vx-accent); color: #fff; font-size: 1.2rem; border: 0; }
-.cz-skips { display: flex; justify-content: center; gap: 18px; margin-top: 10px; }
+/* one question per screen (his notes 2026-11-07): the scene shrinks so the bubble, the answers and the text box fit one phone screen */
+.cz-desk { display: flex; flex-direction: column; gap: 10px; }
+.cz-scene { border-radius: 18px; overflow: hidden; width: 100%; height: clamp(100px, calc(100svh - 615px), 230px); border: 1px solid var(--line2); flex: none; }
+.cz-scene img { width: 100%; height: 100%; object-fit: cover; object-position: center 28%; display: block; }
+.cz-say2 { position: relative; margin-top: 4px; background: #fdf6ef; color: #17161a; border-radius: 18px; padding: 12px 16px; font-size: 1rem; line-height: 1.4; min-height: 50px; }
+.cz-say2::before { content: ""; position: absolute; top: -9px; right: 38px; border: 10px solid transparent; border-top: 0; border-bottom-color: #fdf6ef; }
+.cz-say2 b { display: block; font-weight: 900; font-size: 1.1rem; line-height: 1.35; }
+.cz-say2 .cz-re { display: block; color: #5d544c; font-size: .95rem; margin-bottom: 3px; }
+.cz-dots { display: flex; gap: 5px; padding: 8px 0; }
+.cz-dots i { width: 7px; height: 7px; border-radius: 50%; background: #9a9088; animation: sim-blink 1s infinite; }
+.cz-dots i:nth-child(2) { animation-delay: .2s; } .cz-dots i:nth-child(3) { animation-delay: .4s; }
+.cz-opts { display: grid; gap: 8px; }
+.cz-opts.two { grid-template-columns: 1fr 1fr; }
+.cz-opts button { min-height: 48px; padding: 8px 14px; border-radius: 14px; background: rgba(255, 106, 31, .08); border: 1.5px solid rgba(255, 106, 31, .6); color: var(--text); font: inherit; font-weight: 700; font-size: 1rem; text-align: center; }
+.cz-opts button.on { background: var(--vx-accent); border-color: var(--vx-accent); color: #fff; }
+.cz-opts button:disabled:not(.on) { opacity: .4; }
+.cz-ask { display: flex; gap: 8px; }
+.cz-ask input { flex: 1; min-width: 0; height: 46px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); padding: 0 14px; font: inherit; font-size: 16px; }
+.cz-ask button { width: 46px; height: 46px; border-radius: 14px; background: var(--vx-accent); color: #fff; font-size: 1.2rem; border: 0; }
+.cz-skips { display: flex; justify-content: center; gap: 18px; }
 .cz-skip { background: none; border: 0; color: var(--dim); font: inherit; font-size: .9rem; text-decoration: underline; text-underline-offset: 3px; padding: 6px; }
 
 .cz-stamp { text-align: center; }
-.cz-passport { position: relative; width: min(70vw, 260px); aspect-ratio: 3 / 4; margin: 6px auto 14px; border-radius: 16px; background: linear-gradient(160deg, #1d2a52, #0f1630); border: 1px solid rgba(255, 255, 255, .15);
-  display: grid; place-items: center; box-shadow: 0 16px 40px rgba(0, 0, 0, .5); }
-.cz-planet { width: 46%; opacity: .9; }
-.cz-ink { position: absolute; bottom: 14%; left: 50%; width: 132px; height: 132px; margin-left: -66px; border-radius: 50%; border: 6px solid rgba(255, 106, 31, .9); display: grid; place-items: center; transform: rotate(-14deg); }
-.cz-ink span { font-weight: 900; font-size: 1.9rem; color: rgba(255, 106, 31, .95); letter-spacing: .04em; }
+.cz-passport { position: relative; width: min(32vw, 128px); aspect-ratio: 600 / 909; margin: 0 auto 14px; border-radius: 10px; background: url(/verse/art/citizen-passport.jpg) center / cover; box-shadow: 0 14px 34px rgba(0, 0, 0, .55); }
+.cz-ink { position: absolute; bottom: 7%; left: 6%; padding: 4px 8px; border: 2.5px solid rgba(255, 98, 40, .92); outline: 1px solid rgba(255, 98, 40, .7); outline-offset: 2px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; transform: rotate(-11deg); color: rgba(255, 110, 50, .95); line-height: 1.1; }
+.cz-ink small { font-size: .5rem; font-weight: 800; white-space: nowrap; }
+.cz-ink span { font-weight: 900; font-size: 1.15rem; letter-spacing: .06em; }
 .cz-stamp.fresh .cz-ink { animation: cz-stamp .55s cubic-bezier(.2, 1.4, .4, 1) .35s both; }
-@keyframes cz-stamp { from { transform: rotate(-14deg) scale(2.4); opacity: 0; } to { transform: rotate(-14deg) scale(1); opacity: 1; } }
-.cz-stamp .cz-b { margin: 0 auto 10px; text-align: right; }
+@keyframes cz-stamp { from { transform: rotate(-11deg) scale(2.6); opacity: 0; } to { transform: rotate(-11deg) scale(1); opacity: 1; } }
+.cz-stamp .cz-say2 { text-align: right; margin: 0 0 6px; }
+.cz-stamp .cz-say2::before { display: none; }
 .cz-stamp h1 { font-size: 1.6rem; font-weight: 900; margin: 4px 0; }
 .cz-num { display: flex; flex-direction: column; align-items: center; margin: 4px 0 10px; }
 .cz-num small { color: var(--dim); font-weight: 700; } .cz-num b { font-size: 3.4rem; font-weight: 900; color: var(--vx-accent); line-height: 1.05; letter-spacing: .05em; }
@@ -1807,17 +1803,62 @@ html.can-app .foot-app { display: inline-flex !important; }
 .cz-land h1 { font-size: clamp(1.8rem, 8vw, 2.4rem); font-weight: 900; margin: 6px 0; }
 .cz-land p { color: var(--dim); }
 
-.cz-id { padding-top: 6px; }
-.cz-card { position: relative; border-radius: 22px; padding: 16px; background: linear-gradient(150deg, #241812, #120d0a); border: 1.5px solid rgba(255, 106, 31, .6); box-shadow: 0 16px 40px rgba(0, 0, 0, .5); overflow: hidden; }
-.cz-card-h { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, .1); padding-bottom: 10px; margin-bottom: 12px; }
-.cz-card-h img { width: 40px; height: 40px; } .cz-card-h b { font-size: 1.15rem; font-weight: 900; }
-.cz-card-b { display: flex; gap: 14px; align-items: flex-start; }
-.cz-photo { flex: none; width: 96px; aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; background: #2a2018; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .15); }
-.cz-photo img { width: 100%; height: 100%; object-fit: cover; } .cz-photo span { font-size: 2.6rem; font-weight: 900; color: var(--vx-accent); }
-.cz-card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; flex: 1; min-width: 0; font-size: .92rem; }
-.cz-card dt { color: var(--dim); font-weight: 600; } .cz-card dd { margin: 0; font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
-.cz-card dd.n { color: var(--vx-accent); font-size: 1.15rem; letter-spacing: .05em; } .cz-card dd a { color: var(--vx-accent); }
-.cz-side { flex: none; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.cz-card-stamp { margin-top: 4px; width: 74px; height: 74px; border-radius: 50%; border: 4px solid rgba(255, 106, 31, .7); display: grid; place-items: center;
-  font-weight: 900; color: rgba(255, 106, 31, .85); transform: rotate(-16deg); font-size: 1rem; pointer-events: none; }
+.cz-id { padding-top: 6px; display: flex; flex-direction: column; gap: 12px; }
+.cz-id-h { margin: 0; font-size: 1.5rem; font-weight: 900; text-align: center; }
+/* the passport's data page (his note 2026-11-07): the picture has no text; everything is laid over it in cqw (= drawPassport's u) */
+.cz-pp { font-family: Arial, 'Noto Sans Hebrew', sans-serif; position: relative; container-type: inline-size; width: 100%; aspect-ratio: 3 / 2; background: url(/verse/art/citizen-datapage.jpg) center / 100% 100%; border-radius: 10px; overflow: hidden; box-shadow: 0 16px 40px rgba(0, 0, 0, .55); color: #14162a; }
+.cz-pp-top, .cz-pp-f, .cz-pp-mrz { mix-blend-mode: multiply; }   /* ink printed into the paper */
+.cz-pp-top { position: absolute; inset: 0 4cqw auto; height: 6.7cqw; display: flex; align-items: center; justify-content: space-between; color: #262b55; }
+.cz-pp-top b { font-size: 2.9cqw; font-weight: 900; } .cz-pp-top span { font-size: 2.3cqw; font-weight: 700; direction: ltr; }
+.cz-pp-photo { position: absolute; left: 3.7cqw; top: 11.7cqw; width: 24.7cqw; height: 36.7cqw; background: #dcd6ce; display: grid; place-items: center; overflow: hidden; }
+.cz-pp-photo img { width: 100%; height: 100%; object-fit: cover; } .cz-pp-photo span { font-size: 14cqw; font-weight: 900; color: #7a7f9a; }
+.cz-pp-f { position: absolute; right: 4cqw; left: 31.5cqw; top: 11cqw; display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 8cqw; }
+.cz-pp-f > div { min-width: 0; padding-left: 1cqw; } .cz-pp-f .c2 { grid-column: span 2; } .cz-pp-f .c3 { grid-column: span 3; } .cz-pp-f .c4 { grid-column: span 4; } .cz-pp-f .c5 { grid-column: span 5; } .cz-pp-f .c7 { grid-column: span 7; } .cz-pp-f .c12 { grid-column: span 12; }
+.cz-pp-f small, .cz-pp-f b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cz-pp-f small { font-size: 2cqw; font-weight: 600; color: #5b607c; line-height: 1.2; }
+.cz-pp-f b { font-size: 3.7cqw; font-weight: 700; line-height: 1.25; color: #1d1f33; } .cz-pp-f b.n { color: #b3261e; letter-spacing: .04em; }
+.cz-pp-mrz { position: absolute; left: 4cqw; right: 2cqw; top: 55.6cqw; font: 700 3.4cqw/1.35 "OCR B", "OCR-B", "Courier New", monospace; color: #1c1d26; white-space: nowrap; text-align: left; }
+.cz-id-sim { text-align: center; color: var(--vx-accent); font-weight: 700; }
+/* the footer's links live on the home page only (his note 2026-11-07: "that bottom everywhere is weird") */
+body:not([data-page="home"]) > footer { display: none !important; }
 .cz-gate { text-align: center; } .cz-gate img { width: 100%; border-radius: 20px; } .cz-gate h1 { font-size: 1.6rem; font-weight: 900; margin: 14px 0 4px; } .cz-gate p { color: var(--dim); }
+
+/* the citizen's passport in the status chip and the status sheet (his note 2026-11-07: a real passport, clearly tappable) */
+.vx-top .st-chip .st-pp { width: 17px; height: auto; display: block; }
+.sl-pp { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 18px; background: linear-gradient(135deg, #1d2547, #12172c); border: 1.5px solid rgba(214, 174, 92, .55); color: #fff; text-decoration: none; margin-top: 6px; }
+.sl-pp img { width: 46px; height: auto; flex: none; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
+.sl-pp span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sl-pp b { font-size: 1.1rem; font-weight: 900; } .sl-pp small { color: #d8c48f; font-weight: 700; font-size: .88rem; }
+.sl-pp i { font-style: normal; font-size: 1.6rem; color: #d8c48f; line-height: 1; }
+/* the simulation band (his note 2026-11-07: less glow; the button was cut off on a phone - the title no longer pushes it out) */
+.sim-band { grid-template-columns: auto minmax(0, 1fr) auto; box-shadow: 0 0 0 1px rgba(255, 106, 31, .12), 0 0 10px rgba(150, 70, 255, .2); border-color: rgba(178, 120, 255, .45); }
+.sim-band-face { box-shadow: 0 0 6px rgba(178, 120, 255, .35); }
+.sim-band-h { min-width: 0; white-space: normal; text-shadow: -1px 0 rgba(71, 215, 255, .45), 1px 0 rgba(255, 61, 240, .4); animation: none; }
+.sim-band-go { white-space: nowrap; flex: none; }
+.sim-band.small .sim-band-h { font-size: clamp(.98rem, 4.3vw, 1.15rem); }
+/* the top bar on a phone (his note 2026-11-07: messy, the search box's words were cut): the logo, then one row of equal 38px
+   buttons - search (an icon that opens over the bar), status, bell, me */
+@media (max-width: 760px) {
+  .top .wrap { position: relative; gap: 8px; }
+  .top .brand { margin-inline-end: auto; }
+  .search { flex: none !important; width: 38px !important; margin: 0 !important; }
+  .search input { height: 38px; padding: 0; color: transparent; cursor: pointer; border-radius: 10px; caret-color: transparent; }
+  .search input::placeholder { color: transparent; }
+  .search > svg { right: 10px; top: 10px; color: var(--text); }
+  .search.s-open { position: absolute; inset-inline: 16px; top: 10px; width: auto !important; z-index: 5; }
+  .search.s-open input { padding: 0 38px 0 12px; color: var(--text); background: var(--bg); caret-color: auto; cursor: text; }
+  .search.s-open input::placeholder { color: var(--faint); }
+  .vx-top { gap: 8px; }
+  .vx-top .icon-btn, .vx-top .me-btn { width: 38px; height: 38px; }
+  .vx-top .st-chip { height: 38px; padding: 0 10px; }
+}
+/* section headings on a phone (his note: "עוד דמויות" broke onto two lines) */
+.sec-h { align-items: center; }
+.sec-h > a { white-space: nowrap; flex: none; }
+@media (max-width: 760px) { .sec-h h2 { font-size: 1.35rem; } }
+/* the stamp screen in one phone screen (the number is the stamp; no big number under it) */
+.cz-stamp h1 { font-size: 1.35rem; margin: 2px 0; }
+.cz-stamp .cz-num { margin: 2px 0 6px; }
+.cz-stamp .cz-bless { margin: 4px 0 12px; font-size: .9rem; }
+.cz-ink span { font-size: 1rem; }
+@media (max-width: 760px) { .search { margin-left: 8px !important; } }   /* the search icon and the status chip stood glued */

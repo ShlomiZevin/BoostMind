@@ -631,6 +631,7 @@ const pages = {
     const sections = `${games.length ? `<section class="sec"><div class="sec-h"><h2>${GT.row}</h2><a href="/games">${GT.all} ←</a></div>
         <div class="grow">${games.map((g) => gcard(g)).join('')}</div></section>` : ''}
       ${games.some((g) => g.record) ? '<div id="rec-slot"></div>' : ''}
+      <div id="stk-slot">${HOOK.stickersSlot ? HOOK.stickersSlot() : ''}</div>
       <section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="/videos">כל הסרטונים ←</a></div>
         <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
       <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="/characters">כל הדמויות ←</a></div>
@@ -1254,7 +1255,7 @@ document.addEventListener('click', (e) => {
   }
   if (e.target.matches('.nc-ask') || e.target.closest('.nc-no')) $('.nc-ask', cx)?.remove();   // ביטול, or a tap outside the card
   if (e.target.closest('[data-nc-yes]') && !busy) { threads[cxMode] = []; try { sessionStorage.removeItem('wiki-chat-' + cxMode); } catch (x) {} t('chat_new', cxMode); openChat(cxMode); }
-  if (!e.target.closest('.search')) $('#results').classList.remove('open');
+  if (!e.target.closest('.search')) { $('#results').classList.remove('open'); $('.search').classList.remove('s-open'); }
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeVideo(); closeChat(); } });
 
@@ -1274,6 +1275,8 @@ function search(q) {
     `<a href="#" data-ask="${esc(q)}"><span class="gmark" style="width:34px;height:34px;border-radius:8px;flex:none"><img src="/verse/logo-160.png" alt=""></span><span>לשאול את השלומיוורס: "${esc(q)}"</span></a>`;
   box.classList.add('open');
 }
+// on a phone the search is an icon that opens over the top bar (verse.css .s-open)
+$('#q').addEventListener('focus', () => $('.search').classList.add('s-open'));
 let searchTimer;
 $('#q').addEventListener('input', (e) => { search(e.target.value); clearTimeout(searchTimer); const v = e.target.value.trim(); if (v.length > 1) searchTimer = setTimeout(() => t('search', v), 1500); });
 $('#q').addEventListener('focus', (e) => e.target.value && search(e.target.value));

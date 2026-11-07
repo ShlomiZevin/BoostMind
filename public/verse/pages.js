@@ -50,15 +50,19 @@ function yourBlock() {
   const picks = pick.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(followed.length ? T.yvSuggest : T.yvStart)}</h2><a href="/characters">${esc(T.yvMore)} ←</a></div>
       <div class="yv-picks">${pick.map((c) => `<div class="yv-pick" style="--c:${color(c)}"><a href="/c/${c.id}"><img src="${esc(abs(c.img))}" alt="" loading="lazy"><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role || '')}</small></a>
         <button class="vx-pill" data-yv-follow="${c.id}">${I.plus}${esc(T.follow)}</button></div>`).join('')}</div></section>` : '';
-  const hot = hotStickers();
   return `<section class="yv-me">
       ${faces}
       ${rings ? `<div class="yv-sec">${rings}</div>` : ''}
       ${mine.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvNew)}</h2></div>${vrow(mine)}</section>` : ''}
       ${picks}
-      ${hot.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvStickers)}</h2></div><div class="yv-st">${hot.map((s) => `<button class="yv-stk" data-wa-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}"><img src="${esc(s.img)}" alt="${esc(s.text)}" loading="lazy"><span>${LIKE}${s.stampCount || ''}</span></button>`).join('')}</div></section>` : ''}
       ${continueRow()}
     </section>`;
+}
+// the fans' best stickers: under the games row (his note 2026-11-07: games before stickers) - the home's #stk-slot
+export function stickersSlot() {
+  if (!signedIn()) return '';
+  const hot = hotStickers();
+  return `${hot.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvStickers)}</h2></div><div class="yv-st">${hot.map((s) => `<button class="yv-stk" data-wa-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}"><img src="${esc(s.img)}" alt="${esc(s.text)}" loading="lazy"><span>${LIKE}${s.stampCount || ''}</span></button>`).join('')}</div></section>` : ''}`;
 }
 export const yourVerse = () => null; // the hero stays for everyone now (kept so the page's hook stays harmless)
 // the fans' best stickers across the verse, read once a visit (tapping one = the WhatsApp sticker card)
@@ -337,7 +341,7 @@ document.addEventListener('submit', async (e) => {
 });
 
 // ---------- keeping the open page current when the account / data changes ----------
-let cur = { page: '', id: '' }, pending = 0, lastSlot = null;
+let cur = { page: "", id: "" }, pending = 0, lastSlot = null, lastStk = null;
 export const setCurrent = (page, id) => { cur = { page: page || '', id: id || '' }; };
 export function refresh(now) {
   cancelAnimationFrame(pending);
@@ -350,6 +354,7 @@ export function refresh(now) {
       // the home is already drawn: only its two account-dependent pieces change, the wall of faces stays as it is
       const slot = HOOK.homeSlot ? HOOK.homeSlot() : '';
       if (slot !== lastSlot) { $('#home-slot').innerHTML = slot; lastSlot = slot; }
+      const stk = stickersSlot(), sb = $("#stk-slot"); if (sb && stk !== lastStk) { sb.innerHTML = stk; lastStk = stk; }
       const line = $('section.hero .hero-logo small'), fresh = heroLine();
       if (line && line.outerHTML !== fresh) line.outerHTML = fresh;
       return;

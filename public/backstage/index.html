@@ -1331,7 +1331,7 @@ async function czCard() {
       <div class="kgrid sim-k">
         <div class="k"><span class="kh">התחילו</span><b>${fmt(x.started)}</b><small>תושבים שנכנסו למסע</small></div>
         <div class="k"><span class="kh">אזרחים</span><b>${fmt(x.citizens)}</b><small>קיבלו מספר</small></div>
-        <div class="k"><span class="kh">שיתפו תעודה</span><b>${fmt(x.shared)}</b><small>${fmt(x.skippedAll)} דילגו על מרים</small></div></div>
+        <div class="k"><span class="kh">שיתפו דרכון</span><b>${fmt(x.shared)}</b><small>${fmt(x.skippedAll)} דילגו על מרים</small></div></div>
       <div class="sim-row"><b>איפה הם עכשיו</b>${STEP.map(([k, l]) => `<span class="tag">${l} ${x.at[k] || 0}</span>`).join('')}</div>
       <div class="sim-row"><b>למה הגיעו לשלומיוורס</b>${Object.entries(x.why || {}).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tag">${esc(k)} ${v}</span>`).join('') || '<span class="hint">עוד אין</span>'}</div>
       ${(x.answers || []).length ? `<details class="cz-ans"><summary>כל מה שענו למרים (${x.answers.length})</summary>${x.answers.map((r) => `<div class="cz-a"><div class="l1"><b>${esc(r.nick || 'בלי שם')}</b><time>${stamp(r.t)}</time>${r.n ? `<span class="tag">אזרח ${String(r.n).padStart(4, '0')}</span>` : ''}</div>

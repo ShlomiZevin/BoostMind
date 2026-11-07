@@ -79,14 +79,33 @@ function boarding() {
   box().querySelector('[data-cz-go]').onclick = (e) => { e.currentTarget.classList.add('wait'); talk({}); };
 }
 
+// one question per screen (his notes 2026-11-07): the scene, their speech bubble under it, the answers - all in one phone
+// screen; an answer moves on to the next screen (no running chat)
+function desk(n, img, bubble, opts, place, extra = '') {
+  return `${stepTag(n)}<section class="cz-desk">
+    <div class="cz-scene"><img src="/verse/art/${img}" alt=""></div>
+    <div class="cz-say2">${bubble}</div>
+    ${opts.length ? `<div class="cz-opts ${opts.length === 2 ? 'two' : ''}">${opts.map((o, i) => `<button data-cz-a="${i}">${esc(o)}</button>`).join('')}</div>` : ''}
+    <form class="cz-ask"><input maxlength="160" placeholder="${esc(place)}"><button aria-label="שליחה">←</button></form>${extra}</section>`;
+}
+// the answer is in: the tapped button lit, the bubble turns to dots until the next screen
+function waiting(b) {
+  const el = box(); if (!el) return;
+  if (b) b.classList.add('on');
+  el.querySelectorAll('.cz-opts button, .cz-ask button, .cz-skip').forEach((x) => (x.disabled = true));
+  const say = el.querySelector('.cz-say2'); if (say) say.innerHTML = '<span class="cz-dots"><i></i><i></i><i></i></span>';
+}
+function answers(el, go) {
+  el.querySelectorAll('[data-cz-a]').forEach((b) => (b.onclick = () => go({ pick: +b.dataset.czA }, b.textContent, b)));
+  el.querySelector('.cz-ask').onsubmit = (e) => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v) { e.target.querySelector('input').blur(); go({ text: v }, v); } };
+}
+
 // 2. check-in with Miriam (C3): her turn, 3 quick answers, a text box, skip / skip it all
 let busy = false;
-async function talk(data) {
+async function talk(data, b) {
   if (busy) return;
   busy = true;
-  const el = box(), typing = el.querySelector('.cz-typing');
-  if (typing) typing.hidden = false;
-  el.querySelectorAll('.cz-opts button, .cz-ask button, .cz-skip').forEach((b) => (b.disabled = true));
+  waiting(b);
   try {
     S = await api('checkin', data);
     busy = false;
@@ -97,66 +116,45 @@ async function talk(data) {
 function checkin() {
   const p = S.pending, el = box();
   if (!p) return talk({});
-  el.innerHTML = `${stepTag(2)}<section class="cz-desk">
-    <div class="cz-scene"><img src="/verse/art/citizen-checkin.jpg" alt=""></div>
-    <div class="cz-chat">${S.turns.map((t) => `<p class="cz-b her">${esc(t.say)} <b>${esc(t.q)}</b></p>${t.a ? `<p class="cz-b me">${esc(t.a)}</p>` : ''}`).join('')}
-      <p class="cz-b her now">${esc(p.say)} <b>${esc(p.q)}</b></p><p class="cz-typing" hidden><i></i><i></i><i></i></p></div>
-    <div class="cz-opts">${(p.opts || []).map((o, i) => `<button data-cz-pick="${i}">${esc(o)}</button>`).join('')}</div>
-    <form class="cz-ask"><input maxlength="200" placeholder="${esc(Z().checkin.type)}"><button aria-label="שליחה">←</button></form>
-    <div class="cz-skips"><button class="cz-skip" data-cz-skip>${esc(Z().checkin.skip)}</button><button class="cz-skip" data-cz-all>${esc(Z().checkin.skipAll)}</button></div></section>`;
-  el.querySelectorAll('[data-cz-pick]').forEach((b) => (b.onclick = () => { b.classList.add('on'); talk({ pick: +b.dataset.czPick }); }));
-  el.querySelector('.cz-ask').onsubmit = (e) => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v) talk({ text: v }); };
+  el.innerHTML = desk(2, 'citizen-checkin.jpg', `${esc(p.say)}<b>${esc(p.q)}</b>`, p.opts || [], Z().checkin.type,
+    `<div class="cz-skips"><button class="cz-skip" data-cz-skip>${esc(Z().checkin.skip)}</button><button class="cz-skip" data-cz-all>${esc(Z().checkin.skipAll)}</button></div>`);
+  answers(el, (data, label, b) => talk(data, b));
   el.querySelector('[data-cz-skip]').onclick = () => talk({ skip: true });
   el.querySelector('[data-cz-all]').onclick = () => talk({ all: true });
-  const chat = el.querySelector('.cz-chat'); chat.scrollTop = chat.scrollHeight;
-  showOpts();
+  window.scrollTo(0, 0);
 }
-// the answers in view, above the bottom menu (a phone screen is short)
-const showOpts = () => requestAnimationFrame(() => { const o = box()?.querySelector('.cz-skips, .cz-opts'); if (o) o.scrollIntoView({ block: 'end', behavior: 'smooth' }); });
 function checkinDone(closing) {
   box().innerHTML = `${stepTag(2)}<section class="cz-desk"><div class="cz-scene"><img src="/verse/art/citizen-checkin.jpg" alt=""></div>
-    <div class="cz-chat"><p class="cz-b her now">${esc(closing || Z().checkin.done)}</p></div>
+    <div class="cz-say2">${esc(closing || Z().checkin.done)}</div>
     <button class="vx-btn main block" data-cz-go>${esc(Z().checkin.toBooth)}</button></section>`;
   box().querySelector('[data-cz-go]').onclick = () => draw();
+  window.scrollTo(0, 0);
 }
 
-// 3. border control at the booth (C4): HIS lines in order; before each one, his short reaction (AI, in his voice) to what they
-// tapped or typed; 3 buttons per line written for them, or their own words
+// 3. border control at the booth (C4): HIS lines in order, one per screen; above each, his short reaction (AI, in his voice) to
+// what they answered; simple fixed answers on the yes/no lines, their own words always (line 2: only their own words)
 function booth() {
-  const i = S.booth.length, lines = S.script || [], bt = S.bt || [], cur = bt[i], el = box();
-  const prev = i > 0 ? bt[i - 1] : null;
-  const past = bt.slice(0, i).map((t, k) => `<p class="cz-b rabbi past">${k > 0 && bt[k - 1].react ? esc(bt[k - 1].react) + ' ' : ''}${esc(lines[k])}</p>${t.a ? `<p class="cz-b me">${esc(t.a)}</p>` : ''}`).join('');
-  const opts = cur && cur.opts && cur.opts.length ? cur.opts : null;
-  el.innerHTML = `${stepTag(3)}<section class="cz-desk booth">
-    <div class="cz-scene"><img src="/verse/art/citizen-booth.jpg" alt=""></div>
-    <div class="cz-chat">${past}<p class="cz-b rabbi now">${prev && prev.react ? `<span class="cz-re">${esc(prev.react)}</span> ` : ''}${esc(lines[i] || '')}</p>
-      <p class="cz-typing" ${opts ? 'hidden' : ''}><i></i><i></i><i></i></p></div>
-    <div class="cz-opts">${(opts || []).map((o, k) => `<button data-cz-a="${k}">${esc(o)}</button>`).join('')}</div>
-    ${opts ? `<form class="cz-ask"><input maxlength="120" placeholder="${esc(Z().boothType)}"><button aria-label="שליחה">←</button></form>` : ''}</section>`;
-  const chat = el.querySelector('.cz-chat'); chat.scrollTop = chat.scrollHeight;
-  if (!opts) { api('boothOpts').then((x) => { S = x; booth(); }).catch(() => { toast(Z().fail, 3000); }); return; }
-  showOpts();
-  api('boothPre', { i }).catch(() => {});   // his reaction to each button, written while they read
-  const answer = async (data, label) => {
+  const i = S.booth.length, el = box(), prev = i > 0 ? (S.bt || [])[i - 1] : null, opts = (S.opts || [])[i] || [];
+  el.innerHTML = desk(3, 'citizen-booth.jpg', `${prev && prev.react ? `<span class="cz-re">${esc(prev.react)}</span>` : ''}<b>${esc((S.script || [])[i] || '')}</b>`,
+    opts, opts.length ? Z().boothType : Z().boothOpen);
+  if (opts.length) api('boothPre', { i }).catch(() => {});   // his reaction to each button, written while they read
+  answers(el, async (data, label, b) => {
     if (busy) return;
     busy = true;
-    el.querySelectorAll('.cz-opts button, .cz-ask button').forEach((b) => (b.disabled = true));
-    el.querySelector('.cz-typing').insertAdjacentHTML('beforebegin', `<p class="cz-b me">${esc(label)}</p>`);
-    el.querySelector('.cz-typing').hidden = false; chat.scrollTop = chat.scrollHeight;
+    waiting(b);
     try { S = await api('booth', { i, ...data }); busy = false; if (S.booth.length >= 5) { track('cz_stamp', String(S.n)); stamp(true); } else booth(); }
     catch (e) { busy = false; toast(Z().fail, 3000); booth(); }
-  };
-  el.querySelectorAll('[data-cz-a]').forEach((b) => (b.onclick = () => { b.classList.add('on'); answer({ pick: +b.dataset.czA }, b.textContent); }));
-  el.querySelector('.cz-ask').onsubmit = (e) => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v) answer({ text: v }, v); };
+  });
+  window.scrollTo(0, 0);
 }
 
 // 4. the stamp and the number (C5) + his blessing; "טסים פנימה" closes the booth (the script's last beat)
 function stamp(fresh) {
   box().innerHTML = `${stepTag(4)}<section class="cz-stamp ${fresh ? 'fresh' : ''}">
-    <div class="cz-passport"><img class="cz-planet" src="/verse/logo-160.png" alt=""><div class="cz-ink"><span>${pad(S.n)}</span></div></div>
-    <p class="cz-b rabbi now">${S.bt && S.bt[4] && S.bt[4].react ? `<span class="cz-re">${esc(S.bt[4].react)}</span> ` : ''}${esc(Z().stamped)}</p>
+    <div class="cz-passport"><div class="cz-ink"><small>${esc(Z().stamp.entry)}</small><span>${pad(S.n)}</span><small>${new Date().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' })}</small></div></div>
+    <div class="cz-say2"><b>${esc(Z().stamped)}</b></div>
     <h1>${esc(Z().stamp.title)}</h1>
-    <div class="cz-num"><small>${esc(Z().stamp.number)}</small><b>${pad(S.n)}</b><em>${esc(S.founding ? Z().stamp.founding(S.n) : Z().stamp.regular)}</em></div>
+    <div class="cz-num"><em>${esc(S.founding ? Z().stamp.founding(S.n) : Z().stamp.regular)}</em></div>
     <p class="cz-bless">${esc(Z().blessing)}</p>
     <button class="vx-btn main block" data-cz-go>${esc(Z().stamp.go)}</button></section>`;
   box().querySelector('[data-cz-go]').onclick = async (e) => {
@@ -185,69 +183,84 @@ async function landing() {
   box().querySelector('[data-cz-go]').onclick = async () => { try { S = await api('landed'); } catch (e) {} track('cz_done', String(S.n)); idCard(); };
 }
 
-// 6. the ID card (C6), drawn for sharing
+// 6. the citizen's passport (his note 2026-11-07: "a passport, no 'שלומיוורסית', sounds and looks real"): a real data page
+// (GPT Image, art/citizen-datapage.jpg - no text in it) with the fields, the photo and the machine-readable lines laid over it.
+// The page uses cqw units and the share picture the same geometry (u = 1% of the page's width), so both look the same.
+const P = () => Z().id.pp;
+const issued = () => new Date(S.issued || Date.now());
+const ddmmyy = (d) => [d.getDate(), d.getMonth() + 1, d.getFullYear() % 100].map((x) => String(x).padStart(2, '0')).join('.');
+function mrz() {
+  const d = issued(), ymd = ddmmyy(d).split('.').reverse().join('');
+  const fill = (t) => (t + '<'.repeat(44)).slice(0, 44);
+  return [fill(`P<SLVSHLOMIVERSE<<CITIZEN<${pad(S.n)}`), fill(`${String(S.n || 0).padStart(9, '0')}0SLV${ymd}0${S.founding ? 'F' : 'C'}`).slice(0, 43) + '0'];
+}
+const ppFields = () => [
+  [[P().type, 'P', 2], [P().code, 'SLV', 3], [P().no, pad(S.n), 7, 'n']],
+  [[P().name, S.nick || '-', 12]],
+  [[P().dept, S.dept || '-', 12]],
+  [[P().cls, S.cls || '-', 12]],
+  [[P().status, S.founding ? Z().id.founding : Z().id.citizen, 4], [P().issued, ddmmyy(issued()), 3], [P().sim, S.sim && S.sim.name ? S.sim.name : '-', 5]],
+];
 function idCard() {
   const sim = S.sim;
   box().innerHTML = `<section class="cz-id">
-    <div class="cz-card"><div class="cz-card-h"><img src="/verse/logo-160.png" alt=""><b>${esc(Z().id.title)}</b></div>
-      <div class="cz-card-b"><div class="cz-side"><div class="cz-photo">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : `<span>${esc((S.nick || '?').slice(0, 1))}</span>`}</div><div class="cz-card-stamp">${pad(S.n)}</div></div>
-        <dl><dt>${esc(T.cz.pass.passenger)}</dt><dd>${esc(S.nick)}</dd><dt>${esc(Z().id.number)}</dt><dd class="n">${pad(S.n)}</dd>
-          <dt>${esc(Z().id.dept)}</dt><dd>${esc(S.dept || '-')}</dd><dt>${esc(Z().id.cls)}</dt><dd>${esc(S.cls || '-')}</dd>
-          <dt>${esc(Z().id.status)}</dt><dd>${esc(S.founding ? Z().id.founding : Z().id.citizen)}</dd>
-          <dt>${esc(Z().id.sim)}</dt><dd>${sim && sim.name ? esc(sim.name) : `${esc(Z().id.noSim)} · <a href="/simulation">${esc(Z().id.noSimGo)}</a>`}</dd></dl></div></div>
+    <h1 class="cz-id-h">${esc(Z().id.title)}</h1>
+    <div class="cz-pp">
+      <div class="cz-pp-top"><b>${esc(P().head)}</b><span>${esc(P().issuer)}</span></div>
+      <div class="cz-pp-photo">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : `<span>${esc((S.nick || '?').slice(0, 1))}</span>`}</div>
+      <div class="cz-pp-f">${ppFields().map((row) => row.map(([k, v, span, cls]) => `<div class="c${span}"><small>${esc(k)}</small><b class="${cls || ''}">${esc(v)}</b></div>`).join('')).join('')}</div>
+      <div class="cz-pp-mrz" dir="ltr">${mrz().map(esc).join('<br>')}</div>
+    </div>
+    ${sim && sim.name ? '' : `<a class="cz-id-sim" href="/simulation">${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</a>`}
     <button class="vx-btn main block" data-cz-share>${esc(Z().id.share)}</button>
     <a class="vx-btn block" href="/">${esc(Z().id.home)}</a></section>`;
   box().querySelector('[data-cz-share]').onclick = () => shareId();
 }
 const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
+const ell = (x, t, max) => { let s = String(t); if (x.measureText(s).width <= max) return s; while (s.length > 2 && x.measureText(s + '…').width > max) s = s.slice(0, -1); return s + '…'; };
+// the passport, drawn at (X, Y), W wide - the same geometry as .cz-pp
+async function drawPassport(x, X, Y, W) {
+  const u = W / 100, H = W * 2 / 3;
+  x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 40; x.shadowOffsetY = 18;
+  try { const pg = await loadImg('/verse/art/citizen-datapage.jpg'); x.drawImage(pg, X, Y, W, H); } catch (e) { x.fillStyle = '#f3ece2'; x.fillRect(X, Y, W, H); }
+  x.restore();
+  x.globalCompositeOperation = 'multiply';   // ink printed into the paper
+  x.direction = 'rtl'; x.textAlign = 'right'; x.fillStyle = '#262b55';
+  x.font = `900 ${2.9 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(P().head, X + W - 4 * u, Y + 4.6 * u);
+  x.direction = 'ltr'; x.textAlign = 'left'; x.font = `700 ${2.3 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(P().issuer, X + 4 * u, Y + 4.4 * u);
+  // the photo
+  const px = X + 3.7 * u, py = Y + 11.7 * u, pw = 24.7 * u, ph = 36.7 * u;
+  let drew = false;
+  if (S.photo) { try { const im = await loadImg(S.photo); const sc = Math.max(pw / im.width, ph / im.height); x.save(); x.beginPath(); x.rect(px, py, pw, ph); x.clip(); x.drawImage(im, px + (pw - im.width * sc) / 2, py + (ph - im.height * sc) / 2, im.width * sc, im.height * sc); x.restore(); drew = true; } catch (e) {} }
+  if (!drew) { x.fillStyle = '#dcd6ce'; x.fillRect(px, py, pw, ph); x.fillStyle = '#7a7f9a'; x.font = `900 ${14 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.textAlign = 'center'; x.direction = 'rtl'; x.fillText((S.nick || '?').slice(0, 1), px + pw / 2, py + ph * 0.64); }
+  // the fields: 6 columns, from the right edge (4u) to the photo (31.5u), 5 rows of 8u from 11u
+  const R = X + W - 4 * u, colW = (100 - 4 - 31.5) / 12 * u;
+  x.direction = 'rtl'; x.textAlign = 'right';
+  ppFields().forEach((row, r) => {
+    let at = 0;
+    for (const [k, v, span, cls] of row) {
+      const rx = R - at * colW, top = Y + 11 * u + r * 8 * u, w = span * colW - 1 * u;
+      x.fillStyle = '#5b607c'; x.font = `600 ${2 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, k, w), rx, top + 2.2 * u);
+      x.fillStyle = cls === 'n' ? '#b3261e' : '#14162a'; x.font = `800 ${3.7 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, v, w), rx, top + 6.2 * u);
+      at += span;
+    }
+  });
+  // the machine-readable lines
+  x.direction = 'ltr'; x.textAlign = 'left'; x.fillStyle = '#1c1d26'; x.font = `700 ${3.4 * u}px "OCR B", "OCR-B", "Courier New", monospace`;
+  mrz().forEach((l, k) => x.fillText(l, X + 4 * u, Y + (59.2 + k * 4.6) * u));
+  x.globalCompositeOperation = 'source-over';
+}
 async function drawId() {
   const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
   const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a0f08'); g.addColorStop(1, '#0b0b0e'); x.fillStyle = g; x.fillRect(0, 0, W, H);
   await document.fonts.load('900 80px Heebo').catch(() => {});
-  try { const bg = await loadImg('/verse/art/citizen-booth.jpg'); x.globalAlpha = 0.35; x.drawImage(bg, -300, 0, bg.width * (H * 0.45 / bg.height), H * 0.45); x.globalAlpha = 1; } catch (e) {}
-  // the card
-  const cx = 70, cy = 520, cw = W - 140, ch = 1000;
-  x.fillStyle = 'rgba(20,16,14,.94)'; x.strokeStyle = 'rgba(255,106,31,.7)'; x.lineWidth = 4;
-  x.beginPath(); x.roundRect(cx, cy, cw, ch, 40); x.fill(); x.stroke();
-  x.direction = 'rtl'; x.textAlign = 'right';
-  const R = cx + cw - 50;
-  try { const logo = await loadImg('/verse/logo-160.png'); x.drawImage(logo, cx + 40, cy + 30, 120, 120); } catch (e) {}
-  x.fillStyle = '#fff'; x.font = '900 58px Heebo'; x.fillText(Z().id.title, R, cy + 110);
-  // photo
-  const px = cx + 50, py = cy + 200, ps = 300;
-  x.save(); x.beginPath(); x.roundRect(px, py, ps, ps * 1.25, 24); x.clip();
-  let drew = false;
-  if (S.photo) { try { const im = await loadImg(S.photo); x.drawImage(im, px, py, ps, ps * 1.25); drew = true; } catch (e) {} }
-  if (!drew) { x.fillStyle = '#2a2018'; x.fillRect(px, py, ps, ps * 1.25); x.fillStyle = '#ff6a1f'; x.font = '900 160px Heebo'; x.textAlign = 'center'; x.fillText((S.nick || '?').slice(0, 1), px + ps / 2, py + ps * 0.8); x.textAlign = 'right'; }
-  x.restore();
-  const rows = [[T.cz.pass.passenger, S.nick], [Z().id.number, pad(S.n)], [Z().id.dept, S.dept || '-'], [Z().id.cls, S.cls || '-'],
-    [Z().id.status, S.founding ? Z().id.founding : Z().id.citizen], [Z().id.sim, S.sim && S.sim.name ? S.sim.name : Z().id.noSim]];
-  let y = cy + 230;
-  for (const [k, v] of rows) {
-    x.fillStyle = '#b9b2ab'; x.font = '500 34px Heebo'; x.fillText(k, R, y);
-    const big = k === Z().id.number;
-    x.fillStyle = big ? '#ff6a1f' : '#fff'; x.font = big ? '900 60px Heebo' : '800 42px Heebo';
-    const n = wrap2(x, String(v), R, y + 56, cw - ps - 150, 50);
-    y += 118 + (n - 1) * 50;
-  }
-  // the stamp
-  x.save(); x.translate(cx + 220, cy + ch - 120); x.rotate(-0.25); x.strokeStyle = 'rgba(255,106,31,.85)'; x.lineWidth = 8; x.beginPath(); x.arc(0, 0, 105, 0, Math.PI * 2); x.stroke();
-  x.fillStyle = 'rgba(255,106,31,.9)'; x.textAlign = 'center'; x.font = '900 52px Heebo'; x.fillText(pad(S.n), 0, 18); x.restore();
-  x.textAlign = 'right'; x.font = '900 70px Heebo'; x.fillStyle = '#fdf6ef'; const sw = x.measureText('שלומי').width; x.fillText('שלומי', W - 70, H - 150); x.fillStyle = '#fc7211'; x.fillText('וורס', W - 70 - sw, H - 150);
-  x.direction = 'ltr'; x.textAlign = 'left'; x.fillStyle = '#d8d2cc'; x.font = '500 38px Heebo'; x.fillText('shlomiverse.com', 70, H - 160);
+  try { const logo = await loadImg('/verse/logo-512.png'); x.drawImage(logo, W / 2 - 170, 230, 340, 340); } catch (e) {}
+  x.save(); x.translate(W / 2, 960); x.rotate(-0.035); await drawPassport(x, -500, -333, 1000); x.restore();
+  x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = '900 64px Heebo'; x.fillText(Z().id.title, W / 2, 1460);
+  x.direction = 'ltr'; x.fillStyle = '#d8d2cc'; x.font = '500 40px Heebo'; x.fillText('shlomiverse.com', W / 2, H - 170);
   return new Promise((res) => cv.toBlob(res, 'image/jpeg', 0.9));
 }
-// up to 2 lines (a long classification was cut with "...")
-function wrap2(x, t, right, y, max, lh) {
-  const words = t.split(/\s+/); let line = '', lines = [];
-  for (const w of words) { const tryL = line ? line + ' ' + w : w; if (x.measureText(tryL).width > max && line) { lines.push(line); line = w; } else line = tryL; }
-  if (line) lines.push(line);
-  if (lines.length > 2) lines = [lines[0], lines.slice(1).join(' ')];
-  lines.forEach((l, i) => (i === 1 ? fit(x, l, right, y + lh, max) : x.fillText(l, right, y)));
-  return lines.length;
-}
-function fit(x, t, right, y, max) { let s = t; while (x.measureText(s).width > max && s.length > 3) s = s.slice(0, -2); if (s !== t) s += '…'; x.fillText(s, right, y); }
 async function shareId() {
   const url = 'https://shlomiverse.com/';
   const mark = (via) => { track('cz_share', via); api('shared', { via }).catch(() => {}); };
