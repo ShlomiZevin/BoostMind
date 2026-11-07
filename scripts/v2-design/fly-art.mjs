@@ -22,6 +22,13 @@ no letters, no numbers anywhere. Polished, cinematic, readable at a glance.` },
 left and right. Navy blue hull with warm orange (#ff6a1f) panels and thin gold trim, a small glowing cockpit, two short swept wings, a soft
 orange-white engine glow at the bottom (tail). Painted, polished, like a premium mobile arcade game. The ship alone, centered, filling about 70% of the
 picture, on a fully transparent background - no shadow, no space, no stars, no text.` },
+  // round 2 (his note 2026-11-07: "the spaceship should carry the Shlomiverse logo"): the same ship, the logo's ringed planet on its hull
+  ship2: { size: '1024x1024', transparent: true, refs: [S + 'ship-1.png', LOGO], prompt: `The first attached image is a game sprite of a small spaceship seen from straight above, nose UP. Paint the SAME ship
+again - same shape, same navy blue hull with warm orange (#ff6a1f) panels and gold trim, same glowing engine flame at the tail - with ONE addition:
+it carries the Shlomiverse emblem from the second attached logo: the glowing orange RINGED PLANET (the planet with its tilted ring, no lettering)
+painted BIG and bold on the top of the hull between the wings, like a squadron insignia, bright orange and gold on the navy so it reads even when
+the ship is shown tiny (about 50 pixels wide). Symmetric, top-down, the ship alone, centered, about 70% of the picture, fully transparent background -
+no shadow, no space, no stars, no text, no letters.` },
   spark: { size: '1024x1024', transparent: true, prompt: `A game sprite: ONE small collectible star for a space arcade game - a plump five-pointed star of warm glowing gold
 with a bright white-hot center and a soft orange glow around it, a tiny sparkle. Painted, polished. Alone, centered, filling about 60% of the picture,
 on a fully transparent background - no text, nothing else.` },

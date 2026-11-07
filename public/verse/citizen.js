@@ -6,7 +6,8 @@
 import { T } from './copy.js';
 import { esc, track, sheet, toast } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
-import { LOCAL } from './fb.js';
+import { LOCAL, db, F, call } from './fb.js';
+import { dayIL } from './records.js';
 import { simOpen, czOpen, flyOpen } from './gates.js';
 
 const API = LOCAL ? '/api/verseCitizen' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseCitizen';
@@ -170,6 +171,7 @@ function stamp(fresh) {
     <div class="cz-say2"><b>${esc(Z().stamped)}</b><span class="cz-re">${esc(Z().blessing)}</span></div>
     <div class="cz-num"><em>${esc(S.founding ? Z().stamp.founding(S.n) : Z().stamp.regular)}</em></div>
     <div class="cz-dock"><button class="vx-btn main block" data-cz-go>${esc(Z().stamp.go)}</button></div></section>`;
+  if (flyOpen()) import('./fly.js').then((m) => m.prefetch()).catch(() => {});   // the game's first screen loads while they read the stamp
   box().querySelector('[data-cz-go]').onclick = async (e) => {
     e.currentTarget.classList.add('wait');
     try { S = await api('booth', { i: 5, a: Z().stamp.go }); flight(true); } catch (err) { toast(Z().fail, 3000); }
@@ -193,9 +195,15 @@ function flight(played) {
   v.onclick = () => { v.muted = false; };
 }
 // 5b. ...or the flight as a game (his idea 2026-11-07: "a spaceship flying to the Shlomiverse, dodge the characters on the way" -
-// gates.js FLY_OPEN, his eyes only for now): verse/fly.js, loaded only here. Its stats (time, stars, shields) wait in `flown`
-// for the entry stamp later; nothing goes to the server yet.
+// gates.js FLY_OPEN, his eyes only for now): verse/fly.js, loaded only here. Its stats (time, stars, shields...) wait in `flown`
+// for the entry stamp later. Its score goes on a daily table like the games' (round 2) - records/fly_<day>, the verse function's
+// score op (techietech-api/verse.js EXTRA_RECORDS: the flight is not a catalog game, so it never shows in the home's "שיאי היום").
 let flown = null;
+const flyRecords = {
+  submit: (value) => (signedIn() && value > 0 ? call('score', { game: 'fly', value }) : null),
+  top: () => F.getDoc(F.doc(db, 'records', `fly_${dayIL()}`)).then((d) => (d.data() || {}).top || []),
+  me: () => st.user && st.user.uid,
+};
 async function flyGame() {
   const el = box();
   el.innerHTML = loader();
@@ -204,7 +212,7 @@ async function flyGame() {
   el.innerHTML = '';
   // landed in the game = its own "נחתתם בשלומיוורס" was the landing, so straight on to the passport (no second landing screen)
   const end = (how) => (s) => { flown = s; track('cz_flight', how); if (how === 'done') toPassport(); else landing(); };
-  fly.play(el, { onDone: end('done'), onSkip: end('skip') });
+  fly.play(el, { onDone: end('done'), onSkip: end('skip'), records: flyRecords });
 }
 async function landing() {
   box().innerHTML = `<section class="cz-land"><img src="/verse/logo-512.png" alt=""><h1>${esc(Z().flight.landing)}</h1><p>${esc(Z().flight.landing2)}</p>

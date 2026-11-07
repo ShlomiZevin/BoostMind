@@ -120,7 +120,7 @@ function noteRow(n) {
   else if (n.kind === 'vote') { face = av({ planet: true }); name = T.note.vote(n.n || 1); line = `"${n.text}"`; href = `/community?idea=${n.ideaId}`; }
   else if (n.kind === 'idea') { face = av({ planet: true }); name = T.note.idea[n.status] || T.note.idea.liked; line = `"${n.text}"`; href = n.videoId ? itemLink(n.videoId) : `/community?idea=${n.ideaId}`;
     const v = n.videoId && V[n.videoId]; if (v && v.poster) thumb = `<img class="thumb" src="${abs(v.poster)}" alt="">`; }
-  else if (n.kind === 'record') { face = av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.rec.noteLine.replace('{nick}', n.from).replace('{game}', n.text); href = `/play/${n.game}?records=1`; }
+  else if (n.kind === 'record') { face = av({ fan: { nick: n.from, photo: n.photo } }); name = n.from; line = T.rec.noteLine.replace('{nick}', n.from).replace('{game}', n.text); href = n.page || `/play/${n.game}?records=1`; }   // n.page: a table that is not a catalog game's (the flight in)
   else { face = av({ planet: true }); name = T.note.welcome(n.text || st.fan?.nick || ''); line = T.note.welcomeLine; href = '/characters'; }
   return `<a class="nt-row ${unread}" href="${href}">${!n.read ? '<span class="vx-dot"></span>' : ''}${face}
     <span class="body"><b>${esc(name)}</b><span class="line">${esc(line)}</span><small>${n.t ? ago(n.t) : T.now}</small></span>${thumb}</a>`;

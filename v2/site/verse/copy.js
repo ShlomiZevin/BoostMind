@@ -393,11 +393,13 @@ export const T = {
   // the characters in the way. No character speaks here except their own quotes from the wiki.
   fly: {
     skip: 'דלגו', sound: 'קול', progress: 'המרחק לשלומיוורס',
-    verb: 'גררו', how: 'כדי לנווט, התחמקו מהדמויות', howSmall: 'שלושה מגנים לכל הדרך. כוכבים זה בונוס.',
+    verb: 'גררו', how: 'כדי לנווט. כל עוד האצבע על המסך, הספינה יורה.', howSmall: 'התחמקו מהדמויות או פוצצו אותן. שלושה מגנים לכל הדרך.',
     lost: 'נגמרו המגנים', lostLine: 'הדמויות לא זזות מהדרך. אתם כן.', easier: 'הפעם הן יזוזו קצת יותר לאט.', retry: 'נסו שוב',
-    paused: 'נגיעה וממשיכים',
+    paused: 'נגיעה וממשיכים', hot: 'התותח מתקרר',
     landed: 'נחתתם בשלומיוורס',
-    result: (sec, stars, shields) => [`${sec} שניות טיסה`, stars === 1 ? 'כוכב אחד' : `${stars} כוכבים`, shields === 1 ? 'מגן אחד נשאר' : `${shields} מגנים נשארו`].join(' · '),
+    points: (n) => `${n} נקודות`,
+    result: (sec, stars, shot, shields) => [`${sec} שניות`, stars === 1 ? 'כוכב אחד' : `${stars} כוכבים`, shot === 1 ? 'פיצוץ אחד' : `${shot} פיצוצים`, shields === 1 ? 'מגן אחד' : `${shields} מגנים`].join(' · '),
+    board: 'שיאי היום', mine: (place) => `אתם במקום ${place} היום`, boardEmpty: 'אתם הראשונים היום',
     go: 'המשך',
   },
   rqSent: 'נשלח לשלומי. זה מגיע אליו, בלי הבטחה למענה.',

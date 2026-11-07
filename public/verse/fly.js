@@ -1,30 +1,39 @@
 // The flight in, as a game (his idea 2026-11-07: "instead of the video, a short game - you are a spaceship flying to the
 // Shlomiverse and you dodge the characters on the way; very fun, not that easy, not that hard"). A draft for him: it plays in
 // the citizenship journey only behind gates.js FLY_OPEN (citizen.js flight()), and at /verse/fly/ on its own.
-//   play(el, { muted, onDone, onSkip, chars, seed }) -> { stop }   onDone / onSkip get the flight's stats (time, stars, shields...)
-// One thumb: drag anywhere and the ship moves with the finger (relative, so it never hides under it); arrows on a computer.
-// The characters come down in their round bubbles like in the flight teaser; 3 shields; two lost runs and the next one is
-// calmer. The planet is cut from the teaser itself (art/fly-planet.png), and the landing hands over to the teaser's own
-// moment where the word turns onto the ring (art/fly-end.mp4 - his note 2026-11-07: "he still wants to see the circling sign").
-// Art: scripts/v2-design/fly-art.mjs (GPT Image). Music: the teaser's own, a seamless 8 s loop + its landing bar.
+//   play(el, { muted, onDone, onSkip, chars, seed, records }) -> { stop }   onDone / onSkip get the flight's stats
+//   prefetch(chars)   warms the first screen (citizen.js calls it on the stamp screen, so the game opens at once)
+// One thumb: drag anywhere and the ship moves with the finger (relative, so it never hides under it) and fires while the
+// finger is down - a cannon that overheats, so dodging still matters (round 2, his notes 2026-11-07). Arrows + space on a
+// computer. The characters come down in their round bubbles like in the flight teaser; 3 shields, a few more to pick up;
+// two lost runs and the next one is calmer. The goal at the top is the logo itself, the planet with its word; the landing
+// hands over to the teaser's own moment where the word turns onto the ring (art/fly-end.mp4, played to the end of the
+// animation - scripts/v2-design/fly-end.py), then the score goes on today's table (opts.records, from citizen.js).
+// Art: scripts/v2-design/fly-art.mjs (GPT Image). Music: the teaser's own, a seamless 8 s loop + its landing bars.
 import { T } from './copy.js';
 
 const ART = '/verse/art/';
 const Y = () => T.fly;
-// who flies at you: well-known characters with portraits (real people of the verse, no public figures)
-const CAST = ['yotam', 'hani', 'demokratovich', 'miriam', 'rosenblum', 'nahor', 'asaf', 'ayelet', 'vova', 'amir', 'osnat', 'yaniv', 'dorit', 'genz', 'avram', 'savta', 'tzvika', 'ofer'];
+// who flies at you: well-known characters with portraits (real people of the verse, no public figures). The first five load
+// with the first screen, the rest once the flight starts (round 2: "it took long to load")
+const CAST = ['demokratovich', 'miriam', 'yotam', 'hani', 'nahor', 'rosenblum', 'asaf', 'ayelet', 'vova', 'amir', 'osnat', 'yaniv', 'dorit', 'genz'];
+const EARLY = 5;
 // the tuning, in "u" = 1/360 of the play width per second (so a wide phone plays like a narrow one)
 const TUNE = {
-  dur: 40,                 // seconds to the planet
+  dur: 26,                 // seconds to the planet (round 2: shorter, was 40)
   shields: 3, blink: 1.2,  // a hit costs a shield + 1.2 s of blinking
-  calm: 0.88,              // no new characters after this share of the way: a breath before the landing
-  normal: { gap: [1.0, 0.4], vy: [165, 305], homing: true, wall: 116 },
-  easy: { gap: [1.5, 0.68], vy: [130, 228], homing: false, wall: 150 },   // after two lost runs (his ask: nobody stays stuck)
+  calm: 0.86,              // no new characters after this share of the way: a breath before the landing
+  normal: { gap: [0.85, 0.3], vy: [180, 345], homing: true, wall: 116, lives: [0.38, 0.72] },
+  easy: { gap: [1.35, 0.6], vy: [135, 238], homing: false, wall: 150, lives: [0.2, 0.42, 0.62, 0.8] },   // after two lost runs
   easyAfter: 2,
+  gun: { every: 0.28, speed: 700, heat: 0.2, cool: 0.3, coolHot: 0.5, resume: 0.25 },   // ~3.5 shots/s; ~2 s of fire overheats it for 1.5 s
+  score: { star: 10, shot: 25, life: 50, shield: 100 },   // + every shield left at the landing; a pickup with full shields = life
 };
 // the teaser's first frame of the turning logo (540x960): the planet's ring centre and width, so the game's planet ends there
 const CLIP = { w: 540, h: 960, cx: 267, cy: 444.5, ring: 292 };
-const PLANET_RING = 0.66;   // the ring's share of fly-planet.png's width (262 of 380 px, its faint glow edge counted - matched on screen to the clip)
+const PLANET_RING = 0.66;   // the ring's share of fly-planet.webp's width (its faint glow edge counted - matched on screen to the clip)
+const GOAL_RING = 0.8;      // the same for fly-goal.webp (the logo with its word, as the teaser leaves it)
+const FIRST = ['fly-space.webp', 'fly-ship.webp', 'fly-goal.webp', 'fly-star.webp'];
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -34,10 +43,20 @@ const BARE = /שלומי(?!וורס)|\.\.\.\?/;   // never his bare name on scre
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const wikiChars = () => { try { return Object.values(C); } catch (e) { return []; } };   // the wiki page's own data, when there
 
+// ---------- loading: one cache shared by prefetch() and play() ----------
+const PRE = {};
+const pic = (src, low) => { if (PRE[src]) return PRE[src]; const i = new Image(); i.decoding = 'async'; if (low) i.fetchPriority = 'low'; i.src = src; return (PRE[src] = i); };
+const castOf = (chars) => { const by = Object.fromEntries((chars || []).filter((c) => c && c.img).map((c) => [c.id, c])); return CAST.map((id) => by[id]).filter(Boolean); };
+export function prefetch(chars) {
+  FIRST.forEach((n) => pic(ART + n));
+  castOf(chars || wikiChars()).slice(0, EARLY).forEach((c) => pic(absImg(c.img), true));
+  if (!PRE.music) PRE.music = fetch(ART + 'fly-music.mp3').then((r) => r.arrayBuffer()).catch(() => null);
+}
+
+const SHIELD_D = 'M12 2.5 4 5.6v6.1c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-4.9 8-9.8V5.6z';
 const SVG = {
-  shield: '<svg viewBox="0 0 24 24"><path d="M12 2.5 4 5.6v6.1c0 4.9 3.3 8.4 8 9.8 4.7-1.4 8-4.9 8-9.8V5.6z"/><path d="M12 6.2v11.6" class="hl"/></svg>',
+  shield: `<svg viewBox="0 0 24 24"><path d="${SHIELD_D}"/><path d="M12 6.2v11.6" class="hl"/></svg>`,
   sound: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" class="on"/><path d="m16 9.5 5 5M21 9.5l-5 5" class="off"/></svg>',
-  planet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><g transform="rotate(-16 12 12)"><path d="M1.5 12.6A10.5 4.3 0 0 1 22.5 12.6" stroke-width="2.2"/><circle cx="12" cy="12" r="7.2" fill="#1a0f0a" stroke-width="2"/><path d="M1.5 12.6A10.5 4.3 0 0 0 22.5 12.6" stroke-width="2.6"/></g></svg>',
   // a hand with its finger down, for "drag"
   hand: '<svg viewBox="0 0 64 64"><path d="M26 30V11.5a4.5 4.5 0 0 1 9 0V27l.4-1.6a4.3 4.3 0 0 1 8.3 1.7l-.2 2 .5-1a4.2 4.2 0 0 1 7.7 2.9l-.3 2.2.4-.6a4 4 0 0 1 7 3.6l-1.8 9.2C55.5 54.5 50 60 42 60h-5.5c-5 0-8.6-2.2-11.6-6.3L14.6 40a4.6 4.6 0 0 1 6.9-6z" fill="#fff" stroke="#1a1410" stroke-width="2.4" stroke-linejoin="round"/></svg>',
 };
@@ -47,8 +66,9 @@ const CSS = `
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .fly-stage { position: relative; height: 100%; overflow: hidden; touch-action: none; }
 .fly canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.fly video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .55s ease; pointer-events: none; }
+.fly video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .55s ease, transform 4.5s cubic-bezier(.2, .6, .3, 1); pointer-events: none; }
 .fly video.on { opacity: 1; }
+.fly video.settle { transform: scale(1.05); }
 .fly-hud { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); inset-inline: 10px; display: flex; align-items: center; gap: 10px; direction: rtl; pointer-events: none; z-index: 5; transition: opacity .4s; }
 .fly-hud.gone { opacity: 0; }
 .fly-shields { display: flex; gap: 3px; flex: none; }
@@ -57,36 +77,48 @@ const CSS = `
 .fly-shields svg.lost { fill: none; stroke: rgba(255, 255, 255, .28); filter: none; transform: scale(.82); }
 .fly-shields svg.lost .hl { display: none; }
 .fly-shields svg.pop { transform: scale(1.5); }
-.fly-prog { flex: 1; position: relative; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .14); box-shadow: inset 0 0 0 1px rgba(255, 180, 120, .25); margin-inline-end: 12px; }
+.fly-prog { flex: 1; position: relative; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .14); box-shadow: inset 0 0 0 1px rgba(255, 180, 120, .25); margin-inline-end: 16px; }
 .fly-prog i { position: absolute; inset-block: 0; right: 0; width: 100%; border-radius: 99px; background: linear-gradient(to left, #ff6a1f, #ffb347); transform-origin: right; transform: scaleX(0); box-shadow: 0 0 8px rgba(255, 120, 40, .7); }
-.fly-prog svg { position: absolute; left: -13px; top: 50%; width: 26px; height: 26px; transform: translateY(-50%); color: #ff8a3d; filter: drop-shadow(0 0 4px rgba(255, 106, 31, .9)); }
+.fly-prog img { position: absolute; left: -22px; top: 50%; width: 40px; height: 40px; transform: translateY(-50%); }
 .fly-btn { pointer-events: auto; flex: none; height: 34px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .3); background: rgba(10, 6, 4, .55); color: #fff; font: inherit; font-weight: 700; font-size: 15px;
   display: grid; place-items: center; padding: 0 14px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: pointer; }
 .fly-mute { width: 34px; padding: 0; }
 .fly-mute svg { width: 19px; height: 19px; }
 .fly-mute .off, .fly-mute.muted .on { display: none; } .fly-mute.muted .off { display: inline; }
-.fly-score { position: absolute; top: calc(46px + env(safe-area-inset-top, 0px)); right: 12px; display: flex; align-items: center; gap: 4px; font-weight: 800; font-size: 15px; direction: ltr; z-index: 3; pointer-events: none; text-shadow: 0 1px 3px #000; transition: opacity .4s; }
-.fly-score img { width: 18px; height: 18px; }
+.fly-score { position: absolute; top: calc(48px + env(safe-area-inset-top, 0px)); right: 12px; font-weight: 900; font-size: 17px; direction: ltr; z-index: 3; pointer-events: none; text-shadow: 0 1px 3px #000; transition: opacity .4s; font-variant-numeric: tabular-nums; }
 .fly-score.bump { animation: flyBump .25s; }
 @keyframes flyBump { 50% { transform: scale(1.3); } }
 .fly-say { position: absolute; left: 0; top: 0; z-index: 2; max-width: 46%; padding: 5px 10px 6px; border-radius: 14px; background: rgba(255, 248, 238, .94); color: #1d140e; font-size: 13px; font-weight: 700; line-height: 1.25;
   direction: rtl; text-align: right; pointer-events: none; opacity: 0; transition: opacity .25s; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); white-space: normal; }
 .fly-say.on { opacity: 1; }
 .fly-layer { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; direction: rtl;
-  padding: 0 22px calc(46px + env(safe-area-inset-bottom, 0px)); transition: opacity .3s; }
+  padding: 0 22px calc(40px + env(safe-area-inset-bottom, 0px)); transition: opacity .3s; }
 .fly-layer.hide { opacity: 0; pointer-events: none; }
-.fly-tut { justify-content: center; padding-bottom: 34vh; background: radial-gradient(ellipse 80% 30% at 50% 42%, rgba(5, 3, 2, .7), transparent 75%); }
+.fly-tut { justify-content: center; padding-bottom: 30vh; background: radial-gradient(ellipse 85% 32% at 50% 44%, rgba(5, 3, 2, .72), transparent 75%); }
 .fly-tut svg { width: 60px; height: 60px; margin-bottom: 10px; animation: flyDrag 1.8s ease-in-out infinite; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .6)); }
 @keyframes flyDrag { 0%, 100% { transform: translateX(-46px) rotate(-6deg); } 50% { transform: translateX(46px) rotate(6deg); } }
-.fly-tut b { font-size: 21px; font-weight: 800; line-height: 1.35; max-width: 300px; }
+.fly-tut b { font-size: 20px; font-weight: 800; line-height: 1.35; max-width: 310px; }
 .fly-tut b em { font-style: normal; display: inline-block; background: #ff6a1f; color: #fff; border-radius: 9px; padding: 0 9px 2px; margin-inline-end: 6px; box-shadow: 0 0 14px rgba(255, 106, 31, .6); }
-.fly-tut small { margin-top: 8px; font-size: 14.5px; color: rgba(255, 236, 220, .78); max-width: 290px; }
+.fly-tut small { margin-top: 8px; font-size: 14.5px; color: rgba(255, 236, 220, .8); max-width: 300px; line-height: 1.4; }
 .fly-over { background: rgba(5, 3, 2, .62); justify-content: center; gap: 10px; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
-.fly-over b, .fly-res b { font-size: 26px; font-weight: 900; }
-.fly-over span, .fly-res .fly-stats { font-size: 15.5px; color: rgba(255, 236, 220, .85); max-width: 300px; line-height: 1.4; }
+.fly-over > b { font-size: 26px; font-weight: 900; }
+.fly-res > b { font-size: 22px; font-weight: 900; }
+.fly-over span, .fly-res .fly-stats { font-size: 14.5px; color: rgba(255, 236, 220, .85); max-width: 320px; line-height: 1.4; }
 .fly-over em { font-style: normal; font-size: 14px; color: #ffcf8a; }
-.fly-big { margin-top: 12px; min-width: 200px; height: 52px; border-radius: 99px; border: 0; background: #ff6a1f; color: #fff; font: inherit; font-weight: 800; font-size: 19px; box-shadow: 0 6px 24px rgba(255, 106, 31, .45); cursor: pointer; }
-.fly-res { gap: 6px; background: linear-gradient(to top, rgba(5, 3, 2, .8), transparent 45%); }
+.fly-big { margin-top: 10px; min-width: 200px; height: 50px; border-radius: 99px; border: 0; background: #ff6a1f; color: #fff; font: inherit; font-weight: 800; font-size: 19px; box-shadow: 0 6px 24px rgba(255, 106, 31, .45); cursor: pointer; }
+.fly-res { padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px)); gap: 3px; background: linear-gradient(to top, rgba(5, 3, 2, .9), rgba(5, 3, 2, .55) 34%, transparent 50%); }
+.fly-res .fly-pts { font-size: 30px; font-weight: 900; color: #ffb347; line-height: 1.1; text-shadow: 0 0 18px rgba(255, 106, 31, .5); }
+.fly-board { width: min(300px, 100%); margin-top: 6px; display: none; }
+.fly-board.on { display: block; }
+.fly-board h4 { margin: 0 0 4px; font-size: 13px; font-weight: 800; color: #ffcf8a; letter-spacing: .02em; }
+.fly-board ol { list-style: none; margin: 0; padding: 0; }
+.fly-board li { display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 10px; border-radius: 9px; font-size: 14px; }
+.fly-board li:nth-child(odd) { background: rgba(255, 255, 255, .06); }
+.fly-board li.me { background: rgba(255, 106, 31, .28); box-shadow: inset 0 0 0 1px rgba(255, 160, 90, .6); }
+.fly-board li i { font-style: normal; width: 16px; font-weight: 800; color: #ffcf8a; }
+.fly-board li span { flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fly-board li b { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.fly-board p { margin: 4px 0 0; font-size: 13px; color: rgba(255, 236, 220, .75); }
 `;
 
 export function play(el, opts = {}) {
@@ -96,47 +128,51 @@ export function play(el, opts = {}) {
   root.className = 'fly';
   root.innerHTML = `<div class="fly-stage">
     <canvas></canvas>
-    <video src="${ART}fly-end.mp4" poster="${ART}fly-end.jpg" muted playsinline preload="auto"></video>
+    <video muted playsinline preload="none"></video>
     <div class="fly-hud"><div class="fly-shields">${SVG.shield.repeat(TUNE.shields)}</div>
-      <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i>${SVG.planet}</div>
+      <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i><img src="${ART}fly-goal.webp" alt=""></div>
       <button class="fly-btn fly-mute" aria-label="${Z.sound}">${SVG.sound}</button><button class="fly-btn fly-skip">${Z.skip}</button></div>
-    <div class="fly-score"><img src="${ART}fly-star.png" alt=""><span>0</span></div>
+    <div class="fly-score">0</div>
     <div class="fly-say"></div><div class="fly-say"></div>
     <div class="fly-layer fly-tut">${SVG.hand}<b><em>${Z.verb}</em>${Z.how}</b><small>${Z.howSmall}</small></div>
     <div class="fly-layer fly-over hide"><b>${Z.lost}</b><span></span><em></em><button class="fly-big">${Z.retry}</button></div>
-    <div class="fly-layer fly-res hide"><b>${Z.landed}</b><span class="fly-stats"></span><button class="fly-big">${Z.go}</button></div>
+    <div class="fly-layer fly-res hide"><b>${Z.landed}</b><div class="fly-pts"></div><span class="fly-stats"></span>
+      <div class="fly-board"><h4>${Z.board}</h4><ol></ol><p></p></div><button class="fly-big">${Z.go}</button></div>
   </div>`;
   el.appendChild(root);
   const $ = (s) => root.querySelector(s);
   const stage = $('.fly-stage'), cv = $('canvas'), cx = cv.getContext('2d'), video = $('video');
-  const shieldEls = [...root.querySelectorAll('.fly-shields svg')], fill = $('.fly-prog i'), scoreEl = $('.fly-score'), scoreN = $('.fly-score span');
+  const shieldEls = [...root.querySelectorAll('.fly-shields svg')], fill = $('.fly-prog i'), scoreEl = $('.fly-score');
   const says = [...root.querySelectorAll('.fly-say')].map((d) => ({ d, f: null, until: 0 }));
   const tut = $('.fly-tut'), over = $('.fly-over'), res = $('.fly-res'), hud = $('.fly-hud'), muteBtn = $('.fly-mute');
 
   // ---------- art ----------
-  const img = (src) => { const i = new Image(); i.decoding = 'async'; i.src = src; return i; };
-  const A = { space: img(ART + 'fly-space.jpg'), ship: img(ART + 'fly-ship.png'), star: img(ART + 'fly-star.png'), planet: img(ART + 'fly-planet.png') };
+  const A = { space: pic(ART + 'fly-space.webp'), ship: pic(ART + 'fly-ship.webp'), star: pic(ART + 'fly-star.webp'), goal: pic(ART + 'fly-goal.webp'), planet: pic(ART + 'fly-planet.webp', true) };
+  const ok = (i) => i.complete && i.naturalWidth;
   // the faces, each drawn once into its own round bubble with the teaser's orange rim (no pixel reads - cross-origin is fine)
   const FS = 176;
-  const pool = (opts.chars || wikiChars()).filter((c) => c && c.img);
-  const byId = Object.fromEntries(pool.map((c) => [c.id, c]));
-  const cast = CAST.map((id) => byId[id]).filter(Boolean);
-  const faces = cast.map((c) => {
-    const f = { id: c.id, name: c.name, quotes: (c.quotes || []).filter((q) => q.length <= 34 && !BARE.test(q)), cv: null };
-    const im = new Image(); im.decoding = 'async';
-    im.onload = () => {
-      const b = document.createElement('canvas'); b.width = b.height = FS; const g = b.getContext('2d'), R = FS / 2 - 9;
-      g.save(); g.shadowColor = 'rgba(255,106,31,.95)'; g.shadowBlur = 12; g.fillStyle = '#ff6a1f'; g.beginPath(); g.arc(FS / 2, FS / 2, R + 2, 0, 7); g.fill(); g.restore();
-      g.save(); g.beginPath(); g.arc(FS / 2, FS / 2, R, 0, 7); g.clip();
-      const s = Math.max((2 * R) / im.width, (2 * R) / im.height), w = im.width * s, h = im.height * s;
-      g.drawImage(im, FS / 2 - w / 2, FS / 2 - R - (h - 2 * R) * 0.3, w, h); g.restore();   // portraits are tall: keep the upper part (the face)
-      const rim = g.createLinearGradient(0, 0, FS, FS); rim.addColorStop(0, '#ffc46b'); rim.addColorStop(1, '#ff5a12');
-      g.strokeStyle = rim; g.lineWidth = 4; g.beginPath(); g.arc(FS / 2, FS / 2, R, 0, 7); g.stroke();
-      f.cv = b;
-    };
-    im.src = absImg(c.img);
-    return f;
-  });
+  const faces = [];
+  function bubbleOf(f, im) {
+    const b = document.createElement('canvas'); b.width = b.height = FS; const g = b.getContext('2d'), R = FS / 2 - 9;
+    g.save(); g.shadowColor = 'rgba(255,106,31,.95)'; g.shadowBlur = 12; g.fillStyle = '#ff6a1f'; g.beginPath(); g.arc(FS / 2, FS / 2, R + 2, 0, 7); g.fill(); g.restore();
+    g.save(); g.beginPath(); g.arc(FS / 2, FS / 2, R, 0, 7); g.clip();
+    const s = Math.max((2 * R) / im.width, (2 * R) / im.height), w = im.width * s, h = im.height * s;
+    g.drawImage(im, FS / 2 - w / 2, FS / 2 - R - (h - 2 * R) * 0.3, w, h); g.restore();   // portraits are tall: keep the upper part (the face)
+    const rim = g.createLinearGradient(0, 0, FS, FS); rim.addColorStop(0, '#ffc46b'); rim.addColorStop(1, '#ff5a12');
+    g.strokeStyle = rim; g.lineWidth = 4; g.beginPath(); g.arc(FS / 2, FS / 2, R, 0, 7); g.stroke();
+    f.cv = b;
+  }
+  function loadFace(f) {
+    if (f.im) return;
+    f.im = pic(absImg(f.img), true);
+    if (ok(f.im)) bubbleOf(f, f.im); else f.im.addEventListener('load', () => bubbleOf(f, f.im), { once: true });
+  }
+  const loadRest = () => faces.forEach(loadFace);
+  Promise.resolve(opts.chars || wikiChars()).then((chars) => {
+    for (const c of castOf(chars)) faces.push({ id: c.id, name: c.name, img: c.img, quotes: (c.quotes || []).filter((q) => q.length <= 34 && !BARE.test(q)), cv: null });
+    faces.slice(0, EARLY).forEach(loadFace);
+    if (G.phase !== 'intro') loadRest(); else setTimeout(loadRest, 2500);
+  }).catch(() => {});
 
   // ---------- sound: the teaser's music + synthesized effects (WebAudio, started by the first touch) ----------
   let muted = opts.muted != null ? !!opts.muted : (() => { try { return localStorage.getItem('fly-muted') === '1'; } catch (e) { return false; } })();
@@ -146,19 +182,20 @@ export function play(el, opts = {}) {
 
   // ---------- the game's state ----------
   const G = {
-    phase: 'intro', t: 0, p: 0, shields: TUNE.shields, hits: 0, stars: 0, fails: 0, tries: 1, easy: false, total: 0,
-    ship: { x: 0, y: 0, tx: 0, ty: 0, vx: 0, tilt: 0, blink: 0, s: 1, a: 1 }, ents: [], gems: [], parts: [], dots: [],
-    spawnIn: 1.2, gemIn: 2, sayIn: 3, shake: 0, flash: 0, endT: 0, bgY: 0, slow: 1, timeScale: 1, frames: [], work: [], bot: null,
+    phase: 'intro', t: 0, p: 0, shields: TUNE.shields, hits: 0, stars: 0, shot: 0, lives: 0, score: 0, fails: 0, tries: 1, easy: false, total: 0,
+    ship: { x: 0, y: 0, tx: 0, ty: 0, vx: 0, tilt: 0, blink: 0, s: 1, a: 1 }, ents: [], gems: [], pick: [], shots: [], booms: [], parts: [], dots: [],
+    spawnIn: 1.2, gemIn: 2, sayIn: 3, livesAt: [], gunIn: 0, heat: 0, hot: false, fire: false,
+    shake: 0, flash: 0, endT: 0, bgY: 0, slow: 1, timeScale: 1, frames: [], work: [], bot: null,
   };
   let W = 360, H = 740, u = 1, dpr = 1, R = rng(opts.seed != null ? opts.seed : (Date.now() ^ 0x5eed));
   const ship = G.ship;
-  const shipW = () => 52 * u, shipH = () => 52 * u * 1.425, shipR = () => 14.5 * u;
+  const shipW = () => 56 * u, shipH = () => 56 * u * 1.29, shipR = () => 14.5 * u;
 
   function layout() {
     const vw = innerWidth, vh = root.clientHeight || innerHeight;
     const nw = Math.round(Math.min(vw, vh * 0.62)), nh = vh;   // phone upright = the whole screen; a computer = a phone-shaped column
     const kx = nw / W, ky = nh / H;   // the address bar came or went: everything keeps its place on the new size
-    for (const e of [...G.ents, ...G.gems]) { e.x *= kx; e.x0 = (e.x0 || 0) * kx; e.y *= ky; }
+    for (const e of [...G.ents, ...G.gems, ...G.pick]) { e.x *= kx; e.x0 = (e.x0 || 0) * kx; e.y *= ky; }
     ship.x *= kx; ship.tx *= kx; ship.y *= ky; ship.ty *= ky;
     W = nw; H = nh; u = W / 360;
     stage.style.width = W + 'px';
@@ -169,24 +206,26 @@ export function play(el, opts = {}) {
   layout();
   function home() { ship.x = ship.tx = W / 2; ship.y = ship.ty = H * 0.78; ship.vx = 0; ship.tilt = 0; ship.s = 1; ship.a = 1; ship.blink = 0; }
   home();
-  const lim = () => ({ x0: shipW() * 0.5, x1: W - shipW() * 0.5, y0: H * 0.34, y1: H - shipH() * 0.75 });
+  const lim = () => ({ x0: shipW() * 0.5, x1: W - shipW() * 0.5, y0: H * 0.34, y1: H - shipH() * 0.72 });
   const K = () => (G.easy ? TUNE.easy : TUNE.normal);
   const level = () => ease(clamp(G.p / TUNE.calm, 0, 1));
   const vyNow = () => lerp(K().vy[0], K().vy[1], level()) * u;
+  const setScore = (bump) => { scoreEl.textContent = G.score; if (bump) { scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump'); } };
 
   // ---------- the characters' patterns ----------
   const loaded = () => faces.filter((f) => f.cv);
-  let lastFace = -1;
+  let lastFace = null;
   function pickFace() {
     const L = loaded(); if (!L.length) return null;
-    let i = Math.floor(R() * L.length); if (L.length > 1 && L[i] === faces[lastFace]) i = (i + 1) % L.length;
-    lastFace = faces.indexOf(L[i]); return L[i];
+    let i = Math.floor(R() * L.length); if (L.length > 1 && L[i] === lastFace) i = (i + 1) % L.length;
+    return (lastFace = L[i]);
   }
   function bubble(x, mode, extra = {}) {
     const f = pickFace(); if (!f) return null;
     const r = (25 + R() * 12) * u;
     const e = { f, x, x0: x, y: -r - 8 * u, r, vy: vyNow() * (0.9 + R() * 0.22), vx: 0, mode, t: 0, amp: 0, w: 0, ph: R() * 6.28,
-      rot: (R() - 0.5) * 0.5, spin: (R() < 0.25 ? (R() - 0.5) * 1.6 : 0), wob: 0.15 + R() * 0.3, knocked: false, ...extra };
+      rot: (R() - 0.5) * 0.5, spin: (R() < 0.25 ? (R() - 0.5) * 1.6 : 0), wob: 0.15 + R() * 0.3, knocked: false, flash: 0, ...extra };
+    e.hp = e.r > 31 * u ? 3 : 2;   // two shots, the big ones three - shooting your way through is never free
     G.ents.push(e); return e;
   }
   function spawn() {
@@ -204,7 +243,7 @@ export function play(el, opts = {}) {
       if (roll < 0.2) bubble(rx(), 'line');
       else if (roll < 0.4) bubble(W * (0.3 + R() * 0.4), 'sine', { amp: (60 + R() * 50) * u, w: 1.5 + R() * 0.7 });
       else if (roll < 0.6) { pair(); extra = 0.2; }
-      else if (roll < 0.8) { wall(k.wall * u); extra = 0.55; }
+      else if (roll < 0.8) { wall(k.wall * u); extra = 0.5; }
       else if (k.homing) bubble(rx(), 'home');
       else bubble(rx(), 'line');
     }
@@ -217,7 +256,7 @@ export function play(el, opts = {}) {
       e.px = cxp + s * (gap / 2 + e.r); e.side = s; e.vx = (-s * Math.abs(e.x - e.px)) / ((H * 0.45) / vy);   // shut by the middle of the screen
     }
   }
-  function wall(gap) {   // a row with one way through - the tense part
+  function wall(gap) {   // a row with one way through - the tense part (or shoot your own way)
     const r = 27 * u, gx = gap / 2 + 60 * u + R() * (W - gap - 120 * u), vy = vyNow() * 0.9;
     for (let x = gx - gap / 2 - r; x > -r; x -= 2.15 * r) bubble(x, 'line', { r, vy, spin: 0 });
     for (let x = gx + gap / 2 + r; x < W + r; x += 2.15 * r) bubble(x, 'line', { r, vy, spin: 0 });
@@ -227,10 +266,13 @@ export function play(el, opts = {}) {
     for (let i = 0; i < n; i++) G.gems.push({ x: clamp(x0 + Math.sin((i / n) * 3.14) * curve, 24 * u, W - 24 * u), y: -20 * u - i * 34 * u, vy, ph: R() * 6 });
   }
   function homeStretch() {   // the calm before the landing: a trail of stars up the middle
-    for (let i = 0; i < 9; i++) G.gems.push({ x: W / 2 + Math.sin(i * 0.7) * 60 * u, y: -20 * u - i * 40 * u, vy: vyNow() * 0.9, ph: i });
+    for (let i = 0; i < 8; i++) G.gems.push({ x: W / 2 + Math.sin(i * 0.7) * 60 * u, y: -20 * u - i * 40 * u, vy: vyNow() * 0.9, ph: i });
+  }
+  function life() {   // a shield floating down - rare (round 2: "lives to collect in space")
+    G.pick.push({ x: 50 * u + R() * (W - 100 * u), y: -24 * u, vy: vyNow() * 0.7, ph: R() * 6 });
   }
 
-  // ---------- input: drag anywhere (relative), arrows on a computer ----------
+  // ---------- input: drag anywhere (relative) and the cannon fires while the finger is down; arrows + space on a computer ----------
   let drag = null; const keys = {};
   const onDown = (e) => {
     if (e.target.closest('button')) return;
@@ -247,7 +289,7 @@ export function play(el, opts = {}) {
     const L = lim(); ship.tx = clamp(ship.tx, L.x0, L.x1); ship.ty = clamp(ship.ty, L.y0, L.y1);
   };
   const onUp = (e) => { if (drag && e.pointerId === drag.id) drag = null; };
-  const KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, a: 1, d: 1, w: 1, s: 1 };
+  const KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, a: 1, d: 1, w: 1, s: 1, ' ': 1 };
   const onKey = (e) => {
     if (!KEYS[e.key]) return;
     e.preventDefault(); keys[e.key] = e.type === 'keydown';
@@ -260,10 +302,10 @@ export function play(el, opts = {}) {
   document.addEventListener('visibilitychange', onVis);
   const onResize = () => layout(); addEventListener('resize', onResize);
   muteBtn.onclick = () => setMute(!muted);
-  const stats = () => ({ time: Math.round(G.t * 10) / 10, total: Math.round(G.total * 10) / 10, stars: G.stars, shields: G.shields, hits: G.hits, tries: G.tries, easy: G.easy });
+  const stats = () => ({ time: Math.round(G.t * 10) / 10, total: Math.round(G.total * 10) / 10, score: G.score, stars: G.stars, shot: G.shot, shields: G.shields, lives: G.lives, hits: G.hits, tries: G.tries, easy: G.easy });
   $('.fly-skip').onclick = () => { const s = stats(); stop(); opts.onSkip && opts.onSkip(s); };
   over.onclick = () => { if (over.dataset.ready) restart(); };
-  res.querySelector('button').onclick = () => { const s = stats(); stop(); opts.onDone && opts.onDone(s); };
+  res.querySelector('.fly-big').onclick = () => { const s = stats(); stop(); opts.onDone && opts.onDone(s); };
 
   const tutHTML = tut.innerHTML;
   res.querySelector('b').innerHTML = Z.landed.replace('שלומיוורס', '<span>שלומי<i style="font-style:normal;color:#ff6a1f">וורס</i></span>');   // the name in the logo's two colours (his note 2026-11-06)
@@ -271,18 +313,24 @@ export function play(el, opts = {}) {
     tut.innerHTML = paused ? `${SVG.hand}<b>${Z.paused}</b>` : tutHTML;
     tut.classList.remove('hide');
   }
+  function fresh() {
+    G.t = 0; G.p = 0; G.shields = TUNE.shields; G.stars = 0; G.shot = 0; G.lives = 0; G.score = 0;
+    G.ents = []; G.gems = []; G.pick = []; G.shots = []; G.booms = []; G.parts = []; G.spawnIn = 1.2; G.gemIn = 2; G.slow = 1; G.shake = 0; G.heat = 0; G.hot = false;
+    G.livesAt = K().lives.slice(); G.stretch = false;
+  }
   function begin() {
     tut.classList.add('hide');
+    if (G.phase === 'intro') { fresh(); loadRest(); }
     G.phase = 'fly';
     au && au.music();
   }
   function restart() {
     over.classList.add('hide'); delete over.dataset.ready;
     G.tries++; G.easy = G.fails >= TUNE.easyAfter;
-    G.t = 0; G.p = 0; G.shields = TUNE.shields; G.stars = 0; G.ents = []; G.gems = []; G.parts = []; G.spawnIn = 1.2; G.gemIn = 2; G.slow = 1; G.shake = 0;
+    fresh();
     says.forEach((s) => { s.f = null; s.d.classList.remove('on'); });
-    shieldEls.forEach((s) => s.classList.remove('lost')); scoreN.textContent = '0';
-    G.stretch = false; home(); G.phase = 'fly'; au && au.duck(false);
+    shieldEls.forEach((s) => s.classList.remove('lost')); setScore();
+    home(); G.phase = 'fly'; au && au.duck(false);
   }
 
   // ---------- the loop ----------
@@ -304,7 +352,7 @@ export function play(el, opts = {}) {
     if (G.phase === 'fly' || G.phase === 'crash') dt *= G.slow;
     G.bgY += (14 * u + (G.phase === 'end' ? 0 : vyNow() * 0.1)) * dt * (G.phase === 'end' ? 1 + 5 * Math.sin(Math.min(1, G.endT / 1.5) * Math.PI) : 1);
     for (const d of G.dots) { d.y += (d.z * (G.phase === 'end' ? 3 : 1) * (60 + vyNow() * 0.35)) * dt / H; if (d.y > 1) { d.y -= 1; d.x = R(); } }
-    if (G.phase === 'intro' || G.phase === 'paused' || G.phase === 'over' || G.phase === 'done') return parts(dt);
+    if (G.phase === 'intro' || G.phase === 'paused' || G.phase === 'over' || G.phase === 'done') return fx(dt);
     if (G.phase === 'end') return ending(dt);
     if (G.phase === 'crash') { G.slow = Math.max(0.2, G.slow - dt * 2); G.crashT -= dt / G.slow; if (G.crashT <= 0) lost(); }
     if (G.phase === 'fly') {
@@ -319,17 +367,20 @@ export function play(el, opts = {}) {
       ship.vx = (ship.x - ox) / Math.max(dt, 1e-4);
       ship.tilt += (clamp(ship.vx / (700 * u), -1, 1) * 0.32 - ship.tilt) * Math.min(1, dt * 10);
       if (ship.blink > 0) ship.blink -= dt;
+      gun(dt);
       if (G.p < TUNE.calm) {
         G.spawnIn -= dt;
         if (G.spawnIn <= 0) { const k2 = K(); G.spawnIn = lerp(k2.gap[0], k2.gap[1], level()) * (0.8 + R() * 0.4) + spawn(); }
-        G.gemIn -= dt; if (G.gemIn <= 0) { G.gemIn = 1.8 + R() * 1.4; gemRow(); }
+        G.gemIn -= dt; if (G.gemIn <= 0) { G.gemIn = 1.6 + R() * 1.2; gemRow(); }
+        if (G.livesAt.length && G.p >= G.livesAt[0]) { G.livesAt.shift(); life(); }
       } else if (!G.stretch) { G.stretch = true; homeStretch(); }
+      if (G.p > 0.5 && !G.clipReady) { G.clipReady = true; video.preload = 'auto'; video.src = ART + 'fly-end.mp4'; au && au.prepLand(); }   // the end, fetched while they fly
       if (G.p >= 1) { G.phase = 'end'; G.endT = 0; G.end0 = { x: ship.x, y: ship.y }; G.stretch = false; au && au.whoosh(); }
     }
     // the characters
     const sx = ship.x, sy = ship.y, sr = shipR();
     for (const e of G.ents) {
-      e.t += dt;
+      e.t += dt; if (e.flash > 0) e.flash -= dt;
       if (e.knocked) { e.x += e.vx * dt; e.y += e.vy * dt; e.rot += e.spin * dt; continue; }
       if (e.mode === 'sine') e.x = e.x0 + Math.sin(e.t * e.w + e.ph) * e.amp;
       else if (e.mode === 'home' && e.y < sy - 90 * u) { e.vx += clamp((sx - e.x) * 1.4, -160 * u, 160 * u) * dt; e.vx = clamp(e.vx, -75 * u, 75 * u); e.x += e.vx * dt; }
@@ -338,21 +389,67 @@ export function play(el, opts = {}) {
       e.y += e.vy * dt; e.rot = e.spin ? e.rot + e.spin * dt : Math.sin(e.t * 1.3 + e.ph) * e.wob;
       if (G.phase === 'fly' && ship.blink <= 0 && Math.hypot(e.x - sx, e.y - sy) < sr + e.r * 0.82) hit(e);
     }
-    G.ents = G.ents.filter((e) => e.y < H + e.r + 60 * u && e.x > -W * 0.6 && e.x < W * 1.6);
+    // the shots
+    for (const b of G.shots) {
+      b.y -= b.v * dt;
+      for (const e of G.ents) {
+        if (e.dead || e.knocked || Math.abs(e.x - b.x) > e.r + 4 * u || Math.abs(e.y - b.y) > e.r + 8 * u || Math.hypot(e.x - b.x, e.y - b.y) > e.r + 3 * u) continue;
+        b.gone = true;
+        if (--e.hp > 0) { e.flash = 0.12; e.y -= 6 * u; au && au.tick(); burst(b.x, b.y, 5, '#ffe2b0', 120); }
+        else boom(e);
+        break;
+      }
+    }
+    G.shots = G.shots.filter((b) => !b.gone && b.y > -20 * u);
+    G.ents = G.ents.filter((e) => !e.dead && e.y < H + e.r + 60 * u && e.x > -W * 0.6 && e.x < W * 1.6);
     // the stars
     for (const g of G.gems) {
       g.y += g.vy * dt; g.ph += dt * 4;
       const d = Math.hypot(g.x - sx, g.y - sy);
       if (G.phase === 'fly' && d < 60 * u) { g.x += (sx - g.x) * Math.min(1, dt * 6); g.y += (sy - g.y) * Math.min(1, dt * 6); }
-      if (G.phase === 'fly' && d < sr + 16 * u) { g.got = true; G.stars++; scoreN.textContent = G.stars; bump(); au && au.star(G.stars); burst(g.x, g.y, 6, '#ffd27a', 120); }
+      if (G.phase === 'fly' && d < sr + 16 * u) { g.got = true; G.stars++; G.score += TUNE.score.star; setScore(true); au && au.star(G.stars); burst(g.x, g.y, 6, '#ffd27a', 120); }
     }
     G.gems = G.gems.filter((g) => !g.got && g.y < H + 30 * u);
+    // the shields floating down
+    for (const q of G.pick) {
+      q.y += q.vy * dt; q.ph += dt * 3; q.x += Math.sin(q.ph) * 20 * u * dt;
+      const d = Math.hypot(q.x - sx, q.y - sy);
+      if (G.phase === 'fly' && d < 70 * u) { q.x += (sx - q.x) * Math.min(1, dt * 5); q.y += (sy - q.y) * Math.min(1, dt * 5); }
+      if (G.phase === 'fly' && d < sr + 20 * u) { q.got = true; gotLife(q); }
+    }
+    G.pick = G.pick.filter((q) => !q.got && q.y < H + 40 * u);
     sayings(dt);
-    parts(dt);
+    fx(dt);
     if (G.shake > 0) G.shake = Math.max(0, G.shake - dt);
     fill.style.transform = `scaleX(${G.p})`;
   }
-  function bump() { scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump'); }
+  function gun(dt) {
+    const firing = drag || G.fire || keys[' '] || keys.ArrowLeft || keys.ArrowRight || keys.ArrowUp || keys.ArrowDown;
+    const g = TUNE.gun;
+    G.heat = Math.max(0, G.heat - (G.hot ? g.coolHot : g.cool) * dt);
+    if (G.hot && G.heat <= g.resume) G.hot = false;
+    G.gunIn -= dt;
+    if (!firing || G.hot || G.gunIn > 0) return;
+    G.gunIn = g.every; G.heat += g.heat;
+    if (G.heat >= 1) { G.heat = 1; G.hot = true; au && au.overheat(); }
+    G.shots.push({ x: ship.x, y: ship.y - shipH() * 0.36, v: g.speed * u });
+    au && au.pew();
+  }
+  function boom(e) {   // a comic pop: the face swells and bursts, a spiky star, confetti
+    e.dead = true; G.shot++; G.score += TUNE.score.shot; setScore(true);
+    G.booms.push({ x: e.x, y: e.y, r: e.r, f: e.f, rot: e.rot, t: 0, spikes: 9 + Math.floor(R() * 4), turn: R() * 6.28 });
+    burst(e.x, e.y, 18, '#ffd27a', 260); burst(e.x, e.y, 10, '#ff6a1f', 200); burst(e.x, e.y, 6, '#ffffff', 160);
+    G.shake = Math.max(G.shake, 0.12);
+    au && au.boom();
+  }
+  function gotLife(q) {
+    burst(q.x, q.y, 14, '#ffd27a', 180);
+    if (G.shields < TUNE.shields) {
+      const s = shieldEls[G.shields]; G.shields++;
+      if (s) { s.classList.remove('lost'); s.classList.add('pop'); setTimeout(() => s.classList.remove('pop'), 220); }
+    } else { G.lives++; G.score += TUNE.score.life; setScore(true); }
+    au && au.life();
+  }
   function hit(e) {
     G.hits++; G.shields--; ship.blink = TUNE.blink; G.shake = 0.35;
     e.knocked = true; const dx = e.x - ship.x || 1; e.vx = Math.sign(dx) * 260 * u; e.vy = -60 * u; e.spin = Math.sign(dx) * 6;
@@ -371,13 +468,18 @@ export function play(el, opts = {}) {
     setTimeout(() => { over.dataset.ready = '1'; }, 350);   // a tap still on its way from the crash doesn't restart it
   }
   function burst(x, y, n, c, sp) { for (let i = 0; i < n; i++) { const a = R() * 6.28, v = (0.3 + R()) * sp * u; G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.5 + R() * 0.4, t: 0, c, s: (1.5 + R() * 2.5) * u }); } }
-  function parts(dt) { for (const q of G.parts) { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= 0.96; q.vy *= 0.96; } G.parts = G.parts.filter((q) => q.t < q.life); }
+  function fx(dt) {
+    for (const q of G.parts) { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= 0.96; q.vy *= 0.96; }
+    G.parts = G.parts.filter((q) => q.t < q.life);
+    for (const b of G.booms) { b.t += dt; b.y += 40 * u * dt; }
+    G.booms = G.booms.filter((b) => b.t < 0.45);
+  }
 
   // a character on its way past sometimes says one of its own lines, beside its head (rules.md: talks beside his own head)
   function sayings(dt) {
     G.sayIn -= dt;
     if (G.sayIn <= 0 && G.phase === 'fly') {
-      G.sayIn = 3.5 + R() * 3;
+      G.sayIn = 3 + R() * 2.5;
       const busy = new Set(says.map((s) => s.f));
       const c = G.ents.filter((e) => !e.knocked && e.f.quotes.length && !busy.has(e) && e.y > 40 * u && e.y < H * 0.45);
       const slot = says.find((s) => !s.f);
@@ -389,7 +491,7 @@ export function play(el, opts = {}) {
     for (const s of says) {
       if (!s.f) continue;
       const e = s.f;
-      if (G.t > s.until || e.knocked || e.y > H * 0.8 || G.phase !== 'fly') { s.d.classList.remove('on'); s.f = null; continue; }
+      if (G.t > s.until || e.knocked || e.dead || e.y > H * 0.8 || G.phase !== 'fly') { s.d.classList.remove('on'); s.f = null; continue; }
       const w = s.w, h = s.h, left = e.x > W / 2;
       const x = clamp(left ? e.x - e.r - 6 * u - w : e.x + e.r + 6 * u, 4, W - w - 4), y = clamp(e.y - e.r - h * 0.3, 60 * u, H - h - 4);
       s.d.style.transform = `translate(${x}px, ${y}px)`;
@@ -399,13 +501,13 @@ export function play(el, opts = {}) {
   // ---------- the landing: the planet settles where the teaser's turning logo begins, the ship flies in, the clip takes over ----------
   function clipPlanet() {
     const s = Math.max(W / CLIP.w, H / CLIP.h), ox = (W - CLIP.w * s) / 2, oy = (H - CLIP.h * s) / 2;
-    return { x: CLIP.cx * s + ox, y: CLIP.cy * s + oy, w: (CLIP.ring * s) / PLANET_RING };
+    return { x: CLIP.cx * s + ox, y: CLIP.cy * s + oy, ring: CLIP.ring * s };
   }
-  const flyPlanet = (p) => ({ x: W / 2, y: lerp(H * 0.13, H * 0.2, p), w: lerp(0.17, 0.42, p * p) * W / PLANET_RING });
+  const flyPlanet = (p) => ({ x: W / 2, y: lerp(H * 0.15, H * 0.21, p), ring: lerp(0.3, 0.5, p * p) * W });
   function planetNow() {
     if (G.phase !== 'end' && G.phase !== 'done') return flyPlanet(G.p);
     const a = flyPlanet(1), b = clipPlanet(), k = ease(clamp(G.endT / 1.5, 0, 1));
-    return { x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), w: lerp(a.w, b.w, k) };
+    return { x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), ring: lerp(a.ring, b.ring, k) };
   }
   function ending(dt) {
     G.endT += dt;
@@ -414,32 +516,50 @@ export function play(el, opts = {}) {
     ship.s = lerp(1, 0.1, k * k); ship.a = T0 < 1.2 ? 1 : Math.max(0, 1 - (T0 - 1.2) / 0.2); ship.tilt *= 0.9; ship.blink = 0;
     for (const e of G.ents) { e.y += e.vy * dt * 1.6; }
     for (const g of G.gems) g.y += g.vy * dt * 1.6;
+    for (const q of G.pick) q.y += q.vy * dt * 1.6;
+    G.shots = [];
     if (T0 > 0.3) { hud.classList.add('gone'); scoreEl.style.opacity = '0'; }
     if (T0 >= 1.3 && !G.flashed) { G.flashed = true; G.flash = 1; burst(P.x, P.y, 26, '#ffd27a', 200); }
     if (T0 >= 1.5 && !G.clip) {
       G.clip = true; G.phase = 'done';
+      G.score += G.shields * TUNE.score.shield;   // every shield brought home counts
       au && au.land();
-      video.muted = true; video.currentTime = 0;
-      const show = () => { video.classList.add('on'); setTimeout(() => { G.clipOn = true; }, 600); };
+      if (!video.src) video.src = ART + 'fly-end.mp4';
+      video.muted = true;
+      const c = clipPlanet(); video.style.transformOrigin = `${c.x}px ${c.y}px`;
+      const show = () => { video.classList.add('on'); setTimeout(() => { G.clipOn = true; }, 600); setTimeout(() => video.classList.add('settle'), 1800); };
       video.play().then(show).catch(() => {});   // no clip (a slow line, a refusal): the game's own planet stays and the result still comes
       let shown = false; const result = () => { if (shown || dead) return; shown = true; showResult(); };
-      video.onended = result; setTimeout(result, 3400);
+      video.onended = result; setTimeout(result, 6400);   // the clip runs 5.6 s: the word turns on, the glow settles
     }
-    parts(dt);
+    fx(dt);
   }
   function showResult() {
-    res.querySelector('.fly-stats').textContent = Z.result(Math.round(G.t), G.stars, G.shields);
+    res.querySelector('.fly-pts').textContent = Z.points(G.score);
+    res.querySelector('.fly-stats').textContent = Z.result(Math.round(G.t), G.stars, G.shot, G.shields);
     res.classList.remove('hide');
+    // today's table (records/fly_<day>, citizen.js passes the doors): the score goes in, the top shows here
+    const rc = opts.records; if (!rc) return;
+    const board = res.querySelector('.fly-board'), ol = board.querySelector('ol'), note = board.querySelector('p');
+    const esc = (s) => String(s || '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+    Promise.resolve(rc.submit(G.score)).catch(() => null).then((r) => Promise.resolve(rc.top()).catch(() => []).then((top) => {
+      if (dead) return;
+      const me = rc.me && rc.me();
+      ol.innerHTML = (top || []).slice(0, 3).map((x, i) => `<li class="${me && x.uid === me ? 'me' : ''}"><i>${i + 1}</i><span>${esc(x.nick || x.first)}</span><b>${Math.round(x.value)}</b></li>`).join('');
+      note.textContent = r && r.place ? Z.mine(r.place) : (top && top.length ? '' : Z.boardEmpty);
+      board.classList.add('on');
+    }));
   }
 
   // ---------- drawing ----------
+  const shieldPath = typeof Path2D !== 'undefined' ? new Path2D(SHIELD_D) : null;
   function draw() {
     const c = cx;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (G.shake > 0) { const m = (G.shake / 0.35) * 8 * u; c.translate((R() - 0.5) * m, (R() - 0.5) * m); }
     // space (seamless tile) and two layers of passing stars
     c.fillStyle = '#060302'; c.fillRect(-20, -20, W + 40, H + 40);
-    if (A.space.complete && A.space.naturalWidth) {
+    if (ok(A.space)) {
       const th = W * (A.space.naturalHeight / A.space.naturalWidth), off = G.bgY % th;
       for (let y = off - th; y < H; y += th) c.drawImage(A.space, 0, y, W, th + 1);
     }
@@ -447,45 +567,89 @@ export function play(el, opts = {}) {
     c.fillStyle = streak > 1.5 ? '#ffd9b8' : '#fff';
     for (const d of G.dots) { c.globalAlpha = (0.25 + d.z * 0.6) * (streak > 1.5 ? 0.45 : 1); c.fillRect(d.x * W, d.y * H, d.z * 1.6 * u * (streak > 1.5 ? 0.6 : 1), d.z * 1.6 * u * streak); }
     c.globalAlpha = 1;
-    // the planet
-    if (A.planet.complete && A.planet.naturalWidth) {
+    // the goal: the logo with its word all the way; in the flash it becomes the teaser's planet, whose word turns back on in the clip
+    {
       const P = planetNow(), pul = G.phase === 'done' ? 1 : 1 + Math.sin(performance.now() / 600) * 0.012;
-      c.drawImage(A.planet, P.x - (P.w * pul) / 2, P.y - (P.w * pul) / 2, P.w * pul, P.w * pul);
+      const im = G.flashed && ok(A.planet) ? A.planet : A.goal, w = (P.ring / (im === A.planet ? PLANET_RING : GOAL_RING)) * pul;
+      if (ok(im)) c.drawImage(im, P.x - w / 2, P.y - w / 2, w, w);
     }
-    // stars to pick up
-    if (A.star.complete) for (const g of G.gems) { const s = (20 + Math.sin(g.ph) * 2) * u; c.drawImage(A.star, g.x - s / 2, g.y - s / 2, s, s); }
+    // stars and shields to pick up
+    if (ok(A.star)) for (const g of G.gems) { const s = (20 + Math.sin(g.ph) * 2) * u; c.drawImage(A.star, g.x - s / 2, g.y - s / 2, s, s); }
     // the characters
     for (const e of G.ents) {
       if (!e.f.cv) continue;
       const s = (e.r * 2 * FS) / (FS - 18);
-      c.save(); c.translate(e.x, e.y); c.rotate(e.rot); c.drawImage(e.f.cv, -s / 2, -s / 2, s, s); c.restore();
+      c.save(); c.translate(e.x, e.y); c.rotate(e.rot); c.drawImage(e.f.cv, -s / 2, -s / 2, s, s);
+      if (e.flash > 0) { c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.7; c.fillStyle = '#fff3e0'; c.beginPath(); c.arc(0, 0, e.r, 0, 6.283); c.fill(); }
+      c.restore();
     }
-    // sparks
+    for (const b of G.booms) drawBoom(c, b);
+    for (const q of G.pick) drawLife(c, q);   // over the faces: a shield must never hide behind one
+    // shots and sparks
     c.globalCompositeOperation = 'lighter';
+    for (const b of G.shots) {   // a glowing bolt: an orange halo, a white-hot core, a fading tail
+      c.fillStyle = 'rgba(255,120,30,.45)'; c.fillRect(b.x - 4.5 * u, b.y - 12 * u, 9 * u, 24 * u);
+      const g = c.createLinearGradient(b.x, b.y - 12 * u, b.x, b.y + 16 * u); g.addColorStop(0, '#fffbe6'); g.addColorStop(0.45, '#ffc15a'); g.addColorStop(1, 'rgba(255,100,20,0)');
+      c.fillStyle = g; c.fillRect(b.x - 2.4 * u, b.y - 12 * u, 4.8 * u, 28 * u);
+    }
     for (const q of G.parts) { c.globalAlpha = 1 - q.t / q.life; c.fillStyle = q.c; c.beginPath(); c.arc(q.x, q.y, q.s * (1 - (q.t / q.life) * 0.5), 0, 6.283); c.fill(); }
     c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
     // a soft shade under the HUD, so the shields and the bar read over whatever passes
     if (G.phase !== 'done') { const sh = c.createLinearGradient(0, 0, 0, 90 * u); sh.addColorStop(0, 'rgba(5,3,2,.6)'); sh.addColorStop(1, 'rgba(5,3,2,0)'); c.fillStyle = sh; c.fillRect(0, 0, W, 90 * u); }
-    // the ship (blinking after a hit), its engine flickering
-    if (ship.a > 0 && A.ship.complete && !(ship.blink > 0 && Math.floor(ship.blink * 12) % 2)) {
+    // the ship (blinking after a hit), its engine flickering, the cannon's heat under it
+    if (ship.a > 0 && ok(A.ship) && !(ship.blink > 0 && Math.floor(ship.blink * 12) % 2)) {
       const w = shipW() * ship.s, h = shipH() * ship.s;
       c.save(); c.globalAlpha = ship.a; c.translate(ship.x, ship.y); c.rotate(ship.tilt);
       c.globalCompositeOperation = 'lighter';
-      const fl = 0.85 + Math.random() * 0.3, gr = c.createRadialGradient(0, h * 0.42, 0, 0, h * 0.42, w * 0.5 * fl);
+      const fl = 0.85 + Math.random() * 0.3, gr = c.createRadialGradient(0, h * 0.45, 0, 0, h * 0.45, w * 0.5 * fl);
       gr.addColorStop(0, 'rgba(255,190,110,.55)'); gr.addColorStop(1, 'rgba(255,90,20,0)');
-      c.fillStyle = gr; c.fillRect(-w, h * 0.42 - w, w * 2, w * 2);
+      c.fillStyle = gr; c.fillRect(-w, h * 0.45 - w, w * 2, w * 2);
       c.globalCompositeOperation = 'source-over';
-      c.drawImage(A.ship, -w / 2, -h * 0.3, w, h);
+      c.drawImage(A.ship, -w / 2, -h * 0.33, w, h);
       c.restore();
+    }
+    if (G.phase === 'fly' && G.heat > 0.04) {   // the heat: an arc under the ship, orange to red, blinking when it is too hot
+      const r = 26 * u, a0 = Math.PI * 0.2, a1 = Math.PI * 0.8;
+      c.save(); c.translate(ship.x, ship.y + 6 * u); c.lineCap = 'round'; c.lineWidth = 3.5 * u;
+      c.strokeStyle = 'rgba(255,255,255,.16)'; c.beginPath(); c.arc(0, 0, r, a0, a1); c.stroke();
+      c.strokeStyle = G.hot ? (Math.floor(performance.now() / 120) % 2 ? '#ff3b1f' : '#ffb347') : G.heat > 0.7 ? '#ff5a1f' : '#ffb347';
+      c.beginPath(); c.arc(0, 0, r, a1 - (a1 - a0) * G.heat, a1); c.stroke(); c.restore();
     }
     // the flash as the ship enters the planet
     if (G.flash > 0) {
-      const P = planetNow(), r = P.w * (0.4 + (1 - G.flash) * 0.5);
+      const P = planetNow(), r = (P.ring / PLANET_RING) * (0.4 + (1 - G.flash) * 0.5);
       const gr = c.createRadialGradient(P.x, P.y, 0, P.x, P.y, r);
       gr.addColorStop(0, `rgba(255,236,200,${0.9 * G.flash})`); gr.addColorStop(1, 'rgba(255,120,40,0)');
       c.globalCompositeOperation = 'lighter'; c.fillStyle = gr; c.fillRect(P.x - r, P.y - r, r * 2, r * 2); c.globalCompositeOperation = 'source-over';
       G.flash = Math.max(0, G.flash - 1 / 30);
     }
+  }
+  function drawLife(c, q) {   // a shield in a glowing bubble, a white plus on it
+    const s = (40 + Math.sin(q.ph * 3) * 3) * u, bob = Math.sin(q.ph * 1.5) * 2 * u;
+    c.save(); c.translate(q.x, q.y + bob);
+    c.globalCompositeOperation = 'lighter';
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, s * 0.95); g.addColorStop(0, 'rgba(255,170,80,.55)'); g.addColorStop(1, 'rgba(255,106,31,0)');
+    c.fillStyle = g; c.fillRect(-s, -s, s * 2, s * 2);
+    c.globalCompositeOperation = 'source-over';
+    c.strokeStyle = 'rgba(255,220,160,.9)'; c.lineWidth = 2 * u; c.beginPath(); c.arc(0, 0, s * 0.62, 0, 6.283); c.stroke();
+    if (shieldPath) {
+      const k = (s * 0.8) / 24; c.translate(-12 * k, -12.4 * k); c.scale(k, k);
+      c.fillStyle = '#ff6a1f'; c.fill(shieldPath); c.lineWidth = 1.4; c.strokeStyle = '#ffd27a'; c.stroke(shieldPath);
+      c.strokeStyle = '#fff'; c.lineWidth = 2.6; c.lineCap = 'round'; c.beginPath(); c.moveTo(12, 8.2); c.lineTo(12, 15.8); c.moveTo(8.2, 12); c.lineTo(15.8, 12); c.stroke();
+    }
+    c.restore();
+  }
+  function drawBoom(c, b) {   // 0.45 s: the face swells and fades, a spiky comic star bursts out of it
+    const k = b.t / 0.45, s = b.r * (1 + k * 0.9);
+    c.save(); c.translate(b.x, b.y);
+    if (k < 0.45 && b.f.cv) { c.globalAlpha = 1 - k / 0.45; const fs = (s * 2 * FS) / (FS - 18); c.rotate(b.rot); c.drawImage(b.f.cv, -fs / 2, -fs / 2, fs, fs); c.rotate(-b.rot); }
+    const R1 = b.r * (0.7 + ease(Math.min(1, k * 1.6)) * 1.1), R0 = R1 * 0.55;
+    c.globalAlpha = k < 0.6 ? 1 : 1 - (k - 0.6) / 0.4; c.rotate(b.turn + k * 0.6);
+    const star = (ro, ri) => { c.beginPath(); for (let i = 0; i < b.spikes * 2; i++) { const a = (i / (b.spikes * 2)) * 6.283, r = i % 2 ? ri : ro * (0.85 + ((i * 37) % 7) / 30); c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); };
+    star(R1, R0); c.fillStyle = '#ff6a1f'; c.fill(); c.lineWidth = 3 * u; c.strokeStyle = '#2a1206'; c.stroke();
+    star(R1 * 0.68, R0 * 0.62); c.fillStyle = '#ffd23f'; c.fill();
+    c.beginPath(); c.arc(0, 0, R0 * 0.42, 0, 6.283); c.fillStyle = '#fffbe8'; c.fill();
+    c.restore();
   }
   raf = requestAnimationFrame(frame);
 
@@ -515,8 +679,9 @@ function makeAudio(muted) {
   const mus = ctx.createGain(); mus.gain.value = 0.6; mus.connect(master);
   const fx = ctx.createGain(); fx.gain.value = 0.75; fx.connect(master);
   const buf = {};
-  const load = (k, url) => fetch(url).then((r) => r.arrayBuffer()).then((b) => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no))).then((b) => { buf[k] = b; }).catch(() => {});
-  const ready = { music: load('music', ART + 'fly-music.mp3'), land: load('land', ART + 'fly-land.mp3') };
+  const decode = (b) => new Promise((ok, no) => ctx.decodeAudioData(b, ok, no));
+  const load = (k, url, pre) => (pre || fetch(url).then((r) => r.arrayBuffer())).then((b) => (b ? decode(b.slice(0)) : null)).then((b) => { if (b) buf[k] = b; }).catch(() => {});
+  const ready = { music: load('music', ART + 'fly-music.mp3', PRE.music), land: null };
   const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); { const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
   let loop = null, wantMusic = false, closed = false;
   const now = () => ctx.currentTime;
@@ -529,8 +694,8 @@ function makeAudio(muted) {
   }
   function hiss(dur, type, f0, f1, peak, q = 1, attack = 0.01) {
     const t = now(), s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noise; s.loop = true; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    env(g, t, peak, attack, dur); s.connect(f).connect(g).connect(fx); s.start(t); s.stop(t + dur + attack + 0.05);
+    s.buffer = noise; s.loop = true; s.loopStart = Math.random() * 0.5; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    env(g, t, peak, attack, dur); s.connect(f).connect(g).connect(fx); s.start(t, Math.random() * 0.5); s.stop(t + dur + attack + 0.05);
   }
   function startLoop() {
     if (loop || !buf.music || closed) return;
@@ -543,17 +708,25 @@ function makeAudio(muted) {
     pause() { ctx.suspend().catch(() => {}); },
     mute(m) { master.gain.setTargetAtTime(m ? 0 : 1, now(), 0.05); },
     music() { wantMusic = true; ready.music.then(() => wantMusic && startLoop()); },
+    prepLand() { if (!ready.land) ready.land = load('land', ART + 'fly-land.mp3'); },
     duck(on) { mus.gain.setTargetAtTime(on ? 0.22 : 0.6, now(), 0.15); },
     star(n) { const f = 988 * Math.pow(2, (Math.min(n, 12) % 6) / 12); tone('sine', f, 0, 0.16, 0.22); tone('sine', f * 1.5, 0, 0.2, 0.12, 0.05); },
+    pew() { tone('square', 1500 + Math.random() * 200, 520, 0.07, 0.035); },
+    tick() { tone('triangle', 900, 600, 0.05, 0.12); },
+    // the face pops: a thump, a crackle and a cartoon "pop" falling in pitch
+    boom() { tone('sine', 420, 70, 0.22, 0.7); hiss(0.32, 'bandpass', 2600, 300, 0.55, 0.9); tone('square', 230, 60, 0.18, 0.08, 0.02); },
+    overheat() { tone('sawtooth', 220, 110, 0.35, 0.08); hiss(0.4, 'highpass', 5000, 2500, 0.15, 0.7); },
+    life() { [660, 880, 1320].forEach((f, i) => tone('triangle', f, 0, 0.16, 0.2, i * 0.07)); tone('sine', 1760, 0, 0.3, 0.1, 0.21); },
     hit() { hiss(0.28, 'lowpass', 1400, 200, 0.7); tone('sine', 150, 42, 0.3, 0.9); },
     shield() { tone('triangle', 560, 170, 0.34, 0.22, 0.04); tone('square', 280, 90, 0.3, 0.05, 0.04); },
     crash() { hiss(1.0, 'lowpass', 2400, 120, 0.8, 0.8); tone('sine', 95, 28, 1.0, 0.9); },
     whoosh() { hiss(1.4, 'bandpass', 260, 2800, 0.5, 1.4, 0.7); },
-    // the landing bar of the teaser's music takes over from the loop, the same piece going on
+    // the landing bars of the teaser's music take over from the loop, the same piece going on
     land() {
       wantMusic = false;
       if (loop) { const l = loop; l.g.gain.setTargetAtTime(0.0001, now(), 0.18); setTimeout(() => { try { l.stop(); } catch (e) {} }, 900); loop = null; }
-      if (buf.land) { const s = ctx.createBufferSource(); s.buffer = buf.land; s.connect(mus); s.start(); }
+      const go = () => { if (closed || !buf.land) return; const s = ctx.createBufferSource(); s.buffer = buf.land; s.connect(mus); s.start(); };
+      if (buf.land) go(); else { this.prepLand(); ready.land.then(go); }
       mus.gain.setTargetAtTime(0.75, now(), 0.1);
     },
     close() { closed = true; try { loop && loop.stop(); } catch (e) {} ctx.close().catch(() => {}); },

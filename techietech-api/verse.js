@@ -76,6 +76,10 @@ const idOk = (v) => typeof v === 'string' && /^[\w-]{1,80}$/.test(v);
 // daily records: how many scores a fan may send a day, the score as shown (12.4 -> "12.4", 12 -> "12"), the push copy (Terra)
 const SCORES_A_DAY = 300;
 const fmtScore = (v) => String(Math.round(v * 100) / 100);
+// tables for things that are not catalog games: the flight in (verse/fly.js in the citizenship journey, round 2 of his notes
+// 2026-11-07) - it keeps a daily table but never shows in the home's "שיאי היום" (that list is the catalog's games)
+const EXTRA_RECORDS = { fly: { title: 'הטיסה פנימה', page: '/citizenship', record: { unit: 'נקודות', better: 'high', max: 5000 } } };
+const recordGame = async (id) => (await _canon()).games?.[id] || EXTRA_RECORDS[id] || null;
 const RECORD_PUSH = { title: 'לקחו לכם את הבכורה', body: (nick, game, n, unit) => `${nick} לקחו את ההובלה ב־${game}: ${n} ${unit}. חוזרים?` };
 // where a comment / sticker lives: a video's page or a game's (games keep their comments under the game's id)
 const pageOf = async (id) => `/${(await _canon()).games?.[id] ? 'play' : 'v'}/${id}`;
@@ -285,7 +289,7 @@ const ops = {
   // name only). Whoever loses first place hears about it (bell + push). Browser scores can be faked - a daily cap on
   // sends and the game's own max keep it a fun board.
   async score(uid, d, auth) {
-    const g = (await _canon()).games?.[d.game];
+    const g = idOk(d.game) ? await recordGame(d.game) : null;
     if (!g || !g.record) fail('not-found', 'game');
     const value = Math.round(Number(d.value) * 100) / 100;
     if (!Number.isFinite(value) || value <= 0 || value > (g.record.max || 1e7)) fail('invalid-argument', 'value');
@@ -309,15 +313,15 @@ const ops = {
     });
     const place = (await dayRef.collection('players').where('value', low ? '<' : '>', r.value).count().get()).data().count + 1;
     if (r.passed) {
-      await note(r.passed.uid, { kind: 'record', game: d.game, from: fan.nick, photo: fan.photo || null, text: g.title, value: r.value, unit: g.record.unit }).catch(() => {});
+      await note(r.passed.uid, { kind: 'record', game: d.game, page: g.page || null, from: fan.nick, photo: fan.photo || null, text: g.title, value: r.value, unit: g.record.unit }).catch(() => {});
       await push([r.passed.uid], { title: RECORD_PUSH.title, body: RECORD_PUSH.body(fan.nick, g.title, fmtScore(r.value), g.record.unit),
-        url: `/play/${d.game}?records=1`, icon: fan.photo || ICON, badge: BADGE, tag: 'record_' + d.game }).catch(() => {});
+        url: g.page || `/play/${d.game}?records=1`, icon: fan.photo || ICON, badge: BADGE, tag: 'record_' + d.game }).catch(() => {});
     }
     return { ok: true, best: r.best, value: r.value, place, first: !!r.first, passed: r.passed ? { nick: r.passed.nick, photo: r.passed.photo || null, value: r.passed.value } : null };
   },
 
   async rank(uid, d) {
-    const g = (await _canon()).games?.[d.game];
+    const g = idOk(d.game) ? await recordGame(d.game) : null;
     if (!g || !g.record) fail('not-found', 'game');
     const dayRef = db.collection('records').doc(`${d.game}_${dayIL()}`);
     const m = await dayRef.collection('players').doc(uid).get();
