@@ -1862,3 +1862,5 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .cz-stamp .cz-bless { margin: 4px 0 12px; font-size: .9rem; }
 .cz-ink span { font-size: 1rem; }
 @media (max-width: 760px) { .search { margin-left: 8px !important; } }   /* the search icon and the status chip stood glued */
+.cz-load { display: grid; place-items: center; min-height: 60svh; }
+.cz-load video { width: min(62vw, 260px); aspect-ratio: 1; border-radius: 50%; object-fit: cover; -webkit-mask: radial-gradient(circle, #000 58%, transparent 71%); mask: radial-gradient(circle, #000 58%, transparent 71%); }

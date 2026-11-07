@@ -39,9 +39,11 @@ export function citizenBanner() {
 let S = null;   // the journey as the server has it
 export function citizenPage() {
   setTimeout(boot, 0);
-  return '<div class="cz" id="cz"><div class="sim-load"><span class="sim-planet"></span></div></div>';
+  return `<div class="cz" id="cz">${loader()}</div>`;
 }
 const box = () => document.getElementById('cz');
+// while it loads: the moment from the first teaser where the word turns onto the planet's ring (his ask, 2026-11-07)
+const loader = () => '<div class="cz-load"><video src="/verse/art/logo-turn.mp4" poster="/verse/art/logo-turn.jpg" autoplay muted loop playsinline></video></div>';
 async function boot() {
   if (!box()) return;
   document.title = `${Z().bannerGo} · שלומיוורס`;
@@ -175,13 +177,14 @@ function flight(played) {
   el.querySelector('[data-cz-skip]').onclick = () => { track('cz_flight', 'skip'); land(); };
   // played straight from a tap ("טסים פנימה") the music may play; after a reload it starts muted, a tap brings the sound
   v.muted = !played;
+  v.defaultPlaybackRate = v.playbackRate = 1.5;   // his note 2026-11-07: much faster
   v.play().catch(() => { v.muted = true; v.play().catch(() => land()); });
   v.onclick = () => { v.muted = false; };
 }
 async function landing() {
   box().innerHTML = `<section class="cz-land"><img src="/verse/logo-512.png" alt=""><h1>${esc(Z().flight.landing)}</h1><p>${esc(Z().flight.landing2)}</p>
     <button class="vx-btn main block" data-cz-go>${esc(Z().flight.toId)}</button></section>`;
-  box().querySelector('[data-cz-go]').onclick = async () => { try { S = await api('landed'); } catch (e) {} track('cz_done', String(S.n)); idCard(); };
+  box().querySelector('[data-cz-go]').onclick = async () => { box().innerHTML = loader(); try { S = await api('landed'); } catch (e) {} track('cz_done', String(S.n)); idCard(); };
 }
 
 // 6. the citizen's passport (his note 2026-11-07: "a passport, no 'שלומיוורסית', sounds and looks real"): a real data page
@@ -213,9 +216,9 @@ function idCard() {
       <div class="cz-pp-mrz" dir="ltr">${mrz().map(esc).join('<br>')}</div>
     </div>
     ${(sim && sim.name) || !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</a>`}
-    <button class="vx-btn main block" data-cz-share>${esc(Z().id.share)}</button>
-    <a class="vx-btn block" href="/">${esc(Z().id.home)}</a></section>`;
-  box().querySelector('[data-cz-share]').onclick = () => shareId();
+    <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a></section>`;
+  // no "share the passport" for now (his note 2026-11-07: it gives nothing yet) - shareId() + drawId() stay ready
+  box().querySelector('[data-cz-share]')?.addEventListener('click', () => shareId());
 }
 const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
 const ell = (x, t, max) => { let s = String(t); if (x.measureText(s).width <= max) return s; while (s.length > 2 && x.measureText(s + '…').width > max) s = s.slice(0, -1); return s + '…'; };

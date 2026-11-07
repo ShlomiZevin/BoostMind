@@ -13,6 +13,7 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
+const material = require('./character-material');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -23,7 +24,9 @@ const STEPS = 7;
 const MEDIA = 'shlomiverse-media';
 const IMG_CAP = 200;          // pictures a day for everyone together (Backstage shows the count)
 const STARTS_A_DAY = 10;      // tests a day per address (one per person on the page - his rule; this only stops a flood)
-// hosts for the home page (a different one each visit) - residents with a strong voice of their own
+// the classifier: Yotam, the System Architect of life, runs the Shlomiverse's classification (his note 2026-11-07: not a random
+// character). HOSTS stays only as a fallback cast for the picture.
+const HOST = 'yotam';
 const HOSTS = ['yotam', 'hani', 'demokratovich', 'rosenblum', 'miriam', 'gilad', 'nahor', 'dorit', 'ayelet', 'vova', 'genz', 'yudit'];
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
 
@@ -48,19 +51,11 @@ const hostText = (c) => [`Name: ${c.name} (id ${c.id})`, `Who: ${short(c.brief |
 // and world, not invented jargon. The same text for every call of that host - OpenAI serves it from its cache.
 const FIELDS = [['brief', 'Who'], ['personality', 'Personality'], ['speech', 'How they talk'], ['catchphrases', 'Catchphrases'], ['behavior', 'Behaviour'],
   ['comedy', 'What is funny about them'], ['themes', 'Their themes'], ['writing_rules', 'Writing notes'], ['dont', 'Never']];
-function hostMaterial(c, b) {
-  const lines = [`Name: ${c.name} (id ${c.id})${c.tagline ? ' - ' + c.tagline : ''}`];
-  for (const [k, l] of FIELDS) if (c[k] && String(c[k]).length) lines.push(`${l}: ${short(c[k], 1400)}`);
-  const vids = (b.videos || []).filter((v) => (v.cast || []).includes(c.id) && v.transcript).slice(0, 4);
-  if (vids.length) {
-    lines.push('', 'Real moments from their videos (their actual words - use their phrases and references, never retell these scenes):');
-    for (const v of vids) lines.push(`- "${v.title}": ${short(v.transcript.replace(/\s+/g, ' '), 700)}`);
-  }
-  return lines.join('\n');
-}
+// now the full material, as the chat gets it (his rule 2026-11-07: as funny as the chat, even if it costs more)
+const hostMaterial = (c, b) => material(b, c.id);
 const castList = (b) => b.characters.filter((c) => c.tagline).map((c) => `${c.id} | ${c.name} | ${c.world || ''} | ${c.tagline} | ${short(c.brief || c.bio, 110)}`).join('\n');
 
-const GAME = `You run "אתם חיים בסימולציה?" ("Do you live in a simulation?") inside שלומיוורס (the Shlomiverse) - a world of comedy characters shown as real people. The visitors keep writing "we live in a simulation"; this test answers them.
+const GAME = `You run "באיזו סימולציה אתם חיים?" ("Which simulation do you live in?") - the Shlomiverse's official classification. שלומיוורס (the Shlomiverse) is a world of comedy characters shown as real people; its registry classifies every visitor into the simulation they live in, and the classification is conducted by Yotam, the Shlomiverse's System Architect of life - he is the host who asks. The visitors keep writing "we live in a simulation"; this classification tells them which one.
 It is like the silly quizzes of the 90s Israeli teen magazines (מעריב לנוער): light, absurd, fast, one thumb. The questions are about THE VISITOR - their habits, reactions, daily-life absurdities, small confessions - never a trivia test about the characters.
 THE HOST ASKS. Every question, every answer and every reaction is written in the host's own voice - their way of talking, their worldview, their obsessions, their phrases from the material below - the way THEY would ask about someone's life (a businessman turns your morning into a business question, a rabbi into a ruling, a mother of eight into a question about the house). Someone who has never met the host still understands each question at once: one idea per question, short, at most one word of the host's jargon in it, never a pile of it.
 The TOPIC is always the visitor: each question visits a DIFFERENT corner of everyday life (mornings, the phone, the family WhatsApp group, food, work or school, sleep, friends, shopping, driving, holidays...) - never two in a row about the same thing. At most two callbacks in the whole test (a quick nod to something they answered, inside a NEW topic) - never a chain where each question follows the previous answer's object.
@@ -118,11 +113,11 @@ function qInput(steps) {
 
 const rPrompt = (b) => `${GAME}
 
-Now the test is over. Decide the result:
+Now the classification is over. Classify this visitor - the result is the Shlomiverse's official classification, signed by Yotam:
 - score: an integer 0-100, how much this visitor lives in a simulation - your judgement from the answers, not a formula.
 - cast: mix a simulation for THIS visitor from 2 or 3 residents below, from at least 2 different worlds, who fit their answers in a surprising, funny way. For each: id (exactly from the list), role - in Hebrew, up to 8 words, what they do in the visitor's simulation; scene - in English, what they physically do in ONE shared picture (action, prop, place in the frame).
 - setting: in English, the one place where the picture happens (it mixes their worlds), one sentence.
-- name: the simulation's name in Hebrew, up to 6 words (example of the tone: "מבחן פתע אצל השכן").
+- name: the name of the simulation they are classified into, in Hebrew, up to 6 words (example of the tone: "מבחן פתע אצל השכן").
 - verdict: two short Hebrew lines about the visitor, plural (אתם), funny, separated by a newline (example: "אתם מוקפים באנשים שמסבירים הכול.\\nחבל שאף אחד לא מסביר מה קורה פה.").
 - share: one line the visitor posts on their story, first person, gender-neutral (past tense), up to 8 words (example: "קיבלתי סימולציה עם מכתב תלונה.").
 - ask: the question to their friends, up to 4 words (example: "מי אצלכם?").
@@ -192,14 +187,14 @@ async function handle(req, res) {
   // the opening screen of a host (the page shows it before anything is spent)
   if (op === 'open') {
     const br = await brainNow(), C = byId(br);
-    const host = C[b.host] || C[HOSTS[Math.floor(Math.random() * HOSTS.length)]];
+    const host = C[HOST] || C[b.host];
     return { host: { id: host.id, name: host.name }, open: await opening(key, host) };
   }
 
   // a new test: the record + question 1
   if (op === 'start') {
     const br = await brainNow(), C = byId(br);
-    const host = C[b.host] || C[HOSTS[0]];
+    const host = C[HOST] || C[b.host] || C[HOSTS[0]];
     const ip = hash(ipOf(req)), rate = db().collection('simRate').doc(`${day()}_${ip}`);
     const n = await db().runTransaction(async (tx) => { const g = await tx.get(rate); const k = (g.exists ? g.data().n : 0) + 1; tx.set(rate, { n: k, exp: Timestamp.fromMillis(Date.now() + 2 * 864e5) }); return k; });
     if (n > STARTS_A_DAY) return { error: 'limit' };

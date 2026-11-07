@@ -358,9 +358,9 @@ export const T = {
   },
   // the simulation test (verse/sim.js; plan conversion-next v6 - the mockups' words + Terra's, 2026-11-06)
   sim: {
-    title: 'אתם חיים בסימולציה?', go: 'התחילו להיבדק', chatGo: 'למבחן המציאות', live: 'בבדיקה',
+    title: 'באיזו סימולציה אתם חיים?', go: 'לסיווג', chatGo: 'לסיווג', live: 'בסיווג',
     small: 'כשלוש דקות, תלוי כמה המציאות משתפת פעולה.', qOf: (n, of) => `שאלה ${n} מתוך ${of}`,
-    computing: 'מגלים מי מפעיל אתכם', computing2: 'המציאות מתייעצת עם החשודים',
+    computing: 'יותם מסווג אתכם', computing2: 'המציאות מתייעצת עם החשודים',
     yourScore: 'הציון שלכם', of100: 'מתוך 100', sealed: 'התוצאה המלאה כבר יודעת בדיוק איפה אתם חיים.', join: 'הופכים לתושבים ורואים הכול',   // not 'מסדירים תושבות' here: next to a quiz it reads as 'תשובות' (his note)
     skip: 'דלגו לתוצאה', toFull: 'לתוצאה המלאה', toResult: 'לתוצאה',
     redo: 'בדקו שוב', yours: 'הסימולציה שלכם', who: 'מי עושה מה אצלכם', share: 'שתפו את הסימולציה', meet: 'פגשו את השכנים',

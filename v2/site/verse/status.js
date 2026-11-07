@@ -24,7 +24,7 @@ const TIERS = [
 export const myStatus = () => (!signedIn() ? 'tourist' : st.fan && st.fan.citizen && st.fan.citizen.n ? 'citizen' : 'resident');
 
 // the chip in the top bar (pages.js renderTop)
-export const statusChip = () => `<button class="st-chip" data-status aria-label="${esc(T.status.title)}">${myStatus() === 'tourist' ? SI.passport : myStatus() === 'citizen' ? '<img class="st-pp" src="/verse/art/passport-icon.png" alt="">' : SI.house}<span>${esc(T.status.name[myStatus()])}</span></button>`;
+export const statusChip = () => `<button class="st-chip" data-status aria-label="${esc(T.status.title)}">${myStatus() === 'tourist' ? SI.passport : myStatus() === 'citizen' ? SI.id : SI.house}<span>${esc(T.status.name[myStatus()])}</span></button>`;
 
 export function openStatus(where = 'chip') {
   track('status_open', where);

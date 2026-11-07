@@ -11,6 +11,7 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
+const material = require('./character-material');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -51,11 +52,8 @@ async function brainNow() {
 const short = (s, n) => { s = Array.isArray(s) ? s.join(' · ') : String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
 const clip = (s, n) => String(s ?? '').slice(0, n);
 
-function miriamText(b) {
-  const c = b.characters.find((x) => x.id === 'miriam') || {};
-  const F = [['brief', 'Who'], ['personality', 'Personality'], ['catchphrases', 'Catchphrases'], ['dont', 'Never']];
-  return F.filter(([k]) => c[k]).map(([k, l]) => `${l}: ${short(c[k], 800)}`).join('\n');
-}
+// the full material, as the chat gets it (his rule 2026-11-07: as funny as the chat, even if it costs more)
+const miriamText = (b) => material(b, 'miriam');
 const CHECKIN = (b) => `You are Miriam (מרים), the clerk at the CHECK-IN COUNTER for flights into שלומיוורס (the Shlomiverse - a world of comedy characters shown as real people). A resident of the site is checking in for their citizenship; after you comes Rabbi Demokratovich's passport control.
 You ask them a few short questions, one at a time - who they already know here, what they bring with them, what they hope to find, how they heard of the place... - each following what they said.
 
@@ -66,15 +64,11 @@ The heart of her (Shlomi's notes):
 
 WRITE SHORT. Short and true beats long and trying - never try to be funny, no wordplay, no puns, no explaining. Her few words and her breathing are the joke.
 Each turn: "say" = up to 10 words - her reaction to their last answer. Vary it: a "אהההה..." in some turns (never in two turns in a row), Zohara in another, a plain word in another; "q" = the question, plain, up to 8 words - the visitor must understand it even though she doesn't; "opts" = 3 plain answers a real visitor would really give (up to 4 words each, true answers, not jokes, grammar that agrees with itself); "done" = true only after at least 4 answered questions (then "q" and "opts" are empty and "say" closes the check-in in up to 12 words and sends them on to the rabbi).
-Never write the bare name "שלומי" - the place is "השלומיוורס". Speak to the visitor in plural (אתם), Hebrew, no emoji. Nothing about politics, religion, health, money amounts or anything that could hurt. Never mention AI or forms or that this is a test.
+Never write the bare name "שלומי" - the place is "השלומיוורס". Speak to the visitor in plural (אתם), Hebrew, no emoji. Nothing about politics, religion, health, money amounts or anything that could hurt. Never mention AI or forms or that this is a test. Be as funny and specific as you are in the Shlomiverse chat: use everything you know as this person - your world, your people, your phrases from your videos, real knowledge - but keep to the length above.
 
-Background on her:
+Who she is (her full profile and her own videos):
 ${miriamText(b)}`;
-function demoText(b) {
-  const c = b.characters.find((x) => x.id === 'demokratovich') || {};
-  const F = [['brief', 'Who'], ['personality', 'Personality'], ['speech', 'How he talks'], ['catchphrases', 'Catchphrases'], ['behavior', 'Behaviour'], ['comedy', 'What is funny about him'], ['writing_rules', 'Writing notes'], ['dont', 'Never']];
-  return F.filter(([k]) => c[k]).map(([k, l]) => `${l}: ${short(c[k], 1200)}`).join('\n');
-}
+const demoText = (b) => material(b, 'demokratovich');
 const BOOTH = (b) => `You are Rabbi Demokratovich (הרב דמוקרטוביץ'), sitting in the PASSPORT-CONTROL BOOTH at the entrance to שלומיוורס (the Shlomiverse - a world of comedy characters shown as real people). A resident of the site, just checked in with Miriam, comes to you to become a citizen. You stamp them in at the end.
 Shlomi wrote your lines for this scene. They are said word for word, in this order - you never change, skip or repeat them:
 ${SCRIPT.map((l, i) => `${i + 1}. ${l}`).join('\n')}
@@ -84,9 +78,9 @@ After each line the visitor answers - with a simple button ("מקבל/ת", "חו
 - Short and true beats trying: never try hard to be funny, no wordplay, no chains of Aramaic, no puns, nothing about traffic or anything from the check-in unless they said it now.
 - It leads into the next line without saying what that line says.
 - If they mock you, refuse or say something rude or off-topic, stay in character - a dry ruling about it - never break, never preach.
-Hebrew. You speak to the visitor in the singular as in your lines. No emoji. Nothing about real politicians, judges or parties; never mock religion or the religious. Never mention AI, buttons or that this is a site.
+Hebrew. You speak to the visitor in the singular as in your lines. No emoji. Nothing about real politicians, judges or parties; never mock religion or the religious. Never mention AI, buttons or that this is a site. Be as funny and specific as you are in the Shlomiverse chat: use everything you know as this person - your world, your people, your phrases from your videos, real knowledge - but keep to the length above.
 
-Who you are:
+Who you are (your full profile and your own videos):
 ${demoText(b)}`;
 const BT = { type: 'object', additionalProperties: false, required: ['react'], properties: { react: { type: 'string' } } };
 // what happened so far, the answer just given (k = which line it answers) and which line comes next

@@ -36,6 +36,7 @@ async function api(op, data = {}, auth = false) {
 // = 5/6 and 1/6). Everyone else keeps a small chance (10% of the draw, shared), so new faces still turn up.
 let host = null;
 function visitHost() {
+  if (C.yotam) return 'yotam';   // the classifier, always (his note 2026-11-07: not a random character)
   if (host && C[host]) return host;
   try {
     const all = Object.values(C).filter((c) => c.img && c.id !== 'guide');
@@ -98,7 +99,7 @@ export function mountBand() {
 // ---------- the chat card (Q7): [[quiz]] in a reply - the character suggests the test when it fits the talk ----------
 export function quizCard(mode) {
   if (!simOpen()) return '';
-  const h = C[mode] ? mode : visitHost();
+  const h = visitHost();
   return `<div class="sim-chat"><b>${esc(S().title)}</b><a class="vx-btn main small" href="/simulation?host=${h}&from=chat" onclick="window.track&&window.track('sim_card','${h}')">${esc(S().chatGo)}</a></div>`;
 }
 
@@ -120,7 +121,7 @@ async function boot(q) {
   if (q.r && (!m || m.rid !== q.r)) return friendView(q.r, q);
   // their own test that is already done: straight to it - one test per person (his rule)
   if (q.r || m) return resultView(q.r || m.rid);
-  run = { host: C[q.host] ? q.host : visitHost(), from: q.from || (document.referrer.includes('instagram') ? 'instagram' : 'direct'), ref: q.ref || null };
+  run = { host: visitHost(), from: q.from || (document.referrer.includes('instagram') ? 'instagram' : 'direct'), ref: q.ref || null };
   track('sim_open', run.from);
   openingView();
 }
