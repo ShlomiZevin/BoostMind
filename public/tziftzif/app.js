@@ -52,7 +52,7 @@ const count = (n) => (n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '')
 
 // who wrote a post: a resident, ח24, ציפציפ's official account (his), or a citizen
 function who(p) {
-  if (p.by === 'charadot') return { name: 'החרדות', handle: 'charadot', img: '/charadot/img/avatar.png', href: '/charadot', badge: CHECK('#e3101b'), stamp: 'הישארו איתנו', news: true };
+  if (p.by === 'charadot') return { name: 'החרדות 24', handle: 'charadot', img: '/charadot/img/avatar.png', href: '/charadot', badge: CHECK('#e3101b'), stamp: 'הישארו איתנו', news: true };
   if (p.by) {
     const c = C[p.by] || { name: p.by };
     return { name: nm(p.by), handle: hdl(p.by), img: c.img, href: `/tziftzif/u/${p.by}`, badge: CHECK('#7d8590'), stamp: stampOf(c) };
@@ -103,9 +103,9 @@ const take = (r) => { [r.post, ...(r.posts || []), ...(r.thread || []), ...(r.re
 function inner(p, small) {
   const a = p.article && D.articles[p.article];
   const q = p.quote && D.quoted[p.quote];
-  if (small) return a ? `<span class="art mini">${a.img ? `<span class="im" style="background-image:url('${esc(a.img)}')"></span>` : ''}<span class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span>${a.headline.trim() === String(p.text).trim() ? '' : `<b>${esc(a.headline)}</b>`}</span></span>` : '';
+  if (small) return a ? `<span class="art mini">${a.img ? `<span class="im" style="background-image:url('${esc(a.img)}')"></span>` : ''}<span class="in"><span class="tg">החרדות 24 · ${esc(a.tag || 'חדשות')}</span>${a.headline.trim() === String(p.text).trim() ? '' : `<b>${esc(a.headline)}</b>`}</span></span>` : '';
   if (q) { const w = who(q); return `<a class="qt" href="/tziftzif/p/${q.id}"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}</div><div class="tx">${linkify(q.text)}</div>${inner(q, true)}</a>`; }
-  if (a) return `<a class="art" href="/tziftzif/a/${a.id}">${a.img ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b><small>${esc(a.sub)}</small></div></a>`;
+  if (a) return `<a class="art" href="/tziftzif/a/${a.id}">${a.img ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">החרדות 24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b><small>${esc(a.sub)}</small></div></a>`;
   if (p.link) return `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener">${p.link.img ? `<img src="${esc(p.link.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="lt"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></span></a>`;
   return '';
 }
@@ -143,7 +143,7 @@ const fab = () => `<button class="fab" data-compose aria-label="ציוץ חדש"
 // every tab stays inside ציפציפ (his note: "don't show links that take me out - people won't come back")
 const tabbar = (on) => `<nav class="tabbar"><a href="/tziftzif" class="${on === 'home' ? 'on' : ''}">${I.home}<span>בית</span></a>`
   + `<a href="/tziftzif/people" class="${on === 'people' ? 'on' : ''}">${I.people}<span>מי מצייץ</span></a>`
-  + `<a href="/tziftzif/u/charadot" class="${on === 'news' ? 'on' : ''}"><img src="/charadot/img/avatar.png" alt=""><span>החרדות</span></a></nav>`;
+  + `<a href="/tziftzif/u/charadot" class="${on === 'news' ? 'on' : ''}"><img src="/charadot/img/avatar.png" alt=""><span>החרדות 24</span></a></nav>`;
 
 let FEED = null;
 async function home() {
@@ -202,7 +202,7 @@ async function thread(id) {
 
 async function resident(id) {
   const news = id === 'charadot';
-  const c = news ? { name: 'החרדות', img: '/charadot/img/avatar.png', tagline: 'ערוץ החדשות של השלומיוורס. כל הדרמה, כל הזמן. הישארו איתנו.', color: '#c8101a' } : C[id] || { name: id };
+  const c = news ? { name: 'החרדות 24', img: '/charadot/img/avatar.png', tagline: 'ערוץ החדשות של השלומיוורס. כל הדרמה, כל הזמן. הישארו איתנו.', color: '#c8101a' } : C[id] || { name: id };
   app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">${esc(news ? c.name : nm(id))}</span><span style="margin-inline-start:auto">${brand()}</span></div></div>
     <div class="prof"><div class="cov" style="${c && c.color ? `background:linear-gradient(135deg, ${esc(c.color)}55, #0b0b0e 75%)` : ''}"></div>
     <div class="row"><div class="pic">${c.img ? `<img src="${esc(c.img)}" alt="">` : ''}</div></div>
@@ -218,17 +218,17 @@ async function resident(id) {
 
 // a ח24 article, read inside ציפציפ: the headline, the picture, the body, the residents' reactions - nothing leaves the app
 async function article(id) {
-  app.innerHTML = `<div class="top"><div class="bar one"><button class="ic" data-back>${I.back}</button><span class="ttl">החרדות</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list" class="withbar">${loader()}</div>${tabbar('news')}`;
+  app.innerHTML = `<div class="top"><div class="bar one"><button class="ic" data-back>${I.back}</button><span class="ttl">החרדות 24</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list" class="withbar">${loader()}</div>${tabbar('news')}`;
   const r = await api('article', { id });
   if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = '<div class="empty">הכתבה הזאת ירדה מהאוויר.</div>');
   const a = r.article;
-  document.title = `${a.headline} · ח24 בציפציפ`;
+  document.title = `${a.headline} · החרדות 24 בציפציפ`;
   const rx = r.reactions.map((p) => card(p)).join('');
-  document.getElementById('list').innerHTML = `<article class="read"><a class="by" href="/tziftzif/u/charadot"><img src="/charadot/img/avatar.png" alt=""><span><b>החרדות ${CHECK('#e3101b')}</b><small>@charadot · ${ago(a.t)}</small></span></a>
+  document.getElementById('list').innerHTML = `<article class="read"><a class="by" href="/tziftzif/u/charadot"><img src="/charadot/img/avatar.png" alt=""><span><b>החרדות 24 ${CHECK('#e3101b')}</b><small>@charadot · ${ago(a.t)}</small></span></a>
     <span class="tg">${esc(a.tag || 'חדשות')}</span><h1>${esc(a.headline)}</h1><p class="sub">${esc(a.sub)}</p>
-    ${a.img ? `<img class="pic" src="${esc(a.img)}" alt="">` : ''}<div class="body">${(a.body || []).map((x) => `<p>${esc(x)}</p>`).join('')}</div>
+    ${a.img ? `<div class="picw"><img class="pic" src="${esc(a.img)}" alt=""></div>` : ''}<div class="body">${(a.body || []).map((x) => `<p>${esc(x)}</p>`).join('')}</div>
     ${a.src ? `<p class="src">לפי ${esc(a.src.src)}: ${esc(a.src.title)}</p>` : ''}</article>
-    ${rx ? `<div class="rxh">מה אומרים בציפציפ</div>${rx}` : ''}`;
+    ${rx ? `<div class="rxh">מה מצייצים בציפציפ</div>${rx}` : ''}`;
   track('ch_article', id);
 }
 // מי מצייץ (was התושבים - his pick 2026-11-08): everyone who posts on ציפציפ, with their verse names - each opens their posts here
@@ -236,7 +236,7 @@ function people() {
   document.title = 'מי מצייץ · ציפציפ';
   const list = Object.values(C).filter((c) => c.img).sort((a, b) => (b.videos || []).length - (a.videos || []).length);
   app.innerHTML = `<div class="top"><div class="bar one">${brand()}<span class="ttl" style="margin-inline:auto">מי מצייץ</span><span class="ic"></span></div></div>
-    <a class="ppl news" href="/tziftzif/u/charadot"><span class="av"><img src="/charadot/img/avatar.png" alt=""></span><span class="pb"><b>החרדות ${CHECK('#e3101b')}</b><small>@charadot · ערוץ החדשות של השלומיוורס</small></span></a>
+    <a class="ppl news" href="/tziftzif/u/charadot"><span class="av"><img src="/charadot/img/avatar.png" alt=""></span><span class="pb"><b>החרדות 24 ${CHECK('#e3101b')}</b><small>@charadot · ערוץ החדשות של השלומיוורס</small></span></a>
     <div id="list" class="withbar">${list.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}${c.role ? ' · ' + esc(String(c.role).slice(0, 60)) : ''}</small></span></a>`).join('')}</div>${tabbar('people')}`;
   track('tz_resident', 'people');
 }
@@ -376,7 +376,7 @@ async function side() {
   const ppl = Object.values(C).filter((c) => c.img).sort((a, b) => (b.videos || []).length - (a.videos || []).length).slice(0, 5);
   const r = await api('front');
   const news = (r.articles || []).slice(0, 5);
-  el.innerHTML = `${news.length ? `<div class="box"><h3><img src="/charadot/img/avatar.png" alt="">מה קורה בחרדות</h3>${news.map((a) => `<a class="hl" href="/tziftzif/a/${a.id}"><small><b>${esc(a.tag || 'חדשות')}</b> · ${ago(a.t)}</small><span>${esc(a.headline)}</span></a>`).join('')}<a class="sm" href="/tziftzif/u/charadot">עוד מח24</a></div>` : ''}
+  el.innerHTML = `${news.length ? `<div class="box"><h3><img src="/charadot/img/avatar.png" alt="">מה קורה בחרדות 24</h3>${news.map((a) => `<a class="hl" href="/tziftzif/a/${a.id}"><small><b>${esc(a.tag || 'חדשות')}</b> · ${ago(a.t)}</small><span>${esc(a.headline)}</span></a>`).join('')}<a class="sm" href="/tziftzif/u/charadot">עוד מהחרדות 24</a></div>` : ''}
     <div class="box"><h3>תושבים שכדאי להכיר</h3>${ppl.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}</small></span></a>`).join('')}<a class="sm" href="/tziftzif/people">כל מי שמצייץ</a></div>
     <p class="fine">ציפציפ · הרשת של תושבי השלומיוורס</p>`;
 }

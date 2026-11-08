@@ -255,6 +255,7 @@ GO ALL THE WAY - never polite, never "a question mark at most": name the catastr
 CLICKBAIT + RAGE BAIT: find the small petty detail and blow it up into the whole story - a celebrity wedding = "לא תאמינו מי איחר למנה הראשונה"; a new album = "המעריצים בהלם: השיר השלישי"; a promotion = "הבכירים זועמים - ומי נשאר מאחור?"; a sunny week = "החום שאיש לא ערוך אליו". Tease without telling ("ומה שקרה אחר כך..."), pick a side to make people angry, find someone to be outraged at.
 THE JOKE IS THE GAP between the story and the panic. On good, happy or ordinary news the doom is the joke by itself. On a story that is ALREADY bad, never just repeat or deepen the real damage - that is plain news, not parody: the panic jumps to the absurd, petty side of it (a coach was fired -> "הסיוט האמיתי: מי יקבל את החניה שלו?"; an event was cancelled -> "הלם: מה יעשו עכשיו עם 400 הכריכים?"), or escalates to a ridiculous scale nobody could believe. Every body escalates paragraph by paragraph: a fact -> what it REALLY means -> the disaster coming (חרדה, a ticking clock, who will pay), and names a המחדל - who failed to see it coming.
 Each article: headline - sensational clickbait fear, at most 90 characters; sub - one sub-headline line; body - 3 short paragraphs that inflate the story into a looming catastrophe, reveal nothing new and end on a cliffhanger; tag - one Hebrew section word (פוליטיקה, כלכלה, צרכנות, טכנולוגיה, חינוך, תחבורה, תרבות, ספורט, בריאות, עולם, מזג אוויר); post - the channel's own post about it on ציפציפ: one dramatic line, like a breaking-news tweet.
+THE NAME: the channel is always "החרדות 24" (with the ה) - in its own words and posts never "ח24" or "חרדות" alone.
 The FACTS stay the headline's - only the doom is ח24's (fears, warnings, "מומחים חוששים", what MIGHT happen). Never invent a quote, an action or a private detail of a real person; no insults about religion, origin, gender or body. Hebrew, no emoji, no hashtags.`;
 const ARTICLE_RULES = CH_TONE + `\nYou get the real headlines - write one article for each, in their order.`;
 const ARTICLE_SCHEMA = S({ articles: arr(S({ headline: str, sub: str, body: arr(str, 2, 4), tag: str, post: str })) });
@@ -311,7 +312,7 @@ async function desk(slot = 'manual', n) {
 const POST_RULES = `You write posts for "ציפציפ", the Shlomiverse's own social network - exactly like X / Twitter, and like Twitter mostly about the news. The Shlomiverse is a comedy universe whose residents are REAL people living in a parallel universe: write them as real people posting from their phone, never as characters; never mention a parody, AI, a script or Shlomi.
 POSTS: Hebrew, short like real tweets (one to three short lines, at most 240 characters), in the resident's OWN voice - their speech, catchphrases (sparingly, not in every post), world and relations from their profile below. Each takes the news through their own life and worldview: a hot take, a complaint, sarcasm, a "back in my day", a professional opinion, an argument. Funny through their point of view, never by explaining the joke. ALWAYS HEBREW - even a resident who lectures in English or mixes English writes in Hebrew here, at most a single English word. No hashtags, no emoji. Each post a different rhythm - never two opening the same way.
 REAL PEOPLE IN THE NEWS: facts only from the headline; never invent a quote, an action or a private detail about a real person; the opinions and jokes are the resident's own. A resident who is an impression of a real public figure speaks only in opinions and jokes in that figure's style - never announces a concrete fact or decision as if it happened. No insults about religion, origin, gender or body. Children never talk about politics.
-NAMES: residents are called only by the names given in their profiles here (some go by a verse name - never use the original one).
+NAMES: residents are called only by the names given in their profiles here (some go by a verse name - never use the original one). The news channel is "החרדות 24" (never "ח24" or "חרדות" alone).
 STRUCTURE per item, in order: by = the resident's ID exactly as after "###" in their profile (latin letters, e.g. taxi-driver) - never their name. reply_to = -1 for a post of its own, or the index (in this item's posts list) of an earlier post it answers - residents with a relation reply to each other. When the item has ח24's post: quote = "article" = a repost with the resident's own comment on top (quote tweet), quote = "reply" = a comment under ח24's post (with reply_to = -1); mix both - this is what makes ציפציפ alive: residents reposting the channel's hysteria with a comment and arguing in its comments. Otherwise quote = "none". link = true when the post shares the real news link (at most once per item, never on a reply).`;
 const POST_SCHEMA = S({ items: arr(S({ posts: arr(S({ by: str, text: str, reply_to: int, quote: { type: 'string', enum: ['article', 'reply', 'none'] }, link: bool }), 1, 5) })) });
 
@@ -759,7 +760,7 @@ function injectHead(html, p, url) {
 async function previewOf(site, kind, id) {
   const cfg = await config();
   if (!cfg.open) return null;
-  const W = await wikiNow(), name = (by) => (by === NEWS ? 'החרדות' : (AL[by] && AL[by].name) || (W[by] && W[by].name) || by);
+  const W = await wikiNow(), name = (by) => (by === NEWS ? 'החרדות 24' : (AL[by] && AL[by].name) || (W[by] && W[by].name) || by);
   const face = (by) => (by === NEWS ? `${SITE}/charadot/img/icon-512.png` : (W[by] && W[by].img) || null);
   if (kind === 'p') {
     const d = await db().collection('tzPosts').doc(clip(id, 20)).get(), p = d.exists && d.data();
@@ -773,7 +774,7 @@ async function previewOf(site, kind, id) {
   if (kind === 'a') {
     const d = await db().collection('tzArticles').doc(clip(id, 20)).get(), a = d.exists && d.data();
     if (!a || a.status !== 'live') return null;
-    return { title: `${a.headline} · ח24`, desc: a.sub, img: a.img || `${SITE}/charadot/img/og.jpg` };
+    return { title: `${a.headline} · החרדות 24`, desc: a.sub, img: a.img || `${SITE}/charadot/img/og.jpg` };
   }
   return null;
 }

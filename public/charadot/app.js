@@ -23,13 +23,13 @@ function ticker(list) {
   requestAnimationFrame(() => el.style.setProperty('--dur', Math.max(8, Math.round(el.scrollWidth / 90)) + 's'));
 }
 function soon() {
-  app.innerHTML = `<div class="soon"><img src="/charadot/img/avatar.png" alt=""><p>ח24 עולה לשידור בקרוב. הישארו איתנו.</p></div>`;
-  document.getElementById('tick').innerHTML = '<span>ח24 עולה לשידור בקרוב · הישארו איתנו · ח24 עולה לשידור בקרוב · הישארו איתנו</span>';
+  app.innerHTML = `<div class="soon"><img src="/charadot/img/avatar.png" alt=""><p>החרדות 24 עולה לשידור בקרוב. הישארו איתנו.</p></div>`;
+  document.getElementById('tick').innerHTML = '<span>החרדות 24 עולה לשידור בקרוב · הישארו איתנו · החרדות 24 עולה לשידור בקרוב · הישארו איתנו</span>';
 }
 
 async function front() {
   if (!app.querySelector('.load')) loading();
-  document.title = 'ח24 - החרדות';
+  document.title = 'החרדות 24';
   const r = await api('front');
   if (r.error) return r.error === 'soon' ? soon() : (app.innerHTML = '<div class="empty">השידור נקטע. נסו לרענן.</div>');
   const [lead, ...rest] = r.articles;
@@ -49,13 +49,13 @@ async function article(id) {
   const r = await api('article', { id });
   if (r.error) return r.error === 'soon' ? soon() : (app.innerHTML = '<div class="empty">הכתבה הזאת ירדה מהאוויר.</div>');
   const a = r.article;
-  document.title = `${a.headline} · ח24`;
+  document.title = `${a.headline} · החרדות 24`;
   ticker([a, ...r.more]);
   const face = (p) => (p.by === 'charadot' ? '/charadot/img/avatar.png' : (C[p.by] && C[p.by].img) || '/tziftzif/img/avatar.png');
-  const name = (p) => (p.by === 'charadot' ? 'החרדות' : (NAMES[p.by] && NAMES[p.by].name) || (C[p.by] && C[p.by].name) || p.by);
+  const name = (p) => (p.by === 'charadot' ? 'החרדות 24' : (NAMES[p.by] && NAMES[p.by].name) || (C[p.by] && C[p.by].name) || p.by);
   app.innerHTML = `<article class="art">
       <div class="head"><span class="tag">${esc(a.tag || 'חדשות')}</span><h1>${esc(a.headline)}</h1><p class="sub">${esc(a.sub)}</p>
-        <div class="by"><img src="/charadot/img/avatar.png" alt=""><span>מערכת ח24 · ${when(a.t)}</span></div></div>
+        <div class="by"><img src="/charadot/img/avatar.png" alt=""><span>מערכת החרדות 24 · ${when(a.t)}</span></div></div>
       ${a.img ? `<div class="pic" style="background-image:url('${esc(a.img)}')"></div>` : ''}
       <div class="body">${(a.body || []).map((p) => `<p>${esc(p)}</p>`).join('')}</div>
       ${a.src ? `<div class="src">הידיעה המקורית: <a href="${esc(a.src.url)}" target="_blank" rel="noopener">${esc(a.src.src)} - ${esc(a.src.title)}</a></div>` : ''}

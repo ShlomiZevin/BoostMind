@@ -12,7 +12,7 @@ const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseTz?op=
 const FRESH = 120e3;   // the home redraws often (state changes); one read every 2 minutes is plenty
 let data = null, at = 0, busy = null, who;   // who = the account the last read was for (his account sees it before the release)
 
-const nm = (id, names) => (id === 'charadot' ? 'החרדות' : (names && names[id] && names[id].name) || (C[id] && C[id].name) || '');
+const nm = (id, names) => (id === 'charadot' ? 'החרדות 24' : (names && names[id] && names[id].name) || (C[id] && C[id].name) || '');
 const face = (id) => (id === 'charadot' ? '/charadot/img/avatar.png' : abs(C[id] && C[id].img));
 const ARROW = '←';
 
@@ -34,13 +34,13 @@ export function tzHome() {
   if (!d || (!d.lead && !(d.posts || []).length)) return '';
   const quiet = !!(d.quiet || d.silent), L = d.lead, posts = (d.posts || []).slice(0, 3);
   return `<section class="tzh"><div class="tzh-card">
-      <div class="tzh-h">${quiet ? '' : '<i class="tzh-live"></i>'}<h2>עכשיו בחרדות</h2>${quiet ? '<small>מהימים האחרונים</small>' : ''}</div>
+      <div class="tzh-h">${quiet ? '' : '<i class="tzh-live"></i>'}<h2>עכשיו בחרדות 24</h2>${quiet ? '<small>מהימים האחרונים</small>' : ''}</div>
       ${L ? `<a class="tzh-lead" href="/charadot/a/${esc(L.id)}" data-tzh="lead">${L.img ? `<img class="tzh-img" src="${esc(L.img)}" alt="" loading="lazy">` : ''}
-        <img class="tzh-logo" src="/charadot/img/logo-wide.png" alt="ח24 החרדות">
+        <img class="tzh-logo" src="/charadot/img/logo-wide.png?v=2" alt="החרדות 24">
         <span class="tzh-lt"><em>${esc(L.tag || 'מבזק')}</em><b>${esc(L.headline)}</b><small>אסונית לוי מדווחת${quiet ? '' : ` · <span>${esc(ago(L.t))}</span>`}</small></span></a>` : ''}
-      ${posts.length ? `<div class="tzh-sub"><img src="/tziftzif/img/mark-dark.png" alt=""><b>מה אומרים בציפציפ</b></div>
+      ${posts.length ? `<div class="tzh-sub"><img src="/tziftzif/img/mark-dark.png" alt=""><b>מה מצייצים ב<span class="tzw">ציפ<i>ציפ</i></span></b></div>
         <div class="tzh-posts">${posts.map((p) => post(p, d.names, quiet)).join('')}</div>` : ''}
-      <div class="tzh-links"><a href="/tziftzif" data-tzh="tziftzif">לכל הציפציפ ${ARROW}</a><a href="/charadot" data-tzh="charadot">להחרדות ${ARROW}</a></div>
+      <div class="tzh-links"><a href="/tziftzif" data-tzh="tziftzif">לכל הציפציפ ${ARROW}</a><a href="/charadot" data-tzh="charadot">להחרדות 24 ${ARROW}</a></div>
     </div></section>`;
 }
 
@@ -55,7 +55,7 @@ export function tzSide() {
       <a class="vx-btn main block" href="/citizenship" data-tzh="side-passport">להוציא דרכון</a></aside>`;
   return `<aside class="tzh-side"><div class="tzh-sh"><h2>זכות הדיבור שלך</h2><span class="tzh-chip">אזרח/ית</span></div>
       <div class="tzh-me">${av({ fan: f, cls: 'tzh-meav' })}<b>${esc(f.nick || '')}</b><span>אזרח/ית מס' ${esc(Number(n).toLocaleString('he-IL'))}</span></div>
-      <a class="tzh-ask" href="/charadot/a/${esc(L.id)}" data-tzh="side-lead"><img src="/charadot/img/logo-wide.png" alt="ח24"><b>${esc(L.headline)}</b><small>מה דעתך?</small></a>
+      <a class="tzh-ask" href="/charadot/a/${esc(L.id)}" data-tzh="side-lead"><img src="/charadot/img/logo-wide.png?v=2" alt="החרדות 24"><b>${esc(L.headline)}</b><small>מה דעתך?</small></a>
       <a class="vx-btn main block" href="/tziftzif${L.post ? `?quote=${esc(L.post)}` : ''}" data-tzh="side-tweet">${PEN}לצייץ על זה</a>
       <p class="tzh-mine">הציוצים שלך: ${m.posts} · חותמות שקיבלת: ${m.stamps}</p></aside>`;
 }

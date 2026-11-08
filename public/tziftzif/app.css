@@ -66,7 +66,10 @@ img { display: block; max-width: 100%; }
 .lk .lt { display: block; padding: 10px 14px; } .lk small { color: var(--dim); display: flex; gap: 6px; align-items: center; font-size: .84rem; }
 .lk small svg { width: 14px; height: 14px; flex: none; }
 .lk b { display: block; font-weight: 700; font-size: .98rem; margin-top: 2px; }
-.art .im { aspect-ratio: 16 / 9; background: #200 center / cover no-repeat; }
+.art .im { aspect-ratio: 16 / 9; background: #200 center / cover no-repeat; position: relative; }
+/* every החרדות 24 picture carries its logo (his rule: always the logo with the ה) */
+.art .im::after, .picw::after { content: ''; position: absolute; top: 10px; left: 10px; width: 96px; aspect-ratio: 999 / 157; background: url(/charadot/img/logo-wide.png?v=2) center / contain no-repeat; border-radius: 3px; }
+.art.mini .im::after { width: 46px; top: 5px; left: 5px; } .picw { position: relative; }
 .art .in { padding: 10px 14px 12px; } .art .tg { color: var(--news); font-weight: 800; font-size: .8rem; }
 .art b { display: block; font-weight: 800; font-size: 1.04rem; line-height: 1.35; margin-top: 2px; } .art small { color: var(--dim); font-size: .84rem; }
 

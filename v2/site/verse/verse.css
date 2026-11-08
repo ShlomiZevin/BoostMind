@@ -2405,6 +2405,8 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .tzh-sub { display: flex; align-items: center; gap: 8px; margin: 16px 0 4px; }
 .tzh-sub img { width: 30px; height: auto; }
 .tzh-sub b { font-size: .98rem; font-weight: 800; }
+/* ציפציפ's own word in its colours: ציפ white, ציפ orange (his note) */
+.tzw { font-family: Rubik, Heebo, sans-serif; font-weight: 900; } .tzw i { font-style: normal; color: #ff7a1f; }
 .tzh-posts { flex: 1; }
 .tzh-post { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
 .tzh-post:first-child { border-top: 0; }
