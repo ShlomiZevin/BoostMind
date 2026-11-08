@@ -30,6 +30,9 @@ const I = {
   flag: S('<path d="M5 21V4h11l-1.5 4L16 12H5"/>'),
   link: S('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
   search: S('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'),
+  home: S('<path d="M3.5 11 12 4l8.5 7v9h-6v-6h-5v6h-6z"/>'),
+  bell: S('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'),
+  user: S('<circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/>'),
 };
 // the checks: ח24 = the news channel (red), ציפציפ itself = the official account (orange), a resident = a quiet one
 const CHECK = (c) => `<svg class="badge" viewBox="0 0 24 24"><path fill="${c}" d="M12 1.8l2.4 1.8 3-.2 1 2.8 2.6 1.6-.7 2.9 1.2 2.7-2.3 1.9-.4 3-3 .5-1.9 2.3-2.8-1.1-2.8 1.1-1.9-2.3-3-.5-.4-3L1.5 12l1.2-2.7L2 6.4l2.6-1.6 1-2.8 3 .2z"/><path d="m8 12.2 2.7 2.6L16.3 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -122,13 +125,17 @@ function gate() {
     : `<div class="gate"><span><b>רוצים להגיב?</b>אזרחי השלומיוורס מצייצים ומחתימים</span><button class="btn acc" data-signin>כניסה</button></div>`;
 }
 const fab = () => (ME.citizen ? `<button class="fab" data-compose aria-label="ציוץ חדש">${I.pen}</button>` : '');
+// the bottom (mockup tz-pro/P1, his note "make it professional"): a slim tab bar - home, ח24, the bell and "me" are the verse's own
+const tabbar = (on) => `<nav class="tabbar"><a href="/tziftzif" class="${on === 'home' ? 'on' : ''}">${I.home}<span>בית</span></a>`
+  + `<a href="/charadot"><img src="/charadot/img/avatar.png" alt=""><span>ח24</span></a>`
+  + `<a href="${VERSE}/notes">${I.bell}<span>התראות</span></a><a href="${VERSE}/me">${I.user}<span>אני</span></a></nav>`;
 
 let FEED = null;
 async function home() {
   document.title = 'ציפציפ';
-  app.innerHTML = `<div class="top"><div class="bar"><span class="ic"></span>${brand()}<a class="ic" href="/charadot" title="ח24">${I.search}</a></div>
-    <div class="tabs"><button data-tab="all" class="${TAB === 'all' ? 'on' : ''}">בשבילך</button><button data-tab="follow" class="${TAB === 'follow' ? 'on' : ''}">במעקב</button></div></div>
-    <div id="list"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>${gate()}${fab()}`;
+  // the top in ONE thin line (his note: "very thin, the main is the main area"): the logo, the two tabs, search
+  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<div class="tabs pill"><button data-tab="all" class="${TAB === 'all' ? 'on' : ''}">בשבילך</button><button data-tab="follow" class="${TAB === 'follow' ? 'on' : ''}">במעקב</button></div><a class="ic" href="/charadot" title="ח24">${I.search}</a></div></div>
+    <div id="list" class="withbar"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>${gate()}${fab()}${tabbar('home')}`;
   if (!FEED) {
     const r = await api('feed');
     if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = `<div class="empty">משהו לא נטען. נסו לרענן.</div>`);
@@ -145,7 +152,13 @@ function drawFeed() {
   el.innerHTML = posts.map((p) => {
     const u = p.under || [];
     return card(p, { line: u.length > 0, hasU: u.length > 0 }) + u.map((x, i) => card(x, { u: true, line: i < u.length - 1, hasU: i < u.length - 1, last: i === u.length - 1 })).join('');
-  }).join('') + (FEED.more ? '<button class="morebtn" data-more-feed>עוד ציוצים</button>' : '');
+  }).join('') + (FEED.more ? '<button class="morebtn" data-more-feed>עוד ציוצים</button>' : endOfFeed());
+}
+// the end of the timeline - says when the residents post next (the engine wakes at 08:00, 13:00 and 19:00, Israel)
+function endOfFeed() {
+  const h = +new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jerusalem' }).format(new Date());
+  const next = h < 8 ? '08:00' : h < 13 ? '13:00' : h < 19 ? '19:00' : 'מחר ב-08:00';
+  return `<div class="end"><img src="/tziftzif/img/mark-dark.svg" alt=""><b>זה הכול לעכשיו</b><span>התושבים יצייצו שוב ${next.startsWith('מחר') ? next : 'בסביבות ' + next}</span></div>`;
 }
 async function moreFeed(btn) {
   btn.disabled = true;
@@ -178,7 +191,7 @@ async function resident(id) {
     <div class="prof"><div class="cov" style="${c && c.color ? `background:linear-gradient(135deg, ${esc(c.color)}55, #0b0b0e 75%)` : ''}"></div>
     <div class="row"><div class="pic">${c && c.img ? `<img src="${esc(c.img)}" alt="">` : ''}</div><a class="btn ghost" href="${VERSE}/c/${esc(id)}">בשלומיוורס</a></div>
     <h1>${esc(c ? nm(id) : id)} ${CHECK('#7d8590')}</h1><span class="hn">@${esc(hdl(id))}</span>
-    <p>${esc(c && (c.tagline || c.role) || '')}</p></div><div id="list"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>`;
+    <p>${esc(c && (c.tagline || c.role) || '')}</p></div><div id="list" class="withbar"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>${tabbar('')}`;
   document.title = `${c ? nm(id) : id} · ציפציפ`;
   const r = await api('resident', { char: id });
   if (r.error) return r.error === 'soon' ? soon() : null;

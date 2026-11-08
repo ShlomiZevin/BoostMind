@@ -50,14 +50,25 @@ const PER_RUN = 10;            // residents drawn as candidates each run (the AI
 const HIDE_AT = 3;             // reports that take a post off the site until he looks
 const BIG_CHANCE = 0.04;       // a run may start a bigger story that develops over days (~once in 8 days) - life stays regular      // a resident's answers to one visitor a day (like the comments' CHARACTER_REPLIES_A_DAY)
 const NEWS = 'charadot';       // the news channel's own account
-// the news sites the residents read (their RSS - free, no AI); both sides of the map, so no one paper sets the tone
+// the news sites the residents read (their RSS - free, no AI): many, both sides of the map, news / economy / culture, and at
+// most PER_FEED fresh items from each, so no one paper sets the tone (his note 2026-11-08: "why only Israel Hayom?")
 const FEEDS = [
   ['ynet', 'https://www.ynet.co.il/Integration/StoryRss2.xml'],
+  ['ynet כלכלה', 'https://www.ynet.co.il/Integration/StoryRss6.xml'],
+  ['ynet תרבות', 'https://www.ynet.co.il/Integration/StoryRss538.xml'],
+  ['וואלה', 'https://rss.walla.co.il/feed/1'],
   ['N12', 'https://rcs.mako.co.il/rss/news-israel.xml'],
+  ['מעריב', 'https://www.maariv.co.il/Rss/RssChadashot'],
   ['הארץ', 'https://www.haaretz.co.il/srv/htz---all-articles'],
+  ['TheMarker', 'https://www.themarker.com/srv/tm-all-articles'],
   ['ישראל היום', 'https://www.israelhayom.co.il/rss.xml'],
   ['גלובס', 'https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=2'],
+  ['דבר', 'https://www.davar1.co.il/feed/'],
+  ['סרוגים', 'https://www.srugim.co.il/feed'],
+  ['ice', 'https://www.ice.co.il/rss/'],
+  ['זמן ישראל', 'https://www.zman.co.il/feed/'],
 ];
+const PER_FEED = 4;
 // the loved / central residents get more room (his call: "more room to the relevant and loveable, but I want all"); he
 // changes the list in Backstage → ציפציפ (verseMeta/tz.stars), and can take anyone out (verseMeta/tz.off)
 const STARS = ['hani', 'yotam', 'demokratovich', 'rosenblum', 'avram', 'genz', 'gilad', 'osnat', 'vova', 'nahor', 'dorit', 'ayelet',
@@ -155,15 +166,27 @@ async function headlines(hours = 10) {
       const r = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (Shlomiverse news reader)' }, signal: AbortSignal.timeout(10000) });
       if (!r.ok) throw new Error(String(r.status));
       const xml = await r.text();
+      let n = 0;
       for (const it of (xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || []).slice(0, 25)) {
+        if (n >= PER_FEED) break;
         const title = tag(it, 'title'), link = tag(it, 'link') || tag(it, 'guid'), when = Date.parse(tag(it, 'pubDate')) || Date.now();
         // the source's own picture (ynet, Haaretz, Globes send one) - shown on the link card like a link preview
         const img = (/<enclosure[^>]*url="([^"]+)"/i.exec(it) || /<media:(?:content|thumbnail)[^>]*url="([^"]+)"/i.exec(it) || /<img[^>]*src=(?:"|&quot;|')([^"&']+)/i.exec(it) || [])[1];
-        if (title && link && when >= since) out.push({ src, title: clip(title, 200), desc: clip(tag(it, 'description'), 300), url: clip(link, 500), when, img: img && /^https:\/\//.test(img) ? clip(img, 500) : null });
+        if (title && link && when >= since) { out.push({ src, title: clip(title, 200), desc: clip(tag(it, 'description'), 300), url: clip(link, 500), when, img: img && /^https:\/\//.test(img) ? clip(img, 500) : null }); n++; }
       }
     } catch (e) { console.error('tz feed', src, e.message); }
   }));
-  return out.sort((a, b) => b.when - a.when).slice(0, 60);
+  return out.sort((a, b) => b.when - a.when).slice(0, 56);
+}
+// a story whose feed sends no picture (Israel Hayom, N12, Maariv): the picture the article itself shows when shared
+// (its og:image) - always that story's own photo
+async function ogImage(url) {
+  try {
+    const r = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (Shlomiverse news reader)' }, signal: AbortSignal.timeout(7000) });
+    const html = (await r.text()).slice(0, 300000);
+    const m = /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i.exec(html) || /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i.exec(html);
+    return m && /^https:\/\//.test(m[1]) ? clip(m[1].replace(/&amp;/g, '&'), 500) : null;
+  } catch (e) { return null; }
 }
 
 // ---------- the engine ----------
@@ -260,6 +283,8 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
   const items = pick.out.items.map((it) => ({ ...it, h: fresh[it.head], cast: [...new Set(it.cast)].filter((id) => candIds.has(id)) })).filter((it) => it.h && it.cast.length);
   if (!items.length) { await runRef.set({ ...log, heads: fresh.length, cands: [...candIds], why: clip(pick.out.why, 300), made: 0 }); return { made: 0 }; }
 
+  // every chosen story gets its own picture (its feed's, else the article page's og:image)
+  await Promise.all(items.filter((it) => !it.h.img).map(async (it) => { it.h.img = await ogImage(it.h.url); }));
   // ח24's articles first (its own key), so the residents can quote the channel
   const withArt = items.filter((it) => it.article).slice(0, 2);
   if (withArt.length) {
@@ -656,4 +681,4 @@ async function owner(op, b) {
   return { error: 'op' };
 }
 
-module.exports = { verseTz: exports.verseTz, verseTzRun: exports.verseTzRun, verseTzOnPost: exports.verseTzOnPost, owner, SECRETS, _run: run, _headlines: headlines, _publish: publish, _candidates: candidates };
+module.exports = { _ogImage: ogImage, verseTz: exports.verseTz, verseTzRun: exports.verseTzRun, verseTzOnPost: exports.verseTzOnPost, owner, SECRETS, _run: run, _headlines: headlines, _publish: publish, _candidates: candidates };
