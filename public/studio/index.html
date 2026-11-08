@@ -93,10 +93,10 @@ document.getElementById('who').textContent = u.email;
 const out = document.getElementById('out');
 out.hidden = false;
 out.onclick = async () => { const { signOut } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js'); await signOut(O.auth); location.reload(); };
-// what is still waiting in the Drop (the studio pulls every file down within a minute while it runs)
+// what is in the Drop (it stays there; a computer downloads a folder only when he asks it to)
 O.drop.list().then(({ folders }) => {
   const n = folders.reduce((s, f) => s + f.files.length, 0);
-  document.getElementById('waiting').innerHTML = n ? `<span class="n">${n} file${n === 1 ? '' : 's'}</span> waiting for the studio` : 'Nothing waiting';
+  document.getElementById('waiting').innerHTML = n ? `<span class="n">${n} file${n === 1 ? '' : 's'}</span> in the Drop` : 'The Drop is empty';
 }).catch(() => {});
 </script>
 </body>

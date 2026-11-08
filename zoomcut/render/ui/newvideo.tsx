@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { api, tabProject } from './common';
 
 // "New video": a template, the footage folder, optionally an earlier project's settings - then it opens
-// the iPhone's way in: scan the QR once, drop videos on the phone page - they come down to Downloads\drop\<folder>
-// by themselves and show in the footage list; a project marked Done empties its folder in the cloud
+// the iPhone's way in: scan the QR once, drop videos on the phone page - they stay in the Drop (his raw takes, kept);
+// "Download here" brings a folder to THIS computer (Downloads\drop\<folder>), then it shows in the footage list.
+// Nothing comes down by itself (his rule, 2026-11-08: the wrong computer took his takes)
 export function DropCard() {
   const [d, setD] = useState<any>(null);
   const [qr, setQr] = useState(false);
@@ -18,7 +19,7 @@ export function DropCard() {
     <div style={{ display: 'flex', gap: 6 }}>
       <button className="btn" style={{ flex: 1 }} onClick={() => setQr(!qr)}>{qr ? 'Hide the QR' : 'QR for the phone'}</button>
       <a className="btn" href="/api/drop/open" target="_blank" rel="noreferrer" title="Every project and file in the Drop (shlomiverse.com/drop/)">Open the Drop</a>
-      <button className="btn ghost" onClick={() => api('/api/drop/sync', {})} title="Look for new files now (it also looks every minute)">Check now</button>
+      <button className="btn ghost" onClick={() => api('/api/drop/sync', {})} title="Look at the Drop now (it also looks every minute) - nothing comes down until you press Download here">Check now</button>
     </div>
     {qr && <div className="drop-qr">
       <img src="/api/drop/qr.svg" alt="The drop page" />
@@ -27,8 +28,12 @@ export function DropCard() {
     {d.running && <div className="drop-f on"><span className="he">{d.running.folder}</span>
       <span>coming down {d.running.i}/{d.running.n}</span><span>{Math.floor((d.running.bytes / Math.max(1, d.running.total)) * 100)}%</span></div>}
     {(d.folders || []).map((f: any) => <div key={f.name} className="drop-f"><span className="he">{f.name}</span>
-      <span>{f.files} file{f.files === 1 ? '' : 's'} · {gb(f.bytes)}</span><span className={f.here === f.files ? 'ok' : ''}>{f.here === f.files ? 'here ✓' : `${f.here}/${f.files} here`}</span></div>)}
-    {!(d.folders || []).length && !d.running && <div className="help">Nothing waiting in the cloud. What you drop comes down to Downloads\drop by itself and is listed under Footage folder.</div>}
+      <span>{f.files} file{f.files === 1 ? '' : 's'} · {gb(f.bytes)}</span>
+      {f.here === f.files ? <span className="ok">here ✓</span>
+        : f.wanted || d.running?.folder === f.name ? <span>coming…</span>
+        : <button className="btn" onClick={() => api('/api/drop/pull', { folder: f.name }).then(() => api('/api/drop').then((x) => x && setD(x)))}
+            title="Bring this folder to this computer (Downloads\drop) - it stays in the Drop">{f.here ? `Download the rest (${f.files - f.here})` : 'Download here'}</button>}</div>)}
+    {!(d.folders || []).length && !d.running && <div className="help">The Drop is empty. What you drop stays there until you delete it; Download here brings a folder to this computer.</div>}
     {d.error && <div className="nv-err">{d.error}</div>}
   </div>;
 }

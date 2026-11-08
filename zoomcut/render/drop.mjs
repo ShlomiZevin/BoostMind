@@ -1,10 +1,11 @@
 // Drop - the PC side. Files he drops from the iPhone (the page: shlomiverse.com/drop/ - public/drop, straight into the
-// bucket through Firebase Storage, his Google account only - storage.rules) land in the bucket; the
-// studio pulls each new one down to Downloads\drop\<folder> by itself (every minute), where "+ New video" and any
-// session find it like any footage folder. Once a file is here, checked (size + md5), it leaves the Drop - the Drop
-// only holds what is still on its way (his rule, 2026-10-23). The copy here is never touched by the cloud: a name
-// used again later comes down as name-2. A project marked Done empties what is left of its folder in the cloud; the
-// bucket also forgets anything older than 60 days. Uses this computer's gcloud login - no keys in the code.
+// bucket through Firebase Storage, his Google account only - storage.rules) land in the bucket and STAY there: the
+// Drop is where his raw takes live, nothing takes them out but a delete on the Drop page (his rule, 2026-11-08 - the
+// old way, every studio pulling new files every minute and removing them from the Drop, let the wrong computer take
+// them). Nothing comes down by itself: "Download here" on a folder (New video, the Drop card) brings it to
+// Downloads\drop\<folder> on THIS computer, where "+ New video" and any session find it like any footage folder;
+// checked (size + md5). The copy here is never touched by the cloud: another file with a name already here comes
+// down as name-2. Uses this computer's gcloud login - no keys in the code.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -87,18 +88,20 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
     for (let k = 2; fs.existsSync(local(n)) || fs.existsSync(local(n) + '.part'); k++) n = `${base}-${k}${ext}`;
     return n;
   };
-  // off the Drop: the file (and its picture); the project stays on the phone (".keep"), empty, for the next upload
-  const kept = new Set();
-  async function unDrop(o) {
+  // already here: the same name, or the name-2 / name-3 it came down as, with the same size and md5
+  const hereAs = async (o) => {
+    if (await same(o)) return true;
     const folder = o.name.split('/')[0], file = o.name.slice(folder.length + 1);
-    const r = await gcs(`${API}/${encodeURIComponent(o.name)}`, { method: 'DELETE' });
-    if (!r.ok && r.status !== 404) throw new Error(`remove ${r.status}`);
-    await gcs(`${API}/${encodeURIComponent(`${folder}/.thumbs/${file}.jpg`)}`, { method: 'DELETE' }).catch(() => {});
-    if (!kept.has(folder)) {
-      await gcs(`https://storage.googleapis.com/upload/storage/v1/b/${BUCKET}/o?uploadType=media&name=${encodeURIComponent(`${folder}/.keep`)}`, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: '' }).catch(() => {});
-      kept.add(folder);
+    const i = file.lastIndexOf('.'), [base, ext] = i > 0 ? [file.slice(0, i), file.slice(i)] : [file, ''];
+    let names = []; try { names = fs.readdirSync(path.join(DIR, folder)); } catch { return false; }
+    for (const n of names.filter((n) => n.startsWith(base + '-') && n.endsWith(ext) && /^\d+$/.test(n.slice(base.length + 1, n.length - ext.length)))) {
+      const f = path.join(DIR, folder, n);
+      try { if (fs.statSync(f).size === o.size && (!o.md5 || (await md5(f)) === o.md5)) return true; } catch {}
     }
-  }
+    return false;
+  };
+  // the folders he asked to bring to this computer ("Download here") - until they are here whole
+  const wanted = new Set();
   async function sync() {
     if (state.running) return;
     let items;
@@ -115,31 +118,31 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
       if (hit) { try { fs.rmSync(path.join(DIR, folder, hit)); recordJob({ id: folder, kind: 'drop', started: Date.now(), ended: Date.now(), ok: true, line: `${hit} deleted on the Drop page - deleted here too` }); } catch {} }
       if (!items.some((o) => o.name === `${folder}/${file}`)) await gcs(`${API}/${encodeURIComponent(g.name)}`, { method: 'DELETE' }).catch(() => {});
     }
-    // already here (pulled before this rule, or its removal failed): just off the Drop. Else: down (a name here with
-    // other bytes comes down as name-2), then off the Drop
+    // only the folders he asked for on this computer: what isn't here yet comes down (a name here with other bytes
+    // comes down as name-2). The Drop keeps every file.
     const todo = [];
     for (const o of items) {
-      if (await same(o)) { try { await unDrop(o); } catch {} continue; }
+      if (!wanted.has(o.name.split('/')[0]) || await hereAs(o)) continue;
       todo.push(fs.existsSync(local(o.name)) ? { ...o, as: freeName(o.name) } : o);
     }
+    for (const f of [...wanted]) if (!todo.some((o) => o.name.split('/')[0] === f)) wanted.delete(f);  // (here whole already)
     const folders = [...new Set(todo.map((o) => o.name.split('/')[0]))];
     for (const folder of folders) {  // one job per folder (the Jobs panel)
       const files = todo.filter((o) => o.name.split('/')[0] === folder), total = files.reduce((s, o) => s + o.size, 0), started = Date.now();
       state.running = { folder, i: 0, n: files.length, bytes: 0, total, started, file: '' };
       let ok = true, err = '';
       const seen = [];
-      let off = 0;
       for (const o of files) {
         state.running.i++; state.running.file = (o.as || o.name).split('/').pop();
         try { await download(o); } catch (e) { ok = false; err = e.message; break; }
         const what = await probe(local(o.as || o.name));
         seen.push(`${state.running.file} ${gb(o.size)}${what ? ` ${what}` : ''}`);
-        // here and whole (download checked the size; md5 when the cloud has one) - off the Drop
-        if (!o.md5 || (await md5(local(o.as || o.name))) === o.md5) { try { await unDrop(o); off++; } catch {} }
-        else { ok = false; err = `${state.running.file}: md5 differs - kept on the Drop`; break; }
+        // whole? (download checked the size; md5 when the cloud has one)
+        if (o.md5 && (await md5(local(o.as || o.name))) !== o.md5) { ok = false; err = `${state.running.file}: md5 differs`; try { fs.rmSync(local(o.as || o.name)); } catch {} break; }
       }
+      if (ok) wanted.delete(folder);  // (a failed one tries again on the next round)
       recordJob({ id: folder, kind: 'drop', started, ended: Date.now(), ok, files: seen,
-        line: ok ? `${files.length} file${files.length === 1 ? '' : 's'} · ${gb(total)} → Downloads\\drop\\${folder} · ${seen.join(' | ')}${off ? ` · ${off} removed from the Drop` : ''}` : `failed: ${err}` });
+        line: ok ? `${files.length} file${files.length === 1 ? '' : 's'} · ${gb(total)} → Downloads\\drop\\${folder} · ${seen.join(' | ')} · kept in the Drop` : `failed: ${err}` });
       state.running = null;
     }
   }
@@ -193,28 +196,22 @@ export function startDrop({ app, DOWNLOADS, ROOT, PY, recordJob }) {
   setTimeout(() => pushScripts().catch(() => {}), 8000);
   setInterval(() => pushScripts().catch(() => {}), 60e3);
 
-  // a project marked Done: its footage folder (when it came from the drop) leaves the cloud - the copy here stays
-  async function cleanup(cfg, id) {
-    const inp = path.resolve(String(cfg?.input_dir || ''));
-    if (!cfg?.input_dir || !inp.toLowerCase().startsWith(DIR.toLowerCase() + path.sep)) return;
-    const folder = path.relative(DIR, inp).split(path.sep)[0];
-    try {
-      const objs = (await list(`${folder}/`));
-      for (const o of objs) await gcs(`${API}/${encodeURIComponent(o.name)}`, { method: 'DELETE' });
-      if (objs.length) recordJob({ id, kind: 'drop', started: Date.now(), ended: Date.now(), ok: true,
-        line: `done: ${objs.length} file${objs.length === 1 ? '' : 's'} · ${gb(objs.reduce((s, o) => s + o.size, 0))} removed from the cloud (the copy in Downloads\\drop\\${folder} stays)` });
-      state.cloud = state.cloud.filter((o) => !o.name.startsWith(`${folder}/`));
-    } catch (e) {
-      recordJob({ id, kind: 'drop', started: Date.now(), ended: Date.now(), ok: false, line: `cloud clean-up failed: ${e.message}` });
-    }
-  }
+  // a project marked Done: nothing leaves the Drop any more - his raw takes stay there (his rule, 2026-11-08)
+  const cleanup = () => {};
 
   app.get('/api/drop', (_q, res) => {
     const folders = {};
     for (const o of state.cloud) { const f = o.name.split('/')[0]; (folders[f] ||= { name: f, files: 0, bytes: 0, here: 0 }); folders[f].files++; folders[f].bytes += o.size; try { if (fs.statSync(local(o.name)).size === o.size) folders[f].here++; } catch {} }
+    for (const f of Object.values(folders)) f.wanted = wanted.has(f.name);
     res.json({ page: PAGE, ready: true, folders: Object.values(folders), running: state.running, error: state.error, checked: state.checked, dir: DIR });
   });
-  app.post('/api/drop/sync', (_q, res) => { sync(); res.json({ ok: true }); });
+  app.post('/api/drop/sync', (_q, res) => { sync(); res.json({ ok: true }); });  // (looks at the Drop now - takes nothing)
+  // "Download here": this folder of the Drop comes to this computer (and stays in the Drop)
+  app.post('/api/drop/pull', (q, res) => {
+    const folder = String(q.body?.folder || '');
+    if (!folder || folder.includes('/') || folder.includes('..') || folder.startsWith('_')) return res.status(400).json({ error: 'which folder?' });
+    wanted.add(folder); sync(); res.json({ ok: true });
+  });
   app.get('/api/drop/open', (_q, res) => res.redirect(PAGE));  // (the studio's "Open the Drop")
   // the page's link as a QR - scanned once with the iPhone camera (he signs in with Google there once)
   app.get('/api/drop/qr.svg', (_q, res) => {

@@ -195,7 +195,7 @@ function drawFiles() {
       <img class="it-th" alt="" src="${thumbCache[`${cur}/${x.name}`] || ''}">
       <div class="it-n"><div class="it-name" dir="auto">${esc(x.name)}</div><div class="it-meta">${gb(x.size)} · ${when(x.updated)}${x.type ? ' · ' + esc(x.type) : ''}</div></div>
       <button data-a="open" title="Open">⬇</button><button data-a="del" title="Delete">🗑</button></div>`).join('')
-    || `<div class="empty">${cur ? 'Nothing waiting - every file goes to the studio within a minute and leaves the Drop.' : 'Make a project to start.'}</div>`;
+    || `<div class="empty">${cur ? 'Nothing here yet. Files stay in the Drop until you delete them - on the PC, Download here brings them to that computer.' : 'Make a project to start.'}</div>`;
   $('rmdir').style.display = f ? '' : 'none';
   for (const x of files.filter((y) => y.thumb && !thumbCache[`${cur}/${y.name}`])) {  // (the pictures kept in the Drop)
     const folder = cur;
@@ -315,7 +315,7 @@ $('rec').onclick = async () => {
   $('rec').classList.add('on'); $('lvl').classList.add('on');
   $('rec').textContent = '■ Stop  0:00';
 };
-// a take uploads at once; under it: listen (from the phone itself - it leaves the Drop once the studio has it),
+// a take uploads at once; under it: listen (from the phone itself),
 // Delete (off the Drop and off the PC too) or Record another
 function takeControls(q) {
   q.el.classList.add('take');
