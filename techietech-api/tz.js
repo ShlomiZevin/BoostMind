@@ -378,6 +378,16 @@ async function resident(uid, char, before) {
   const list = (await q.get()).docs.map((d) => pub(d.data())).filter((p) => !p.fan);
   return { posts: list, quoted: await quoted(list), articles: await articlesOf(list), stamped: await mine(uid, list), more: list.length === 40 ? list[list.length - 1].t : null };
 }
+// the verse's home page module (the Shlomiverse Conversion session designs it): ח24's newest article + the newest top
+// posts, and `quiet` when nothing came today (a silent day, or no run yet) - so the home says "מהימים האחרונים"
+async function home(cfg) {
+  const [arts, all] = await Promise.all([liveNow(db().collection('tzArticles')).limit(1).get(), liveNow(db().collection('tzPosts')).limit(40).get()]);
+  const tops = all.docs.map((d) => pub(d.data())).filter((p) => !p.parent && !p.fan).slice(0, 5);
+  const q = await quoted(tops), startToday = Date.parse(day() + 'T00:00:00+02:00');
+  return { lead: arts.docs[0] ? pubArt(arts.docs[0].data()) : null,
+    posts: tops.map((p) => ({ id: p.id, by: p.by, text: p.text, t: p.t, stamps: p.stamps, replies: p.replies, article: p.article, quote: p.quote && q[p.quote] ? { id: p.quote, by: q[p.quote].by, text: q[p.quote].text } : null })),
+    silent: cfg.silent === day(), quiet: cfg.silent === day() || !tops.length || tops[0].t < startToday };
+}
 async function front() {
   const list = (await liveNow(db().collection('tzArticles')).limit(30).get()).docs.map((d) => pubArt(d.data()));
   return { articles: list };
@@ -512,6 +522,7 @@ async function handle(req) {
   if (op === 'post') return thread(uid, b.id);
   if (op === 'resident') return resident(uid, b.char, b.before);
   if (op === 'front') return front();
+  if (op === 'home') return home(cfg);
   if (op === 'me') {   // what the page needs to know about the visitor: signed in, a citizen (a passport), who they follow on the verse
     if (!user) return { signed: false, citizen: false, owner: false, follows: [] };
     const f = (await db().collection('fans').doc(user.uid).get()).data() || {};
