@@ -125,8 +125,10 @@ async function owner(op, b) {
 // 10$. Only sends me an email.") ----------
 // Every hour: today's total - the same "סה"כ AI" Backstage shows on top (OpenAI + EvoLink in dollars, every group: the
 // Shlomiverse, Plaxzy, the Mind; ElevenLabs is credits, not dollars, so not in it). Today = the providers' day, UTC
-// (OpenAI's buckets are UTC days). At ALERT_USD or more: ONE mail to him, then owner/costAlert {day} keeps it to one a day.
-const ALERT_USD = 10;
+// (OpenAI's buckets are UTC days). Each level crossed = ONE mail to him that day (owner/costAlert {day, level}):
+// $10 a heads-up, $30 a big warning (his ask, 2026-11-08: "On $30, I want you to send a big warning email").
+const LEVELS = [10, 30];
+const ALERT_USD = LEVELS[0];
 const ALERT_TO = 'shlomi@boostart.io';
 const BACKSTAGE = 'https://shlomiverse.com/backstage/#costs';
 const money = (v) => '$' + v.toFixed(2);
@@ -146,46 +148,57 @@ function dayTotal(rows, day) {
   return { day, total, lines: Object.values(lines).sort((a, b) => b.usd - a.usd) };
 }
 
-function alertMail({ day, total, lines }, errors = []) {
+function alertMail({ day, total, lines }, errors = [], level = ALERT_USD) {
+  const big = level >= LEVELS[LEVELS.length - 1];
+  const warn = 'אזהרה: זה הרבה מעבר ליום רגיל. כדאי לבדוק עכשיו מה רץ.';
+  const rule = `מייל אחד לכל רף ביום (${LEVELS.map(money).join(', ')}). היום לפי UTC (מתחיל ב-02:00 שעון ישראל).`;
   const top = lines.slice(0, 5).map((l) => {
     const ks = Object.entries(l.kinds).filter(([, v]) => v >= 0.01).sort((a, b) => b[1] - a[1]);
     return `${l.name}: ${money(l.usd)}${ks.length > 1 ? ` (${ks.map(([k, v]) => `${KINDS[k] || k} ${money(v)}`).join(', ')})` : ''}`;
   });
   const text = [
-    `ההוצאה על AI היום (${day}) הגיעה ל-${money(total)} - עברה את ${money(ALERT_USD)}.`,
+    ...(big ? ['!!! ' + warn, ''] : []),
+    `ההוצאה על AI היום (${day}) הגיעה ל-${money(total)} - עברה את ${money(level)}.`,
     '',
     'הכי הרבה:',
     ...top.map((t) => '• ' + t),
     ...(errors.length ? ['', `(לא נטען: ${errors.join('; ')} - הסכום אולי חלקי)`] : []),
     '',
     `הכל ב-Backstage → הוצאות: ${BACKSTAGE}`,
-    `מייל אחד ביום, רק כשהיום עובר ${money(ALERT_USD)}. היום לפי UTC (מתחיל ב-02:00 שעון ישראל).`,
+    rule,
   ].join('\n');
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const html = `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#111">
-<p>ההוצאה על AI היום (${day}) הגיעה ל-<b>${money(total)}</b> - עברה את ${money(ALERT_USD)}.</p>
+${big ? `<div style="background:#c62828;color:#fff;padding:18px 20px;border-radius:10px;margin-bottom:16px">
+<div style="font-size:28px;font-weight:800;line-height:1.2">אזהרה: ${money(total)} על AI היום</div>
+<div style="font-size:16px;margin-top:6px">${esc(warn)}</div></div>` : ''}
+<p>ההוצאה על AI היום (${day}) הגיעה ל-<b>${money(total)}</b> - עברה את ${money(level)}.</p>
 <p style="margin-bottom:4px">הכי הרבה:</p><ul style="margin-top:0">${top.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
 ${errors.length ? `<p style="color:#a33">(לא נטען: ${esc(errors.join('; '))} - הסכום אולי חלקי)</p>` : ''}
 <p><a href="${BACKSTAGE}">הכל ב-Backstage → הוצאות</a></p>
-<p style="color:#777;font-size:12px">מייל אחד ביום, רק כשהיום עובר ${money(ALERT_USD)}. היום לפי UTC (מתחיל ב-02:00 שעון ישראל).</p></div>`;
-  return { subject: `הוצאות AI היום: ${money(total)} (עבר את ${money(ALERT_USD)})`, text, html };
+<p style="color:#777;font-size:12px">${rule}</p></div>`;
+  const subject = big ? `אזהרה: הוצאות AI היום ${money(total)} - עבר את ${money(level)}` : `הוצאות AI היום: ${money(total)} (עבר את ${money(level)})`;
+  return { subject, text, html };
 }
 
-// one run: ask (at most 20 minutes old), and mail him once the day passes ALERT_USD. dry = say what it would send, send nothing.
+// one run: ask (at most 20 minutes old), and mail him when the day passes a level not mailed yet today (only the highest
+// one crossed, if two at once). dry = say what it would send, send nothing.
 async function alert({ now = Date.now(), dry = false } = {}) {
   const day = new Date(now).toISOString().slice(0, 10);
   const ref = admin.firestore().collection('owner').doc('costAlert');
   const sent = (await ref.get()).data();
-  if (sent?.day === day && !dry) return { day, sent: true };
+  const done = sent?.day === day ? sent.level || ALERT_USD : 0;   // a record from before levels = the $10 mail
+  if (done >= LEVELS[LEVELS.length - 1] && !dry) return { day, sent: true };
   const c = await owner('costs', { maxAge: 20 * 60e3 });
   const t = dayTotal(c.rows, day);
   if (c.errors?.length) console.error('costAlert: providers not answering', c.errors);
-  const out = { day, total: Math.round(t.total * 100) / 100, over: t.total >= ALERT_USD };
+  const level = LEVELS.filter((l) => t.total >= l).pop() || 0;
+  const out = { day, total: Math.round(t.total * 100) / 100, level, over: level > (dry ? 0 : done) };
   if (!out.over) return out;
-  const m = alertMail(t, c.errors || []);
+  const m = alertMail(t, c.errors || [], level);
   if (dry) return { ...out, mail: m };
-  const ok = await require('./mailer').deliver({ to: ALERT_TO, kind: 'costAlert', m, fromName: 'הוצאות AI', meta: { day, total: out.total } });
-  if (ok) await ref.set({ day, total: out.total, at: Date.now() });   // a failed send tries again next hour
+  const ok = await require('./mailer').deliver({ to: ALERT_TO, kind: 'costAlert', m, fromName: 'הוצאות AI', meta: { day, total: out.total, level } });
+  if (ok) await ref.set({ day, level, total: out.total, at: Date.now() });   // a failed send tries again next hour
   return { ...out, mailed: ok };
 }
 
@@ -194,4 +207,4 @@ const costAlert = onSchedule({ schedule: '0 * * * *', timeZone: 'Asia/Jerusalem'
   console.log('costAlert', JSON.stringify(await alert()));
 });
 
-module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD };
+module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD, LEVELS };
