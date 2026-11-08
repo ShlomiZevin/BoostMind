@@ -410,7 +410,9 @@ async function home(cfg) {
   const q = await quoted(tops), startToday = Date.parse(day() + 'T00:00:00+02:00');
   return { lead: arts.docs[0] ? pubArt(arts.docs[0].data()) : null,
     posts: tops.map((p) => ({ id: p.id, by: p.by, text: p.text, t: p.t, stamps: p.stamps, replies: p.replies, article: p.article, quote: p.quote && q[p.quote] ? { id: p.quote, by: q[p.quote].by, text: q[p.quote].text } : null })),
-    silent: cfg.silent === day(), quiet: cfg.silent === day() || !tops.length || tops[0].t < startToday };
+    silent: cfg.silent === day(), quiet: cfg.silent === day() || !tops.length || tops[0].t < startToday,
+    // the verse names of the impressions it shows (id -> {name, handle}, like op=me), so the home needs one call
+    names: Object.fromEntries([...new Set(tops.flatMap((p) => [p.by, p.quote && q[p.quote] && q[p.quote].by]))].filter((id) => id && AL[id]).map((id) => [id, AL[id]])) };
 }
 async function front() {
   const list = (await liveNow(db().collection('tzArticles')).limit(30).get()).docs.map((d) => pubArt(d.data()));
