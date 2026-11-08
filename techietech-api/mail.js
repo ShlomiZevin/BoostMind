@@ -160,29 +160,36 @@ function digest(d, k) {
     d.faces?.length ? pad(section(d.facesTitle || 'העלו סטורי השבוע')) + spacer(18) + pad(faces(d.faces.map(t))) + spacer(30) : ''].join('');
 }
 
+// the site's own icons (v2/site/verse/ui.js I, rendered orange to PNG - an email can't show SVG) instead of emoji (his OK on
+// plan mail-welcome, 2026-11-08: emoji look different in every phone and aren't the site's language)
+const ic = (k, px = 22, st = 'vertical-align:middle;margin-top:-3px') => `<img src="https://storage.googleapis.com/shlomiverse-media/wiki/mail/ic/${k}.png" width="${px}" height="${px}" alt="" style="display:inline-block;width:${px}px;height:${px}px;border:0;${st}">`;
 // the first mail of a new account: what the verse is, who lives in it, where to start
 function welcome(d, k) {
   return [spacer(14), pad(hero(d.hero, track('/', k), 'השלומיוורס')), spacer(26), pad(h1(`ברוכים הבאים ליקום${d.name ? ', ' + d.name : ''}!`)), spacer(10),
     pad(p('השלומיוורס הוא עולם שלם של דמויות – כל אחת עם הסרטונים שלה, הסטורי שלה, המשחקים שלה. ואפשר לדבר עם כולן.')), spacer(24),
     // everything a new account can do in the verse (his ask: don't forget any of its features)
-    pad(bullets([['🎬', '<b style="color:#fff">סרטונים</b> – כל הדמויות, כל הסדרות, במקום אחד. שומרים את מה שאהבתם בנגיעה.'],
-      ['💬', '<b style="color:#fff">לדבר עם הדמויות</b> – שאלו את חני, את צביקה או את רוזנבלום מה שבא לכם. הן מכירות אתכם בשם.'],
-      ['📣', '<b style="color:#fff">תגובות</b> – כותבים @ ושם של דמות מתחת לסרטון, והיא עונה לכם.'],
-      ['🎮', '<b style="color:#fff">משחקים</b> – כל דמות והמשחק שלה, עם שיא יומי.'],
-      ['🔔', '<b style="color:#fff">סטורי והתראות</b> – עוקבים אחרי הדמויות שאתם אוהבים ובוחרים ממי לקבל התראות.'],
-      ['💡', '<b style="color:#fff">הקהילה</b> – מציעים רעיון לפרק או לדמות חדשה, ומצביעים לרעיונות שבא לכם לראות.'],
-      ['📱', '<b style="color:#fff">אפליקציה</b> – מתקינים את השלומיוורס על הטלפון, ונכנסים בנגיעה.']])), spacer(10),
+    pad(bullets([[ic('play'), '<b style="color:#fff">סרטונים</b> – כל הדמויות, כל הסדרות, במקום אחד. שומרים את מה שאהבתם בנגיעה.'],
+      [ic('comment'), '<b style="color:#fff">לדבר עם הדמויות</b> – שאלו את חני, את צביקה או את רוזנבלום מה שבא לכם. הן מכירות אתכם בשם.'],
+      [ic('edit'), '<b style="color:#fff">תגובות</b> – כותבים @ ושם של דמות מתחת לסרטון, והיא עונה לכם.'],
+      [ic('game'), '<b style="color:#fff">משחקים</b> – כל דמות והמשחק שלה, עם שיא יומי.'],
+      [ic('bell'), '<b style="color:#fff">סטורי והתראות</b> – עוקבים אחרי הדמויות שאתם אוהבים ובוחרים ממי לקבל התראות.'],
+      [ic('people'), '<b style="color:#fff">הקהילה</b> – מציעים רעיון לפרק או לדמות חדשה, ומצביעים לרעיונות שבא לכם לראות.'],
+      [ic('install'), '<b style="color:#fff">אפליקציה</b> – מתקינים את השלומיוורס על הטלפון, ונכנסים בנגיעה.']])),
+    // there is more than the list, and the verse keeps growing (his note on plan mail-welcome, 2026-11-08; Terra's words)
+    pad(`<div style="font:700 16px/1.6 ${FONT};color:${C.text};padding:0 0 4px">${gm('הרשימה נגמרה, אבל השלומיוורס ממש לא.')}</div>`), spacer(16),
     // the stickers - his "super important" (2026-11-04): its own box, not one more line
     pad(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td style="background-color:#2a160c;background-image:linear-gradient(135deg,#3a1c10,#1d1d25);border:2px solid ${C.accent};border-radius:20px;padding:20px 20px 22px" align="center">
-<div style="font:32px/1 ${FONT};padding-bottom:10px">🎨</div>
+<div style="padding-bottom:10px">${ic('sticker', 34)}</div>
 <div style="font:800 21px/1.3 ${FONT};color:${C.text}">${gm('סטיקרים מהדמויות – ישר לוואטסאפ')}</div>
 <div style="font:400 15px/1.6 ${FONT};color:${C.soft};padding:8px 0 16px">${gm('עוצרים על כל רגע בכל סרטון, ובנגיעה אחת הוא הופך לסטיקר של הדמות. כל הסטיקרים שלכם נשמרים במקום אחד.')}</div>
-${button('להכין סטיקר', track('/my-stickers', k))}</td></tr></table>`), spacer(26),
+${button('להכין סטיקר', track('/my-stickers', k))}</td></tr></table>`), spacer(28),
+    pad(h2('היקום ממשיך להיבנות')), spacer(8),
+    pad(p('כמו בעולם אמיתי, השלומיוורס כל הזמן גדל ומשתנה. דמויות, מקומות, משחקים ואתרים חדשים ממשיכים להופיע בו, בלי לחכות שהרשימה תתעדכן.', 16)), spacer(26),
     pad(`<div style="font:700 14px/1 ${FONT};color:${C.dim};text-align:center;padding-bottom:14px">${gm('כמה מהשכנים החדשים שלך')}</div>` + faces(d.cast.map((c) => ({ ...c, href: track(c.href, k) })))), spacer(30),
     pad(button('להיכנס ליקום', track('/', k))), spacer(30),
     pad(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="${bg(C.card2)};border-radius:16px;padding:18px 20px;font:400 15px/1.6 ${FONT};color:${C.soft}"><div class="gs"><div class="gd">
-<b style="color:#fff">📬 מה יגיע אליך במייל?</b><br>רק כשקורה משהו חדש – משחק, סרטון או סטורי – ולא יותר ממייל אחד ביום.
+<b style="color:#fff">${ic('mail', 18, 'vertical-align:-3px;margin-left:6px')}מה יגיע אליך במייל?</b><br>רק כשקורה משהו חדש – משחק, סרטון או סטורי – ולא יותר ממייל אחד ביום.
 ${d.prefs ? `<br><a href="${esc(d.prefs)}" style="color:${C.accent2};font-weight:700;text-decoration:none">לבחור על מה לקבל מיילים &larr;</a>` : ''}</div></div></td></tr></table>`), spacer(34)].join('');
 }
 

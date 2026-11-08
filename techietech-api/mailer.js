@@ -235,7 +235,7 @@ async function mailFor(p, w, now) {
   const latestGames = (except) => (w.games || []).filter((g) => g.id !== except).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 2).map(gameCard);
   const latestVideos = (except) => (w.videos || []).filter((v) => v.id !== except && v.date && !v.archive).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(videoCard);
   if (p.kind === 'citizen') return { kind: 'citizen', d: citizenData(p.nick || first(p.name)) };
-  if (p.kind === 'welcome') return { kind: 'welcome', d: { subject: 'ברוכים הבאים לשלומיוורס 🪐', preheader: 'כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.',
+  if (p.kind === 'welcome') return { kind: 'welcome', d: { subject: 'ברוכים הבאים לשלומיוורס', preheader: 'כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.',
     name: first(p.name), hero: `${SITE}/verse/og.jpg`, cast: ['hani', 'tzvika', 'rosenblum', 'ayelet', 'yaniv'].map((id) => who(w, id)) } };
   if (!evs.length) return null;
   if (evs.length === 1 && games.length) {

@@ -920,9 +920,9 @@ function plans() {
       ${p.cover ? `<img src="${esc(p.cover)}" alt="">` : `<span class="pl-noimg">${IC.plan}</span>`}
       <div>${!isPast ? `<div class="pl-start">${i + 1} מתוך ${now.length}${i === 0 ? ' · מתחילים כאן' : ''}</div>` : ''}
       <div class="pl-top">${p.replacedBy ? '<span class="tag">הוחלפה</span>' : pTag(p.status)}${!isPast && !planRead(p) ? '<span class="pl-new">חדש</span>' : ''}<small>גרסה ${p.version} · ${ago(p.published || p.updated)}</small></div>
-      <b>${esc(p.title)}</b>${p.replacedBy ? '<p>הוחלפה בתוכנית חדשה יותר - אין מה לבדוק כאן.</p>' : p.summary && !isPast ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות שלך פתוחות</small>` : ''}</div></button>`;
+      <b>${esc(p.title)}</b>${p.replacedBy ? '<p>הוחלפה בתוכנית חדשה יותר - אין מה לבדוק כאן.</p>' : p.summary && !isPast ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות שלך מחכות לטיפול של הסשן</small>` : ''}</div></button>`;
   $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס. מה שמחכה לך למעלה, החדשה ביותר ראשונה. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים.</p>
-    ${all.length ? `${now.length ? `<h3 class="pl-sec">נשארו לך ${now.length === 1 ? 'תוכנית אחת' : now.length + ' תוכניות'} לבדוק</h3><p class="pl-how">תוכנית יוצאת מהרשימה כשלוחצים בה "קראתי", "מאשר" או "צריך שינויים" (אלא אם נשארו בה הערות שלך פתוחות).</p><div class="pl-list">${now.map((p, i) => card(p, i, false)).join('')}</div>` : '<div class="empty">אין כרגע שום דבר שמחכה לך.</div>'}
+    ${all.length ? `${now.length ? `<h3 class="pl-sec">נשארו לך ${now.length === 1 ? 'תוכנית אחת' : now.length + ' תוכניות'} לבדוק</h3><p class="pl-how">תוכנית יוצאת מהרשימה כשלוחצים בה "קראתי", "מאשר" או "צריך שינויים". ההערות שלך עוברות לסשן שעובד עליה, הן לא מחזיקות אותה כאן.</p><div class="pl-list">${now.map((p, i) => card(p, i, false)).join('')}</div>` : '<div class="empty">אין כרגע שום דבר שמחכה לך.</div>'}
       ${past.length ? `<details class="pl-arch"><summary>ארכיון: נבדקו או הוחלפו (${past.length}) - אין בהן מה לבדוק</summary><div class="pl-list">${past.map((p, i) => card(p, i, true)).join('')}</div></details>` : ''}`
       : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`;
   $('#pane').querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => openPlan(b.dataset.plan)));
@@ -953,8 +953,9 @@ function h(){parent.postMessage({t:'h',h:document.documentElement.scrollHeight},
 // "קראתי" (his ask, 2026-11-07): a plan stops counting when he marks its version as read - a new version counts again and
 // shows "חדש" in the list. Saying מאשר / צריך שינויים marks it too.
 const planRead = (p) => ((L && L.seen && L.seen['plan:' + p.id]) || 0) >= (p.version || 1);
-// out of "מחכה לך": replaced by a newer plan, or read / decided with none of his notes still open (the list and the tab's number)
-function planOld(p) { return !!p.replacedBy || ((p.status !== 'waiting' || planRead(p)) && !p.open); }
+// out of "מחכה לך": replaced by a newer plan, or read / decided (the list and the tab's number). His open notes don't keep it
+// there - they are the session's to handle, not his (2026-11-08: he pressed קראתי, had left a note, and the tab still said 2)
+function planOld(p) { return !!p.replacedBy || p.status !== 'waiting' || planRead(p); }
 function markPlanRead(p) {
   if (!L || planRead(p)) return;
   L.seen = { ...(L.seen || {}), ['plan:' + p.id]: p.version || 1 };
