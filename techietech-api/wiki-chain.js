@@ -145,16 +145,20 @@ exports.base = (cur, mode, turns) => {
     scope: exports.scopeText(cur, mode, allowed) };
 };
 
-exports.lookupTool = (b) => ({
+// the SAME tool for everyone (2026-11-08): OpenAI puts the tools before the instructions, so a per-character description made
+// every character's prompt differ from its first words and the map was never read from the cache (10c a first question vs 1c)
+exports.lookupTool = () => ({
   type: 'function', name: 'look_up',
-  description: `Fetch the FULL profiles and video transcripts the visitor's last message needs, when they are not already in the "Full details" you were given. Pick from the map by meaning, not only exact names ("the whispering teacher", "a video about an elevator", "him", "that video"); for "is there a video about X" pick every video whose card might touch X even in passing. Up to ${MAX_CHARS} residents and ${MAX_VIDEOS} videos.${b.allowed ? ` You are ${b.name}: only these residents may be picked (the people you know): ${b.allowed.join(', ') || 'none'}.` : ''}`,
+  description: `Fetch the FULL profiles and video transcripts the visitor's last message needs, when they are not already in the "Full details" you were given. Pick from the map by meaning, not only exact names ("the whispering teacher", "a video about an elevator", "him", "that video"); for "is there a video about X" pick every video whose card might touch X even in passing. Up to ${MAX_CHARS} residents and ${MAX_VIDEOS} videos. When you speak as a resident, pick only the people you know (listed with your part).`,
   parameters: { type: 'object', additionalProperties: false, required: ['characters', 'videos'],
     properties: { characters: { type: 'array', items: { type: 'string' } }, videos: { type: 'array', items: { type: 'string' } } } },
   strict: true,
 });
 
 exports.lookupNote = (b) => (b.allowed && !b.allowed.length ? '' :
-  '\n\nBefore you write anything: the map has only one line per resident and per video. If the visitor asks about a resident, or what happened or what was said in a video, or whether a video about something exists, and those full details are NOT above, call look_up first and write nothing before it - never fill in details from the one-line cards. For a greeting, thanks or small talk, or when the details above already cover it, just answer.');
+  (b.allowed ? `
+
+look_up: you are ${b.name} - only these residents may be picked (the people you know): ${b.allowed.join(', ')}.` : '') + '\n\nBefore you write anything: the map has only one line per resident and per video. If the visitor asks about a resident, or what happened or what was said in a video, or whether a video about something exists, and those full details are NOT above, call look_up first and write nothing before it - never fill in details from the one-line cards. For a greeting, thanks or small talk, or when the details above already cover it, just answer.');
 
 // the ids look_up asked for, checked (scope) and merged with what was already in hand
 exports.merge = (cur, b, args) => {

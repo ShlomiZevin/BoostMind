@@ -171,7 +171,9 @@ async function stream(key, mode, turns, onText, opts = {}) {
         // the per-question part goes AFTER the conversation: OpenAI then serves the map from its cache on every question
         // (a developer message first made only an identical repeat hit the cache - measured 2026-10-31)
         input: [...turns, { role: 'developer', content }],
-        ...(tools ? { tools, tool_choice: 'auto', parallel_tool_calls: false } : {}),
+        // the tool goes on BOTH calls (the second with tool_choice none): tools are the start of the prompt, so the answer after a
+        // look_up reads the map from the same cache (2026-11-08)
+        tools: [chain.lookupTool()], tool_choice: tools ? 'auto' : 'none', parallel_tool_calls: false,
         reasoning: { effort: 'low' },
         max_output_tokens: 900,   // a chat message, never a document (a visitor got 25 messages of game-mod code); the longest real reply so far took ~700 with the reasoning
         prompt_cache_key: 'wiki-map',
