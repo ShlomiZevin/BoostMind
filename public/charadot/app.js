@@ -52,7 +52,7 @@ async function article(id) {
   document.title = `${a.headline} · ח24`;
   ticker([a, ...r.more]);
   const face = (p) => (p.by === 'charadot' ? '/charadot/img/avatar.png' : (C[p.by] && C[p.by].img) || '/tziftzif/img/avatar.png');
-  const name = (p) => (p.by === 'charadot' ? 'חרדות' : (NAMES[p.by] && NAMES[p.by].name) || (C[p.by] && C[p.by].name) || p.by);
+  const name = (p) => (p.by === 'charadot' ? 'החרדות' : (NAMES[p.by] && NAMES[p.by].name) || (C[p.by] && C[p.by].name) || p.by);
   app.innerHTML = `<article class="art">
       <div class="head"><span class="tag">${esc(a.tag || 'חדשות')}</span><h1>${esc(a.headline)}</h1><p class="sub">${esc(a.sub)}</p>
         <div class="by"><img src="/charadot/img/avatar.png" alt=""><span>מערכת ח24 · ${when(a.t)}</span></div></div>

@@ -52,7 +52,7 @@ const count = (n) => (n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '')
 
 // who wrote a post: a resident, ח24, ציפציפ's official account (his), or a citizen
 function who(p) {
-  if (p.by === 'charadot') return { name: 'חרדות', handle: 'charadot', img: '/charadot/img/avatar.png', href: '/charadot', badge: CHECK('#e3101b'), stamp: 'הישארו איתנו', news: true };
+  if (p.by === 'charadot') return { name: 'החרדות', handle: 'charadot', img: '/charadot/img/avatar.png', href: '/charadot', badge: CHECK('#e3101b'), stamp: 'הישארו איתנו', news: true };
   if (p.by) {
     const c = C[p.by] || { name: p.by };
     return { name: nm(p.by), handle: hdl(p.by), img: c.img, href: `/tziftzif/u/${p.by}`, badge: CHECK('#7d8590'), stamp: stampOf(c) };
@@ -143,7 +143,7 @@ const fab = () => `<button class="fab" data-compose aria-label="ציוץ חדש"
 // every tab stays inside ציפציפ (his note: "don't show links that take me out - people won't come back")
 const tabbar = (on) => `<nav class="tabbar"><a href="/tziftzif" class="${on === 'home' ? 'on' : ''}">${I.home}<span>בית</span></a>`
   + `<a href="/tziftzif/people" class="${on === 'people' ? 'on' : ''}">${I.people}<span>מי מצייץ</span></a>`
-  + `<a href="/tziftzif/u/charadot" class="${on === 'news' ? 'on' : ''}"><img src="/charadot/img/avatar.png" alt=""><span>ח24</span></a></nav>`;
+  + `<a href="/tziftzif/u/charadot" class="${on === 'news' ? 'on' : ''}"><img src="/charadot/img/avatar.png" alt=""><span>החרדות</span></a></nav>`;
 
 let FEED = null;
 async function home() {
@@ -202,7 +202,7 @@ async function thread(id) {
 
 async function resident(id) {
   const news = id === 'charadot';
-  const c = news ? { name: 'חרדות', img: '/charadot/img/avatar.png', tagline: 'ערוץ החדשות של השלומיוורס. כל הדרמה, כל הזמן. הישארו איתנו.', color: '#c8101a' } : C[id] || { name: id };
+  const c = news ? { name: 'החרדות', img: '/charadot/img/avatar.png', tagline: 'ערוץ החדשות של השלומיוורס. כל הדרמה, כל הזמן. הישארו איתנו.', color: '#c8101a' } : C[id] || { name: id };
   app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">${esc(news ? c.name : nm(id))}</span><span style="margin-inline-start:auto">${brand()}</span></div></div>
     <div class="prof"><div class="cov" style="${c && c.color ? `background:linear-gradient(135deg, ${esc(c.color)}55, #0b0b0e 75%)` : ''}"></div>
     <div class="row"><div class="pic">${c.img ? `<img src="${esc(c.img)}" alt="">` : ''}</div></div>
@@ -218,13 +218,13 @@ async function resident(id) {
 
 // a ח24 article, read inside ציפציפ: the headline, the picture, the body, the residents' reactions - nothing leaves the app
 async function article(id) {
-  app.innerHTML = `<div class="top"><div class="bar one"><button class="ic" data-back>${I.back}</button><span class="ttl">ח24</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list" class="withbar">${loader()}</div>${tabbar('news')}`;
+  app.innerHTML = `<div class="top"><div class="bar one"><button class="ic" data-back>${I.back}</button><span class="ttl">החרדות</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list" class="withbar">${loader()}</div>${tabbar('news')}`;
   const r = await api('article', { id });
   if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = '<div class="empty">הכתבה הזאת ירדה מהאוויר.</div>');
   const a = r.article;
   document.title = `${a.headline} · ח24 בציפציפ`;
   const rx = r.reactions.map((p) => card(p)).join('');
-  document.getElementById('list').innerHTML = `<article class="read"><a class="by" href="/tziftzif/u/charadot"><img src="/charadot/img/avatar.png" alt=""><span><b>חרדות ${CHECK('#e3101b')}</b><small>@charadot · ${ago(a.t)}</small></span></a>
+  document.getElementById('list').innerHTML = `<article class="read"><a class="by" href="/tziftzif/u/charadot"><img src="/charadot/img/avatar.png" alt=""><span><b>החרדות ${CHECK('#e3101b')}</b><small>@charadot · ${ago(a.t)}</small></span></a>
     <span class="tg">${esc(a.tag || 'חדשות')}</span><h1>${esc(a.headline)}</h1><p class="sub">${esc(a.sub)}</p>
     ${a.img ? `<img class="pic" src="${esc(a.img)}" alt="">` : ''}<div class="body">${(a.body || []).map((x) => `<p>${esc(x)}</p>`).join('')}</div>
     ${a.src ? `<p class="src">לפי ${esc(a.src.src)}: ${esc(a.src.title)}</p>` : ''}</article>
@@ -236,7 +236,7 @@ function people() {
   document.title = 'מי מצייץ · ציפציפ';
   const list = Object.values(C).filter((c) => c.img).sort((a, b) => (b.videos || []).length - (a.videos || []).length);
   app.innerHTML = `<div class="top"><div class="bar one">${brand()}<span class="ttl" style="margin-inline:auto">מי מצייץ</span><span class="ic"></span></div></div>
-    <a class="ppl news" href="/tziftzif/u/charadot"><span class="av"><img src="/charadot/img/avatar.png" alt=""></span><span class="pb"><b>חרדות ${CHECK('#e3101b')}</b><small>@charadot · ערוץ החדשות של השלומיוורס</small></span></a>
+    <a class="ppl news" href="/tziftzif/u/charadot"><span class="av"><img src="/charadot/img/avatar.png" alt=""></span><span class="pb"><b>החרדות ${CHECK('#e3101b')}</b><small>@charadot · ערוץ החדשות של השלומיוורס</small></span></a>
     <div id="list" class="withbar">${list.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}${c.role ? ' · ' + esc(String(c.role).slice(0, 60)) : ''}</small></span></a>`).join('')}</div>${tabbar('people')}`;
   track('tz_resident', 'people');
 }
@@ -285,10 +285,10 @@ function menu(id) {
   document.body.appendChild(v);
   v.addEventListener('click', (e) => { if (e.target === v || e.target.closest('[data-close],[data-share],[data-report]')) setTimeout(() => v.remove(), 0); });
 }
-function sheet(title, placeholder, onSend) {
+function sheet(title, placeholder, onSend, extra = '') {
   const v = document.createElement('div');
   v.className = 'veil';
-  v.innerHTML = `<form class="sheet"><h3>${esc(title)}</h3><textarea maxlength="300" placeholder="${esc(placeholder)}"></textarea><div class="row2"><span class="cnt">280</span><div><button type="button" class="btn ghost" data-close>ביטול</button> <button class="btn acc">שליחה</button></div></div></form>`;
+  v.innerHTML = `<form class="sheet"><h3>${esc(title)}</h3><textarea maxlength="300" placeholder="${esc(placeholder)}"></textarea>${extra}<div class="row2"><span class="cnt">280</span><div><button type="button" class="btn ghost" data-close>ביטול</button> <button class="btn acc">שליחה</button></div></div></form>`;
   document.body.appendChild(v);
   const ta = v.querySelector('textarea'), cnt = v.querySelector('.cnt');
   ta.focus();
@@ -311,10 +311,16 @@ async function report(id) {
     toast('תודה. הדיווח הגיע לשלומי.'); track('tz_report', id); return true;
   });
 }
-function compose() {
+// a new post - with `quote`, a quote of that post under the text (the verse's home: "לצייץ על זה" on ח24's lead story)
+async function compose(quote) {
   if (!ME.citizen) return needCitizen();
-  sheet('ציוץ חדש', 'מה קורה?', async (text) => {
-    const r = await api('post', { text }, true);
+  let extra = '';
+  if (quote) {
+    const r = await api('post', { id: quote });
+    if (r.post) { take(r); D.quoted[r.post.id] = r.post; const w = who(r.post); extra = `<div class="qt"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}</div><div class="tx">${linkify(r.post.text)}</div>${inner(r.post, true)}</div>`; } else quote = null;
+  }
+  sheet(quote ? 'מה דעתך?' : 'ציוץ חדש', quote ? 'הדעה שלך על זה...' : 'מה קורה?', async (text) => {
+    const r = await api('post', quote ? { text, quote } : { text }, true);
     if (r.error) { if (!r.shown) toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
     FEED = null; toast('צייצתם'); track('tz_compose', ''); go('/tziftzif/p/' + r.post.id); return true;
   });
@@ -385,4 +391,7 @@ async function loadMe() {
   await loadMe();
   route();
   side();
+  // from the verse's home ("לצייץ על זה"): open the new post with ח24's post quoted
+  const q = new URLSearchParams(location.search).get('quote');
+  if (q) { history.replaceState(null, '', location.pathname); compose(q); }
 })();

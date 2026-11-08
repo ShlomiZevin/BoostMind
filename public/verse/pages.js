@@ -11,7 +11,7 @@ import { statusChip, SI, myStatus } from './status.js';
 import { citizenBanner } from './citizen.js';
 import { nextBar, czOpen } from './gates.js';
 import { aboutCard } from './about.js';
-import { tzHome } from './tzhome.js';
+import { tzHome, tzSide } from './tzhome.js';
 // "מה סיפרתם לנו" arrived or changed (verse/about.js): the אני page draws again
 window.addEventListener('vx-about', () => { if (cur.page === 'me') refresh(true); });
 
@@ -105,15 +105,17 @@ document.addEventListener('click', async (e) => {
 export function homeSlot() {
   // "עכשיו בחרדות" (tzhome.js, plan tz-home): under the stories; it draws itself only when ציפציפ answers (him only until it opens)
   const tz = `<div id="tz-home">${tzHome()}</div>`;
-  if (signedIn()) return citizenBanner() + yourBlock() + tz;   // the citizenship journey's banner until they finish it (citizen.js)
+  // on a computer the module and a card beside it share one row (plan tz-home D1): signed in - "זכות הדיבור" (tzhome.js);
+  // signed out - the citizenship card. On a phone they stack.
+  if (signedIn()) return citizenBanner() + yourBlock() + `<div class="tzh-row">${tz}<div id="tz-side">${tzSide()}</div></div>`;   // the citizenship journey's banner until they finish it (citizen.js)
   if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>';
   const rings = ringsHtml();
-  return `${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}${tz}
+  return `${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}<div class="tzh-row">${tz}
     <div class="signin-card"><div class="sc-top"><h2>${brand(T.signinCardTitle)}</h2>${statusChip()}</div>
       <ul class="sc-gets">${[I.comment, I.bell, I.comment, I.sticker, I.save, SI.bars].map((ic, i) => `<li>${ic}<span>${esc(T.signinCardGets[i])}</span></li>`).join('')}</ul>
       <p class="sc-more">${I.plus}<span>${esc(T.signinCardMore)}</span></p>
       <p class="sc-soon">${SI.id}<span>${esc(T.signinCardSoon)}</span></p>
-      <button class="vx-btn main block" data-signin="card">${esc(T.signinCardGo)}</button></div>
+      <button class="vx-btn main block" data-signin="card">${esc(T.signinCardGo)}</button></div></div>
     ${continueRow()}`;
 }
 

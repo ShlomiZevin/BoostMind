@@ -513,7 +513,7 @@ async function resident(uid, char, before) {
 }
 // the verse's home page module (the Shlomiverse Conversion session designs it): ח24's newest article + the newest top
 // posts, and `quiet` when nothing came today (a silent day, or no run yet) - so the home says "מהימים האחרונים"
-async function home(cfg) {
+async function home(cfg, uid) {
   const [arts, all] = await Promise.all([liveNow(db().collection('tzArticles')).limit(1).get(), liveNow(db().collection('tzPosts')).limit(40).get()]);
   const tops = all.docs.map((d) => pub(d.data())).filter((p) => !p.parent && !p.fan).slice(0, 5);
   const q = await quoted(tops), startToday = Date.parse(day() + 'T00:00:00+02:00');
@@ -521,7 +521,13 @@ async function home(cfg) {
     posts: tops.map((p) => ({ id: p.id, by: p.by, text: p.text, t: p.t, stamps: p.stamps, replies: p.replies, article: p.article, quote: p.quote && q[p.quote] ? { id: p.quote, by: q[p.quote].by, text: q[p.quote].text } : null })),
     silent: cfg.silent === day(), quiet: cfg.silent === day() || !tops.length || tops[0].t < startToday,
     // the verse names of the impressions it shows (id -> {name, handle}, like op=me), so the home needs one call
-    names: Object.fromEntries([...new Set(tops.flatMap((p) => [p.by, p.quote && q[p.quote] && q[p.quote].by]))].filter((id) => id && AL[id]).map((id) => [id, AL[id]])) };
+    names: Object.fromEntries([...new Set(tops.flatMap((p) => [p.by, p.quote && q[p.quote] && q[p.quote].by]))].filter((id) => id && AL[id]).map((id) => [id, AL[id]])),
+    // a signed-in visitor's own numbers, for the citizen's "זכות הדיבור שלך" card next to it (plan tz-home D1, his yes 2026-11-08)
+    ...(uid ? { mine: await mineOf(uid) } : {}) };
+}
+async function mineOf(uid) {
+  const list = (await db().collection('tzPosts').where('fan.uid', '==', uid).limit(300).get()).docs.map((d) => d.data()).filter((p) => p.status === 'live');
+  return { posts: list.length, stamps: list.reduce((n, p) => n + (p.stamps || 0), 0), replies: list.reduce((n, p) => n + (p.replies || 0), 0) };
 }
 async function front() {
   const list = (await liveNow(db().collection('tzArticles')).limit(30).get()).docs.map((d) => pubArt(d.data()));
@@ -612,10 +618,14 @@ async function post(user, b) {
   const m = await moderate(text);
   if (!m.ok) return { error: 'flagged' };
   const fan = isOwner(user) ? OFFICIAL : await fanOf(user);
-  const doc = { id: newId(), by: null, fan, text, parent: null, quote: null, article: null, link: null, status: 'live', t: Timestamp.now(), made: FieldValue.serverTimestamp(),
+  let quote = null;
+  if (b.quote) { const q = await db().collection('tzPosts').doc(clip(b.quote, 20)).get(); if (q.exists && q.data().status === 'live') quote = q.id; }
+  const doc = { id: newId(), by: null, fan, text, parent: null, quote, article: null, link: null, status: 'live', t: Timestamp.now(), made: FieldValue.serverTimestamp(),
     order: 0, replies: 0, stamps: 0, quotes: 0, ...(m.unchecked ? { unchecked: true } : {}) };
   doc.root = doc.id;
-  await db().collection('tzPosts').doc(doc.id).set(doc);
+  const w = db().batch().set(db().collection('tzPosts').doc(doc.id), doc);
+  if (quote) w.update(db().collection('tzPosts').doc(quote), { quotes: FieldValue.increment(1) });
+  await w.commit();
   return { ok: true, post: pub({ ...doc, t: Date.now() }) };
 }
 
@@ -658,7 +668,7 @@ async function handle(req) {
   if (op === 'post') return thread(uid, b.id);
   if (op === 'resident') return resident(uid, b.char, b.before);
   if (op === 'front') return front();
-  if (op === 'home') return home(cfg);
+  if (op === 'home') return home(cfg, uid);
   if (op === 'me') {   // what the page needs to know about the visitor: signed in, a citizen (a passport), who they follow on the verse
     if (!user) return { signed: false, citizen: false, owner: false, follows: [], names: AL };
     const f = (await db().collection('fans').doc(user.uid).get()).data() || {};
@@ -749,7 +759,7 @@ function injectHead(html, p, url) {
 async function previewOf(site, kind, id) {
   const cfg = await config();
   if (!cfg.open) return null;
-  const W = await wikiNow(), name = (by) => (by === NEWS ? 'חרדות · ח24' : (AL[by] && AL[by].name) || (W[by] && W[by].name) || by);
+  const W = await wikiNow(), name = (by) => (by === NEWS ? 'החרדות' : (AL[by] && AL[by].name) || (W[by] && W[by].name) || by);
   const face = (by) => (by === NEWS ? `${SITE}/charadot/img/icon-512.png` : (W[by] && W[by].img) || null);
   if (kind === 'p') {
     const d = await db().collection('tzPosts').doc(clip(id, 20)).get(), p = d.exists && d.data();

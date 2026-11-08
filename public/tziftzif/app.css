@@ -129,6 +129,7 @@ img { display: block; max-width: 100%; }
 .sheet { width: min(560px, 100%); background: var(--bg2); border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); }
 @media (min-width: 700px) { .sheet { border-radius: 22px; } }
 .sheet h3 { margin: 0 0 12px; font-size: 1.1rem; } .sheet textarea { width: 100%; border-radius: 14px; min-height: 120px; }
+.sheet .qt { margin: 10px 0 0; pointer-events: none; }
 .sheet .row2 { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 10px; }
 .sheet .cnt { color: var(--dim); font-size: .85rem; } .sheet .cnt.over { color: var(--news); }
 .sheet.need { text-align: center; padding-top: 22px; } .sheet.need img { width: 96px; margin: 0 auto 8px; } .sheet.need b { font-size: 1.25rem; display: block; }
