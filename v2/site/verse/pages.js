@@ -331,12 +331,13 @@ document.addEventListener('click', async (e) => {
 // shows exactly that, to edit and approve. Without one (older replies): their last messages. One already sent stays
 // "sent" when the chat is drawn again (kept by its text, on this device).
 const rqKey = (kind, text) => 'rq-sent:' + kind + ':' + [...String(text)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7);
+// Every chat since 2026-11-08 (his ask): a character offers it too, for a missing video only.
 export function requestCard(kind, mode, text) {
-  if (mode !== 'guide') return '';
   kind = kind === 'video' ? 'video' : 'contact';
-  const said = text ? text.trim() : (threads.guide || []).filter((m) => m.role === 'user').slice(-3).map((m) => m.content).join('\n');
+  if (mode !== 'guide' && kind !== 'video') return '';
+  const said = text ? text.trim() : (threads[mode] || []).filter((m) => m.role === 'user').slice(-3).map((m) => m.content).join('\n');
   const key = rqKey(kind, said);
-  try { if (localStorage.getItem(key)) return `<div class="rq sent"><b>${esc(T.rqSent)}</b></div>`; } catch (e) {}
+  try { if (localStorage.getItem(key)) return `<div class="rq sent"><b>${esc(kind === 'video' ? T.rqVideoSent : T.rqSent)}</b></div>`; } catch (e) {}
   // a note to Shlomi inside the reply, not a form (designed with GPT Image, 2026-11-01): the text as a quote he can edit,
   // an underline field for the way back, one button
   return `<form class="rq" data-rq="${kind}" data-key="${key}">
@@ -344,7 +345,7 @@ export function requestCard(kind, mode, text) {
     <label class="rq-q"><textarea name="text" maxlength="3000" rows="4" placeholder="${esc(T.rqText)}">${esc(said)}</textarea>${I.edit}</label>
     <input name="contact" maxlength="160" placeholder="${esc(T.rqContact)}" value="">
     <button class="rq-go">${I.plane}<span>${esc(text ? T.rqApprove : T.rqSend)}</span></button>
-    <small>${esc(T.rqNote)}</small></form>`;
+    <small>${esc(kind === 'video' ? T.rqVideoNote : T.rqNote)}</small></form>`;
 }
 // the wall (2026-11-06, mockup conversion/W-wall): the character stopped mid-story for a tourist (wiki.js puts [[signin]]
 // under that reply) - a card in the conversation: "{name} is ready to go on, first they need to know who you are" and
@@ -371,7 +372,7 @@ document.addEventListener('submit', async (e) => {
     track('request', f.dataset.rq);
     try { localStorage.setItem(f.dataset.key, '1'); } catch (e) {}
     f.classList.add('sent');
-    f.innerHTML = `<b>${esc(T.rqSent)}</b>`;
+    f.innerHTML = `<b>${esc(f.dataset.rq === 'video' ? T.rqVideoSent : T.rqSent)}</b>`;
   } catch (x) { btn.disabled = false; toast(T.rqFailed); }
 });
 
