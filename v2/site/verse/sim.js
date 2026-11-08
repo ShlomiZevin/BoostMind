@@ -195,8 +195,25 @@ function questionView() {
   wireWrite(el.querySelector('.vx-write'), (v, btn) => answer({ text: v }, btn, v));
   el.querySelector('[data-sim-skip]')?.addEventListener('click', skipToEnd);
   window.scrollTo(0, 0);
-  // the next question for each of the 4 answers, written while they read this one
-  if (run.n < run.of) api('pre', { rid: run.rid, n: run.n }).catch(() => {});
+}
+// while the next question is written: the question bubble, at the height it had, types Yotam's short lines (the citizenship's
+// think - nothing is written ahead, his call 2026-11-08: "it's okay that the user will wait")
+let thinkT = 0;
+function think() {
+  const say = box()?.querySelector('.sim-bubble'), lines = S().think;
+  if (!say || !lines) return;
+  clearTimeout(thinkT);
+  say.style.height = say.offsetHeight + 'px';
+  say.classList.add('thinking');
+  say.innerHTML = '<span class="cz-think"><em></em><i></i></span>';
+  const em = say.querySelector('em');
+  let k = Math.floor(Math.random() * lines.length), c = 0;
+  (function type() {
+    if (!say.isConnected) return;
+    const line = lines[k % lines.length];
+    if (c <= line.length) { em.textContent = line.slice(0, c++); thinkT = setTimeout(type, 32); return; }
+    thinkT = setTimeout(() => { k++; c = 0; type(); }, 1500);
+  })();
 }
 const lock = (on) => box()?.querySelectorAll('[data-sim-a], .sim-dock button, .sim-dock textarea').forEach((b) => (b.disabled = on));
 // the stage moves on: the old one fades out, the new one comes in (CSS sim-in)
@@ -209,7 +226,7 @@ async function answer(data, btn, label) {
   lock(true);
   const last = run.n === run.of;
   let slow = setTimeout(() => btn.classList.add('wait'), 600);
-  if (last) setTimeout(computingView, 350);
+  if (last) setTimeout(computingView, 350); else think();
   try {
     const r = await api('answer', { rid: run.rid, n: run.n, ...data });
     clearTimeout(slow);
@@ -228,7 +245,8 @@ async function answer(data, btn, label) {
     run.busy = false;
     if (e.code === 'gone' || (e.code === 'step' && run.n === 1)) { try { localStorage.removeItem(PRE); } catch (x) {} run = null; return boot({}); }   // a first question kept from before, gone on the server
     toast(S().fail, 3000);
-    if (last) questionView(); else { btn.classList.remove('on', 'wait'); lock(false); }
+    clearTimeout(thinkT);
+    questionView();   // the bubble showed Yotam's waiting lines - the question back
   }
 }
 

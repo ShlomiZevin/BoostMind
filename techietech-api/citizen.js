@@ -313,22 +313,9 @@ async function handle(req) {
   }
 
   // the booth: his script, an answer per beat; after the last line the stamp - the number is given here, in order
-  // while they read a line: his reaction to each of its fixed answers, written ahead (a tap then answers at once)
-  if (op === 'boothPre') {
-    const bt = d.bt || [], i = (d.booth || []).length, line = scriptOf(d)[i];
-    if (d.step !== 'booth' || Number(b.i) !== i || !reacts(d, i) || !line || !(line.opts || []).length || (d.bpre && d.bpre.i === i)) return { ok: true };
-    await ref.update({ bpre: { i, at: Date.now(), b: {} } });
-    // all the buttons' reactions in ONE call (2026-11-08: a call per button read the whole map once per button - the map is
-    // ~99% of a call's cost and OpenAI's cache did not catch the repeats)
-    let made = [];
-    try {
-      const all = boothInput(d, fan, bt, i, line.opts[0]) + `\n\nALL THE BUTTONS: the visitor has not answered line ${i + 1} yet - the answer above stands for any of its buttons:\n${line.opts.map((o, k) => `${k}. "${o}"`).join('\n')}\nWrite "react" once for each button, in "b": b[k] is your reaction if they tapped button k. Each stands on its own.`;
-      const BTS = { type: 'object', additionalProperties: false, required: ['b'], properties: { b: { type: 'array', minItems: line.opts.length, maxItems: line.opts.length, items: BT } } };
-      made = (await proc.run(key, 'demokratovich', [], all, BTS, 'booths')).out.b.map(btOf);
-    } catch (e) { console.error('citizen boothPre', e.message); }
-    await ref.update({ bpre: { i, at: Date.now(), b: Object.fromEntries(made.map((x, k) => [k, x]).filter(([, x]) => x)) } });
-    return { ok: true };
-  }
+  // nothing is written ahead any more (his call 2026-11-08); the page types his lines while the reaction is written. A no-op for
+  // pages still open from before
+  if (op === 'boothPre') return { ok: true };
   if (op === 'booth') {
     if (d.step !== 'booth') return view(d, fan);
     const lines = scriptOf(d), steps = lines.length + 1;

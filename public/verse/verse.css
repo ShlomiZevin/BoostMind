@@ -2092,6 +2092,9 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .cz-think em { font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cz-think i { width: 2px; height: 1.15em; flex: none; background: currentColor; animation: cz-caret 1s steps(1) infinite; }
 @keyframes cz-caret { 50% { opacity: 0; } }
+/* Yotam thinks the same way while the next question is written (sim.js think) - on the dark question bubble */
+.sim-q .sim-bubble.thinking { display: flex; align-items: center; }
+.sim-q .sim-bubble .cz-think { color: var(--dim); font-weight: 600; }
 .cz-desk.thinking .cz-scene img { animation: cz-breathe 6s ease-in-out infinite alternate; }
 @keyframes cz-breathe { to { transform: scale(1.05); } }
 .cz-desk .vx-pick-hint { margin: 2px 0 -2px; }

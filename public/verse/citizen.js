@@ -210,7 +210,6 @@ function booth() {
   const bubble = `${prev && prev.react ? `<span class="cz-re">${esc(prev.react)}</span>` : ''}${L.pre ? `<span class="cz-re cz-pre">${esc(L.pre)}</span>` : ''}<b>${esc((S.script || [])[i] || '')}</b>`;
   if (L.kind === 'bday') return boothBday(i, bubble);
   el.innerHTML = desk(3, 'citizen-booth.jpg', bubble, opts, opts.length ? Z().boothType : Z().boothOpen, '', null, L.note ? `<p class="cz-note">${esc(L.note)}</p>` : '');
-  if (opts.length) api('boothPre', { i }).catch(() => {});   // his reaction to each button, written while they read
   answers(el, async (data, label, b) => {
     if (busy) return;
     // "מסכים/ה" to the authorities' orders = the site's real notifications: the browser asks now, inside the tap (iPhone outside
