@@ -174,18 +174,19 @@ function welcome(d, k) {
       [ic('game'), '<b style="color:#fff">משחקים</b> – כל דמות והמשחק שלה, עם שיא יומי.'],
       [ic('bell'), '<b style="color:#fff">סטורי והתראות</b> – עוקבים אחרי הדמויות שאתם אוהבים ובוחרים ממי לקבל התראות.'],
       [ic('people'), '<b style="color:#fff">הקהילה</b> – מציעים רעיון לפרק או לדמות חדשה, ומצביעים לרעיונות שבא לכם לראות.'],
-      [ic('install'), '<b style="color:#fff">אפליקציה</b> – מתקינים את השלומיוורס על הטלפון, ונכנסים בנגיעה.']])),
-    // there is more than the list, and the verse keeps growing (his note on plan mail-welcome, 2026-11-08; Terra's words)
-    pad(`<div style="font:700 16px/1.6 ${FONT};color:${C.text};padding:0 0 4px">${gm('הרשימה נגמרה, אבל השלומיוורס ממש לא.')}</div>`), spacer(16),
+      [ic('install'), '<b style="color:#fff">אפליקציה</b> – מתקינים את השלומיוורס על הטלפון, ונכנסים בנגיעה.'],
+      // there is more than the list - its own line, last - and right after it the verse that keeps growing (his notes on plans
+      // mail-welcome and release-check, 2026-11-08; Terra's words)
+      [ic('plus'), '<b style="color:#fff">ועוד…</b> – הרשימה נגמרה, אבל השלומיוורס ממש לא.']])), spacer(6),
+    pad(h2('היקום ממשיך להיבנות')), spacer(8),
+    pad(p('כמו בעולם אמיתי, השלומיוורס כל הזמן גדל ומשתנה. דמויות, מקומות, משחקים ואתרים חדשים ממשיכים להופיע בו, בלי לחכות שהרשימה תתעדכן.', 16)), spacer(26),
     // the stickers - his "super important" (2026-11-04): its own box, not one more line
     pad(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td style="background-color:#2a160c;background-image:linear-gradient(135deg,#3a1c10,#1d1d25);border:2px solid ${C.accent};border-radius:20px;padding:20px 20px 22px" align="center">
 <div style="padding-bottom:10px">${ic('sticker', 34)}</div>
 <div style="font:800 21px/1.3 ${FONT};color:${C.text}">${gm('סטיקרים מהדמויות – ישר לוואטסאפ')}</div>
 <div style="font:400 15px/1.6 ${FONT};color:${C.soft};padding:8px 0 16px">${gm('עוצרים על כל רגע בכל סרטון, ובנגיעה אחת הוא הופך לסטיקר של הדמות. כל הסטיקרים שלכם נשמרים במקום אחד.')}</div>
-${button('להכין סטיקר', track('/my-stickers', k))}</td></tr></table>`), spacer(28),
-    pad(h2('היקום ממשיך להיבנות')), spacer(8),
-    pad(p('כמו בעולם אמיתי, השלומיוורס כל הזמן גדל ומשתנה. דמויות, מקומות, משחקים ואתרים חדשים ממשיכים להופיע בו, בלי לחכות שהרשימה תתעדכן.', 16)), spacer(26),
+${button('להכין סטיקר', track('/my-stickers', k))}</td></tr></table>`), spacer(26),
     pad(`<div style="font:700 14px/1 ${FONT};color:${C.dim};text-align:center;padding-bottom:14px">${gm('כמה מהשכנים החדשים שלך')}</div>` + faces(d.cast.map((c) => ({ ...c, href: track(c.href, k) })))), spacer(30),
     pad(button('להיכנס ליקום', track('/', k))), spacer(30),
     pad(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="${bg(C.card2)};border-radius:16px;padding:18px 20px;font:400 15px/1.6 ${FONT};color:${C.soft}"><div class="gs"><div class="gd">

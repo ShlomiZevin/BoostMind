@@ -355,11 +355,12 @@ function flight(played) {
 // 5b. ...or the flight as a game (his idea 2026-11-07: "a spaceship flying to the Shlomiverse, dodge the characters on the way" -
 // gates.js FLY_OPEN, his eyes only for now): verse/fly.js, loaded only here. Its stats (time, stars, shields...) wait in `flown`
 // for the entry stamp later. Its score goes on a daily table like the games' (round 2) - records/fly_<day>, the verse function's
-// score op (techietech-api/verse.js EXTRA_RECORDS: the flight is not a catalog game, so it never shows in the home's "שיאי היום").
+// score op. Since the release (2026-11-08) the flight is a catalog game too (public/verse/fly/game.json -> id "verse-fly"), so the
+// journey's flight and the game in the list share one daily table, shown in the home's "שיאי היום" as well.
 let flown = null;
 const flyRecords = {
-  submit: (value) => (signedIn() && value > 0 ? call('score', { game: 'fly', value }) : null),
-  top: () => F.getDoc(F.doc(db, 'records', `fly_${dayIL()}`)).then((d) => (d.data() || {}).top || []),
+  submit: (value) => (signedIn() && value > 0 ? call('score', { game: 'verse-fly', value }) : null),
+  top: () => F.getDoc(F.doc(db, 'records', `verse-fly_${dayIL()}`)).then((d) => (d.data() || {}).top || []),
   me: () => st.user && st.user.uid,
 };
 async function flyGame() {

@@ -351,7 +351,7 @@ export const T = {
       resident: ["הצ'אט ממשיך, בשם שלכם", 'סטיקרים ושמירת סרטונים', 'מעקבים, תגובות ושיאים'],
       citizen: ['מסע אזרחות ודרכון', 'מספר אזרח שהדמויות מכירות', 'תג אזרח מייסד'] },
     residentNote: 'כשהאזרחות תיפתח, נודיע לכם ראשונים.',
-    noPass: 'אין לכם עדיין דרכון', getPass: 'להוציא דרכון',   // the new top bar's menu before citizenship (round 5, his note 2026-11-08)
+    noPass: 'אין לכם עדיין דרכון', getPass: 'להוציא דרכון', pass: 'הדרכון שלכם',   // pass: a citizen's row (his note 2026-11-08)   // the new top bar's menu before citizenship (round 5, his note 2026-11-08)
   },
   ask3: { title: 'ויזת התייר שלכם כבר מרגישה בבית', line: 'הגיע הזמן שגם הדמויות יכירו אתכם בשם.', go: 'להסדיר תושבות', later: 'לא עכשיו' },
   // the wall in the chat (Terra, 2026-11-06; mockup conversion/W-wall)
@@ -420,7 +420,8 @@ export const T = {
     checkin: { skip: 'דלגו', skipAll: 'דלגו על הכול', type: 'או כתבו למרים מה שבא לכם', toBooth: 'לביקורת הגבולות', done: 'זוהרה, רגע, זה לא נותן, אבל יצא ירוק. תעברו, לפני שישתנה.' },
     boothType: 'או כתבו לרב מה שבא לכם', boothOpen: 'כתבו לרב את מטרת כניסתכם',   // his lines themselves live on the server (citizen.js SCRIPT) - the AI reacts between them
     // "דרכון בבקשה": their passport as a card they slide into his window (round 5, his note 2026-11-08)
-    hand: { word: 'דרכון', label: 'הנה הדרכון', hint: 'החליקו את הדרכון אל האשנב, או הקישו עליו' },
+    // the passport they hand over is the one from the world they know - the Shlomiverse's is issued at the end (his question 2026-11-08)
+    hand: { word: 'דרכון', label: 'הנה הדרכון', hint: 'החליקו את הדרכון מהעולם שלכם אל האשנב, או הקישו עליו' },
     stamped: 'הכניסה אושרה. מעמד: אזרח. משך השהייה: עד שבג״ץ יפסוק אחרת.', blessing: 'תזכה לשנים רבות, נעימות וטובות, ולישועת בג״ץ במהרה בימינו. אמן.',
     stamp: { title: 'החותמת התקבלה', number: 'מספר האזרח שלכם', founding: (n) => `אזרח מייסד · ${n} מתוך 1,000 הראשונים`, regular: 'אזרח שלומיוורס מן המניין', go: 'טסים פנימה', entry: 'כניסה · שלומיוורס' },
     visa: { office: 'ביקורת הגבולות · השלומיוורס', entry: 'כניסה · ENTRY', status: 'מעמד: אזרח', by: 'הרב דמוקרטוביץ׳', page: 'עמוד הוויזה' },

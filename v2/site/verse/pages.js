@@ -32,7 +32,7 @@ export function renderTop() {
   // menu has a row for it too). Before citizenship: an EMPTY passport - an outline, no planet - with a small orange dot
   // (round 5, his note 2026-11-08: the greyed passport didn't read as "no passport yet")
   const pass = nextBar() && st.ready ? (myStatus() === 'citizen'
-    ? `<button class="me-pass" data-status aria-label="${esc(T.status.title)}"><img src="/verse/art/passport-chip.png" alt=""></button>`
+    ? `<button class="me-pass" data-status aria-label="${esc(T.status.pass)}"><img src="/verse/art/passport-chip.png" alt=""></button>`
     : `<button class="me-pass not-yet" data-status aria-label="${esc(T.status.noPass)}">${NO_PASS}<i class="me-pass-dot"></i></button>`) : '';
   box.innerHTML = me
     ? nextBar()
@@ -283,7 +283,8 @@ function meMenu(anchor) {
   const html = `<div class="mm">
     <a class="mm-head" href="/me">${av({ fan: st.fan })}<span class="mm-who"><b>${esc(st.fan.nick)}</b><small>${esc(T.mmProfile)}</small></span>${I.next}</a>
     ${!nextBar() ? '' : myStatus() === 'citizen'
-    ? `<button class="mm-status" data-status><img src="/verse/art/passport-chip.png" alt=""><span class="mm-l">${esc(T.status.title)}</span><small>${esc(T.status.name.citizen)}${st.fan.citizen && st.fan.citizen.n ? ' #' + String(st.fan.citizen.n).padStart(4, '0') : ''}</small></button>`
+    // a citizen: "הדרכון שלכם", opening the passport itself (his note on plan release-check 2026-11-08: not "המעמד שלכם")
+    ? `<a class="mm-status" href="/citizenship"><img src="/verse/art/passport-chip.png" alt=""><span class="mm-l">${esc(T.status.pass)}</span><small>${esc(T.status.name.citizen)}${st.fan.citizen && st.fan.citizen.n ? ' #' + String(st.fan.citizen.n).padStart(4, '0') : ''}</small></a>`
     // round 5 (his note 2026-11-08): no passport yet, said in words, and the way to get one (the journey, or the status window while it's closed)
     : `<${czOpen() ? 'a href="/citizenship"' : 'button data-status'} class="mm-status not-yet">${NO_PASS}<span class="mm-l">${esc(T.status.noPass)}</span><em class="mm-get">${esc(T.status.getPass)}</em></${czOpen() ? 'a' : 'button'}>`}
     <div class="mm-g">${esc(T.mmMine)}</div>

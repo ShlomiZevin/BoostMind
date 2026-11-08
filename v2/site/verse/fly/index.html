@@ -3,17 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#050302">
 <title>הטיסה פנימה · שלומיוורס</title>
+<script src="/verse/game-frame.js"></script>
 <link rel="icon" href="/verse/favicon-32.png">
 <link rel="preload" as="image" href="/verse/art/fly-space.webp"><link rel="preload" as="image" href="/verse/art/fly-ship.webp"><link rel="preload" as="image" href="/verse/art/fly-planet.webp">
 <link rel="modulepreload" href="/verse/fly.js"><link rel="modulepreload" href="/verse/copy.js">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&display=swap" rel="stylesheet">
-<!-- The flight-in game on its own address, for him to play before it goes into the citizenship journey (verse/fly.js,
-     gates.js FLY_OPEN). Not linked from anywhere. -->
+<!-- The flight-in game (verse/fly.js) as a game of the verse - in the games list since the citizenship release (his call
+     2026-11-07: "with the release of the whole new flow"), played inside /play/verse-fly. The score goes on the day's table
+     (game.json "record"), the same table as the flight at the end of the citizenship journey (citizen.js flyRecords). -->
+<meta property="og:image" content="https://shlomiverse.com/verse/fly/cover.jpg">
 <style>
   html, body { margin: 0; height: 100%; background: #050302; overflow: hidden; font-family: 'Heebo', sans-serif; color: #fff; }
   .again { position: fixed; inset: 0; display: grid; place-content: center; gap: 14px; text-align: center; }
@@ -36,7 +38,8 @@ function start() {
     document.querySelector('.again button').onclick = start;
     window.FLY_RESULT = { what, ...s };
   };
-  play(document.body, { chars, quickEnd, seed: seed != null ? Number(seed) : undefined, onDone: end('נחתתם'), onSkip: end('דילגתם') });
+  const landed = end('נחתתם');
+  play(document.body, { chars, quickEnd, seed: seed != null ? Number(seed) : undefined, onDone: (s) => { window.VerseFrame && VerseFrame.score(s.score); landed(s); }, onSkip: end('דילגתם') });
 }
 start();
 </script>
