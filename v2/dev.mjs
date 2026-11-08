@@ -2,7 +2,9 @@
 // so nothing touches the live project) + the site on http://localhost:5050, where v2/site lies over public/.
 //   node v2/dev.mjs            (Ctrl+C stops everything; local data is kept in v2/.emu between runs)
 //   node v2/dev.mjs --site     (the site only, when the emulators already run)
-// The OpenAI key is read from zoomcut/.env (his WIKI key) at start and handed to the emulator in memory.
+// The OpenAI key is the sessions' design key (scripts/design.env, node scripts/design-env.mjs), read at start and handed to the
+// emulator in memory - local tests count as "design" on Backstage → הוצאות (2026-11-08: it took the studio's key first, so a
+// night of local tests showed as $11 of studio spend on a day nothing was filmed)
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -20,8 +22,8 @@ const JAVA = path.join(process.env.USERPROFILE || 'C:/Users/shazbak', '.local', 
 const envKey = (file, name) => { try { return fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, ''); } catch { return undefined; } };
 
 if (!process.argv.includes('--site')) {
-  const key = envKey(path.join(ROOT, 'zoomcut', '.env'), 'OPENAI_API_KEY') || envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
-  if (!key) console.log('! no OpenAI key found - character replies, moderation and stickers will fail');
+  const key = envKey(path.join(ROOT, 'scripts', 'design.env'), 'OPENAI_API_KEY');
+  if (!key) console.log('! no design key (node scripts/design-env.mjs) - character replies, moderation and stickers will fail');
   const env = { ...process.env, JAVA_HOME: JAVA, PATH: path.join(JAVA, 'bin') + path.delimiter + process.env.PATH, VERSE_OPENAI_KEY: key || '', WIKI_OPENAI_KEY: key || '' };
   const emu = spawn('firebase', ['emulators:start', '--project', 'demo-shlomiverse', '--import', './.emu', '--export-on-exit', './.emu'],
     { cwd: HERE, env, shell: true, stdio: 'inherit' });

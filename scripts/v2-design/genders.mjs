@@ -3,7 +3,7 @@
 //   node scripts/v2-design/genders.mjs   ->  v2/site/verse/genders.json   (re-run after new characters; keeps known ones)
 import fs from 'node:fs';
 const envKey = (file, name) => { try { return fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, ''); } catch { return undefined; } };
-const KEY = envKey('C:/workspace/BoostMind/zoomcut/.env', 'OPENAI_API_KEY') || envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');
+const KEY = envKey('C:/workspace/BoostMind/scripts/design.env', 'OPENAI_API_KEY');   // the design key (sessions' work = design on Backstage), never the studio's
 const OUT = 'C:/workspace/BoostMind/v2/site/verse/genders.json';
 const W = JSON.parse(fs.readFileSync('C:/workspace/BoostMind/public/wiki/data/wiki.json', 'utf8'));
 const known = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : {};
