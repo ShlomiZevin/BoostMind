@@ -76,6 +76,7 @@ const canon = (brain) => {
 // the brain in use: { map, byId, videos, md5 }, rebuilt only when the bucket's copy changes. `map` = the rules + the
 // short map of everything (wiki-chain.js); the full canon() is no longer sent - kept for reference / a fallback
 const chain = require('./wiki-chain');
+const { search } = require('./wiki-search');   // the videos by meaning (look_up's search)
 const fromBrain = (brain, md5) => ({ map: RULES + '\n\n' + chain.mapText(brain), byId: Object.fromEntries(brain.characters.map((c) => [c.id, c])),
   videos: Object.fromEntries(brain.videos.map((v) => [v.id, v])), games: Object.fromEntries((brain.games || []).map((g) => [g.id, g])), md5 });
 let current = fromBrain(bundled, 'bundled');
@@ -221,15 +222,21 @@ async function stream(key, mode, turns, onText, opts = {}) {
     console.log('wikiChat one call', mode, JSON.stringify({ c: b.characters, v: b.videos.slice(0, 8) }));
     return first.usage;
   }
-  const picked = chain.merge(cur, b, first.lookup);
-  console.log('wikiChat look_up', mode, JSON.stringify({ asked: first.lookup, c: picked.characters, v: picked.videos.slice(0, 8) }),
+  // a video asked about by what happens in it: the search finds it by meaning (wiki-search.js) - its ids go first
+  let found = [], u3 = {};
+  if (first.lookup.search) {
+    const r = await search(key, cur, first.lookup.search).catch((e) => { console.error('wiki-search', e.message); return null; });
+    if (r) { found = r.ids; u3 = r.usage || {}; }
+  }
+  const picked = chain.merge(cur, b, { ...first.lookup, videos: [...found, ...(first.lookup.videos || [])] });
+  console.log('wikiChat look_up', mode, JSON.stringify({ asked: first.lookup, c: picked.characters, v: picked.videos.slice(0, 8), found }),
     'first in', first.usage.input_tokens || 0, 'cached', first.usage.input_tokens_details?.cached_tokens || 0, 'out', first.usage.output_tokens || 0);
   const second = await safe(dev(picked) + soft + '\n\nNow reply to the visitor\'s last message.', null);
-  const u1 = first.usage, u2 = second.usage;
-  return {  // both calls, so the logs and keep() see the real cost
-    input_tokens: (u1.input_tokens || 0) + (u2.input_tokens || 0),
-    input_tokens_details: { cached_tokens: (u1.input_tokens_details?.cached_tokens || 0) + (u2.input_tokens_details?.cached_tokens || 0) },
-    output_tokens: (u1.output_tokens || 0) + (u2.output_tokens || 0),
+  const us = [first.usage, second.usage, u3], sum = (f) => us.reduce((t, u) => t + (f(u) || 0), 0);
+  return {  // all the calls (+ the search), so the logs and keep() see the real cost
+    input_tokens: sum((u) => u.input_tokens),
+    input_tokens_details: { cached_tokens: sum((u) => u.input_tokens_details?.cached_tokens) },
+    output_tokens: sum((u) => u.output_tokens),
   };
 }
 exports._stream = stream;
