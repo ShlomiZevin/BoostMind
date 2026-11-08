@@ -618,6 +618,76 @@ exports.verseTzOnPost = onDocumentCreated({ document: 'tzPosts/{id}', region: 'm
   try { await answer(doc); } catch (e) { console.error('verseTzOnPost', e.message); }
 });
 
+// ---------- link previews (his note 2026-11-08: "nice social links") ----------
+// Hosting sends /tziftzif/p|u|a/<id> and /charadot/a/<id> here; the answer is the site's own page with THAT post's /
+// resident's / article's title, line and picture in its <head>. While the sites are closed (open=false) the preview stays
+// the site's own - nothing leaks. Any failure = the page with its default preview, never an error.
+const SITE = 'https://shlomiverse.com';
+const pageCache = {};
+async function pageOf(url) {
+  const c = pageCache[url];
+  if (c && Date.now() - c.t < 60e3) return c.v;
+  const r = await fetch(url, { headers: { 'cache-control': 'no-cache' } });
+  if (!r.ok) { if (c) return c.v; throw new Error('template ' + r.status); }
+  const v = await r.text();
+  pageCache[url] = { v, t: Date.now() };
+  return v;
+}
+let wikiData = null, wikiAt = 0;
+async function wikiNow() {
+  if (wikiData && Date.now() - wikiAt < 120e3) return wikiData;
+  try { const w = await (await fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json')).json(); wikiData = Object.fromEntries((w.characters || []).map((c) => [c.id, c])); wikiAt = Date.now(); } catch (e) {}
+  return wikiData || {};
+}
+const ex = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const one = (s, n = 200) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+function injectHead(html, p, url) {
+  const set = (re, tag) => { html = re.test(html) ? html.replace(re, tag) : html.replace('</head>', tag + '\n</head>'); };
+  const title = ex(one(p.title, 90)), desc = ex(one(p.desc));
+  set(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
+  set(/<meta name="description"[^>]*>/, `<meta name="description" content="${desc}">`);
+  set(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${title}">`);
+  set(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${desc}">`);
+  set(/<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${ex(url)}">`);
+  if (p.img) {
+    set(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${ex(p.img)}">`);
+    html = html.replace(/<meta property="og:image:(width|height)"[^>]*>\n?/g, '');
+    set(/<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${ex(p.img)}">`);
+  }
+  return html;
+}
+async function previewOf(site, kind, id) {
+  const cfg = await config();
+  if (!cfg.open) return null;
+  const W = await wikiNow(), name = (by) => (by === NEWS ? 'חרדות · ח24' : (AL[by] && AL[by].name) || (W[by] && W[by].name) || by);
+  const face = (by) => (by === NEWS ? `${SITE}/charadot/img/icon-512.png` : (W[by] && W[by].img) || null);
+  if (kind === 'p') {
+    const d = await db().collection('tzPosts').doc(clip(id, 20)).get(), p = d.exists && d.data();
+    if (!p || p.status !== 'live') return null;
+    const who = p.fan ? (p.fan.official ? 'ציפציפ' : p.fan.nick) : name(p.by);
+    let img = (p.link && p.link.img) || null;
+    if (!img && p.article) { const a = await db().collection('tzArticles').doc(p.article).get(); img = a.exists ? a.data().img : null; }
+    return { title: `${who} בציפציפ`, desc: p.text, img: img || (p.by && face(p.by)) || `${SITE}/tziftzif/img/og.png` };
+  }
+  if (kind === 'u') return { title: `${name(id)} (@${id === NEWS ? id : (AL[id] && AL[id].handle) || id}) · ציפציפ`, desc: id === NEWS ? 'ערוץ החדשות של השלומיוורס. הישארו איתנו.' : (W[id] && (W[id].tagline || W[id].role)) || 'מה מצייצים בשלומיוורס', img: face(id) };
+  if (kind === 'a') {
+    const d = await db().collection('tzArticles').doc(clip(id, 20)).get(), a = d.exists && d.data();
+    if (!a || a.status !== 'live') return null;
+    return { title: `${a.headline} · ח24`, desc: a.sub, img: a.img || `${SITE}/charadot/img/og.jpg` };
+  }
+  return null;
+}
+exports.verseTzPage = onRequest({ region: 'europe-west1', memory: '256MiB', timeoutSeconds: 15, concurrency: 80, maxInstances: 5 }, async (req, res) => {
+  const [, site = '', kind = '', raw = ''] = req.path.split('/');
+  const template = `${SITE}/${site === 'charadot' ? 'charadot' : 'tziftzif'}/index.html`;
+  let html;
+  try { html = await pageOf(template); } catch (e) { res.redirect(302, `/${site}/`); return; }
+  try { const p = await previewOf(site, kind, decodeURIComponent(raw)); if (p) html = injectHead(html, p, SITE + req.path); } catch (e) { console.error('verseTzPage', req.path, e.message); }
+  res.set('Cache-Control', 'public, max-age=120, s-maxage=300');
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.status(200).send(html);
+});
+
 // ---------- Backstage → ציפציפ (through verseOwner) ----------
 async function owner(op, b) {
   if (op === 'tzList') {
@@ -681,4 +751,4 @@ async function owner(op, b) {
   return { error: 'op' };
 }
 
-module.exports = { _ogImage: ogImage, verseTz: exports.verseTz, verseTzRun: exports.verseTzRun, verseTzOnPost: exports.verseTzOnPost, owner, SECRETS, _run: run, _headlines: headlines, _publish: publish, _candidates: candidates };
+module.exports = { _ogImage: ogImage, verseTzPage: exports.verseTzPage, verseTz: exports.verseTz, verseTzRun: exports.verseTzRun, verseTzOnPost: exports.verseTzOnPost, owner, SECRETS, _run: run, _headlines: headlines, _publish: publish, _candidates: candidates };

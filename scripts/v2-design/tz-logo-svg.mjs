@@ -28,13 +28,18 @@ function mark({ bg, body, line = 'none', ring, eye, glow = false, lineW = 3.5, i
   <defs>
     ${glow ? `<filter id="${id}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>` : ''}
     <clipPath id="${id}f"><rect x="-20" y="60" width="170" height="40" transform="rotate(-6 60 60)"/></clipPath>
+    <!-- the gap around the front of the ring is a real cut-out (transparent on any background), not painted in the background colour -->
+    <mask id="${id}k" maskUnits="userSpaceOnUse" x="-10" y="-10" width="150" height="130"><rect x="-10" y="-10" width="150" height="130" fill="#fff"/>
+      <g clip-path="url(#${id}f)" transform="rotate(-6 60 60)"><ellipse cx="60" cy="60" rx="53" ry="11" fill="none" stroke="#000" stroke-width="10.5"/></g></mask>
   </defs>
   <g ${glow ? `filter="url(#${id}g)"` : ''}>
-    <g transform="rotate(-6 60 60)">${ell(ring, 6)}</g>
-    <path d="${shape}" fill="${body}" stroke="${line}" stroke-width="${line === 'none' ? 0 : lineW}" stroke-linejoin="round"/>
-    <path d="${beak}" fill="${line !== 'none' ? line : ring}" stroke="${line !== 'none' ? line : ring}" stroke-width="1.4" stroke-linejoin="round"/>
-    <circle cx="73" cy="37" r="5.4" fill="${eye}"/>
-    <g clip-path="url(#${id}f)" transform="rotate(-6 60 60)">${ell(bg, 10.5)}${ell(ring, 6)}</g>
+    <g mask="url(#${id}k)">
+      <g transform="rotate(-6 60 60)">${ell(ring, 6)}</g>
+      <path d="${shape}" fill="${body}" stroke="${line}" stroke-width="${line === 'none' ? 0 : lineW}" stroke-linejoin="round"/>
+      <path d="${beak}" fill="${line !== 'none' ? line : ring}" stroke="${line !== 'none' ? line : ring}" stroke-width="1.4" stroke-linejoin="round"/>
+      <circle cx="73" cy="37" r="5.4" fill="${eye}"/>
+    </g>
+    <g clip-path="url(#${id}f)" transform="rotate(-6 60 60)">${ell(ring, 6)}</g>
   </g>
 </svg>`;
 }
@@ -79,5 +84,20 @@ const stack = (k) => `<div class="s"><div style="width:200px">${svg(k, 's' + k)}
 await shot(`<div style="display:grid;grid-template-columns:repeat(2,560px)">${['dark', 'light', 'orange', 'white', 'black', 'mono'].map((k) => panel(k, horiz(k))).join('')}</div>`, path.join(OUT, 'V-horizontal.png'), 1120, 690);
 await shot(`<div style="display:grid;grid-template-columns:repeat(2,560px)">${['dark', 'light'].map((k) => panel(k, stack(k), 560, 420)).join('')}</div>`, path.join(OUT, 'V-stacked.png'), 1120, 420);
 await shot(`<div style="display:flex;gap:28px;padding:28px;background:#e9e6e0;align-items:center">${tile('dark', 220, false)}${tile('orange', 220, false)}${tile('dark', 220, true)}${tile('light', 220, false)}<div style="display:flex;flex-direction:column;gap:14px;align-items:center">${tile('orange', 64, false)}${tile('orange', 32, false)}${tile('dark', 16, false)}</div></div>`, path.join(OUT, 'V-icons.png'), 1100, 276);
+// transparent logo files for any use (his note: "the logos should be transparent") - the lockups and the mark, no background
+const clear = async (html, file, w, h) => {
+  await page.setViewport({ width: w, height: h, deviceScaleFactor: 2 });
+  await page.setContent(`<!doctype html><html><head><meta charset="utf-8">${FONT}<style>${CSS} html,body{background:transparent}</style></head><body><div style="width:${w}px;height:${h}px;display:grid;place-items:center">${html}</div></body></html>`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.evaluate(async () => { await document.fonts.load('900 40px Rubik', 'ציפ'); await document.fonts.ready; });
+  await page.screenshot({ path: file, omitBackground: true });
+};
+for (const k of ['dark', 'light', 'white', 'black']) {
+  const flat = { ...V[k], glow: false, bg: k === 'dark' ? '#0b0b0e' : V[k].bg };
+  const m = mark({ ...flat, id: 'c' + k });
+  const wd = `<span class="w" style="font-size:78px"><b style="color:${V[k].word[0]}">ציפ</b><b style="color:${V[k].word[1]}">ציפ</b></span>`;
+  await clear(`<div class="h"><div style="width:120px">${m}</div>${wd}</div>`, path.join(SITE, `logo-${k}.png`), 470, 130);
+  await clear(`<div class="s"><div style="width:200px">${m}</div>${wd.replace('78px', '84px')}</div>`, path.join(SITE, `logo-stacked-${k}.png`), 380, 300);
+}
+await clear(`<div style="width:460px">${mark({ ...V.dark, glow: false, id: 'cm' })}</div>`, path.join(SITE, 'mark.png'), 500, 420);
 await browser.close();
 console.log('ok');

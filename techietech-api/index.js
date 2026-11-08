@@ -203,6 +203,7 @@ const tz = require('./tz');
 exports.verseTz = tz.verseTz;
 exports.verseTzRun = tz.verseTzRun;
 exports.verseTzOnPost = tz.verseTzOnPost;
+exports.verseTzPage = tz.verseTzPage;   // ציפציפ / ח24's link previews
 
 // Shlomi's own analytics (public/t.js -> track, the /stats/ dashboard -> stats) - see analytics.js
 Object.assign(exports, require('./analytics'));

@@ -53,6 +53,11 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(f).pipe(res);
 }).listen(5077);
 
+// the link previews (verseTzPage) with the sites open: a post and an article carry their own title + picture
+for (const u of [`/tziftzif/p/${posts.map((d) => d.data()).find((p) => p.link)?.id || posts[0].id}`, arts[0] ? `/charadot/a/${arts[0].id}` : null].filter(Boolean)) {
+  const h = await (await fetch('http://127.0.0.1:5001/demo-shlomiverse/europe-west1/verseTzPage' + u)).text();
+  console.log('preview', u, (h.match(/<meta property="og:title" content="([^"]*)"/) || [])[1], '|', (h.match(/<meta property="og:image" content="([^"]*)"/) || [])[1]);
+}
 const puppeteer = require('../../zoomcut/render/node_modules/puppeteer-core');
 const browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new' });
 const page = await browser.newPage();

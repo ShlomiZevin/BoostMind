@@ -185,6 +185,34 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/tziftzif/p/**",
+        "function": {
+          "functionId": "verseTzPage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/tziftzif/u/**",
+        "function": {
+          "functionId": "verseTzPage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/tziftzif/a/**",
+        "function": {
+          "functionId": "verseTzPage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/charadot/a/**",
+        "function": {
+          "functionId": "verseTzPage",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "/tziftzif/**",
         "destination": "/tziftzif/index.html"
       },

@@ -28,6 +28,7 @@ function soon() {
 }
 
 async function front() {
+  if (!app.querySelector('.load')) loading();
   document.title = 'ח24 - החרדות';
   const r = await api('front');
   if (r.error) return r.error === 'soon' ? soon() : (app.innerHTML = '<div class="empty">השידור נקטע. נסו לרענן.</div>');
@@ -42,7 +43,9 @@ async function front() {
   track('ch_front', '');
 }
 
+const loading = () => { app.innerHTML = '<div class="load"><img src="/charadot/img/mark-red.png" alt=""><span>הישארו איתנו</span></div>'; };
 async function article(id) {
+  loading();
   const r = await api('article', { id });
   if (r.error) return r.error === 'soon' ? soon() : (app.innerHTML = '<div class="empty">הכתבה הזאת ירדה מהאוויר.</div>');
   const a = r.article;

@@ -6,12 +6,14 @@ body { overflow-x: hidden; }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
 .in { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
-.load { min-height: 60vh; }
+.load { min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; animation: pulse 1.3s ease-in-out infinite; }
+.load img { width: 150px; } .load span { color: var(--red); font-weight: 900; letter-spacing: .02em; }
+@keyframes pulse { 50% { opacity: .45; transform: scale(.96); } }
 
 /* the logo bar and the ticker stay at the top together while scrolling (his note: the מבזקים strip stays in place) */
 .top { background: linear-gradient(90deg, #b30d13, #7e090d); position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 12px rgba(0,0,0,.25); padding-top: env(safe-area-inset-top); }
 .top .in { display: flex; align-items: center; height: 56px; gap: 12px; }
-.logo img { height: 38px; width: auto; }
+.logo img { height: 34px; width: auto; display: block; }
 .live { margin-inline-start: auto; color: #fff; font-weight: 800; font-size: .85rem; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,.25); padding: 4px 12px; border-radius: 30px; }
 .live i { width: 9px; height: 9px; border-radius: 50%; background: #fff; animation: blink 1s infinite; }
 @keyframes blink { 50% { opacity: .2; } }
