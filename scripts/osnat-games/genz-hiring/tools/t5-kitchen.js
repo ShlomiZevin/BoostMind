@@ -29,7 +29,8 @@ const SIZES = [[390, 844], [320, 568], [412, 915], [768, 1024], [1280, 800]];
       while (N.osnat.task || N.osnat.queue.length) await wait(50);
       N.freeze = true;
       const bar = document.getElementById('bar').getBoundingClientRect();
-      return { atX: Math.abs(N.osnat.x - (st.left + st.width / 2)) < 6, behindCounter: N.osnat.y > bar.top && N.osnat.y < bar.top + bar.height * 0.6, hands: N.osnat.hands.slice(),
+      const ox = document.body.getBoundingClientRect().left;
+      return { atX: Math.abs(N.osnat.x + ox - (st.left + st.width / 2)) < 6, behindCounter: N.osnat.y > bar.top && N.osnat.y < bar.top + bar.height * 0.6, hands: N.osnat.hands.slice(),
         lobbyAboveItems: N.cands[2].y < st.top + 4, laughAboveItems: document.getElementById('laughBtn').getBoundingClientRect().bottom <= st.top + 2 };
     });
     await p.screenshot({ path: `${OUT}/t5-${w}.png` });

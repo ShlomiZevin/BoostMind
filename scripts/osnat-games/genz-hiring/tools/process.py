@@ -27,7 +27,7 @@ for p in ['idle','run','laugh','snack','sad']:
     save(trim(Image.open(f'{A}/osnat-{p}.png').convert('RGBA')),f'osnat-{p}',420)
 save(trim(Image.open(f'{A}/desk.png').convert('RGBA')),'desk',300)
 save(trim(Image.open(f'{A}/chair.png').convert('RGBA')),'chair',260)
-for i in range(1,7):
+for i in range(1,11):
     b=sorted(blobs(Image.open(f'{A}/c{i}.png').convert('RGBA'),2),key=lambda t:t[0])
     save(b[0][2],f'c{i}-stand',400); save(b[1][2],f'c{i}-sit',360)
 ITEMS=['dog','ring','matcha','title','calendar','headphones','charger','contract','snack']

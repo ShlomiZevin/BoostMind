@@ -34,7 +34,7 @@ const PERKS = [
   { id: 'charger', label: 'מטען', word: 'יש לי 3%', day: 5, ask: 'יש לי 3%.' },
 ];
 const perk = (id) => PERKS.find((p) => p.id === id);
-const PEOPLE = [{ id: 'c1', f: true }, { id: 'c2', f: false }, { id: 'c3', f: true }, { id: 'c4', f: false }, { id: 'c5', f: true }, { id: 'c6', f: false }];
+const PEOPLE = [{ id: 'c1', f: true }, { id: 'c2', f: false }, { id: 'c3', f: true }, { id: 'c4', f: false }, { id: 'c5', f: true }, { id: 'c6', f: false }, { id: 'c7', f: true }, { id: 'c8', f: false }, { id: 'c9', f: true }, { id: 'c10', f: false }];
 
 // ───────────────────────── art ─────────────────────────
 const IMG = {};
@@ -116,16 +116,17 @@ sndIcons();
 
 // ───────────────────────── layout ─────────────────────────
 const cv = $('cv'), ctx = cv.getContext('2d');
-let W = 0, H = 0, DPR = 1;
+let W = 0, H = 0, DPR = 1, OX = 0;
 let P = { x0: 0, y0: 0, x1: 0, y1: 0 }, U = 1;   // the play area between the strip and the stations; U = size unit
 const cssPx = (v) => { const d = document.createElement('div'); d.style.cssText = `position:fixed;top:${v};visibility:hidden`; document.body.appendChild(d); const t = d.getBoundingClientRect().top; d.remove(); return t; };
 const desks = [0, 1, 2, 3].map((i) => ({ i, x: 0, y: 0, w: 0, h: 0, c: null }));
 let lobby = [];   // where waiting candidates stand
 const KIT = { top: 0, ch: 80 }, RUG = { x: 0, y: 0, w: 0 };   // + Techy-Tech's logo rug on the floor between the desk rows   // the kitchenette counter: its top edge and height
 function layout() {
-  DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+  DPR = Math.min(2, devicePixelRatio || 1); W = document.body.clientWidth || innerWidth; H = innerHeight;
+  OX = document.body.getBoundingClientRect().left;   // the phone column's left edge on a wide screen
   cv.width = W * DPR; cv.height = H * DPR;
-  document.body.classList.toggle('turn', W > H * 1.15 && H < 520 && 'ontouchstart' in window);
+  document.body.classList.toggle('turn', innerWidth > H * 1.15 && H < 520 && 'ontouchstart' in window);
   const top = cssPx('var(--safe-t)') + 106, barH = ($('bar').offsetHeight || 84);
   KIT.top = H - barH; KIT.ch = Math.min(W, 660) / 4.62;
   P = { x0: 0, y0: top, x1: W, y1: KIT.top - KIT.ch * 0.36 };   // the perks stand above the counter top
@@ -165,7 +166,7 @@ function stationPos(id) {
   const b = document.querySelector(`.st[data-id="${id}"]`);
   if (!b) return { x: W / 2, y: KIT.top + KIT.ch * 0.3 };
   const r = b.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: KIT.top + KIT.ch * 0.3 };
+  return { x: r.left - OX + r.width / 2, y: KIT.top + KIT.ch * 0.3 };
 }
 
 // ───────────────────────── state ─────────────────────────
@@ -236,7 +237,7 @@ function queueTask(t) {
 cv.addEventListener('pointerdown', (e) => {
   if ((state !== 'play' && state !== 'tut') || paused) return;
   audioUnlock();
-  const x = e.clientX, y = e.clientY;
+  const x = e.clientX - OX, y = e.clientY;
   // a waiting candidate: seat them at a free desk
   const waiting = cands.filter((c) => c.st === 'lobby' || c.st === 'walk');
   for (const c of waiting) {
@@ -588,7 +589,7 @@ const tutCard = $('tutCard'), tutHole = $('tutHole');
 let tutWait = null;
 function tutFlag(id) { if (tutWait && tutWait.id === id) tutWait.done = true; }
 const tc = () => cands[0];
-const spotEl = (sel) => () => { const e = typeof sel === 'string' ? document.querySelector(sel) : sel; if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left - 6, y: r.top - 6, w: r.width + 12, h: r.height + 12 }; };
+const spotEl = (sel) => () => { const e = typeof sel === 'string' ? document.querySelector(sel) : sel; if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left - OX - 6, y: r.top - 6, w: r.width + 12, h: r.height + 12 }; };
 const spotOsnat = () => ({ x: osnat.x - 50 * U, y: osnat.y - 170 * U, w: 100 * U, h: 180 * U });
 const spotLobby = () => { const c = tc(); return c ? { x: c.x - 50 * U, y: c.y - 165 * U, w: 100 * U, h: 175 * U } : null; };
 const spotDesk = () => { const d = desks[0], y = Math.max(P.y0 - 2, d.y - SIT * U - 100 * U); return { x: d.x - d.w / 2 - 30 * U, y, w: d.w + 60 * U, h: d.y + d.h / 2 + 8 * U - y }; };

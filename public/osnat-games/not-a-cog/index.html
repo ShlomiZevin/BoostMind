@@ -28,6 +28,14 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
 body{background:#dfe7ef}
+/* a wide screen plays the phone layout: the game is a phone-shaped column in the middle (the transform makes the
+   fixed layers inside it - HUD, counter, screens - belong to the column, not the window) */
+:root{--sw:100vw}
+@media (min-aspect-ratio:4/5){
+  :root{--sw:calc(100vh * .5625)}
+  html{background:radial-gradient(circle at 50% 40%,#2b4170,#0d1528)}
+  body{width:var(--sw);margin:0 auto;transform:translateZ(0);box-shadow:0 0 0 1px #ffffff22,0 20px 60px #0009}
+}
 [hidden]{display:none!important}
 button{font-family:inherit;border:0;cursor:pointer}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
@@ -58,7 +66,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #say.loud{background:#fff1f1;border-color:var(--red);color:#991b1b}
 
 /* the kitchenette: a painted counter, the perks stand on it; Osnat walks behind it to take them */
-#bar{--cw:min(100vw,660px);--ch:calc(var(--cw) / 4.62);position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:var(--cw);height:calc(var(--ch) + var(--safe-b));padding:0 3.5% var(--safe-b);display:none;justify-content:center;gap:2px;z-index:3;background:url(assets/counter.webp) top center/100% var(--ch) no-repeat,linear-gradient(transparent var(--ch),#4b6a91 var(--ch))}
+#bar{--cw:min(var(--sw),660px);--ch:calc(var(--cw) / 4.62);position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:var(--cw);height:calc(var(--ch) + var(--safe-b));padding:0 3.5% var(--safe-b);display:none;justify-content:center;gap:2px;z-index:3;background:url(assets/counter.webp) top center/100% var(--ch) no-repeat,linear-gradient(transparent var(--ch),#4b6a91 var(--ch))}
 #bar.on{display:flex}
 .st{flex:1;max-width:86px;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;position:relative;background:none}
 .st img{height:calc(var(--ch) * .56);width:auto;max-width:96%;object-fit:contain;margin-top:calc(var(--ch) * -.36);pointer-events:none;filter:drop-shadow(0 3px 2px #0004);transition:transform .12s}
@@ -198,6 +206,6 @@ body.turn #turn{display:flex}
     <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
   </div>
 </div>
-<script src="game.js?v=3"></script>
+<script src="game.js?v=4"></script>
 </body>
 </html>
