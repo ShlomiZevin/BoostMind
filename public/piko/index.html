@@ -191,6 +191,19 @@ async function api(method, path, body) {
   if (!r.ok) throw new Error(ERR[j.error] || j.detail || j.error || 'שגיאה ' + r.status);
   return j;
 }
+// a finished picture / video as a File, from Piko's own address (the bucket's signed links are another site, which a page
+// may show but not read - so sharing failed). Fetched when the result opens and kept: the iPhone opens its share sheet
+// only straight after a tap, so the file has to be here already
+const files = new Map();
+function fileOf(j) {
+  if (!files.has(j.id)) files.set(j.id, (async () => {
+    const r = await fetch(`/piko/api/jobs/${j.id}/file`, { headers: { authorization: 'Bearer ' + await O.auth.currentUser.getIdToken() } });
+    if (!r.ok) throw new Error('file ' + r.status);
+    const b = await r.blob(), v = j.kind === 'video';
+    return new File([b], `piko-${j.id.slice(0, 6)}.${v ? 'mp4' : 'jpg'}`, { type: v ? 'video/mp4' : (b.type || 'image/jpeg') });
+  })().catch((e) => { files.delete(j.id); throw e; }));
+  return files.get(j.id);
+}
 
 // ---- state ----
 // his defaults (2026-11-07): story format 9:16, low quality, sound on; 2 pictures at once, 1 video
@@ -497,6 +510,10 @@ function render() {
 
 function wire() {
   const V = $('#view');
+  if (st.view === 'job') {   // the result is open: get its file(s) now, so share / save open at once
+    const cur = st.jobs.find((x) => x.id === st.job);
+    if (cur) st.jobs.filter((x) => x.status === 'done' && (x.id === cur.id || (cur.batch && x.batch === cur.batch))).forEach((x) => fileOf(x).catch(() => {}));
+  }
   V.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => { st.mode = b.dataset.mode; keep(); render(); }));
   V.querySelectorAll('[data-vmodel]').forEach((b) => (b.onclick = () => { st.video.model = b.dataset.vmodel; keep(); render(); }));
   V.querySelectorAll('[data-pick]').forEach((b) => (b.onclick = () => pick(b.dataset.pick)));
@@ -531,14 +548,17 @@ function loadInto(j) {
   if (a.kind === 'video') { st.start = j.inputs?.start ? { src: j.inputs.start } : null; st.end = j.inputs?.end ? { src: j.inputs.end } : null; }
   else st.refs = (j.inputs?.refs || []).map((u) => ({ src: u }));
 }
+// share = the phone's share sheet; save = on iPhone the same sheet ("Save Video" / "Save Image"), elsewhere a download
 async function share(j, save) {
+  let file;
+  try { file = await fileOf(j); } catch { return toast('הקובץ לא ירד, נסו שוב'); }
   try {
-    const blob = await (await fetch(j.url)).blob();
-    const name = `piko-${j.id.slice(0, 6)}.${j.kind === 'video' ? 'mp4' : 'jpg'}`;
-    const file = new File([blob], name, { type: blob.type });
     if (navigator.canShare?.({ files: [file] }) && (!save || /iPhone|iPad|iPod/.test(navigator.userAgent))) return await navigator.share({ files: [file] });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  } catch (e) { if (e.name !== 'AbortError') toast('לא הצליח לשתף'); }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  } catch (e) {
+    if (e.name === 'NotAllowedError') toast('הקובץ מוכן, לחצו שוב');   // it took longer than the phone allows after a tap
+    else if (e.name !== 'AbortError') toast('לא הצליח לשתף');
+  }
 }
 function askDelete(j) {
   const el = document.createElement('div'); el.className = 'sheet';

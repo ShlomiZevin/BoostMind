@@ -466,7 +466,16 @@ async function route(req, res) {
   if (r0 === 'jobs' && r1) {
     const ref = db().collection(JOBS).doc(r1), d = await ref.get(), j = d.data();
     if (!j || j.hidden || (j.by !== u.by && !u.owner)) return res.status(404).json({ error: 'job' });
-    if (req.method === 'DELETE') { await ref.update({ hidden: true }); return res.json({ ok: true }); }   // off the list; the library keeps the file
+    if (req.method === 'DELETE') { await ref.update({ hidden: true }); return res.json({ ok: true }); }
+    // the finished file itself, from this same address - a page can only share / save a file it can read, and the bucket's
+    // signed links are another site to the browser (his phone: "I can't save or share it", 2026-11-08)
+    if (parts[2] === 'file') {
+      if (!j.path) return res.status(404).json({ error: 'file' });
+      const f = bucket().file(j.path), [m] = await f.getMetadata();
+      res.set({ 'content-type': m.contentType || (j.kind === 'video' ? 'video/mp4' : 'image/jpeg'), 'content-length': m.size, 'cache-control': 'private, max-age=3600',
+        'content-disposition': `attachment; filename="piko-${r1.slice(0, 6)}.${j.kind === 'video' ? 'mp4' : 'jpg'}"` });
+      return await new Promise((ok, no) => f.createReadStream().on('error', no).pipe(res).on('finish', ok));
+    }   // off the list; the library keeps the file
     if (j.status === 'running' && Date.now() - (j.checked || 0) > 8000) {
       await checkVideo(ref, j).catch((e) => console.warn('piko check', r1, e.message));
       return res.json(await view(r1, (await ref.get()).data(), true));

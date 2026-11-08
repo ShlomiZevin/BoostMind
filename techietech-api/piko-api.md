@@ -38,6 +38,7 @@ Wherever a picture goes in (`refs`, `start`, `end`), it can be:
 | `POST /videos` | start a video → the job (201) |
 | `GET /jobs/:id` | the job; poll every few seconds until `status` is `done` or `failed` |
 | `GET /jobs?limit=40&before=<created ms>` | your jobs, newest first (`more: true` if there are older ones) |
+| `GET /jobs/:id/file` | the finished file itself (jpeg / mp4, as a download) - same key; use it, or the job's `url`, from your server |
 | `DELETE /jobs/:id` | off the list (the file stays in the library) |
 | `GET /presets` / `PUT /presets` | the caller's saved setups `[{ id, name, mode: "image" | "video", params }]` (PUT the whole list; Piko's buttons) |
 
@@ -79,7 +80,8 @@ fine (both models). Takes ~1-2 min (`fast` a little longer). Refused (402) when 
   "usd": 0.111, "estimate": 0.111, "created": 1794000000000, "done": 1794000100000, "error": null, "library": "8916fd98fdd2" }
 ```
 `status`: `queued` → `working` → (`running` → `saving`, videos) → `done` | `failed`. `url` / `poster` are signed links,
-good for 6 hours - ask for the job again for fresh ones. `usd` is what the provider charged (EvoLink for videos; for
+good for 6 hours - ask for the job again for fresh ones. They are on storage.googleapis.com, so a browser page can play / show
+them but cannot read them for sharing or saving: download the file on your server (`url` or `GET /jobs/:id/file`) and keep your own copy. `usd` is what the provider charged (EvoLink for videos; for
 pictures, OpenAI's list price of the tokens used).
 
 ## Costs
