@@ -86,7 +86,12 @@ async function api(op, data = {}, post = false, ask = false) {
   let url = API;
   if (post) { headers['content-type'] = 'application/json'; opt.body = JSON.stringify({ op, ...data }); } else url += '?' + new URLSearchParams({ op, ...data });
   if (tok) headers.authorization = 'Bearer ' + tok;
-  try { const r = await fetch(url, opt); return await r.json(); } catch (e) { return { error: 'net' }; }
+  try {
+    const j = await (await fetch(url, opt)).json();
+    // the server's "citizens only" (or "sign in first") opens the window that leads to the passport
+    if (j.error === 'citizen' || j.error === 'sign_in') { ME.citizen = false; needCitizen(); j.shown = true; }
+    return j;
+  } catch (e) { return { error: 'net' }; }
 }
 
 // ---------- drawing a post ----------
@@ -302,7 +307,7 @@ async function report(id) {
   if (!ME.signed && !(await token(true))) return;
   sheet('דיווח על ציוץ', 'מה פוגע בציוץ הזה? (לא חובה)', async (why) => {
     const r = await api('report', { id, why }, true);
-    if (r.error) { toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
+    if (r.error) { if (!r.shown) toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
     toast('תודה. הדיווח הגיע לשלומי.'); track('tz_report', id); return true;
   });
 }
@@ -310,7 +315,7 @@ function compose() {
   if (!ME.citizen) return needCitizen();
   sheet('ציוץ חדש', 'מה קורה?', async (text) => {
     const r = await api('post', { text }, true);
-    if (r.error) { toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
+    if (r.error) { if (!r.shown) toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
     FEED = null; toast('צייצתם'); track('tz_compose', ''); go('/tziftzif/p/' + r.post.id); return true;
   });
 }
@@ -320,7 +325,7 @@ async function reply(form) {
   b.disabled = true;
   const r = await api('reply', { parent: form.dataset.reply, text }, true);
   b.disabled = false;
-  if (r.error) return toast(ERR[r.error] || 'לא הצליח. נסו שוב.');
+  if (r.error) return r.shown ? null : toast(ERR[r.error] || 'לא הצליח. נסו שוב.');
   ta.value = ''; toast(/@[a-z]/.test(text) ? 'נשלח. עוד רגע תקבלו תשובה.' : 'נשלח'); track('tz_reply', form.dataset.reply);
   FEED = null; thread(location.pathname.split('/').pop());
 }
