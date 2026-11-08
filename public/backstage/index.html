@@ -91,7 +91,10 @@
   /* plans (2026-11-06) */
   .pl-lead { color: var(--dim); margin: 0 0 16px; max-width: 760px; }
   .pl-list { display: flex; flex-direction: column; gap: 12px; max-width: 760px; }
-  .pl-sec { margin: 18px 0 10px; font-size: 1rem; } .pl-sec.dim { color: var(--faint); }
+  .pl-sec { margin: 18px 0 4px; font-size: 1.1rem; } .pl-sec.dim { color: var(--faint); }
+  .pl-how { margin: 0 0 10px; color: var(--faint); font-size: .86rem; }
+  .pl-arch { margin-top: 26px; } .pl-arch > summary { cursor: pointer; color: var(--faint); font-weight: 700; font-size: .92rem; padding: 6px 0; }
+  .pl-arch > .pl-list { margin-top: 10px; }
   .pl-card.first { border-color: #ff6a1f; box-shadow: 0 0 0 1px #ff6a1f inset; } .pl-card.past { opacity: .5; } .pl-card.past img { filter: grayscale(1); }
   .pl-start { display: inline-block; margin-bottom: 6px; color: #ff8c4d; font-weight: 800; font-size: .84rem; }
   .pl-card { display: flex; gap: 14px; text-align: start; padding: 12px; border-radius: 18px; border: 1px solid var(--line2); background: var(--card); width: 100%; }
@@ -783,7 +786,8 @@ const badges = () => ({
   content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length,
   ideas: (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('ideas'), Date.now() - 7 * 864e5)).length,
   // plans waiting for his OK that he hasn't opened in their latest version - reading one clears it (his ask, 2026-11-07)
-  plans: (PL.plans || []).filter((p) => p.status === 'waiting' && ((L && L.seen && L.seen['plan:' + p.id]) || 0) < (p.version || 1)).length,
+  // = exactly the "מחכה לך" list (his note 2026-11-08: the tab said 3, the list 2 - a replaced plan he never opened was counted)
+  plans: (PL.plans || []).filter((p) => !planOld(p)).length,
 });
 function draw() {
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
@@ -910,17 +914,16 @@ function plans() {
   // one column, top-down (his ask 2026-11-07): what waits for him first, the newest on top and marked "מתחילים כאן";
   // a plan a newer round replaced, or one already decided, sinks below, greyed
   const all = (PL.plans || []).slice().sort((a, b) => (b.published || b.updated || 0) - (a.published || a.updated || 0));
-  const old = (p) => !!p.replacedBy || ((p.status !== 'waiting' || planRead(p)) && !p.open);   // read = no longer waiting for him, until a new version (his note)
-  const now = all.filter((p) => !old(p)), past = all.filter(old);
-  const title = (id) => (all.find((x) => x.id === id) || {}).title || '';
+  const now = all.filter((p) => !planOld(p)), past = all.filter(planOld);
+  // what is left is numbered ("1 מתוך 2"), so he always knows how much remains (his note 2026-11-08, asked several times)
   const card = (p, i, isPast) => `<button class="pl-card${isPast ? ' past' : ''}${!isPast && i === 0 ? ' first' : ''}" data-plan="${esc(p.id)}">
       ${p.cover ? `<img src="${esc(p.cover)}" alt="">` : `<span class="pl-noimg">${IC.plan}</span>`}
-      <div>${!isPast && i === 0 ? '<div class="pl-start">מתחילים כאן</div>' : ''}
+      <div>${!isPast ? `<div class="pl-start">${i + 1} מתוך ${now.length}${i === 0 ? ' · מתחילים כאן' : ''}</div>` : ''}
       <div class="pl-top">${p.replacedBy ? '<span class="tag">הוחלפה</span>' : pTag(p.status)}${!isPast && !planRead(p) ? '<span class="pl-new">חדש</span>' : ''}<small>גרסה ${p.version} · ${ago(p.published || p.updated)}</small></div>
-      <b>${esc(p.title)}</b>${p.replacedBy ? `<p>הוחלפה ב"${esc(title(p.replacedBy))}"</p>` : p.summary ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות שלך פתוחות</small>` : ''}</div></button>`;
+      <b>${esc(p.title)}</b>${p.replacedBy ? '<p>הוחלפה בתוכנית חדשה יותר - אין מה לבדוק כאן.</p>' : p.summary && !isPast ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות שלך פתוחות</small>` : ''}</div></button>`;
   $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס. מה שמחכה לך למעלה, החדשה ביותר ראשונה. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים.</p>
-    ${all.length ? `${now.length ? `<h3 class="pl-sec">מחכה לך (${now.length})</h3><div class="pl-list">${now.map((p, i) => card(p, i, false)).join('')}</div>` : '<div class="empty">אין כרגע שום דבר שמחכה לך.</div>'}
-      ${past.length ? `<h3 class="pl-sec dim">נקראו וקודמות (${past.length})</h3><div class="pl-list">${past.map((p, i) => card(p, i, true)).join('')}</div>` : ''}`
+    ${all.length ? `${now.length ? `<h3 class="pl-sec">נשארו לך ${now.length === 1 ? 'תוכנית אחת' : now.length + ' תוכניות'} לבדוק</h3><p class="pl-how">תוכנית יוצאת מהרשימה כשלוחצים בה "קראתי", "מאשר" או "צריך שינויים" (אלא אם נשארו בה הערות שלך פתוחות).</p><div class="pl-list">${now.map((p, i) => card(p, i, false)).join('')}</div>` : '<div class="empty">אין כרגע שום דבר שמחכה לך.</div>'}
+      ${past.length ? `<details class="pl-arch"><summary>ארכיון: נבדקו או הוחלפו (${past.length}) - אין בהן מה לבדוק</summary><div class="pl-list">${past.map((p, i) => card(p, i, true)).join('')}</div></details>` : ''}`
       : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`;
   $('#pane').querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => openPlan(b.dataset.plan)));
 }
@@ -950,6 +953,8 @@ function h(){parent.postMessage({t:'h',h:document.documentElement.scrollHeight},
 // "קראתי" (his ask, 2026-11-07): a plan stops counting when he marks its version as read - a new version counts again and
 // shows "חדש" in the list. Saying מאשר / צריך שינויים marks it too.
 const planRead = (p) => ((L && L.seen && L.seen['plan:' + p.id]) || 0) >= (p.version || 1);
+// out of "מחכה לך": replaced by a newer plan, or read / decided with none of his notes still open (the list and the tab's number)
+function planOld(p) { return !!p.replacedBy || ((p.status !== 'waiting' || planRead(p)) && !p.open); }
 function markPlanRead(p) {
   if (!L || planRead(p)) return;
   L.seen = { ...(L.seen || {}), ['plan:' + p.id]: p.version || 1 };
