@@ -15,6 +15,10 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
    (or `{afterExport: true, ...}` when he wants it out as soon as an export ends).
    **The hashtags always end with #שלומיוורס** (his rule, 2026-11-02 - "don't forget #שלומיוורס"), in the caption AND
    in `options.x.text`.
+   **The caption is never the character's first person** (adam-1, 2026-11-08 - he rewrote "אני שמח לשתף שסגרנו סבב
+   גיוס" to "כשהשותף המייסד שמח לבשר…": "זה אף פעם לא אני. זו הדמות"): the post goes out on HIS account, so an "I"
+   reads as Shlomi announcing it. Point at the character from outside - a "when <the character> ..." setup line - and
+   use only the hashtags he lists when he gives them.
    **A high-tech video always carries #הייטק #צרותבהייטק #הייטקס** (his rule, 2026-11-02) - anything set in the
    high-tech world: Techy-Tech and its people (Tzvika, Gilad, Amir, Ofer, Daniel, Ronit...), Hani the Haredi programmer,
    the Zoom-call sketches, AI / programmers / office life. Then up to two of the video's own, and #שלומיוורס last. The Hebrew wording comes from SOL (openai-leonardo skill) with two of his earlier captions as the
