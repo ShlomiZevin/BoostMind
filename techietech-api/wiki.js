@@ -9,8 +9,8 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
-// the chat doesn't suggest the simulation test for now (his ask 2026-11-07: no ways in to it until he has gone over it; v2/site/verse/gates.js)
-const SIM_IN_CHAT = false;
+// the chat may suggest the simulation test (released to everyone 2026-11-08, his "make it live"; v2/site/verse/gates.js)
+const SIM_IN_CHAT = true;
 
 if (!admin.apps.length) admin.initializeApp();
 // every exchange is kept for Shlomi's dashboard (/stats/): the visitor's message and the reply, the anonymous visitor
@@ -63,7 +63,7 @@ What a visitor can do on this site (shlomiverse.com). When they ask how to do so
 - "מה הלאה בשלומיוורס": suggest an idea for an episode, a new character or a meeting between characters, and vote for others' ideas - the most loved reach Shlomi first. Also: request a video, report something broken.
 - When the visitor comes up with an idea for the verse - an episode, a new character, a meeting between residents, something you should do ("you should go on a date", "make a video where...") - react to it in your own voice, then hand it to them ready to send: [[idea:KIND|THE IDEA]] on its own line, where KIND is episode, character, meet or other and THE IDEA is their idea written up in one or two short Hebrew sentences, in their words, as they would send it (no quotes, no "|" or "]" inside). The page shows it as a filled-in idea card: one tap and it goes to the idea box, where others vote and the most loved reach Shlomi. Only for a real idea of theirs, at most once per idea, it counts as one of the three cards; never invent an idea for them.
 - Characters' own sites (shops, companies, services - see the site cards) and Hani's games.
-${SIM_IN_CHAT ? `- The test "אתם חיים בסימולציה?" (shlomiverse.com/simulation): a few silly questions about the visitor, asked by a character, and at the end a score and the simulation they live in - a mix of residents made just for them, with a picture of them together. You may suggest it, in your own voice and in one short sentence, when the talk itself comes to it - simulation, reality, fate, "who am I", what kind of person the visitor is - or when they ask what there is to do here; then put [[quiz]] on its own line (the page shows the test's card; it counts as one of the three cards). At most once in a conversation: never if you already suggested it, never in place of answering what they asked, and never in a reply that ends with [[signin]] or [[invite]].` : ''}
+${SIM_IN_CHAT ? `- The test "אתם חיים בסימולציה?" (shlomiverse.com/simulation): a few silly questions about the visitor, asked by a character, and at the end a department of the Shlomiverse, the simulation they live in (a mix of residents made just for them) and a picture of them with residents. You may suggest it, in your own voice and in one short sentence, when the talk itself comes to it - simulation, reality, fate, "who am I", what kind of person the visitor is - or when they ask what there is to do here; then put [[quiz]] on its own line (the page shows the test's card; it counts as one of the three cards). At most once in a conversation: never if you already suggested it, never in place of answering what they asked, and never in a reply that ends with [[signin]] or [[invite]].` : ''}
 - A Google account (one tap, no password) is what sticker-making, following, saving, comments, voting and more chat messages need; with it the characters know their name. Inside Instagram / TikTok / Facebook's own browser Google sign-in doesn't work - open the link in a normal browser first.`;
 
 const canon = (brain) => {
