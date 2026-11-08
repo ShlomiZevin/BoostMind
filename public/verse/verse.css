@@ -776,7 +776,7 @@ button:hover > .lk { filter: grayscale(.4) brightness(1.2) opacity(.85); }
 
 /* ---- under a video card: its characters as small links (face + name) straight under the title ---- */
 .vid .cast { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -2px; }
-.vid .cast-c { display: inline-flex; align-items: center; gap: 5px; font-size: .8rem; font-weight: 600; color: var(--dim); padding: 2px 8px 2px 2px; border-radius: 99px;
+.vid .cast-c { display: inline-flex; align-items: center; gap: 5px; font-size: .8rem; font-weight: 600; color: var(--dim); padding: 2px; padding-inline-end: 9px;   /* the name gets the room, the face hugs its own side (RTL: the old 8px sat next to the face, the name touched the border) */ border-radius: 99px;
   background: var(--card2, rgba(255,255,255,.06)); border: 1px solid var(--line, rgba(255,255,255,.08)); cursor: pointer; transition: color .15s, border-color .15s; }
 .vid .cast-c img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
 .vid .cast-c:hover { color: var(--text, #fff); border-color: var(--vx-accent); }
@@ -2405,3 +2405,18 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .tzh-links { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .tzh-links a { color: var(--dim); font-size: .86rem; font-weight: 700; }
 .tzh-links a:hover { color: var(--vx-accent); }
+
+/* "זכויות דיבור" on the passport page (plan tz-perks, his pick A): a card like the simulation row, a row per site */
+.cz-rt { border-radius: 14px; border: 1px solid var(--line2); background: var(--card); padding: 12px 12px 4px; text-align: right; }
+.cz-rt h3 { margin: 0 2px 4px; font-size: .95rem; font-weight: 900; }
+.cz-rt-row { display: flex; align-items: center; gap: 10px; padding: 10px 2px; color: var(--text); text-decoration: none; }
+.cz-rt-row + .cz-rt-row { border-top: 1px solid var(--line2); }
+.cz-rt-row img { width: 40px; height: 40px; flex: none; object-fit: contain; border-radius: 50%; }
+.cz-rt-row > span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+.cz-rt-row b { font-size: .95rem; font-weight: 800; }
+.cz-rt-row small { color: var(--dim); font-size: .8rem; }
+.cz-rt-row > svg { width: 18px; height: 18px; flex: none; color: var(--dim); }
+/* before the passport: the same right, one line on the boarding pass screen */
+.cz-rt-before { display: flex; align-items: center; gap: 8px; margin: 12px 2px; color: var(--dim); font-size: .86rem; line-height: 1.45; text-align: right; }
+.cz-rt-before img { width: 26px; height: 26px; flex: none; object-fit: contain; }
+.cz-rt-before b { color: var(--text); font-weight: 800; }

@@ -84,6 +84,7 @@ function boarding() {
     <div class="cz-pass-name"><small>${esc(P0.passenger)}</small><b>${esc(S.nick)}</b></div>
     <ul>${rows.map(([k, v]) => `<li><small>${esc(k)}</small><b>${esc(v || '')}</b></li>`).join('')}</ul>
     <div class="cz-bar"></div></section>
+    <p class="cz-rt-before"><img src="/tziftzif/img/mark-dark.png" alt=""><span><b>${esc(Z().id.rights.before[0])}</b> – ${esc(Z().id.rights.before[1])}</span></p>
     <button class="vx-btn main block" data-cz-go>${esc(Z().pass.go)}</button>`;
   box().querySelector('[data-cz-go]').onclick = (e) => { e.currentTarget.classList.add('wait'); talk({}); };
 }
@@ -415,6 +416,13 @@ function ppStamp() {
   return `<div class="cz-pp-stamp"><small>${esc(V.office)}</small><b>${esc(V.entry)}</b><span>${pad(S.n)}</span><small>${d}</small></div>`;
 }
 const ppSign = () => `<div class="cz-pp-sign">${SIGN}<small>${esc(Z().visa.by)}</small></div>`;
+// "זכויות דיבור" (plan tz-perks, his pick A, 2026-11-08): what citizenship opens - posting on ציפציפ, and replying there to ח24's
+// articles (ח24's own site has no comments: the reactions live in ציפציפ). A card like the simulation row, a row per site
+function rights() {
+  const R = Z().id.rights;
+  const row = (href, img, [name, line], k) => `<a class="cz-rt-row" href="${href}" onclick="window.track&&window.track('cz_rights','${k}')"><img src="${img}" alt=""><span><b>${esc(name)}</b><small>${esc(line)}</small></span>${CHEV}</a>`;
+  return `<div class="cz-rt"><h3>${esc(R.title)}</h3>${row('/tziftzif', '/tziftzif/img/mark-dark.png', R.tz, 'tziftzif')}${row('/charadot', '/charadot/img/avatar.png', R.ch, 'charadot')}</div>`;
+}
 function idCard() {
   const sim = S.sim;
   box().innerHTML = `<section class="cz-id">
@@ -432,6 +440,7 @@ function idCard() {
     </div>
     ${sim && sim.name ? `<a class="cz-id-sim done" href="/simulation?r=${esc(sim.rid)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="5.2"/><ellipse cx="12" cy="12" rx="10" ry="3.4" transform="rotate(-18 12 12)"/></svg><span><small>${esc(T.sim.yours)}${sim.dept ? ` · ${esc(sim.dept)}` : ''}</small><b>${esc(sim.name)}</b></span>${CHEV}</a>`
       : !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${CLOCK}<span>${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</span>${CHEV}</a>`}
+    ${rights()}
     <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a>
     ${czTools()}</section>`;   // no share button any more (round 5, his note 2026-11-08: "no need for share my passport")
 }
