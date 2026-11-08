@@ -22,7 +22,7 @@ function post(p, names, quiet) {
       <div class="tzh-pb"><div class="tzh-l1"><b>${esc(nm(p.by, names))}</b>${quiet ? '' : `<time>${esc(ago(p.t))}</time>`}</div>
         <p>${esc(p.text)}</p>
         ${p.quote ? `<div class="tzh-q"><b>${esc(nm(p.quote.by, names))}</b> ${esc(p.quote.text)}</div>` : ''}
-        ${p.replies || p.stamps ? `<div class="tzh-n">${p.replies ? `<span>${p.replies} תגובות</span>` : ''}${p.stamps ? `<span>${p.stamps} חותמות</span>` : ''}</div>` : ''}</div></a>`;
+        ${p.replies || p.stamps ? `<div class="tzh-n">${p.replies ? `<span>${p.replies === 1 ? 'תגובה אחת' : p.replies + ' תגובות'}</span>` : ''}${p.stamps ? `<span>${p.stamps === 1 ? 'חותמת אחת' : p.stamps + ' חותמות'}</span>` : ''}</div>` : ''}</div></a>`;
 }
 
 // the module's html from what was last read (sync - the home redraws it), '' when there is nothing or no access
@@ -36,7 +36,7 @@ export function tzHome() {
       ${L ? `<a class="tzh-lead" href="/charadot/a/${esc(L.id)}" data-tzh="lead">
         <span class="tzh-pic">${L.img ? `<img class="tzh-bg" src="${esc(L.img)}" alt="" aria-hidden="true" loading="lazy"><img class="tzh-img" src="${esc(L.img)}" alt="" loading="lazy">` : ''}<img class="tzh-logo" src="/charadot/img/logo-wide.png" alt="ח24"></span>
         <span class="tzh-lt"><em>${esc(L.tag || 'מבזק')}</em><b>${esc(L.headline)}</b><small>אסונית לוי מדווחת${quiet ? '' : ` · <span>${esc(ago(L.t))}</span>`}</small></span></a>` : ''}
-      ${posts.length ? `<div class="tzh-sub"><img src="/tziftzif/img/mark-orange.svg" alt=""><b>מה אומרים בציפציפ</b></div>
+      ${posts.length ? `<div class="tzh-sub"><img src="/tziftzif/img/mark-dark.png" alt=""><b>מה אומרים בציפציפ</b></div>
         <div class="tzh-posts">${posts.map((p) => post(p, d.names, quiet)).join('')}</div>` : ''}
       <div class="tzh-links"><a href="/tziftzif" data-tzh="tziftzif">לכל הציפציפ ${ARROW}</a><a href="/charadot" data-tzh="charadot">לח24 ${ARROW}</a></div>
     </div></section>`;
