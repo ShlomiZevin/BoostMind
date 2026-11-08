@@ -431,9 +431,9 @@ export const T = {
         name: 'שם / Name', nat: 'אזרחות / Nationality', natV: 'השלומיוורס', birth: 'מקום לידה / Place of birth', birthV: 'העולם שאתם מכירים',
         issued: 'הונפק / Issued', exp: 'בתוקף עד / Expiry', expV: 'עד שהמציאות תשתנה', auth: 'רשות מנפיקה / Authority', authV: 'ביקורת הגבולות, הרב דמוקרטוביץ׳', status: 'מעמד / Status', dept: 'מחלקה / Department' }, number: 'מספר אזרח', dept: 'מחלקה', cls: 'סיווג', status: 'מעמד', founding: 'אזרח מייסד', citizen: 'אזרח', sim: 'בסימולציה של',
       noSim: 'שלוש דקות, שבע שאלות', noSimGo: 'תעודת סיווג לדרכון', home: 'לדף הבית', add: 'הוסיפו לדרכון' ,
-      // what the passport opens: the right to speak on ציפציפ (ח24's articles go up there too) - plan tz-perks, his OK 2026-11-08, Terra's words
-      rights: { title: 'זכויות דיבור', tz: ['ציפציפ', 'צייצו, הגיבו והטביעו חותמות'], ch: ['ח24', 'הכתבות עולות לציפציפ, ושם מגיבים'],
-        before: ['זכות הדיבור', 'אזרחים יכולים לצייץ בציפציפ ולהגיב שם לכתבות ח24.'] } },   // Terra's line (plan cz-sim-r4)
+      // what the passport opens: the right to speak on ציפציפ (ח24's articles go up there too) - plan tz-perks, his OK 2026-11-08, Terra's words; the channel is 'החרדות' wherever it's shown (his rule)
+      rights: { title: 'זכויות דיבור', tz: ['ציפציפ', 'צייצו, הגיבו והטביעו חותמות'], ch: ['החרדות', 'הכתבות עולות לציפציפ, ושם מגיבים'],
+        before: ['זכות הדיבור', 'אזרחים יכולים לצייץ בציפציפ ולהגיב שם לכתבות של החרדות.'] } },   // Terra's line (plan cz-sim-r4)
     gate: { title: 'עוד לא תושבים', line: 'הסדירו תושבות כדי להתחיל במסע האזרחות.' },
     statusGo: 'למסע האזרחות', citizenSub: 'התאזרחתם. מספר האזרח כבר אצלכם.', citizenLine: 'אזרחים נכנסים פנימה, בלי להציג דרכון.',
     soonLine: 'מסע האזרחות פתוח לתושבים', bell: ['זוהרה, זה נפתח', 'לא מבינה איך, אבל מסע האזרחות פתוח.'],
