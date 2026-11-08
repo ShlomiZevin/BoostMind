@@ -318,7 +318,14 @@ async function handle(req) {
     const bt = d.bt || [], i = (d.booth || []).length, line = scriptOf(d)[i];
     if (d.step !== 'booth' || Number(b.i) !== i || !reacts(d, i) || !line || !(line.opts || []).length || (d.bpre && d.bpre.i === i)) return { ok: true };
     await ref.update({ bpre: { i, at: Date.now(), b: {} } });
-    const made = await Promise.all(line.opts.map(async (o) => { try { return btOf((await proc.run(key, 'demokratovich', [], boothInput(d, fan, bt, i, o), BT, 'booth')).out); } catch (e) { return null; } }));
+    // all the buttons' reactions in ONE call (2026-11-08: a call per button read the whole map once per button - the map is
+    // ~99% of a call's cost and OpenAI's cache did not catch the repeats)
+    let made = [];
+    try {
+      const all = boothInput(d, fan, bt, i, line.opts[0]) + `\n\nALL THE BUTTONS: the visitor has not answered line ${i + 1} yet - the answer above stands for any of its buttons:\n${line.opts.map((o, k) => `${k}. "${o}"`).join('\n')}\nWrite "react" once for each button, in "b": b[k] is your reaction if they tapped button k. Each stands on its own.`;
+      const BTS = { type: 'object', additionalProperties: false, required: ['b'], properties: { b: { type: 'array', minItems: line.opts.length, maxItems: line.opts.length, items: BT } } };
+      made = (await proc.run(key, 'demokratovich', [], all, BTS, 'booths')).out.b.map(btOf);
+    } catch (e) { console.error('citizen boothPre', e.message); }
     await ref.update({ bpre: { i, at: Date.now(), b: Object.fromEntries(made.map((x, k) => [k, x]).filter(([, x]) => x)) } });
     return { ok: true };
   }

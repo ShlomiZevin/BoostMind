@@ -153,12 +153,34 @@ async function makeQ(key, hostId, steps, d) {
   const purpose = await purposeOf(field);
   if (!purpose) {
     const r = await askAs(key, hostId, qTask(steps), Q_SCHEMA, 'q');
-    return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x, 80)), react: sayClip(r.out.react || '', 160) }, u: r.u, ms: r.ms };
+    return { step: stepOf(r.out), u: r.u, ms: r.ms };
   }
   const vals = purpose.vals.map(([v]) => v);
   const schema = S({ react: str, q: str, a: { type: 'array', minItems: 4, maxItems: 4, items: S({ t: str, v: { type: 'string', enum: vals } }) } });
   const r = await askAs(key, hostId, qTask(steps, purpose), schema, 'qp-' + field);
-  return { step: { q: clip(r.out.q, 200), a: r.out.a.map((x) => clip(x.t, 80)), v: r.out.a.map((x) => (vals.includes(x.v) ? x.v : null)), field, react: sayClip(r.out.react || '', 160) }, u: r.u, ms: r.ms };
+  return { step: stepOf(r.out, purpose), u: r.u, ms: r.ms };
+}
+function stepOf(o, purpose) {
+  if (!purpose) return { q: clip(o.q, 200), a: o.a.map((x) => clip(x, 80)), react: sayClip(o.react || '', 160) };
+  const vals = purpose.vals.map(([v]) => v);
+  return { q: clip(o.q, 200), a: o.a.map((x) => clip(x.t, 80)), v: o.a.map((x) => (vals.includes(x.v) ? x.v : null)), field: purpose.field, react: sayClip(o.react || '', 160) };
+}
+// the next question for each of the 4 answers of the question being read, in ONE call (2026-11-08: four parallel calls read
+// the whole map four times - the map is ~99% of what a call costs, and OpenAI's cache did not catch the repeats; 10 tests made
+// 453 calls on Nov 7). Same instant answer on the tap, a quarter of the reading.
+async function makeBranches(key, hostId, steps, d) {
+  const n = steps.length, last = steps[n - 1], field = (d.purpose || {})[n + 1] || null;
+  const purpose = await purposeOf(field);
+  const one = purpose
+    ? S({ react: str, q: str, a: { type: 'array', minItems: 4, maxItems: 4, items: S({ t: str, v: { type: 'string', enum: purpose.vals.map(([v]) => v) } }) } })
+    : Q_SCHEMA;
+  const task = qTask(steps.map((x, i) => (i === n - 1 ? { ...x, pick: 0 } : x)), purpose) + `
+
+FOUR BRANCHES: the visitor is still reading question ${n} - they have not answered it yet. Its 4 possible answers:
+${last.a.map((x, k) => `${k}. ${x}`).join('\n')}
+Write the above 4 times, in "b": b[k] is written as if their answer to question ${n} was answer k - its "react" reacts to answer k and its question builds on it. Ignore the answer shown for question ${n} under "The test so far" (it stands for any of the four). Each branch is its own future and stands on its own.`;
+  const r = await askAs(key, hostId, task, S({ b: { type: 'array', minItems: 4, maxItems: 4, items: one } }), purpose ? 'qbp-' + field : 'qb');
+  return { steps: r.out.b.map((o) => stepOf(o, purpose)), u: r.u, ms: r.ms };
 }
 const qOut = (s) => ({ q: s.q, a: s.a, react: s.react || '' });
 
@@ -303,12 +325,8 @@ async function handle(req, res) {
     if (d.result || n >= STEPS || Number(b.n) !== n || answered(steps[n - 1]) || (d.pre && d.pre.n === n)) return { ok: true };
     await ref.update({ pre: { n, at: Date.now(), b: {} } });
     const br = await brainNow(), C = byId(br), host = C[d.host.id] || C[HOSTS[0]];
-    const made = await Promise.all([0, 1, 2, 3].map(async (pick) => {
-      try {
-        const st = steps.map((x, i) => (i === n - 1 ? { ...x, pick } : x));
-        return (await makeQ(key, host.id, st, d)).step;
-      } catch (e) { return null; }
-    }));
+    let made = [];
+    try { made = (await makeBranches(key, host.id, steps, d)).steps; } catch (e) { console.error('sim pre', e.message); }
     await ref.update({ pre: { n, at: Date.now(), b: Object.fromEntries(made.map((x, i) => [i, x]).filter(([, x]) => x)) } });
     return { ok: true };
   }
@@ -460,4 +478,4 @@ exports.owner = async (op, b) => {
     by, drop, today: { n: cap.exists && cap.data().day === day() ? cap.data().n : 0, cap: (cap.exists && cap.data().cap) || IMG_CAP }, recent };
 };
 
-exports._test = { ask, qPrompt, hostMaterial, qInput, rPrompt, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS, PURPOSE, purposeOf, makeQ, answered, toProfile, handle };
+exports._test = { ask, qPrompt, hostMaterial, qInput, rPrompt, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS, PURPOSE, purposeOf, makeQ, makeBranches, answered, toProfile, handle };
