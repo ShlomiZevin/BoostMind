@@ -236,8 +236,24 @@ def _mask(ep, w, h, r):
     return path
 
 
-def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=None):
-    """base: a video to draw on instead of the canvas colour (the effected picture under the layers above an effect)."""
+# The project sped up (speed > 1) inside each piece instead of re-encoding the whole film once more at the end (that
+# second encode was a third of a full export - his ask, 2026-11-08): output frame n shows timeline frame
+# floor(n * speed + ~0.5), the frame the old setpts + fps pass picked. kept_frames (here) and keep_expr (ffmpeg's
+# select) are the same rule, so each piece knows how many frames it gives.
+_HALF = 0.499999
+
+
+def kept_frames(c0, c1, speed):
+    return sum(1 for t in range(c0, c1) if math.floor(math.ceil((t - _HALF) / speed) * speed + _HALF) == t)
+
+
+def keep_expr(c0, n, speed):
+    return f"eq(floor(ceil(({c0}+n-{_HALF})/{speed!r})*{speed!r}+{_HALF}),{c0}+n)*lt(n,{n})"
+
+
+def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=None, speed=1.0):
+    """base: a video to draw on instead of the canvas colour (the effected picture under the layers above an effect).
+    speed > 1: the piece comes out already sped up (kept_frames); None when it keeps no frame."""
     fps = project["canvas"]["fps"]
     W, H = project["canvas"]["w"], project["canvas"]["h"]
     n = c1 - c0
@@ -359,8 +375,15 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             fc.append(f"{last}[o{tag}]overlay=x={int(round(box['x'] * scale))}:y={int(round(box['y'] * scale))}:eof_action=pass:"
                       f"enable='between(t,{max(0.0, t0 - 0.5 / fps):.5f},{t1:.5f})'[b{tag}]")
             last = f"[b{tag}]"
-    fc.append(f"{last}format=yuv420p[out]")
-    args += ["-filter_complex", ";".join(fc), "-map", "[out]", "-frames:v", str(n), "-r", str(fps),
+    frames = n
+    if speed > 1:
+        frames = kept_frames(c0, c1, speed)
+        if not frames:
+            return None
+        fc.append(f"{last}format=yuv420p,select='{keep_expr(c0, n, speed)}',setpts=N/({fps}*TB)[out]")
+    else:
+        fc.append(f"{last}format=yuv420p[out]")
+    args += ["-filter_complex", ";".join(fc), "-map", "[out]", "-frames:v", str(frames), "-r", str(fps),
              "-c:v", "libx264", "-threads", str(X264_THREADS), "-preset", "medium" if scale >= 1 else "ultrafast",
              "-crf", crf_for(scale), "-pix_fmt", "yuv420p", "-an", out]
     r = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", creationflags=LOW)
@@ -465,16 +488,18 @@ def export(ep, quick=False, test=False):
     pre_all = film_fx.preroll(project) if top >= 0 else 0
     cw, chh = int(round(project["canvas"]["w"] * scale / 2) * 2), int(round(project["canvas"]["h"] * scale / 2) * 2)
 
+    fast = speed if speed > 1 + 1e-3 else 1.0  # (sped up in the pieces; slower than 1x: the old way, at the end)
+
     def job(kc):
         k, (c0, c1) = kc
         if top < 0:
-            o = render_chunk(ep, project, k, c0, c1, passes[0], gdirs[0], scale)
+            o = render_chunk(ep, project, k, c0, c1, passes[0], gdirs[0], scale, speed=fast)
         else:  # below the effect (from a little earlier: the ghost's history) -> the effects -> the layers above
             pre = min(pre_all, c0)
             low = render_chunk(ep, project, k, c0 - pre, c1, passes[0], gdirs[0], scale, name=f"c{k:04d}.low.mp4")
             fx = ep.work("layers", "chunks", f"c{k:04d}.fx.mp4")
             film_fx.apply_chunk(ep, project, low, fx, c0, c1 - c0, pre, cw, chh, crf_for(scale), "medium" if scale >= 1 else "ultrafast")
-            o = render_chunk(ep, project, k, c0, c1, passes[1], gdirs[1], scale, base=fx)
+            o = render_chunk(ep, project, k, c0, c1, passes[1], gdirs[1], scale, base=fx, speed=fast)
         done[0] += c1 - c0
         log(f"Rendered {done[0]}/{total}")
         return o
@@ -483,7 +508,7 @@ def export(ep, quick=False, test=False):
         outs = list(pool.map(job, enumerate(chunks)))
     lst = ep.work("layers", "chunks", "list.txt")
     with open(lst, "w", encoding="utf-8") as fh:
-        fh.writelines(f"file '{o}'\n" for o in outs)
+        fh.writelines(f"file '{o}'\n" for o in outs if o)
     silent = ep.work("layers", "video.mp4")
     run([FFMPEG, "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", silent])
     log(f"  · picture done in {time.time() - t_start:.0f}s ({len(chunks)} pieces) - the sound")
@@ -493,7 +518,10 @@ def export(ep, quick=False, test=False):
     final = ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4" if quick else f"{ep.id}.mp4")
     abr = "96k" if test else "192k"
     tmp = final[:-4] + ".tmp.mp4"
-    if abs(speed - 1) > 1e-3:  # the project's speed: every layer together, voices keep their pitch
+    if fast > 1:  # the picture is sped up already: only the sound (voices keep their pitch)
+        run([FFMPEG, "-y", "-v", "error", "-i", silent, "-i", wav, "-filter_complex", f"[1:a]atempo={speed}[a]",
+             "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", abr, "-shortest", "-movflags", "+faststart", tmp])
+    elif abs(speed - 1) > 1e-3:  # the project's speed: every layer together, voices keep their pitch
         run([FFMPEG, "-y", "-v", "error", "-i", silent, "-i", wav, "-filter_complex", f"[0:v]setpts=PTS/{speed},fps={fps}[v];[1:a]atempo={speed}[a]",
              "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-threads", str(X264_THREADS), "-preset", "ultrafast" if small else "medium",
              "-crf", "30" if test else "24" if quick else "17", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", abr, "-shortest", "-movflags", "+faststart", tmp])
