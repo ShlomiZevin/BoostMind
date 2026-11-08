@@ -10,7 +10,7 @@ const cfg = { on: true };
 const u = (uid, extra = {}) => ({ uid, email: uid + '@x.com', name: uid, ...extra });
 const ev = (id, kind, hoursAgo, extra = {}) => ({ id, kind, t: now - hoursAgo * H, ...extra });
 const events = [ev('game_a', 'game', 3), ev('video_b', 'video', 2), ev('story_c', 'story', 1, { char: 'hani', everyone: false })];
-const welcomed = { welcomed: now - 30 * H, last: now - 30 * H };
+const welcomed = { welcomed: now - 70 * H, last: now - 70 * H };   // the news waits 3 days after the last mail (NEWS_GAP)
 
 const r = (users, state, follows = {}, evs = events, c = cfg) => Object.fromEntries(plan({ users, state, follows, events: evs, now, cfg: c }).map((p) => [p.uid, p]));
 
@@ -39,9 +39,18 @@ assert.equal(r([u('a')], { a: { welcomed: now - 50 * H, last: now - 14 * H } }).
 // the welcome was today -> the news waits for tomorrow
 assert.equal(r([u('a')], { a: { welcomed: now - 2 * H, last: now - 2 * H } }).a, undefined);
 
-// a story posted just before someone's welcome still reaches them the next day (the welcome sets the cursor 3 days back)
-out = r([u('a')], { a: { welcomed: now - 22 * H, last: now - 22 * H, cursor: now - 22 * H - 3 * 24 * H } }, {}, [ev('story_e', 'story', 26, { char: 'yotam', everyone: true })]);
+// a story posted just before someone's welcome still reaches them with their first news (the welcome sets the cursor 3 days back)
+out = r([u('a')], { a: { welcomed: now - 70 * H, last: now - 70 * H, cursor: now - 70 * H - 3 * 24 * H } }, {}, [ev('story_e', 'story', 74, { char: 'yotam', everyone: true })]);
 assert.equal(out.a.kind, 'story');
+
+// news at most once in 3 days (2026-11-08): news 2 days ago -> nothing today, even with new things; 3 days -> all of it in one digest
+assert.equal(r([u('a')], { a: { ...welcomed, newsAt: now - 48 * H, last: now - 48 * H, cursor: now - 48 * H } }).a, undefined);
+out = r([u('a')], { a: { ...welcomed, newsAt: now - 70 * H, last: now - 70 * H, cursor: now - 70 * H } });
+assert.equal(out.a.kind, 'digest');
+assert.deepEqual(out.a.events.map((e) => e.id), ['game_a', 'video_b']);
+// a personal mail yesterday (an idea step - not news) doesn't push the news back
+out = r([u('a')], { a: { ...welcomed, newsAt: now - 80 * H, last: now - 22 * H, cursor: now - 80 * H } });
+assert.equal(out.a.kind, 'digest');
 
 // stopped everything -> never; even before the welcome
 assert.equal(r([u('a')], { a: { ...welcomed, off: true } }).a, undefined);

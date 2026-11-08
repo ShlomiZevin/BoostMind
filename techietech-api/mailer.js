@@ -33,6 +33,10 @@ const MEDIA = 'https://storage.googleapis.com/shlomiverse-media/wiki';
 
 const DAY_GAP = 20 * 3600e3;      // and never twice on the same Israeli date
 const MAX_AGE = 7 * 864e5;        // news older than a week is not news
+// news (a video / story / game / the digest) at most once in 3 days per person - his call 2026-11-08, after three days in a row
+// of mail to everyone (something went up every day): what happens in between waits and goes out together as one digest. The
+// welcome, the embassy letter and personal mail (idea steps, codes, replies) are not news. 66 h, not 72: the runs drift by hours
+const NEWS_GAP = 66 * 3600e3;
 const PER_RUN = 120;              // a run never sends more than this (Gmail's daily limit is ~500)
 const TOPICS = [['story', 'סטוריז חדשים של הדמויות'], ['video', 'סרטונים חדשים'], ['game', 'משחקים חדשים']];
 
@@ -211,6 +215,7 @@ function plan({ users, state, follows, events, now, cfg, citizens = new Set() })
     // before the news (one mail a day: the news waits for tomorrow, the cursor stays). Once per person, never to a citizen.
     // cfg.cz = the release's switch: it sends the residents' letter and, from then on, each new account's the day after its welcome
     if (cfg.cz && !s.cz && !citizens.has(u.uid)) { out.push({ ...u, kind: 'citizen', events: [] }); continue; }
+    if (now - (ms(s.newsAt) || ms(s.last) || 0) < NEWS_GAP) continue;   // the last news (or, before newsAt existed, the last mail) too recent
     const from = Math.max(ms(s.cursor) || ms(s.welcomed), now - MAX_AGE);
     const p = s.prefs || {};
     const mine = events.filter((e) => ms(e.t) > from && p[e.kind] !== false
@@ -370,7 +375,7 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
     if (!ok) continue;
     sent++;
     await ref.set({ email: p.email, last: Timestamp.fromMillis(now), cursor, ...(x.kind === 'welcome' ? { welcomed: Timestamp.fromMillis(now) } : {}),
-      ...(x.kind === 'citizen' ? { cz: Timestamp.fromMillis(now) } : {}), sent: FieldValue.increment(1) }, { merge: true });
+      ...(x.kind === 'citizen' ? { cz: Timestamp.fromMillis(now) } : {}), ...(p.events.length ? { newsAt: Timestamp.fromMillis(now) } : {}), sent: FieldValue.increment(1) }, { merge: true });
     }
     const out = { swept, due: due.length, sent };
     if (sent || due.length) console.log('mail run', JSON.stringify(out));
