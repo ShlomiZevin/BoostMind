@@ -175,6 +175,8 @@ function welcome(d, k) {
       [ic('bell'), '<b style="color:#fff">סטורי והתראות</b> – עוקבים אחרי הדמויות שאתם אוהבים ובוחרים ממי לקבל התראות.'],
       [ic('people'), '<b style="color:#fff">הקהילה</b> – מציעים רעיון לפרק או לדמות חדשה, ומצביעים לרעיונות שבא לכם לראות.'],
       [ic('install'), '<b style="color:#fff">אפליקציה</b> – מתקינים את השלומיוורס על הטלפון, ונכנסים בנגיעה.'],
+      // ציפציפ and ח24, once they're open to everyone (d.tz = verseMeta/tz.open; his ask 2026-11-08, Terra's words) - ציפציפ's own mark
+      ...(d.tz ? [[ic('tz'), '<b style="color:#fff">ציפציפ וח24</b> – קראו מה הדמויות מצייצות ומה אסונית לוי מדווחת. אזרחים יכולים גם לצייץ ולהגיב.']] : []),
       // there is more than the list - its own line, last - and right after it the verse that keeps growing (his notes on plans
       // mail-welcome and release-check, 2026-11-08; Terra's words)
       [ic('plus'), '<b style="color:#fff">ועוד…</b> – הרשימה נגמרה, אבל השלומיוורס ממש לא.']])), spacer(6),

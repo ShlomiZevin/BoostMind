@@ -227,7 +227,8 @@ function plan({ users, state, follows, events, now, cfg, citizens = new Set() })
 
 // ---------- the mail for one person ----------
 async function storyData(id) { const d = await db.collection('stories').doc(id).get(); return d.exists && !d.data().hidden ? d.data() : null; }
-async function mailFor(p, w, now) {
+// tz = ציפציפ and ח24 are open to everyone (verseMeta/tz.open): only then do the mails tell about them (his ask 2026-11-08)
+async function mailFor(p, w, now, tz = false) {
   const evs = [];
   for (const e of p.events) {
     if (e.kind === 'story') { const s = await storyData(e.ref); if (s) evs.push({ ...e, s }); }
@@ -239,9 +240,9 @@ async function mailFor(p, w, now) {
   const videoCard = (v) => ({ tag: 'סרטון', title: v.title, img: absMedia(v.poster), href: `/v/${v.id}` });
   const latestGames = (except) => (w.games || []).filter((g) => g.id !== except).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 2).map(gameCard);
   const latestVideos = (except) => (w.videos || []).filter((v) => v.id !== except && v.date && !v.archive).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(videoCard);
-  if (p.kind === 'citizen') return { kind: 'citizen', d: citizenData(p.nick || first(p.name)) };
+  if (p.kind === 'citizen') return { kind: 'citizen', d: citizenData(p.nick || first(p.name), tz) };
   if (p.kind === 'welcome') return { kind: 'welcome', d: { subject: 'ברוכים הבאים לשלומיוורס', preheader: 'כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.',
-    name: first(p.name), hero: `${SITE}/verse/og.jpg`, cast: ['hani', 'tzvika', 'rosenblum', 'ayelet', 'yaniv'].map((id) => who(w, id)) } };
+    name: first(p.name), tz, hero: `${SITE}/verse/og.jpg`, cast: ['hani', 'tzvika', 'rosenblum', 'ayelet', 'yaniv'].map((id) => who(w, id)) } };
   if (!evs.length) return null;
   if (evs.length === 1 && games.length) {
     const g = games[0].g;
@@ -279,15 +280,19 @@ async function mailFor(p, w, now) {
 // its own button, the text he called perfect), and his pick for the picture - C, the passport on a mountain of paperwork with Miriam
 // and Demokratovich behind it (the book turned into a Hebrew one, his note: "it opens left to right - a recurring problem")
 const CZ_HERO = `${MEDIA}/mail/residents-hero-2.jpg`;
-const citizenData = (name) => ({ from: 'שגרירות השלומיוורס', subject: name ? `${name}, נפתחו הליכי סיווג מציאות ואזרחות` : 'נפתחו הליכי סיווג מציאות ואזרחות', hero: CZ_HERO,   // a subject: no full stop, their name first
+// tz (ציפציפ and ח24 open): the one real right citizenship gives - posting there (his ask 2026-11-08, Terra's words) - and fine print that
+// no longer says it gives none
+const citizenData = (name, tz = false) => ({ from: 'שגרירות השלומיוורס', subject: name ? `${name}, נפתחו הליכי סיווג מציאות ואזרחות` : 'נפתחו הליכי סיווג מציאות ואזרחות', hero: CZ_HERO,   // a subject: no full stop, their name first
   preheader: 'שבע שאלות ליותם, בקשת אזרחות אחת, ואפס זכויות לאזרחים מייסדים',
   to: name ? `לכבוד ${name},` : '', title: 'נפתחה שגרירות השלומיוורס.',
   paras: ['לאחר שנים של ניסיונות כושלים לתקן את המציאות, החלטנו לפתוח אחת נוספת.', 'החל מהיום ניתן להגיש בקשה לאזרחות ביקום מקביל.',
     'כדי לעזוב את המציאות הנוכחית, תידרשו תחילה להוכיח שאתם קיימים. לשם כך הוקם מערך בירוקרטי שלם.',
     'מרים תקבל את פניכם בדלפק הצ\'ק־אין, תשאל שאלות שאין לה סמכות לשאול, לא תבין את התשובות ותסווג אתכם בהתאם.',
-    'בתום ההליך יונפק לכם דרכון רשמי, מספר אזרח וכרטיס כניסה לשלומיוורס.'],
+    'בתום ההליך יונפק לכם דרכון רשמי, מספר אזרח וכרטיס כניסה לשלומיוורס.',
+    ...(tz ? ['עם קבלת האזרחות, תוענק לכם זכות דיבור בציפציפ: תוכלו לצייץ, להגיב לדמויות ולהטביע חותמת רשמית על דבריהן. בנוסף, תוכלו להגיב לכתבות ח24. תיוג דמות בתגובה יועבר לטיפולה האישי.'] : [])],
   sim: { at: 3, cta: 'לבדיקת הסימולציה', para: 'טרם עזיבת המציאות הנוכחית, מומלץ לברר באיזו סימולציה אתם חיים בכלל. לצורך כך נפתח מבחן בן שבע שאלות, שבו יותם, ארכיטקט המערכת של החיים, יגיב לכל תשובה ויסווג אתכם. בתום המבחן יימסרו שם הסימולציה והדמויות החיות בה עמכם.' },
-  bold: 'לאלף הראשונים יוענק מעמד "אזרח מייסד".', fine: 'המעמד אינו מקנה זכויות או הטבות כלשהן. השגרירות שומרת לעצמה את הזכות לשלול אותן בכל עת.',
+  bold: 'לאלף הראשונים יוענק מעמד "אזרח מייסד".', fine: tz ? 'הטבות האזרחות ניתנות לכל אזרח, ללא קשר למעמד "אזרח מייסד". המעמד עצמו מקנה בעיקר אחריות היסטורית שלא ביקשתם.'
+    : 'המעמד אינו מקנה זכויות או הטבות כלשהן. השגרירות שומרת לעצמה את הזכות לשלול אותן בכל עת.',
   cta: 'להגשת בקשת אזרחות', sign: 'שגרירות השלומיוורס', signRole: 'אגף הגירה, רישום וסיווג שרירותי',
   note: 'קיבלתם את המייל כי יש לכם חשבון בשלומיוורס.' });
 
@@ -333,6 +338,7 @@ async function drainQueue(now) {
 }
 
 // one run: write down what happened, then mail whoever is due (at most PER_RUN). dry = only say who would get what.
+const tzOpen = async () => !!((await db.collection('verseMeta').doc('tz').get()).data() || {}).open;
 async function run({ now = Date.now(), dry = false, force = false, budget = 420e3 } = {}) {
   if (!force && !sendingHours(now)) return { skipped: 'hours' };
   const queued = dry ? 0 : await drainQueue(now).catch((e) => { console.error('mail queue', e.message); return 0; });
@@ -340,6 +346,7 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
   const swept = await sweepEvents(now);
   if (!dry) await scanBounces().catch((e) => console.error('bounces', e.message));   // failures first, so no mail goes to them now
   const cfg = (await db.collection('verseMeta').doc('mail').get()).data() || { on: false, only: [OWNER] };
+  const tz = await tzOpen();
   const users = [];
   let next;
   // addresses that can't receive mail (test accounts: @x.invalid, @example.com) are skipped - a bounce costs the sender's name at Gmail
@@ -364,7 +371,7 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
       const ref = db.collection('mailUsers').doc(p.uid);
       const fresh = (await ref.get()).data() || {};               // still due? (nothing else mailed them meanwhile)
       if (fresh.off || (ms(fresh.last) && il(ms(fresh.last)).day === il(now).day)) continue;
-      const x = await mailFor(p, w, now);
+      const x = await mailFor(p, w, now, tz);
     // after the welcome the news starts 3 days back: what happened just before someone joined still reaches them (tomorrow)
     // the embassy's letter leaves the cursor where it was: the news it pushed back goes out tomorrow
     const cursor = p.kind === 'citizen' ? (fresh.cursor || fresh.welcomed || Timestamp.fromMillis(now))
@@ -476,9 +483,10 @@ async function samples() {
   const P = { uid: 'sample', email: OWNER, name: 'שלומי' };
   const ev = (kind, ref, extra = {}) => ({ id: `${kind}_${ref}`, kind, ref, t: now, ...extra });
   const out = [];
-  const add = async (label, p) => { const x = await mailFor(p, w, now); if (x) out.push({ key: label, label, kind: x.kind, ...mail.render(x.kind, x.d) }); };
-  await add('ברוכים הבאים', { ...P, kind: 'welcome', events: [] });
-  { const d = citizenData(P.name); out.push({ key: 'אזרחות', label: 'הזמנה למסע האזרחות (שגרירות)', kind: 'citizen', from: d.from, ...mail.render('citizen', d) }); }
+  const add = async (label, p, tz = false) => { const x = await mailFor(p, w, now, tz); if (x) out.push({ key: label, label, kind: x.kind, ...mail.render(x.kind, x.d) }); };
+  // the welcome and the letter as they go out once ציפציפ and ח24 open (verseMeta/tz.open) - until then without those lines
+  await add('ברוכים הבאים', { ...P, kind: 'welcome', events: [] }, true);
+  { const d = citizenData(P.name, true); out.push({ key: 'אזרחות', label: 'הזמנה למסע האזרחות (שגרירות)', kind: 'citizen', from: d.from, ...mail.render('citizen', d) }); }
   if (games[0]) await add('משחק חדש', { ...P, kind: 'game', events: [ev('game', games[0].id)] });
   if (videos[0]) await add('סרטון חדש', { ...P, kind: 'video', events: [ev('video', videos[0].id)] });
   if (stories[0]) await add('סטורי חדש', { ...P, kind: 'story', events: [ev('story', stories[0].id)] });
