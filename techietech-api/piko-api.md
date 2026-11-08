@@ -1,7 +1,7 @@
 # Piko API
 
 The server behind Piko (shlomiverse.com/piko/): pictures from GPT Image 2.5 (with reference images) and videos from
-Seedance 2.0 Mini (a start frame, optionally an end frame, with sound). Shlomi's app and his other tools
+Seedance 2.0 Mini or Fast (a start frame, optionally an end frame, with sound). Shlomi's app and his other tools
 (startdoing.co.il) use this same API. Code: `piko.js`.
 
 This page online (always the deployed version): https://shlomiverse.com/piko/api/docs
@@ -31,7 +31,7 @@ Wherever a picture goes in (`refs`, `start`, `end`), it can be:
 
 | Call | What |
 |---|---|
-| `GET /config` | models, sizes, qualities, max references, video $ per second, who you are |
+| `GET /config` | models, sizes, qualities, max references, the two video models with their $ per second, who you are |
 | `GET /balance` | EvoLink credit left: `{ credits, usd, usdPerCredit }` (`?fresh=1` asks EvoLink now) |
 | `POST /transcribe` | a recording → `{ text, prompt }`: the words, and a clean prompt - in English for `mode: video` (Seedance reads English best), in the language spoken for `mode: image` |
 | `POST /images` | start a picture → the job (201) |
@@ -57,15 +57,24 @@ side (default 1) - the answer is the first job plus `jobs` (all of them, one `ba
 
 ### POST /videos
 ```json
-{ "prompt": "הילדים עולים על הספינה ומפליגים כמו פיראטים", "start": "data:image/jpeg;base64,...", "end": null, "duration": 6, "quality": "480p", "ratio": "adaptive" }
+{ "prompt": "הילדים עולים על הספינה ומפליגים כמו פיראטים", "start": "data:image/jpeg;base64,...", "end": null, "model": "fast", "duration": 6, "quality": "480p", "ratio": "adaptive" }
 ```
+`model` - which Seedance 2.0:
+
+| `model` | For | 6 s at 480p | 6 s at 720p |
+|---|---|---|---|
+| `mini` (default) | **drafts** - cheap and quick; faces may drift a little from the photo | ~$0.11 | ~$0.24 |
+| `fast` | **keeping faces** - the people stay as they are in the start photo; ~3x the price | ~$0.34 | ~$0.72 |
+
+(Face test, 2026-11-08: same photo + prompt, ArcFace similarity to the photo 0.63 with `mini`, 0.80 with `fast`.)
+The exact $ per second of each comes from `GET /config` → `video.models[]` (`{ id, name, note, default, usdPerSecond: { 480p, 720p } }`).
 `duration`: 4-15 s (default 6). `quality`: `480p` (default) | `720p`. `ratio`: `9:16` (default) or `adaptive` (follows the start
 picture), `16:9`, `1:1`, `4:3`, `3:4`, `21:9`. Sound is always on. The answer also carries `jobs: [the job]`. No `start` = a video from text only. A Hebrew prompt is translated to English for the model. Real faces are
-fine. Takes ~1-2 min. 6 s at 480p ≈ $0.11. Refused (402) when EvoLink's balance is below the video's price.
+fine (both models). Takes ~1-2 min (`fast` a little longer). Refused (402) when EvoLink's balance is below the video's price.
 
 ### The job
 ```json
-{ "id": "...", "kind": "video", "status": "done", "progress": 100, "prompt": "...", "params": { "duration": 6, "quality": "480p", "ratio": "adaptive" },
+{ "id": "...", "kind": "video", "status": "done", "progress": 100, "prompt": "...", "params": { "model": "mini", "duration": 6, "quality": "480p", "ratio": "adaptive" },
   "url": "https://storage.googleapis.com/...", "poster": "https://...", "w": 496, "h": 864, "dur": 6.08,
   "usd": 0.111, "estimate": 0.111, "created": 1794000000000, "done": 1794000100000, "error": null, "library": "8916fd98fdd2" }
 ```

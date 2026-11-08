@@ -46,25 +46,30 @@ const IMAGE = {
   maxCount: 4,                                   // pictures per request, made side by side (one job each)
   price: { text: 5, image: 8, out: 30 },        // GPT Image 2.5 list price, $ per 1M tokens (the job's own cost line)
 };
+// two Seedance 2.0 models (his call, 2026-11-08, after a face test: same photo + prompt on both, ArcFace similarity to the
+// photo 0.63 Mini vs 0.80 Fast): mini = the cheap draft (faces may drift a little), fast = keeps faces as in the photo, ~3x the price
 const VIDEO = {
-  model: { image: 'seedance-2.0-mini-image-to-video', text: 'seedance-2.0-mini-text-to-video' },
+  models: {
+    mini: { image: 'seedance-2.0-mini-image-to-video', text: 'seedance-2.0-mini-text-to-video', name: 'Mini', note: 'draft - cheap and quick, faces may drift a little' },
+    fast: { image: 'seedance-2.0-fast-image-to-video', text: 'seedance-2.0-fast-text-to-video', name: 'Fast', note: 'keeps faces as in the photo - about 3x the price' },
+  },
   qualities: ['480p', '720p'],
   ratios: ['adaptive', '9:16', '16:9', '1:1', '4:3', '3:4', '21:9'],
   min: 4, max: 15,
 };
 // his defaults (2026-11-07: "every time I do more or less the same thing"): story format (9:16), low quality, sound on;
 // 2 pictures at once, 1 video. The API's own default count stays 1 (another tool asks for what it wants).
-const DEFAULT = { image: { model: 'flare', size: 'story', quality: 'low' }, video: { duration: 6, quality: '480p', ratio: '9:16' } };
+const DEFAULT = { image: { model: 'flare', size: 'story', quality: 'low' }, video: { model: 'mini', duration: 6, quality: '480p', ratio: '9:16' } };
 // saved setups - one tap on the make screen (his ask, 2026-11-07); he edits them in the app, each caller has its own
 const PRESETS = [
-  { id: 'video-simple', name: 'פשוט', mode: 'video', params: { duration: 6, quality: '480p', ratio: '9:16' } },
-  { id: 'video-more', name: 'מתקדם', mode: 'video', params: { duration: 10, quality: '720p', ratio: '9:16' } },
+  { id: 'video-simple', name: 'טיוטה', mode: 'video', params: { model: 'mini', duration: 6, quality: '480p', ratio: '9:16' } },
+  { id: 'video-more', name: 'פנים נאמנות', mode: 'video', params: { model: 'fast', duration: 6, quality: '480p', ratio: '9:16' } },
   { id: 'image-simple', name: 'פשוט', mode: 'image', params: { model: 'flare', size: 'story', quality: 'low', count: 2 } },
   { id: 'image-more', name: 'מתקדם', mode: 'image', params: { model: 'flare', size: 'story', quality: 'high', count: 2 } },
 ];
 const imageParams = (b = {}) => ({ model: IMAGE.models.includes(b.model) ? b.model : DEFAULT.image.model, size: IMAGE.sizes[b.size] ? b.size : DEFAULT.image.size,
   quality: IMAGE.qualities.includes(b.quality) ? b.quality : DEFAULT.image.quality });
-const videoParams = (b = {}) => ({ duration: Math.min(VIDEO.max, Math.max(VIDEO.min, Math.round(+b.duration || DEFAULT.video.duration))),
+const videoParams = (b = {}) => ({ model: VIDEO.models[b.model] ? b.model : DEFAULT.video.model, duration: Math.min(VIDEO.max, Math.max(VIDEO.min, Math.round(+b.duration || DEFAULT.video.duration))),
   quality: VIDEO.qualities.includes(b.quality) ? b.quality : DEFAULT.video.quality, ratio: VIDEO.ratios.includes(b.ratio) ? b.ratio : DEFAULT.video.ratio });
 const countOf = (b = {}, dflt = 1) => Math.min(IMAGE.maxCount, Math.max(1, Math.round(+b.count || dflt)));
 const R480 = 1.2555 / 2.7;   // EvoLink bills 480p at this share of 720p (credits per second, its own price page + a real charge, 2026-11-06)
@@ -98,23 +103,28 @@ async function who(req) {
 }
 
 // ---------------------------------------------------------------- prices + balance ----------------------------------------------------------------
-// EvoLink's own price list (public, no key), asked once a day: $ per second at 720p and $ per credit
+// EvoLink's own price list (public, no key), asked once a day: $ per second at 720p per model, and $ per credit
+const FALLBACK720 = { mini: 0.0397, fast: 0.1206 };
 async function prices() {
   const ref = db().collection(META).doc('price'), was = (await ref.get()).data();
-  if (was && Date.now() - was.at < 864e5) return was;
+  const ok = (p) => p && typeof p.usd720 === 'object' && Object.keys(VIDEO.models).every((k) => p.usd720[k] > 0);
+  if (ok(was) && Date.now() - was.at < 864e5) return was;
   try {
-    const j = await (await fetch(`${EVO}/web/api/models/pricing/${VIDEO.model.image}`)).json();
-    const d = j.data || {};
-    if (!(d.usd_price > 0 && d.credits > 0)) throw new Error('no price');
-    const out = { at: Date.now(), usd720: d.usd_price, usdPerCredit: d.usd_price / d.credits };
+    const out = { at: Date.now(), usd720: {}, usdPerCredit: 0 };
+    for (const [k, m] of Object.entries(VIDEO.models)) {
+      const d = (await (await fetch(`${EVO}/web/api/models/pricing/${m.image}`)).json()).data || {};
+      if (!(d.usd_price > 0 && d.credits > 0)) throw new Error('no price for ' + k);
+      out.usd720[k] = d.usd_price; out.usdPerCredit = d.usd_price / d.credits;
+    }
     await ref.set(out);
     return out;
   } catch (e) {
     console.warn('piko prices:', e.message);
-    return was || { at: 0, usd720: 0.0397, usdPerCredit: 0.0147 };
+    return ok(was) ? was : { at: 0, usd720: FALLBACK720, usdPerCredit: was?.usdPerCredit || 0.0147 };
   }
 }
-const videoUsd = (p, secs, quality) => +(p.usd720 * (quality === '480p' ? R480 : 1) * secs).toFixed(3);
+const usdPerSec = (p, model, quality) => (p.usd720[model] || p.usd720.mini) * (quality === '480p' ? R480 : 1);
+const videoUsd = (p, v) => +(usdPerSec(p, v.model, v.quality) * v.duration).toFixed(3);
 
 let balanceCache = null;
 async function balance(fresh) {
@@ -223,7 +233,7 @@ async function startVideo(ref, job, inputs) {
   if (inputs.end) image_urls.push(await evoUpload(inputs.end));
   const token = crypto.randomBytes(16).toString('hex');
   const t = await evo('/v1/videos/generations', {
-    model: inputs.start ? VIDEO.model.image : VIDEO.model.text, prompt: promptEn,
+    model: (VIDEO.models[p.model] || VIDEO.models.mini)[inputs.start ? 'image' : 'text'], prompt: promptEn,
     ...(image_urls.length ? { image_urls } : {}), duration: p.duration, quality: p.quality,
     aspect_ratio: inputs.start ? p.ratio : (p.ratio === 'adaptive' ? '9:16' : p.ratio), generate_audio: true,
     callback_url: `${SELF}/hook/${ref.id}?t=${token}`,
@@ -399,7 +409,7 @@ async function createJob(u, kind, b) {
     const start = await readInput(b.start, u.by), end = await readInput(b.end, u.by);
     if (end && !start) throw fail(400, 'end_needs_start');
     const params = videoParams(b);
-    const estimate = videoUsd(await prices(), params.duration, params.quality);
+    const estimate = videoUsd(await prices(), params);
     const bal = await balance(true);
     if (bal.usd < estimate) throw fail(402, 'balance');
     const inputs = {};
@@ -444,7 +454,9 @@ async function route(req, res) {
   if (req.method === 'GET' && r0 === 'config') {
     const p = await prices();
     return res.json({ image: { models: IMAGE.models, sizes: Object.keys(IMAGE.sizes), qualities: IMAGE.qualities, maxRefs: IMAGE.maxRefs, maxCount: IMAGE.maxCount, default: DEFAULT.image },
-      video: { qualities: VIDEO.qualities, ratios: VIDEO.ratios, min: VIDEO.min, max: VIDEO.max, default: DEFAULT.video, usdPerSecond: { '480p': +(p.usd720 * R480).toFixed(4), '720p': +p.usd720.toFixed(4) } },
+      video: { qualities: VIDEO.qualities, ratios: VIDEO.ratios, min: VIDEO.min, max: VIDEO.max, default: DEFAULT.video, usdPerSecond: { '480p': +usdPerSec(p, 'mini', '480p').toFixed(4), '720p': +usdPerSec(p, 'mini', '720p').toFixed(4) },
+        models: Object.entries(VIDEO.models).map(([id, m]) => ({ id, name: m.name, note: m.note, default: id === DEFAULT.video.model,
+          usdPerSecond: { '480p': +usdPerSec(p, id, '480p').toFixed(4), '720p': +usdPerSec(p, id, '720p').toFixed(4) } })) },
       you: { name: u.name, owner: u.owner, library: u.library } });
   }
   if (r0 === 'presets' && (req.method === 'GET' || req.method === 'PUT')) return res.json(await presets(u, req.method === 'PUT' ? body.presets : null));

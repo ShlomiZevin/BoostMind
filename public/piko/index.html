@@ -72,6 +72,12 @@ textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .opt span{display:block;font-size:13px;color:var(--dim);margin-bottom:4px}
 .opt select{width:100%;background:none;border:0;font-weight:700;font-size:16px;appearance:none;-webkit-appearance:none}
 .opt select option{color:#000}
+.vm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.vm button{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:right;display:flex;flex-direction:column;gap:3px}
+.vm button.on{border-color:var(--acc2);background:var(--card2)}
+.vm b{font-size:16px}
+.vm em{font-style:normal;font-weight:700;font-size:14px;color:var(--acc1);margin-top:2px}
+.vm small{font-size:13px;color:var(--dim);line-height:1.35}
 .go{width:100%;height:64px;border-radius:999px;background:var(--acc);color:#2a1300;font-weight:800;font-size:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;box-shadow:0 8px 30px rgba(255,123,46,.3)}
 .go small{font-weight:600;font-size:13px;opacity:.75}
 .go[disabled]{opacity:.45}
@@ -188,7 +194,7 @@ async function api(method, path, body) {
 
 // ---- state ----
 // his defaults (2026-11-07): story format 9:16, low quality, sound on; 2 pictures at once, 1 video
-const DEF = { video: { duration: 6, quality: '480p', ratio: '9:16' }, image: { model: 'flare', size: 'story', quality: 'low', count: 2 } };
+const DEF = { video: { model: 'mini', duration: 6, quality: '480p', ratio: '9:16' }, image: { model: 'flare', size: 'story', quality: 'low', count: 2 } };
 const S = JSON.parse(localStorage.getItem('piko2') || 'null') || {};
 const st = {
   view: 'make', mode: S.mode || 'video', prompt: '', heard: '',
@@ -260,8 +266,14 @@ async function mic() {
 }
 
 // ---- prices ----
+// a video's price: the model's own $ per second (from /config), Mini's if this server is older
+function vUsd(model, p) {
+  const v = st.cfg?.video; if (!v) return null;
+  const m = (v.models || []).find((x) => x.id === model);
+  return (m ? m.usdPerSecond : v.usdPerSecond)[p.quality] * p.duration;
+}
 function estimate() {
-  if (st.mode === 'video') return st.cfg ? st.cfg.video.usdPerSecond[st.video.quality] * st.video.duration : null;
+  if (st.mode === 'video') return vUsd(st.video.model, st.video);
   return (({ low: 0.005, medium: 0.02, high: 0.07 }[st.image.quality]) + st.refs.length * 0.006) * st.image.count;   // GPT Image: the real cost shows when it's done
 }
 async function loadBalance(fresh) {
@@ -280,7 +292,7 @@ async function make(again) {
   const p = again || {
     kind: st.mode, prompt: st.prompt.trim(),
     body: st.mode === 'video'
-      ? { start: input(st.start), end: input(st.end), duration: st.video.duration, quality: st.video.quality, ratio: st.video.ratio }
+      ? { start: input(st.start), end: input(st.end), model: st.video.model, duration: st.video.duration, quality: st.video.quality, ratio: st.video.ratio }
       : { refs: st.refs.map(input), model: st.image.model, size: st.image.size, quality: st.image.quality, count: st.image.count },
   };
   if (!p.prompt) return toast(ERR.prompt);
@@ -300,7 +312,7 @@ function againOf(j) {
   if (j.again) return j.again;
   const inp = j.inputs || {};
   return { kind: j.kind, prompt: j.prompt, body: j.kind === 'video'
-    ? { start: inp.start ? { url: inp.start } : undefined, end: inp.end ? { url: inp.end } : undefined, duration: j.params?.duration, quality: j.params?.quality, ratio: j.params?.ratio }
+    ? { start: inp.start ? { url: inp.start } : undefined, end: inp.end ? { url: inp.end } : undefined, model: j.params?.model, duration: j.params?.duration, quality: j.params?.quality, ratio: j.params?.ratio }
     : { refs: (inp.refs || []).map((u) => ({ url: u })), model: j.params?.model, size: j.params?.size, quality: j.params?.quality, count: 1 } };
 }
 
@@ -339,12 +351,14 @@ function runningCards(list = st.jobs.filter(live)) {
 
 const SIZES = [['story', 'סטורי (9:16)'], ['portrait', 'לאורך (2:3)'], ['square', 'ריבוע'], ['landscape', 'לרוחב']];
 const RATIOS = [['9:16', 'סטורי (9:16)'], ['adaptive', 'כמו התמונה'], ['1:1', 'ריבוע'], ['16:9', 'לרוחב (16:9)']];
+// the two video models, in words he reads at a glance (his ask, 2026-11-08: "make it clear which is which")
+const VMODELS = [['mini', 'טיוטה', 'זול ומהיר, לנסות רעיונות. הפנים עלולות להשתנות קצת.'], ['fast', 'פנים נאמנות', 'שומר על הפנים כמו בתמונה. בערך פי 3 במחיר.']];
 const QUAL = { low: 'טיוטה', medium: 'רגילה', high: 'גבוהה', '480p': 'נמוכה', '720p': 'גבוהה' };
 const sel = (list, cur) => list.map(([k, l]) => `<option value="${k}" ${String(k) === String(cur) ? 'selected' : ''}>${l}</option>`).join('');
 const label = (list, k) => (list.find(([x]) => String(x) === String(k)) || [k, k])[1];
 // a setup in words: "6 שניות · נמוכה · סטורי (9:16)"
 function describe(mode, p) {
-  return mode === 'video' ? `${p.duration} שניות · ${QUAL[p.quality]} · ${label(RATIOS, p.ratio)}`
+  return mode === 'video' ? `${label(VMODELS, p.model || 'mini')} · ${p.duration} שניות · ${QUAL[p.quality]} · ${label(RATIOS, p.ratio)}`
     : `${p.count === 1 ? 'תמונה אחת' : p.count + ' תמונות'} · ${QUAL[p.quality]} · ${label(SIZES, p.size)} · ${p.model === 'sunburst' ? 'Sunburst' : 'Flare'}`;
 }
 // ---- saved setups: one tap fills every option ----
@@ -410,7 +424,8 @@ function vMake() {
     </div>
     ${st.heard ? `<p class="heard">מה ששמעתי: ${esc(st.heard)}</p>` : ''}
   </div>
-  ${v ? `<div class="opts">
+  ${v ? `<div class="vm">${VMODELS.map(([id, name, note]) => { const c = vUsd(id, st.video); return `<button data-vmodel="${id}" class="${st.video.model === id ? 'on' : ''}"><b>${name}</b><small>${note}</small>${c != null ? `<em>≈ ${usd(c)}</em>` : ''}</button>`; }).join('')}</div>
+    <div class="opts">
       <label class="opt"><span>אורך</span><select data-set="video.duration">${Array.from({ length: 12 }, (_, i) => i + 4).map((n) => `<option value="${n}" ${n === st.video.duration ? 'selected' : ''}>${n} שניות</option>`).join('')}</select></label>
       <label class="opt"><span>איכות</span><select data-set="video.quality"><option value="480p" ${st.video.quality === '480p' ? 'selected' : ''}>נמוכה (480p)</option><option value="720p" ${st.video.quality === '720p' ? 'selected' : ''}>גבוהה (720p)</option></select></label>
       <label class="opt" style="grid-column:1/-1"><span>צורה</span><select data-set="video.ratio">${sel(RATIOS, st.video.ratio)}</select></label>
@@ -446,7 +461,7 @@ function block(j) {
       <button data-again="${j.id}">${IC.again}עוד גרסה</button>
     </div>
     ${!isV ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button data-tovideo="${j.id}">${IC.video}להפוך לסרטון</button><button data-toref="${j.id}">${IC.image}להמשיך ממנה</button></div>` : ''}
-    <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span>${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
+    <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span>${isV ? `<span>${label(VMODELS, j.params?.model || 'mini')}</span>` : ''}${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
     <button class="link" data-del="${j.id}" style="width:100%;justify-content:center;color:var(--dim);margin:0 0 6px">${IC.trash}להוריד מהגלריה</button>`
     : j.status === 'failed' ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button class="pri" data-again="${j.id}">${IC.again}לנסות שוב</button><button data-edit="${j.id}">${IC.edit}לשנות ולנסות</button></div>` : ''}`;
 }
@@ -483,6 +498,7 @@ function render() {
 function wire() {
   const V = $('#view');
   V.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => { st.mode = b.dataset.mode; keep(); render(); }));
+  V.querySelectorAll('[data-vmodel]').forEach((b) => (b.onclick = () => { st.video.model = b.dataset.vmodel; keep(); render(); }));
   V.querySelectorAll('[data-pick]').forEach((b) => (b.onclick = () => pick(b.dataset.pick)));
   V.querySelectorAll('[data-clear]').forEach((b) => (b.onclick = () => { st[b.dataset.clear] = null; if (b.dataset.clear === 'start') st.end = null; render(); }));
   V.querySelectorAll('[data-unref]').forEach((b) => (b.onclick = () => { st.refs.splice(+b.dataset.unref, 1); render(); }));
