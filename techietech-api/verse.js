@@ -1100,16 +1100,21 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (op === 'stats') {
       const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 180);
       const from = dayIL(new Date(Date.now() - Math.max(2 * days - 1, 84) * 864e5));   // the forecast learns from 12 weeks
-      const [d, ev, people] = await Promise.all([
+      const [d, ev, people, cz] = await Promise.all([
         db.collection('analytics_days').where('d', '>=', from).orderBy('d').get(),
         db.collection('analytics_events').orderBy('t', 'desc').limit(400).get(),
         peopleList(),
+        db.collection('citizens').select('created', 'stamped', 'own', 'test').get(),
       ]);
       // how today will end (forecast.js): learned from the per-hour counters of every day it has, fresh on each load
       const all = d.docs.map((x) => x.data());
       let forecast = null;
       try { forecast = require('./forecast').forecast({ days: all, joined: people.filter((p) => p.google && p.created).map((p) => p.created) }); } catch (e) { console.error('forecast', e.message); }
-      return res.json({ days: all.map(({ h, ...x }) => x), people, forecast,
+      // the citizenship journey (his ask 2026-11-08: "how many turn to citizens today"): when each resident set out for a
+      // passport (s) and when they got their number (c) - the page counts them per day like the sign-ups
+      const ms = (t) => (t && t.toMillis ? t.toMillis() : null);
+      const journey = cz.docs.map((x) => x.data()).filter((x) => !x.own && !x.test).map((x) => ({ s: ms(x.created), c: ms(x.stamped) }));
+      return res.json({ days: all.map(({ h, ...x }) => x), people, forecast, journey,
         events: ev.docs.map((x) => { const e = x.data(); delete e.exp; return { ...e, t: e.t.toMillis() }; }) });
     }
     // the conversations (wiki.js keeps them): a time range (from / to in ms), or everything one account said (uid)
