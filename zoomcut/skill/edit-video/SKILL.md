@@ -358,7 +358,14 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   music in the character's world (robotic electro / techno), and edit tricks made of his own footage: a syllable
   repeated 2-3x as a glitch (`sequence` entries repeating the same 0.2-0.3 s, e.g. "וו-וו-וואו") with a short `flicker`
   effect item on it, and hard punch-ins (item `zoom` 1.12 + `x` nudge) on alternating sentences. For a sound he must
-  choose, render 4-7 short samples of HIS line and send them before building anything.
+  choose, render 4-7 short samples of HIS line and send them before building anything. What made the final cut
+  (adam-1): 2.0x; close / far cuts (long shots split in two, alternating wide / `zoom` 1.2 with a `y` nudge so the head
+  stays under the hook); a "Screen glitch" effect item (RGB split, torn bands, static) + a very soft glitch noise on
+  EVERY jump cut - "scratches on the screen" meant THIS, not a cracked-glass overlay; skin = a light look (saturate
+  0.85, warm -0.06, smooth 0.35 - he picked it from a sheet of 8 stills; strong looks were "too much"); a hard cut to
+  the end card ON the last word with the music running through it (a music dip at the cut felt "like something is
+  missing"); the hook held 20 s of the FINAL (sped) video, size 52, max 3 lines. Show looks as a labelled sheet of
+  stills on Telegram before exporting.
 - **`cut.join` fades eat words** (adam-1, 2026-11-08 - "some of the cuts are too eager taking words out"): with
   `join` 0.3 every piece fades out over its last 0.3 s, on top of `pad_out` 0.1. For a fast cut use `join: 0`,
   `pad_in` 0.1, `pad_out` 0.2, `after_last_word` 0.3 - and get the pace from `speed`, not from shaving the words.
