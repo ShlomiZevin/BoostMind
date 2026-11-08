@@ -39,7 +39,7 @@ const PEOPLE = [{ id: 'c1', f: true }, { id: 'c2', f: false }, { id: 'c3', f: tr
 // ───────────────────────── art ─────────────────────────
 const IMG = {};
 const img = (k, src) => { const i = new Image(); i.src = src; IMG[k] = i; return i; };
-['bg.jpg', 'desk.webp', 'chair.webp'].forEach((f) => img(f.split('.')[0], 'assets/' + f));
+['bg.jpg', 'desk.webp', 'chair.webp', 'rug.webp'].forEach((f) => img(f.split('.')[0], 'assets/' + f));
 ['idle', 'run', 'laugh', 'snack', 'sad'].forEach((p) => img('o-' + p, `assets/osnat-${p}.webp`));
 PEOPLE.forEach((p) => { img(p.id + '-sit', `assets/${p.id}-sit.webp`); img(p.id + '-stand', `assets/${p.id}-stand.webp`); });
 PERKS.forEach((p) => img('i-' + p.id, `assets/i-${p.id}.webp`));
@@ -121,7 +121,7 @@ let P = { x0: 0, y0: 0, x1: 0, y1: 0 }, U = 1;   // the play area between the st
 const cssPx = (v) => { const d = document.createElement('div'); d.style.cssText = `position:fixed;top:${v};visibility:hidden`; document.body.appendChild(d); const t = d.getBoundingClientRect().top; d.remove(); return t; };
 const desks = [0, 1, 2, 3].map((i) => ({ i, x: 0, y: 0, w: 0, h: 0, c: null }));
 let lobby = [];   // where waiting candidates stand
-const KIT = { top: 0, ch: 80 };   // the kitchenette counter: its top edge and height
+const KIT = { top: 0, ch: 80 }, RUG = { x: 0, y: 0, w: 0 };   // + Techy-Tech's logo rug on the floor between the desk rows   // the kitchenette counter: its top edge and height
 function layout() {
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
   cv.width = W * DPR; cv.height = H * DPR;
@@ -137,6 +137,9 @@ function layout() {
   const band = Math.max(laughH, 156 * U), dw = 170 * U, rest = Math.max(0, ph - band - 8 - 512 * U);
   const cols = [ox + pw * 0.26, ox + pw * 0.72], r0 = P.y0 + 8 + 228 * U + rest * 0.25, rows = [r0, r0 + 226 * U + rest * 0.5];
   desks.forEach((d, i) => { d.w = dw; d.h = dw * 300 / 433; d.x = cols[i % 2]; d.y = rows[i >> 1]; });
+  // the rug fits the gap between the front of the upper desks and the chairs of the lower row
+  const gTop = rows[0] + desks[0].h * 0.5, gBot = rows[1] + desks[0].h * 0.05 - 118 * U;
+  RUG.w = Math.min(pw * 0.5, Math.max(40, gBot - gTop + 14) * 700 / 279); RUG.x = ox + pw * 0.49; RUG.y = (gTop + gBot) / 2;
   const lx = ox + pw - 46 * U, ly = P.y1 - 6 * U;
   lobby = [0, 1, 2].map((k) => ({ x: lx - k * 66 * U, y: ly - (k % 2) * 10 * U }));
   $('laughBtn').style.bottom = (H - P.y1 + 8) + 'px';
@@ -308,7 +311,7 @@ function hire(c) {
   comboT > 0 ? (combo = Math.min(5, combo + 1)) : (combo = 1); comboT = 6; bestCombo = Math.max(bestCombo, combo);
   const pts = Math.round((100 + c.bat * 100) * combo);
   score += pts; hires++; totalHires++;
-  popText(d.x, d.y - d.h / 2 - 130 * U, `+${pts}` + (combo > 1 ? ` ×${combo}` : ''), 'good');
+  popText(d.x, d.y - d.h / 2 - 130 * U, `${c.f ? 'נקלטה' : 'נקלט'}! +${pts}` + (combo > 1 ? ` ×${combo}` : ''), 'good');
   play('hire', .7); play('laugh', .7);
   osnat.pose = 'laugh'; osnat.poseT = 0.7;
   say(line(LINES.hire, 'hire')); thought(c, line(LINES.hired, 'hired'), 1.6);
@@ -420,6 +423,7 @@ function drawBattery(x, y, b, s) {   // a clock that runs down: the time until h
   if (low) { ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 6, 0, 7); ctx.stroke(); }
   ctx.restore();
 }
+const DONE = 'סיימתי את הראיון!';
 function drawWant(c, x, headY, col) {
   const s = U, ic = 46 * s, gap = 6 * s, pad = 8 * s, fs = Math.round(10.5 * s + 1);
   const ready = c.st === 'ready', think = c.st === 'think';
@@ -427,7 +431,7 @@ function drawWant(c, x, headY, col) {
   ctx.font = `900 ${fs}px Rubik, sans-serif`; ctx.direction = 'rtl';
   const slots = ready || think ? [] : c.want.map((id) => Math.max(ic, ctx.measureText(perk(id).word).width + 4 * s));
   let bw, bh = ic + pad * 2 + 13 * s;
-  if (ready) { ctx.font = `900 ${fs + 1}px Rubik, sans-serif`; bw = Math.max(ic, ctx.measureText('לחתימה ✍️').width) + pad * 2; bh = ic + pad * 2 + 13 * s; }
+  if (ready) { ctx.font = `900 ${fs + 1}px Rubik, sans-serif`; bw = Math.max(ic, ctx.measureText(DONE).width) + pad * 2; bh = ic + pad * 2 + 13 * s; }
   else if (think) { ctx.font = `700 ${Math.round(11.5 * s + 1)}px Rubik, sans-serif`; bw = Math.min(col.w - 30 * s, ctx.measureText(c.thought || '...').width + pad * 2.4); bh = 30 * s; }
   else bw = slots.reduce((a, b) => a + b, 0) + gap * (slots.length - 1) + pad * 2;
   // inside its own column, the battery beside it
@@ -443,8 +447,8 @@ function drawWant(c, x, headY, col) {
     ctx.fillStyle = '#4c3d7a'; ctx.fillText(c.thought || '...', bx + bw / 2, by + bh / 2 + 1, bw - pad * 2);
   } else if (ready) {
     const k = 1 + Math.sin(performance.now() / 160) * 0.06;
-    drawImg(IMG['i-contract'], bx + bw / 2, by + pad + ic * k, ic * k);
-    ctx.textBaseline = 'top'; ctx.fillStyle = '#b45309'; ctx.font = `900 ${fs + 1}px Rubik, sans-serif`; ctx.fillText('לחתימה ✍️', bx + bw / 2, by + pad + ic + 1 * s);
+    ctx.font = `${Math.round(ic * 0.82 * k)}px serif`; ctx.fillText('🙋', bx + bw / 2, by + pad + ic / 2);
+    ctx.textBaseline = 'top'; ctx.fillStyle = '#b45309'; ctx.font = `900 ${fs + 1}px Rubik, sans-serif`; ctx.fillText(DONE, bx + bw / 2, by + pad + ic + 1 * s);
   } else {
     ctx.textBaseline = 'top';
     let sx = bx + bw - pad;   // right to left, the way he reads
@@ -495,6 +499,7 @@ function draw() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   drawBg();
   if (state === 'menu') return;
+  if (ok(IMG.rug)) { const h = RUG.w * IMG.rug.naturalHeight / IMG.rug.naturalWidth; ctx.drawImage(IMG.rug, RUG.x - RUG.w / 2, RUG.y - h / 2, RUG.w, h); }
   // everything with feet, back to front
   const items = [];
   desks.forEach((d) => items.push({ y: d.y + d.h * 0.5, f: () => drawDesk(d) }));
@@ -595,7 +600,7 @@ const STEPS = [
   { text: 'הוא לא מדבר – הוא <b>שולח הודעה</b> עם הדרישות. תקראו מה הוא רוצה.', spot: spotDesk },
   { text: 'נסו עכשיו: למטה זה <b>המטבחון</b>. <b>הקישו על מה שביקש</b> – אסנת תרוץ להביא – ואז <b>על השולחן שלו</b>.', try: 'give' },
   { text: 'ה<b>שעון</b> ליד ההודעה = כמה זמן נשאר <b>עד שהוא קם והולך</b>. כל דבר שמביאים נותן לו עוד זמן.', spot: spotDesk },
-  { text: 'נסו עכשיו: קיבל הכול – <b>החוזה מוכן</b>! <b>הקישו על השולחן</b>, אסנת מחתימה אותו... והוא הולך הביתה מוקדם. גן זי.', try: 'hire', spot: spotDesk },
+  { text: 'נסו עכשיו: קיבל הכול – <b>סיים את הראיון</b> 🙋 ומחכה לאסנת. <b>הקישו על השולחן</b>: היא באה לסגור איתו, הוא מגויס... והולך הביתה מוקדם. גן זי.', try: 'hire', spot: spotDesk },
   { text: '<b>צחוק מזויף</b>: כולם קופאים ל-5 שניות. אחריו צריך לחכות קצת. נסו!', try: 'laugh', spot: spotEl('#laughBtn') },
   { text: 'אפשר לתכנן קדימה: עד <b>4 פעולות בתור</b> (המספרים הוורודים), ואסנת סוחבת <b>2 דברים</b>. מוכנים? אנחנו קוראים לזה A Team.', last: true },
 ];
@@ -665,7 +670,7 @@ function hint() {
   let t;
   const waiting = cands.some((c) => c.st === 'lobby' || c.st === 'walk'), free = desks.some((d) => !d.c);
   const ready = desks.some((d) => d.c && d.c.st === 'ready'), want = desks.some((d) => d.c && d.c.st === 'want');
-  if (ready) t = 'חוזה מוכן! <em>הקישו</em> על השולחן – להחתים';
+  if (ready) t = 'מועמד סיים את הראיון! <em>הקישו</em> על השולחן – אסנת תבוא לסגור איתו';
   else if (waiting && free) t = '<em>הקישו</em> על מועמד בכניסה – להושיב';
   else if (want && osnat.hands.length) t = '<em>הקישו</em> על השולחן – למסור';
   else if (want) t = '<em>הקישו</em> על מה שביקש במטבחון למטה';
