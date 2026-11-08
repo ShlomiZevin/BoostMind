@@ -18,7 +18,9 @@ async function api(op, data = {}) {
 const anchorName = () => (C['news-anchor'] && C['news-anchor'].name) || 'מגישת החדשות';
 const img = (a, cls) => (a.img ? `<div class="${cls}" style="background-image:url('${esc(a.img)}')"></div>` : `<div class="${cls} no"></div>`);
 function ticker(list) {
-  document.getElementById('tick').innerHTML = list.slice(0, 10).map((a) => `<a href="/charadot/a/${a.id}">${esc(a.headline)}</a>`).join('');
+  const el = document.getElementById('tick');
+  el.innerHTML = list.slice(0, 10).map((a) => `<a href="/charadot/a/${a.id}">${esc(a.headline)}</a>`).join('');
+  requestAnimationFrame(() => el.style.setProperty('--dur', Math.max(8, Math.round(el.scrollWidth / 90)) + 's'));
 }
 function soon() {
   app.innerHTML = `<div class="soon"><img src="/charadot/img/avatar.png" alt=""><p>ח24 עולה לשידור בקרוב. הישארו איתנו.</p></div>`;

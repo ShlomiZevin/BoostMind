@@ -8,21 +8,22 @@ img { display: block; max-width: 100%; }
 .in { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
 .load { min-height: 60vh; }
 
-.top { background: linear-gradient(90deg, #b30d13, #7e090d); position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 12px rgba(0,0,0,.25); }
-.top .in { display: flex; align-items: center; height: 64px; gap: 14px; }
-.logo img { height: 44px; width: auto; }
+/* the logo bar and the ticker stay at the top together while scrolling (his note: the מבזקים strip stays in place) */
+.top { background: linear-gradient(90deg, #b30d13, #7e090d); position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 12px rgba(0,0,0,.25); padding-top: env(safe-area-inset-top); }
+.top .in { display: flex; align-items: center; height: 56px; gap: 12px; }
+.logo img { height: 38px; width: auto; }
 .live { margin-inline-start: auto; color: #fff; font-weight: 800; font-size: .85rem; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,.25); padding: 4px 12px; border-radius: 30px; }
 .live i { width: 9px; height: 9px; border-radius: 50%; background: #fff; animation: blink 1s infinite; }
 @keyframes blink { 50% { opacity: .2; } }
 
-.ticker { display: flex; align-items: stretch; background: #111; color: #fff; height: 40px; overflow: hidden; }
+.ticker { display: flex; align-items: stretch; background: #111; color: #fff; height: 38px; overflow: hidden; }
 .ticker b { background: var(--red); padding: 0 14px; display: flex; align-items: center; font-weight: 900; flex: none; z-index: 1; }
 .ticker .run { flex: 1; overflow: hidden; position: relative; }
-#tick { position: absolute; white-space: nowrap; display: flex; align-items: center; height: 40px; gap: 42px; animation: tick 60s linear infinite; padding-inline-start: 100%; font-weight: 600; }
+#tick { position: absolute; white-space: nowrap; display: flex; align-items: center; height: 38px; gap: 42px; animation: tick var(--dur, 22s) linear infinite; padding-inline-start: 100%; font-weight: 600; }
 #tick a::before { content: '•'; color: var(--red); margin-inline-end: 10px; }
 @keyframes tick { to { transform: translateX(100%); } }
 
-main { max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
+main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 28px; }
 .lead { display: grid; grid-template-columns: 1.55fr 1fr; gap: 18px; margin-bottom: 22px; }
 @media (max-width: 760px) { .lead { grid-template-columns: 1fr; } }
 .hero { position: relative; border-radius: 6px; overflow: hidden; background: #300 center / cover; min-height: 360px; display: flex; align-items: flex-end; color: #fff; }
@@ -64,8 +65,13 @@ main { max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
 .rx b { font-size: .95rem; } .rx p { margin: 2px 0 0; font-size: .98rem; }
 .rx:hover { background: #fafafa; }
 .more2 { max-width: 760px; margin: 22px auto 0; }
-.foot { background: #111; color: #ccc; padding: 22px 0 calc(22px + env(safe-area-inset-bottom)); }
-.foot .in { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; } .foot img { width: 46px; height: 46px; border-radius: 8px; }
-.foot b { color: #fff; display: block; } .foot span { font-size: .9rem; }
-.foot nav { margin-inline-start: auto; display: flex; gap: 18px; font-weight: 700; } .foot nav a:hover { color: #fff; }
+/* the bottom: one centred column - the channel, its line, two buttons, the sign-off */
+.foot { background: #111; color: #bbb; padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); border-top: 4px solid var(--red); }
+.foot .in { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.foot .in > img { width: 56px; height: 56px; border-radius: 12px; margin-bottom: 4px; }
+.foot b { color: #fff; font-size: 1.1rem; font-weight: 900; } .foot span { font-size: .92rem; max-width: 320px; }
+.foot nav { display: flex; gap: 10px; margin: 14px 0 8px; flex-wrap: wrap; justify-content: center; }
+.foot nav a { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px; border-radius: 30px; border: 1px solid #333; background: #1a1a1f; color: #fff; font-weight: 700; font-size: .92rem; }
+.foot nav a img { width: 22px; height: 22px; object-fit: contain; } .foot nav a:hover { border-color: var(--red); }
+.foot small { color: #777; font-size: .8rem; }
 .soon { text-align: center; padding: 80px 20px; } .soon img { width: 160px; margin: 0 auto 18px; border-radius: 16px; } .soon p { color: var(--dim); font-size: 1.1rem; }

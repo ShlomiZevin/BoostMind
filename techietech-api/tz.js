@@ -157,7 +157,9 @@ async function headlines(hours = 10) {
       const xml = await r.text();
       for (const it of (xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || []).slice(0, 25)) {
         const title = tag(it, 'title'), link = tag(it, 'link') || tag(it, 'guid'), when = Date.parse(tag(it, 'pubDate')) || Date.now();
-        if (title && link && when >= since) out.push({ src, title: clip(title, 200), desc: clip(tag(it, 'description'), 300), url: clip(link, 500), when });
+        // the source's own picture (ynet, Haaretz, Globes send one) - shown on the link card like a link preview
+        const img = (/<enclosure[^>]*url="([^"]+)"/i.exec(it) || /<media:(?:content|thumbnail)[^>]*url="([^"]+)"/i.exec(it) || /<img[^>]*src=(?:"|&quot;|')([^"&']+)/i.exec(it) || [])[1];
+        if (title && link && when >= since) out.push({ src, title: clip(title, 200), desc: clip(tag(it, 'description'), 300), url: clip(link, 500), when, img: img && /^https:\/\//.test(img) ? clip(img, 500) : null });
       }
     } catch (e) { console.error('tz feed', src, e.message); }
   }));
@@ -276,8 +278,8 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
   log.made = out.posts.length;
   if (out.dropped.length || write.out.items.length !== items.length) console.error('tz dropped', JSON.stringify({ dropped: out.dropped, items: items.length, written: write.out.items.length, cast: items.map((it) => it.cast) }));
   await runRef.set({ ...log, dropped: out.dropped, written: write.out.items.length, heads: fresh.length, cands: [...candIds], why: clip(pick.out.why, 300), used: items.map((it) => it.h.url), articles: out.articles.map((a) => a.id), posts: out.posts.map((p) => p.id) });
-  // the run's first article gets a picture (one a run, low quality)
-  if (cfg.img && out.articles[0]) await picture(out.articles[0]).catch((e) => console.error('tz picture', e.message));
+  // every article gets its picture (1-2 a run, low quality, on ח24's key) - an article without one looked broken (his note)
+  if (cfg.img) await Promise.all(out.articles.map((a) => picture(a).catch((e) => console.error('tz picture', e.message))));
   if (cfg.auto) await publish(out.posts.map((p) => p.id), out.articles.map((a) => a.id), spread(slot));
   return { made: out.posts.length, articles: out.articles.length, run: runRef.id };
 }
@@ -290,7 +292,7 @@ async function save(items, written, { run }) {
   let order = 0;
   items.forEach((it, i) => {
     const w = written[i] || { posts: [] }, allowed = new Set(it.cast);
-    const link = { url: it.h.url, title: it.h.title, src: it.h.src };
+    const link = { url: it.h.url, title: it.h.title, src: it.h.src, img: it.h.img || null };
     let newsPost = null;
     if (it.art && it.art.headline) {
       const a = { id: newId(), headline: clip(it.art.headline, 160), sub: clip(it.art.sub, 260), body: (it.art.body || []).map((p) => clip(p, 900)).filter(Boolean),

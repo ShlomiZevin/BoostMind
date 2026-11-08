@@ -24,7 +24,15 @@ fs.mkdirSync(SHOTS, { recursive: true });
 
 // one run, everything live and already in the past (so the pages show it all)
 await db.collection('verseMeta').doc('tz').set({ open: true, img: false, auto: true, silent: null });
-const r = await tz._run('morning');
+// TZ_FIXTURE = a JSON of real posts / articles (exported from the live site) - shown as they are, no engine run, no AI cost
+let r;
+if (process.env.TZ_FIXTURE) {
+  const F = JSON.parse(fs.readFileSync(process.env.TZ_FIXTURE, 'utf8'));
+  const back = (o) => JSON.parse(JSON.stringify(o), (k, v) => (v && v.__t !== undefined ? admin.firestore.Timestamp.fromMillis(v.__t) : v));
+  for (const p of F.posts) await db.collection('tzPosts').doc(p.id).set(back(p));
+  for (const a of F.arts) await db.collection('tzArticles').doc(a.id).set(back(a));
+  r = { made: F.posts.length, run: F.posts[0] && F.posts[0].run };
+} else r = await tz._run('morning');
 console.log('run', JSON.stringify(r));
 if (!r.made) { console.log('nothing to show (a bad day?)'); process.exit(0); }
 const posts = (await db.collection('tzPosts').where('run', '==', r.run).get()).docs;
@@ -50,16 +58,21 @@ const browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Googl
 const page = await browser.newPage();
 page.on('pageerror', (e) => console.log('PAGE ERROR', e.message));
 page.on('console', (m) => { if (m.type() === 'error') console.log('console', m.text().slice(0, 200)); });
-const shot = async (url, name, w = 390, h = 844, full = true) => {
+const shot = async (url, name, w = 390, h = 844, full = true, bottom = false) => {
   await page.setViewport({ width: w, height: h, deviceScaleFactor: 2 });
   await page.goto('http://localhost:5077' + url, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await new Promise((ok) => setTimeout(ok, 4500));
   const wide = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
   if (wide) console.log('SIDEWAYS SCROLL on', url);
+  if (bottom) await page.evaluate(() => scrollTo(0, document.body.scrollHeight));
+  if (bottom) await new Promise((ok) => setTimeout(ok, 600));
   await page.screenshot({ path: path.join(SHOTS, name + '.png'), fullPage: full });
   console.log('ok ', name);
 };
 const top = posts.map((d) => d.data()).find((p) => !p.parent && p.by !== 'charadot') || posts[0].data();
+await page.evaluateOnNewDocument(() => { try { localStorage.setItem('ck-seen', '1'); } catch (e) {} });   // no cookie notice over the screenshots
+await shot('/tziftzif', 'tz-0-top', 390, 844, false);
+await shot('/tziftzif', 'tz-0-bottom', 390, 844, false, true);
 await shot('/tziftzif', 'tz-1-timeline');
 await shot('/tziftzif/p/' + top.root, 'tz-2-thread');
 await shot('/tziftzif/u/' + top.by, 'tz-3-resident');

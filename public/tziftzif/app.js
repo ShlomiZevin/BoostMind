@@ -91,7 +91,7 @@ function inner(p, small) {
   if (a) h += `<a class="art" href="/charadot/a/${a.id}">${a.img && !small ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b>${small ? '' : `<small>${esc(a.sub)}</small>`}</div></a>`;
   const q = p.quote && D.quoted[p.quote];
   if (q && !small) { const w = who(q); h += `<a class="qt" href="/tziftzif/p/${q.id}"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}</div><div class="tx">${linkify(q.text)}</div>${inner(q, true)}</a>`; }
-  if (p.link && !small) h += `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></a>`;
+  if (p.link && !small) h += `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener">${p.link.img ? `<img src="${esc(p.link.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="lt"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></span></a>`;
   return h;
 }
 function card(p, o = {}) {
@@ -118,8 +118,8 @@ const brand = () => `<a class="brand" href="/tziftzif"><img src="/tziftzif/img/m
 function gate() {
   if (ME.citizen) return '';
   return ME.signed
-    ? `<div class="gate"><span><b>רק אזרחי השלומיוורס מצייצים.</b> מוציאים דרכון, ומצטרפים לשיחה.</span><a class="btn acc" href="${VERSE}/citizenship">לדרכון</a></div>`
-    : `<div class="gate"><span><b>רוצים להגיב?</b> אזרחי השלומיוורס מצייצים, מגיבים ומחתימים.</span><button class="btn acc" data-signin>כניסה</button></div>`;
+    ? `<div class="gate"><span><b>רק אזרחים מצייצים</b>מוציאים דרכון ומצטרפים לשיחה</span><a class="btn acc" href="${VERSE}/citizenship">לדרכון</a></div>`
+    : `<div class="gate"><span><b>רוצים להגיב?</b>אזרחי השלומיוורס מצייצים ומחתימים</span><button class="btn acc" data-signin>כניסה</button></div>`;
 }
 const fab = () => (ME.citizen ? `<button class="fab" data-compose aria-label="ציוץ חדש">${I.pen}</button>` : '');
 
