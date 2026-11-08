@@ -63,8 +63,7 @@ const tile = (k, size, round, fill = 0.8) => `<div style="width:${size}px;height
 await shot(tile('dark', 512, false).replace('border-radius:112.64px', 'border-radius:0'), path.join(SITE, 'icon-512.png'), 512, 512, 1);
 await shot(tile('dark', 192, false).replace(/border-radius:[\d.]+px/, 'border-radius:0'), path.join(SITE, 'icon-192.png'), 192, 192, 1);
 await shot(`<div data-clear>${tile('dark', 256, true)}</div>`, path.join(SITE, 'avatar.png'), 256, 256, 1);
-// the browser tab (his note: "the icon on the tab looks a mess"): the mark fills the whole square, so at 16px it is still the bird
-for (const n of [64, 32]) await shot(`<div data-clear>${tile('orange', n, false, 1).replace(/border-radius:[\d.]+px/, `border-radius:${n * 0.22}px`)}</div>`, path.join(SITE, `favicon-${n}.png`), n, n, 1);
+// (the browser tab's icon is its own painting, simplified for 16-32px: scripts/v2-design/tz-favicon.py)
 await shot(`<div style="background:${V.dark.bg};width:1200px;height:630px;display:grid;place-items:center"><div class="h" style="direction:rtl"><div style="width:230px">${svg('dark', 'og')}</div>${word('dark', 150)}</div></div>`, path.join(SITE, 'og.png'), 1200, 630, 1);
 
 // the sheet for him: every version
