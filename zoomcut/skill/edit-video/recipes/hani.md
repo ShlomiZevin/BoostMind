@@ -285,3 +285,38 @@ sound-effects model · the office ambience · slow, sparse music beds · a blurr
 - Round 7 (2026-11-04): **open on HER** ("I really want to start with Hani - it's a good hook"), from his start mark, his first word heard over her. A close-up person needs a close wall behind: Yotam's TV-wall photo scaled 1.45x (box x -425, y -735, w 1856, h 2784) so the TV sits right behind his head ("it makes no sense Yotam is so far from the TV").
 - **A still first moment in a synced take** ("Hani is frozen for a split second"): measure the frame-to-frame difference of the raw take at the start (mean abs diff, 180x320 grey) - she was still 0.33 s. Don't move the start (it cuts his first word): split the first piece - 1 s from her first movement at item `rate` 0.7, landing exactly on the synced `in` (+1.0 s); the sound is untouched.
 
+
+## haredit-5 - a DIALOGUE in Osnat's (HR) room, each character filmed alone (his brief, 2026-11-08, the day before the shoot)
+Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in, nothing copied from haredit-4). Project
+`haredit-5`, script `scripts/haredit-5.txt`, Drop folder `haredit-5`. **He has no time for rounds: "make it good on first run".**
+- **Cut EVERY silence** (his words: "cut any silence ... fast editing for the conversation") - this is NOT a phone call,
+  so the "his pauses stay" rule of sections 3/5 does not apply. No dead air between lines or inside them. Kept only where
+  the script asks for an acted beat: the mezuzah kiss before her first word, "(חני קופאת לרגע)", "(חני נשארת עם חיוך
+  קפוא)" before Osnat's last line - LOOK at those frames, they are the joke, not silence.
+- **Edit the talk like a film / series** (his words: "when someone still finishes you hear the second one start the
+  answer ... the next one is already talking and you still see the first one ... the first one is still talking and you
+  already see the next one"): the picture cut and the sound cut are NOT at the same moment.
+  - sound: the next line often starts 0.15-0.4 s over the tail of the one before (the last word or two, never the
+    punchline / a name / a number like "שבעה שקלים ועשרים אגורות"); interruptions start earlier (rule 4 in SKILL.md);
+  - picture, mixed through the video (never the same pattern twice in a row): **J-cut** = we hear the next speaker
+    while still seeing the one who just finished (their listening face), then cut to the speaker; **L-cut** = we already
+    see the next speaker (or the listener's reaction) while the first one finishes; and some straight cuts;
+  - Hani's long runs (the miracle story, the yichus chain, the pilpul) = cut away to Osnat's / Yotam's reactions in the
+    middle (Osnat's fake rolling laugh, tongue between her teeth; Yotam lost) while Hani's voice runs on - reactions from
+    the frames before / after their own lines in their takes (or a take where he only reacts).
+  - How: the Person lane's pieces and the Voice lane's items are separate (like haredit-4's cut script, ops with rev),
+    voice from the take of whoever SPEAKS, picture from whoever we SEE, each with its own background item. Check each
+    join by listening - one voice must never be cut mid-word by the next one's fade.
+- **Backgrounds per shot** (`_assets/haredit/h5/`, already in the project's Media; checked against the script 2026-11-08):
+  - Hani in the doorway (greeting, kissing the mezuzah) = `door-in.jpg` (Osnat's view: mezuzah on the LEFT doorpost, the
+    open space behind her). If his hand / the kiss lands on the other side of his head, mirror the take or the background
+    so the mezuzah is on the side he kisses.
+  - Osnat at her desk = `osnat-seat.jpg` (corkboard, orchid, pastel binders behind her - she faces the door).
+  - Hani sitting = `hani-seat.jpg` (Osnat's view: guest chair backrest, the doorway + frosted glass behind her).
+  - Yotam - he comes INTO the room ("יותם נכנס ... יותם יוצא", Hani and Osnat stay seated): he stands in the doorway =
+    `door-in.jpg` (the open space he asked for shows through it). `corridor-yotam.jpg` (the open space, no doorway) only
+    if he is shot walking up in the corridor. Ask nothing - pick by the footage.
+  - Before handing over: one still of EACH person on EACH background they use (big), people at a believable size for the
+    distance (a standing person close in the doorway; seated ones at the chair's height, the backrest under the shoulders).
+- The opening (2026-11-08): greeting at the door -> Osnat "מה שלומך?" -> Hani sits -> the miracle story (שלוימי, 1, choked
+  on an apple Brachi gave him; אברהם משה home only because רֶבּ שמוליק went to the ER) -> into the name request.

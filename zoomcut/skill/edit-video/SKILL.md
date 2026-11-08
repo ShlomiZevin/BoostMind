@@ -77,6 +77,10 @@ layers a builder made; the editor and the export don't know or care which builde
    keeps going underneath, then stops. A line said over someone ("זה סדר הגודל" over "תקשיב ×3") plays in full on top,
    and the view switches between them. Start each line on its first word (no breath, no tail of the line before) and
    end on its last word (no gasp after).
+   **Film / series editing of dialogue** (his words, 2026-11-08, haredit-5): the picture cut and the sound cut are not at the
+   same moment - J-cuts (hear the next speaker while still seeing the one who finished) and L-cuts (see the next one /
+   a reaction while the first finishes), mixed with straight cuts; cut away to the listener during long runs. Details:
+   `recipes/hani.md` → haredit-5.
 5. **The editor is the tool; this skill uses it.** Making a video = setting up a project's layers with the tool as it
    is, then he (or you, on his word) changes them. A video session does not change the tool. Something the tool can't
    do = a deliberate, generic tool improvement (a layer kind / control every project gets, written in `editor.md`) -
@@ -364,6 +368,13 @@ take. A framing for a whole take is better as one change you re-apply than as a 
 - **Subtitles follow what he SAID**, not the script (his ad-libs stay - add them to the script line). Hook text starts
   "פוב:" (never "POV:") unless his words have no prefix; his exact words; y ≥ ~250; max ~3 lines so it never covers
   a face (smaller `size` before more lines).
+- **The set must be where the camera really is** (adam-1, 2026-11-08 - "it's not realistic, he is sitting in front of
+  the table so you can't see the table behind him... it happens a lot"): a person sitting at a desk / meeting table is
+  filmed from ACROSS the table, so behind him there is only what is behind his seat - a wall, a window, his chair's
+  back - never the table running away behind him. Before picking a background, look at his frame: seated at a table
+  -> a "behind the seat, no table" set (library: `seat-yotam`, `seat-hani`, `seat-itay`, `seat2-a/b`); standing ->
+  a set shot from standing height. A "head of the table" photo (the table in the front of the frame) fits only a
+  person standing BEHIND that table's far end. Check the first still before handing over.
 - **Cinematic, not overdone:** a real-looking scene first, effects as layers on top at moderate strength. He rejected
   shake, flashes, zoom kicks, heavy grades ("like Saw").
 - **Sound is measured, not guessed** (dB per window, spectrum, ring-out after words). Phone / filter-app voices: find
