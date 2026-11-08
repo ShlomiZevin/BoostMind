@@ -142,14 +142,14 @@ const fab = () => `<button class="fab" data-compose aria-label="ציוץ חדש"
 // the bottom (mockup tz-pro/P1, his note "make it professional"): a slim tab bar - home, ח24, the bell and "me" are the verse's own
 // every tab stays inside ציפציפ (his note: "don't show links that take me out - people won't come back")
 const tabbar = (on) => `<nav class="tabbar"><a href="/tziftzif" class="${on === 'home' ? 'on' : ''}">${I.home}<span>בית</span></a>`
-  + `<a href="/tziftzif/people" class="${on === 'people' ? 'on' : ''}">${I.people}<span>התושבים</span></a>`
+  + `<a href="/tziftzif/people" class="${on === 'people' ? 'on' : ''}">${I.people}<span>מי מצייץ</span></a>`
   + `<a href="/tziftzif/u/charadot" class="${on === 'news' ? 'on' : ''}"><img src="/charadot/img/avatar.png" alt=""><span>ח24</span></a></nav>`;
 
 let FEED = null;
 async function home() {
   document.title = 'ציפציפ';
   // the top in ONE thin line (his note: "very thin, the main is the main area"): the logo, the two tabs, search
-  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<div class="tabs pill"><button data-tab="all" class="${TAB === 'all' ? 'on' : ''}">בשבילך</button><button data-tab="follow" class="${TAB === 'follow' ? 'on' : ''}">במעקב</button></div><a class="ic" href="/tziftzif/people" title="התושבים">${I.people}</a></div></div>
+  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<div class="tabs pill"><button data-tab="all" class="${TAB === 'all' ? 'on' : ''}">בשבילך</button><button data-tab="follow" class="${TAB === 'follow' ? 'on' : ''}">במעקב</button></div><a class="ic" href="/tziftzif/people" title="מי מצייץ">${I.people}</a></div></div>
     <div id="list" class="withbar">${loader()}</div>${gate()}${fab()}${tabbar('home')}`;
   if (!FEED) {
     const r = await api('feed');
@@ -231,11 +231,11 @@ async function article(id) {
     ${rx ? `<div class="rxh">מה אומרים בציפציפ</div>${rx}` : ''}`;
   track('ch_article', id);
 }
-// התושבים: everyone who posts on ציפציפ, with their verse names - each opens their posts here
+// מי מצייץ (was התושבים - his pick 2026-11-08): everyone who posts on ציפציפ, with their verse names - each opens their posts here
 function people() {
-  document.title = 'התושבים · ציפציפ';
+  document.title = 'מי מצייץ · ציפציפ';
   const list = Object.values(C).filter((c) => c.img).sort((a, b) => (b.videos || []).length - (a.videos || []).length);
-  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<span class="ttl" style="margin-inline:auto">התושבים</span><span class="ic"></span></div></div>
+  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<span class="ttl" style="margin-inline:auto">מי מצייץ</span><span class="ic"></span></div></div>
     <a class="ppl news" href="/tziftzif/u/charadot"><span class="av"><img src="/charadot/img/avatar.png" alt=""></span><span class="pb"><b>חרדות ${CHECK('#e3101b')}</b><small>@charadot · ערוץ החדשות של השלומיוורס</small></span></a>
     <div id="list" class="withbar">${list.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}${c.role ? ' · ' + esc(String(c.role).slice(0, 60)) : ''}</small></span></a>`).join('')}</div>${tabbar('people')}`;
   track('tz_resident', 'people');
@@ -371,7 +371,7 @@ async function side() {
   const r = await api('front');
   const news = (r.articles || []).slice(0, 5);
   el.innerHTML = `${news.length ? `<div class="box"><h3><img src="/charadot/img/avatar.png" alt="">מה קורה בחרדות</h3>${news.map((a) => `<a class="hl" href="/tziftzif/a/${a.id}"><small><b>${esc(a.tag || 'חדשות')}</b> · ${ago(a.t)}</small><span>${esc(a.headline)}</span></a>`).join('')}<a class="sm" href="/tziftzif/u/charadot">עוד מח24</a></div>` : ''}
-    <div class="box"><h3>תושבים שכדאי להכיר</h3>${ppl.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}</small></span></a>`).join('')}<a class="sm" href="/tziftzif/people">כל התושבים</a></div>
+    <div class="box"><h3>תושבים שכדאי להכיר</h3>${ppl.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}</small></span></a>`).join('')}<a class="sm" href="/tziftzif/people">כל מי שמצייץ</a></div>
     <p class="fine">ציפציפ · הרשת של תושבי השלומיוורס</p>`;
 }
 matchMedia('(min-width: 1180px)').addEventListener('change', side);
