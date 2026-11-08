@@ -192,7 +192,30 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   #printpage .pl.me .pt { font-weight: 700; }
   #printpage .pl.solo { grid-template-columns: 1fr; }
   #printpage .pd { color: #555; font-style: italic; padding: 3pt 2.5mm 3pt 0; border-right: 2.5pt solid transparent; break-inside: avoid; }
+  /* by character: each character's own pages, in its colour, big enough to read on the wall while filming */
+  #printpage { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #printpage .bc + .bc { break-before: page; }
+  #printpage .bc-h { display: flex; align-items: baseline; gap: 10pt; padding-bottom: 6pt; margin-bottom: 12pt; border-bottom: 3pt solid var(--c); }
+  #printpage .bc-h b { font-size: 34pt; line-height: 1.1; color: var(--ink); }
+  #printpage .bc-h span { color: #555; font-size: 12pt; }
+  #printpage .bc-l { margin-bottom: 11pt; break-inside: avoid; }
+  #printpage .bc-cue { color: #666; font-size: 13pt; line-height: 1.4; margin-bottom: 3pt; }
+  #printpage .bc-cue b { color: #444; }
+  #printpage .bc-d { color: #777; font-style: italic; font-size: 12pt; margin-bottom: 3pt; }
+  #printpage .bc-t { font-size: 23pt; line-height: 1.38; font-weight: 700; color: var(--ink); background: var(--bg); border-right: 6pt solid var(--c); padding: 5pt 9pt; border-radius: 3pt; }
+  #printpage .bc-t .idir { color: #777; font-weight: 500; font-size: .62em; font-style: italic; }
+  #printpage .bc-n { float: left; color: #888; font-size: 10pt; font-weight: 600; margin-top: 3pt; }
 }
+/* the Print window: the whole script, or each character on its own pages */
+.pr-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; margin-top: 8px; border: 1px solid var(--edge-2); border-radius: 10px; background: var(--panel-2); cursor: pointer; text-align: right; direction: rtl; }
+.pr-opt:hover { border-color: var(--accent); }
+.pr-opt b { font-size: 16px; }
+.pr-opt span { color: var(--dim); font-size: 13px; }
+.pr-chars { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; direction: rtl; }
+.pr-chars label { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--edge-2); border-radius: 17px; cursor: pointer; font-weight: 700; }
+.pr-chars .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+#pdlg input[type=checkbox] { flex: none; width: 16px; height: 16px; margin: 0; padding: 0; accent-color: var(--accent); }
+.pr-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; direction: rtl; cursor: pointer; }
 /* the Paste box: a new project from the script */
 .np { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; cursor: pointer; }
 .np-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
@@ -208,7 +231,7 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <select id="ep" title="Project" data-picker="project" data-label="Project"></select>
   <button class="btn" id="paste" title="Paste a script">Paste</button>
   <button class="btn" id="copy" title="Copy the whole script (names and lines, as written)">Copy</button>
-  <button class="btn" id="print" title="Print the script: every line with who says it; the character you play is marked">Print</button>
+  <button class="btn" id="print" title="Print the script: the whole script, or each character on its own pages in its colour (big, to hang up while filming)">Print</button>
   <button class="btn ed" id="edit" title="Edit the script: type in any line, drag lines to another place, add or delete lines (E)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Edit</button>
   <div class="grow"></div>
   <button class="btn play" id="play" title="Play / pause (Space)">▶ Play</button>
@@ -258,6 +281,17 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
     <button class="btn" id="cancel">Cancel</button><button class="btn on" id="use">Use this script</button>
   </div>
+</dialog>
+
+<dialog id="pdlg" style="width:min(520px,92vw)">
+  <div style="font-weight:700;margin-bottom:2px">Print</div>
+  <button class="pr-opt" id="prAll"><div><b>The whole script</b><br><span>Every line with who says it, small - to read</span></div></button>
+  <div id="prBy">
+    <button class="pr-opt" id="prChars"><div><b>By character - to hang up while filming</b><br><span>Each character on its own pages, in its colour, big letters</span></div></button>
+    <div class="pr-chars" id="prPick"></div>
+    <label class="pr-row"><input type="checkbox" id="prCue" checked> With the line before each one (the cue), small</label>
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn" id="prX">Cancel</button></div>
 </dialog>
 
 <script>
@@ -579,7 +613,7 @@ function myStep(d) {
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 document.addEventListener('keydown', (e) => {
-  if ($('dlg').open || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;  // typing: no shortcuts
+  if ($('dlg').open || $('pdlg').open || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;  // typing: no shortcuts
   if (editing) {  // (the prompter's keys rest while editing)
     if (e.key === 'Escape') { e.preventDefault(); return setEditing(false); }
     if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z' || e.key === 'ז')) { e.preventDefault(); return undo(); }
@@ -653,19 +687,53 @@ $('copy').onclick = async () => {
   $('copy').textContent = '✓ Copied';
   setTimeout(() => ($('copy').textContent = 'Copy'), 1500);
 };
-// Print: a clean page of the script (built fresh each time, so it is always the script on screen)
-$('print').onclick = () => {
-  if (!lines.length) return;
-  const sel = $('ep'), opt = sel?.selectedOptions?.[0]?.textContent?.trim() || '';
-  const title = /[\p{L}\d]/u.test(opt) ? opt : 'תסריט';  // (a pasted script with no project: the picker shows a dash)
+// Print: a window - the whole script (small, to read) or by character (each character on its own pages, in its
+// colour, big letters - he hangs it up and films one character at a time). Built fresh each time from the script on screen.
+const printTitle = () => { const opt = $('ep')?.selectedOptions?.[0]?.textContent?.trim() || ''; return /[\p{L}\d]/u.test(opt) ? opt : 'תסריט'; };  // (a pasted script with no project: the picker shows a dash)
+const printPage = (html) => {
   let pg = document.getElementById('printpage');
   if (!pg) { pg = document.createElement('div'); pg.id = 'printpage'; document.body.appendChild(pg); }
+  pg.innerHTML = html;
+  $('pdlg').close();
+  window.print();
+};
+$('print').onclick = () => {
+  if (!lines.length) return;
+  $('prBy').hidden = !chars.length;  // (a monologue has no characters: only the whole script)
+  const was = JSON.parse(store.get('reader-print-' + src) || 'null');  // (the characters he printed last time, per script)
+  $('prPick').innerHTML = chars.map((c) => `<label><input type="checkbox" value="${escA(c)}"${!was || was.includes(c) ? ' checked' : ''}><span class="dot" style="background:${color(c)}"></span>${esc(c)}</label>`).join('');
+  $('prCue').checked = store.get('reader-print-cue') !== '0';
+  $('pdlg').showModal();
+};
+$('prX').onclick = () => $('pdlg').close();
+$('prAll').onclick = () => {
   const meta = [solo ? `${lines.filter((l) => !l.dir).length} שורות` : chars.join(' · '), me ? `אני משחק את: ${me}` : ''].filter(Boolean).join('  ·  ');
-  pg.innerHTML = `<h1>${esc(title)}</h1><div class="pm">${esc(meta)}</div>` + lines.map((l) => l.dir
+  printPage(`<h1>${esc(printTitle())}</h1><div class="pm">${esc(meta)}</div>` + lines.map((l) => l.dir
     ? `<div class="pd">[${esc(l.text)}]</div>`
     : l.solo || !l.who ? `<div class="pl solo"><div class="pt">${esc(l.text)}</div></div>`
-    : `<div class="pl${me && l.who === me ? ' me' : ''}"><div class="pw">${esc(l.who)}</div><div class="pt">${esc(l.text)}</div></div>`).join('');
-  window.print();
+    : `<div class="pl${me && l.who === me ? ' me' : ''}"><div class="pw">${esc(l.who)}</div><div class="pt">${esc(l.text)}</div></div>`).join(''));
+};
+$('prChars').onclick = () => {
+  const pick = [...$('prPick').querySelectorAll('input:checked')].map((x) => x.value), withCue = $('prCue').checked;
+  if (!pick.length) return;
+  store.set('reader-print-' + src, JSON.stringify(pick)); store.set('reader-print-cue', withCue ? '1' : '0');
+  const num = []; let n = 0;  // each spoken line's number, as the reader counts it (שורה N)
+  lines.forEach((l, i) => { if (!l.dir) num[i] = ++n; });
+  const title = printTitle();
+  printPage(pick.map((c) => {
+    const ink = `color-mix(in srgb, ${color(c)} 70%, #000)`, bg = `color-mix(in srgb, ${color(c)} 11%, #fff)`;
+    const mine = lines.map((l, i) => i).filter((i) => !lines[i].dir && lines[i].who === c);
+    const body = mine.map((i) => {
+      let k = i - 1; const dirs = [];
+      while (k >= 0 && lines[k].dir) dirs.unshift(lines[k--]);  // the directions just before his line
+      const cue = withCue && k >= 0 && lines[k].who !== c ? lines[k] : null;  // (after his own line: no cue)
+      return `<div class="bc-l"><span class="bc-n">${num[i]}</span>`
+        + (cue ? `<div class="bc-cue"><b>${esc(cue.who)}:</b> ${spokenHtml(cue.text)}</div>` : '')
+        + dirs.map((d) => `<div class="bc-d">[${esc(d.text)}]</div>`).join('')
+        + `<div class="bc-t">${spokenHtml(lines[i].text)}</div></div>`;
+    }).join('');
+    return `<section class="bc" style="--c:${color(c)};--ink:${ink};--bg:${bg}"><div class="bc-h"><b>${esc(c)}</b><span>${esc(title)} · ${mine.length} שורות</span></div>${body}</section>`;
+  }).join(''));
 };
 $('use').onclick = async () => {
   const t = $('txt').value, name = $('nm').value.trim();
