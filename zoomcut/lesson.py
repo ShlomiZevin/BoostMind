@@ -1523,6 +1523,10 @@ SOUND_FILTERS = {
     "muffled": ("highpass=f=110,lowpass=f=420,lowpass=f=420,equalizer=f=250:t=q:w=1:g=3,"
                 "acompressor=threshold=-24dB:ratio=3:attack=10:release=120,aecho=0.8:0.55:45|95|170:0.3|0.2|0.12,"
                 "loudnorm=I=-20:TP=-3:LRA=11"),
+    # the robot (render/ui/soundfx.ts FILTERS.robot - the live one blends 75% of it with his voice): the voice
+    # flattened to one steady buzz (magnitudes kept, phases dropped), cleaned up
+    "robot": ("afftfilt=real='hypot(re,im)':imag='0':win_size=1024:overlap=0.75,highpass=f=120,"
+              "equalizer=f=2800:t=q:w=1.2:g=3,acompressor=threshold=-22dB:ratio=3:attack=5:release=80"),
     # a laptop's small speakers: no lows, a boxy mid bump, a little crunch, then his room around it
     "speaker": ("highpass=f=330,highpass=f=330,lowpass=f=7000,equalizer=f=1200:t=q:w=1.1:g=5,equalizer=f=3200:t=q:w=1.4:g=3,"
                 "equalizer=f=500:t=q:w=1:g=-3,acompressor=threshold=-22dB:ratio=5:attack=4:release=60,"

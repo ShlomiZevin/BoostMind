@@ -43,6 +43,8 @@ export const SETUPS = [
   { id: 'thought', label: 'Inner thought', about: 'A thought in his head - close, a short soft echo.', voice: null, fx: { filter: 'thought' } },
   { id: 'echo', label: 'Dark echo', about: 'A big dramatic echo (Gen Z\'s dramatic moments).', voice: null, fx: { filter: 'echo', echo: 1.35 } },
   { id: 'muffled', label: 'Muffled', about: 'Through a wall or a closed door.', voice: null, fx: { filter: 'muffled' } },
+  { id: 'robot', label: 'Robot', about: 'A robot voice - his voice flattened to one steady buzz (75%), the words clear (Adam, the CEO who may be an AI).',
+    clean: 'mild', voice: voice('natural'), fx: { filter: 'robot' } },
   { id: 'trailer', label: 'Trailer voice', about: 'A big ending line - the voice in a huge space (the Shlomiverse trailer).', voice: voice('raw'), fx: { room: 0.5, roomSize: 3 } },
 ];
 

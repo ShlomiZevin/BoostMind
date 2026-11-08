@@ -138,7 +138,7 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   bright | hall | stage | raw, boost, lowcut, warmth, box, presence, deess, comp, room, roomSize, pa}`
   (render/ui/sound.ts) - live in the editor, the same code renders it in the export (pipeline/voice_chain.py). An
   anchor with AC / fan hum: `voice.preset "news"` + `clean "nn"` (he called it perfect).
-- `fx` (item or layer) - live sound effects: `{filter: phone | speakerphone | speaker | thought | echo | muffled,
+- `fx` (item or layer) - live sound effects: `{filter: phone | speakerphone | speaker | thought | echo | muffled | robot,
   echo 0..2, pitch (semitones, timing kept), room 0..1, roomSize (s), level (dB)}`; item `rate` = tape speed (pitch follows); item `duck: dB` dips the voice while
   it plays (`duck_layers` [ids] to dip others); layer `lift {db, fade, of (default "subs"), after}` rises after the last
   item of `of` ends (the music up at the end card).

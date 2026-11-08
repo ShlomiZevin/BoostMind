@@ -2,7 +2,7 @@
 // them (render/src/layers/AudioTrack.tsx) and the export renders the very same nodes offline (tools/audio_layers.mjs),
 // so the file sounds like the editor.
 //
-//   fx: { filter: 'phone' | 'speakerphone' | 'speaker' | 'thought' | 'echo' | 'muffled' | null,
+//   fx: { filter: 'phone' | 'speakerphone' | 'speaker' | 'thought' | 'echo' | 'muffled' | 'robot' | null,
 //         echo: 0..2 (the echo filter's hall - 1 = as tuned), room: 0..1 + roomSize (his room around it),
 //         pitch: semitones (timing kept), level: dB (the filter's own level step - set once by the builder),
 //         soften: true (a shouted line made easier on the ear: pipeline/audio.soften - less 2-5 kHz, the top rounded,
@@ -18,7 +18,8 @@ type Stage =
   | { hp: number } | { lp: number } | { eq: [number, number, number] }  // [freq, width (octaves ~ q), gain dB]
   | { comp: [number, number, number, number, number?] }               // threshold dB, ratio, attack ms, release ms, makeup dB
   | { echo: [number, number, number[], number[]] }                    // in gain, out gain, delays ms, decays
-  | { clip: number } | { crush: [number, number] };                   // softclip threshold; bits, mix
+  | { clip: number } | { crush: [number, number] }                    // softclip threshold; bits, mix
+  | { mono: number };                                                 // the monotone robot (ZcMono): its mix with the voice
 
 // lesson.py SOUND_FILTERS, stage for stage ("loudnorm" = the builder's per-sound `level`)
 export const FILTERS: Record<string, { label: string; stages: Stage[] }> = {
@@ -33,6 +34,9 @@ export const FILTERS: Record<string, { label: string; stages: Stage[] }> = {
     { echo: [0.8, 0.72, [70, 150, 260, 410, 620], [0.32, 0.24, 0.17, 0.11, 0.07]] }] },
   muffled: { label: 'Muffled', stages: [{ hp: 110 }, { lp: 420 }, { lp: 420 }, { eq: [250, 1, 3] }, { comp: [-24, 3, 10, 120] },
     { echo: [0.8, 0.55, [45, 95, 170], [0.3, 0.2, 0.12]] }] },
+  // a robot (adam-1, 2026-11-08 - the CEO nobody is sure is human; he picked "monotone, a bit less" of 7 options):
+  // the voice flattened to one steady buzz (ZcMono, 75%) with a little of his own voice under it, then cleaned up
+  robot: { label: 'Robot', stages: [{ mono: 0.75 }, { hp: 120 }, { eq: [2800, 1.2, 3] }, { comp: [-22, 3, 5, 80] }] },
 };
 
 // ---- the pitch shifter: two read heads sweep a delay line in opposite phase, each faded in / out (sin^2), so the
@@ -69,7 +73,68 @@ class ZcPitch extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('zc-pitch', ZcPitch);`;
+registerProcessor('zc-pitch', ZcPitch);
+// the monotone robot (adam-1, 2026-11-08 - he picked it): every 256 samples a 1024 window's spectrum keeps its
+// magnitudes and loses its phases, so the voice comes out as one steady buzz at sampleRate / 256 with the words kept
+// (the vocoder robot - ffmpeg afftfilt real=hypot(re,im):imag=0). 'mix' blends it with the voice, delayed the same 1024
+// samples so the two line up. Preallocated, like the shifter.
+class ZcMono extends AudioWorkletProcessor {
+  static get parameterDescriptors() { return [{ name: 'mix', defaultValue: 0.75, minValue: 0, maxValue: 1 }]; }
+  constructor() {
+    super(); const N = this.N = 1024; this.H = 256;
+    this.inb = new Float32Array(N); this.dry = new Float32Array(N); this.acc = new Float32Array(2 * N);
+    this.re = new Float32Array(N); this.im = new Float32Array(N); this.win = new Float32Array(N);
+    for (let i = 0; i < N; i++) this.win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / N);
+    this.rev = new Uint16Array(N); for (let i = 0, b = Math.log2(N); i < N; i++) { let r = 0; for (let k = 0; k < b; k++) r |= ((i >> k) & 1) << (b - 1 - k); this.rev[i] = r; }
+    this.cs = new Float32Array(N / 2); this.sn = new Float32Array(N / 2);
+    for (let i = 0; i < N / 2; i++) { this.cs[i] = Math.cos((2 * Math.PI * i) / N); this.sn[i] = -Math.sin((2 * Math.PI * i) / N); }
+    this.w = 0; this.hop = 0; this.rd = 0;
+  }
+  fft(inv) {
+    const N = this.N, re = this.re, im = this.im, rev = this.rev;
+    for (let i = 0; i < N; i++) { const j = rev[i]; if (j > i) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (let s = 2; s <= N; s <<= 1) {
+      const h = s >> 1, st = N / s;
+      for (let i = 0; i < N; i += s) for (let k = 0; k < h; k++) {
+        const c = this.cs[k * st], sn = inv ? -this.sn[k * st] : this.sn[k * st];
+        const a = i + k, b = a + h, tr = re[b] * c - im[b] * sn, ti = re[b] * sn + im[b] * c;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+      }
+    }
+  }
+  frame() {
+    const N = this.N, re = this.re, im = this.im, w = this.w;
+    for (let i = 0; i < N; i++) { re[i] = this.inb[(w + i) % N] * this.win[i]; im[i] = 0; }
+    this.fft(false);
+    for (let i = 0; i < N; i++) { re[i] = Math.hypot(re[i], im[i]); im[i] = 0; }
+    this.fft(true);
+    // the pulse sits at 0: shift it to the middle of the window, window it again, add it in (hann^2 at N/4 hops = 1.5)
+    const g = 1 / (N * 1.5);
+    for (let i = 0; i < N; i++) this.acc[(this.rd + i) % (2 * N)] += re[(i + N / 2) % N] * this.win[i] * g;
+  }
+  process(ins, outs, p) {
+    const i = ins[0][0], o = outs[0][0];
+    if (!o) return true;
+    const N = this.N, A = 2 * N, ms = p.mix;
+    // a clip that isn't playing feeds silence: once the last frame has played out, idle (one chain per clip -
+    // 33 of them ran the FFT for the whole render and the export's sound timed out, adam-1)
+    let loud = false;
+    if (i) for (let k = 0; k < i.length; k++) if (i[k] !== 0) { loud = true; break; }
+    this.quiet = loud ? 0 : (this.quiet || 0) + o.length;
+    if (this.quiet > 3 * N) { o.fill(0); return true; }
+    for (let k = 0; k < o.length; k++) {
+      const x = i ? i[k] : 0, m = ms.length > 1 ? ms[k] : ms[0];
+      const d = this.dry[this.w];  // the voice N samples ago
+      this.dry[this.w] = x; this.inb[this.w] = x;
+      this.w = (this.w + 1) % N;
+      if (++this.hop >= this.H) { this.hop = 0; this.frame(); }
+      const y = this.acc[this.rd]; this.acc[this.rd] = 0; this.rd = (this.rd + 1) % A;
+      o[k] = y * m + d * Math.max(0, 1 - 0.87 * m);
+    }
+    return true;
+  }
+}
+registerProcessor('zc-mono', ZcMono);`;
 const loaded = new WeakMap<BaseAudioContext, Promise<void>>();
 /** Make the pitch shifter available in this context (once). Await before building chains that may shift pitch. */
 export function loadFx(ctx: BaseAudioContext) {
@@ -81,7 +146,7 @@ export function loadFx(ctx: BaseAudioContext) {
 }
 
 const db = (x: number) => Math.pow(10, x / 20);
-function stage(ctx: BaseAudioContext, s: Stage): { in: AudioNode; out: AudioNode } {
+function stage(ctx: BaseAudioContext, s: Stage): { in: AudioNode; out: AudioNode; failed?: boolean } {
   if ('hp' in s || 'lp' in s) { const b = ctx.createBiquadFilter(); b.type = 'hp' in s ? 'highpass' : 'lowpass'; b.frequency.value = 'hp' in s ? s.hp : (s as any).lp; b.Q.value = 0.707; return { in: b, out: b }; }
   if ('eq' in s) { const b = ctx.createBiquadFilter(); b.type = 'peaking'; b.frequency.value = s.eq[0]; b.Q.value = 1 / Math.max(0.1, s.eq[1]) * 1.41; b.gain.value = s.eq[2]; return { in: b, out: b }; }
   if ('comp' in s) {
@@ -97,6 +162,10 @@ function stage(ctx: BaseAudioContext, s: Stage): { in: AudioNode; out: AudioNode
       else { const lv = Math.pow(2, s.crush[0] - 1), q = Math.sign(x) * Math.round(Math.log1p(Math.abs(x) * 255) / Math.log(256) * lv) / lv; const back = Math.sign(q) * (Math.pow(256, Math.abs(q)) - 1) / 255; curve[i] = x * (1 - s.crush[1]) + back * s.crush[1]; }
     }
     w.curve = curve; w.oversample = '2x'; return { in: w, out: w };
+  }
+  if ('mono' in s) {  // (the worklet module may not be loaded yet: straight through, and applyFx tries again)
+    try { const m = new AudioWorkletNode(ctx, 'zc-mono'); (m.parameters as any).get('mix').value = s.mono; return { in: m, out: m }; }
+    catch { const g = ctx.createGain(); return { in: g, out: g, failed: true }; }
   }
   const [ig, og, ds, gs] = (s as any).echo as [number, number, number[], number[]];
   const inp = ctx.createGain(), out = ctx.createGain(), dry = ctx.createGain();
@@ -152,14 +221,14 @@ export function applyFx(n: FxNodes, fx: any, glide = true) {
   const sig = `${f}|${f === 'echo' ? +(fx.echo ?? 1) : ''}|${fx.soften ? 1 : 0}`;
   if (sig !== n.sig) {  // the filter changed: new stages between chainIn and chainOut
     n.chainIn.disconnect();
-    let last: AudioNode = n.chainIn;
+    let last: AudioNode = n.chainIn, failed = false;
     const stages = [...(fx.soften ? SOFTEN : []), ...(f ? (f === 'echo' && fx.echo != null ? echoScaled(+fx.echo) : FILTERS[f].stages) : [])];
     for (const s of stages) {
-      const st = stage(ctx, s); last.connect(st.in); last = st.out;
+      const st = stage(ctx, s); last.connect(st.in); last = st.out; failed ||= !!st.failed;
       if (fx.soften && s === SOFTEN[0]) { const sh = ctx.createBiquadFilter(); sh.type = 'highshelf'; sh.frequency.value = 7000; sh.gain.value = -5; last.connect(sh); last = sh; }
     }
     last.connect(n.chainOut);
-    n.sig = sig;
+    n.sig = failed ? '' : sig;
   }
   const semis = +(fx.pitch || 0);
   const shift = Math.abs(semis) > 0.01 && !!pitchNode(n);

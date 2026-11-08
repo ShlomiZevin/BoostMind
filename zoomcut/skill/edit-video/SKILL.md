@@ -350,6 +350,18 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   2026-10-25: "something in the end is not right... fit everything again, make them stitch"). After such a cut,
   shift every hand item after it by the same frames, then check: no gap between Person pieces, nothing past
   `duration`.
+- **A weak take is saved by the EDIT, not by sound effects** (adam-1, the robot CEO, 2026-11-08 - "the raw is not that
+  good... do some magic"): servo whirrs on his gestures, computer blips, an awkward clap from the room = "terrible,
+  remove them" ("any sound effect is terrible"); a "regenerate" restart of the speech at the end = "why you started
+  again? I don't like it". What he wanted: speed (he asked 1.8x), the character in the VOICE (`Robot` setup - the
+  monotone vocoder robot at 75%, he picked it from 7 samples: `robot` fx filter, ZcMono worklet in render/ui/soundfx.ts),
+  music in the character's world (robotic electro / techno), and edit tricks made of his own footage: a syllable
+  repeated 2-3x as a glitch (`sequence` entries repeating the same 0.2-0.3 s, e.g. "וו-וו-וואו") with a short `flicker`
+  effect item on it, and hard punch-ins (item `zoom` 1.12 + `x` nudge) on alternating sentences. For a sound he must
+  choose, render 4-7 short samples of HIS line and send them before building anything.
+- **`cut.join` fades eat words** (adam-1, 2026-11-08 - "some of the cuts are too eager taking words out"): with
+  `join` 0.3 every piece fades out over its last 0.3 s, on top of `pad_out` 0.1. For a fast cut use `join: 0`,
+  `pad_in` 0.1, `pad_out` 0.2, `after_last_word` 0.3 - and get the pace from `speed`, not from shaving the words.
 - **Silent acting is content** (his words, 2026-10-29: "at the start I rock, scratch my head, play with the glasses - I
   need that bit, you cut it because there's no talking"): before trimming a take to its first word, LOOK at the frames
   before it (a contact sheet every second). Business without words (fidgeting, a look, a prop) stays; only the hand on
