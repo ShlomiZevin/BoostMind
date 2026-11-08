@@ -12,6 +12,9 @@
 // Asked at most once an hour (owner/costs keeps the last answer); `fresh` asks again.
 const admin = require('firebase-admin');
 const { defineSecret } = require('firebase-functions/params');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+
+if (!admin.apps.length) admin.initializeApp();
 
 const OPENAI_ADMIN = defineSecret('OPENAI_ADMIN_KEY');
 const ELEVEN = defineSecret('ELEVENLABS_ADMIN_KEY');
@@ -100,7 +103,7 @@ async function eleven(key) {
 async function owner(op, b) {
   if (op !== 'costs') return null;
   const db = admin.firestore(), ref = db.collection('owner').doc('costs'), was = (await ref.get()).data();
-  if (was && !b.fresh && Date.now() - was.at < HOUR) return was;
+  if (was && !b.fresh && Date.now() - was.at < (b.maxAge || HOUR)) return was;
   const out = { at: Date.now(), days: DAYS, areas: AREAS, rows: [], errors: [] };
   const [oa, el, pk] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS)]);
   if (oa.status === 'fulfilled') out.rows.push(...oa.value); else out.errors.push(String(oa.reason?.message || oa.reason));
@@ -118,4 +121,77 @@ async function owner(op, b) {
   return out;
 }
 
-module.exports = { owner, SECRETS, areaOf, kindOf };
+// ---------- the daily alert (his ask, 2026-11-08: "a cost monitor per day which sends me an email once the daily reaches
+// 10$. Only sends me an email.") ----------
+// Every hour: today's total - the same "סה"כ AI" Backstage shows on top (OpenAI + EvoLink in dollars, every group: the
+// Shlomiverse, Plaxzy, the Mind; ElevenLabs is credits, not dollars, so not in it). Today = the providers' day, UTC
+// (OpenAI's buckets are UTC days). At ALERT_USD or more: ONE mail to him, then owner/costAlert {day} keeps it to one a day.
+const ALERT_USD = 10;
+const ALERT_TO = 'shlomi@boostart.io';
+const BACKSTAGE = 'https://shlomiverse.com/backstage/#costs';
+const money = (v) => '$' + v.toFixed(2);
+const areaName = (r) => (r.group === 'plaxzy' ? (r.area && r.area !== 'plaxzy' ? `Plaxzy (${r.area})` : 'Plaxzy') : AREAS[r.area] || r.area);
+const KINDS = { images: 'תמונות', video: 'וידאו', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
+
+// rows (costs.owner's answer) -> today's total and its lines by key / area, biggest first (each with its kinds)
+function dayTotal(rows, day) {
+  const lines = {};
+  let total = 0;
+  for (const r of rows || []) {
+    if (r.d !== day || (r.src !== 'openai' && r.src !== 'evolink') || !r.usd) continue;
+    total += r.usd;
+    const name = areaName(r), l = (lines[name] ||= { name, usd: 0, kinds: {} });
+    l.usd += r.usd; l.kinds[r.kind] = (l.kinds[r.kind] || 0) + r.usd;
+  }
+  return { day, total, lines: Object.values(lines).sort((a, b) => b.usd - a.usd) };
+}
+
+function alertMail({ day, total, lines }, errors = []) {
+  const top = lines.slice(0, 5).map((l) => {
+    const ks = Object.entries(l.kinds).filter(([, v]) => v >= 0.01).sort((a, b) => b[1] - a[1]);
+    return `${l.name}: ${money(l.usd)}${ks.length > 1 ? ` (${ks.map(([k, v]) => `${KINDS[k] || k} ${money(v)}`).join(', ')})` : ''}`;
+  });
+  const text = [
+    `ההוצאה על AI היום (${day}) הגיעה ל-${money(total)} - עברה את ${money(ALERT_USD)}.`,
+    '',
+    'הכי הרבה:',
+    ...top.map((t) => '• ' + t),
+    ...(errors.length ? ['', `(לא נטען: ${errors.join('; ')} - הסכום אולי חלקי)`] : []),
+    '',
+    `הכל ב-Backstage → הוצאות: ${BACKSTAGE}`,
+    `מייל אחד ביום, רק כשהיום עובר ${money(ALERT_USD)}. היום לפי UTC (מתחיל ב-02:00 שעון ישראל).`,
+  ].join('\n');
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const html = `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#111">
+<p>ההוצאה על AI היום (${day}) הגיעה ל-<b>${money(total)}</b> - עברה את ${money(ALERT_USD)}.</p>
+<p style="margin-bottom:4px">הכי הרבה:</p><ul style="margin-top:0">${top.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+${errors.length ? `<p style="color:#a33">(לא נטען: ${esc(errors.join('; '))} - הסכום אולי חלקי)</p>` : ''}
+<p><a href="${BACKSTAGE}">הכל ב-Backstage → הוצאות</a></p>
+<p style="color:#777;font-size:12px">מייל אחד ביום, רק כשהיום עובר ${money(ALERT_USD)}. היום לפי UTC (מתחיל ב-02:00 שעון ישראל).</p></div>`;
+  return { subject: `הוצאות AI היום: ${money(total)} (עבר את ${money(ALERT_USD)})`, text, html };
+}
+
+// one run: ask (at most 20 minutes old), and mail him once the day passes ALERT_USD. dry = say what it would send, send nothing.
+async function alert({ now = Date.now(), dry = false } = {}) {
+  const day = new Date(now).toISOString().slice(0, 10);
+  const ref = admin.firestore().collection('owner').doc('costAlert');
+  const sent = (await ref.get()).data();
+  if (sent?.day === day && !dry) return { day, sent: true };
+  const c = await owner('costs', { maxAge: 20 * 60e3 });
+  const t = dayTotal(c.rows, day);
+  if (c.errors?.length) console.error('costAlert: providers not answering', c.errors);
+  const out = { day, total: Math.round(t.total * 100) / 100, over: t.total >= ALERT_USD };
+  if (!out.over) return out;
+  const m = alertMail(t, c.errors || []);
+  if (dry) return { ...out, mail: m };
+  const ok = await require('./mailer').deliver({ to: ALERT_TO, kind: 'costAlert', m, fromName: 'הוצאות AI', meta: { day, total: out.total } });
+  if (ok) await ref.set({ day, total: out.total, at: Date.now() });   // a failed send tries again next hour
+  return { ...out, mailed: ok };
+}
+
+const costAlert = onSchedule({ schedule: '0 * * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1',
+  secrets: [...SECRETS, ...require('./mailer').MAIL_SECRETS], memory: '512MiB', timeoutSeconds: 120 }, async () => {
+  console.log('costAlert', JSON.stringify(await alert()));
+});
+
+module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD };

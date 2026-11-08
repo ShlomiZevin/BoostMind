@@ -226,3 +226,6 @@ const piko = require('./piko');
 exports.piko = piko.piko;
 exports.pikoWork = piko.pikoWork;
 exports.pikoSweep = piko.pikoSweep;
+// the daily AI-cost alert: every hour, today's total (the "סה"כ AI" of Backstage → הוצאות); at $10 or more ONE mail to
+// him, once a day (owner/costAlert) - see costs.js
+exports.costAlert = require('./costs').costAlert;
