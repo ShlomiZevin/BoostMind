@@ -69,4 +69,16 @@ assert.equal(sendingHours(at('2026-11-07T18:30:00Z')), true);    // Sat 20:30
 assert.equal(sendingHours(at('2026-11-05T21:00:00Z')), false);   // Thu 23:00
 assert.equal(sendingHours(at('2026-11-05T06:00:00Z')), false);   // Thu 08:00
 
+// the embassy's letter (2026-11-08): only once the release switches it on; the day after the welcome, before the news; once;
+// never to a citizen; the welcome still comes first; one a day still holds
+const czCfg = { on: true, cz: true };
+const P = (users, state, citizens = new Set(), c = czCfg) => Object.fromEntries(plan({ users, state, follows: {}, events, now, cfg: c, citizens }).map((p) => [p.uid, p]));
+assert.equal(r([u('a')], { a: welcomed }).a.kind, 'digest');                                  // switch off: the news as before
+out = P([u('a'), u('b'), u('c'), u('new'), u('today')], { a: welcomed, b: welcomed, c: { ...welcomed, cz: now - 50 * H }, today: { ...welcomed, last: now - 2 * H } }, new Set(['b']));
+assert.equal(out.a.kind, 'citizen');                                                         // before the day's news
+assert.equal(out.a.events.length, 0);
+assert.equal(out.b.kind, 'digest');                                                          // a citizen: never
+assert.equal(out.c.kind, 'digest');                                                          // had it: never again
+assert.equal(out.new.kind, 'welcome');                                                       // the welcome first
+assert.equal(out.today, undefined);                                                          // mailed today: nothing
 console.log('mailer rules: all passed');

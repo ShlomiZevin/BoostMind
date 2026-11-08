@@ -195,7 +195,8 @@ async function sweepEvents(now = Date.now()) {
 
 // ---------- who gets what (pure: the tests run it without Firestore) ----------
 // users: [{ uid, email, name }], state: { uid: mailUsers doc }, follows: { uid: [char] }, events: [{ id, kind, char, everyone, t }]
-function plan({ users, state, follows, events, now, cfg }) {
+// citizens: Set of uids that already have a passport
+function plan({ users, state, follows, events, now, cfg, citizens = new Set() }) {
   const today = il(now).day;
   const out = [];
   for (const u of users) {
@@ -206,6 +207,10 @@ function plan({ users, state, follows, events, now, cfg }) {
     const last = ms(s.last);
     if (last && (now - last < DAY_GAP || il(last).day === today)) continue;   // one a day, at most
     if (!s.welcomed) { out.push({ ...u, kind: 'welcome', events: [] }); continue; }
+    // the embassy's letter (citizenship + the simulation) - his call 2026-11-08: its own mail after the welcome, and it comes
+    // before the news (one mail a day: the news waits for tomorrow, the cursor stays). Once per person, never to a citizen.
+    // cfg.cz = the release's switch: it sends the residents' letter and, from then on, each new account's the day after its welcome
+    if (cfg.cz && !s.cz && !citizens.has(u.uid)) { out.push({ ...u, kind: 'citizen', events: [] }); continue; }
     const from = Math.max(ms(s.cursor) || ms(s.welcomed), now - MAX_AGE);
     const p = s.prefs || {};
     const mine = events.filter((e) => ms(e.t) > from && p[e.kind] !== false
@@ -229,6 +234,7 @@ async function mailFor(p, w, now) {
   const videoCard = (v) => ({ tag: 'סרטון', title: v.title, img: absMedia(v.poster), href: `/v/${v.id}` });
   const latestGames = (except) => (w.games || []).filter((g) => g.id !== except).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 2).map(gameCard);
   const latestVideos = (except) => (w.videos || []).filter((v) => v.id !== except && v.date && !v.archive).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(videoCard);
+  if (p.kind === 'citizen') return { kind: 'citizen', d: citizenData(p.nick || first(p.name)) };
   if (p.kind === 'welcome') return { kind: 'welcome', d: { subject: 'ברוכים הבאים לשלומיוורס 🪐', preheader: 'כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.',
     name: first(p.name), hero: `${SITE}/verse/og.jpg`, cast: ['hani', 'tzvika', 'rosenblum', 'ayelet', 'yaniv'].map((id) => who(w, id)) } };
   if (!evs.length) return null;
@@ -334,12 +340,14 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
   // addresses that can't receive mail (test accounts: @x.invalid, @example.com) are skipped - a bounce costs the sender's name at Gmail
   const realMail = (e) => !/\.(invalid|test|example|localhost)$|@example\.(com|org|net)$/i.test(e);
   do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users.filter((u) => u.email && !u.disabled && realMail(u.email)).map((u) => ({ uid: u.uid, email: u.email, name: u.displayName || '' }))); next = r.pageToken; } while (next);
-  const [st, fans, evs] = await Promise.all([db.collection('mailUsers').get(), db.collection('fans').select('follows').get(),
-    db.collection('mailEvents').where('t', '>', Timestamp.fromMillis(now - MAX_AGE)).get()]);
+  const [st, fans, evs, cz] = await Promise.all([db.collection('mailUsers').get(), db.collection('fans').select('follows', 'nick').get(),
+    db.collection('mailEvents').where('t', '>', Timestamp.fromMillis(now - MAX_AGE)).get(), cfg.cz ? db.collection('citizens').select('n').get() : null]);
   const state = Object.fromEntries(st.docs.map((d) => [d.id, d.data()]));
   const follows = Object.fromEntries(fans.docs.map((d) => [d.id, d.data().follows || []]));
+  const nicks = Object.fromEntries(fans.docs.map((d) => [d.id, d.data().nick || '']));   // the embassy writes to the name they registered with
+  const citizens = new Set(cz ? cz.docs.filter((d) => d.data().n).map((d) => d.id) : []);
   const events = evs.docs.map((d) => ({ id: d.id, ...d.data() }));
-  const due = plan({ users: users.filter((u) => !(state[u.uid] || {}).bounced), state, follows, events, now, cfg });   // failing addresses get nothing
+  const due = plan({ users: users.filter((u) => !(state[u.uid] || {}).bounced).map((u) => ({ ...u, nick: nicks[u.uid] })), state, follows, events, now, cfg, citizens });   // failing addresses get nothing
   if (dry) return { swept, cfg, due: due.map((p) => ({ email: p.email, kind: p.kind, events: p.events.map((e) => e.id) })) };
   // one run at a time (launch night, 2026-11-04: a manual run next to the scheduled one mailed 6 people twice)
   if (!(await lock(now))) return { swept, due: due.length, sent: 0, skipped: 'busy' };
@@ -353,13 +361,16 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
       if (fresh.off || (ms(fresh.last) && il(ms(fresh.last)).day === il(now).day)) continue;
       const x = await mailFor(p, w, now);
     // after the welcome the news starts 3 days back: what happened just before someone joined still reaches them (tomorrow)
-    const cursor = Timestamp.fromMillis(p.kind === 'welcome' ? now - 3 * 864e5 : Math.max(now, ...p.events.map((e) => ms(e.t))));
+    // the embassy's letter leaves the cursor where it was: the news it pushed back goes out tomorrow
+    const cursor = p.kind === 'citizen' ? (fresh.cursor || fresh.welcomed || Timestamp.fromMillis(now))
+      : Timestamp.fromMillis(p.kind === 'welcome' ? now - 3 * 864e5 : Math.max(now, ...p.events.map((e) => ms(e.t))));
     if (!x) { await ref.set({ email: p.email, cursor }, { merge: true }); continue; }
     const m = mail.render(x.kind, x.d, { unsub: prefsLink(p.uid), unsubPost: prefsLink(p.uid) + '&one=1' });
-    const ok = await deliver({ to: p.email, uid: p.uid, kind: x.kind, m, meta: { events: p.events.map((e) => e.id) } });
+    const ok = await deliver({ to: p.email, uid: p.uid, kind: x.kind, m, meta: { events: p.events.map((e) => e.id) }, ...(x.d.from ? { fromName: x.d.from } : {}) });
     if (!ok) continue;
     sent++;
-    await ref.set({ email: p.email, last: Timestamp.fromMillis(now), cursor, ...(x.kind === 'welcome' ? { welcomed: Timestamp.fromMillis(now) } : {}), sent: FieldValue.increment(1) }, { merge: true });
+    await ref.set({ email: p.email, last: Timestamp.fromMillis(now), cursor, ...(x.kind === 'welcome' ? { welcomed: Timestamp.fromMillis(now) } : {}),
+      ...(x.kind === 'citizen' ? { cz: Timestamp.fromMillis(now) } : {}), sent: FieldValue.increment(1) }, { merge: true });
     }
     const out = { swept, due: due.length, sent };
     if (sent || due.length) console.log('mail run', JSON.stringify(out));
