@@ -766,7 +766,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['costs', 'הוצאות', 'dollar']];
+const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['tz', 'ציפציפ', 'spark'], ['costs', 'הוצאות', 'dollar']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -795,7 +795,7 @@ function draw() {
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
   if (tab === 'requests' || tab === 'content' || tab === 'ideas') markSeen(tab);
   const badge = badges();
-  const phoneTab = ['plans', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'costs'].includes(tab) ? 'more' : tab;
+  const phoneTab = ['plans', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
   const moreBadge = badge.requests + badge.ideas + badge.content + badge.plans;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
@@ -804,7 +804,7 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, plans, chats, data, people, requests, ideas, content, videos, publish, mail: mails, costs, more })[tab]();
+  ({ overview, plans, chats, data, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
 const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
@@ -819,18 +819,111 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['tz', 'ציפציפ · ח24: הציוצים, הדיווחים, המתגים', 'spark'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
 }
 
+
+// ---------- ציפציפ + ח24 (2026-11-08, his idea: the residents' own X and the verse's news channel - techietech-api/tz.js) ----------
+// The engine posts by itself 3 times a day (his call: no approval); here he sees what went up, takes down what he doesn't like,
+// answers the reports (a push brings him here), flips the switches (open to everyone / posts by itself / pictures / a silent
+// day) and decides who gets more room (stars) or none (out). "להריץ עכשיו" runs the engine once at once.
+const tzSay = (t) => { const d = document.createElement('div'); d.className = 'bs-toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 3200); };
+let TZ = null, TZC = null, TZR = null, tzBusy = false, tzSeg = 'runs';
+const TZ_ST = { live: ['באוויר', 'or'], draft: ['טיוטה', ''], skipped: ['דולג', ''], hidden: ['הוסתר', 'red'] };
+function loadTz() {
+  Promise.all([api('tzList', {}), api('tzReports', {})]).then(([l, r]) => { TZ = l; TZR = r; }, (e) => { TZ = { error: e.message }; })
+    .finally(() => { if (tab === 'tz') tz(); });
+}
+const tzName = (id) => (id === 'charadot' ? 'ח24' : C[id]?.name || id);
+const tzFace = (p) => (p.by === 'charadot' ? `<img class="vx-av" src="/charadot/img/avatar.png" alt="" style="width:40px;height:40px;border-radius:50%">` : p.by ? face(p.by) : fanFace({ nick: p.fan?.nick, photo: p.fan?.photo }));
+function tzPost(p) {
+  const [l, cls] = TZ_ST[p.status] || [p.status, ''];
+  const acts = p.status === 'draft' ? `<button class="btn" data-tzpub="${p.id}">לפרסם</button><button class="btn" data-tzskip="${p.id}">לדלג</button>`
+    : p.status === 'live' ? `<button class="btn" data-tzhide="${p.id}">להוריד</button>` : '';
+  return `<div class="item">${tzFace(p)}<div class="body"><b>${esc(p.by ? tzName(p.by) : p.fan?.nick || '')}</b> <span class="tag ${cls}">${l}</span>${p.parent ? ' <span class="tag">תגובה</span>' : ''}${p.quote ? ' <span class="tag">מצטט את ח24</span>' : ''}${p.reports ? ` <span class="tag red">${p.reports} דיווחים</span>` : ''}
+    <small> · ${p.t ? (p.t > Date.now() ? 'יעלה ' + new Date(p.t).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) : ago(p.t)) : ''}</small><p>${esc(p.text)}</p>
+    ${p.link ? `<p class="hint">${esc(p.link.src)}: ${esc(p.link.title)}</p>` : ''}</div>
+    <div style="display:flex;flex-direction:column;gap:6px">${acts}<button class="btn" data-tzedit="${p.id}">לערוך</button>${p.status === 'live' ? `<a class="btn" href="/tziftzif/p/${p.id}" target="_blank">לראות</a>` : ''}</div></div>`;
+}
+function tz() {
+  if (!TZ && !tzBusy) { tzBusy = true; loadTz(); }
+  const head = `<div class="top"><div><h1>ציפציפ · ח24</h1><p>מה התושבים צייצו, מה ח24 פרסם, הדיווחים והמתגים. <a href="/tziftzif" target="_blank" style="color:#ff9a5c">לציפציפ</a> · <a href="/charadot" target="_blank" style="color:#ff9a5c">לח24</a></p></div>
+    <button class="btn main" data-tzrun>${IC.spark}להריץ עכשיו</button></div>`;
+  if (!TZ || TZ.error) { $('#pane').innerHTML = head + `<div class="empty">${TZ?.error ? 'לא נטען: ' + esc(TZ.error) : 'טוען…'}</div>`; return; }
+  tzBusy = false;
+  const cfg = TZ.cfg || {}, silent = cfg.silent === TZ.today, reports = TZR?.reports || [];
+  const sw = (k, l, on, hint) => `<button class="item" data-tzsw="${k}" data-on="${on ? 0 : 1}" style="cursor:pointer;width:100%;text-align:start"><div class="body"><b>${l}</b><p class="hint">${hint}</p></div><span class="tag ${on ? 'or' : ''}">${on ? 'פועל' : 'כבוי'}</span></button>`;
+  const seg = `<div class="seg">${[['runs', 'הריצות'], ['reports', `דיווחים${reports.length ? ` (${reports.length})` : ''}`], ['cast', 'מי מצייץ'], ['switch', 'מתגים']].map(([k, l]) => `<button data-tzseg="${k}" class="${tzSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+  let body = '';
+  if (tzSeg === 'switch') {
+    body = sw('open', 'פתוח לכולם', cfg.open, 'כבוי = רק אתה רואה את ציפציפ וח24 (כולם רואים "בקרוב").')
+      + sw('auto', 'עולה לבד', cfg.auto, 'שלוש פעמים ביום, מפוזר על השעות. כבוי = טיוטות שמחכות לך כאן.')
+      + sw('img', 'תמונה לכתבה', cfg.img, 'הכתבה הראשונה של כל ריצה מקבלת תמונה (בערך 3 סנט).')
+      + sw('silent', 'יום שקט היום', silent, silent ? `שקט היום${cfg.silentWhy ? ': ' + esc(cfg.silentWhy) : ''}. מחר זה נפתח לבד.` : 'ביום פיגוע / אסון זה נדלק לבד ואף אחד לא מצייץ עד מחר.')
+      + (cfg.arc && cfg.arc.until > Date.now() ? `<div class="item"><div class="body"><b>סיפור מתגלגל</b><p>${esc(cfg.arc.text)}</p><p class="hint">עד ${new Date(cfg.arc.until).toLocaleDateString('he-IL')}</p></div><button class="btn" data-tzarc>לסיים</button></div>` : '');
+  } else if (tzSeg === 'reports') {
+    const P = Object.fromEntries((TZR?.posts || []).map((p) => [p.id, p])), by = {};
+    reports.forEach((r) => (by[r.post] = by[r.post] || []).push(r));
+    body = Object.entries(by).map(([id, rs]) => { const p = P[id] || { id, text: '(נמחק)' }; return `<div class="card" style="margin-bottom:12px">${tzPost(p)}
+      <div style="margin:10px 4px">${rs.map((r) => `<p class="hint">${esc(r.email || r.uid)} · ${ago(r.t)}${r.why ? `: "${esc(r.why)}"` : ''}</p>`).join('')}</div>
+      <div style="display:flex;gap:8px"><button class="btn main" data-tzkeep="${id}">להשאיר באתר</button><button class="btn" data-tzdrop="${id}">להוריד</button></div></div>`; }).join('') || '<div class="empty">אין דיווחים פתוחים.</div>';
+  } else if (tzSeg === 'cast') {
+    if (!TZC) { api('tzCast', {}).then((r) => { TZC = r; if (tab === 'tz') tz(); }); body = '<div class="empty">טוען…</div>'; }
+    else body = `<p class="hint" style="margin-bottom:12px">כוכב = מקבל יותר במה. בחוץ = לא מצייץ בכלל. השאר - לפי האלגוריתם (כמה סרטונים, איך הגיבו לציוצים שלו, מתי צייץ לאחרונה).</p>
+      <div>${TZC.all.map((c) => `<div class="item">${face(c.id)}<div class="body"><b>${esc(c.name)}</b>${c.kid ? ' <span class="tag">ילד/ה</span>' : ''}<p class="hint">${esc(c.world || '')} · ${esc(c.role || '')}</p></div>
+        <div class="seg"><button data-tzcast="${c.id}" data-v="star" class="${c.star ? 'on' : ''}">כוכב</button><button data-tzcast="${c.id}" data-v="reg" class="${!c.star && !c.off ? 'on' : ''}">רגיל</button><button data-tzcast="${c.id}" data-v="off" class="${c.off ? 'on' : ''}">בחוץ</button></div></div>`).join('')}</div>`;
+  } else {
+    const P = TZ.posts, A = TZ.articles;
+    body = TZ.runs.map((r) => {
+      const ps = P.filter((p) => p.run === r.id).sort((a, b) => (a.t || a.made) - (b.t || b.made) || a.order - b.order), as = A.filter((a) => a.run === r.id);
+      const state = r.bad ? `<span class="tag red">יום שקט</span>` : r.skipped ? `<span class="tag">דולג (שקט)</span>` : `<span class="tag or">${r.made} ציוצים${as.length ? ` · ${as.length} כתבות` : ''}</span>`;
+      const drafts = ps.filter((p) => p.status === 'draft').map((p) => p.id);
+      return `<div class="card" style="margin-bottom:14px"><div class="card-h"><h2>${new Date(r.at).toLocaleString('he-IL', { weekday: 'short', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' })} · ${{ morning: 'בוקר', noon: 'צהריים', evening: 'ערב', manual: 'ידני' }[r.slot] || r.slot}</h2>${state}</div>
+        ${r.why ? `<p class="hint">${esc(r.why)}</p>` : ''}${(r.cands || []).length ? `<p class="hint">המועמדים (האלגוריתם): ${r.cands.map(tzName).map(esc).join(', ')}</p>` : ''}
+        ${as.map((a) => `<div class="item" style="border-color:#e3101b55"><img src="${esc(a.img || '/charadot/img/avatar.png')}" alt="" style="width:64px;height:44px;object-fit:cover;border-radius:8px"><div class="body"><b>ח24: ${esc(a.headline)}</b> <span class="tag ${TZ_ST[a.status]?.[1] || ''}">${TZ_ST[a.status]?.[0] || a.status}</span><p>${esc(a.sub)}</p></div>
+          <div style="display:flex;flex-direction:column;gap:6px">${a.status === 'draft' ? `<button class="btn" data-tzpuba="${a.id}">לפרסם</button>` : a.status === 'live' ? `<a class="btn" href="/charadot/a/${a.id}" target="_blank">לראות</a>` : ''}</div></div>`).join('')}
+        ${ps.map(tzPost).join('')}
+        ${drafts.length ? `<div style="margin-top:10px"><button class="btn main" data-tzpuball="${r.id}">לפרסם את כל הריצה</button></div>` : ''}</div>`;
+    }).join('') || '<div class="empty">עוד לא הייתה ריצה. "להריץ עכשיו" - והתושבים מתחילים.</div>';
+  }
+  $('#pane').innerHTML = head + seg + `<div style="margin-top:14px">${body}</div>`;
+}
+document.addEventListener('click', async (e) => {
+  if (tab !== 'tz') return;
+  const t = e.target, q = (s) => t.closest(s);
+  const done = (p) => p.then(() => loadTz(), (er) => tzSay(er.message));
+  if (q('[data-tzseg]')) { tzSeg = q('[data-tzseg]').dataset.tzseg; return tz(); }
+  if (q('[data-tzrun]')) { const b = q('[data-tzrun]'); b.disabled = true; b.textContent = 'רץ… (עד דקה וחצי)'; return api('tzRun', {}).then((r) => { tzSay(r.bad ? 'יום שקט: ' + r.why : r.silent ? 'היום יום שקט' : `${r.made || 0} ציוצים חדשים`); loadTz(); }, (er) => { tzSay(er.message); tz(); }); }
+  if (q('[data-tzsw]')) { const b = q('[data-tzsw]'); return done(api('tzConfig', { [b.dataset.tzsw]: b.dataset.on === '1' })); }
+  if (q('[data-tzarc]')) return done(api('tzConfig', { arc: null }));
+  if (q('[data-tzpub]')) return done(api('tzPublish', { posts: [q('[data-tzpub]').dataset.tzpub] }));
+  if (q('[data-tzpuba]')) return done(api('tzPublish', { articles: [q('[data-tzpuba]').dataset.tzpuba] }));
+  if (q('[data-tzpuball]')) { const run = q('[data-tzpuball]').dataset.tzpuball; return done(api('tzPublish', { posts: TZ.posts.filter((p) => p.run === run && p.status === 'draft').map((p) => p.id), articles: TZ.articles.filter((a) => a.run === run && a.status === 'draft').map((a) => a.id) })); }
+  if (q('[data-tzskip]')) return done(api('tzSkip', { posts: [q('[data-tzskip]').dataset.tzskip] }));
+  if (q('[data-tzhide]')) return done(api('tzHide', { id: q('[data-tzhide]').dataset.tzhide }));
+  if (q('[data-tzkeep]')) return done(api('tzResolve', { id: q('[data-tzkeep]').dataset.tzkeep, keep: true }));
+  if (q('[data-tzdrop]')) return done(api('tzResolve', { id: q('[data-tzdrop]').dataset.tzdrop, keep: false }));
+  if (q('[data-tzedit]')) {
+    const id = q('[data-tzedit]').dataset.tzedit, p = [...(TZ.posts || []), ...(TZR?.posts || [])].find((x) => x.id === id);
+    const text = prompt('הטקסט של הציוץ', p ? p.text : '');
+    if (text != null && text.trim()) return done(api('tzEdit', { post: id, text: text.trim() }));
+  }
+  if (q('[data-tzcast]')) {
+    const b = q('[data-tzcast]'), id = b.dataset.tzcast, v = b.dataset.v;
+    const stars = TZC.all.filter((c) => (c.id === id ? v === 'star' : c.star)).map((c) => c.id), off = TZC.all.filter((c) => (c.id === id ? v === 'off' : c.off)).map((c) => c.id);
+    TZC.all.forEach((c) => { if (c.id === id) { c.star = v === 'star'; c.off = v === 'off'; } }); tz();
+    return api('tzConfig', { stars, off }).catch((er) => tzSay(er.message));
+  }
+});
 
 // ---------- הוצאות (2026-11-06, his ask): what the AI costs, asked from OpenAI / ElevenLabs themselves (costs.js) ----------
 // one key per area (studio, chat, site, design; Mind and Plaxzy apart), so the providers say what each one spent - nothing
 // counted by us. ElevenLabs in credits (a monthly plan, no invented price per credit). EvoLink (Piko's videos): each job's
 // cost as EvoLink reported it, per client, + the balance he has left there (prepaid - he tops up by hand).
 let CS = null, csRange = 'month', csLoading = false;
-const CS_AREA = { piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
+const CS_AREA = { tziftzif: 'ציפציפ (התושבים מצייצים)', charadot: 'ח24 (כתבות ותמונות)', piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
 const CS_KIND = { images: 'תמונות', video: 'וידאו', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
 const CS_EL = { Music: 'מוזיקה', 'Music - Stems': 'ערוצי מוזיקה', TTS: 'הקראה', STS: 'שינוי קול', STT: 'תמלול', 'Sound Effects': 'אפקטים', 'Voice Generation': 'יצירת קול', 'Voice Library': 'ספריית קולות', Dubbing: 'דיבוב' };
 const usd = (v) => `$${v >= 100 ? Math.round(v) : v.toFixed(2)}`;
@@ -1179,7 +1272,7 @@ let avgAnswer = 0.024;
 
 // ---------- סקירה: status at a glance ----------
 const RQ = { site: ['מהאתרים', 'wh', '#7fb4ff'], business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
-const SITES = { ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
+const SITES = { tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
 const whoOf = (r) => r.name || r.nick || (r.contact && !/\d{6}/.test(r.contact) ? r.contact.split('@')[0] : '') || 'צופה';
 // time on the site: each visit's length in buckets (the track function's TIME_EDGES), the seconds and the visits per day
 const TIME_EDGES = [5, 10, 20, 30, 45, 60, 90, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 2700, 3600];

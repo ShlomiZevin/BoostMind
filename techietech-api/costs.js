@@ -24,7 +24,7 @@ const HOUR = 3600e3;
 
 // which area a key belongs to - by its project and name (new keys: name them <area>, or shlomiverse-<area>)
 const AREAS = {
-  studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', plaxzy: 'Plaxzy',
+  studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', tziftzif: 'ציפציפ', charadot: 'ח24 (חרדות)', plaxzy: 'Plaxzy',
 };
 function areaOf(project, name) {
   const p = String(project || '').toLowerCase(), n = String(name || '').toLowerCase();

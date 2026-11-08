@@ -1020,7 +1020,7 @@ async function askData(q) {
   return { answer, cost: (((u.input_tokens || 0) - (u.input_tokens_details?.cached_tokens || 0)) * 2 + (u.input_tokens_details?.cached_tokens || 0) * 0.2 + (u.output_tokens || 0) * 12) / 1e6 };
 }
 
-exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRETS, ...require('./costs').SECRETS], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
+exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRETS, ...require('./costs').SECRETS, ...require('./tz').SECRETS.filter((x) => x.name !== 'VERSE_VAPID_PRIVATE')], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
   if (!ownerOk(req, res)) return;
   const op = req.query.op;
   const b = req.body || {};
@@ -1042,6 +1042,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (op === 'costs') return res.json(await require('./costs').owner(op, b));
     if (op === 'citizenStats') return res.status(200).json(await require('./citizen').owner(op, b));   // the citizenship journey (citizen.js)
     if (op === 'simStats') { const r = await require('./sim').owner(op, b); return res.status(200).json(r); }   // the simulation test's funnel (sim.js)
+    if (String(op).startsWith('tz')) return res.json(await require('./tz').owner(op, b));   // Backstage → ציפציפ: the drafts, reports, cast, switches (tz.js)
     if (op === 'aboutStats') return res.status(200).json(await require('./about').stats());   // "מה למדנו" - the residents' profiles (about.js)
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     if (op === 'list') {

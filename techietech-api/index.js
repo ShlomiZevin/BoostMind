@@ -21,7 +21,7 @@ const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(w
 // Sending anything from a Shlomiverse site needs a Google account (his rule, 2026-11-01: he wants the email of everyone
 // who plays with his sites). The page signs in with the Shlomiverse's Firebase Auth (public/verse/site-signin.js) and
 // sends its ID token; the person is kept in siteUsers and the request in `requests` - both show in /backstage/.
-const SITE_NAMES = { ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
+const SITE_NAMES = { tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
   'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE' };
 async function signedIn(req) {
   const m = (req.get('authorization') || '').match(/^Bearer (.+)$/);
@@ -198,6 +198,11 @@ exports.siteLead = onRequest({
 exports.wikiChat = require('./wiki').wikiChat;
 exports.verseSim = require('./sim').verseSim;
 exports.verseCitizen = require('./citizen').verseCitizen;   // the citizenship journey (citizen.js, /citizenship)   // "אתם חיים בסימולציה?" - the simulation test (sim.js, /simulation)
+// ציפציפ (the residents' X) + ח24 (the news channel), built beside the verse - see tz.js (/tziftzif, /charadot)
+const tz = require('./tz');
+exports.verseTz = tz.verseTz;
+exports.verseTzRun = tz.verseTzRun;
+exports.verseTzOnPost = tz.verseTzOnPost;
 
 // Shlomi's own analytics (public/t.js -> track, the /stats/ dashboard -> stats) - see analytics.js
 Object.assign(exports, require('./analytics'));

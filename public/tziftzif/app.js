@@ -1,0 +1,305 @@
+// ציפציפ - the page (shlomiverse.com/tziftzif). Reads everything from verseTz (techietech-api/tz.js), the residents' names
+// and faces from the verse's own wiki.json, the account from the verse's sign-in (/verse/site-signin.js). Addresses:
+//   /tziftzif          the timeline (בשבילך / במעקב)
+//   /tziftzif/p/<id>   one post with its whole conversation
+//   /tziftzif/u/<id>   a resident's posts
+// Reading is open (once he opens it - until then the server answers "soon" to everyone but him); posting, replying and
+// stamping are for the verse's citizens (a passport, not only an account); anyone signed in may report.
+const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const API = LOCAL ? 'http://127.0.0.1:5001/demo-shlomiverse/europe-west1/verseTz' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseTz';
+const WIKI = 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json';
+const VERSE = 'https://shlomiverse.com';
+const app = document.getElementById('app');
+let C = {}, ME = { signed: false, citizen: false, owner: false, follows: [] }, TAB = 'all';
+
+// ---------- small things ----------
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const track = (e, x) => { try { window.track && window.track(e, x); } catch (er) {} };
+const S = (p, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" ${extra}>${p}</svg>`;
+const I = {
+  back: S('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  reply: S('<path d="M4 5h16v11H9l-5 4z"/>'),
+  share: S('<path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"/>'),
+  stamp: S('<circle cx="12" cy="12" r="5.6"/><path d="M3 15.2c-1.4-2.6 2.8-5.6 8.9-7.2s10.6-.9 9.9 2"/>'),
+  more: S('<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>'),
+  send: S('<path d="M21 3 3 10.5l7 2.5 2.5 7z"/><path d="m10 13 4-4"/>'),
+  pen: S('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>'),
+  flag: S('<path d="M5 21V4h11l-1.5 4L16 12H5"/>'),
+  link: S('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  search: S('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'),
+};
+// the checks: ח24 = the news channel (red), ציפציפ itself = the official account (orange), a resident = a quiet one
+const CHECK = (c) => `<svg class="badge" viewBox="0 0 24 24"><path fill="${c}" d="M12 1.8l2.4 1.8 3-.2 1 2.8 2.6 1.6-.7 2.9 1.2 2.7-2.3 1.9-.4 3-3 .5-1.9 2.3-2.8-1.1-2.8 1.1-1.9-2.3-3-.5-.4-3L1.5 12l1.2-2.7L2 6.4l2.6-1.6 1-2.8 3 .2z"/><path d="m8 12.2 2.7 2.6L16.3 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function ago(t) {
+  const s = (Date.now() - t) / 1000;
+  if (s < 60) return 'עכשיו';
+  if (s < 3600) return `${Math.floor(s / 60)} דק׳`;
+  if (s < 86400) return `${Math.floor(s / 3600)} שע׳`;
+  return new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' });
+}
+const toast = (m) => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
+const count = (n) => (n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n) : '');
+
+// who wrote a post: a resident, ח24, ציפציפ's official account (his), or a citizen
+function who(p) {
+  if (p.by === 'charadot') return { name: 'חרדות', handle: 'charadot', img: '/charadot/img/avatar.png', href: '/charadot', badge: CHECK('#e3101b'), stamp: 'הישארו איתנו', news: true };
+  if (p.by) {
+    const c = C[p.by] || { name: p.by };
+    return { name: c.name, handle: p.by, img: c.img, href: `/tziftzif/u/${p.by}`, badge: CHECK('#7d8590'), stamp: stampOf(c) };
+  }
+  const f = p.fan || {};
+  if (f.official) return { name: 'ציפציפ', handle: 'tziftzif', img: '/tziftzif/img/avatar.png', href: '/tziftzif', badge: CHECK('#ff7a1f'), stamp: 'ציפ!' };
+  return { name: f.nick || 'אזרח/ית', handle: '', img: f.photo, href: null, badge: '', stamp: 'חותמת', fan: true };
+}
+// the stamp (the like) = the writer's shortest real catchphrase, as on the verse
+function stampOf(c) {
+  const q = (c.quotes || []).map((x) => String(x).replace(/["״]/g, '').trim()).filter((x) => x && x.length <= 26).sort((a, b) => a.length - b.length);
+  return q[0] || 'חותמת';
+}
+const avatar = (w, cls = '') => (w.img ? `<${w.href ? `a href="${w.href}"` : 'span'} class="av ${cls}"><img src="${esc(w.img)}" alt="" loading="lazy"></${w.href ? 'a' : 'span'}>`
+  : `<span class="av fan ${cls}">${esc((w.name || '?').slice(0, 1))}</span>`);
+// @hani -> the resident's page
+const linkify = (t) => esc(t).replace(/@([a-z][a-z0-9-]{1,30})/g, (m, id) => (C[id] || id === 'charadot' ? `<a class="m" href="${id === 'charadot' ? '/charadot' : '/tziftzif/u/' + id}">@${id}</a>` : m));
+
+// ---------- talking to the server ----------
+async function token(ask) {
+  try { await window.SiteSignIn.ready; } catch (e) { return null; }
+  if (!ask && !window.SiteSignIn.user()) return null;
+  const w = await window.SiteSignIn.ensure('tziftzif');
+  return w && w.token;
+}
+async function api(op, data = {}, post = false, ask = false) {
+  const tok = await token(ask);
+  if (ask && !tok) return { error: 'cancel' };
+  const headers = {}, opt = { method: post ? 'POST' : 'GET', headers };
+  let url = API;
+  if (post) { headers['content-type'] = 'application/json'; opt.body = JSON.stringify({ op, ...data }); } else url += '?' + new URLSearchParams({ op, ...data });
+  if (tok) headers.authorization = 'Bearer ' + tok;
+  try { const r = await fetch(url, opt); return await r.json(); } catch (e) { return { error: 'net' }; }
+}
+
+// ---------- drawing a post ----------
+let D = { quoted: {}, articles: {}, stamped: new Set() };
+const take = (r) => { Object.assign(D.quoted, r.quoted || {}); Object.assign(D.articles, r.articles || {}); (r.stamped || []).forEach((id) => D.stamped.add(id)); };
+function inner(p, small) {
+  let h = '';
+  const a = p.article && D.articles[p.article];
+  if (a) h += `<a class="art" href="/charadot/a/${a.id}">${a.img && !small ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b>${small ? '' : `<small>${esc(a.sub)}</small>`}</div></a>`;
+  const q = p.quote && D.quoted[p.quote];
+  if (q && !small) { const w = who(q); h += `<a class="qt" href="/tziftzif/p/${q.id}"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}</div><div class="tx">${linkify(q.text)}</div>${inner(q, true)}</a>`; }
+  if (p.link && !small) h += `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></a>`;
+  return h;
+}
+function card(p, o = {}) {
+  const w = who(p), on = D.stamped.has(p.id);
+  return `<article class="p ${o.big ? 'big' : 'click'} ${o.u ? 'u' : ''} ${o.hasU ? 'has-u' : ''} ${o.last ? 'last' : ''}" data-id="${p.id}">
+    <div class="side">${avatar(w)}${o.line ? '<div class="thr"></div>' : ''}</div>
+    <div class="b">
+      <div class="hd">${w.href ? `<a class="nm" href="${w.href}">${esc(w.name)}</a>` : `<span class="nm">${esc(w.name)}</span>`}${w.badge}${w.news ? '<span class="live">שידור חי</span>' : ''}
+        ${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}${o.big ? '' : `<span class="dot">·</span><span class="tm">${ago(p.t)}</span>`}
+        <button class="more" data-more="${p.id}" aria-label="עוד">${I.more}</button></div>
+      <div class="tx">${linkify(p.text)}</div>
+      ${inner(p)}
+      ${o.big ? `<div class="when">${new Date(p.t).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'long', year: 'numeric' })}</div>` : ''}
+      <div class="ac">
+        <a class="rp" href="/tziftzif/p/${p.id}" aria-label="תגובות">${I.reply}<span>${count(p.replies)}</span></a>
+        <button class="st ${on ? 'on' : ''}" data-stamp="${p.id}" title="${esc(w.stamp)}">${I.stamp}<span>${count(p.stamps)}</span>${on ? `<span class="stl">${esc(w.stamp)}</span>` : ''}</button>
+        <button class="sh" data-share="${p.id}" aria-label="שיתוף">${I.share}</button>
+      </div>
+    </div></article>`;
+}
+
+// ---------- the pages ----------
+const brand = () => `<a class="brand" href="/tziftzif"><img src="/tziftzif/img/mark-dark.svg" alt=""><span class="word">ציפ<i>ציפ</i></span></a>`;
+function gate() {
+  if (ME.citizen) return '';
+  return ME.signed
+    ? `<div class="gate"><span><b>רק אזרחי השלומיוורס מצייצים.</b> מוציאים דרכון, ומצטרפים לשיחה.</span><a class="btn acc" href="${VERSE}/citizenship">לדרכון</a></div>`
+    : `<div class="gate"><span><b>רוצים להגיב?</b> אזרחי השלומיוורס מצייצים, מגיבים ומחתימים.</span><button class="btn acc" data-signin>כניסה</button></div>`;
+}
+const fab = () => (ME.citizen ? `<button class="fab" data-compose aria-label="ציוץ חדש">${I.pen}</button>` : '');
+
+let FEED = null;
+async function home() {
+  document.title = 'ציפציפ';
+  app.innerHTML = `<div class="top"><div class="bar"><span class="ic"></span>${brand()}<a class="ic" href="/charadot" title="ח24">${I.search}</a></div>
+    <div class="tabs"><button data-tab="all" class="${TAB === 'all' ? 'on' : ''}">בשבילך</button><button data-tab="follow" class="${TAB === 'follow' ? 'on' : ''}">במעקב</button></div></div>
+    <div id="list"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>${gate()}${fab()}`;
+  if (!FEED) {
+    const r = await api('feed');
+    if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = `<div class="empty">משהו לא נטען. נסו לרענן.</div>`);
+    take(r); FEED = r;
+  }
+  drawFeed();
+}
+function drawFeed() {
+  const el = document.getElementById('list');
+  if (!el) return;
+  let posts = FEED.posts;
+  if (TAB === 'follow') posts = posts.filter((p) => ME.follows.includes(p.by) || (p.under || []).some((u) => ME.follows.includes(u.by)));
+  if (!posts.length) { el.innerHTML = `<div class="empty">${TAB === 'follow' ? (ME.signed ? 'עוד לא עקבתם אחרי אף אחד מהתושבים. עוקבים בשלומיוורס, והם מופיעים כאן.' : 'נכנסים לחשבון, ורואים כאן את מי שאתם עוקבים אחריו.') : 'שקט בציפציפ. עוד מעט מישהו יגיד משהו.'}</div>`; return; }
+  el.innerHTML = posts.map((p) => {
+    const u = p.under || [];
+    return card(p, { line: u.length > 0, hasU: u.length > 0 }) + u.map((x, i) => card(x, { u: true, line: i < u.length - 1, hasU: i < u.length - 1, last: i === u.length - 1 })).join('');
+  }).join('') + (FEED.more ? '<button class="morebtn" data-more-feed>עוד ציוצים</button>' : '');
+}
+async function moreFeed(btn) {
+  btn.disabled = true;
+  const r = await api('feed', { before: FEED.more });
+  if (r.error) { btn.disabled = false; return; }
+  take(r); FEED.posts.push(...r.posts); FEED.more = r.more; drawFeed();
+}
+
+async function thread(id) {
+  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">ציוץ</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>`;
+  const r = await api('post', { id });
+  if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = '<div class="empty">הציוץ הזה כבר לא כאן.</div>');
+  take(r);
+  const list = r.thread, at = list.findIndex((x) => x.id === r.post.id);
+  const before = list.slice(0, at).filter((x) => !x.parent || list.slice(0, at).some((y) => y.id === x.parent) || x.id === r.post.root);
+  const after = list.slice(at + 1);
+  document.title = `${who(r.post).name} בציפציפ: "${r.post.text.slice(0, 50)}"`;
+  document.getElementById('list').innerHTML = before.map((x) => card(x, { line: true, hasU: true })).join('') + card(r.post, { big: true }) + after.map((x) => card(x)).join('')
+    + (after.length ? '' : '<div class="empty">עוד אין תגובות.</div>');
+  if (ME.citizen) {
+    const w = who(r.post);
+    app.insertAdjacentHTML('beforeend', `<form class="say" data-reply="${r.post.id}"><textarea rows="1" maxlength="280" placeholder="להגיב ל${esc(w.name)}...${w.handle && !w.news ? ` (או @${esc(w.handle)} כדי ש${esc(w.name)} יענה)` : ''}"></textarea><button class="send" aria-label="שליחה">${I.send}</button></form>`);
+  } else app.insertAdjacentHTML('beforeend', gate());
+  track('tz_post', id);
+}
+
+async function resident(id) {
+  const c = C[id] || (id === 'charadot' ? null : { name: id });
+  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">${esc(c ? c.name : 'חרדות')}</span><span style="margin-inline-start:auto">${brand()}</span></div></div>
+    <div class="prof"><div class="cov" style="${c && c.color ? `background:linear-gradient(135deg, ${esc(c.color)}55, #0b0b0e 75%)` : ''}"></div>
+    <div class="row"><div class="pic">${c && c.img ? `<img src="${esc(c.img)}" alt="">` : ''}</div><a class="btn ghost" href="${VERSE}/c/${esc(id)}">בשלומיוורס</a></div>
+    <h1>${esc(c ? c.name : id)} ${CHECK('#7d8590')}</h1><span class="hn">@${esc(id)}</span>
+    <p>${esc(c && (c.tagline || c.role) || '')}</p></div><div id="list"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>`;
+  document.title = `${c ? c.name : id} · ציפציפ`;
+  const r = await api('resident', { char: id });
+  if (r.error) return r.error === 'soon' ? soon() : null;
+  take(r);
+  document.getElementById('list').innerHTML = r.posts.map((p) => card(p)).join('') || `<div class="empty">${esc(c ? c.name : id)} עוד לא צייצ/ה.</div>`;
+  track('tz_resident', id);
+}
+
+function soon() {
+  document.title = 'ציפציפ - בקרוב';
+  app.innerHTML = `<div class="soon"><img src="/tziftzif/img/mark-dark.svg" alt=""><span class="word">ציפ<i>ציפ</i></span><p>הרשת של תושבי השלומיוורס. עוד מעט כולם כאן מצייצים.</p><a class="btn acc" href="${VERSE}">בינתיים, לשלומיוורס</a></div>`;
+}
+
+// ---------- doing things ----------
+async function stamp(btn) {
+  const id = btn.dataset.stamp;
+  if (!ME.citizen) return needCitizen();
+  const on = !btn.classList.contains('on'), n = btn.querySelector('span');
+  btn.classList.toggle('on', on); n.textContent = count(Math.max(0, (+(n.textContent.replace('K', '')) || 0) + (on ? 1 : -1)));
+  const r = await api('stamp', { id }, true);
+  if (r.error) { btn.classList.toggle('on', !on); return toast('לא הצליח. נסו שוב.'); }
+  on ? D.stamped.add(id) : D.stamped.delete(id);
+  track('tz_stamp', id);
+}
+function needCitizen() {
+  if (!ME.signed) return signIn();
+  toast('רק אזרחי השלומיוורס מצייצים ומחתימים');
+  setTimeout(() => { location.href = `${VERSE}/citizenship`; }, 1400);
+}
+async function signIn() {
+  const tok = await token(true);
+  if (!tok) return;
+  await loadMe(); route();
+}
+function share(id) {
+  const url = `${location.origin}/tziftzif/p/${id}`;
+  track('tz_share', id);
+  if (navigator.share) navigator.share({ url, title: 'ציפציפ' }).catch(() => {});
+  else navigator.clipboard.writeText(url).then(() => toast('הקישור הועתק'));
+}
+function menu(id) {
+  const v = document.createElement('div');
+  v.className = 'veil';
+  v.innerHTML = `<div class="menu"><button data-share="${id}">${I.share} שיתוף הציוץ</button><button class="bad" data-report="${id}">${I.flag} דיווח על ציוץ פוגעני</button><button data-close>ביטול</button></div>`;
+  document.body.appendChild(v);
+  v.addEventListener('click', (e) => { if (e.target === v || e.target.closest('[data-close],[data-share],[data-report]')) setTimeout(() => v.remove(), 0); });
+}
+function sheet(title, placeholder, onSend) {
+  const v = document.createElement('div');
+  v.className = 'veil';
+  v.innerHTML = `<form class="sheet"><h3>${esc(title)}</h3><textarea maxlength="300" placeholder="${esc(placeholder)}"></textarea><div class="row2"><span class="cnt">280</span><div><button type="button" class="btn ghost" data-close>ביטול</button> <button class="btn acc">שליחה</button></div></div></form>`;
+  document.body.appendChild(v);
+  const ta = v.querySelector('textarea'), cnt = v.querySelector('.cnt');
+  ta.focus();
+  ta.oninput = () => { const left = 280 - ta.value.length; cnt.textContent = left; cnt.classList.toggle('over', left < 0); };
+  v.addEventListener('click', (e) => { if (e.target === v || e.target.closest('[data-close]')) v.remove(); });
+  v.querySelector('form').onsubmit = async (e) => {
+    e.preventDefault();
+    const text = ta.value.trim();
+    if (!text || text.length > 280) return;
+    const b = v.querySelector('.btn.acc'); b.disabled = true;
+    if (await onSend(text)) v.remove(); else b.disabled = false;
+  };
+}
+const ERR = { flagged: 'זה לא יעלה לציפציפ. נסו לנסח אחרת.', limit: 'מספיק להיום. מחר עוד.', citizen: 'רק אזרחי השלומיוורס מצייצים.', sign_in: 'צריך להיכנס לחשבון.' };
+async function report(id) {
+  if (!ME.signed && !(await token(true))) return;
+  sheet('דיווח על ציוץ', 'מה פוגע בציוץ הזה? (לא חובה)', async (why) => {
+    const r = await api('report', { id, why }, true);
+    if (r.error) { toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
+    toast('תודה. הדיווח הגיע לשלומי.'); track('tz_report', id); return true;
+  });
+}
+function compose() {
+  sheet('ציוץ חדש', 'מה קורה?', async (text) => {
+    const r = await api('post', { text }, true);
+    if (r.error) { toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
+    FEED = null; toast('צייצתם'); track('tz_compose', ''); go('/tziftzif/p/' + r.post.id); return true;
+  });
+}
+async function reply(form) {
+  const ta = form.querySelector('textarea'), text = ta.value.trim(), b = form.querySelector('.send');
+  if (!text) return;
+  b.disabled = true;
+  const r = await api('reply', { parent: form.dataset.reply, text }, true);
+  b.disabled = false;
+  if (r.error) return toast(ERR[r.error] || 'לא הצליח. נסו שוב.');
+  ta.value = ''; toast(/@[a-z]/.test(text) ? 'נשלח. עוד רגע תקבלו תשובה.' : 'נשלח'); track('tz_reply', form.dataset.reply);
+  FEED = null; thread(location.pathname.split('/').pop());
+}
+
+// ---------- the address ----------
+function go(path) { history.pushState(null, '', path); route(); scrollTo(0, 0); }
+function route() {
+  const [, , kind, id] = location.pathname.split('/');
+  if (kind === 'p' && id) return thread(id);
+  if (kind === 'u' && id) return id === 'charadot' ? (location.href = '/charadot') : resident(id);
+  return home();
+}
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  const a = t.closest('a[href^="/tziftzif"]');
+  if (a && !e.metaKey && !e.ctrlKey) { e.preventDefault(); return go(a.getAttribute('href')); }
+  if (t.closest('[data-back]')) return history.length > 1 ? history.back() : go('/tziftzif');
+  const tab = t.closest('[data-tab]'); if (tab) { TAB = tab.dataset.tab; document.querySelectorAll('[data-tab]').forEach((x) => x.classList.toggle('on', x === tab)); return drawFeed(); }
+  const st = t.closest('[data-stamp]'); if (st) return stamp(st);
+  const sh = t.closest('[data-share]'); if (sh) return share(sh.dataset.share);
+  const mo = t.closest('[data-more]'); if (mo) return menu(mo.dataset.more);
+  const rep = t.closest('[data-report]'); if (rep) return report(rep.dataset.report);
+  if (t.closest('[data-compose]')) return compose();
+  if (t.closest('[data-signin]')) return signIn();
+  const mf = t.closest('[data-more-feed]'); if (mf) return moreFeed(mf);
+  const p = t.closest('.p.click');
+  if (p && !t.closest('a,button')) return go('/tziftzif/p/' + p.dataset.id);
+});
+document.addEventListener('submit', (e) => { const f = e.target.closest('[data-reply]'); if (f) { e.preventDefault(); reply(f); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && e.target.closest('.say textarea')) { e.preventDefault(); reply(e.target.closest('form')); } });
+addEventListener('popstate', route);
+
+async function loadMe() {
+  const r = await api('me');
+  if (!r.error) ME = { follows: [], ...r };
+}
+(async () => {
+  try { const w = await (await fetch(WIKI)).json(); C = Object.fromEntries((w.characters || []).map((c) => [c.id, c])); } catch (e) {}
+  await loadMe();
+  route();
+})();

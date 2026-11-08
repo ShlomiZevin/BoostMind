@@ -21,6 +21,7 @@ const KEEP_DAYS = 90;
 // what a visitor can do; anything else is dropped
 const EVENTS = new Set([
   'sim_band', 'sim_card', 'sim_open', 'sim_start', 'sim_q', 'sim_done', 'sim_score', 'sim_join', 'sim_full', 'sim_img', 'sim_share', 'sim_ref', 'sim_meet', 'sim_skip', 'cz_banner', 'cz_open', 'cz_checkin', 'cz_stamp', 'cz_flight', 'cz_done', 'cz_share',   // the simulation test (sim.js): x = host / from / question n / score / via
+  'tz_post', 'tz_resident', 'tz_stamp', 'tz_share', 'tz_report', 'tz_compose', 'tz_reply', 'ch_front', 'ch_article',   // ציפציפ + ח24 (public/tziftzif, public/charadot): x = post / resident / article id
   'cookie_show', 'cookie_ok', 'cookie_prefs', 'cookie_row', 'cookie_save',   // the cookie notice (verse/cookie.js): x = character / character:row
   'view',          // a page or a wiki screen was opened          x = page / route
   'character',     // a character's page or card was opened        x = character id
@@ -77,7 +78,7 @@ const EVENTS = new Set([
   'vote',          // +1 on someone's idea                         x = 'on' | 'off'
   'chat_new',      // "new conversation" in the chat               x = character id or 'guide'
 ]);
-const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'yaniv-games', 'sagi-games', 'asaf-games', 'yotam-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'other']);
+const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'yaniv-games', 'sagi-games', 'asaf-games', 'yotam-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'tziftzif', 'charadot', 'other']);
 const SOURCES = new Set(['mail', 'tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
 const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
 

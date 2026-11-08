@@ -185,6 +185,14 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/tziftzif/**",
+        "destination": "/tziftzif/index.html"
+      },
+      {
+        "source": "/charadot/**",
+        "destination": "/charadot/index.html"
+      },
+      {
         "source": "/storyboard/**",
         "destination": "/storyboard/index.html"
       },
