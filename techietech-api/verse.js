@@ -1045,6 +1045,21 @@ async function askData(q) {
   return { answer, cost: (((u.input_tokens || 0) - (u.input_tokens_details?.cached_tokens || 0)) * 2 + (u.input_tokens_details?.cached_tokens || 0) * 0.2 + (u.output_tokens || 0) * 12) / 1e6 };
 }
 
+// ציפציפ and החרדות for Backstage's tiles (his ask 2026-11-08): what the residents wrote there (p = a post of their own,
+// r = a reply - his official account not counted), the stamps they gave, and the articles that went up - times only
+async function tzSince(from) {
+  const [posts, stamps, arts] = await Promise.all([
+    db.collection('tzPosts').where('t', '>=', from).select('fan', 'by', 'parent', 'status', 't').get(),
+    db.collection('tzStamps').where('t', '>=', from).select('t').get(),
+    db.collection('tzArticles').where('t', '>=', from).select('status', 't').get(),
+  ]);
+  const ms = (t) => (t && t.toMillis ? t.toMillis() : 0);
+  return {
+    acts: posts.docs.map((x) => x.data()).filter((x) => !x.by && x.fan && !x.fan.official && x.status !== 'draft').map((x) => [ms(x.t), x.parent ? 'r' : 'p']),
+    stamps: stamps.docs.map((x) => ms(x.data().t)).filter(Boolean),
+    articles: arts.docs.map((x) => x.data()).filter((x) => x.status === 'live').map((x) => ms(x.t)),
+  };
+}
 exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRETS, ...require('./costs').SECRETS, ...require('./tz').SECRETS.filter((x) => x.name !== 'VERSE_VAPID_PRIVATE')], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 300 }, async (req, res) => {   // 300: ח24's desk (tzDesk) writes + paints ~6 articles
   if (!ownerOk(req, res)) return;
   const op = req.query.op;
@@ -1100,11 +1115,12 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (op === 'stats') {
       const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 180);
       const from = dayIL(new Date(Date.now() - Math.max(2 * days - 1, 84) * 864e5));   // the forecast learns from 12 weeks
-      const [d, ev, people, cz] = await Promise.all([
+      const [d, ev, people, cz, tz] = await Promise.all([
         db.collection('analytics_days').where('d', '>=', from).orderBy('d').get(),
         db.collection('analytics_events').orderBy('t', 'desc').limit(400).get(),
         peopleList(),
         db.collection('citizens').select('created', 'stamped', 'own', 'test').get(),
+        tzSince(Timestamp.fromMillis(Date.now() - days * 2 * 864e5)),
       ]);
       // how today will end (forecast.js): learned from the per-hour counters of every day it has, fresh on each load
       const all = d.docs.map((x) => x.data());
@@ -1114,7 +1130,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       // passport (s) and when they got their number (c) - the page counts them per day like the sign-ups
       const ms = (t) => (t && t.toMillis ? t.toMillis() : null);
       const journey = cz.docs.map((x) => x.data()).filter((x) => !x.own && !x.test).map((x) => ({ s: ms(x.created), c: ms(x.stamped) }));
-      return res.json({ days: all.map(({ h, ...x }) => x), people, forecast, journey,
+      return res.json({ days: all.map(({ h, ...x }) => x), people, forecast, journey, tz,
         events: ev.docs.map((x) => { const e = x.data(); delete e.exp; return { ...e, t: e.t.toMillis() }; }) });
     }
     // the conversations (wiki.js keeps them): a time range (from / to in ms), or everything one account said (uid)

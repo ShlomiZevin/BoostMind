@@ -22,6 +22,7 @@ const KEEP_DAYS = 90;
 const EVENTS = new Set([
   'sim_band', 'sim_card', 'sim_open', 'sim_start', 'sim_q', 'sim_done', 'sim_score', 'sim_join', 'sim_full', 'sim_img', 'sim_share', 'sim_ref', 'sim_meet', 'sim_skip', 'cz_banner', 'cz_open', 'cz_checkin', 'cz_stamp', 'cz_flight', 'cz_done', 'cz_share',   // the simulation test (sim.js): x = host / from / question n / score / via
   'tz_post', 'tz_resident', 'tz_stamp', 'tz_share', 'tz_report', 'tz_compose', 'tz_reply', 'ch_front', 'ch_article',   // ציפציפ + ח24 (public/tziftzif, public/charadot): x = post / resident / article id
+  'tz_home', 'cz_rights',   // the home's 'עכשיו בחרדות' (x = which link) and the passport's speaking-rights rows (x = tz / ch)
   'cookie_show', 'cookie_ok', 'cookie_prefs', 'cookie_row', 'cookie_save',   // the cookie notice (verse/cookie.js): x = character / character:row
   'view',          // a page or a wiki screen was opened          x = page / route
   'character',     // a character's page or card was opened        x = character id
