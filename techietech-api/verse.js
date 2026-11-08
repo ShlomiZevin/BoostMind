@@ -1020,7 +1020,7 @@ async function askData(q) {
   return { answer, cost: (((u.input_tokens || 0) - (u.input_tokens_details?.cached_tokens || 0)) * 2 + (u.input_tokens_details?.cached_tokens || 0) * 0.2 + (u.output_tokens || 0) * 12) / 1e6 };
 }
 
-exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRETS, ...require('./costs').SECRETS, ...require('./tz').SECRETS.filter((x) => x.name !== 'VERSE_VAPID_PRIVATE')], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
+exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRETS, ...require('./costs').SECRETS, ...require('./tz').SECRETS.filter((x) => x.name !== 'VERSE_VAPID_PRIVATE')], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 300 }, async (req, res) => {   // 300: ח24's desk (tzDesk) writes + paints ~6 articles
   if (!ownerOk(req, res)) return;
   const op = req.query.op;
   const b = req.body || {};

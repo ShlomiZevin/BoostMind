@@ -14,6 +14,9 @@
 //   rule) and matches headlines to candidates -> ח24 writes its articles (its own key) -> the residents' posts are
 //   written in each one's voice (their profile from the chat's brain) -> they go live spread over the hours until the
 //   next run, so the timeline moves all day for the price of 3 runs.
+// - ח24's desk (`desk()`, his idea 2026-11-08) runs right after each run: the channel covers the day's news itself, every
+//   section (politics, economy, culture, sport, tech, weather...), and turns every headline - good news too - into the
+//   worst case: a storm, a failure, a scandal, a disaster about to happen. One call picks + writes, then the pictures.
 // - Until `open` (verseMeta/tz) only his account reads anything - the pages show "soon" to everyone else.
 // Data (Firestore): tzPosts, tzArticles, tzRuns, tzStamps, tzReports, verseMeta/tz; pictures in gs://shlomiverse-media/tz/.
 // Keys (OpenAI project "Shlomiverse", Backstage → הוצאות shows each): VERSE_TZ_OPENAI_KEY (shlomiverse-tziftzif) for the
@@ -50,23 +53,28 @@ const PER_RUN = 10;            // residents drawn as candidates each run (the AI
 const HIDE_AT = 3;             // reports that take a post off the site until he looks
 const BIG_CHANCE = 0.04;       // a run may start a bigger story that develops over days (~once in 8 days) - life stays regular      // a resident's answers to one visitor a day (like the comments' CHARACTER_REPLIES_A_DAY)
 const NEWS = 'charadot';       // the news channel's own account
-// the news sites the residents read (their RSS - free, no AI): many, both sides of the map, news / economy / culture, and at
-// most PER_FEED fresh items from each, so no one paper sets the tone (his note 2026-11-08: "why only Israel Hayom?")
+// the news sites the residents and ח24 read (their RSS - free, no AI): ynet, Maariv and Walla only (his call 2026-11-08),
+// each by its sections - news, politics, economy, tech, culture, celebs, sport, weather - and at most PER_FEED fresh items
+// from each, so no one section sets the tone
 const FEEDS = [
   ['ynet', 'https://www.ynet.co.il/Integration/StoryRss2.xml'],
   ['ynet כלכלה', 'https://www.ynet.co.il/Integration/StoryRss6.xml'],
   ['ynet תרבות', 'https://www.ynet.co.il/Integration/StoryRss538.xml'],
-  ['וואלה', 'https://rss.walla.co.il/feed/1'],
-  ['N12', 'https://rcs.mako.co.il/rss/news-israel.xml'],
+  ['ynet ספורט', 'https://www.ynet.co.il/Integration/StoryRss3.xml'],
   ['מעריב', 'https://www.maariv.co.il/Rss/RssChadashot'],
-  ['הארץ', 'https://www.haaretz.co.il/srv/htz---all-articles'],
-  ['TheMarker', 'https://www.themarker.com/srv/tm-all-articles'],
-  ['ישראל היום', 'https://www.israelhayom.co.il/rss.xml'],
-  ['גלובס', 'https://www.globes.co.il/webservice/rss/rssfeeder.asmx/FeederNode?iID=2'],
-  ['דבר', 'https://www.davar1.co.il/feed/'],
-  ['סרוגים', 'https://www.srugim.co.il/feed'],
-  ['ice', 'https://www.ice.co.il/rss/'],
-  ['זמן ישראל', 'https://www.zman.co.il/feed/'],
+  ['מעריב פוליטי', 'https://www.maariv.co.il/Rss/RssFeedsPolitiMedini'],
+  ['מעריב כלכלה', 'https://www.maariv.co.il/Rss/RssFeedsKalkalaBaarez'],
+  ['מעריב טכנולוגיה', 'https://www.maariv.co.il/Rss/RssFeedsTechnologeya'],
+  ['מעריב תרבות', 'https://www.maariv.co.il/Rss/RssFeedsTarbot'],
+  ['מעריב OMG', 'https://www.maariv.co.il/Rss/RssFeedsTmiCelebsNews'],
+  ['מעריב ספורט', 'https://www.maariv.co.il/Rss/RssFeedsSport'],
+  ['מעריב מזג אוויר', 'https://www.maariv.co.il/Rss/RssFeedsWeather'],
+  ['וואלה', 'https://rss.walla.co.il/feed/10'],
+  ['וואלה פוליטי', 'https://rss.walla.co.il/feed/9'],
+  ['וואלה כסף', 'https://rss.walla.co.il/feed/139'],
+  ['וואלה טק', 'https://rss.walla.co.il/feed/4'],
+  ['וואלה סלבס', 'https://rss.walla.co.il/feed/272'],
+  ['וואלה ספורט', 'https://rss.walla.co.il/feed/7'],
 ];
 const PER_FEED = 4;
 // the loved / central residents get more room (his call: "more room to the relevant and loveable, but I want all"); he
@@ -159,7 +167,7 @@ async function moderate(text) {
 const unxml = (s) => String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
   .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&#(\d+);/g, (m, n) => String.fromCharCode(+n)).replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 const tag = (item, name) => { const m = new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'i').exec(item); return m ? unxml(m[1]) : ''; };
-async function headlines(hours = 10) {
+async function headlines(hours = 10, per = PER_FEED, max = 56) {
   const since = Date.now() - hours * 3600e3, out = [];
   await Promise.all(FEEDS.map(async ([src, url]) => {
     try {
@@ -168,7 +176,7 @@ async function headlines(hours = 10) {
       const xml = await r.text();
       let n = 0;
       for (const it of (xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || []).slice(0, 25)) {
-        if (n >= PER_FEED) break;
+        if (n >= per) break;
         const title = tag(it, 'title'), link = tag(it, 'link') || tag(it, 'guid'), when = Date.parse(tag(it, 'pubDate')) || Date.now();
         // the source's own picture (ynet, Haaretz, Globes send one) - shown on the link card like a link preview
         const img = (/<enclosure[^>]*url="([^"]+)"/i.exec(it) || /<media:(?:content|thumbnail)[^>]*url="([^"]+)"/i.exec(it) || /<img[^>]*src=(?:"|&quot;|')([^"&']+)/i.exec(it) || [])[1];
@@ -176,7 +184,7 @@ async function headlines(hours = 10) {
       }
     } catch (e) { console.error('tz feed', src, e.message); }
   }));
-  return out.sort((a, b) => b.when - a.when).slice(0, 56);
+  return out.sort((a, b) => b.when - a.when).slice(0, max);
 }
 // a story whose feed sends no picture (Israel Hayom, N12, Maariv): the picture the article itself shows when shared
 // (its og:image) - always that story's own photo
@@ -225,18 +233,69 @@ async function candidates(cfg, C) {
 
 const PICK_RULES = `You are the editor of "ציפציפ", a social network exactly like X / Twitter that exists inside the Shlomiverse - a comedy universe whose residents are treated as REAL people living in a parallel universe (never call them characters, never a parody). Like real Twitter it is MAINLY about the news: politics and current affairs (אקטואליה), and the residents' takes on them. The verse also has its own TV news channel, "חרדות" (short form ח24): a satire of what news really does - engineering minds, pouring poison, storms, clickbait, rage bait, a reality show of disasters made only to keep people anxious and watching.
 Three times a day you get the latest real Israeli headlines and today's CANDIDATES (the residents who may post now). Your job:
-1. BAD DAY CHECK - FIRST, ABOVE EVERYTHING: a bad day is a day of national pain: a terror attack (פיגוע), a war event / rocket fire with people killed or wounded, a disaster with people killed (an earthquake, a collapse, a big fire with dead), hostages, a national day of mourning or a funeral of victims of these. Then bad_day = true, items = [] - nobody in the verse posts anything today. When in doubt whether a headline is one of THESE, it is a bad day. Everyday tragedies - a road accident, a fire, a crime, an illness - are NOT a bad day: just never pick them.
+1. BAD DAY CHECK - FIRST, ABOVE EVERYTHING: a bad day is a day of ISRAEL's national pain: a terror attack (פיגוע) in Israel or against Israelis / Jews abroad, a war event / rocket fire with people killed or wounded, a disaster in Israel with people killed (an earthquake, a collapse, a big fire with dead), hostages, a national day of mourning or a funeral of victims of these. A tragedy abroad that is not about Israelis or Jews is not a bad day - just never pick it. Then bad_day = true, items = [] - nobody in the verse posts anything today. When in doubt whether a headline is one of THESE, it is a bad day. Everyday tragedies - a road accident, a fire, a crime, an illness - are NOT a bad day: just never pick them.
 2. Otherwise pick 2-3 headlines that Twitter would be talking about right now - politics, the government and the Knesset, the economy and prices, legal and civic affairs, tech, education, transport, culture and sport controversies. Never pick: deaths, crime victims, sexual offences, illness of a named person, minors, anything that could hurt real people.
 3. For each headline choose 2-4 of the candidates (only from the candidates list) whose world, job or personality gives them a real take - the obvious one and a surprising one; when two candidates have a relation (family, colleagues, rivals) let them argue. Use each candidate at most once. Leave out candidates who have nothing real to say. article = true when ח24 should turn the headline into a dramatic article (1-2 per run, the juiciest ones).
 4. head = the headline's number. angle = one short English line: the take (the resident's own life / worldview against the news).
 5. STORY: life in the verse stays regular - no big events. If the input says an ongoing story exists, at most one item may let a resident mention it. If the input says a big story MAY start, you may set new_story to one short English line: something bigger that happens inside the verse and will develop over the next days (realistic for that world, not a disaster) - otherwise new_story = "".`;
 const PICK_SCHEMA = S({ bad_day: bool, why: str, items: arr(S({ head: int, angle: str, article: bool, cast: arr(str, 1, 4) }), 0, 3), new_story: str });
 
-const ARTICLE_RULES = `You write for "חרדות" (short form ח24), the TV news channel of the Shlomiverse - a comedy universe treated as real. The channel is a satire of what news really does: engineering minds, pouring poison, storms, clickbait, rage bait, a reality show of disasters made only to keep people anxious and watching.
-It must be FUNNY: over-the-top hysteria about ordinary news - doomsday words, a countdown, "פאניקה", "הלם", rhetorical questions that answer nothing, a panel of experts who agree it's the end, a hint that you should keep watching; the more ordinary the news, the bigger the drama.
-For each real headline write: headline - sensational, clickbait, fear ("האם זה הסוף?", "דרמה", "סערה", "בלעדי", "הישארו איתנו"), at most 90 characters; sub - one sub-headline line; body - 3 short paragraphs that inflate the story into a looming disaster, quote anonymous "בכירים" and "מומחים", reveal nothing new and end on a cliffhanger; tag - one Hebrew section word (פוליטיקה, כלכלה, צרכנות, טכנולוגיה, חינוך, תחבורה, תרבות, ספורט, מזג אוויר); post - the channel's own post about the article on ציפציפ: one dramatic line, like a breaking-news tweet.
-The FACTS stay the headline's - only the tone is inflated. Never invent a quote, an action or a private detail of a real person; no insults about religion, origin, gender or body. Hebrew, no emoji, no hashtags.`;
+// ח24's voice (his words 2026-11-08): it takes today's headlines and turns EVERYTHING into a storm, a failure, a scandal, a
+// disaster - something terrible is about to happen. Good news or bad, culture, sport, the weather: always the worst case.
+const CH_TONE = `You write for "חרדות" (short form ח24), the TV news channel of the Shlomiverse - a comedy universe treated as real. The channel is a satire of what news really does: engineering minds, pouring poison, storms, clickbait, rage bait, a reality show of disasters made only to keep people anxious and watching.
+THE ONE RULE: every story becomes the WORST CASE - whatever it is. ח24 turns every headline into סערה, מחדל, שערורייה or אסון: something terrible is about to happen, and you must keep watching. Good news is a disaster in disguise (a price drop = "הקריסה שאף אחד לא מדבר עליה", a new park = "המלכודת", a record harvest = "מה הם לא מספרים לכם"); a football win = a crisis; a festival = a scandal; a mild forecast = the calm before the storm; a new app = the end of privacy. The channel always finds what could go terribly wrong, who is to blame (המחדל), and the countdown to it.
+It must be FUNNY: the hysteria is the joke - the more ordinary or the happier the news, the bigger the doom. Doomsday words ("הלם", "פאניקה", "דרמה", "בלעדי", "האם זה הסוף?", "הישארו איתנו", "משהו נורא עומד לקרות"), a countdown, rhetorical questions that answer nothing, anonymous "בכירים" and a panel of "מומחים" who all agree it's the end, a hint that the worst is still coming.
+GO ALL THE WAY - never polite, never "a question mark at most": name the catastrophe out loud, in big blown-up words. A RICH vocabulary of doom and outrage - never lean on the same three words; each headline in a run opens differently. For example: סערה, מחדל, שערורייה, אסון, הלם, דרמה, בלעדי, פאניקה, קטסטרופה, קריסה, טלטלה, רעידת אדמה, צונאמי, פיצוץ, התרסקות, השפלה, בושה, ביזיון, זעם, תדהמה, חשיפה, מבוכה, כאוס, סיוט, נפילה, מהפך, עימות, מתיחות, מתקפה, אזעקה, דרמה מטלטלת, פרשה, תקרית, "נחשף", "בכירים מזהירים", "לא תאמינו", "מה שקרה אחר כך", "התיעוד המטלטל", "רגע לפני הסוף", "הסוד שמסתירים מכם", "מי אשם?", "זה כבר רשמי:", "בלי מילים".
+CLICKBAIT + RAGE BAIT: find the small petty detail and blow it up into the whole story - a celebrity wedding = "לא תאמינו מי איחר למנה הראשונה"; a new album = "המעריצים בהלם: השיר השלישי"; a promotion = "הבכירים זועמים - ומי נשאר מאחור?"; a sunny week = "החום שאיש לא ערוך אליו". Tease without telling ("ומה שקרה אחר כך..."), pick a side to make people angry, find someone to be outraged at.
+THE JOKE IS THE GAP between the story and the panic. On good, happy or ordinary news the doom is the joke by itself. On a story that is ALREADY bad, never just repeat or deepen the real damage - that is plain news, not parody: the panic jumps to the absurd, petty side of it (a coach was fired -> "הסיוט האמיתי: מי יקבל את החניה שלו?"; an event was cancelled -> "הלם: מה יעשו עכשיו עם 400 הכריכים?"), or escalates to a ridiculous scale nobody could believe. Every body escalates paragraph by paragraph: a fact -> what it REALLY means -> the disaster coming (חרדה, a ticking clock, who will pay), and names a המחדל - who failed to see it coming.
+Each article: headline - sensational clickbait fear, at most 90 characters; sub - one sub-headline line; body - 3 short paragraphs that inflate the story into a looming catastrophe, reveal nothing new and end on a cliffhanger; tag - one Hebrew section word (פוליטיקה, כלכלה, צרכנות, טכנולוגיה, חינוך, תחבורה, תרבות, ספורט, בריאות, עולם, מזג אוויר); post - the channel's own post about it on ציפציפ: one dramatic line, like a breaking-news tweet.
+The FACTS stay the headline's - only the doom is ח24's (fears, warnings, "מומחים חוששים", what MIGHT happen). Never invent a quote, an action or a private detail of a real person; no insults about religion, origin, gender or body. Hebrew, no emoji, no hashtags.`;
+const ARTICLE_RULES = CH_TONE + `\nYou get the real headlines - write one article for each, in their order.`;
 const ARTICLE_SCHEMA = S({ articles: arr(S({ headline: str, sub: str, body: arr(str, 2, 4), tag: str, post: str })) });
+
+// ח24's desk: the channel covers the day itself - not only what the residents talk about (his ask 2026-11-08: "take today's
+// headlines and turn everything to סערה, מחדל, שערורייה, אסון"). After each run it writes the stories it hasn't covered
+// yet from the last 24 hours, across all sections; one call checks the day, picks and writes; then a picture each.
+const DESK = { morning: 6, noon: 4, evening: 4, manual: 6 };
+const DESK_RULES = CH_TONE + `
+YOUR JOB NOW - the channel's own desk: you get today's real Israeli headlines (numbered) and the stories ח24 already covered.
+1. BAD DAY CHECK FIRST - a day of ISRAEL's national pain: a terror attack (פיגוע) in Israel or against Israelis / Jews abroad, a war event / rocket fire with people killed or wounded, a disaster in Israel with people killed, hostages, a national day of mourning -> bad_day = true and articles = [] (the verse is silent today). Everyday tragedies, and tragedies abroad that are not about Israelis or Jews, are not a bad day - just never pick them.
+2. Otherwise pick up to the number asked of the headlines that are NOT already covered (the same story from another site counts as covered, and two headlines of one story = one), and spread them over the sections - politics, economy, consumer, tech, culture, sport, weather, world: a front page of a whole day, not five of one kind. Prefer what most people talk about, and above all GOOD, HAPPY or ORDINARY news - a price drop, a wedding, a record, a festival, a new app, a win, a sunny week: there the end-of-the-world tone is funny by itself. At least two thirds of the picks are such news; take a story that is already bad only when it has an absurd petty side to panic about.
+3. Never pick: deaths, crime victims, sexual offences, illness or grief of a named person, minors, anything that could hurt real people.
+4. For each pick write the article; head = the headline's number.`;
+const DESK_SCHEMA = S({ bad_day: bool, why: str, articles: arr(S({ head: int, headline: str, sub: str, body: arr(str, 2, 4), tag: str, post: str })) });
+async function desk(slot = 'manual', n) {
+  const cfg = await config(), today = day(), want = Math.max(1, Math.min(12, +n || DESK[slot] || 4));
+  if (cfg.silent === today) return { silent: true };
+  const runRef = db().collection('tzRuns').doc();
+  const [heads, done] = await Promise.all([headlines(24, 8, 120), db().collection('tzArticles').orderBy('made', 'desc').limit(120).get()]);
+  const covered = done.docs.map((d) => d.data()), urls = new Set(covered.map((a) => a.src && a.src.url).filter(Boolean));
+  const fresh = heads.filter((h) => !urls.has(h.url)).slice(0, 70);
+  const log = { at: FieldValue.serverTimestamp(), slot: 'desk-' + slot, desk: true, day: today, u: [0, 0, 0], uCh: [0, 0, 0], made: 0, heads: fresh.length };
+  if (!fresh.length) { await runRef.set(log); return { articles: 0 }; }
+  const r = await ask(chKey(), DESK_RULES, [{ role: 'user', content: `Write ${want} articles.\n\nTODAY'S HEADLINES:\n${fresh.map((h, i) => `${i}. [${h.src}] ${h.title}${h.desc ? ' - ' + clip(h.desc, 160) : ''}`).join('\n')}\n\nALREADY COVERED BY ח24 (real story -> our headline):\n${covered.slice(0, 40).map((a) => `- ${a.src ? a.src.title : ''} -> ${a.headline}`).join('\n') || '(nothing yet)'}` }],
+    DESK_SCHEMA, 'desk', 'medium', 1500 + want * 900);
+  log.uCh = r.u.slice();
+  if (r.out.bad_day) {
+    await meta().set({ silent: today, silentWhy: clip(r.out.why, 300), silentAt: FieldValue.serverTimestamp() }, { merge: true });
+    await runRef.set({ ...log, bad: true, why: clip(r.out.why, 300) });
+    return { bad: true, why: r.out.why };
+  }
+  const seen = new Set(), picked = r.out.articles.filter((a) => fresh[a.head] && a.headline && !seen.has(a.head) && seen.add(a.head)).slice(0, want);
+  await Promise.all(picked.filter((a) => !fresh[a.head].img).map(async (a) => { fresh[a.head].img = await ogImage(fresh[a.head].url); }));
+  const made = FieldValue.serverTimestamp(), batch = db().batch();
+  const arts = picked.map((x) => { const h = fresh[x.head]; return { id: newId(), headline: clip(x.headline, 160), sub: clip(x.sub, 260), body: (x.body || []).map((p) => clip(p, 900)).filter(Boolean),
+    tag: clip(x.tag, 20), kind: 'real', desk: true, src: { url: h.url, title: h.title, src: h.src, img: h.img || null }, img: null, status: 'draft', t: null, made, run: runRef.id, post: null }; });
+  arts.forEach((a) => batch.set(db().collection('tzArticles').doc(a.id), a));
+  await batch.commit();
+  if (cfg.img) await Promise.all(arts.map((a) => picture(a).catch((e) => console.error('tz picture', e.message))));
+  // live at once, the first pick on top (a minute apart, so the front page keeps the channel's order)
+  const now = Date.now(), up = db().batch();
+  arts.forEach((a, i) => up.update(db().collection('tzArticles').doc(a.id), { status: 'live', t: Timestamp.fromMillis(now - i * 60e3) }));
+  await up.commit();
+  await runRef.set({ ...log, made: 0, articles: arts.map((a) => a.id), used: [] });
+  return { articles: arts.length, run: runRef.id };
+}
 
 const POST_RULES = `You write posts for "ציפציפ", the Shlomiverse's own social network - exactly like X / Twitter, and like Twitter mostly about the news. The Shlomiverse is a comedy universe whose residents are REAL people living in a parallel universe: write them as real people posting from their phone, never as characters; never mention a parody, AI, a script or Shlomi.
 POSTS: Hebrew, short like real tweets (one to three short lines, at most 240 characters), in the resident's OWN voice - their speech, catchphrases (sparingly, not in every post), world and relations from their profile below. Each takes the news through their own life and worldview: a hot take, a complaint, sarcasm, a "back in my day", a professional opinion, an argument. Funny through their point of view, never by explaining the joke. ALWAYS HEBREW - even a resident who lectures in English or mixes English writes in Hebrew here, at most a single English word. No hashtags, no emoji. Each post a different rhythm - never two opening the same way.
@@ -251,7 +310,7 @@ async function run(slot = 'manual') {
   if (cfg.silent === today) { await runRef.set({ ...log, skipped: 'silent' }); return { silent: true }; }
   const heads = await headlines();
   // a headline the residents already reacted to in the last runs is not news any more
-  const recent = await db().collection('tzRuns').orderBy('at', 'desc').limit(6).get();
+  const recent = await db().collection('tzRuns').orderBy('at', 'desc').limit(10).get();   // (the desk's runs are in here too)
   const used = new Set(recent.docs.flatMap((d) => d.data().used || []));
   const fresh = heads.filter((h) => !used.has(h.url)).slice(0, 40);
   const b = await brainNow(), C = byId(b);
@@ -286,10 +345,12 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
   // every chosen story gets its own picture (its feed's, else the article page's og:image)
   await Promise.all(items.filter((it) => !it.h.img).map(async (it) => { it.h.img = await ogImage(it.h.url); }));
   // ח24's articles first (its own key), so the residents can quote the channel
-  const withArt = items.filter((it) => it.article).slice(0, 2);
+  // (a story ח24's desk already covered gets no second article)
+  const deskUrls = new Set((await db().collection('tzArticles').orderBy('made', 'desc').limit(80).get()).docs.map((d) => d.data().src && d.data().src.url));
+  const withArt = items.filter((it) => it.article && !deskUrls.has(it.h.url)).slice(0, 2);
   if (withArt.length) {
     const art = await ask(chKey(), ARTICLE_RULES, [{ role: 'user', content: withArt.map((it, i) => `${i}. [${it.h.src}] ${it.h.title}${it.h.desc ? ' - ' + it.h.desc : ''}`).join('\n') }],
-      ARTICLE_SCHEMA, 'article', 'low', 3000);
+      ARTICLE_SCHEMA, 'article', 'medium', 4500);
     log.uCh = art.u.slice();
     withArt.forEach((it, i) => { it.art = art.out.articles[i] || null; });
   }
@@ -605,9 +666,11 @@ exports.verseTz = onRequest({ region: 'europe-west1', cors: CORS, secrets: SECRE
 });
 
 // morning, noon and evening (Israel)
-exports.verseTzRun = onSchedule({ schedule: '0 8,13,19 * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1', secrets: SECRETS, memory: '512MiB', timeoutSeconds: 300 }, async () => {
-  const h = new Date(Date.now() + 2 * 3600e3).getUTCHours();
-  try { console.log('verseTzRun', JSON.stringify(await run(h < 11 ? 'morning' : h < 16 ? 'noon' : 'evening'))); } catch (e) { console.error('verseTzRun', e.message); }
+exports.verseTzRun = onSchedule({ schedule: '0 8,13,19 * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1', secrets: SECRETS, memory: '512MiB', timeoutSeconds: 540 }, async () => {
+  const h = new Date(Date.now() + 2 * 3600e3).getUTCHours(), slot = h < 11 ? 'morning' : h < 16 ? 'noon' : 'evening';
+  try { console.log('verseTzRun', JSON.stringify(await run(slot))); } catch (e) { console.error('verseTzRun', e.message); }
+  // then ח24's own desk (it stays silent by itself on a bad day - run() set it)
+  try { console.log('verseTzDesk', JSON.stringify(await desk(slot))); } catch (e) { console.error('verseTzDesk', e.message); }
 });
 
 // a visitor's reply that tags a resident -> the resident's answer (Firestore triggers run in me-west1, like verseOnComment)
@@ -731,6 +794,7 @@ async function owner(op, b) {
     return { ok: true, cfg: await config() };
   }
   if (op === 'tzRun') return run('manual');
+  if (op === 'tzDesk') return desk('manual', b.n);   // ח24 covers the day now
   if (op === 'tzCast') {   // every resident: star / regular / out, for the cast list
     const b2 = await brainNow(), cfg = await config(), stars = new Set(cfg.stars || STARS), off = new Set(cfg.off || []);
     return { all: b2.characters.map((c) => ({ id: c.id, name: c.name, world: c.world, role: short(c.role, 80), star: stars.has(c.id), off: off.has(c.id), kid: KIDS.includes(c.id) })) };
@@ -751,4 +815,4 @@ async function owner(op, b) {
   return { error: 'op' };
 }
 
-module.exports = { _ogImage: ogImage, verseTzPage: exports.verseTzPage, verseTz: exports.verseTz, verseTzRun: exports.verseTzRun, verseTzOnPost: exports.verseTzOnPost, owner, SECRETS, _run: run, _headlines: headlines, _publish: publish, _candidates: candidates };
+module.exports = { _ogImage: ogImage, verseTzPage: exports.verseTzPage, verseTz: exports.verseTz, verseTzRun: exports.verseTzRun, verseTzOnPost: exports.verseTzOnPost, owner, SECRETS, _run: run, _desk: desk, _headlines: headlines, _publish: publish, _candidates: candidates };
