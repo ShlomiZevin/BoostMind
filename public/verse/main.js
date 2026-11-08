@@ -11,6 +11,7 @@ import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
+import { mountTz } from './tzhome.js';
 import { citizenPage } from './citizen.js';
 appBoot();
 
@@ -54,6 +55,7 @@ Object.assign(HOOK, {
     paintFollow();
     if (page === 'notes') document.title = `${T.notesTitle} · שלומיוורס`;
     if (!page) mountBand();   // "אתם חיים בסימולציה?" under the question box (sim.js)
+    if (!page) mountTz();   // "עכשיו בחרדות" under the stories (tzhome.js - only once ציפציפ answers)
     if (!page) recordsHome(); else if (!/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום" lives on the home
   },
 });

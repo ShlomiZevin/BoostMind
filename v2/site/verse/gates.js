@@ -11,6 +11,10 @@ const CZ_OPEN = true;
 const NEXT_BAR = true;   // the phone top bar he chose on plan open-cz-sim (option 3 + his notes) - his eyes only until he approves
 const FLY_OPEN = true;   // the flight in as a game instead of the video (his idea 2026-11-07, verse/fly.js) - a draft for him to play first
 const ABOUT_OPEN = true;   // "מה סיפרתם לנו" on the אני page (plan cz-sim-r3, verse/about.js) - his eyes only until he goes over it
+// "עכשיו בחרדות" on the home (verse/tzhome.js, plan tz-home): off until HE opens it - separately from ציפציפ / ח24 themselves
+// (his call 2026-11-08: "I'm going to deploy these two, but you shouldn't show it yet in the home page"). Not even on his account;
+// a session's test browser (vx-preview) sees it
+const TZ_HOME = false;
 const HIM = new Set(['rJLlCV393shl7njhzWZmoaE15Yp2']);   // shlomi@boostart.io
 // a test browser sees what he sees (localStorage vx-preview = 1) - only for the sessions' phone checks and screenshots
 const peek = () => { try { return localStorage.getItem('vx-preview') === '1'; } catch (e) { return false; } };
@@ -20,3 +24,4 @@ export const czOpen = () => CZ_OPEN || him();
 export const nextBar = () => NEXT_BAR || him();
 export const flyOpen = () => FLY_OPEN || him();
 export const aboutOpen = () => ABOUT_OPEN || him();
+export const tzHomeOpen = () => TZ_HOME || peek();

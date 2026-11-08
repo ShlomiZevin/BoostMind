@@ -11,6 +11,7 @@ import { statusChip, SI, myStatus } from './status.js';
 import { citizenBanner } from './citizen.js';
 import { nextBar, czOpen } from './gates.js';
 import { aboutCard } from './about.js';
+import { tzHome } from './tzhome.js';
 // "מה סיפרתם לנו" arrived or changed (verse/about.js): the אני page draws again
 window.addEventListener('vx-about', () => { if (cur.page === 'me') refresh(true); });
 
@@ -102,10 +103,12 @@ document.addEventListener('click', async (e) => {
 });
 // signed out: today's wiki home, with stories and a clear reason to sign in
 export function homeSlot() {
-  if (signedIn()) return citizenBanner() + yourBlock();   // the citizenship journey's banner until they finish it (citizen.js)
+  // "עכשיו בחרדות" (tzhome.js, plan tz-home): under the stories; it draws itself only when ציפציפ answers (him only until it opens)
+  const tz = `<div id="tz-home">${tzHome()}</div>`;
+  if (signedIn()) return citizenBanner() + yourBlock() + tz;   // the citizenship journey's banner until they finish it (citizen.js)
   if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>';
   const rings = ringsHtml();
-  return `${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}
+  return `${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}${tz}
     <div class="signin-card"><div class="sc-top"><h2>${brand(T.signinCardTitle)}</h2>${statusChip()}</div>
       <ul class="sc-gets">${[I.comment, I.bell, I.comment, I.sticker, I.save, SI.bars].map((ic, i) => `<li>${ic}<span>${esc(T.signinCardGets[i])}</span></li>`).join('')}</ul>
       <p class="sc-more">${I.plus}<span>${esc(T.signinCardMore)}</span></p>
