@@ -15,7 +15,7 @@ const URL = process.argv[2] || 'http://localhost:5310/osnat-games/not-a-cog/?sol
   for (let i = 0; i < 12 && await G(() => NOTACOG.tut); i++) {
     const s = await G(() => NOTACOG.tutStep);
     await p.screenshot({ path: `${OUT}/t1-tut${s + 1}.png` });
-    if (s === 3) { const c = await G(() => { const c = NOTACOG.cands[0]; return { x: c.x, y: c.y - 60 * NOTACOG.U }; }); await tapXY(c.x, c.y); await p.waitForTimeout(2600); }
+    if (s === 3) { const c = await G(() => { const c = NOTACOG.cands[0]; return { x: c.x, y: c.y - 60 * NOTACOG.U }; }); await tapXY(c.x, c.y); await p.waitForFunction(() => NOTACOG.cands[0] && NOTACOG.cands[0].st === 'want', null, { timeout: 12000 }); await p.waitForTimeout(300); }
     if (s === 5) { await p.locator('.st[data-id="matcha"]').tap(); await p.waitForTimeout(200); const d = await G(() => { const d = NOTACOG.desks[0]; return { x: d.x, y: d.y }; }); await tapXY(d.x, d.y); await p.waitForTimeout(3500); }
     if (s === 7) { const d = await G(() => { const d = NOTACOG.desks[0]; return { x: d.x, y: d.y }; }); await tapXY(d.x, d.y); await p.waitForTimeout(2500); }
     if (s === 8) { await p.locator('#laughBtn').tap(); await p.waitForTimeout(500); }
@@ -28,8 +28,8 @@ const URL = process.argv[2] || 'http://localhost:5310/osnat-games/not-a-cog/?sol
   const t0 = Date.now(); let shot = 0;
   while (Date.now() - t0 < 75000 && await G(() => NOTACOG.state) === 'play') {
     const s = await G(() => ({ q: NOTACOG.osnat.queue.length + (NOTACOG.osnat.task ? 1 : 0), hands: NOTACOG.osnat.hands.slice(), U: NOTACOG.U,
-      lobby: NOTACOG.cands.filter((c) => c.st === 'lobby').map((c) => ({ x: c.x, y: c.y })),
-      free: NOTACOG.desks.some((d) => !d.c),
+      lobby: NOTACOG.cands.filter((c) => c.st === 'lobby' && !c.fetch).map((c) => ({ x: c.x, y: c.y })),
+      free: NOTACOG.desks.some((d) => !d.c && !d.res),
       desks: NOTACOG.desks.map((d) => ({ x: d.x, y: d.y, st: d.c && d.c.st, need: d.c ? d.c.want.filter((w) => !d.c.got.includes(w)) : [] })) }));
     if (s.q === 0) {
       if (s.lobby.length && s.free) await tapXY(s.lobby[0].x, s.lobby[0].y - 60 * s.U);

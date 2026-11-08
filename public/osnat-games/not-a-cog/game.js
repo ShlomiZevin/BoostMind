@@ -129,7 +129,8 @@ function layout() {
   document.body.classList.toggle('turn', innerWidth > H * 1.15 && H < 520 && 'ontouchstart' in window);
   const top = cssPx('var(--safe-t)') + 106, barH = ($('bar').offsetHeight || 84);
   KIT.top = H - barH; KIT.ch = Math.min(W, 660) / 4.62;
-  P = { x0: 0, y0: top, x1: W, y1: KIT.top - KIT.ch * 0.36 };   // the perks stand above the counter top
+  const rise = placeButtons();
+  P = { x0: 0, y0: top, x1: W, y1: KIT.top - rise };   // the perk buttons stand above the counter top
   const pw = Math.min(W, 620), ph = P.y1 - P.y0, ox = (W - pw) / 2;
   // the height a desk row needs: the candidate, his message and battery above the desk (226U), the desk below (58U);
   // the lower row ends above the fake-laugh button
@@ -162,6 +163,29 @@ function buildBar(fresh) {
   }
   requestAnimationFrame(layout);
 }
+// the perk buttons: round, at least a thumb's gap (GAP) apart. One row while it fits, otherwise a zigzag of two rows
+// (the second row on the cabinet front, between the first row's buttons). Returns how far they rise above the counter.
+const GAP = 14;
+function placeButtons() {
+  const bs = [...document.querySelectorAll('.st')], n = bs.length, bw = Math.min(W, 660), ch = KIT.ch, use = bw * 0.92, x0 = bw * 0.04;
+  const big = Math.min(ch * 0.74, 96);
+  let y1 = -ch * 0.08;   // the first row's centre, a little above the counter top (higher when there are two rows)
+  if (!n) return ch * 0.45;
+  let pos = [], d;
+  if (use / n - big >= GAP) { d = big; pos = bs.map((_, i) => [x0 + use / n * (i + 0.5), y1]); }
+  else {
+    const k = Math.ceil((n + 1) / 2), m = n - k, s2 = use / k;
+    d = Math.min(big, s2 - GAP); y1 = -ch * 0.2;
+    let dy = Math.sqrt(Math.max(0, (d + GAP) ** 2 - (s2 / 2) ** 2));
+    for (let it = 0; it < 6 && y1 + dy + d / 2 > ch * 0.98; it++) { dy = ch * 0.98 - d / 2 - y1; d = Math.min(d, Math.sqrt((s2 / 2) ** 2 + dy * dy) - GAP); }
+    const off = Math.floor((k - 1 - m) / 2);
+    for (let i = 0; i < k; i++) pos.push([x0 + s2 * (i + 0.5), y1]);
+    for (let i = 0; i < m; i++) pos.push([x0 + s2 * (i + off + 1), y1 + dy]);
+  }
+  // right to left, the way the page reads
+  bs.forEach((b, i) => { Object.assign(b.style, { width: d + 'px', height: d + 'px', left: (bw - pos[i][0] - d / 2) + 'px', top: (pos[i][1] - d / 2) + 'px' }); b.style.setProperty('--d', d + 'px'); });
+  return -y1 + d / 2 + 4;
+}
 function stationPos(id) {
   const b = document.querySelector(`.st[data-id="${id}"]`);
   if (!b) return { x: W / 2, y: KIT.top + KIT.ch * 0.3 };
@@ -185,7 +209,7 @@ function demandCount(d) { const r = R(); if (d <= 2) return r < 0.55 ? 1 : 2; if
 function startDay(n) {
   day = n; hires = 0; ghosts = 0; goal = dayGoal(n); combo = 0; comboT = 0;
   open = PERKS.filter((p) => p.day <= n).map((p) => p.id);
-  cands = []; desks.forEach((d) => d.c = null);
+  cands = []; desks.forEach((d) => { d.c = null; d.res = null; });
   osnat.queue = []; osnat.task = null; osnat.hands = []; osnat.pose = 'idle';
   osnat.x = W / 2; osnat.y = P.y1 - 10 * U;
   spawnT = 0.6; laughT = 0; laughCool = 0; between = 0;
@@ -196,18 +220,23 @@ function startDay(n) {
 function startGame() {
   state = 'play'; tutorial = false; paused = false;
   R = seeded('not-a-cog|' + today());
-  score = 0; totalHires = 0; bestCombo = 0;
+  score = 0; totalHires = 0; bestCombo = 0; faces = [];
   show(null); showHUD(true); layout(); startDay(1); musicOn();
   window.track && window.track('game_start', 'not-a-cog');
 }
 
 // a new candidate walks in through the door with today's demands
-let lastPerson = null;
+let lastPerson = null, faces = [];   // faces = the bag of people still to come
 function spawn(force) {
   const waiting = cands.filter((c) => c.st === 'walk' || c.st === 'lobby').length;
   if (waiting >= lobby.length) return false;
-  const pool = PEOPLE.filter((p) => p !== lastPerson);
-  const p = force && force.p ? force.p : rpick(pool); lastPerson = p;
+  let p = force && force.p;
+  if (!p) {
+    const here = cands.filter((c) => c.st !== 'leave' && c.st !== 'ghost').map((c) => c.p.id);
+    if (!faces.some((q) => !here.includes(q.id))) faces = PEOPLE.slice().sort(() => R() - 0.5).filter((q) => q.id !== (lastPerson && lastPerson.id));
+    p = faces.find((q) => !here.includes(q.id)) || faces[0]; faces.splice(faces.indexOf(p), 1);
+  }
+  lastPerson = p;
   let want;
   if (force && force.want) want = force.want;
   else {
@@ -239,26 +268,32 @@ cv.addEventListener('pointerdown', (e) => {
   audioUnlock();
   const x = e.clientX - OX, y = e.clientY;
   // a waiting candidate: seat them at a free desk
-  const waiting = cands.filter((c) => c.st === 'lobby' || c.st === 'walk');
-  for (const c of waiting) {
+  const waiting = cands.filter((c) => (c.st === 'lobby' || c.st === 'walk') && !c.fetch);
+  for (const c of cands.filter((c) => c.st === 'lobby' || c.st === 'walk')) {
     const h = 150 * U, w = 70 * U;
-    if (Math.abs(x - c.x) < w / 2 + 14 && y > c.y - h - 10 && y < c.y + 14) { seat(c); return; }
+    if (Math.abs(x - c.x) < w / 2 + 14 && y > c.y - h - 10 && y < c.y + 14) { if (!c.fetch) seat(c); return; }
   }
   for (const d of desks) {
     const top = d.y - SIT * U;
     if (Math.abs(x - d.x) < d.w / 2 + 6 && y > top && y < d.y + d.h / 2 + 8) {
       if (d.c && ['think', 'want', 'ready'].includes(d.c.st)) { queueTask({ type: 'desk', desk: d }); return; }
-      if (!d.c && waiting.length) { seat(waiting[0], d); return; }
+      if (!d.c && !d.res && waiting.length) { seat(waiting[0], d); return; }
     }
   }
 });
+// seating = Osnat walks to the door, takes the candidate and leads him to a desk (the desk is held for him)
 function seat(c, desk) {
-  const d = desk || desks.find((q) => !q.c);
+  const d = desk || desks.find((q) => !q.c && !q.res);
   if (!d) { popText(c.x, c.y - 150 * U, 'אין שולחן פנוי', 'bad small'); return; }
-  d.c = c; c.desk = d; c.st = 'seat'; c.t = 0; c.fromX = c.x; c.fromY = c.y;
-  play('seat', .6);
-  restack();
+  if (osnat.queue.length >= 4) return queueTask({ type: 'fetch', c, desk: d });
+  d.res = c; c.fetch = true;
+  queueTask({ type: 'fetch', c, desk: d });
 }
+function sitDown(c, d) {
+  d.res = null; d.c = c; c.desk = d; c.st = 'seat'; c.t = 0; c.fromX = c.x; c.fromY = c.y;
+  play('seat', .6);
+}
+function dropFetch(t) { if (t.desk.res === t.c) t.desk.res = null; t.c.fetch = false; }
 function restack() {
   cands.filter((c) => c.st === 'walk' || c.st === 'lobby').forEach((c, i) => { c.sx = lobby[i].x; c.sy = lobby[i].y; if (c.st === 'lobby') c.st = 'walk'; });
 }
@@ -266,12 +301,19 @@ function restack() {
 // ───────────────────────── Osnat works her queue ─────────────────────────
 function taskTarget(t) {
   if (t.type === 'pick') return stationPos(t.id);
+  if (t.type === 'fetch') return { x: t.c.x - 38 * U, y: t.c.y + 2 };
   return { x: t.desk.x + t.desk.w * 0.36, y: t.desk.y + t.desk.h * 0.5 + 6 * U };
 }
 function osnatStep(dt) {
   if (osnat.poseT > 0) { osnat.poseT -= dt; if (osnat.poseT <= 0) osnat.pose = 'idle'; return; }
-  if (!osnat.task && osnat.queue.length) osnat.task = osnat.queue.shift();
-  const t = osnat.task;
+  while (!osnat.task && osnat.queue.length) {
+    const n = osnat.queue.shift();
+    // a candidate who ghosted before she got to him
+    if (n.type === 'fetch' && n.c.st !== 'lobby' && n.c.st !== 'walk') { dropFetch(n); continue; }
+    osnat.task = n;
+  }
+  let t = osnat.task;
+  if (t && t.type === 'fetch' && t.c.st !== 'lobby' && t.c.st !== 'walk') { dropFetch(t); osnat.task = t = null; }
   if (!t) { osnat.pose = 'idle'; snackCheck(dt); return; }
   const g = taskTarget(t), dx = g.x - osnat.x, dy = g.y - osnat.y, dist = Math.hypot(dx, dy), sp = 385 * U * (1 + (day - 1) * 0.03);
   if (dist > 4) {
@@ -282,6 +324,14 @@ function osnatStep(dt) {
   osnat.task = null; doTask(t);
 }
 function doTask(t) {
+  if (t.type === 'fetch') {
+    if (t.c.st !== 'lobby' && t.c.st !== 'walk') return dropFetch(t);
+    t.c.st = 'follow'; t.c.t = 0; restack();
+    say(line(t.c.f ? LINES.seatF : LINES.seatM, 'seat'));
+    osnat.task = { type: 'lead', c: t.c, desk: t.desk };   // straight on to his desk, he follows her
+    return;
+  }
+  if (t.type === 'lead') { t.c.fetch = false; return sitDown(t.c, t.desk); }
   if (t.type === 'pick') {
     // hands full: the oldest goes back on its station, so a wrong pick never leaves her stuck
     if (osnat.hands.length >= 2) { const back = osnat.hands.shift(); popText(osnat.x, osnat.y - 170 * U, 'החזירה: ' + perk(back).label, 'small'); }
@@ -325,6 +375,7 @@ function dayDone() {
   between = 2.6; const bonus = 150 * day; score += bonus;
   banner(`יום ${day} הושלם!<small>+${bonus} בונוס</small>`); play('hire', .8);
   cands.forEach((c) => { if (c.st !== 'leave') { c.st = 'leave'; c.t = 0; if (c.desk) c.desk.c = null; } });
+  desks.forEach((d) => d.res = null);
   osnat.queue = []; osnat.task = null; osnat.hands = [];
   hud();
 }
@@ -360,11 +411,12 @@ function candsStep(dt, frozen) {
       const dx = c.sx - c.x, dy = c.sy - c.y, dist = Math.hypot(dx, dy), k = Math.min(1, 220 * U * dt / Math.max(1, dist));
       c.x += dx * k; c.y += dy * k; if (dist < 2) c.st = 'lobby';
     }
-    if (c.st === 'walk' || c.st === 'lobby') { if (!still) c.bat -= dt / (P_SEC * 1.3); }
+    if (c.st === 'walk' || c.st === 'lobby') { if (!still) c.bat -= dt / (P_SEC * 1.7); }
+    if (c.st === 'follow') { const tx = osnat.x + osnat.face * -34 * U, ty = osnat.y - 2, k = Math.min(1, dt * 9); c.x += (tx - c.x) * k; c.y += (ty - c.y) * k; }
     if (c.st === 'seat') {
       const d = c.desk, k = Math.min(1, c.t / 0.45);
       c.x = c.fromX + (d.x - c.fromX) * k; c.y = c.fromY + (d.y - c.fromY) * k;
-      if (k >= 1) { c.st = 'think'; c.t = 0; thought(c, line(LINES.think, 'think'), 1.8); say(line(c.f ? LINES.seatF : LINES.seatM, 'seat')); if (tutorial) tutFlag('seat'); }
+      if (k >= 1) { c.st = 'think'; c.t = 0; thought(c, line(LINES.think, 'think'), 1.8); if (tutorial) tutFlag('seat'); }
     }
     if (c.st === 'think' && c.t > 1.8) { c.st = 'want'; c.t = 0; play('ping', .6); if (c.want.includes('charger')) play('tick', .5); }
     if (c.st === 'want' || c.st === 'ready') {
@@ -382,6 +434,7 @@ function candsStep(dt, frozen) {
 function ghost(c) {
   const wasLobby = c.st === 'walk' || c.st === 'lobby';
   c.st = 'ghost'; c.t = 0; if (c.desk) c.desk.c = null;
+  desks.forEach((d) => { if (d.res === c) d.res = null; });
   ghosts++; combo = 0; play('ghost', .8);
   popText(c.x, c.y - 140 * U, '👻 גוסטינג', 'bad');
   say(line(LINES.ghost, 'ghost'), 2.4, true);
@@ -511,7 +564,7 @@ function draw() {
   // bubbles on top of everyone
   desks.forEach((d) => { const c = d.c; if (c && ['think', 'want', 'ready'].includes(c.st)) { const head = d.y + d.h * 0.3 - SIT * U, half = d.i % 2 ? { x0: W / 2, x1: W } : { x0: 0, x1: W / 2 }; half.w = half.x1 - half.x0; drawWant(c, d.x, head, half); } });
   cands.forEach((c) => {
-    if (c.st === 'walk' || c.st === 'lobby') drawBattery(c.x + 26 * U, c.y - 150 * U, c.bat, U * 0.8);
+    if (c.st === 'walk' || c.st === 'lobby' || c.st === 'follow') drawBattery(c.x + 26 * U, c.y - 150 * U, c.bat, U * 0.8);
     if (!c.desk || c.st === 'leave' || c.st === 'ghost') drawThought(c, c.x, c.y - 150 * U - 10);
   });
   if (laughT > 0) { ctx.save(); ctx.fillStyle = `rgba(255,143,177,${0.12 + Math.sin(performance.now() / 150) * 0.05})`; ctx.fillRect(0, P.y0, W, P.y1 - P.y0); ctx.restore(); }
@@ -597,9 +650,9 @@ const STEPS = [
   { text: 'זאת <b>אסנת</b>, Head of People בטקי-טק. היום היא מגייסת <b>גן זי</b>.', spot: spotOsnat },
   { text: '<b>המטרה:</b> לגייס מספיק מועמדים ביום – המונה פה. כל גיוס = נקודות, מהר = יותר.', spot: spotEl('#hiresBox') },
   { text: 'מועמד שהסבלנות שלו נגמרת עושה לאסנת <b>גוסטינג 👻</b>. שלושה גוסטים ביום – ונגמר.', spot: spotEl('#ghosts') },
-  { text: 'נסו עכשיו: מועמד חדש בכניסה. <b>הקישו עליו</b> כדי להושיב אותו בשולחן.', try: 'seat', spot: spotLobby },
+  { text: 'נסו עכשיו: מועמד חדש בכניסה. <b>הקישו עליו</b> – אסנת תלך לקחת אותו לשולחן.', try: 'seat', spot: spotLobby },
   { text: 'הוא לא מדבר – הוא <b>שולח הודעה</b> עם הדרישות. תקראו מה הוא רוצה.', spot: spotDesk },
-  { text: 'נסו עכשיו: למטה זה <b>המטבחון</b>. <b>הקישו על מה שביקש</b> – אסנת תרוץ להביא – ואז <b>על השולחן שלו</b>.', try: 'give' },
+  { text: 'נסו עכשיו: למטה זה <b>המטבחון</b>. מה שהוא מבקש <b>קופץ</b> – <b>הקישו עליו</b>, אסנת תביא, ואז <b>על השולחן שלו</b>.', try: 'give' },
   { text: 'ה<b>שעון</b> ליד ההודעה = כמה זמן נשאר <b>עד שהוא קם והולך</b>. כל דבר שמביאים נותן לו עוד זמן.', spot: spotDesk },
   { text: 'נסו עכשיו: קיבל הכול – <b>סיים את הראיון</b> 🙋 ומחכה לאסנת. <b>הקישו על השולחן</b>: היא באה לסגור איתו, הוא מגויס... והולך הביתה מוקדם. גן זי.', try: 'hire', spot: spotDesk },
   { text: '<b>צחוק מזויף</b>: כולם קופאים ל-5 שניות. אחריו צריך לחכות קצת. נסו!', try: 'laugh', spot: spotEl('#laughBtn') },
@@ -669,17 +722,23 @@ addEventListener('keydown', (e) => {
 function hint() {
   if (sayT > 0 || (state !== 'play' && state !== 'tut')) return;
   let t;
-  const waiting = cands.some((c) => c.st === 'lobby' || c.st === 'walk'), free = desks.some((d) => !d.c);
+  const waiting = cands.some((c) => (c.st === 'lobby' || c.st === 'walk') && !c.fetch), free = desks.some((d) => !d.c && !d.res);
   const ready = desks.some((d) => d.c && d.c.st === 'ready'), want = desks.some((d) => d.c && d.c.st === 'want');
   if (ready) t = 'מועמד סיים את הראיון! <em>הקישו</em> על השולחן – אסנת תבוא לסגור איתו';
-  else if (waiting && free) t = '<em>הקישו</em> על מועמד בכניסה – להושיב';
+  else if (waiting && free) t = '<em>הקישו</em> על מועמד בכניסה – אסנת תביא אותו לשולחן';
   else if (want && osnat.hands.length) t = '<em>הקישו</em> על השולחן – למסור';
-  else if (want) t = '<em>הקישו</em> על מה שביקש במטבחון למטה';
+  else if (want) t = '<em>הקישו</em> על מה שקופץ במטבחון למטה';
   else t = 'מחכים למועמד הבא...';
   if (t !== hintTxt || !sayEl.classList.contains('hint')) { hintTxt = t; $('sayTxt').innerHTML = t; sayEl.classList.add('hint'); sayEl.classList.remove('loud'); }
 }
 
 // ───────────────────────── loop ─────────────────────────
+function wantedPerks() {
+  const need = new Set();
+  desks.forEach((d) => { if (d.c && d.c.st === 'want') d.c.want.forEach((w) => { if (!d.c.got.includes(w)) need.add(w); }); });
+  osnat.hands.forEach((h) => need.delete(h));
+  document.querySelectorAll('.st').forEach((b) => b.classList.toggle('want', need.has(b.dataset.id)));
+}
 let lastT = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
@@ -687,7 +746,7 @@ function frame(now) {
   if (sayT > 0) sayT -= dt;
   hint();
   const lb = $('laughBtn'); lb.classList.toggle('cool', laughCool > 0); lb.lastElementChild.style.height = (laughCool > 0 ? laughCool / LAUGH_COOL * 100 : 0) + '%';
-  draw(); tut.frame();
+  wantedPerks(); draw(); tut.frame();
   requestAnimationFrame(frame);
 }
 layout(); hud(); showBest(); requestAnimationFrame(frame);

@@ -13,7 +13,7 @@ const URL = process.argv[2] || 'http://localhost:5310/osnat-games/not-a-cog/?sol
         N.tick(1 / 30); t += 1 / 30;
         if (t < next) continue; next = t + react;
         const o = N.osnat; if (o.queue.length + (o.task ? 1 : 0) > 1) continue;
-        const lob = N.cands.filter((c) => c.st === 'lobby'), free = N.desks.filter((d) => !d.c);
+        const lob = N.cands.filter((c) => c.st === 'lobby' && !c.fetch), free = N.desks.filter((d) => !d.c && !d.res);
         const seated = N.desks.filter((d) => d.c && (d.c.st === 'want' || d.c.st === 'ready')).sort((a, b) => a.c.bat - b.c.bat);
         if (laugh && N.laughCool <= 0 && seated.filter((d) => d.c.bat < 0.25).length >= 2) document.getElementById('laughBtn').dispatchEvent(new PointerEvent('pointerdown'));
         const ready = seated.find((d) => d.c.st === 'ready');

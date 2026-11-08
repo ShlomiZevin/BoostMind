@@ -65,16 +65,24 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #say em{font-style:normal;background:#ffd84d;padding:1px 8px;border-radius:10px}
 #say.loud{background:#fff1f1;border-color:var(--red);color:#991b1b}
 
-/* the kitchenette: a painted counter, the perks stand on it; Osnat walks behind it to take them */
-#bar{--cw:min(var(--sw),660px);--ch:calc(var(--cw) / 4.62);position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:var(--cw);height:calc(var(--ch) + var(--safe-b));padding:0 3.5% var(--safe-b);display:none;justify-content:center;gap:2px;z-index:3;background:url(assets/counter.webp) top center/100% var(--ch) no-repeat,linear-gradient(transparent var(--ch),#4b6a91 var(--ch))}
-#bar.on{display:flex}
-.st{flex:1;max-width:86px;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;position:relative;background:none}
-.st img{height:calc(var(--ch) * .56);width:auto;max-width:96%;object-fit:contain;margin-top:calc(var(--ch) * -.36);pointer-events:none;filter:drop-shadow(0 3px 2px #0004);transition:transform .12s}
-.st span{margin-top:calc(var(--ch) * .14);font-size:11px;font-weight:900;white-space:nowrap;max-width:100%;overflow:hidden;color:var(--ink);background:#fffffff0;border-radius:8px;padding:1px 5px;box-shadow:0 2px 0 #0003;pointer-events:none}
+/* the kitchenette: a painted counter, the perks stand on it as round buttons; Osnat walks behind it to take them.
+   game.js places every button (one row while each keeps a thumb's gap, otherwise a zigzag of two rows) */
+#bar{--cw:min(var(--sw),660px);--ch:calc(var(--cw) / 4.62);position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:var(--cw);height:calc(var(--ch) + var(--safe-b));display:none;z-index:3;background:url(assets/counter.webp) top center/100% var(--ch) no-repeat,linear-gradient(transparent var(--ch),#4b6a91 var(--ch))}
+#bar.on{display:block}
+.st{position:absolute;width:56px;height:56px;margin:0;padding:0 0 calc(var(--d,56px) * .1);display:flex;align-items:flex-end;justify-content:center;background:none;border-radius:50%}
+.st img{height:calc(var(--d,56px) * .72);width:auto;max-width:calc(var(--d,56px) * .86);object-fit:contain;pointer-events:none;filter:drop-shadow(0 3px 2px #0004);transition:transform .12s}
+.st span{display:none}
 .st:active img{transform:translateY(-4px) scale(1.06)}
-.st.new::after{content:'חדש!';position:absolute;top:calc(var(--ch) * .58);left:50%;transform:translateX(-50%);background:var(--pinkd);color:#fff;font-size:10px;font-weight:900;padding:1px 6px;border-radius:8px}
+.st.new::after{content:'חדש!';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);background:var(--pinkd);color:#fff;font-size:10px;font-weight:900;padding:1px 6px;border-radius:8px;white-space:nowrap}
 .st.tap img{animation:tap .3s}
 @keyframes tap{50%{transform:translateY(-8px) scale(1.12)}}
+.st::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 40%,#ffffff,#e3eefb);border:3px solid #7fa6dc;box-shadow:0 4px 0 #4f74a8,0 6px 10px #0003;z-index:-1;transition:transform .1s}
+.st{isolation:isolate}
+.st:active::before{transform:translateY(3px);box-shadow:0 1px 0 #4f74a8}
+.st.want::before{background:radial-gradient(circle at 50% 40%,#fffbe0,#ffe27a);border-color:#f5a700;box-shadow:0 4px 0 #c27c00,0 0 0 5px #ffd84d66,0 6px 12px #0003;animation:glow .9s ease-in-out infinite}
+.st.want img{animation:jump .9s ease-in-out infinite}
+@keyframes jump{0%,100%{transform:translateY(0)}45%{transform:translateY(-9px) scale(1.08)}}
+@keyframes glow{0%,100%{box-shadow:0 4px 0 #c27c00,0 0 0 3px #ffd84d55,0 6px 12px #0003}45%{box-shadow:0 4px 0 #c27c00,0 0 0 9px #ffd84d88,0 6px 12px #0003}}
 #laughBtn{position:fixed;left:10px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb3cc,#ff6f9f);box-shadow:0 4px 0 var(--pinkd),0 6px 16px #0004;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:3;color:#fff;font-weight:900;font-size:12px;line-height:1.05;text-shadow:0 1px 2px #0005;overflow:hidden}
 #laughBtn.on{display:flex}
 #laughBtn b{font-size:28px;line-height:1;text-shadow:none}
@@ -206,6 +214,6 @@ body.turn #turn{display:flex}
     <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
   </div>
 </div>
-<script src="game.js?v=4"></script>
+<script src="game.js?v=9"></script>
 </body>
 </html>
