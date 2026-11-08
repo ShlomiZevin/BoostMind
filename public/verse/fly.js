@@ -4,7 +4,8 @@
 //   play(el, { muted, onDone, onSkip, chars, seed, records }) -> { stop }   onDone / onSkip get the flight's stats
 //   prefetch(chars)   warms the first screen (citizen.js calls it on the stamp screen, so the game opens at once)
 // One thumb: drag anywhere and the ship moves with the finger (relative, so it never hides under it) and fires while the
-// finger is down - a cannon that overheats, so dodging still matters (round 2, his notes 2026-11-07). Arrows + space on a
+// finger is down, at a steady rate (round 5, his note 2026-11-08: no overheating - the rocks take 2-3 shots, so dodging still
+// matters). Arrows + space on a
 // computer. The characters come down in their round bubbles like in the flight teaser; 3 shields, a few more to pick up;
 // two lost runs and the next one is calmer. The goal at the top is the planet seen from behind, as the teaser's turn begins
 // (round 3, his note: "we should see the star first from behind, so when it circles around at the end it makes sense"); the
@@ -28,7 +29,7 @@ const TUNE = {
   normal: { gap: [0.85, 0.3], vy: [180, 345], homing: true, wall: 116, lives: [0.38, 0.72] },
   easy: { gap: [1.35, 0.6], vy: [135, 238], homing: false, wall: 150, lives: [0.2, 0.42, 0.62, 0.8] },   // after two lost runs
   easyAfter: 2,
-  gun: { every: 0.28, speed: 700, heat: 0.2, cool: 0.3, coolHot: 0.5, resume: 0.25 },   // ~3.5 shots/s; ~2 s of fire overheats it for 1.5 s
+  gun: { every: 0.28, speed: 700 },   // ~3.5 shots/s while the finger is down
   score: { star: 10, shot: 25, life: 50, shield: 100 },   // + every shield left at the landing; a pickup with full shields = life
 };
 // the teaser's first frame of the turning logo (540x960): the planet's ring centre and width, so the game's planet ends there
@@ -93,11 +94,6 @@ const CSS = `
 .fly-mute .off, .fly-mute.muted .on { display: none; } .fly-mute.muted .off { display: inline; }
 .fly-score { position: absolute; top: calc(48px + env(safe-area-inset-top, 0px)); right: 12px; font-weight: 900; font-size: 17px; direction: ltr; z-index: 3; pointer-events: none; text-shadow: 0 1px 3px #000; transition: opacity .4s; font-variant-numeric: tabular-nums; }
 .fly-score.bump { animation: flyBump .25s; }
-/* the cannons overheated: a small line under the bar while they cool (round 4, his note 2026-11-07: "an explanation, not too big") */
-.fly-hot { position: absolute; top: calc(50px + env(safe-area-inset-top, 0px)); left: 50%; z-index: 3; transform: translateX(-50%) translateY(-4px); padding: 3px 11px 4px; border-radius: 99px;
-  background: rgba(10, 6, 4, .62); border: 1px solid rgba(255, 90, 40, .35); color: rgba(255, 228, 210, .92); font-size: 12.5px; font-weight: 700; white-space: nowrap; direction: rtl;
-  pointer-events: none; opacity: 0; transition: opacity .3s, transform .3s; }
-.fly-hot.on { opacity: 1; transform: translateX(-50%); }
 @keyframes flyBump { 50% { transform: scale(1.3); } }
 .fly-say { position: absolute; left: 0; top: 0; z-index: 2; max-width: 46%; padding: 5px 10px 6px; border-radius: 14px; background: rgba(255, 248, 238, .94); color: #1d140e; font-size: 13px; font-weight: 700; line-height: 1.25;
   direction: rtl; text-align: right; pointer-events: none; opacity: 0; transition: opacity .25s; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); white-space: normal; }
@@ -145,7 +141,7 @@ export function play(el, opts = {}) {
     <div class="fly-hud"><div class="fly-shields">${SVG.shield.repeat(TUNE.shields)}</div>
       <div class="fly-prog" role="progressbar" aria-label="${Z.progress}"><i></i><img src="${ART}fly-planet.webp" alt=""></div>
       <button class="fly-btn fly-mute" aria-label="${Z.sound}">${SVG.sound}</button><button class="fly-btn fly-skip">${Z.skip}</button></div>
-    <div class="fly-score">0</div><div class="fly-hot">${Z.hot}</div>
+    <div class="fly-score">0</div>
     <div class="fly-say"></div><div class="fly-say"></div>
     <div class="fly-layer fly-tut">${SVG.hand}<b><em>${Z.verb}</em>${Z.how}</b><small>${Z.howSmall}</small></div>
     <div class="fly-layer fly-over hide"><b>${Z.lost}</b><span></span><em></em><button class="fly-big">${Z.retry}</button></div>
@@ -158,7 +154,7 @@ export function play(el, opts = {}) {
   const lastFrame = $('.fly-last'); lastFrame.src = ART + 'fly-end-last.webp'; const anim = $('.fly-anim');
   const shieldEls = [...root.querySelectorAll('.fly-shields svg')], fill = $('.fly-prog i'), scoreEl = $('.fly-score');
   const says = [...root.querySelectorAll('.fly-say')].map((d) => ({ d, f: null, until: 0 }));
-  const tut = $('.fly-tut'), over = $('.fly-over'), res = $('.fly-res'), hud = $('.fly-hud'), muteBtn = $('.fly-mute'), hotEl = $('.fly-hot');
+  const tut = $('.fly-tut'), over = $('.fly-over'), res = $('.fly-res'), hud = $('.fly-hud'), muteBtn = $('.fly-mute');
 
   // ---------- art ----------
   const A = { space: pic(ART + 'fly-space.webp'), ship: pic(ART + 'fly-ship.webp'), star: pic(ART + 'fly-star.webp'), planet: pic(ART + 'fly-planet.webp') };
@@ -198,7 +194,7 @@ export function play(el, opts = {}) {
   const G = {
     phase: 'intro', t: 0, p: 0, shields: TUNE.shields, hits: 0, stars: 0, shot: 0, lives: 0, score: 0, fails: 0, tries: 1, easy: false, total: 0,
     ship: { x: 0, y: 0, tx: 0, ty: 0, vx: 0, tilt: 0, blink: 0, s: 1, a: 1 }, ents: [], gems: [], pick: [], shots: [], booms: [], parts: [], dots: [],
-    spawnIn: 1.2, gemIn: 2, sayIn: 3, livesAt: [], gunIn: 0, heat: 0, hot: false, fire: false, smoke: [], smokeIn: 0,
+    spawnIn: 1.2, gemIn: 2, sayIn: 3, livesAt: [], gunIn: 0, fire: false,
     shake: 0, flash: 0, endT: 0, bgY: 0, slow: 1, timeScale: 1, frames: [], work: [], bot: null,
   };
   let W = 360, H = 740, u = 1, dpr = 1, R = rng(opts.seed != null ? opts.seed : (Date.now() ^ 0x5eed));
@@ -333,7 +329,7 @@ export function play(el, opts = {}) {
   }
   function fresh() {
     G.t = 0; G.p = 0; G.shields = TUNE.shields; G.stars = 0; G.shot = 0; G.lives = 0; G.score = 0;
-    G.ents = []; G.gems = []; G.pick = []; G.shots = []; G.booms = []; G.parts = []; G.spawnIn = 1.2; G.gemIn = 2; G.slow = 1; G.shake = 0; G.heat = 0; G.hot = false; G.smoke = []; hotEl.classList.remove('on');
+    G.ents = []; G.gems = []; G.pick = []; G.shots = []; G.booms = []; G.parts = []; G.spawnIn = 1.2; G.gemIn = 2; G.slow = 1; G.shake = 0;
     G.livesAt = K().lives.slice(); G.stretch = false;
   }
   // the ending clip, unlocked by the first touch (round 4 - on his iPhone the landing showed no turn: iOS lets a video play later from
@@ -481,12 +477,9 @@ export function play(el, opts = {}) {
   function gun(dt) {
     const firing = drag || G.fire || keys[' '] || keys.ArrowLeft || keys.ArrowRight || keys.ArrowUp || keys.ArrowDown;
     const g = TUNE.gun;
-    G.heat = Math.max(0, G.heat - (G.hot ? g.coolHot : g.cool) * dt);
-    if (G.hot && G.heat <= g.resume) { G.hot = false; hotEl.classList.remove('on'); }
     G.gunIn -= dt;
-    if (!firing || G.hot || G.gunIn > 0) return;
-    G.gunIn = g.every; G.heat += g.heat;
-    if (G.heat >= 1) { G.heat = 1; G.hot = true; hotEl.classList.add('on'); au && au.overheat(); }
+    if (!firing || G.gunIn > 0) return;
+    G.gunIn = g.every;
     G.shots.push({ x: ship.x, y: ship.y - shipH() * 0.45, v: g.speed * u });
     au && au.pew();
   }
@@ -528,15 +521,6 @@ export function play(el, opts = {}) {
     G.parts = G.parts.filter((q) => q.t < q.life);
     for (const b of G.booms) { b.t += dt; b.y += 40 * u * dt; }
     G.booms = G.booms.filter((b) => b.t < 0.45);
-    // overheated: a little grey smoke off the nose, trailing behind as the ship flies on (round 4, mockup heat)
-    G.smokeIn -= dt;
-    if (G.phase !== 'fly' && G.phase !== 'paused' && G.hot) { G.hot = false; G.heat = 0; hotEl.classList.remove('on'); }   // crashed / landing: the line goes too
-    if (G.hot && G.phase === 'fly' && G.smokeIn <= 0) {
-      G.smokeIn = 0.07;
-      G.smoke.push({ x: ship.x + (R() - 0.5) * 4 * u, y: ship.y - shipH() * 0.46, vx: (R() - 0.5) * 22 * u, vy: -(30 + R() * 25) * u, s: (1.8 + R() * 1.6) * u, t: 0, life: 0.8 + R() * 0.4 });
-    }
-    for (const q of G.smoke) { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 90 * u * dt; q.s += 6 * u * dt; }   // puffs up off the nose, then fall behind as the ship flies on
-    G.smoke = G.smoke.filter((q) => q.t < q.life);
   }
 
   // a character on its way past sometimes says one of its own lines, beside its head (rules.md: talks beside his own head)
@@ -695,7 +679,7 @@ export function play(el, opts = {}) {
     c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
     // a soft shade under the HUD, so the shields and the bar read over whatever passes
     if (G.phase !== 'done') { const sh = c.createLinearGradient(0, 0, 0, 90 * u); sh.addColorStop(0, 'rgba(5,3,2,.6)'); sh.addColorStop(1, 'rgba(5,3,2,0)'); c.fillStyle = sh; c.fillRect(0, 0, W, 90 * u); }
-    // the ship (blinking after a hit), its engine flickering, the cannon's heat on its nose
+    // the ship (blinking after a hit), its engine flickering
     if (ship.a > 0 && ok(A.ship) && !(ship.blink > 0 && Math.floor(ship.blink * 12) % 2)) {
       const w = shipW() * ship.s, h = shipH() * ship.s;
       c.save(); c.globalAlpha = ship.a; c.translate(ship.x, ship.y); c.rotate(ship.tilt);
@@ -705,11 +689,8 @@ export function play(el, opts = {}) {
       c.fillStyle = gr; c.fillRect(-w, h * 0.4 - w, w * 2, w * 2);
       c.globalCompositeOperation = 'source-over';
       c.drawImage(A.ship, -w / 2, -h * 0.52, w, h);   // the logo's disc (52% down the picture) sits on the ship's point
-      if (G.phase === 'fly' && G.heat > 0.05) heatGlow(c, w, h);
       c.restore();
     }
-    // the overheated cannon's smoke, over the nose
-    for (const q of G.smoke) { const a = (1 - q.t / q.life) * 0.3; c.fillStyle = `rgba(165,160,156,${a})`; c.beginPath(); c.arc(q.x, q.y, q.s, 0, 6.283); c.fill(); }
     // the flash as the ship enters the planet
     if (G.flash > 0) {
       const P = planetNow(), r = (P.ring / PLANET_RING) * (0.4 + (1 - G.flash) * 0.5);
@@ -718,27 +699,6 @@ export function play(el, opts = {}) {
       c.globalCompositeOperation = 'lighter'; c.fillStyle = gr; c.fillRect(P.x - r, P.y - r, r * 2, r * 2); c.globalCompositeOperation = 'source-over';
       G.flash = Math.max(0, G.flash - 1 / 30);
     }
-  }
-  // the heat ON the ship instead of a gauge under it (round 4, his note 2026-11-07): the nose, where the shots leave, glows from
-  // orange to hot red as the cannon warms, a faint shimmer of hot air over it; overheated it pulses (and smokes - fx)
-  function heatGlow(c, w, h) {
-    const k = G.hot ? Math.max(G.heat, 0.9) : G.heat, tip = -h * 0.47, t = performance.now() / 1000;   // overheated: red until it has cooled
-    const gr = Math.round(170 - 135 * k), bl = Math.round(60 - 45 * k);   // orange (255,170,60) -> hot red (255,35,15)
-    const rad = w * (0.07 + 0.11 * k) * (G.hot ? 1 + Math.sin(t * 18) * 0.1 : 1);
-    c.globalCompositeOperation = 'lighter';
-    const g = c.createRadialGradient(0, tip, 0, 0, tip, rad);
-    g.addColorStop(0, `rgba(255,${Math.round(235 - 110 * k)},${Math.round(190 - 150 * k)},${0.45 + 0.45 * k})`);
-    g.addColorStop(0.45, `rgba(255,${gr},${bl},${0.3 + 0.4 * k})`); g.addColorStop(1, `rgba(255,${gr},${bl},0)`);
-    c.fillStyle = g; c.fillRect(-rad, tip - rad, rad * 2, rad * 2);
-    if (k > 0.35) {   // the shimmer: two thin wavy threads of hot air rising off the nose
-      c.strokeStyle = `rgba(255,${gr + 40},${bl + 40},${(k - 0.35) * 0.4})`; c.lineWidth = 1.1 * u;
-      for (let i = 0; i < 2; i++) {
-        c.beginPath();
-        for (let j = 0; j <= 7; j++) { const y = tip - 5 * u - j * 2.4 * u, x = (i ? 2.5 : -2.5) * u + Math.sin(t * 9 + j * 0.9 + i * 2.1) * 2.2 * u * k; if (j) c.lineTo(x, y); else c.moveTo(x, y); }
-        c.stroke();
-      }
-    }
-    c.globalCompositeOperation = 'source-over';
   }
   function drawLife(c, q) {   // a shield in a glowing bubble, a white plus on it
     const s = (40 + Math.sin(q.ph * 3) * 3) * u, bob = Math.sin(q.ph * 1.5) * 2 * u;
@@ -853,7 +813,6 @@ function makeAudio(muted) {
     pew() { play('pew', 0.5, jit(0.14)); },
     tick() { play('hit', 0.22, 1.9 * jit(0.1)); },
     boom() { play('boom', 0.95, jit(0.24)); },
-    overheat() { play('hit', 0.3, 0.55); play('whoosh', 0.28, 1.9); },   // a clunk + a short hiss of cooling (round 4: the whoosh, high and quiet)
     life() { [660, 880, 1320].forEach((f, i) => tone('triangle', f, 0, 0.16, 0.2, i * 0.07)); tone('sine', 1760, 0, 0.3, 0.1, 0.21); },
     hit() { play('hit', 1, jit(0.08)); },
     crash() { play('boom', 1, 0.62); play('hit', 0.8, 0.8); },

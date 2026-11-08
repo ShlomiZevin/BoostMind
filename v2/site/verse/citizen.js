@@ -1,10 +1,10 @@
 // The citizenship journey's page (/citizenship; stage 3 of the conversion plan, plan conversion-next v6 - mockups C1-C6):
 // the boarding pass, check-in with Miriam (an AI agent in her voice - techietech-api/citizen.js), border control at Rabbi
 // Demokratovich's booth (his lines; between them the AI reacts in his voice to what they tapped or typed), the stamp with the citizen number,
-// the flight in (teaser 1, with its music) and the ID card, drawn here on a canvas to share. Saved as it goes on the server:
+// the flight in (teaser 1, with its music) and the passport. Saved as it goes on the server:
 // leave and come back to the same station. The stills (art/citizen-*.jpg) are replaced by his filmed clips later.
 import { T } from './copy.js';
-import { esc, track, sheet, toast } from './ui.js';
+import { esc, track, toast } from './ui.js';
 import { st, onState, needFan, signedIn } from './state.js';
 import { LOCAL, db, F, call } from './fb.js';
 import { dayIL } from './records.js';
@@ -73,12 +73,16 @@ function draw() {
 }
 const stepTag = (n) => `<div class="cz-step"><span style="width:${n * 25}%"></span><em>${esc(Z().step(n))}</em></div>`;
 
-// 1. the boarding pass (C2)
+// 1. the boarding pass (C2). The gate and seat: one pair of copy.js cz.pass.seats per person, by a hash of the account, so a
+// refresh or a second visit shows the same pass (round 5, his note 2026-11-08: "every pass says the same")
+const seatFor = (uid) => { const L = Z().pass.seats; let h = 0; for (const ch of String(uid || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return L[h % L.length]; };
 function boarding() {
+  const [gate, seat] = seatFor(st.user && st.user.uid), P0 = Z().pass;
+  const rows = [...P0.rows.map((r) => r.split(': ')), [P0.gate, gate], [P0.seat, seat]];
   box().innerHTML = `${stepTag(1)}<section class="cz-pass">
-    <div class="cz-pass-top"><img src="/verse/logo-160.png" alt=""><b>${esc(Z().pass.title)}</b></div>
-    <div class="cz-pass-name"><small>${esc(Z().pass.passenger)}</small><b>${esc(S.nick)}</b></div>
-    <ul>${Z().pass.rows.map((r) => { const [k, v] = r.split(': '); return `<li><small>${esc(k)}</small><b>${esc(v || '')}</b></li>`; }).join('')}</ul>
+    <div class="cz-pass-top"><img src="/verse/logo-160.png" alt=""><b>${esc(P0.title)}</b></div>
+    <div class="cz-pass-name"><small>${esc(P0.passenger)}</small><b>${esc(S.nick)}</b></div>
+    <ul>${rows.map(([k, v]) => `<li><small>${esc(k)}</small><b>${esc(v || '')}</b></li>`).join('')}</ul>
     <div class="cz-bar"></div></section>
     <button class="vx-btn main block" data-cz-go>${esc(Z().pass.go)}</button>`;
   box().querySelector('[data-cz-go]').onclick = (e) => { e.currentTarget.classList.add('wait'); talk({}); };
@@ -209,6 +213,7 @@ function booth() {
   const i = S.booth.length, el = box(), prev = i > 0 ? (S.bt || [])[i - 1] : null, opts = (S.opts || [])[i] || [], L = (S.lines || [])[i] || { kind: 'line' };
   const bubble = `${prev && prev.react ? `<span class="cz-re">${esc(prev.react)}</span>` : ''}${L.pre ? `<span class="cz-re cz-pre">${esc(L.pre)}</span>` : ''}<b>${esc((S.script || [])[i] || '')}</b>`;
   if (L.kind === 'bday') return boothBday(i, bubble);
+  if (i === 0 && opts.length === 1) return boothPass(bubble);
   el.innerHTML = desk(3, 'citizen-booth.jpg', bubble, opts, opts.length ? Z().boothType : Z().boothOpen, '', null, L.note ? `<p class="cz-note">${esc(L.note)}</p>` : '');
   answers(el, async (data, label, b) => {
     if (busy) return;
@@ -217,6 +222,44 @@ function booth() {
     if (L.kind === 'push' && data.pick === 0 && pushState() === 'default') enablePush().catch(() => {});
     boothStep(i, data, b);
   });
+  window.scrollTo(0, 0);
+}
+// "דרכון בבקשה" (round 5, his note 2026-11-08: "maybe something else than a button? though it's good"): their passport lies
+// at the bottom like a card; they slide it up into his window, or tap it (a tap, Enter or a short drag all hand it over -
+// nobody gets stuck), and it slides in under the glass. The writing bar stays for anyone who'd rather say something.
+const PP_EMBLEM = '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="20" cy="20" r="13"/><ellipse cx="20" cy="20" rx="6" ry="13"/><path d="M7 20h26M9.5 13h21M9.5 27h21"/></svg>';
+function boothPass(bubble) {
+  const el = box(), H = Z().hand;
+  el.innerHTML = scene(3, 'citizen-booth.jpg', bubble,
+    `<div class="cz-hand"><button type="button" class="cz-handpp" aria-label="${esc(H.label)}"><b>${esc(H.word)}</b>${PP_EMBLEM}<small>PASSPORT</small></button>
+      <p class="cz-hand-hint">${esc(H.hint)}</p></div>`, writeBar(Z().boothType));
+  answers(el, (data, label, b) => boothStep(0, data, b));   // their own words, in the bar
+  const card = el.querySelector('.cz-handpp');
+  let y0 = null, dy = 0, moved = false, done = false;
+  const give = (how) => {
+    if (done || busy) return;
+    done = true; track('cz_hand', how);
+    const sc = el.querySelector('.cz-scene').getBoundingClientRect(), r = card.getBoundingClientRect();
+    const tx = sc.left + sc.width / 2 - (r.left + r.width / 2), ty = dy + sc.top + sc.height * 0.7 - (r.top + r.height / 2);
+    card.classList.add('in');
+    card.style.transform = `translate(${tx}px, ${ty}px) scale(.32)`;
+    el.querySelector('.cz-hand-hint').classList.add('gone');
+    setTimeout(() => boothStep(0, { pick: 0 }, null), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 480);
+  };
+  card.addEventListener('pointerdown', (e) => { if (done) return; y0 = e.clientY; dy = 0; moved = false; card.classList.add('drag'); try { card.setPointerCapture(e.pointerId); } catch (x) {} });
+  card.addEventListener('pointermove', (e) => {
+    if (y0 === null) return;
+    if (Math.abs(e.clientY - y0) > 6) moved = true;
+    dy = Math.min(0, e.clientY - y0);
+    card.style.transform = `translateY(${dy}px) rotate(${Math.max(-4, -4 - dy / 30)}deg)`;   // up only; it straightens as it rises
+  });
+  card.addEventListener('pointerup', () => {
+    if (y0 === null) return;
+    y0 = null; card.classList.remove('drag');
+    if (!moved) give('tap'); else if (dy < -44) give('slide'); else { dy = 0; card.style.transform = ''; }
+  });
+  card.addEventListener('pointercancel', () => { y0 = null; dy = 0; card.classList.remove('drag'); card.style.transform = ''; });
+  card.addEventListener('click', (e) => { if (e.detail === 0) give('key'); });   // the keyboard; a finger or mouse was handled on pointerup
   window.scrollTo(0, 0);
 }
 async function boothStep(i, data, b) {
@@ -338,7 +381,7 @@ async function toPassport() { box().innerHTML = loader(); try { S = await api('l
 
 // 6. the citizen's passport (his note 2026-11-07: "a passport, no 'שלומיוורסית', sounds and looks real"): a real data page
 // (GPT Image, art/citizen-datapage.jpg - no text in it) with the fields, the photo and the machine-readable lines laid over it.
-// The page uses cqw units and the share picture the same geometry (u = 1% of the page's width), so both look the same.
+// The page uses cqw units (1% of the page's width), so it looks the same on every phone.
 const P = () => Z().id.pp;
 const issued = () => new Date(S.issued || Date.now());
 const ddmmyy = (d) => [d.getDate(), d.getMonth() + 1, d.getFullYear() % 100].map((x) => String(x).padStart(2, '0')).join('.');
@@ -359,108 +402,37 @@ const ppFields = () => [
 ];
 // the passport on ONE screen (plan cz-sim-r4 mockup passport, his note 2026-11-07: "why both the upper and the lower - one screen,
 // the button included"): the data page with the border-control stamp pressed over its lower corner and the rabbi's signature,
-// no visa page under it; a not-yet-classified citizen gets one small row to the simulation (Terra's line)
+// no visa page under it; a not-yet-classified citizen gets one small row to the simulation (Terra's line), a classified one the
+// same row with their simulation and department, opening their result (his note 2026-11-08: "they can't go to the void")
 const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>';
+// round 5 (his notes 2026-11-08 on the passport): the entry stamp moved off the data page - it covered the status and the
+// machine-readable lines - onto the facing page of the open booklet, under the fold (.cz-pp-next); the photo is laminated:
+// a holographic film with a gloss over it, and a small ghost copy of the photo on the page, as on real passports
 function ppStamp() {
   const d = issued().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' }), V = Z().visa;
-  return `<div class="cz-pp-stamp"><small>${esc(V.office)}</small><b>${esc(V.entry)}</b><span>${pad(S.n)}</span><small>${d}</small></div>
-    <div class="cz-pp-sign">${SIGN}<small>${esc(V.by)}</small></div>`;
+  return `<div class="cz-pp-stamp"><small>${esc(V.office)}</small><b>${esc(V.entry)}</b><span>${pad(S.n)}</span><small>${d}</small></div>`;
 }
+const ppSign = () => `<div class="cz-pp-sign">${SIGN}<small>${esc(Z().visa.by)}</small></div>`;
 function idCard() {
   const sim = S.sim;
   box().innerHTML = `<section class="cz-id">
     <h1 class="cz-id-h">${esc(Z().id.title)}</h1>
+    <div class="cz-book">
     <div class="cz-pp">
       <div class="cz-pp-top"><b>${esc(P().head)}</b><span>${esc(P().issuer)}</span></div>
       <div class="cz-pp-photo">${S.photo ? `<img src="${esc(S.photo)}" alt="">` : `<span>${esc((S.nick || '?').slice(0, 1))}</span>`}</div>
+      ${S.photo ? `<div class="cz-pp-ghost"><img src="${esc(S.photo)}" alt=""></div>` : ''}
       <div class="cz-pp-f">${ppFields().map((row) => row.map(([k, v, span, cls]) => `<div class="c${span}"><small>${esc(k)}</small><b class="${cls || ''}">${esc(v)}</b></div>`).join('')).join('')}</div>
       <div class="cz-pp-mrz" dir="ltr">${mrz().map(esc).join('<br>')}</div>
-      ${ppStamp()}
+      ${ppSign()}
     </div>
-    ${(sim && sim.name) || !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${CLOCK}<span>${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</span>${CHEV}</a>`}
+    <div class="cz-pp-next">${ppStamp()}</div>
+    </div>
+    ${sim && sim.name ? `<a class="cz-id-sim done" href="/simulation?r=${esc(sim.rid)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="5.2"/><ellipse cx="12" cy="12" rx="10" ry="3.4" transform="rotate(-18 12 12)"/></svg><span><small>${esc(T.sim.yours)}${sim.dept ? ` · ${esc(sim.dept)}` : ''}</small><b>${esc(sim.name)}</b></span>${CHEV}</a>`
+      : !simOpen() ? '' : `<a class="cz-id-sim" href="/simulation">${CLOCK}<span>${esc(Z().id.noSim)} · ${esc(Z().id.noSimGo)}</span>${CHEV}</a>`}
     <a class="vx-btn main block" href="/">${esc(Z().id.home)}</a>
-    <button class="cz-skip cz-id-share" data-cz-share>${esc(Z().id.share)}</button>${czTools()}</section>`;
-  box().querySelector('[data-cz-share]')?.addEventListener('click', () => shareId());
-}
-const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
-const ell = (x, t, max) => { let s = String(t); if (x.measureText(s).width <= max) return s; while (s.length > 2 && x.measureText(s + '…').width > max) s = s.slice(0, -1); return s + '…'; };
-// the passport, drawn at (X, Y), W wide - the same geometry as .cz-pp
-async function drawPassport(x, X, Y, W) {
-  const u = W / 100, H = W * 2 / 3;
-  x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 40; x.shadowOffsetY = 18;
-  try { const pg = await loadImg('/verse/art/citizen-datapage.jpg'); x.drawImage(pg, X, Y, W, H); } catch (e) { x.fillStyle = '#f3ece2'; x.fillRect(X, Y, W, H); }
-  x.restore();
-  x.globalCompositeOperation = 'multiply';   // ink printed into the paper
-  x.direction = 'rtl'; x.textAlign = 'right'; x.fillStyle = '#262b55';
-  x.font = `900 ${2.9 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(P().head, X + W - 4 * u, Y + 4.6 * u);
-  x.direction = 'ltr'; x.textAlign = 'left'; x.font = `700 ${2.3 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(P().issuer, X + 4 * u, Y + 4.4 * u);
-  // the photo
-  const px = X + 3.7 * u, py = Y + 11.7 * u, pw = 24.7 * u, ph = 36.7 * u;
-  let drew = false;
-  if (S.photo) { try { const im = await loadImg(S.photo); const sc = Math.max(pw / im.width, ph / im.height); x.save(); x.beginPath(); x.rect(px, py, pw, ph); x.clip(); x.drawImage(im, px + (pw - im.width * sc) / 2, py + (ph - im.height * sc) / 2, im.width * sc, im.height * sc); x.restore(); drew = true; } catch (e) {} }
-  if (!drew) { x.fillStyle = '#dcd6ce'; x.fillRect(px, py, pw, ph); x.fillStyle = '#7a7f9a'; x.font = `900 ${14 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.textAlign = 'center'; x.direction = 'rtl'; x.fillText((S.nick || '?').slice(0, 1), px + pw / 2, py + ph * 0.64); }
-  // the fields: 6 columns, from the right edge (4u) to the photo (31.5u), 5 rows of 8u from 11u
-  const R = X + W - 4 * u, colW = (100 - 4 - 31.5) / 12 * u;
-  x.direction = 'rtl'; x.textAlign = 'right';
-  ppFields().forEach((row, r) => {
-    let at = 0;
-    for (const [k, v, span, cls] of row) {
-      const rx = R - at * colW, top = Y + 11 * u + r * 8 * u, w = span * colW - 1 * u;
-      x.fillStyle = '#5b607c'; x.font = `600 ${2 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, k, w), rx, top + 2.2 * u);
-      x.fillStyle = cls === 'n' ? '#b3261e' : '#14162a'; x.font = `800 ${(cls === 'd' ? 3.1 : 3.7) * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, v, w), rx, top + 6.2 * u);
-      at += span;
-    }
-  });
-  // the machine-readable lines
-  x.direction = 'ltr'; x.textAlign = 'left'; x.fillStyle = '#1c1d26'; x.font = `700 ${3.4 * u}px "OCR B", "OCR-B", "Courier New", monospace`;
-  mrz().forEach((l, k) => x.fillText(l, X + 4 * u, Y + (59.2 + k * 4.6) * u));
-  // the border-control stamp over the lower corner and the rabbi's signature (the same places as .cz-pp-stamp / .cz-pp-sign)
-  const V = Z().visa, ink = '#3a3196';
-  x.save(); x.translate(X + 79 * u, Y + 55 * u); x.rotate(-12 * Math.PI / 180); x.globalAlpha = 0.85;
-  x.strokeStyle = ink; x.fillStyle = ink; x.lineWidth = 0.7 * u; x.beginPath(); x.arc(0, 0, 11.65 * u, 0, Math.PI * 2); x.stroke();
-  x.lineWidth = 0.3 * u; x.beginPath(); x.arc(0, 0, 10.3 * u, 0, Math.PI * 2); x.stroke();
-  x.direction = 'rtl'; x.textAlign = 'center';
-  x.font = `800 ${1.6 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(ell(x, V.office, 17 * u), 0, -5.2 * u);
-  x.font = `900 ${2.3 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(V.entry, 0, -2 * u);
-  x.direction = 'ltr'; x.font = `900 ${4.6 * u}px "Courier New", monospace`; x.fillText(pad(S.n), 0, 2.8 * u);
-  x.font = `700 ${1.7 * u}px Arial, sans-serif`; x.fillText(issued().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' }), 0, 6.2 * u);
-  x.restore();
-  x.save(); x.translate(X + 5 * u, Y + 43 * u); x.rotate(-4 * Math.PI / 180); x.scale(20 * u / 200, 20 * u / 200);
-  x.strokeStyle = '#1b2a6b'; x.lineWidth = 2.6; x.lineCap = 'round'; x.lineJoin = 'round';
-  for (const [, d] of SIGN.matchAll(/ d="([^"]+)"/g)) x.stroke(new Path2D(d));
-  x.restore();
-  x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#2b2f55'; x.font = `700 ${1.8 * u}px Arial, "Noto Sans Hebrew", sans-serif`; x.fillText(V.by, X + 15 * u, Y + 51.6 * u);
-  x.globalCompositeOperation = 'source-over';
-}
-async function drawId() {
-  const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-  const x = cv.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a0f08'); g.addColorStop(1, '#0b0b0e'); x.fillStyle = g; x.fillRect(0, 0, W, H);
-  await document.fonts.load('900 80px Heebo').catch(() => {});
-  try { const logo = await loadImg('/verse/logo-512.png'); x.drawImage(logo, W / 2 - 170, 230, 340, 340); } catch (e) {}
-  x.save(); x.translate(W / 2, 960); x.rotate(-0.035); await drawPassport(x, -500, -333, 1000); x.restore();
-  x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = '900 64px Heebo'; x.fillText(Z().id.title, W / 2, 1460);
-  x.direction = 'ltr'; x.fillStyle = '#d8d2cc'; x.font = '500 40px Heebo'; x.fillText('shlomiverse.com', W / 2, H - 170);
-  return new Promise((res) => cv.toBlob(res, 'image/jpeg', 0.9));
-}
-async function shareId() {
-  const url = 'https://shlomiverse.com/';
-  const mark = (via) => { track('cz_share', via); api('shared', { via }).catch(() => {}); };
-  let blob = null;
-  try { blob = await drawId(); } catch (e) { console.error(e); }
-  const file = blob && new File([blob], 'shlomiverse-id.jpg', { type: 'image/jpeg' });
-  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-    mark('native');
-    try { await navigator.share({ files: [file], text: url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  const pic = blob ? URL.createObjectURL(blob) : '';
-  sheet(`<div class="sim-sh">${pic ? `<img src="${pic}" alt="">` : ''}
-    <a class="vx-btn main block" data-x-wa href="https://wa.me/?text=${encodeURIComponent(url)}" target="_blank" rel="noopener">${esc(T.sim.wa)}</a>
-    ${pic ? `<a class="vx-btn block" data-x-save href="${pic}" download="shlomiverse-id.jpg">${esc(T.sim.save)}</a>` : ''}</div>`, { cls: 'sim-sheet' });
-  const root = [...document.querySelectorAll('.vx-sheet.sim-sheet')].pop() || document;
-  root.querySelector('[data-x-wa]')?.addEventListener('click', () => mark('whatsapp'));
-  root.querySelector('[data-x-save]')?.addEventListener('click', () => mark('save'));
+    ${czTools()}</section>`;   // no share button any more (round 5, his note 2026-11-08: "no need for share my passport")
 }
 
 onState(() => { if (location.pathname === '/citizenship' && box() && !S && signedIn()) boot(); });

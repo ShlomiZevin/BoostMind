@@ -9,12 +9,14 @@ import { watched } from './player.js';
 import { pushState, enablePush } from './push.js';
 import { statusChip, SI, myStatus } from './status.js';
 import { citizenBanner } from './citizen.js';
-import { nextBar } from './gates.js';
+import { nextBar, czOpen } from './gates.js';
 import { aboutCard } from './about.js';
 // "מה סיפרתם לנו" arrived or changed (verse/about.js): the אני page draws again
 window.addEventListener('vx-about', () => { if (cur.page === 'me') refresh(true); });
 
 // ---------- top bar ----------
+// the empty passport (round 5): the passport chip's shape as an outline, a faint spine on the right (a Hebrew passport's binding)
+const NO_PASS = '<svg class="no-pass" viewBox="0 0 24 35" fill="none" aria-hidden="true"><rect x="1" y="1" width="22" height="33" rx="3" fill="#1a1a20" stroke="rgba(255,255,255,.62)" stroke-width="1.6"/><path d="M19.5 3.5v28" stroke="rgba(255,255,255,.22)" stroke-width="1.2"/><circle cx="11" cy="15.5" r="4.6" stroke="rgba(255,255,255,.28)" stroke-width="1.2" stroke-dasharray="2 2"/></svg>';
 export function renderTop() {
   const box = $('#vx-top');
   if (!box) return;
@@ -27,8 +29,11 @@ export function renderTop() {
   // the status chip (tourist / resident) sits with the bell - same height, same line (his note on mockup C-chip)
   // round 4, the new bar (option A he approved, plan cz-sim-r4 2026-11-07): no separate status box - their own round picture
   // carries a tiny passport on its corner. The picture opens the menu as before; the passport opens the status window (and the
-  // menu has a row for it too). A resident's passport is greyed - not theirs yet.
-  const pass = nextBar() && st.ready ? `<button class="me-pass${myStatus() === 'citizen' ? '' : ' not-yet'}" data-status aria-label="${esc(T.status.title)}"><img src="/verse/art/passport-chip.png" alt=""></button>` : '';
+  // menu has a row for it too). Before citizenship: an EMPTY passport - an outline, no planet - with a small orange dot
+  // (round 5, his note 2026-11-08: the greyed passport didn't read as "no passport yet")
+  const pass = nextBar() && st.ready ? (myStatus() === 'citizen'
+    ? `<button class="me-pass" data-status aria-label="${esc(T.status.title)}"><img src="/verse/art/passport-chip.png" alt=""></button>`
+    : `<button class="me-pass not-yet" data-status aria-label="${esc(T.status.noPass)}">${NO_PASS}<i class="me-pass-dot"></i></button>`) : '';
   box.innerHTML = me
     ? nextBar()
       ? `${bell}<span class="me-wrap"><button class="me-btn" data-me-menu aria-label="${esc(T.mmProfile)}">${av({ fan: me })}</button>${pass}</span>`
@@ -191,6 +196,9 @@ async function loadMyStickers() {
 const signedOutPage = (title, line) => `<div class="nt-page"><div class="nt-h"><h1>${esc(title)}</h1></div><div class="signin-card" style="margin-top:16px"><div><p style="color:var(--text);font-size:1.05rem">${esc(line)}</p></div>
     <button class="vx-btn main" data-signin>${esc(T.residentBtn)}</button></div></div>`;
 const pageHead = (title, sub) => `<div class="nt-h"><a class="pg-back" href="/me">${I.back}${esc(T.mmProfile)}</a><h1>${esc(title)}</h1>${sub ? `<p class="pg-sub">${esc(sub)}</p>` : ''}</div>`;
+// their simulation result, once they took the test (his note 2026-11-08: "it has to be reachable somewhere in the profile")
+const SIM_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="5.2"/><ellipse cx="12" cy="12" rx="10" ry="3.4" transform="rotate(-18 12 12)"/></svg>';
+const simTile = () => { const s = st.fan && st.fan.sim; return s && s.name ? `<a class="me-tile me-sim" href="/simulation?r=${esc(s.rid)}">${SIM_IC}<b>${esc(T.sim.yours)}<small>${esc(s.name)}${s.dept ? ` · ${esc(s.dept)}` : ''}</small></b>${I.next}</a>` : ''; };
 // the profile: who they are, and a door to each of their places
 export function mePage() {
   if (!signedIn()) return signedOutPage(T.mmProfile, T.meSignedOut);
@@ -205,6 +213,7 @@ export function mePage() {
       ${tile('/saved', I.save, T.mmSaved, st.saves.size)}
       ${tile('/my-stickers', I.sticker, T.mmStickers, myStickers ? myStickers.length : null)}
       ${tile('/notes', I.bell, T.mmBell, st.unread || null)}
+      ${simTile()}
     </div>
     ${aboutCard()}
   </div>`;
@@ -273,7 +282,10 @@ function meMenu(anchor) {
   const n = (x) => (x ? `<small>${x}</small>` : '');
   const html = `<div class="mm">
     <a class="mm-head" href="/me">${av({ fan: st.fan })}<span class="mm-who"><b>${esc(st.fan.nick)}</b><small>${esc(T.mmProfile)}</small></span>${I.next}</a>
-    ${nextBar() ? `<button class="mm-status${myStatus() === 'citizen' ? '' : ' not-yet'}" data-status><img src="/verse/art/passport-chip.png" alt=""><span class="mm-l">${esc(T.status.title)}</span><small>${esc(T.status.name[myStatus()])}${st.fan.citizen && st.fan.citizen.n ? ' #' + String(st.fan.citizen.n).padStart(4, '0') : ''}</small></button>` : ''}
+    ${!nextBar() ? '' : myStatus() === 'citizen'
+    ? `<button class="mm-status" data-status><img src="/verse/art/passport-chip.png" alt=""><span class="mm-l">${esc(T.status.title)}</span><small>${esc(T.status.name.citizen)}${st.fan.citizen && st.fan.citizen.n ? ' #' + String(st.fan.citizen.n).padStart(4, '0') : ''}</small></button>`
+    // round 5 (his note 2026-11-08): no passport yet, said in words, and the way to get one (the journey, or the status window while it's closed)
+    : `<${czOpen() ? 'a href="/citizenship"' : 'button data-status'} class="mm-status not-yet">${NO_PASS}<span class="mm-l">${esc(T.status.noPass)}</span><em class="mm-get">${esc(T.status.getPass)}</em></${czOpen() ? 'a' : 'button'}>`}
     <div class="mm-g">${esc(T.mmMine)}</div>
     <div class="mm-list">
       ${row('a', 'href="/my-characters"', I.people, T.mmFollows, n(follows))}

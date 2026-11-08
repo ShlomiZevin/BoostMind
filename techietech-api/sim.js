@@ -69,11 +69,32 @@ const FIELDS = [['brief', 'Who'], ['personality', 'Personality'], ['speech', 'Ho
 const hostMaterial = (c, b) => material(b, c.id);
 // "who" = their role in one line, not the start of their bio (his cost plan 2026-11-08: the result step read 5.8K tokens of
 // residents; with the role 3.7K, and the role says who they are better than a bio cut at 110 characters)
-const castList = (b) => b.characters.filter((c) => c.tagline).map((c) => `${c.id} | ${c.name} | ${c.world || ''} | ${c.tagline} | ${short(c.role || c.brief || c.bio, 70)}`).join('\n');
+const castLine = (c) => `${c.id} | ${c.name} | ${c.world || ''} | ${c.tagline} | ${short(c.role || c.brief || c.bio, 70)}`;
+// a different handful of residents on every result (his note 2026-11-08 - "very important": of 10 results Yotam was in 6,
+// Rosenblum in 5, the neighbour in 5 - from the whole list the model kept the same favourites). A shuffled ~24, at most 4 from
+// one world (Techy-Tech alone is 32 of 83), the host only in about one result of five. It changes every run, so it goes in the
+// call's `now`, never in the cached `fixed` part - and the call reads ~24 lines instead of all of them.
+const OFFER = 24, PER_WORLD = 4, HOST_SOMETIMES = 0.2;
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function castOffer(b) {
+  const per = {}, out = [];
+  for (const c of shuffle(b.characters.filter((x) => x.tagline && x.id !== HOST))) {
+    const w = c.world || c.id;
+    if (out.length >= OFFER || (per[w] || 0) >= PER_WORLD) continue;
+    per[w] = (per[w] || 0) + 1; out.push(c);
+  }
+  const host = b.characters.find((x) => x.id === HOST);
+  if (host && Math.random() < HOST_SOMETIMES) out.splice(Math.floor(Math.random() * (out.length + 1)), 0, host);
+  return out;
+}
+const castList = (list) => list.map(castLine).join('\n');
 
+// PLAIN WORDS (his note 2026-11-08: "the options of Yotam are not that clear... this is the most annoying part of Yotam - all is
+// super sophisticated and not clear"): questions and answers in everyday Hebrew, no tech words; his voice only in the reaction
 const GAME = `You run "באיזו סימולציה אתם חיים?" ("Which simulation do you live in?") - the Shlomiverse's official classification. שלומיוורס (the Shlomiverse) is a world of comedy characters shown as real people; its registry classifies every visitor into the simulation they live in, and the classification is conducted by Yotam, the Shlomiverse's System Architect of life - he is the host who asks. The visitors keep writing "we live in a simulation"; this classification tells them which one.
 It is like the silly quizzes of the 90s Israeli teen magazines (מעריב לנוער): light, absurd, fast, one thumb. The questions are about THE VISITOR - their habits, reactions, daily-life absurdities, small confessions - never a trivia test about the characters.
-THE HOST ASKS. Every question, every answer and every reaction is written in the host's own voice - their way of talking, their worldview, their obsessions, their phrases from the material below - the way THEY would ask about someone's life (a businessman turns your morning into a business question, a rabbi into a ruling, a mother of eight into a question about the house). Someone who has never met the host still understands each question at once: one idea per question, short, at most one word of the host's jargon in it, never a pile of it.
+PLAIN WORDS - this rule is above your usual way of talking. The questions and the 4 answers are written in simple, everyday spoken Hebrew that a 12-year-old understands at the first read: short, concrete, one simple idea, the words people use at home. NO tech words and no jargon in a question or an answer (no system, bug, update, server, algorithm, data, version, process, loop, backup, protocol - in Hebrew or in English), no metaphors to decode, no wordplay that needs a second read, no English. The joke is the situation itself - a familiar everyday moment and four honest, recognisable ways people react to it - never clever phrasing. Good (the level, not a topic to reuse): "מה אתם עושים כשהשעון המעורר מצלצל?" - "קמים מיד", "עוד חמש דקות. ועוד חמש.", "מכבים וממשיכים לישון", "מתעוררים לפני השעון".
+The host's voice lives only in "react": his short reaction to their last answer, in his way of talking, light - at most one word of his world, and still clear to anyone.
 The TOPIC is always the visitor: each question visits a DIFFERENT corner of everyday life (mornings, the phone, the family WhatsApp group, food, work or school, sleep, friends, shopping, driving, holidays...) - never two in a row about the same thing. At most two callbacks in the whole test (a quick nod to something they answered, inside a NEW topic) - never a chain where each question follows the previous answer's object.
 The 4 answers are what the visitor would say: short phrases, ideally with no subject; if they have one, the grammar must agree ("אני קם" / "אנחנו קמים", never "אני קמים").
 HEBREW GRAMMAR, checked before you answer (it went wrong in tests): prefer answers with no verb at all - a noun phrase ("צלצול של בית הספר", "ישיבת צוות שאף אחד לא ביקש"), which also stays gender-neutral. An answer with "אני" takes a SINGULAR verb ("אני קם") - never "אני" with a plural verb ("אני קמים" is wrong). Only the question and your reactions speak to the visitor in plural (אתם). Re-read each answer for agreement of subject, verb and adjective.
@@ -128,9 +149,9 @@ function qInput(steps, purpose) {
   const last = done[done.length - 1];
   return [{ role: 'user', content: `${done.length ? 'The test so far:\n' + lines + '\n\n' : ''}Write question ${n} of ${STEPS}.
 - react: ${done.length ? `the host's quick reaction to the last answer, in their voice, up to 9 words (funny, never mean)${last && last.free !== undefined ? ' - they wrote it in their own words: react to exactly what they wrote' : ''}. Every reaction opens differently from your earlier ones; a catchphrase at most twice in the whole test, never in two reactions in a row` : 'empty string'}.
-- q: the question, up to 14 words, about the visitor${done.length ? ', building on what they already answered' : ''}.
-- a: exactly 4 answers, each up to 6 words, all funny and all tempting - no "correct" one, no "none of the above". a[i].t = the answer as the visitor says it; a[i].v = ${purpose ? 'its value (below)' : 'empty string'}.${n === STEPS ? ' This is the last question: make it the most absurd one.' : ''}${purpose ? `
-THIS QUESTION ALSO FILLS THE REGISTRY: it finds out ${GOAL[purpose.field]}. It stays a funny question about the visitor in your voice and the game's tone - never a form question, never say why you ask. Each of the 4 answers points to a DIFFERENT one of these values, and the visitor must be able to tell which; a[i].v = exactly one value from this list.
+- q: the question, up to 12 words, about the visitor, in plain everyday words (PLAIN WORDS above - no tech words, nothing to decode).
+- a: exactly 4 answers, each up to 5 plain words, clearly different from each other, all funny and all tempting - no "correct" one, no "none of the above". a[i].t = the answer as the visitor says it; a[i].v = ${purpose ? 'its value (below)' : 'empty string'}.${n === STEPS ? ' This is the last question: make it the most absurd situation - still in plain words.' : ''}${purpose ? `
+THIS QUESTION ALSO FILLS THE REGISTRY: it finds out ${GOAL[purpose.field]}. It stays a funny, plain question about the visitor in the game's tone - never a form question, never say why you ask. Each of the 4 answers points to a DIFFERENT one of these values, and the visitor must be able to tell which; a[i].v = exactly one value from this list.
 The values (value = what it means):
 ${purpose.vals.map(([v, m]) => `${v} = ${m}`).join('\n')}` : ''}` }];
 }
@@ -165,9 +186,9 @@ function stepOf(o, purpose) {
 }
 const qOut = (s) => ({ q: s.q, a: s.a, react: s.react || '' });
 
-const rPrompt = (b) => `${GAME}
+const rPrompt = () => `${GAME}
 
-Now the classification is over. Classify this visitor - the result is the Shlomiverse's official classification, signed by Yotam:
+Now the classification is over. Classify this visitor - the result is the Shlomiverse's official classification, signed by Yotam. Every Hebrew field is in PLAIN WORDS too (no tech words, no English):
 - score: an integer 0-100, how much this visitor lives in a simulation - your judgement from the answers, not a formula.
 - dept: the department of the Shlomiverse this visitor is assigned to, in Hebrew, up to 5 words, starting with "מחלקת", in the registry's dry bureaucratic tone, fitting THEIR answers - invent it for this visitor (example of the tone: "מחלקת תלונות על המציאות").
 - cast: mix a simulation for THIS visitor from 2 or 3 residents below, from at least 2 different worlds, who fit their answers in a surprising, funny way. For each: id (exactly from the list), role - in Hebrew, up to 8 words, what they do in the visitor's simulation; scene - in English, what they physically do in ONE shared picture (action, prop, place in the frame).
@@ -176,14 +197,15 @@ Now the classification is over. Classify this visitor - the result is the Shlomi
 - verdict: two short Hebrew lines about the visitor, plural (אתם), funny, separated by a newline (example: "אתם מוקפים באנשים שמסבירים הכול.\\nחבל שאף אחד לא מסביר מה קורה פה.").
 - share: one line the visitor posts on their story, first person, gender-neutral (past tense), up to 8 words (example: "קיבלתי סימולציה עם מכתב תלונה.").
 - ask: the question to their friends, up to 4 words (example: "מי אצלכם?").
-
-The residents (id | name | world | tagline | who):
-${castList(b)}`;
+The residents you may cast from come with the visitor's answers (a different few each time).`;
+// the call's two parts: the rules (cached) and, this time, the answers + this run's residents (castOffer)
+const rTask = (b, steps) => ({ fixed: rPrompt(), now: "The visitor's answers:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${answerOf(s)}`).join('\n')
+  + '\n\nThe residents you may cast from this time (id | name | world | tagline | who):\n' + castList(castOffer(b)) });
 
 // the result: score, the mixed simulation, the share lines - from the answers given (all 7, or 3+ when they skipped)
 async function finish(key, ref, d, steps, br, skipped = false) {
   const C = byId(br);
-  const done = await askAs(key, HOST, { fixed: rPrompt(br), now: "The visitor's answers:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${answerOf(s)}`).join('\n') }, RESULT_SCHEMA, 'result');
+  const done = await askAs(key, HOST, rTask(br, steps), RESULT_SCHEMA, 'result');
   const o = done.out;
   const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
   if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });
@@ -446,4 +468,4 @@ exports.owner = async (op, b) => {
     by, drop, today: { n: cap.exists && cap.data().day === day() ? cap.data().n : 0, cap: (cap.exists && cap.data().cap) || IMG_CAP }, recent };
 };
 
-exports._test = { ask, qPrompt, hostMaterial, qInput, rPrompt, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS, PURPOSE, purposeOf, makeQ, answered, toProfile, handle };
+exports._test = { ask, qPrompt, hostMaterial, qInput, rPrompt, rTask, castOffer, opening, Q_SCHEMA, RESULT_SCHEMA, OPEN_SCHEMA, byId, hostText, picture, STEPS, PURPOSE, purposeOf, makeQ, answered, toProfile, handle };

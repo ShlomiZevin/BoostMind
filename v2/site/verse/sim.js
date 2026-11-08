@@ -4,9 +4,8 @@
 // visitor reads), the department Yotam assigns (round 4: instead of the score), and a simulation the AI mixes from 2-3 real
 // characters with a picture of them together. A tourist sees the department; the full result after "מסדירים תושבות" - then it
 // sticks to their account.
-// The share card is drawn here on a canvas (the picture + the words in code, so the Hebrew is always right).
 import { T } from './copy.js';
-import { esc, track, sheet, toast, brand } from './ui.js';
+import { esc, track, toast, brand } from './ui.js';
 import { st, onState, needFan, signedIn, follow } from './state.js';
 import { LOCAL } from './fb.js';
 import { isCitizen, writeBar, wireWrite } from './citizen.js';
@@ -122,11 +121,14 @@ async function boot(q) {
   openingView();
 }
 
+// Yotam's "system check" is a scene, like Miriam's counter and the rabbi's booth (his note 2026-11-08: "Yotam's picture here is
+// just huge"; GPT Image from his portrait + their two scenes, art/yotam-check.jpg); another host keeps the portrait
+const SCENE = { yotam: '/verse/art/yotam-check.jpg' };
 function openingView() {
   const el = box(), c = C[run.host];
   const paint = (o) => {
     el.innerHTML = `<section class="sim-open">
-      <div class="sim-host"><img src="${esc(img(run.host))}" alt="${esc(c.name)}"><span class="sim-live"><i></i>${esc(S().live)}</span></div>
+      <div class="sim-host ${SCENE[run.host] ? 'scene' : ''}"><img src="${esc(SCENE[run.host] || img(run.host))}" alt="${esc(c.name)}"><span class="sim-live"><i></i>${esc(S().live)}</span></div>
       <h1>${esc(o ? o.title : c.name)}</h1>
       <p class="sim-line">${esc(o ? o.line : '')}</p>
       <button class="vx-btn main block sim-go" data-sim-go ${o ? '' : 'disabled'}>${esc(o ? o.btn : S().go)}</button>
@@ -222,14 +224,14 @@ const moveOn = () => new Promise((res) => { const q = box()?.querySelector('.sim
 async function answer(data, btn, label) {
   if (run.busy) return;
   run.busy = true;
-  btn.classList.add('on');
+  // the tapped answer just stays lit and the bubble types Yotam's lines - Miriam's and the rabbi's way (his note 2026-11-08: a
+  // spinner sat on the answer's words); only the writing bar's send button turns, as at the counter
+  btn.classList.add(btn.classList.contains('vx-write-go') ? 'wait' : 'on');
   lock(true);
   const last = run.n === run.of;
-  let slow = setTimeout(() => btn.classList.add('wait'), 600);
   if (last) setTimeout(computingView, 350); else think();
   try {
     const r = await api('answer', { rid: run.rid, n: run.n, ...data });
-    clearTimeout(slow);
     run.busy = false;
     track('sim_q', String(run.n) + (data.text ? 't' : ''));
     if (r.done) {
@@ -241,7 +243,6 @@ async function answer(data, btn, label) {
     Object.assign(run, r, { last: label || '' });
     questionView();
   } catch (e) {
-    clearTimeout(slow);
     run.busy = false;
     if (e.code === 'gone' || (e.code === 'step' && run.n === 1)) { try { localStorage.removeItem(PRE); } catch (x) {} run = null; return boot({}); }   // a first question kept from before, gone on the server
     toast(S().fail, 3000);
@@ -347,31 +348,29 @@ function lockedView(r, fresh) {
   };
 }
 
-let shown = null;   // the result on screen (its picture arrives later - the share card takes it from here)
 function fullView(r, fresh) {
   const el = box();
-  shown = r;
   keep({ rid: r.rid, done: true, full: true, score: r.score, dept: r.dept || null, host: r.host?.id, name: r.name, img: r.img || null });
   const lines = String(r.verdict || '').split('\n');
   const cast = r.cast.filter((x) => C[x.id]), ids = cast.map((x) => x.id);
   const allFollowed = () => ids.every((id) => st.follows.has(id));
   // where to go next (plan cz-sim-r4 mockup simend, 2026-11-07): home first, then the passport (a non-citizen: get one) and the
-  // profile side by side, sharing quiet. The certificate, the three and these fit the first screen; the picture + verdict below.
+  // profile side by side. All of it on ONE screen (his note 2026-11-08: "I'd rather fit it into one screen without scrolling"):
+  // the picture right under the certificate with the verdict laid over its dark lower part (the picture leaves it calm for
+  // text), the follow as a small button on the cast's heading line, the three as small faces; no share any more (his note:
+  // "no need for share my passport and my simulation")
   const pass = isCitizen() ? S().myPass : S().getPass;
   el.innerHTML = `<section class="sim-res2 sim-end">
     ${cert(r)}
-    <div class="sim-sec-h"><span>${esc(S().castH)}</span></div>
+    <div class="sim-pic ${r.img ? 'ok' : 'dev'}">${r.img ? `<img src="${esc(r.img)}" alt="">` : `<div class="sim-faces3">${r.cast.map((x) => `<img src="${esc(img(x.id))}" alt="">`).join('')}</div><span class="sim-dev">${esc(S().developing)}</span>`}
+      <p class="sim-verdict">${lines.map(esc).join('<br>')}</p></div>
+    <div class="sim-sec-h"><span>${esc(S().castH)}</span><button class="sim-follow" data-sim-follow ${allFollowed() ? 'disabled' : ''}>${esc(allFollowed() ? S().following : S().followAll(ids.length))}</button></div>
     <div class="sim-cast3">${cast.map((x) => `<a href="/c/${esc(x.id)}"><img src="${esc(img(x.id))}" alt=""><b>${nameHtml(C[x.id].name)}</b><small>${esc(x.role || '')}</small></a>`).join('')}</div>
-    <button class="vx-btn block sim-follow" data-sim-follow ${allFollowed() ? 'disabled' : ''}>${esc(allFollowed() ? S().following : S().followAll(ids.length))}</button>
     <a class="vx-btn main block sim-home" href="/">${esc(S().home)}</a>
     <div class="sim-two">${czOpen() && signedIn() ? `<a class="vx-btn" href="/citizenship" data-sim-pass>${PASS_IC}<span>${esc(pass)}</span></a>` : ''}
       ${signedIn() ? `<a class="vx-btn" href="/me">${ME_IC}<span>${esc(S().myProfile)}</span></a>` : ''}</div>
-    <button class="sim-quiet" data-sim-share>${esc(S().share)}</button>
-    <div class="sim-pic ${r.img ? 'ok' : 'dev'}">${r.img ? `<img src="${esc(r.img)}" alt="">` : `<div class="sim-faces3">${r.cast.map((x) => `<img src="${esc(img(x.id))}" alt="">`).join('')}</div><span class="sim-dev">${esc(S().developing)}</span>`}</div>
-    <p class="sim-verdict">${lines.map(esc).join('<br>')}</p>
 </section>`;
   if (fresh || !sessionStorage.getItem('vx-sim-full-' + r.rid)) { track('sim_full', r.rid); try { sessionStorage.setItem('vx-sim-full-' + r.rid, '1'); } catch (e) {} }
-  el.querySelector('[data-sim-share]').onclick = () => shareSheet(r);
   el.querySelector('[data-sim-pass]')?.addEventListener('click', () => track('cz_banner', 'sim'));
   // "עקבו אחרי שלושתם": follows them (the site's follow) and adds them to the characters they came to visit (their profile, up to 3)
   el.querySelector('[data-sim-follow]').onclick = async (e) => {
@@ -405,7 +404,6 @@ function showPic(url) {
   const p = box()?.querySelector('.sim-pic');
   if (!p) return;
   const im = new Image();
-  if (shown) shown.img = url;
   im.onload = () => { p.classList.remove('dev'); p.classList.add('ok', 'reveal'); p.querySelector('.sim-faces3')?.remove(); p.querySelector('.sim-dev')?.remove(); p.prepend(im); };
   im.src = url;
   track('sim_img', 'ok');
@@ -417,6 +415,7 @@ async function friendView(rid, q) {
   const el = box();
   let r;
   try { r = await api('get', { rid }); } catch (e) { return boot({ host: q.host, from: 'share' }); }
+  if (r.mine && r.name) return fullView(r);   // their own, opened from the passport / the profile before the account line arrived
   if (!r.name) { run = { host: visitHost(), from: 'share', ref: rid }; track('sim_open', 'share'); return openingView(); }
   track('sim_ref', rid);
   el.innerHTML = `<section class="sim-res friend">
@@ -428,63 +427,7 @@ async function friendView(rid, q) {
   el.querySelector('[data-sim-mine]').onclick = () => { run = { host: visitHost(), from: 'share', ref: rid }; track('sim_open', 'share'); openingView(); };
 }
 
-// ---------- sharing: the card (Q6), drawn here ----------
-const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
-async function drawCard(r) {
-  const W = 1080, H = 1920, cv = document.createElement('canvas');
-  cv.width = W; cv.height = H;
-  const x = cv.getContext('2d');
-  x.fillStyle = '#0b0b0e'; x.fillRect(0, 0, W, H);
-  const cover = (im, dx, dy, dw, dh) => { const s = Math.max(dw / im.width, dh / im.height), w = im.width * s, h = im.height * s; x.drawImage(im, dx + (dw - w) / 2, dy + (dh - h) / 2, w, h); };
-  try {
-    if (r.img) cover(await loadImg(r.img), 0, 0, W, H);
-    else { const ims = await Promise.all(r.cast.map((c) => loadImg(img(c.id)))); const w = W / ims.length; ims.forEach((im, i) => cover(im, i * w, 300, w, 1200)); }
-  } catch (e) {}
-  let g = x.createLinearGradient(0, 0, 0, 640); g.addColorStop(0, 'rgba(0,0,0,.88)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, W, 640);
-  g = x.createLinearGradient(0, H - 640, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.45, 'rgba(0,0,0,.9)'); x.fillStyle = g; x.fillRect(0, H - 640, W, 640);
-  await document.fonts.load('900 80px Heebo').catch(() => {});
-  x.direction = 'rtl'; x.textAlign = 'right';
-  const R = W - 64;
-  // the department on top (plan cz-sim-r4: no score); old results: the name alone
-  if (r.dept) { let f = 80; do { x.font = `900 ${f}px Heebo`; f -= 4; } while (f > 44 && x.measureText(r.dept).width > W - 128); x.fillStyle = '#fc7211'; x.fillText(r.dept, R, 220); }
-  x.fillStyle = '#fff'; x.font = '800 64px Heebo'; wrap(x, r.name, R, 330, W - 128, 74, 2);
-  x.fillStyle = '#e8e2dc'; x.font = '500 44px Heebo'; wrap(x, r.share || '', R, 500, W - 128, 56, 2);
-  x.fillStyle = '#fff'; x.font = '800 60px Heebo'; x.fillText(r.ask || S().askFriends, R, H - 200);
-  x.font = '900 64px Heebo'; x.fillStyle = '#fdf6ef'; const sw = x.measureText('שלומי').width; x.fillText('שלומי', R, H - 90); x.fillStyle = '#fc7211'; x.fillText('וורס', R - sw, H - 90);
-  x.direction = 'ltr'; x.textAlign = 'left'; x.fillStyle = '#d8d2cc'; x.font = '500 36px Heebo'; x.fillText('shlomiverse.com/simulation', 64, H - 100);
-  return new Promise((res) => cv.toBlob(res, 'image/jpeg', 0.9));
-}
-function wrap(x, text, right, y, max, lh, lines) {
-  const words = String(text).split(/\s+/); let line = '', n = 0;
-  for (let i = 0; i < words.length; i++) {
-    const t = line ? line + ' ' + words[i] : words[i];
-    if (x.measureText(t).width > max && line) { x.fillText(line, right, y + n * lh); n++; line = words[i]; if (n >= lines - 1) { line = words.slice(i).join(' '); break; } }
-    else line = t;
-  }
-  if (line) x.fillText(line, right, y + n * lh);
-}
-
-async function shareSheet(r) {
-  const url = `https://shlomiverse.com/simulation?r=${r.rid}`;
-  const text = `${r.share} ${r.ask}`.trim();
-  const mark = (via) => { track('sim_share', via); api('share', { rid: r.rid, via }, true).catch(() => {}); };
-  const blob = await drawCard(r);
-  const file = blob && new File([blob], 'shlomiverse-simulation.jpg', { type: 'image/jpeg' });
-  // the phone's own share sheet with the card itself (Instagram story, WhatsApp status...)
-  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-    mark('native');
-    try { await navigator.share({ files: [file], text: `${text}\n${url}` }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  const pic = blob ? URL.createObjectURL(blob) : '';
-  sheet(`<div class="sim-sh">${pic ? `<img src="${pic}" alt="">` : ''}
-    <a class="vx-btn main block" data-sim-wa href="https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}" target="_blank" rel="noopener">${esc(S().wa)}</a>
-    <button class="vx-btn block" data-sim-copy>${esc(S().copy)}</button>
-    ${pic ? `<a class="vx-btn block" data-sim-save href="${pic}" download="shlomiverse-simulation.jpg">${esc(S().save)}</a>` : ''}</div>`, { cls: 'sim-sheet' });
-  const root = [...document.querySelectorAll('.vx-sheet.sim-sheet')].pop() || document;
-  root.querySelector('[data-sim-wa]')?.addEventListener('click', () => mark('whatsapp'));
-  root.querySelector('[data-sim-save]')?.addEventListener('click', () => mark('save'));
-  root.querySelector('[data-sim-copy]')?.addEventListener('click', async (e) => { const btn = e.currentTarget; mark('copy'); try { await navigator.clipboard.writeText(url); } catch (err) {} btn.textContent = S().copied; });
-}
+// sharing the result is gone (his note 2026-11-08: "no need for share my passport and my simulation"); a link shared before still opens (friendView)
 
 // a test done as a tourist that just became a resident elsewhere on the site: nothing to do - the result page claims it
 onState(() => { if (location.pathname === '/') mountBand(); });
