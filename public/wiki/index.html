@@ -339,7 +339,7 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   .m { max-width: 86%; padding: 11px 15px; border-radius: 18px; font-size: 1rem; line-height: 1.5; }
   .m > * + * { margin-top: 9px; }
   .m.bot { background: var(--card); align-self: flex-start; border-start-start-radius: 5px; border: 1px solid var(--line); }
-  .m.me { background: var(--c); color: #111; align-self: flex-end; border-start-end-radius: 5px; font-weight: 500; }
+  .m.me { background: var(--c); color: var(--c-ink, #fff); align-self: flex-end; border-start-end-radius: 5px; font-weight: 500; }
   .m.note { align-self: center; background: none; color: var(--dim); font-size: .85rem; padding: 2px 10px; }
   .m.wait::after { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--dim); animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: .2; } }
@@ -400,7 +400,7 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   .cx-left .qd i.on { background: var(--c, var(--accent)); }
   .composer textarea { flex: 1; resize: none; overflow: hidden; height: 48px; max-height: 130px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; line-height: 1.45; padding: 12px 14px; outline: none; }
   .composer textarea:focus { border-color: var(--c); }
-  .composer button { width: 48px; height: 48px; border-radius: 14px; background: var(--c); color: #111; display: grid; place-items: center; flex: none; }
+  .composer button { width: 48px; height: 48px; border-radius: 14px; background: var(--c); color: var(--c-ink, #fff); display: grid; place-items: center; flex: none; }
   .composer button:disabled { opacity: .4; cursor: default; }
   .composer svg { width: 19px; height: 19px; transform: scaleX(-1); }
   .fab { position: fixed; bottom: 22px; left: 22px; z-index: 35; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 20px 0 8px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: transform .15s; }
@@ -528,6 +528,8 @@ const HOOK = {};
 
 // ---------- pieces ----------
 const color = (c) => (c && c.color) || '#ff6a1f';
+// the text on a character's colour: white, as on every orange button (his rule 2026-11-05: white on orange); dark only on a light colour
+const ink = (hex) => { const n = parseInt(String(hex).slice(1), 16); if (isNaN(n)) return '#fff'; const L = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; return L > .7 ? '#111' : '#fff'; };
 const face = (c) => c && c.id === 'guide' ? `<span class="gmark"><img src="/verse/logo-160.png" alt="שלומיוורס"></span>`
   : c && c.img ? `<img src="${c.img}" alt="${esc(c.name)}" loading="lazy">`
   : `<span class="ph" style="--pc:${color(c)}" title="${esc(c?.name)}">${ICON.person}</span>`;
@@ -1027,7 +1029,7 @@ function renderText(text, streaming) {
 function drawChat() {
   const w = who(cxMode);
   threads[cxMode] ||= load(cxMode);
-  cx.style.setProperty('--c', color(w));
+  cx.style.setProperty('--c', color(w)); cx.style.setProperty('--c-ink', ink(color(w)));
   const strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
   const ask = cxMode === 'guide' ? ['תכירו לי מישהו', 'יש סרטון על בחירות?', 'מי הכי מצחיק פה?'] : (w.ask || []);
   cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}</button>`).join('')}</div>

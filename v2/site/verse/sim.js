@@ -6,7 +6,7 @@
 // sticks to their account.
 import { T } from './copy.js';
 import { esc, track, toast, brand } from './ui.js';
-import { st, onState, needFan, signedIn, follow } from './state.js';
+import { st, onState, needFan, signedIn, follow, cachedMe } from './state.js';
 import { LOCAL } from './fb.js';
 import { isCitizen, writeBar, wireWrite } from './citizen.js';
 import { simOpen, czOpen } from './gates.js';
@@ -80,6 +80,9 @@ export function mountBand() {
   if (!simOpen()) { el.innerHTML = ''; return; }   // no way in for now (gates.js)
   // after the test the band is gone (plan cz-sim-r4, his note 2026-11-07): the result lives in the passport and the profile
   if (myTest()) { el.innerHTML = ''; return; }
+  // signed in last time on this device: wait for Firebase before drawing - else the big signed-out band showed for a beat and
+  // then flipped to the small one (or vanished, test done) - his note 2026-11-08
+  if (!st.ready && cachedMe()) { el.innerHTML = ''; return; }
   const h = visitHost(), c = C[h], o = openCached(h);
   el.innerHTML = `<a class="sim-band ${signedIn() ? 'small' : ''}" href="/simulation?host=${h}&from=home" data-sim-band>
     <i class="sim-g g1"></i><i class="sim-g g2"></i><i class="sim-g g3"></i>
