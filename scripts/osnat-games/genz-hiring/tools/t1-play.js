@@ -5,7 +5,7 @@ const URL = process.argv[2] || 'http://localhost:5310/osnat-games/not-a-cog/?sol
 (async () => {
   const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
-  const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+  const errs = []; p.on('pageerror', (e) => errs.push(e.message)); p.on('response', (r) => r.status() >= 400 && errs.push(r.status() + ' ' + r.url()));
   await p.goto(URL); await p.waitForTimeout(1500);
   await p.screenshot({ path: `${OUT}/t1-start.png` });
   const G = (f) => p.evaluate(f);
