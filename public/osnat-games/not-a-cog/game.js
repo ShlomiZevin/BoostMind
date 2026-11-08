@@ -50,7 +50,8 @@ const ok = (im) => im && im.complete && im.naturalWidth;
 // the candidate never speaks out loud - only thoughts (the verse's Gen Z). Osnat speaks recruiting.
 const LINES = {
   think: ['רגע... היא מדברת אליי פיזית?', 'אמאלה, היא מחכה לתגובה?', 'ליטרלי ראיון בתלת־ממד.', 'אני הדמות השנייה?', 'וואט? אנשים אמיתיים?', 'אשכרה בלי פילטר?', 'אני בשוק טוטאלי.'],
-  hired: ['אוקיי... whatever.', 'סבבה. ליטרלי.', 'וייב.', 'אני אעלה סטורי.', 'נו, טוטאלי.'],
+  hired: ['חתמתי. יאללה הביתה, כבר 15:00 👋', 'יום עבודה ראשון: בוצע. ביי.', 'אוקיי, סיימתי להיום.', 'זה היה אינטנסיבי. הביתה.', 'אני אעלה סטורי. מהבית.'],
+  bored: ['😒 משתעמם...', '😮‍💨 נו...', '🚪 עוד רגע הולך'],
   seatM: ['עברתי על הלינקדאין שלך ומאוד ככה התרשמתי!', 'אני אסנת מטקי-טק. שב, שב, ככה.', 'נראה שאתה עושה דברים ממש חשובים.'],
   seatF: ['עברתי על הלינקדאין שלך ומאוד ככה התרשמתי!', 'אני אסנת מטקי-טק. שבי, שבי, ככה.', 'נראה שאת עושה דברים ממש חשובים.'],
   giveM: ['אתה לא בורג במערכת. אתה ככה... עמוד השדרה שלה.', 'זה לא "בסדר", זה אתגר אמיתי.', 'פה יש לך End to End Ownership.', 'אין פה היררכיה. רק Bias for Action.'],
@@ -120,23 +121,25 @@ let P = { x0: 0, y0: 0, x1: 0, y1: 0 }, U = 1;   // the play area between the st
 const cssPx = (v) => { const d = document.createElement('div'); d.style.cssText = `position:fixed;top:${v};visibility:hidden`; document.body.appendChild(d); const t = d.getBoundingClientRect().top; d.remove(); return t; };
 const desks = [0, 1, 2, 3].map((i) => ({ i, x: 0, y: 0, w: 0, h: 0, c: null }));
 let lobby = [];   // where waiting candidates stand
+const KIT = { top: 0, ch: 80 };   // the kitchenette counter: its top edge and height
 function layout() {
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
   cv.width = W * DPR; cv.height = H * DPR;
   document.body.classList.toggle('turn', W > H * 1.15 && H < 520 && 'ontouchstart' in window);
   const top = cssPx('var(--safe-t)') + 106, barH = ($('bar').offsetHeight || 84);
-  P = { x0: 0, y0: top, x1: W, y1: H - barH };
+  KIT.top = H - barH; KIT.ch = Math.min(W, 660) / 4.62;
+  P = { x0: 0, y0: top, x1: W, y1: KIT.top - KIT.ch * 0.36 };   // the perks stand above the counter top
   const pw = Math.min(W, 620), ph = P.y1 - P.y0, ox = (W - pw) / 2;
   // the height a desk row needs: the candidate, his message and battery above the desk (226U), the desk below (58U);
   // the lower row ends above the fake-laugh button
   const laughH = ($('laughBtn').offsetHeight || 74) + 14;
-  U = Math.min(pw * 0.44 / 170, (ph - laughH) / 512, ph / 668, 240 / 170);
-  const band = Math.max(laughH, 156 * U), dw = 170 * U, rest = Math.max(0, ph - band - 512 * U);
-  const cols = [ox + pw * 0.26, ox + pw * 0.72], r0 = P.y0 + 228 * U + rest * 0.25, rows = [r0, r0 + 226 * U + rest * 0.5];
+  U = Math.min(pw * 0.44 / 170, (ph - laughH - 8) / 512, (ph - 8) / 668, 240 / 170);
+  const band = Math.max(laughH, 156 * U), dw = 170 * U, rest = Math.max(0, ph - band - 8 - 512 * U);
+  const cols = [ox + pw * 0.26, ox + pw * 0.72], r0 = P.y0 + 8 + 228 * U + rest * 0.25, rows = [r0, r0 + 226 * U + rest * 0.5];
   desks.forEach((d, i) => { d.w = dw; d.h = dw * 300 / 433; d.x = cols[i % 2]; d.y = rows[i >> 1]; });
   const lx = ox + pw - 46 * U, ly = P.y1 - 6 * U;
   lobby = [0, 1, 2].map((k) => ({ x: lx - k * 66 * U, y: ly - (k % 2) * 10 * U }));
-  $('laughBtn').style.bottom = (barH + 10) + 'px';
+  $('laughBtn').style.bottom = (H - P.y1 + 8) + 'px';
   if (!osnat.task) { osnat.x = clamp(osnat.x || W / 2, 20, W - 20); osnat.y = clamp(osnat.y || P.y1 - 10, P.y0, P.y1); }
 }
 addEventListener('resize', layout); addEventListener('verseframe', layout);
@@ -157,9 +160,9 @@ function buildBar(fresh) {
 }
 function stationPos(id) {
   const b = document.querySelector(`.st[data-id="${id}"]`);
-  if (!b) return { x: W / 2, y: P.y1 - 8 };
+  if (!b) return { x: W / 2, y: KIT.top + KIT.ch * 0.3 };
   const r = b.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: P.y1 - 6 * U };
+  return { x: r.left + r.width / 2, y: KIT.top + KIT.ch * 0.3 };
 }
 
 // ───────────────────────── state ─────────────────────────
@@ -266,7 +269,7 @@ function osnatStep(dt) {
   if (!osnat.task && osnat.queue.length) osnat.task = osnat.queue.shift();
   const t = osnat.task;
   if (!t) { osnat.pose = 'idle'; snackCheck(dt); return; }
-  const g = taskTarget(t), dx = g.x - osnat.x, dy = g.y - osnat.y, dist = Math.hypot(dx, dy), sp = 360 * U * (1 + (day - 1) * 0.03);
+  const g = taskTarget(t), dx = g.x - osnat.x, dy = g.y - osnat.y, dist = Math.hypot(dx, dy), sp = 385 * U * (1 + (day - 1) * 0.03);
   if (dist > 4) {
     const k = Math.min(1, sp * dt / dist); osnat.x += dx * k; osnat.y += dy * k; osnat.pose = 'run';
     if (Math.abs(dx) > 3) osnat.face = dx > 0 ? 1 : -1;
@@ -364,6 +367,8 @@ function candsStep(dt, frozen) {
       const drain = c.want.includes('charger') && !c.got.includes('charger') ? 2 : 1;
       if (!still) c.bat -= dt * drain / P_SEC * (c.st === 'ready' ? 0.6 : 1);
     }
+    if (!c.bored && c.bat < 0.25 && ['lobby', 'want', 'ready'].includes(c.st)) { c.bored = true; const hy = c.desk ? c.desk.y - SIT * U * 0.35 : c.y - 90 * U; popText(c.x, hy, line(LINES.bored, 'bored'), 'bad small'); }
+    if (c.bat >= 0.25) c.bored = false;
     if (['walk', 'lobby', 'think', 'want', 'ready'].includes(c.st) && c.bat <= 0) ghost(c);
     if (c.st === 'leave') { c.x += 260 * U * dt; c.y = Math.min(P.y1 - 4, c.y + 120 * U * dt); }
   }
@@ -404,15 +409,16 @@ function drawBg() {
   const s = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * s, h = im.naturalHeight * s;
   ctx.drawImage(im, W - w, (H - h) * 0.4, w, h);   // anchored right: the door stays in view
 }
-function drawBattery(x, y, b, s) {
-  const w = 13 * s, h = 26 * s;
-  ctx.fillStyle = '#1b2a4a'; rr(x - w / 2 - 2, y - h / 2 - 2, w + 4, h + 4, 4 * s); ctx.fill();
-  ctx.fillRect(x - w / 4, y - h / 2 - 5 * s, w / 2, 4 * s);
-  ctx.fillStyle = '#fff'; rr(x - w / 2, y - h / 2, w, h, 3 * s); ctx.fill();
-  const c = b > 0.5 ? '#22c55e' : b > 0.25 ? '#facc15' : '#ef4444';
-  const fh = (h - 4) * clamp(b, 0, 1);
-  ctx.fillStyle = c; rr(x - w / 2 + 2, y + h / 2 - 2 - fh, w - 4, Math.max(1, fh), 2 * s); ctx.fill();
-  if (b < 0.25 && Math.floor(performance.now() / 250) % 2) { ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; rr(x - w / 2 - 4, y - h / 2 - 4, w + 8, h + 8, 5 * s); ctx.stroke(); }
+function drawBattery(x, y, b, s) {   // a clock that runs down: the time until he gets up and leaves
+  const r = 12 * s, v = clamp(b, 0, 1), col = v > 0.5 ? '#22c55e' : v > 0.25 ? '#facc15' : '#ef4444';
+  const low = v < 0.25 && Math.floor(performance.now() / 250) % 2;
+  ctx.save();
+  ctx.fillStyle = '#1b2a4a'; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 7); ctx.fill();
+  ctx.fillRect(x - 3 * s, y - r - 6 * s, 6 * s, 4 * s);   // the stopwatch button
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, r - 1.5, -Math.PI / 2, -Math.PI / 2 + v * Math.PI * 2); ctx.closePath(); ctx.fill();
+  if (low) { ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r + 6, 0, 7); ctx.stroke(); }
+  ctx.restore();
 }
 function drawWant(c, x, headY, col) {
   const s = U, ic = 46 * s, gap = 6 * s, pad = 8 * s, fs = Math.round(10.5 * s + 1);
@@ -421,7 +427,7 @@ function drawWant(c, x, headY, col) {
   ctx.font = `900 ${fs}px Rubik, sans-serif`; ctx.direction = 'rtl';
   const slots = ready || think ? [] : c.want.map((id) => Math.max(ic, ctx.measureText(perk(id).word).width + 4 * s));
   let bw, bh = ic + pad * 2 + 13 * s;
-  if (ready) { bw = ic + pad * 2 + 10 * s; bh = ic + pad * 1.4; }
+  if (ready) { ctx.font = `900 ${fs + 1}px Rubik, sans-serif`; bw = Math.max(ic, ctx.measureText('לחתימה ✍️').width) + pad * 2; bh = ic + pad * 2 + 13 * s; }
   else if (think) { ctx.font = `700 ${Math.round(11.5 * s + 1)}px Rubik, sans-serif`; bw = Math.min(col.w - 30 * s, ctx.measureText(c.thought || '...').width + pad * 2.4); bh = 30 * s; }
   else bw = slots.reduce((a, b) => a + b, 0) + gap * (slots.length - 1) + pad * 2;
   // inside its own column, the battery beside it
@@ -437,7 +443,8 @@ function drawWant(c, x, headY, col) {
     ctx.fillStyle = '#4c3d7a'; ctx.fillText(c.thought || '...', bx + bw / 2, by + bh / 2 + 1, bw - pad * 2);
   } else if (ready) {
     const k = 1 + Math.sin(performance.now() / 160) * 0.06;
-    drawImg(IMG['i-contract'], bx + bw / 2, by + pad * 0.7 + ic * k, ic * k);
+    drawImg(IMG['i-contract'], bx + bw / 2, by + pad + ic * k, ic * k);
+    ctx.textBaseline = 'top'; ctx.fillStyle = '#b45309'; ctx.font = `900 ${fs + 1}px Rubik, sans-serif`; ctx.fillText('לחתימה ✍️', bx + bw / 2, by + pad + ic + 1 * s);
   } else {
     ctx.textBaseline = 'top';
     let sx = bx + bw - pad;   // right to left, the way he reads
@@ -467,7 +474,9 @@ function drawOsnat() {
   ctx.save(); ctx.fillStyle = '#0002'; ctx.beginPath(); ctx.ellipse(osnat.x, osnat.y, 30 * U, 8 * U, 0, 0, 7); ctx.fill(); ctx.restore();
   const bob = osnat.pose === 'run' ? Math.abs(Math.sin(performance.now() / 90)) * 3 * U : 0;
   drawImg(im, osnat.x, osnat.y - bob, h, osnat.face < 0 && osnat.pose === 'run');
-  // what she carries, over her head
+  // what she carries, over her head (the contract when she goes to sign)
+  const t = osnat.task, signing = t && t.type === 'desk' && t.desk.c && t.desk.c.st === 'ready';
+  if (signing) drawImg(IMG['i-contract'], osnat.x + 36 * U, osnat.y - h * 0.45, 40 * U);
   osnat.hands.forEach((id, i) => {
     const ic = 32 * U, x = osnat.x + (i - (osnat.hands.length - 1) / 2) * (ic + 4), y = osnat.y - h - 4 * U;
     ctx.save(); ctx.fillStyle = '#fffffff0'; ctx.strokeStyle = '#ff8fb1'; ctx.lineWidth = 2; rr(x - ic / 2 - 3, y - ic - 3, ic + 6, ic + 6, 9); ctx.fill(); ctx.stroke(); ctx.restore();
@@ -477,7 +486,7 @@ function drawOsnat() {
 function drawQueue() {
   const all = (osnat.task ? [osnat.task] : []).concat(osnat.queue);
   all.forEach((t, i) => {
-    const g = taskTarget(t), y = t.type === 'pick' ? g.y - 8 * U : g.y - 4 * U;
+    const g = taskTarget(t), y = t.type === 'pick' ? P.y1 - 8 * U : g.y - 4 * U;
     ctx.save(); ctx.fillStyle = i === 0 ? '#ff6f9f' : '#ff8fb1bb'; ctx.beginPath(); ctx.arc(g.x, y, 10 * U + 2, 0, 7); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.font = `900 ${Math.round(11 * U + 3)}px Rubik`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(i + 1, g.x, y + 1); ctx.restore();
   });
@@ -509,6 +518,11 @@ function drawDesk(d) {
     drawImg(IMG[c.p.id + '-sit'], d.x + wob, d.y + d.h * 0.3, SIT * U);
   } else drawImg(IMG.chair, d.x, d.y + d.h * 0.05, 118 * U);
   drawImg(IMG.desk, d.x, d.y + d.h / 2, d.h);
+  if (c && c.st === 'ready' && !(osnat.task && osnat.task.desk === d) && !osnat.queue.some((t) => t.desk === d)) {
+    // a finger tapping the desk: tap here to sign
+    const k = Math.abs(Math.sin(performance.now() / 220));
+    ctx.save(); ctx.font = `${Math.round(34 * U)}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText('👆', d.x - d.w * 0.18, d.y + d.h * 0.05 + k * 8 * U); ctx.restore();
+  }
   if (c && c.st === 'ready') { ctx.save(); ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3; ctx.globalAlpha = 0.5 + Math.sin(performance.now() / 160) * 0.3; rr(d.x - d.w / 2 - 4, d.y - d.h / 2 - 4, d.w + 8, d.h + 8, 14); ctx.stroke(); ctx.restore(); }
 }
 function drawStanding(c) {
@@ -572,16 +586,16 @@ const tc = () => cands[0];
 const spotEl = (sel) => () => { const e = typeof sel === 'string' ? document.querySelector(sel) : sel; if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left - 6, y: r.top - 6, w: r.width + 12, h: r.height + 12 }; };
 const spotOsnat = () => ({ x: osnat.x - 50 * U, y: osnat.y - 170 * U, w: 100 * U, h: 180 * U });
 const spotLobby = () => { const c = tc(); return c ? { x: c.x - 50 * U, y: c.y - 165 * U, w: 100 * U, h: 175 * U } : null; };
-const spotDesk = () => { const d = desks[0]; return { x: d.x - d.w / 2 - 30 * U, y: d.y - SIT * U - 100 * U, w: d.w + 60 * U, h: d.h / 2 + SIT * U + 108 * U }; };
+const spotDesk = () => { const d = desks[0], y = Math.max(P.y0 - 2, d.y - SIT * U - 100 * U); return { x: d.x - d.w / 2 - 30 * U, y, w: d.w + 60 * U, h: d.y + d.h / 2 + 8 * U - y }; };
 const STEPS = [
   { text: 'זאת <b>אסנת</b>, Head of People בטקי-טק. היום היא מגייסת <b>גן זי</b>.', spot: spotOsnat },
   { text: '<b>המטרה:</b> לגייס מספיק מועמדים ביום – המונה פה. כל גיוס = נקודות, מהר = יותר.', spot: spotEl('#hiresBox') },
   { text: 'מועמד שהסבלנות שלו נגמרת עושה לאסנת <b>גוסטינג 👻</b>. שלושה גוסטים ביום – ונגמר.', spot: spotEl('#ghosts') },
   { text: 'נסו עכשיו: מועמד חדש בכניסה. <b>הקישו עליו</b> כדי להושיב אותו בשולחן.', try: 'seat', spot: spotLobby },
   { text: 'הוא לא מדבר – הוא <b>שולח הודעה</b> עם הדרישות. תקראו מה הוא רוצה.', spot: spotDesk },
-  { text: 'נסו עכשיו: <b>הקישו על התחנה</b> שלמטה עם מה שהוא ביקש, ואז <b>על השולחן שלו</b>.', try: 'give' },
-  { text: 'ה<b>סוללה</b> ליד ההודעה = הסבלנות שלו. כל דבר שמביאים מטעין אותה קצת.', spot: spotDesk },
-  { text: 'נסו עכשיו: הכול מולא – יש <b>חוזה</b>! <b>הקישו על השולחן</b> והוא מגויס.', try: 'hire', spot: spotDesk },
+  { text: 'נסו עכשיו: למטה זה <b>המטבחון</b>. <b>הקישו על מה שביקש</b> – אסנת תרוץ להביא – ואז <b>על השולחן שלו</b>.', try: 'give' },
+  { text: 'ה<b>שעון</b> ליד ההודעה = כמה זמן נשאר <b>עד שהוא קם והולך</b>. כל דבר שמביאים נותן לו עוד זמן.', spot: spotDesk },
+  { text: 'נסו עכשיו: קיבל הכול – <b>החוזה מוכן</b>! <b>הקישו על השולחן</b>, אסנת מחתימה אותו... והוא הולך הביתה מוקדם. גן זי.', try: 'hire', spot: spotDesk },
   { text: '<b>צחוק מזויף</b>: כולם קופאים ל-5 שניות. אחריו צריך לחכות קצת. נסו!', try: 'laugh', spot: spotEl('#laughBtn') },
   { text: 'אפשר לתכנן קדימה: עד <b>4 פעולות בתור</b> (המספרים הוורודים), ואסנת סוחבת <b>2 דברים</b>. מוכנים? אנחנו קוראים לזה A Team.', last: true },
 ];
@@ -651,10 +665,10 @@ function hint() {
   let t;
   const waiting = cands.some((c) => c.st === 'lobby' || c.st === 'walk'), free = desks.some((d) => !d.c);
   const ready = desks.some((d) => d.c && d.c.st === 'ready'), want = desks.some((d) => d.c && d.c.st === 'want');
-  if (ready) t = '<em>הקישו</em> על שולחן עם חוזה – לגייס!';
+  if (ready) t = 'חוזה מוכן! <em>הקישו</em> על השולחן – להחתים';
   else if (waiting && free) t = '<em>הקישו</em> על מועמד בכניסה – להושיב';
   else if (want && osnat.hands.length) t = '<em>הקישו</em> על השולחן – למסור';
-  else if (want) t = '<em>הקישו</em> על תחנה למטה – להביא';
+  else if (want) t = '<em>הקישו</em> על מה שביקש במטבחון למטה';
   else t = 'מחכים למועמד הבא...';
   if (t !== hintTxt || !sayEl.classList.contains('hint')) { hintTxt = t; $('sayTxt').innerHTML = t; sayEl.classList.add('hint'); sayEl.classList.remove('loud'); }
 }
