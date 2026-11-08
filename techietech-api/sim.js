@@ -67,7 +67,9 @@ const FIELDS = [['brief', 'Who'], ['personality', 'Personality'], ['speech', 'Ho
   ['comedy', 'What is funny about them'], ['themes', 'Their themes'], ['writing_rules', 'Writing notes'], ['dont', 'Never']];
 // now the full material, as the chat gets it (his rule 2026-11-07: as funny as the chat, even if it costs more)
 const hostMaterial = (c, b) => material(b, c.id);
-const castList = (b) => b.characters.filter((c) => c.tagline).map((c) => `${c.id} | ${c.name} | ${c.world || ''} | ${c.tagline} | ${short(c.brief || c.bio, 110)}`).join('\n');
+// "who" = their role in one line, not the start of their bio (his cost plan 2026-11-08: the result step read 5.8K tokens of
+// residents; with the role 3.7K, and the role says who they are better than a bio cut at 110 characters)
+const castList = (b) => b.characters.filter((c) => c.tagline).map((c) => `${c.id} | ${c.name} | ${c.world || ''} | ${c.tagline} | ${short(c.role || c.brief || c.bio, 70)}`).join('\n');
 
 const GAME = `You run "באיזו סימולציה אתם חיים?" ("Which simulation do you live in?") - the Shlomiverse's official classification. שלומיוורס (the Shlomiverse) is a world of comedy characters shown as real people; its registry classifies every visitor into the simulation they live in, and the classification is conducted by Yotam, the Shlomiverse's System Architect of life - he is the host who asks. The visitors keep writing "we live in a simulation"; this classification tells them which one.
 It is like the silly quizzes of the 90s Israeli teen magazines (מעריב לנוער): light, absurd, fast, one thumb. The questions are about THE VISITOR - their habits, reactions, daily-life absurdities, small confessions - never a trivia test about the characters.
@@ -94,7 +96,9 @@ async function ask(key, instructions, input, schema, name, effort = 'low') {
 }
 const S = (props) => ({ type: 'object', additionalProperties: false, required: Object.keys(props), properties: props });
 const str = { type: 'string' };
-const Q_SCHEMA = S({ react: str, q: str, a: { type: 'array', items: str, minItems: 4, maxItems: 4 } });
+// every question has the same schema (a plain one leaves v empty) - the same prefix on all 7 steps, so OpenAI's cache serves it
+// (his cost plan 2026-11-08); the values of a purposeful question are checked in stepOf, not by an enum
+const Q_SCHEMA = S({ react: str, q: str, a: { type: 'array', minItems: 4, maxItems: 4, items: S({ t: str, v: str }) } });
 const OPEN_SCHEMA = S({ title: str, line: str, btn: str });
 const RESULT_SCHEMA = S({ score: { type: 'integer' }, dept: str, name: str, verdict: str, cast: { type: 'array', minItems: 2, maxItems: 3, items: S({ id: str, role: str, scene: str }) },
   share: str, ask: str, setting: str });
@@ -125,8 +129,8 @@ function qInput(steps, purpose) {
   return [{ role: 'user', content: `${done.length ? 'The test so far:\n' + lines + '\n\n' : ''}Write question ${n} of ${STEPS}.
 - react: ${done.length ? `the host's quick reaction to the last answer, in their voice, up to 9 words (funny, never mean)${last && last.free !== undefined ? ' - they wrote it in their own words: react to exactly what they wrote' : ''}. Every reaction opens differently from your earlier ones; a catchphrase at most twice in the whole test, never in two reactions in a row` : 'empty string'}.
 - q: the question, up to 14 words, about the visitor${done.length ? ', building on what they already answered' : ''}.
-- a: exactly 4 answers, each up to 6 words, all funny and all tempting - no "correct" one, no "none of the above".${n === STEPS ? ' This is the last question: make it the most absurd one.' : ''}${purpose ? `
-THIS QUESTION ALSO FILLS THE REGISTRY: it finds out ${GOAL[purpose.field]}. It stays a funny question about the visitor in your voice and the game's tone - never a form question, never say why you ask. Each of the 4 answers points to a DIFFERENT one of these values, and the visitor must be able to tell which: a[i].t = the answer as the visitor says it, a[i].v = its value.
+- a: exactly 4 answers, each up to 6 words, all funny and all tempting - no "correct" one, no "none of the above". a[i].t = the answer as the visitor says it; a[i].v = ${purpose ? 'its value (below)' : 'empty string'}.${n === STEPS ? ' This is the last question: make it the most absurd one.' : ''}${purpose ? `
+THIS QUESTION ALSO FILLS THE REGISTRY: it finds out ${GOAL[purpose.field]}. It stays a funny question about the visitor in your voice and the game's tone - never a form question, never say why you ask. Each of the 4 answers points to a DIFFERENT one of these values, and the visitor must be able to tell which; a[i].v = exactly one value from this list.
 The values (value = what it means):
 ${purpose.vals.map(([v, m]) => `${v} = ${m}`).join('\n')}` : ''}` }];
 }
@@ -138,7 +142,7 @@ async function askAs(key, hostId, task, schema, name) {
   const r = await proc.run(key, hostId, [], task, schema, name);
   return { ...r, ms: Date.now() - t0 };
 }
-const qTask = (steps, purpose) => GAME + '\n\n' + qInput(steps, purpose)[0].content;
+const qTask = (steps, purpose) => ({ fixed: GAME, now: qInput(steps, purpose)[0].content });
 // the values a purposeful question offers: the field's fixed answers, or for the world question the worlds people know
 async function purposeOf(field) {
   if (!field) return null;
@@ -151,17 +155,11 @@ async function purposeOf(field) {
 async function makeQ(key, hostId, steps, d) {
   const n = steps.filter(answered).length + 1, field = (d.purpose || {})[n] || null;
   const purpose = await purposeOf(field);
-  if (!purpose) {
-    const r = await askAs(key, hostId, qTask(steps), Q_SCHEMA, 'q');
-    return { step: stepOf(r.out), u: r.u, ms: r.ms };
-  }
-  const vals = purpose.vals.map(([v]) => v);
-  const schema = S({ react: str, q: str, a: { type: 'array', minItems: 4, maxItems: 4, items: S({ t: str, v: { type: 'string', enum: vals } }) } });
-  const r = await askAs(key, hostId, qTask(steps, purpose), schema, 'qp-' + field);
+  const r = await askAs(key, hostId, qTask(steps, purpose), Q_SCHEMA, 'q');
   return { step: stepOf(r.out, purpose), u: r.u, ms: r.ms };
 }
 function stepOf(o, purpose) {
-  if (!purpose) return { q: clip(o.q, 200), a: o.a.map((x) => clip(x, 80)), react: sayClip(o.react || '', 160) };
+  if (!purpose) return { q: clip(o.q, 200), a: o.a.map((x) => clip(x.t, 80)), react: sayClip(o.react || '', 160) };
   const vals = purpose.vals.map(([v]) => v);
   return { q: clip(o.q, 200), a: o.a.map((x) => clip(x.t, 80)), v: o.a.map((x) => (vals.includes(x.v) ? x.v : null)), field: purpose.field, react: sayClip(o.react || '', 160) };
 }
@@ -185,7 +183,7 @@ ${castList(b)}`;
 // the result: score, the mixed simulation, the share lines - from the answers given (all 7, or 3+ when they skipped)
 async function finish(key, ref, d, steps, br, skipped = false) {
   const C = byId(br);
-  const done = await askAs(key, HOST, rPrompt(br) + "\n\nThe visitor's answers:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${answerOf(s)}`).join('\n'), RESULT_SCHEMA, 'result');
+  const done = await askAs(key, HOST, { fixed: rPrompt(br), now: "The visitor's answers:\n" + steps.map((s, i) => `${i + 1}. ${s.q}\n   answered: ${answerOf(s)}`).join('\n') }, RESULT_SCHEMA, 'result');
   const o = done.out;
   const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
   if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });

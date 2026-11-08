@@ -111,7 +111,7 @@ function boothInput(d, fan, bt, k, a) {
   const lines = scriptOf(d);
   const intro = `The visitor: ${fan.nick || '-'}.` + ((d.turns || []).length ? ' What they told Miriam: ' + d.turns.map((t) => `${t.q} -> ${t.a ?? '(skipped)'}`).join(' | ') : '');
   const past = bt.slice(0, k).map((t, i) => `Line ${i + 1}: ${said(lines[i])}\nThey: ${t.a}\nYou reacted: ${t.react}`).join('\n');
-  return `${boothPrompt(lines)}\n\n${intro}\n\n${past ? past + '\n' : ''}Line ${k + 1}: ${said(lines[k])}\nThey answered now: "${a}"\n\nYour next line (said right after your reaction): "${said(lines[k + 1])}". Write "react".`;
+  return { fixed: boothPrompt(lines), now: `${intro}\n\n${past ? past + '\n' : ''}Line ${k + 1}: ${said(lines[k])}\nThey answered now: "${a}"\n\nYour next line (said right after your reaction): "${said(lines[k + 1])}". Write "react".` };   // process.js: the fixed part is cached, `now` changes
 }
 const btOf = (o) => ({ react: sayClip(String(o.react || '').split(AFTER_STAMP)[0].trim(), 200) });
 const reacts = (d, i) => i + 1 < scriptOf(d).length;   // the last answer goes straight to the stamp line
@@ -136,7 +136,7 @@ function talk(turns, next) {
   const now = next === 'close' ? 'That was the last question. Write "say": your reaction to their last answer, then close the check-in and send them on to the rabbi.'
     : next === 'own' ? `The form has nothing left to ask - write a question of your own (${turns.length ? '"say" = your reaction to their last answer' : '"say" = your hello'}; "q"; "opts").`
       : `Next the form asks: "${SLOTS[next].q}". Write "say" = ${turns.length ? 'your reaction to their last answer' : 'your hello'}, leading into it - without asking it.`;
-  return CHECKIN + '\n\n' + so + now;
+  return { fixed: CHECKIN, now: so + now };   // process.js: the fixed part is cached, `now` changes
 }
 // the next screen at the counter: the form's question (its fixed words + its answers) or one of hers, with her words before it
 async function nextTurn(key, d, turns, I) {
@@ -422,4 +422,4 @@ exports.owner = async (op) => {
   return { started: all.length, at, citizens: c.exists ? c.data().n || 0 : 0, shared, skippedAll, why, answers };
 };
 
-exports._test = { scriptFor, scriptOf, SLOTS, SLOT_ORDER, wishSugg, talk, handle };
+exports._test = { scriptFor, scriptOf, SLOTS, SLOT_ORDER, wishSugg, talk, handle, boothInput, BT, SAY, OWN };
