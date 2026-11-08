@@ -33,7 +33,11 @@ img { display: block; max-width: 100%; }
 .p { display: flex; gap: 12px; padding: 14px 16px 6px; border-bottom: 1px solid var(--line); position: relative; }
 .p.click { cursor: pointer; } .p.click:hover { background: rgba(255,255,255,.025); }
 .p.has-u { border-bottom: 0; padding-bottom: 2px; }
-.p.u { padding-top: 6px; } .p.u.last { border-bottom: 1px solid var(--line); }
+.p.u { padding-top: 4px; padding-inline-start: 46px; background: rgba(255,255,255,.022); } .p.u.last { border-bottom: 1px solid var(--line); }
+/* a reply: indented under its post, a smaller face, "בתגובה ל־@..." (his note: the comment must look different from the post) */
+.p.u .av { width: 34px; height: 34px; } .p.u .tx { font-size: .97rem; }
+.rto { color: var(--dim); font-size: .84rem; margin: -1px 0 1px; } .rto b { color: var(--acc); font-weight: 600; }
+.p.has-u .thr { background: rgba(255,122,31,.45); width: 2px; }
 .p .side { display: flex; flex-direction: column; align-items: center; flex: none; }
 .av { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: var(--card); flex: none; display: block; }
 .av img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
@@ -56,6 +60,8 @@ img { display: block; max-width: 100%; }
 .qt, .lk, .art { display: block; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; margin: 4px 0 10px; }
 .qt { padding: 10px 12px; } .qt:hover, .lk:hover, .art:hover { background: rgba(255,255,255,.03); }
 .qt .hd { font-size: .93rem; } .qt .av { width: 22px; height: 22px; } .qt .tx { margin: 4px 0 0; font-size: .96rem; }
+.art.mini { display: flex; align-items: center; gap: 10px; margin: 8px 0 2px; border-radius: 12px; }
+.art.mini .im { width: 92px; flex: none; aspect-ratio: 16 / 10; } .art.mini .in { padding: 8px 10px; } .art.mini b { font-size: .92rem; }
 .lk img { width: 100%; aspect-ratio: 1.91 / 1; object-fit: cover; border-bottom: 1px solid var(--line); }
 .lk .lt { display: block; padding: 10px 14px; } .lk small { color: var(--dim); display: flex; gap: 6px; align-items: center; font-size: .84rem; }
 .lk small svg { width: 14px; height: 14px; flex: none; }
@@ -113,6 +119,7 @@ img { display: block; max-width: 100%; }
 .gate { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(620px, 100%); z-index: 6; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(11,11,14,.96); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font-size: .9rem; line-height: 1.35; }
 .gate span { flex: 1; color: var(--dim); min-width: 0; } .gate b { color: var(--txt); display: block; } .gate .btn { flex: none; height: 36px; padding: 0 16px; }
 .fab { position: fixed; bottom: calc(var(--tb) + 14px + env(safe-area-inset-bottom)); left: max(14px, calc(50% - 296px)); width: 52px; height: 52px; border-radius: 50%; background: var(--acc); display: grid; place-items: center; box-shadow: 0 8px 28px rgba(255,122,31,.4); z-index: 6; }
+@media (max-width: 759px) { .gate ~ .fab { bottom: calc(var(--tb) + 78px + env(safe-area-inset-bottom)); } }   /* above the sign-in bar */
 .fab svg { width: 24px; height: 24px; color: #fff; }
 .end { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 30px 20px 10px; color: var(--dim); text-align: center; }
 .end img { width: 44px; opacity: .8; margin-bottom: 4px; } .end b { color: var(--txt); font-size: 1rem; } .end span { font-size: .9rem; }
@@ -124,6 +131,8 @@ img { display: block; max-width: 100%; }
 .sheet h3 { margin: 0 0 12px; font-size: 1.1rem; } .sheet textarea { width: 100%; border-radius: 14px; min-height: 120px; }
 .sheet .row2 { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 10px; }
 .sheet .cnt { color: var(--dim); font-size: .85rem; } .sheet .cnt.over { color: var(--news); }
+.sheet.need { text-align: center; padding-top: 22px; } .sheet.need img { width: 96px; margin: 0 auto 8px; } .sheet.need b { font-size: 1.25rem; display: block; }
+.sheet.need p { color: var(--dim); margin: 6px auto 16px; max-width: 360px; } .sheet.need .row { display: flex; gap: 10px; justify-content: center; }
 .menu { width: min(420px, 100%); background: var(--bg2); border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); }
 @media (min-width: 700px) { .menu { border-radius: 18px; } }
 .menu button { display: flex; width: 100%; padding: 14px 20px; gap: 12px; align-items: center; font-weight: 700; } .menu button:hover { background: rgba(255,255,255,.05); }

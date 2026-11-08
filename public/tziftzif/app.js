@@ -23,7 +23,8 @@ const I = {
   back: S('<path d="M5 12h14M13 6l6 6-6 6"/>'),
   reply: S('<path d="M4 5h16v11H9l-5 4z"/>'),
   share: S('<path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"/>'),
-  stamp: S('<circle cx="12" cy="12" r="5.6"/><path d="M3 15.2c-1.4-2.6 2.8-5.6 8.9-7.2s10.6-.9 9.9 2"/>'),
+  // the like = the verse's own like (his ask 2026-11-08): the logo's planet without its word, as in the verse's ui.js
+  stamp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" class="pl"><g transform="rotate(-16 12 12)"><path d="M1.5 12.6A10.5 4.3 0 0 1 22.5 12.6" stroke-width="2.4"/><circle cx="12" cy="12" r="7.6" fill="var(--bg)" stroke-width="2"/><path d="M1.5 12.6A10.5 4.3 0 0 0 22.5 12.6" stroke-width="2.8"/></g></svg>',
   more: S('<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>'),
   send: S('<path d="M21 3 3 10.5l7 2.5 2.5 7z"/><path d="m10 13 4-4"/>'),
   pen: S('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>'),
@@ -90,16 +91,21 @@ async function api(op, data = {}, post = false, ask = false) {
 
 // ---------- drawing a post ----------
 let D = { quoted: {}, articles: {}, stamped: new Set() };
-const take = (r) => { Object.assign(D.quoted, r.quoted || {}); Object.assign(D.articles, r.articles || {}); (r.stamped || []).forEach((id) => D.stamped.add(id)); };
+// every post a page got can be quoted by another one on it (the feed doesn't send twice a post that is already in it)
+const take = (r) => { [r.post, ...(r.posts || []), ...(r.thread || []), ...(r.reactions || [])].filter(Boolean).forEach((p) => { D.quoted[p.id] = p; (p.under || []).forEach((u) => { D.quoted[u.id] = u; }); }); Object.assign(D.quoted, r.quoted || {}); Object.assign(D.articles, r.articles || {}); (r.stamped || []).forEach((id) => D.stamped.add(id)); };
+// ONE attachment per post (his note 2026-11-08: "no need for 3 links - 1 is enough"): a repost shows only the post it
+// quotes (and inside it, that post's article as one small row with its picture); otherwise ח24's article; otherwise the link
 function inner(p, small) {
-  let h = '';
   const a = p.article && D.articles[p.article];
-  if (a) h += `<a class="art" href="/tziftzif/a/${a.id}">${a.img && !small ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b>${small ? '' : `<small>${esc(a.sub)}</small>`}</div></a>`;
   const q = p.quote && D.quoted[p.quote];
-  if (q && !small) { const w = who(q); h += `<a class="qt" href="/tziftzif/p/${q.id}"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}</div><div class="tx">${linkify(q.text)}</div>${inner(q, true)}</a>`; }
-  if (p.link && !small) h += `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener">${p.link.img ? `<img src="${esc(p.link.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="lt"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></span></a>`;
-  return h;
+  if (small) return a ? `<span class="art mini">${a.img ? `<span class="im" style="background-image:url('${esc(a.img)}')"></span>` : ''}<span class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span>${a.headline.trim() === String(p.text).trim() ? '' : `<b>${esc(a.headline)}</b>`}</span></span>` : '';
+  if (q) { const w = who(q); return `<a class="qt" href="/tziftzif/p/${q.id}"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}</div><div class="tx">${linkify(q.text)}</div>${inner(q, true)}</a>`; }
+  if (a) return `<a class="art" href="/tziftzif/a/${a.id}">${a.img ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b><small>${esc(a.sub)}</small></div></a>`;
+  if (p.link) return `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener">${p.link.img ? `<img src="${esc(p.link.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="lt"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></span></a>`;
+  return '';
 }
+// a reply says whom it answers (his note: "it's not clear that it's a comment")
+const toOf = (x, list) => { const par = x.parent && list.find((y) => y.id === x.parent); return par ? who(par).handle || who(par).name : ''; };
 function card(p, o = {}) {
   const w = who(p), on = D.stamped.has(p.id);
   return `<article class="p ${o.big ? 'big' : 'click'} ${o.u ? 'u' : ''} ${o.hasU ? 'has-u' : ''} ${o.last ? 'last' : ''}" data-id="${p.id}">
@@ -108,7 +114,7 @@ function card(p, o = {}) {
       <div class="hd">${w.href ? `<a class="nm" href="${w.href}">${esc(w.name)}</a>` : `<span class="nm">${esc(w.name)}</span>`}${w.badge}${w.news ? '<span class="live">שידור חי</span>' : ''}
         ${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}${o.big ? '' : `<span class="dot">·</span><span class="tm">${ago(p.t)}</span>`}
         <button class="more" data-more="${p.id}" aria-label="עוד">${I.more}</button></div>
-      <div class="tx">${linkify(p.text)}</div>
+      ${o.to ? `<div class="rto">בתגובה ל־<b>@${esc(o.to)}</b></div>` : ''}<div class="tx">${linkify(p.text)}</div>
       ${inner(p)}
       ${o.big ? `<div class="when">${new Date(p.t).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'long', year: 'numeric' })}</div>` : ''}
       <div class="ac">
@@ -127,7 +133,7 @@ function gate() {
     ? `<div class="gate"><span><b>רק אזרחים מצייצים</b>מוציאים דרכון ומצטרפים לשיחה</span><a class="btn acc" href="${VERSE}/citizenship">לדרכון</a></div>`
     : `<div class="gate"><span><b>רוצים להגיב?</b>אזרחי השלומיוורס מצייצים ומחתימים</span><button class="btn acc" data-signin>כניסה</button></div>`;
 }
-const fab = () => (ME.citizen ? `<button class="fab" data-compose aria-label="ציוץ חדש">${I.pen}</button>` : '');
+const fab = () => `<button class="fab" data-compose aria-label="ציוץ חדש">${I.pen}</button>`;
 // the bottom (mockup tz-pro/P1, his note "make it professional"): a slim tab bar - home, ח24, the bell and "me" are the verse's own
 // every tab stays inside ציפציפ (his note: "don't show links that take me out - people won't come back")
 const tabbar = (on) => `<nav class="tabbar"><a href="/tziftzif" class="${on === 'home' ? 'on' : ''}">${I.home}<span>בית</span></a>`
@@ -155,7 +161,7 @@ function drawFeed() {
   if (!posts.length) { el.innerHTML = `<div class="empty">${TAB === 'follow' ? (ME.signed ? 'עוד לא עקבתם אחרי אף אחד מהתושבים. עוקבים בשלומיוורס, והם מופיעים כאן.' : 'נכנסים לחשבון, ורואים כאן את מי שאתם עוקבים אחריו.') : 'שקט בציפציפ. עוד מעט מישהו יגיד משהו.'}</div>`; return; }
   el.innerHTML = posts.map((p) => {
     const u = p.under || [];
-    return card(p, { line: u.length > 0, hasU: u.length > 0 }) + u.map((x, i) => card(x, { u: true, line: i < u.length - 1, hasU: i < u.length - 1, last: i === u.length - 1 })).join('');
+    return card(p, { line: u.length > 0, hasU: u.length > 0 }) + u.map((x, i) => card(x, { u: true, to: toOf(x, [p, ...u]), line: i < u.length - 1, hasU: i < u.length - 1, last: i === u.length - 1 })).join('');
   }).join('') + (FEED.more ? '<button class="morebtn" data-more-feed>עוד ציוצים</button>' : endOfFeed());
 }
 // the end of the timeline - says when the residents post next (the engine wakes at 08:00, 13:00 and 19:00, Israel)
@@ -180,7 +186,7 @@ async function thread(id) {
   const before = list.slice(0, at).filter((x) => !x.parent || list.slice(0, at).some((y) => y.id === x.parent) || x.id === r.post.root);
   const after = list.slice(at + 1);
   document.title = `${who(r.post).name} בציפציפ: "${r.post.text.slice(0, 50)}"`;
-  document.getElementById('list').innerHTML = before.map((x) => card(x, { line: true, hasU: true })).join('') + card(r.post, { big: true }) + after.map((x) => card(x)).join('')
+  document.getElementById('list').innerHTML = before.map((x) => card(x, { line: true, hasU: true })).join('') + card(r.post, { big: true }) + after.map((x) => card(x, { to: toOf(x, r.thread) })).join('')
     + (after.length ? '' : '<div class="empty">עוד אין תגובות.</div>');
   if (ME.citizen) {
     const w = who(r.post);
@@ -245,15 +251,21 @@ async function stamp(btn) {
   on ? D.stamped.add(id) : D.stamped.delete(id);
   track('tz_stamp', id);
 }
+// tweeting, replying and liking are for citizens of the verse with a passport (his rule) - anyone else is asked to become one
 function needCitizen() {
-  if (!ME.signed) return signIn();
-  toast('רק אזרחי השלומיוורס מצייצים ומחתימים');
-  setTimeout(() => { location.href = `${VERSE}/citizenship`; }, 1400);
+  const v = document.createElement('div');
+  v.className = 'veil';
+  v.innerHTML = `<div class="sheet need"><img src="/tziftzif/img/mark-dark.png" alt=""><b>${ME.signed ? 'רק אזרחים מצייצים' : 'רוצים לצייץ?'}</b>
+    <p>${ME.signed ? 'בציפציפ מצייצים, מגיבים ומחתימים אזרחי השלומיוורס - עם דרכון. מוציאים דרכון בדקה, וחוזרים לשיחה.' : 'נכנסים, מוציאים דרכון שלומיוורס, ומצטרפים לשיחה עם התושבים.'}</p>
+    <div class="row">${ME.signed ? `<a class="btn acc" href="${VERSE}/citizenship">להוציא דרכון</a>` : '<button class="btn acc" data-signin>כניסה</button>'}<button class="btn ghost" data-close>אחר כך</button></div></div>`;
+  v.addEventListener('click', (e) => { if (e.target === v || e.target.closest('[data-close],[data-signin]')) v.remove(); });
+  document.body.appendChild(v);
 }
 async function signIn() {
   const tok = await token(true);
   if (!tok) return;
   await loadMe(); route();
+  if (!ME.citizen) needCitizen();   // signed in, no passport yet - straight to the next step
 }
 function share(id) {
   const url = `${location.origin}/tziftzif/p/${id}`;
@@ -295,6 +307,7 @@ async function report(id) {
   });
 }
 function compose() {
+  if (!ME.citizen) return needCitizen();
   sheet('ציוץ חדש', 'מה קורה?', async (text) => {
     const r = await api('post', { text }, true);
     if (r.error) { toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }

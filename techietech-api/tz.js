@@ -131,7 +131,7 @@ async function brainNow() {
 }
 const byId = (b) => Object.fromEntries(b.characters.map((c) => [c.id, c]));
 // one line per resident for the picking call (fixed text, so OpenAI's cache serves it run after run)
-const rosterLine = (c) => `${c.id} | ${nameOf(c)} | ${c.world} | ${short(c.role, 90)} | ${short((c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`)), 140)}`;
+const rosterLine = (c) => `${c.id} | ${nameOf(c)} | ${lastVid[c.id] ? 'newest video ' + day(lastVid[c.id]) : 'no video yet'} | ${c.world} | ${short(c.role, 90)} | ${short((c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`)), 140)}`;
 // the full voice of a resident for the writing call
 const voice = (c) => [`### ${c.id} - ${nameOf(c)} (${c.world}) - ${short(c.role, 120)}`, ...(AL[c.id] ? [`ON ציפציפ THIS RESIDENT IS CALLED "${AL[c.id].name}" - never write the original name "${c.name}", not even in other residents' posts`] : []),
   `personality: ${short(c.personality, 400)}`, `catchphrases: ${short(c.catchphrases, 200)}`, `speech: ${short(c.speech, 500)}`,
@@ -202,10 +202,14 @@ async function ogImage(url) {
 // WHO posts this run - an algorithm, not the AI (his call). Every resident has a weight:
 //   loved:   1 + log2(1 + their videos)   x2 for his stars   x(1 + log2(1 + stamps+replies on their posts in 14 days) / 3)
 //   rested:  min(1, (hours since their last post + 1) / 12) - who just posted waits; a long silence is fine
+//   fresh:   x4 when their newest video is from the last 7 days, x2 from the last 30 (his ask 2026-11-08: "the characters
+//            with the latest videos reply first") - and the candidates go to the AI freshest first
 //   kids:    x0.25
 // and ~10 are drawn by weight without repeating, at most 3 from one world - the AI then matches them to the news.
 async function candidates(cfg, C) {
   const off = new Set(cfg.off || []), stars = new Set(cfg.stars || STARS);
+  await wikiNow();
+  const fresh = (id) => { const d = (Date.now() - (lastVid[id] || 0)) / 864e5; return d <= 7 ? 4 : d <= 30 ? 2 : 1; };
   const since = Timestamp.fromMillis(Date.now() - 14 * 864e5);
   const recent = (await db().collection('tzPosts').where('status', '==', 'live').where('t', '>=', since).orderBy('t', 'desc').limit(600).get()).docs.map((d) => d.data());
   const eng = {}, lastAt = {};
@@ -217,7 +221,7 @@ async function candidates(cfg, C) {
   const pool = Object.values(C).filter((c) => !off.has(c.id) && c.id !== NEWS).map((c) => {
     const loved = (1 + Math.log2(1 + (c.videos || []).length)) * (stars.has(c.id) ? 2 : 1) * (1 + Math.log2(1 + (eng[c.id] || 0)) / 3);
     const hours = lastAt[c.id] ? (Date.now() - lastAt[c.id]) / 3600e3 : 999;
-    return { c, w: loved * Math.min(1, (hours + 1) / 12) * (KIDS.includes(c.id) ? 0.25 : 1) };
+    return { c, w: loved * fresh(c.id) * Math.min(1, (hours + 1) / 12) * (KIDS.includes(c.id) ? 0.25 : 1) };
   });
   const out = [], perWorld = {};
   while (out.length < PER_RUN && pool.length) {
@@ -229,14 +233,14 @@ async function candidates(cfg, C) {
     perWorld[x.c.world] = (perWorld[x.c.world] || 0) + 1;
     out.push(x.c);
   }
-  return out;
+  return out.sort((a, b) => (lastVid[b.id] || 0) - (lastVid[a.id] || 0));
 }
 
 const PICK_RULES = `You are the editor of "ציפציפ", a social network exactly like X / Twitter that exists inside the Shlomiverse - a comedy universe whose residents are treated as REAL people living in a parallel universe (never call them characters, never a parody). Like real Twitter it is MAINLY about the news: politics and current affairs (אקטואליה), and the residents' takes on them. The verse also has its own TV news channel, "חרדות" (short form ח24): a satire of what news really does - engineering minds, pouring poison, storms, clickbait, rage bait, a reality show of disasters made only to keep people anxious and watching.
 Three times a day you get the latest real Israeli headlines and today's CANDIDATES (the residents who may post now). Your job:
 1. BAD DAY CHECK - FIRST, ABOVE EVERYTHING: a bad day is a day of ISRAEL's national pain: a terror attack (פיגוע) in Israel or against Israelis / Jews abroad, a war event / rocket fire with people killed or wounded, a disaster in Israel with people killed (an earthquake, a collapse, a big fire with dead), hostages, a national day of mourning or a funeral of victims of these. A tragedy abroad that is not about Israelis or Jews is not a bad day - just never pick it. Then bad_day = true, items = [] - nobody in the verse posts anything today. When in doubt whether a headline is one of THESE, it is a bad day. Everyday tragedies - a road accident, a fire, a crime, an illness - are NOT a bad day: just never pick them.
 2. Otherwise pick 2-3 headlines that Twitter would be talking about right now - politics, the government and the Knesset, the economy and prices, legal and civic affairs, tech, education, transport, culture and sport controversies. Never pick: deaths, crime victims, sexual offences, illness of a named person, minors, anything that could hurt real people.
-3. For each headline choose 2-4 of the candidates (only from the candidates list) whose world, job or personality gives them a real take - the obvious one and a surprising one; when two candidates have a relation (family, colleagues, rivals) let them argue. Use each candidate at most once. Leave out candidates who have nothing real to say. article = true when ח24 should turn the headline into a dramatic article (1-2 per run, the juiciest ones).
+3. For each headline choose 2-4 of the candidates (only from the candidates list) whose world, job or personality gives them a real take - the obvious one and a surprising one; when two candidates have a relation (family, colleagues, rivals) let them argue. Use each candidate at most once. Leave out candidates who have nothing real to say. The candidates come freshest first - the residents with the newest videos are the ones people know right now: give them the first posts and the reactions to ח24, before the others. article = true when ח24 should turn the headline into a dramatic article (1-2 per run, the juiciest ones).
 4. head = the headline's number. angle = one short English line: the take (the resident's own life / worldview against the news).
    Lines marked [ח24] are articles ח24 already posted on ציפציפ (its hysteria about a real story): the residents reposting and commenting on the CHANNEL is what makes ציפציפ alive - when such lines exist, at least one item (better two) is a [ח24] line: they mock its panic, panic along with it, argue in its comments; for those article = false (they have one).
 5. STORY: life in the verse stays regular - no big events. If the input says an ongoing story exists, at most one item may let a resident mention it. If the input says a big story MAY start, you may set new_story to one short English line: something bigger that happens inside the verse and will develop over the next days (realistic for that world, not a disaster) - otherwise new_story = "".`;
@@ -336,7 +340,7 @@ async function run(slot = 'manual') {
 LATEST HEADLINES:
 ${fresh.map((h, i) => `${i}. [${h.src}] ${h.title}${h.desc ? ' - ' + clip(h.desc, 160) : ''}`).join('\n') || '(none)'}
 ${ch.length ? `\nח24'S ARTICLES ON ציפציפ:\n${ch.map((h, i) => `${fresh.length + i}. [ח24] ${h.title} - ${h.desc}`).join('\n')}\n` : ''}
-CANDIDATES (id | name | world | role | relations):
+CANDIDATES, freshest first (id | name | newest video | world | role | relations):
 ${cands.map(rosterLine).join('\n')}
 
 POSTED IN THE LAST RUNS (don't repeat a take):
@@ -410,7 +414,7 @@ async function save(items, written, { run, C = {} }) {
       if (!allowed.has(p.by) || !clip(p.text, 1)) { dropped.push(`${i}:${clip(p.by, 30)}`); mine.push(null); return; }
       const parent = p.reply_to >= 0 && p.reply_to < k ? mine[p.reply_to] : p.quote === 'reply' && newsPost ? { id: newsPost.id, root: newsPost.root || newsPost.id } : null;
       const doc = { id: newId(), by: p.by, text: clip(p.text, 280), parent: parent ? parent.id : null, quote: !parent && p.quote === 'article' && newsPost ? newsPost.id : null,
-        article: null, link: !parent && p.link ? link : null, status: 'draft', t: null, made, run, order: order++, replies: 0, stamps: 0, quotes: 0 };
+        article: null, link: !parent && p.link && !(p.quote === 'article' && newsPost) ? link : null, status: 'draft', t: null, made, run, order: order++, replies: 0, stamps: 0, quotes: 0 };
       doc.root = parent ? parent.root : doc.id;
       mine.push(doc); posts.push(doc);
     });
@@ -713,10 +717,16 @@ async function pageOf(url) {
   pageCache[url] = { v, t: Date.now() };
   return v;
 }
-let wikiData = null, wikiAt = 0;
+let wikiData = null, wikiAt = 0, lastVid = {};
 async function wikiNow() {
   if (wikiData && Date.now() - wikiAt < 120e3) return wikiData;
-  try { const w = await (await fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json')).json(); wikiData = Object.fromEntries((w.characters || []).map((c) => [c.id, c])); wikiAt = Date.now(); } catch (e) {}
+  try {
+    const w = await (await fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json')).json();
+    wikiData = Object.fromEntries((w.characters || []).map((c) => [c.id, c])); wikiAt = Date.now();
+    // each resident's newest video (its date) - who is fresh on the verse right now
+    lastVid = {};
+    for (const v of w.videos || []) { const t = Date.parse(v.date || ''); if (t) for (const id of v.cast || []) lastVid[id] = Math.max(lastVid[id] || 0, t); }
+  } catch (e) {}
   return wikiData || {};
 }
 const ex = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
