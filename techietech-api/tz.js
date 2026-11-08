@@ -62,9 +62,31 @@ const FEEDS = [
 // changes the list in Backstage → ציפציפ (verseMeta/tz.stars), and can take anyone out (verseMeta/tz.off)
 const STARS = ['hani', 'yotam', 'demokratovich', 'rosenblum', 'avram', 'genz', 'gilad', 'osnat', 'vova', 'nahor', 'dorit', 'ayelet',
   'miriam', 'savta', 'taxi-driver', 'news-anchor', 'yudit', 'daniel', 'neighbor'];
+// impressions of real people go by a verse name and handle on ציפציפ - never the real name (his rule 2026-11-08: "find a
+// different name for every impression"; a first pass - he improves them in verseMeta/tz.aliases, which wins over these)
+const ALIASES = {
+  bennett: { name: 'נפתלי בנטל', handle: 'bentel' },
+  feiglin: { name: 'משה פייגלייט', handle: 'feiglight' },
+  eisenkot: { name: 'גדי איזהקוט', handle: 'eizekot' },
+  'yinon-magal': { name: 'ינון מגלגל', handle: 'megalgel' },
+  'yotam-zamri': { name: 'יותם זעמרי', handle: 'zaamri' },
+  'dor-eckstein': { name: 'דור אקסטרים', handle: 'dor_extreme' },
+  matan: { name: 'מתן ניסטרדמוס', handle: 'nistradamus' },
+  'danny-buller': { name: 'דני מבולבלר', handle: 'mevulbaler' },
+  'alex-daniel': { name: 'אלכס זוגניאל', handle: 'zugniel' },
+  'naor-zion': { name: 'נאור עצבון', handle: 'atzbon' },
+  'avi-shushan': { name: 'אבי שוש-און', handle: 'shush_on' },
+  hatzroni: { name: 'פרופסור מעלוני', handle: 'prof_maaloni' },
+  'mordechai-david': { name: 'מרדכי חוסם', handle: 'hosem' },
+  'neve-dromi': { name: 'נווה צפוני', handle: 'neve_tzfoni' },
+  oded: { name: 'עודד קלישאש', handle: 'klishash' },
+  alon: { name: 'אלון טיפון', handle: 'tifun' },
+  'omer-koli': { name: 'עומר קוליטוב', handle: 'kolitov' },
+};
 // children post rarely (and never about politics - the writing rules)
 const KIDS = ['sruli', 'feigy', 'shterni', 'brachi', 'chaimi', 'yanky', 'ruchami', 'malki', 'shloimi', 'nephew', 'teen', 'omer-student'];
-const DEFAULTS = { open: false, auto: true, img: true, silent: null, stars: STARS, off: ['shloimi'], arc: null };
+const DEFAULTS = { open: false, auto: true, img: true, silent: null, stars: STARS, off: ['shloimi'], arc: null, aliases: {} };
+let AL = ALIASES;   // the aliases in force (ALIASES + his changes), set by config()
 
 const day = (t = Date.now()) => new Date(t + 2 * 3600e3).toISOString().slice(0, 10);   // Israel's date (close enough all year)
 const clip = (s, n) => String(s ?? '').trim().slice(0, n);
@@ -72,7 +94,8 @@ const short = (s, n) => { s = Array.isArray(s) ? s.join(' · ') : String(s || ''
 const newId = () => crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, '').slice(0, 12).toLowerCase();
 const ms = (t) => (t && t.toMillis ? t.toMillis() : t || 0);
 const meta = () => db().collection('verseMeta').doc('tz');
-async function config() { const d = (await meta().get()).data() || {}; return { ...DEFAULTS, ...d }; }
+async function config() { const d = (await meta().get()).data() || {}; const c = { ...DEFAULTS, ...d }; AL = { ...ALIASES, ...(c.aliases || {}) }; return c; }
+const nameOf = (c) => (AL[c.id] && AL[c.id].name) || c.name;
 
 // the characters, from the same brain as the chat (gs://shlomiverse-private/wiki-brain.json, looked at every 3 minutes)
 let brain = bundled, brainMd5 = 'bundled', checked = 0;
@@ -88,9 +111,9 @@ async function brainNow() {
 }
 const byId = (b) => Object.fromEntries(b.characters.map((c) => [c.id, c]));
 // one line per resident for the picking call (fixed text, so OpenAI's cache serves it run after run)
-const rosterLine = (c) => `${c.id} | ${c.name} | ${c.world} | ${short(c.role, 90)} | ${short((c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`)), 140)}`;
+const rosterLine = (c) => `${c.id} | ${nameOf(c)} | ${c.world} | ${short(c.role, 90)} | ${short((c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`)), 140)}`;
 // the full voice of a resident for the writing call
-const voice = (c) => [`### ${c.id} - ${c.name} (${c.world}) - ${short(c.role, 120)}`,
+const voice = (c) => [`### ${c.id} - ${nameOf(c)} (${c.world}) - ${short(c.role, 120)}`, ...(AL[c.id] ? [`ON ציפציפ THIS RESIDENT IS CALLED "${AL[c.id].name}" - never write the original name "${c.name}", not even in other residents' posts`] : []),
   `personality: ${short(c.personality, 400)}`, `catchphrases: ${short(c.catchphrases, 200)}`, `speech: ${short(c.speech, 500)}`,
   `writing rules: ${short(c.writing_rules, 450)}`, `never: ${short(c.dont, 300)}`,
   `relations: ${short((c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`)), 300)}`].join('\n');
@@ -193,6 +216,7 @@ const ARTICLE_SCHEMA = S({ articles: arr(S({ headline: str, sub: str, body: arr(
 const POST_RULES = `You write posts for "ציפציפ", the Shlomiverse's own social network - exactly like X / Twitter, and like Twitter mostly about the news. The Shlomiverse is a comedy universe whose residents are REAL people living in a parallel universe: write them as real people posting from their phone, never as characters; never mention a parody, AI, a script or Shlomi.
 POSTS: Hebrew, short like real tweets (one to three short lines, at most 240 characters), in the resident's OWN voice - their speech, catchphrases (sparingly, not in every post), world and relations from their profile below. Each takes the news through their own life and worldview: a hot take, a complaint, sarcasm, a "back in my day", a professional opinion, an argument. Funny through their point of view, never by explaining the joke. ALWAYS HEBREW - even a resident who lectures in English or mixes English writes in Hebrew here, at most a single English word. No hashtags, no emoji. Each post a different rhythm - never two opening the same way.
 REAL PEOPLE IN THE NEWS: facts only from the headline; never invent a quote, an action or a private detail about a real person; the opinions and jokes are the resident's own. A resident who is an impression of a real public figure speaks only in opinions and jokes in that figure's style - never announces a concrete fact or decision as if it happened. No insults about religion, origin, gender or body. Children never talk about politics.
+NAMES: residents are called only by the names given in their profiles here (some go by a verse name - never use the original one).
 STRUCTURE per item, in order: reply_to = -1 for a post of its own, or the index (in this item's posts list) of an earlier post it answers - residents with a relation reply to each other. quote = "article" when the post quotes ח24's post about the item (only when the item has an article), else "none". link = true when the post shares the real news link (at most once per item, never on a reply).`;
 const POST_SCHEMA = S({ items: arr(S({ posts: arr(S({ by: str, text: str, reply_to: int, quote: { type: 'string', enum: ['article', 'none'] }, link: bool }), 1, 5) })) });
 
@@ -488,7 +512,8 @@ async function post(user, b) {
 async function answer(doc) {
   const cfg = await config();
   const off = new Set(cfg.off || []);
-  const tagged = [...new Set((doc.text.match(/@([a-z][a-z0-9-]{1,30})/g) || []).map((s) => s.slice(1)))].filter((id) => !off.has(id));
+  const byHandle = Object.fromEntries(Object.entries(AL).map(([id, a]) => [a.handle, id]));   // @bentel -> bennett
+  const tagged = [...new Set((doc.text.match(/@([a-z][a-z0-9_-]{1,30})/g) || []).map((s) => byHandle[s.slice(1)] || s.slice(1)))].filter((id) => !off.has(id));
   if (!tagged.length || cfg.silent === day()) return;
   const b = await brainNow(), C = byId(b), id = tagged.find((x) => C[x]);
   if (!id || !(await spend('tzreply', doc.fan.uid, REPLIES_A_DAY))) return;
@@ -524,9 +549,9 @@ async function handle(req) {
   if (op === 'front') return front();
   if (op === 'home') return home(cfg);
   if (op === 'me') {   // what the page needs to know about the visitor: signed in, a citizen (a passport), who they follow on the verse
-    if (!user) return { signed: false, citizen: false, owner: false, follows: [] };
+    if (!user) return { signed: false, citizen: false, owner: false, follows: [], names: AL };
     const f = (await db().collection('fans').doc(user.uid).get()).data() || {};
-    return { signed: true, owner: isOwner(user), citizen: isOwner(user) || !!(f.citizen && f.citizen.n), follows: f.follows || [] };
+    return { signed: true, owner: isOwner(user), citizen: isOwner(user) || !!(f.citizen && f.citizen.n), follows: f.follows || [], names: AL };
   }
   if (op === 'article') return article(b.id);
   if (!user) return { error: 'sign_in' };
@@ -560,6 +585,7 @@ exports.verseTzRun = onSchedule({ schedule: '0 8,13,19 * * *', timeZone: 'Asia/J
 exports.verseTzOnPost = onDocumentCreated({ document: 'tzPosts/{id}', region: 'me-west1', secrets: SECRETS, timeoutSeconds: 60 }, async (ev) => {
   const doc = ev.data && ev.data.data();
   if (!doc || !doc.fan || !/@[a-z]/.test(doc.text || '')) return;
+  await config();   // the aliases (verse handles) in force
   try { await answer(doc); } catch (e) { console.error('verseTzOnPost', e.message); }
 });
 

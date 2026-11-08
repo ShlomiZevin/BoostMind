@@ -5,7 +5,7 @@ const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 const API = LOCAL ? 'http://127.0.0.1:5001/demo-shlomiverse/europe-west1/verseTz' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseTz';
 const WIKI = 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json';
 const app = document.getElementById('app');
-let C = {};
+let C = {}, NAMES = {};   // NAMES: impressions of real people go by their verse name (the server's aliases)
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const when = (t) => new Date(t).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' });
 const track = (e, x) => { try { window.track && window.track(e, x); } catch (er) {} };
@@ -47,7 +47,7 @@ async function article(id) {
   document.title = `${a.headline} · ח24`;
   ticker([a, ...r.more]);
   const face = (p) => (p.by === 'charadot' ? '/charadot/img/avatar.png' : (C[p.by] && C[p.by].img) || '/tziftzif/img/avatar.png');
-  const name = (p) => (p.by === 'charadot' ? 'חרדות' : (C[p.by] && C[p.by].name) || p.by);
+  const name = (p) => (p.by === 'charadot' ? 'חרדות' : (NAMES[p.by] && NAMES[p.by].name) || (C[p.by] && C[p.by].name) || p.by);
   app.innerHTML = `<article class="art">
       <div class="head"><span class="tag">${esc(a.tag || 'חדשות')}</span><h1>${esc(a.headline)}</h1><p class="sub">${esc(a.sub)}</p>
         <div class="by"><img src="/charadot/img/avatar.png" alt=""><span>מערכת ח24 · ${when(a.t)}</span></div></div>
@@ -73,5 +73,7 @@ document.addEventListener('click', (e) => {
 addEventListener('popstate', route);
 (async () => {
   try { const w = await (await fetch(WIKI)).json(); C = Object.fromEntries((w.characters || []).map((c) => [c.id, c])); } catch (e) {}
+  const me = await api('me');
+  NAMES = (me && me.names) || {};
   route();
 })();

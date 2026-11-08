@@ -10,7 +10,10 @@ const API = LOCAL ? 'http://127.0.0.1:5001/demo-shlomiverse/europe-west1/verseTz
 const WIKI = 'https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json';
 const VERSE = 'https://shlomiverse.com';
 const app = document.getElementById('app');
-let C = {}, ME = { signed: false, citizen: false, owner: false, follows: [] }, TAB = 'all';
+let C = {}, ME = { signed: false, citizen: false, owner: false, follows: [], names: {} }, TAB = 'all';
+// an impression of a real person goes by its verse name and handle here (the server's aliases), never the real name
+const nm = (id) => (ME.names && ME.names[id] && ME.names[id].name) || (C[id] && C[id].name) || id;
+const hdl = (id) => (ME.names && ME.names[id] && ME.names[id].handle) || id;
 
 // ---------- small things ----------
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -45,7 +48,7 @@ function who(p) {
   if (p.by === 'charadot') return { name: 'חרדות', handle: 'charadot', img: '/charadot/img/avatar.png', href: '/charadot', badge: CHECK('#e3101b'), stamp: 'הישארו איתנו', news: true };
   if (p.by) {
     const c = C[p.by] || { name: p.by };
-    return { name: c.name, handle: p.by, img: c.img, href: `/tziftzif/u/${p.by}`, badge: CHECK('#7d8590'), stamp: stampOf(c) };
+    return { name: nm(p.by), handle: hdl(p.by), img: c.img, href: `/tziftzif/u/${p.by}`, badge: CHECK('#7d8590'), stamp: stampOf(c) };
   }
   const f = p.fan || {};
   if (f.official) return { name: 'ציפציפ', handle: 'tziftzif', img: '/tziftzif/img/avatar.png', href: '/tziftzif', badge: CHECK('#ff7a1f'), stamp: 'ציפ!' };
@@ -59,7 +62,8 @@ function stampOf(c) {
 const avatar = (w, cls = '') => (w.img ? `<${w.href ? `a href="${w.href}"` : 'span'} class="av ${cls}"><img src="${esc(w.img)}" alt="" loading="lazy"></${w.href ? 'a' : 'span'}>`
   : `<span class="av fan ${cls}">${esc((w.name || '?').slice(0, 1))}</span>`);
 // @hani -> the resident's page
-const linkify = (t) => esc(t).replace(/@([a-z][a-z0-9-]{1,30})/g, (m, id) => (C[id] || id === 'charadot' ? `<a class="m" href="${id === 'charadot' ? '/charadot' : '/tziftzif/u/' + id}">@${id}</a>` : m));
+const idOf = (h) => Object.keys(ME.names || {}).find((id) => ME.names[id].handle === h) || h;   // a verse handle -> the resident
+const linkify = (t) => esc(t).replace(/@([a-z][a-z0-9_-]{1,30})/g, (m, h) => { const id = idOf(h); return C[id] || id === 'charadot' ? `<a class="m" href="${id === 'charadot' ? '/charadot' : '/tziftzif/u/' + id}">@${id === 'charadot' ? id : hdl(id)}</a>` : m; });
 
 // ---------- talking to the server ----------
 async function token(ask) {
@@ -163,23 +167,23 @@ async function thread(id) {
     + (after.length ? '' : '<div class="empty">עוד אין תגובות.</div>');
   if (ME.citizen) {
     const w = who(r.post);
-    app.insertAdjacentHTML('beforeend', `<form class="say" data-reply="${r.post.id}"><textarea rows="1" maxlength="280" placeholder="להגיב ל${esc(w.name)}...${w.handle && !w.news ? ` (או @${esc(w.handle)} כדי ש${esc(w.name)} יענה)` : ''}"></textarea><button class="send" aria-label="שליחה">${I.send}</button></form>`);
+    app.insertAdjacentHTML('beforeend', `<form class="say" data-reply="${r.post.id}"><textarea rows="1" maxlength="280" placeholder="להגיב ל${esc(w.name)}...${r.post.by && !w.news ? ` (או @${esc(hdl(r.post.by))} כדי ש${esc(w.name)} יענה)` : ''}"></textarea><button class="send" aria-label="שליחה">${I.send}</button></form>`);
   } else app.insertAdjacentHTML('beforeend', gate());
   track('tz_post', id);
 }
 
 async function resident(id) {
   const c = C[id] || (id === 'charadot' ? null : { name: id });
-  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">${esc(c ? c.name : 'חרדות')}</span><span style="margin-inline-start:auto">${brand()}</span></div></div>
+  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">${esc(c ? nm(id) : 'חרדות')}</span><span style="margin-inline-start:auto">${brand()}</span></div></div>
     <div class="prof"><div class="cov" style="${c && c.color ? `background:linear-gradient(135deg, ${esc(c.color)}55, #0b0b0e 75%)` : ''}"></div>
     <div class="row"><div class="pic">${c && c.img ? `<img src="${esc(c.img)}" alt="">` : ''}</div><a class="btn ghost" href="${VERSE}/c/${esc(id)}">בשלומיוורס</a></div>
-    <h1>${esc(c ? c.name : id)} ${CHECK('#7d8590')}</h1><span class="hn">@${esc(id)}</span>
+    <h1>${esc(c ? nm(id) : id)} ${CHECK('#7d8590')}</h1><span class="hn">@${esc(hdl(id))}</span>
     <p>${esc(c && (c.tagline || c.role) || '')}</p></div><div id="list"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>`;
-  document.title = `${c ? c.name : id} · ציפציפ`;
+  document.title = `${c ? nm(id) : id} · ציפציפ`;
   const r = await api('resident', { char: id });
   if (r.error) return r.error === 'soon' ? soon() : null;
   take(r);
-  document.getElementById('list').innerHTML = r.posts.map((p) => card(p)).join('') || `<div class="empty">${esc(c ? c.name : id)} עוד לא צייצ/ה.</div>`;
+  document.getElementById('list').innerHTML = r.posts.map((p) => card(p)).join('') || `<div class="empty">${esc(c ? nm(id) : id)} עוד לא צייצ/ה.</div>`;
   track('tz_resident', id);
 }
 
