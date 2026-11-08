@@ -26,7 +26,10 @@ console.log('desk', JSON.stringify(r), `${Math.round((Date.now() - t0) / 1000)}s
 if (r.bad) { console.log('ok  a bad day - ח24 is silent (', r.why, ')'); process.exit(0); }
 assert(r.articles > 0, 'the desk wrote nothing');
 const arts = (await db.collection('tzArticles').where('run', '==', r.run).get()).docs.map((d) => d.data()).sort((a, b) => b.t.toMillis() - a.t.toMillis());
-assert(arts.every((a) => a.status === 'live' && a.t && a.desk && !a.post), 'live at once, no ציפציפ post');
+assert(arts.every((a) => a.status === 'live' && a.t && a.desk && a.post), 'live at once, each with its ציפציפ post');
+const chPosts = (await db.collection('tzPosts').where('run', '==', r.run).get()).docs.map((d) => d.data());
+assert(chPosts.length === arts.length && chPosts.every((p) => p.by === 'charadot' && p.status === 'live' && p.article), 'ח24 posts every article on ציפציפ');
+console.log(`ok  ${chPosts.length} ח24 posts on ציפציפ, spread over ${Math.round((Math.max(...chPosts.map((p) => p.t.toMillis())) - Math.min(...chPosts.map((p) => p.t.toMillis()))) / 60e3)} minutes`);
 const run = (await db.collection('tzRuns').doc(r.run).get()).data();
 console.log(`ok  ${arts.length} articles · sections: ${arts.map((a) => a.tag).join(', ')} · tokens ${run.uCh.join('/')}`);
 assert(new Set(arts.map((a) => a.src.url)).size === arts.length, 'one article per story');
@@ -36,6 +39,17 @@ const urls2 = (await db.collection('tzArticles').where('run', '==', r2.run || '-
 assert(!urls2.some((u) => arts.some((a) => a.src.url === u)), 'the second desk skips what the first covered');
 console.log(`ok  a second desk: ${r2.articles} new stories, none covered twice`);
 
+// the residents' next run may react to ח24's article whose post is already up (the first one goes up at once)
+if (process.env.TZ_RUN) {
+  const rr = await tz._run('noon');
+  const rp = (await db.collection('tzPosts').where('run', '==', rr.run || '-').get()).docs.map((d) => d.data());
+  const rd = (await db.collection('tzRuns').doc(rr.run).get()).data();
+  console.log('run', JSON.stringify(rr), 'offered ח24', rd.ch, 'picked', rd.chPicked, '·', rd.why);
+  const all = (await db.collection('tzPosts').get()).docs.map((d) => d.data()), chIds = new Set(all.filter((p) => p.by === 'charadot').map((p) => p.id));
+  const q = rp.filter((p) => chIds.has(p.quote) || chIds.has(p.parent));
+  rp.forEach((p) => console.log(`   ${p.by}${chIds.has(p.quote) ? ' [repost ח24]' : chIds.has(p.parent) ? ' [comment on ח24]' : p.parent ? ' [reply]' : ''}: ${p.text}`));
+  console.log(`ok  the residents' run: ${rp.length} posts, ${q.length} react to ח24 (repost / comment)`);
+}
 fs.writeFileSync(OUT, arts.map((a) => `## [${a.tag}] ${a.headline}\n_${a.sub}_\n\nמקור: ${a.src.src} - ${a.src.title}\n\n${a.body.join('\n\n')}\n\nציוץ: ${a.post || '-'}\n`).join('\n---\n'));
 console.log('ok  written to', OUT);
 process.exit(0);

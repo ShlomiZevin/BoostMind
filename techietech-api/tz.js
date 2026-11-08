@@ -16,7 +16,8 @@
 //   next run, so the timeline moves all day for the price of 3 runs.
 // - ח24's desk (`desk()`, his idea 2026-11-08) runs right after each run: the channel covers the day's news itself, every
 //   section (politics, economy, culture, sport, tech, weather...), and turns every headline - good news too - into the
-//   worst case: a storm, a failure, a scandal, a disaster about to happen. One call picks + writes, then the pictures.
+//   worst case: a storm, a failure, a scandal, a disaster about to happen. One call picks + writes, then the pictures;
+//   each article is posted by ח24 on ציפציפ over the hours, and the next run's residents may react to the channel's take.
 // - Until `open` (verseMeta/tz) only his account reads anything - the pages show "soon" to everyone else.
 // Data (Firestore): tzPosts, tzArticles, tzRuns, tzStamps, tzReports, verseMeta/tz; pictures in gs://shlomiverse-media/tz/.
 // Keys (OpenAI project "Shlomiverse", Backstage → הוצאות shows each): VERSE_TZ_OPENAI_KEY (shlomiverse-tziftzif) for the
@@ -237,6 +238,7 @@ Three times a day you get the latest real Israeli headlines and today's CANDIDAT
 2. Otherwise pick 2-3 headlines that Twitter would be talking about right now - politics, the government and the Knesset, the economy and prices, legal and civic affairs, tech, education, transport, culture and sport controversies. Never pick: deaths, crime victims, sexual offences, illness of a named person, minors, anything that could hurt real people.
 3. For each headline choose 2-4 of the candidates (only from the candidates list) whose world, job or personality gives them a real take - the obvious one and a surprising one; when two candidates have a relation (family, colleagues, rivals) let them argue. Use each candidate at most once. Leave out candidates who have nothing real to say. article = true when ח24 should turn the headline into a dramatic article (1-2 per run, the juiciest ones).
 4. head = the headline's number. angle = one short English line: the take (the resident's own life / worldview against the news).
+   Lines marked [ח24] are articles ח24 already posted on ציפציפ (its hysteria about a real story): the residents reposting and commenting on the CHANNEL is what makes ציפציפ alive - when such lines exist, at least one item (better two) is a [ח24] line: they mock its panic, panic along with it, argue in its comments; for those article = false (they have one).
 5. STORY: life in the verse stays regular - no big events. If the input says an ongoing story exists, at most one item may let a resident mention it. If the input says a big story MAY start, you may set new_story to one short English line: something bigger that happens inside the verse and will develop over the next days (realistic for that world, not a disaster) - otherwise new_story = "".`;
 const PICK_SCHEMA = S({ bad_day: bool, why: str, items: arr(S({ head: int, angle: str, article: bool, cast: arr(str, 1, 4) }), 0, 3), new_story: str });
 
@@ -286,23 +288,28 @@ async function desk(slot = 'manual', n) {
   const made = FieldValue.serverTimestamp(), batch = db().batch();
   const arts = picked.map((x) => { const h = fresh[x.head]; return { id: newId(), headline: clip(x.headline, 160), sub: clip(x.sub, 260), body: (x.body || []).map((p) => clip(p, 900)).filter(Boolean),
     tag: clip(x.tag, 20), kind: 'real', desk: true, src: { url: h.url, title: h.title, src: h.src, img: h.img || null }, img: null, status: 'draft', t: null, made, run: runRef.id, post: null }; });
+  // ...and ח24 posts each on ציפציפ (its breaking-news line + the article card), spread over the hours until the next run
+  const posts = arts.map((a, i) => { const id = newId(); a.post = id;
+    return { id, root: id, by: NEWS, text: clip(picked[i].post || a.headline, 280), parent: null, quote: null, article: a.id, link: null, status: 'draft', t: null, made, run: runRef.id, order: i, replies: 0, stamps: 0, quotes: 0 }; });
   arts.forEach((a) => batch.set(db().collection('tzArticles').doc(a.id), a));
+  posts.forEach((p) => batch.set(db().collection('tzPosts').doc(p.id), p));
   await batch.commit();
   if (cfg.img) await Promise.all(arts.map((a) => picture(a).catch((e) => console.error('tz picture', e.message))));
   // live at once, the first pick on top (a minute apart, so the front page keeps the channel's order)
   const now = Date.now(), up = db().batch();
   arts.forEach((a, i) => up.update(db().collection('tzArticles').doc(a.id), { status: 'live', t: Timestamp.fromMillis(now - i * 60e3) }));
   await up.commit();
-  await runRef.set({ ...log, made: 0, articles: arts.map((a) => a.id), used: [] });
-  return { articles: arts.length, run: runRef.id };
+  if (cfg.auto) await publish(posts.map((p) => p.id), [], spread(slot));
+  await runRef.set({ ...log, made: posts.length, articles: arts.map((a) => a.id), posts: posts.map((p) => p.id), used: [] });
+  return { articles: arts.length, posts: posts.length, run: runRef.id };
 }
 
 const POST_RULES = `You write posts for "ציפציפ", the Shlomiverse's own social network - exactly like X / Twitter, and like Twitter mostly about the news. The Shlomiverse is a comedy universe whose residents are REAL people living in a parallel universe: write them as real people posting from their phone, never as characters; never mention a parody, AI, a script or Shlomi.
 POSTS: Hebrew, short like real tweets (one to three short lines, at most 240 characters), in the resident's OWN voice - their speech, catchphrases (sparingly, not in every post), world and relations from their profile below. Each takes the news through their own life and worldview: a hot take, a complaint, sarcasm, a "back in my day", a professional opinion, an argument. Funny through their point of view, never by explaining the joke. ALWAYS HEBREW - even a resident who lectures in English or mixes English writes in Hebrew here, at most a single English word. No hashtags, no emoji. Each post a different rhythm - never two opening the same way.
 REAL PEOPLE IN THE NEWS: facts only from the headline; never invent a quote, an action or a private detail about a real person; the opinions and jokes are the resident's own. A resident who is an impression of a real public figure speaks only in opinions and jokes in that figure's style - never announces a concrete fact or decision as if it happened. No insults about religion, origin, gender or body. Children never talk about politics.
 NAMES: residents are called only by the names given in their profiles here (some go by a verse name - never use the original one).
-STRUCTURE per item, in order: reply_to = -1 for a post of its own, or the index (in this item's posts list) of an earlier post it answers - residents with a relation reply to each other. quote = "article" when the post quotes ח24's post about the item (only when the item has an article), else "none". link = true when the post shares the real news link (at most once per item, never on a reply).`;
-const POST_SCHEMA = S({ items: arr(S({ posts: arr(S({ by: str, text: str, reply_to: int, quote: { type: 'string', enum: ['article', 'none'] }, link: bool }), 1, 5) })) });
+STRUCTURE per item, in order: by = the resident's ID exactly as after "###" in their profile (latin letters, e.g. taxi-driver) - never their name. reply_to = -1 for a post of its own, or the index (in this item's posts list) of an earlier post it answers - residents with a relation reply to each other. When the item has ח24's post: quote = "article" = a repost with the resident's own comment on top (quote tweet), quote = "reply" = a comment under ח24's post (with reply_to = -1); mix both - this is what makes ציפציפ alive: residents reposting the channel's hysteria with a comment and arguing in its comments. Otherwise quote = "none". link = true when the post shares the real news link (at most once per item, never on a reply).`;
+const POST_SCHEMA = S({ items: arr(S({ posts: arr(S({ by: str, text: str, reply_to: int, quote: { type: 'string', enum: ['article', 'reply', 'none'] }, link: bool }), 1, 5) })) });
 
 async function run(slot = 'manual') {
   const cfg = await config(), today = day(), runRef = db().collection('tzRuns').doc();
@@ -313,6 +320,11 @@ async function run(slot = 'manual') {
   const recent = await db().collection('tzRuns').orderBy('at', 'desc').limit(10).get();   // (the desk's runs are in here too)
   const used = new Set(recent.docs.flatMap((d) => d.data().used || []));
   const fresh = heads.filter((h) => !used.has(h.url)).slice(0, 40);
+  // ח24's desk articles of the last hours whose post is already up on ציפציפ - the residents may react to the channel itself
+  const chPosts = (await liveNow(db().collection('tzPosts').where('by', '==', NEWS)).limit(15).get()).docs.map((d) => d.data()).filter((p) => p.article && ms(p.t) > Date.now() - 14 * 3600e3);
+  const chArts = chPosts.length ? (await db().getAll(...chPosts.map((p) => db().collection('tzArticles').doc(p.article)))).map((d, i) => d.exists && d.data().desk && { a: d.data(), p: chPosts[i] }) : [];
+  const ch = chArts.filter((x) => x && x.a.src && !used.has(x.a.src.url)).slice(0, 6)
+    .map((x) => ({ src: 'ח24', title: x.a.headline, desc: `הידיעה האמיתית (${x.a.src.src}): ${x.a.src.title}`, url: x.a.src.url, img: x.a.src.img || null, real: x.a.src, ch: { article: x.a.id, post: x.p.id, text: x.p.text } }));
   const b = await brainNow(), C = byId(b);
   const cands = await candidates(cfg, C), candIds = new Set(cands.map((c) => c.id));
   const last = await db().collection('tzPosts').where('status', '==', 'live').orderBy('t', 'desc').limit(20).get();
@@ -323,7 +335,7 @@ async function run(slot = 'manual') {
   const pick = await ask(tzKey(), PICK_RULES, [{ role: 'user', content: `Now (Israel): ${now}.
 LATEST HEADLINES:
 ${fresh.map((h, i) => `${i}. [${h.src}] ${h.title}${h.desc ? ' - ' + clip(h.desc, 160) : ''}`).join('\n') || '(none)'}
-
+${ch.length ? `\nח24'S ARTICLES ON ציפציפ:\n${ch.map((h, i) => `${fresh.length + i}. [ח24] ${h.title} - ${h.desc}`).join('\n')}\n` : ''}
 CANDIDATES (id | name | world | role | relations):
 ${cands.map(rosterLine).join('\n')}
 
@@ -339,7 +351,8 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
     return { bad: true, why: pick.out.why };
   }
   if (mayStart && clip(pick.out.new_story, 1)) await meta().set({ arc: { text: clip(pick.out.new_story, 300), at: Date.now(), until: Date.now() + 4 * 864e5 } }, { merge: true });
-  const items = pick.out.items.map((it) => ({ ...it, h: fresh[it.head], cast: [...new Set(it.cast)].filter((id) => candIds.has(id)) })).filter((it) => it.h && it.cast.length);
+  const all = [...fresh, ...ch];
+  const items = pick.out.items.map((it) => ({ ...it, h: all[it.head], cast: [...new Set(it.cast)].filter((id) => candIds.has(id)) })).filter((it) => it.h && it.cast.length);
   if (!items.length) { await runRef.set({ ...log, heads: fresh.length, cands: [...candIds], why: clip(pick.out.why, 300), made: 0 }); return { made: 0 }; }
 
   // every chosen story gets its own picture (its feed's, else the article page's og:image)
@@ -347,6 +360,7 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
   // ח24's articles first (its own key), so the residents can quote the channel
   // (a story ח24's desk already covered gets no second article)
   const deskUrls = new Set((await db().collection('tzArticles').orderBy('made', 'desc').limit(80).get()).docs.map((d) => d.data().src && d.data().src.url));
+  items.forEach((it) => { if (it.h.ch) { it.article = false; it.art = { post: it.h.ch.text }; } });   // ח24's own article: quoted, not written again
   const withArt = items.filter((it) => it.article && !deskUrls.has(it.h.url)).slice(0, 2);
   if (withArt.length) {
     const art = await ask(chKey(), ARTICLE_RULES, [{ role: 'user', content: withArt.map((it, i) => `${i}. [${it.h.src}] ${it.h.title}${it.h.desc ? ' - ' + it.h.desc : ''}`).join('\n') }],
@@ -356,14 +370,14 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
   }
   const who = [...new Set(items.flatMap((it) => it.cast))];
   const write = await ask(tzKey(), POST_RULES, [{ role: 'user', content: `THE RESIDENTS WHO POST NOW:\n${who.map((id) => voice(C[id])).join('\n\n')}\n\nITEMS:\n${items.map((it, i) =>
-    `${i}. REAL HEADLINE [${it.h.src}]: ${it.h.title}${it.h.desc ? ' - ' + it.h.desc : ''}\n   take: ${it.angle}\n   who posts: ${it.cast.join(', ')}\n   ח24's post about it: ${it.art ? it.art.post : '(no article)'}`).join('\n')}${arc ? `\n\nONGOING STORY in the verse (one resident may mention it in passing): ${arc.text}` : ''}` }],
+    `${i}. ${it.h.ch ? `ח24's ARTICLE "${it.h.title}" about the REAL HEADLINE [${it.h.real.src}]: ${it.h.real.title}` : `REAL HEADLINE [${it.h.src}]: ${it.h.title}${it.h.desc ? ' - ' + it.h.desc : ''}`}\n   take: ${it.angle}\n   who posts: ${it.cast.join(', ')}\n   ח24's post about it: ${it.art ? it.art.post : '(no article)'}`).join('\n')}${arc ? `\n\nONGOING STORY in the verse (one resident may mention it in passing): ${arc.text}` : ''}` }],
     POST_SCHEMA, 'write', 'medium', 3500);
   write.u.forEach((n, i) => { log.u[i] += n; });
 
-  const out = await save(items, write.out.items, { run: runRef.id });
+  const out = await save(items, write.out.items, { run: runRef.id, C });
   log.made = out.posts.length;
   if (out.dropped.length || write.out.items.length !== items.length) console.error('tz dropped', JSON.stringify({ dropped: out.dropped, items: items.length, written: write.out.items.length, cast: items.map((it) => it.cast) }));
-  await runRef.set({ ...log, dropped: out.dropped, written: write.out.items.length, heads: fresh.length, cands: [...candIds], why: clip(pick.out.why, 300), used: items.map((it) => it.h.url), articles: out.articles.map((a) => a.id), posts: out.posts.map((p) => p.id) });
+  await runRef.set({ ...log, dropped: out.dropped, written: write.out.items.length, heads: fresh.length, ch: ch.length, chPicked: items.filter((it) => it.h.ch).length, cands: [...candIds], why: clip(pick.out.why, 300), used: items.map((it) => it.h.url), articles: out.articles.map((a) => a.id), posts: out.posts.map((p) => p.id) });
   // every article gets its picture (1-2 a run, low quality, on ח24's key) - an article without one looked broken (his note)
   if (cfg.img) await Promise.all(out.articles.map((a) => picture(a).catch((e) => console.error('tz picture', e.message))));
   if (cfg.auto) await publish(out.posts.map((p) => p.id), out.articles.map((a) => a.id), spread(slot));
@@ -373,14 +387,16 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
 const spread = (slot) => (slot === 'morning' ? 4.5 : slot === 'noon' ? 5.5 : slot === 'evening' ? 3.5 : 0.5) * 3600e3;
 
 // the drafts of one run: ח24's article + its post first, then the residents' posts in their order (a reply after its parent)
-async function save(items, written, { run }) {
+async function save(items, written, { run, C = {} }) {
   const posts = [], articles = [], dropped = [], batch = db().batch(), made = FieldValue.serverTimestamp();
   let order = 0;
   items.forEach((it, i) => {
     const w = written[i] || { posts: [] }, allowed = new Set(it.cast);
-    const link = { url: it.h.url, title: it.h.title, src: it.h.src, img: it.h.img || null };
-    let newsPost = null;
-    if (it.art && it.art.headline) {
+    // the writer sometimes gives the resident's name instead of the id (a whole run was dropped) - map it back
+    const idOf = (by) => (allowed.has(by) ? by : it.cast.find((id) => C[id] && [nameOf(C[id]), C[id].name, AL[id] && AL[id].handle].includes(String(by).replace(/^@/, '').trim())) || by);
+    const link = it.h.real ? { url: it.h.real.url, title: it.h.real.title, src: it.h.real.src, img: it.h.real.img || null } : { url: it.h.url, title: it.h.title, src: it.h.src, img: it.h.img || null };
+    let newsPost = it.h.ch ? { id: it.h.ch.post } : null;
+    if (!it.h.ch && it.art && it.art.headline) {
       const a = { id: newId(), headline: clip(it.art.headline, 160), sub: clip(it.art.sub, 260), body: (it.art.body || []).map((p) => clip(p, 900)).filter(Boolean),
         tag: clip(it.art.tag, 20), kind: 'real', src: link, img: null, status: 'draft', t: null, made, run };
       newsPost = { id: newId(), by: NEWS, text: clip(it.art.post || a.headline, 280), parent: null, quote: null, article: a.id, link: null, status: 'draft', t: null, made, run, order: order++, replies: 0, stamps: 0, quotes: 0 };
@@ -390,8 +406,9 @@ async function save(items, written, { run }) {
     }
     const mine = [];
     (w.posts || []).forEach((p, k) => {
+      p.by = idOf(p.by);
       if (!allowed.has(p.by) || !clip(p.text, 1)) { dropped.push(`${i}:${clip(p.by, 30)}`); mine.push(null); return; }
-      const parent = p.reply_to >= 0 && p.reply_to < k ? mine[p.reply_to] : null;
+      const parent = p.reply_to >= 0 && p.reply_to < k ? mine[p.reply_to] : p.quote === 'reply' && newsPost ? { id: newsPost.id, root: newsPost.root || newsPost.id } : null;
       const doc = { id: newId(), by: p.by, text: clip(p.text, 280), parent: parent ? parent.id : null, quote: !parent && p.quote === 'article' && newsPost ? newsPost.id : null,
         article: null, link: !parent && p.link ? link : null, status: 'draft', t: null, made, run, order: order++, replies: 0, stamps: 0, quotes: 0 };
       doc.root = parent ? parent.root : doc.id;
