@@ -90,4 +90,11 @@ assert.equal(out.b.kind, 'digest');                                             
 assert.equal(out.c.kind, 'digest');                                                          // had it: never again
 assert.equal(out.new.kind, 'welcome');                                                       // the welcome first
 assert.equal(out.today, undefined);                                                          // mailed today: nothing
+// czFrom (his rule 2026-11-08): only accounts welcomed from then on get it (the day after); the existing ones wait for cz
+const from = now - 30 * H, newCfg = { on: true, czFrom: from };
+out = P([u('old'), u('fresh'), u('cit'), u('none')], { old: welcomed, fresh: { ...welcomed, welcomed: now - 24 * H, last: now - 24 * H }, cit: { ...welcomed, welcomed: now - 24 * H, last: now - 24 * H } }, new Set(['cit']), newCfg);
+assert.equal(out.old.kind, 'digest');                                                        // welcomed before czFrom: no letter
+assert.equal(out.fresh.kind, 'citizen');                                                     // new, the day after: the letter
+assert.equal(out.cit, undefined);                                                            // new but already a citizen: no letter (no news since)
+assert.equal(out.none.kind, 'welcome');                                                      // brand new: the welcome first
 console.log('mailer rules: all passed');

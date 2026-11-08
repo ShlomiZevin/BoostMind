@@ -214,7 +214,10 @@ function plan({ users, state, follows, events, now, cfg, citizens = new Set() })
     // the embassy's letter (citizenship + the simulation) - his call 2026-11-08: its own mail after the welcome, and it comes
     // before the news (one mail a day: the news waits for tomorrow, the cursor stays). Once per person, never to a citizen.
     // cfg.cz = the release's switch: it sends the residents' letter and, from then on, each new account's the day after its welcome
-    if (cfg.cz && !s.cz && !citizens.has(u.uid)) { out.push({ ...u, kind: 'citizen', events: [] }); continue; }
+    // cfg.czFrom (his rule 2026-11-08): only NEW accounts - those welcomed from that moment on - get it, the day after they registered;
+    // everyone else waits for cfg.cz (the residents' mail, his word only)
+    const czNew = cfg.czFrom && ms(s.welcomed) >= ms(cfg.czFrom);
+    if ((cfg.cz || czNew) && !s.cz && !citizens.has(u.uid)) { out.push({ ...u, kind: 'citizen', events: [] }); continue; }
     if (now - (ms(s.newsAt) || ms(s.last) || 0) < NEWS_GAP) continue;   // the last news (or, before newsAt existed, the last mail) too recent
     const from = Math.max(ms(s.cursor) || ms(s.welcomed), now - MAX_AGE);
     const p = s.prefs || {};
@@ -353,7 +356,7 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
   const realMail = (e) => !/\.(invalid|test|example|localhost)$|@example\.(com|org|net)$/i.test(e);
   do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users.filter((u) => u.email && !u.disabled && realMail(u.email)).map((u) => ({ uid: u.uid, email: u.email, name: u.displayName || '' }))); next = r.pageToken; } while (next);
   const [st, fans, evs, cz] = await Promise.all([db.collection('mailUsers').get(), db.collection('fans').select('follows', 'nick').get(),
-    db.collection('mailEvents').where('t', '>', Timestamp.fromMillis(now - MAX_AGE)).get(), cfg.cz ? db.collection('citizens').select('n').get() : null]);
+    db.collection('mailEvents').where('t', '>', Timestamp.fromMillis(now - MAX_AGE)).get(), cfg.cz || cfg.czFrom ? db.collection('citizens').select('n').get() : null]);
   const state = Object.fromEntries(st.docs.map((d) => [d.id, d.data()]));
   const follows = Object.fromEntries(fans.docs.map((d) => [d.id, d.data().follows || []]));
   const nicks = Object.fromEntries(fans.docs.map((d) => [d.id, d.data().nick || '']));   // the embassy writes to the name they registered with
@@ -531,7 +534,7 @@ async function owner(op, b = {}) {
   }
   if (op === 'mailConfig') {
     const cfg = { on: !!b.on, only: (Array.isArray(b.only) ? b.only : [OWNER]).map((x) => String(x).toLowerCase().trim()).filter(Boolean).slice(0, 50) };
-    await db.collection('verseMeta').doc('mail').set({ ...cfg, changed: FieldValue.serverTimestamp() });
+    await db.collection('verseMeta').doc('mail').set({ ...cfg, changed: FieldValue.serverTimestamp() }, { merge: true });   // keeps cz / czFrom
     return { cfg };
   }
   if (op === 'mailRunNow') return run({ force: !!b.force, budget: 90e3 });   // verseOwner has 120s
