@@ -86,6 +86,10 @@ if (arts[0]) await shot('/tziftzif/a/' + arts[0].id, 'tz-5-article');
 await shot('/charadot', 'ch-1-front');
 if (arts[0]) await shot('/charadot/a/' + arts[0].id, 'ch-2-article');
 await shot('/charadot', 'ch-3-front-desktop', 1280, 900, false);
+// the desktop (his note: "the desktop version is the mobile version"): the full three columns, and the icon menu in between
+await shot('/tziftzif', 'tz-6-desktop', 1440, 900, false);
+await shot('/tziftzif', 'tz-7-desktop-mid', 1000, 800, false);
+if (arts[0]) await shot('/tziftzif/a/' + arts[0].id, 'tz-8-desktop-article', 1440, 900, false);
 await browser.close();
 server.close();
 process.exit(0);

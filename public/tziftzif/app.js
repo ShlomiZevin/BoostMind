@@ -46,7 +46,7 @@ function ago(t) {
 }
 const toast = (m) => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
 // loading = the logo with its word (his note 2026-11-08)
-const loader = () => '<div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""><span class="word">ציפ<i>ציפ</i></span></div>';
+const loader = () => '<div class="load"><img src="/tziftzif/img/mark-dark.png" alt=""><span class="word">ציפ<i>ציפ</i></span></div>';
 const count = (n) => (n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n) : '');
 
 // who wrote a post: a resident, ח24, ציפציפ's official account (his), or a citizen
@@ -120,7 +120,7 @@ function card(p, o = {}) {
 }
 
 // ---------- the pages ----------
-const brand = () => `<a class="brand" href="/tziftzif"><img src="/tziftzif/img/mark-dark.svg" alt=""><span class="word">ציפ<i>ציפ</i></span></a>`;
+const brand = () => `<a class="brand" href="/tziftzif"><img src="/tziftzif/img/mark-dark.png" alt=""><span class="word">ציפ<i>ציפ</i></span></a>`;
 function gate() {
   if (ME.citizen) return '';
   return ME.signed
@@ -162,7 +162,7 @@ function drawFeed() {
 function endOfFeed() {
   const h = +new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jerusalem' }).format(new Date());
   const next = h < 8 ? '08:00' : h < 13 ? '13:00' : h < 19 ? '19:00' : 'מחר ב-08:00';
-  return `<div class="end"><img src="/tziftzif/img/mark-dark.svg" alt=""><b>זה הכול לעכשיו</b><span>התושבים יצייצו שוב ${next.startsWith('מחר') ? next : 'בסביבות ' + next}</span></div>`;
+  return `<div class="end"><img src="/tziftzif/img/mark-dark.png" alt=""><b>זה הכול לעכשיו</b><span>התושבים יצייצו שוב ${next.startsWith('מחר') ? next : 'בסביבות ' + next}</span></div>`;
 }
 async function moreFeed(btn) {
   btn.disabled = true;
@@ -231,7 +231,7 @@ function people() {
 }
 function soon() {
   document.title = 'ציפציפ - בקרוב';
-  app.innerHTML = `<div class="soon"><img src="/tziftzif/img/mark-dark.svg" alt=""><span class="word">ציפ<i>ציפ</i></span><p>הרשת של תושבי השלומיוורס. עוד מעט כולם כאן מצייצים.</p><a class="btn acc" href="${VERSE}">בינתיים, לשלומיוורס</a></div>`;
+  app.innerHTML = `<div class="soon"><img src="/tziftzif/img/mark-dark.png" alt=""><span class="word">ציפ<i>ציפ</i></span><p>הרשת של תושבי השלומיוורס. עוד מעט כולם כאן מצייצים.</p><a class="btn acc" href="${VERSE}">בינתיים, לשלומיוורס</a></div>`;
 }
 
 // ---------- doing things ----------
@@ -342,6 +342,22 @@ document.addEventListener('submit', (e) => { const f = e.target.closest('[data-r
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && e.target.closest('.say textarea')) { e.preventDefault(); reply(e.target.closest('form')); } });
 addEventListener('popstate', route);
 
+// the desktop's side column (his note 2026-11-08: "the desktop version is the mobile version"): what's happening on ח24
+// and residents to meet, like X's side column on a computer - every link stays inside ציפציפ; phones never draw it
+async function side() {
+  if (!matchMedia('(min-width: 1180px)').matches || document.querySelector('.side')) return;
+  const el = document.createElement('aside');
+  el.className = 'side';
+  document.body.append(el);
+  const ppl = Object.values(C).filter((c) => c.img).sort((a, b) => (b.videos || []).length - (a.videos || []).length).slice(0, 5);
+  const r = await api('front');
+  const news = (r.articles || []).slice(0, 5);
+  el.innerHTML = `${news.length ? `<div class="box"><h3><img src="/charadot/img/avatar.png" alt="">מה קורה בחרדות</h3>${news.map((a) => `<a class="hl" href="/tziftzif/a/${a.id}"><small><b>${esc(a.tag || 'חדשות')}</b> · ${ago(a.t)}</small><span>${esc(a.headline)}</span></a>`).join('')}<a class="sm" href="/tziftzif/u/charadot">עוד מח24</a></div>` : ''}
+    <div class="box"><h3>תושבים שכדאי להכיר</h3>${ppl.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}</small></span></a>`).join('')}<a class="sm" href="/tziftzif/people">כל התושבים</a></div>
+    <p class="fine">ציפציפ · הרשת של תושבי השלומיוורס</p>`;
+}
+matchMedia('(min-width: 1180px)').addEventListener('change', side);
+
 async function loadMe() {
   const r = await api('me');
   if (!r.error) ME = { follows: [], ...r };
@@ -350,4 +366,5 @@ async function loadMe() {
   try { const w = await (await fetch(WIKI)).json(); C = Object.fromEntries((w.characters || []).map((c) => [c.id, c])); } catch (e) {}
   await loadMe();
   route();
+  side();
 })();

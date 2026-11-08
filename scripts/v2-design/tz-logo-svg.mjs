@@ -18,38 +18,27 @@ fs.mkdirSync(SITE, { recursive: true });
 const ORANGE = '#ff7a1f';
 // the mark, 140x110: body circle (64,52) r32 + the bubble's tail at the bottom left, an open beak, an eye, the ring
 // (an ellipse turned -14deg): its back half under the body, its front half over it, each with a band of `bg` around it
-function mark({ bg, body, line = 'none', ring, eye, glow = false, lineW = 3.5, id = 'm' }) {
-  // body circle (62,50) r32; the bubble's tail short and round at the bottom left; the beak open, high on the right;
-  // the ring flatter and lower (turned -9deg) so it never reaches the beak
-  const shape = 'M43.5 76.1 L27 96 L57 81.6 A32 32 0 1 0 43.5 76.1 Z';
-  const beak = 'M87.5 27 L108 21 L93.5 36 Z M93.5 38.5 L106 41.5 L90 44 Z';
-  const ell = (stroke, w) => `<ellipse cx="60" cy="60" rx="53" ry="11" fill="none" stroke="${stroke}" stroke-width="${w}"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 106">
-  <defs>
-    ${glow ? `<filter id="${id}g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>` : ''}
-    <clipPath id="${id}f"><rect x="-20" y="60" width="170" height="40" transform="rotate(-6 60 60)"/></clipPath>
-    <!-- the gap around the front of the ring is a real cut-out (transparent on any background), not painted in the background colour -->
-    <mask id="${id}k" maskUnits="userSpaceOnUse" x="-10" y="-10" width="150" height="130"><rect x="-10" y="-10" width="150" height="130" fill="#fff"/>
-      <g clip-path="url(#${id}f)" transform="rotate(-6 60 60)"><ellipse cx="60" cy="60" rx="53" ry="11" fill="none" stroke="#000" stroke-width="10.5"/></g></mask>
-  </defs>
-  <g ${glow ? `filter="url(#${id}g)"` : ''}>
-    <g mask="url(#${id}k)">
-      <g transform="rotate(-6 60 60)">${ell(ring, 6)}</g>
-      <path d="${shape}" fill="${body}" stroke="${line}" stroke-width="${line === 'none' ? 0 : lineW}" stroke-linejoin="round"/>
-      <path d="${beak}" fill="${line !== 'none' ? line : ring}" stroke="${line !== 'none' ? line : ring}" stroke-width="1.4" stroke-linejoin="round"/>
-      <circle cx="73" cy="37" r="5.4" fill="${eye}"/>
-    </g>
-    <g clip-path="url(#${id}f)" transform="rotate(-6 60 60)">${ell(ring, 6)}</g>
-  </g>
-</svg>`;
+// The mark itself is GPT Image's painting of the approved P1 (his note 2026-11-08 on the vector redraw: "the circle goes into
+// the bird's head - use GPT image to paint it right"; scripts/v2-design/tz-logo-gpt.mjs -> G-neon / G-flat / G-white,
+// trimmed into img/mark-dark|light|white.png). Each colour's mark-*.svg wraps one of them (tinted for black / mono), so
+// every address that used the vector files keeps working.
+const PNG = {};
+for (const n of ['dark', 'light', 'white']) {
+  const buf = fs.readFileSync(path.join(SITE, `mark-${n}.png`));
+  PNG[n] = { b64: buf.toString('base64'), w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+}
+const hex = (c) => [1, 3, 5].map((i) => (parseInt(c.slice(i, i + 2), 16) / 255).toFixed(3));
+function mark({ src, tint, id = 'm' }) {
+  const p = PNG[src], t = tint && hex(tint);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${p.w} ${p.h}">${t ? `<defs><filter id="${id}t" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 ${t[0]} 0 0 0 0 ${t[1]} 0 0 0 0 ${t[2]} 0 0 0 1 0"/></filter></defs>` : ''}<image href="data:image/png;base64,${p.b64}" width="${p.w}" height="${p.h}"${t ? ` filter="url(#${id}t)"` : ''}/></svg>`;
 }
 const V = {
-  dark: { bg: '#0b0b0e', body: '#0b0b0e', line: ORANGE, ring: ORANGE, eye: '#ffffff', glow: true, word: ['#ffffff', ORANGE] },
-  light: { bg: '#faf7f2', body: '#1c1c22', ring: ORANGE, eye: '#ffffff', word: ['#1c1c22', ORANGE] },
-  orange: { bg: ORANGE, body: '#ffffff', ring: '#ffffff', eye: ORANGE, word: ['#ffffff', '#ffffff'] },
-  white: { bg: '#000000', body: '#ffffff', ring: '#ffffff', eye: '#000000', word: ['#ffffff', '#ffffff'] },
-  black: { bg: '#ffffff', body: '#000000', ring: '#000000', eye: '#ffffff', word: ['#000000', '#000000'] },
-  mono: { bg: '#0b0b0e', body: ORANGE, ring: ORANGE, eye: '#0b0b0e', word: [ORANGE, ORANGE] },
+  dark: { bg: '#0b0b0e', src: 'dark', word: ['#ffffff', ORANGE] },
+  light: { bg: '#faf7f2', src: 'light', word: ['#1c1c22', ORANGE] },
+  orange: { bg: ORANGE, src: 'white', word: ['#ffffff', '#ffffff'] },
+  white: { bg: '#000000', src: 'white', word: ['#ffffff', '#ffffff'] },
+  black: { bg: '#ffffff', src: 'white', tint: '#000000', word: ['#000000', '#000000'] },
+  mono: { bg: '#0b0b0e', src: 'white', tint: ORANGE, word: [ORANGE, ORANGE] },
 };
 const svg = (k, id = k) => mark({ ...V[k], id });
 const word = (k, size) => `<span class="w" style="font-size:${size}px"><b style="color:${V[k].word[0]}">ציפ</b><b style="color:${V[k].word[1]}">ציפ</b></span>`;
@@ -70,11 +59,12 @@ async function shot(html, file, w, h, scale = 2) {
   await page.screenshot({ path: file, omitBackground: html.includes('data-clear') });
 }
 // icons for the site (app icon, avatar, favicon)
-const tile = (k, size, round) => `<div style="width:${size}px;height:${size}px;background:${V[k].bg};border-radius:${round ? '50%' : size * 0.22 + 'px'};display:grid;place-items:center"><div style="width:${size * 0.8}px">${svg(k, k + size)}</div></div>`;
+const tile = (k, size, round, fill = 0.8) => `<div style="width:${size}px;height:${size}px;background:${V[k].bg};border-radius:${round ? '50%' : size * 0.22 + 'px'};display:grid;place-items:center"><div style="width:${size * fill}px">${svg(k, k + size)}</div></div>`;
 await shot(tile('dark', 512, false).replace('border-radius:112.64px', 'border-radius:0'), path.join(SITE, 'icon-512.png'), 512, 512, 1);
 await shot(tile('dark', 192, false).replace(/border-radius:[\d.]+px/, 'border-radius:0'), path.join(SITE, 'icon-192.png'), 192, 192, 1);
 await shot(`<div data-clear>${tile('dark', 256, true)}</div>`, path.join(SITE, 'avatar.png'), 256, 256, 1);
-await shot(tile('orange', 64, false).replace(/border-radius:[\d.]+px/, 'border-radius:14px'), path.join(SITE, 'favicon-64.png'), 64, 64, 1);
+// the browser tab (his note: "the icon on the tab looks a mess"): the mark fills the whole square, so at 16px it is still the bird
+for (const n of [64, 32]) await shot(`<div data-clear>${tile('orange', n, false, 1).replace(/border-radius:[\d.]+px/, `border-radius:${n * 0.22}px`)}</div>`, path.join(SITE, `favicon-${n}.png`), n, n, 1);
 await shot(`<div style="background:${V.dark.bg};width:1200px;height:630px;display:grid;place-items:center"><div class="h" style="direction:rtl"><div style="width:230px">${svg('dark', 'og')}</div>${word('dark', 150)}</div></div>`, path.join(SITE, 'og.png'), 1200, 630, 1);
 
 // the sheet for him: every version
@@ -92,12 +82,11 @@ const clear = async (html, file, w, h) => {
   await page.screenshot({ path: file, omitBackground: true });
 };
 for (const k of ['dark', 'light', 'white', 'black']) {
-  const flat = { ...V[k], glow: false, bg: k === 'dark' ? '#0b0b0e' : V[k].bg };
-  const m = mark({ ...flat, id: 'c' + k });
+  const m = svg(k, 'c' + k);
   const wd = `<span class="w" style="font-size:78px"><b style="color:${V[k].word[0]}">ציפ</b><b style="color:${V[k].word[1]}">ציפ</b></span>`;
   await clear(`<div class="h"><div style="width:120px">${m}</div>${wd}</div>`, path.join(SITE, `logo-${k}.png`), 470, 130);
   await clear(`<div class="s"><div style="width:200px">${m}</div>${wd.replace('78px', '84px')}</div>`, path.join(SITE, `logo-stacked-${k}.png`), 380, 300);
 }
-await clear(`<div style="width:460px">${mark({ ...V.dark, glow: false, id: 'cm' })}</div>`, path.join(SITE, 'mark.png'), 500, 420);
+await clear(`<div style="width:460px">${svg('dark', 'cm')}</div>`, path.join(SITE, 'mark.png'), 500, 420);
 await browser.close();
 console.log('ok');
