@@ -65,6 +65,8 @@ const IDEA_COPY = {
   liveVoter: { title: 'רעיון שווה צפייה', body: 'רעיון שהצבעתם לו הפך לסרטון' },
   reply: { title: 'השלומיוורס הגיב לרעיון שלכם' },
 };
+// the video they asked the guide for was found (requestFound)
+const FOUND_COPY = { title: 'מצאנו את הסרטון', body: 'הסרטון שחיפשתם בשלומיוורס: {title}' };
 const COMMENT_MAX = 500;
 const REGION = 'europe-west1';
 // techytech.web.app too: its job form signs up by email through emailCode / emailIn (site-signin.js, 2026-11-06)
@@ -796,6 +798,29 @@ async function ideaStep(id, status, vid) {
   return { told: first, voters };
 }
 
+// a visitor's "can't find a video" request is answered: the video is in the verse now (his ask, 2026-11-08: "when the verse
+// is not sure ... leave us a message ... notify him when the verse finds it"). The request is marked done with the video,
+// and its sender hears it once - the bell, a push and a mail. Backstage's "נמצא" and insta-to-verse call it (op 'found').
+async function requestFound(id, vid) {
+  const videoId = String(vid || '').trim();
+  if (!idOk(id)) return { error: 'id' };
+  if (!idOk(videoId)) return { error: 'video_id' };
+  const ref = db.collection('requests').doc(id), was = await ref.get();
+  if (!was.exists) return { error: 'request' };
+  const v = (await _canon()).videos[videoId];
+  if (!v) return { error: 'video' };
+  const x = was.data(), first = !x.foundAt;
+  await ref.update({ done: true, videoId, ...(first ? { foundAt: FieldValue.serverTimestamp() } : {}) });
+  if (!first || !x.uid) return { told: false };
+  const url = await pageOf(videoId), title = oneLine(v.title, 120);
+  await note(x.uid, { kind: 'found', videoId, text: title, asked: clip(x.text || '', 140), poster: v.poster || null });
+  await push([x.uid], { title: FOUND_COPY.title, body: FOUND_COPY.body.replace('{title}', clip(title, 80)), url, icon: ICON, badge: BADGE, tag: 'found_' + id });
+  const fan = (await db.collection('fans').doc(x.uid).get()).data() || {};
+  await require('./mailer').reply('verse-found', { email: x.email, name: fan.name || x.nick || '', uid: x.uid, title, link: url })
+    .catch((e) => console.error('found mail', e.message));
+  return { told: true };
+}
+
 // ---------- Shlomi's page ----------
 const wrongKey = new Map();
 function ownerOk(req, res) {
@@ -1152,6 +1177,10 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       if (!idOk(b.id)) return res.status(400).json({ error: 'id' });
       await db.collection('requests').doc(b.id).update({ done: b.done !== false });
       return res.json({ ok: true });
+    }
+    if (op === 'found') {
+      const r = await requestFound(b.id, b.videoId);
+      return r.error ? res.status(r.error === 'request' || r.error === 'video' ? 404 : 400).json(r) : res.json({ ok: true, ...r });
     }
     // a new video is up: everyone who follows someone in its cast hears about it, once
     if (op === 'announce') {

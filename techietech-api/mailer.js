@@ -401,10 +401,10 @@ const fill = (s, v) => String(s || '').replace(/\{\{(\w+)\}\}/g, (_, k) => v[k] 
 function replyMail(key, who, w) {
   const r = replies()[key];
   if (!r) return null;
-  const v = { first: first(who.name), choice: who.choice || '', when: who.when || '', order: who.order || '' };
+  const v = { first: first(who.name), choice: who.choice || '', when: who.when || '', order: who.order || '', title: who.title || '', link: who.link || '' };
   const face = r.char && r.char !== 'verse' ? faceOf(w, r.char) : `${SITE}/verse/logo-512.png`;
   const d = { subject: fill(r.subject, v), preheader: fill(r.preheader, v), chip: fill(r.chip, v), title: fill(r.title, v), paras: (r.paras || []).map((x) => fill(x, v)),
-    sign: r.sign, signRole: r.signRole, face, site: r.site, cta: r.cta?.label ? { label: r.cta.label, href: r.cta.href } : null };
+    sign: r.sign, signRole: r.signRole, face, site: r.site, cta: r.cta?.label ? { label: r.cta.label, href: fill(r.cta.href, v) || r.cta.href } : null };
   return { r, d };
 }
 async function reply(key, who) {

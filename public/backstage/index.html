@@ -1695,6 +1695,7 @@ function requests() {
         ${r.text ? `<p class="txt">${esc(r.text)}</p>` : ''}${r.phone ? `<div class="pills">${contactPills(r.phone)}</div>` : ''}${r.email && r.email !== r.contact ? `<div class="pills">${contactPills(r.email)}</div>` : ''}
         ${r.kind === 'bug' ? `<div class="tech">${r.page ? `<a href="${esc(r.page)}" target="_blank">${esc(r.page)}</a><br>` : ''}${esc(r.screen || '')} · ${esc(r.ua || '')}${(r.errors || []).length ? `<br>${r.errors.map(esc).join(' | ')}` : ''}</div>` : ''}
         ${r.contact ? `<div class="pills">${contactPills(r.contact)}</div>` : ''}</div>
+      ${r.kind === 'video' ? (r.videoId ? `<a class="check" href="/v/${esc(r.videoId)}" target="_blank"><span>${IC.check}</span>נמצא: ${esc(r.videoId)}</a>` : `<button class="check" data-found="${r.id}"><span>${IC.check}</span>נמצא ← להודיע לו</button>`) : ''}
       <button class="check" data-done="${r.id}" data-on="${r.done ? 0 : 1}"><span>${IC.check}</span>${r.done ? 'טופל' : 'לסמן טופל'}</button></div>`; }).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`;
   const inp = $('#rq-q');
   inp.oninput = () => { rqQuery = inp.value; const pos = inp.selectionStart; requests(); const n = $('#rq-q'); n.focus(); n.setSelectionRange(pos, pos); };
@@ -2276,6 +2277,15 @@ document.addEventListener('click', async (e) => {
     if (!await askBox(text ? `לפרסם את התגובה מתחת לרעיון? ${x?.nick || 'הכותב'} יקבל/ת התראה.` : 'למחוק את התגובה?')) return;
     b.disabled = true;
     await api('ideaReply', { id, text }).catch(() => {});
+    refresh();
+  }
+  // a "can't find a video" request: the video is in the verse now - the sender hears it (bell, push, mail; verse.js requestFound)
+  else if (b.dataset.found) {
+    const v = (prompt('מזהה הסרטון (מהכתובת /v/...):') || '').trim().replace(/^.*\/v\//, '').replace(/[?#].*$/, '');
+    if (!v) return;
+    b.disabled = true;
+    const r = await api('found', { id: b.dataset.found, videoId: v }).catch((e) => ({ error: e.message }));
+    if (r && r.error) { alert('לא נמצא סרטון כזה: ' + v); b.disabled = false; return; }
     refresh();
   }
   else if (b.dataset.done) { b.disabled = true; await api('done', { id: b.dataset.done, done: b.dataset.on === '1' }).catch(() => {}); refresh(); }
