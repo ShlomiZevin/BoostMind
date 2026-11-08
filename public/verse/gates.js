@@ -14,7 +14,8 @@ const ABOUT_OPEN = true;   // "מה סיפרתם לנו" on the אני page (pla
 // "עכשיו בחרדות" on the home (verse/tzhome.js, plan tz-home): off until HE opens it - separately from ציפציפ / ח24 themselves
 // (his call 2026-11-08: "I'm going to deploy these two, but you shouldn't show it yet in the home page"). Not even on his account;
 // a session's test browser (vx-preview) sees it
-const TZ_HOME = false;
+// OPENED 2026-11-08 with ציפציפ + ח24 themselves (his "open both sites and put it on the Shlomiverse home page")
+const TZ_HOME = true;
 const HIM = new Set(['rJLlCV393shl7njhzWZmoaE15Yp2']);   // shlomi@boostart.io
 // a test browser sees what he sees (localStorage vx-preview = 1) - only for the sessions' phone checks and screenshots
 const peek = () => { try { return localStorage.getItem('vx-preview') === '1'; } catch (e) { return false; } };
