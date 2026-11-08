@@ -7,6 +7,7 @@
 //   grade_amount + grade: {saturation, contrast, brightness}   movie colour (CSS filter order: saturate, contrast, brightness)
 //   ghost: 0..1 (a faded copy of the picture ghost_lag seconds behind: movement leaves a trail), ghost_lag: 0.2
 //   dark: 0..1 (the light goes down), vignette: 0..1, grain: 0..1, drift: 0..1 (handheld), flicker: 0..1 (a fluorescent light dipping)
+//   glitch: 0..1 (a digital screen breaking up - effect_curve.js glitchPlan)
 //   zoom: 0..1 + times.zoom   a slow zoom in over the layer's time (or the older push: [[t0, t1, z0, z1], ...])
 //   center:   [0.5, 0.36]     the point it zooms into (fractions of the frame - usually the face)
 //   hits:     [{at, kick, shake, flash}] impacts ({sound: i, offset} = with that sound; the build writes "at" back)
@@ -14,7 +15,7 @@
 // }
 const rnd = (seed) => { const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
 const ease = (k) => (k <= 0 ? 0 : k >= 1 ? 1 : k * k * (3 - 2 * k));
-export const FILTER_IDS = ['grade', 'dark', 'vignette', 'grain', 'zoom', 'drift', 'flicker', 'ghost'];
+export const FILTER_IDS = ['grade', 'dark', 'vignette', 'grain', 'zoom', 'drift', 'flicker', 'ghost', 'glitch'];
 
 /** How much of a filter layer is on at time t (0..1): faded in at its start, out at its end. No times = always on. */
 export function layerAmount(fx, id, t) {
@@ -66,7 +67,7 @@ export function fxAt(fx, t) {
   }
   for (const [t0, t1] of fx.black || []) if (t >= t0 && t < t1) black = 1;
   const g = fx.grade || {}, ga = A.grade;  // the grade, as much of it as its layer is on
-  return { z, dx, dy, rot, flash, light, black, vig: (fx.vignette || 0) * A.vignette, grain: (fx.grain || 0) * A.grain, ghost: (fx.ghost || 0) * A.ghost,
+  return { z, dx, dy, rot, flash, light, black, vig: (fx.vignette || 0) * A.vignette, grain: (fx.grain || 0) * A.grain, ghost: (fx.ghost || 0) * A.ghost, glitch: (fx.glitch || 0) * A.glitch,
     sat: 1 + ((g.saturation ?? 1) - 1) * ga, con: 1 + ((g.contrast ?? 1) - 1) * ga, bri: (g.brightness ?? 0) * ga - 0.5 * (fx.dark || 0) * A.dark };
 }
 

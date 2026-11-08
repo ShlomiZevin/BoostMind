@@ -176,7 +176,7 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 
 ### effect - film effects on everything below
 - One effect layer = one filter: props `filter` = `grade` (movie colour) | `dark` | `vignette` | `grain` | `zoom`
-  (slow zoom in) | `drift` (handheld) | `ghost` (trail; `ghost_lag` s) | `flicker` | `hits` | `black`, `amount`
+  (slow zoom in) | `drift` (handheld) | `ghost` (trail; `ghost_lag` s) | `flicker` | `glitch` (a digital screen breaking up: RGB split, torn bands, static lines - short items on jump cuts; the plan per frame is effect_curve.js glitchPlan, the export applies the same plan) | `hits` | `black`, `amount`
   (0-1), optional `center [x, y]`.
 - Items = when it plays; it fades in / out at the item's ends (`fade_in` default 1.5 s, `fade_out` 0.6 s). A `hits`
   item is an impact at its start (`kick`, `shake`, `flash`); a `black` item is black.

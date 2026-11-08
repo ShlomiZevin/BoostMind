@@ -64,6 +64,8 @@ class FxFrame:
             S = np.tile(wts, (3, 1)) * (1 - sat) + np.eye(3, dtype=np.float32) * sat
             M = np.hstack([b * con * S, np.full((3, 1), b * 0.5 * (1 - con), np.float32)])
             x = cv2.transform(x, M)
+        if s.get("gp"):  # the screen glitch - the editor's own plan for this frame (effect_curve.js glitchPlan)
+            x = _glitch(x, s["gp"], f)
         if s.get("vig", 0) > 1e-3:
             x *= 1 - s["vig"] * self.vshape
         if s.get("grain", 0) > 1e-3 and self.noise:
@@ -75,6 +77,29 @@ class FxFrame:
         if s["black"]:
             x[:] = 0
         return (np.clip(x, 0, 1) * 255).astype(np.uint8)
+
+
+def _glitch(x, gp, f):
+    """The screen glitch (effects.tsx draws the same): the red pulled one way and the blue the other, bands of the
+    picture torn sideways, a few lines of static."""
+    h = x.shape[0]
+    sp = int(gp.get("split") or 0)
+    if sp:
+        x = x.copy()
+        x[..., 2] = np.roll(x[..., 2], -sp, axis=1)  # (BGR: 2 = red)
+        x[..., 0] = np.roll(x[..., 0], sp, axis=1)
+    for b in gp.get("bands", []):
+        y0, y1 = max(0, int(b["y"])), min(h, int(b["y"]) + int(b["h"]))
+        if y1 > y0 and b.get("dx"):
+            x[y0:y1] = np.roll(x[y0:y1], int(b["dx"]), axis=1)
+    rng = np.random.default_rng(f)
+    for ln in gp.get("lines", []):
+        y0, y1 = max(0, int(ln["y"])), min(h, int(ln["y"]) + int(ln["h"]))
+        if y1 > y0:
+            o = float(ln["o"])
+            n = rng.random((y1 - y0, x.shape[1]), dtype=np.float32)
+            x[y0:y1] = x[y0:y1] * (1 - o) + n[..., None] * o
+    return x
 
 
 # ---- the layered project's effect layers --------------------------------------------------------------------------

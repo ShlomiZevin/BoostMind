@@ -15,6 +15,7 @@ export const FILTERS = {
   drift: { label: 'Handheld', def: 0.2 },
   ghost: { label: 'Ghost trail', def: 0.35 },
   flicker: { label: 'Light flicker', def: 0.3 },
+  glitch: { label: 'Screen glitch', def: 0.7 },  // a digital screen breaking up: RGB split, torn bands, static lines
   hits: { label: 'Hits', def: 1 },         // items = impacts: kick (zoom punch), shake, flash
   black: { label: 'Black', def: 1 },       // items = cut to black
 };
@@ -77,9 +78,23 @@ export function effectCss(project, f) {
     filter: `saturate(${s.sat.toFixed(3)}) contrast(${s.con.toFixed(3)}) brightness(${((1 + s.bri) * s.light).toFixed(3)})` };
 }
 
-/** Per-frame curve for the export, frames [f0, f1). */
+/** The screen glitch at frame f (adam-1, 2026-11-08 - "screen glitches, with some noise, all over the jumps"): which
+ *  bands tear sideways, how far the red / blue split goes, where the static lines are - seeded by the frame, so the
+ *  editor (effects.tsx) and the export (film_fx.py, from the curve's `gp`) draw the very same glitch. null = a clean
+ *  frame inside the glitch (it stutters, it doesn't hold). */
+export function glitchPlan(f, a, W, H) {
+  const r = (s) => { const x = Math.sin(s * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+  if (!(a > 0.002) || r(f * 9.13 + 1) < 0.2) return null;
+  const k = W / 1080, n = 2 + Math.floor(r(f * 2.11 + 3) * 4), bands = [], lines = [];
+  for (let i = 0; i < n; i++) bands.push({ y: Math.floor(r(f * 3.71 + i * 1.3 + 4) * H), h: Math.max(4, Math.floor((0.015 + 0.07 * r(f * 5.31 + i * 2.7 + 5)) * H)),
+    dx: Math.round((r(f * 7.13 + i * 3.1 + 6) - 0.5) * 2 * 70 * a * k) });
+  for (let i = 0; i < 3; i++) lines.push({ y: Math.floor(r(f * 11.7 + i * 4.3 + 7) * H), h: Math.max(2, Math.round((1 + 3 * r(f * 13.1 + i + 8)) * k)), o: +(a * (0.35 + 0.4 * r(f * 17.3 + i + 9))).toFixed(3) });
+  return { split: Math.round(a * 18 * (0.4 + 0.6 * r(f * 1.37 + 2)) * k), bands, lines };
+}
+
+/** Per-frame curve for the export, frames [f0, f1) - with the glitch's plan where it plays. */
 export function effectCurve(project, f0, f1) {
-  const out = [];
-  for (let f = f0; f < f1; f++) out.push(effectAt(project, f));
+  const out = [], W = project.canvas.w, H = project.canvas.h;
+  for (let f = f0; f < f1; f++) { const s = effectAt(project, f); const gp = glitchPlan(f, s.glitch, W, H); out.push(gp ? { ...s, gp } : s); }
   return out;
 }
