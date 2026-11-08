@@ -12,11 +12,11 @@ ${task}`;
 
 // history: [{ role: 'assistant' | 'user', content }] - what was said so far in the process
 async function run(key, mode, history, task, schema, name, effort = 'low') {
-  const p = await persona(mode);
+  const p = await persona(mode, true);   // slim: who lives here + their own material, not the whole map (2026-11-08, cost)
   const r = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST', headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
     body: JSON.stringify({ model: MODEL, instructions: p.instructions, input: [...history, { role: 'developer', content: p.dev + '\n\n' + FRAME(task) }],
-      reasoning: { effort }, max_output_tokens: 1600, store: false, prompt_cache_key: 'wiki-map',
+      reasoning: { effort }, max_output_tokens: 1600, store: false, prompt_cache_key: 'process-' + mode,
       text: { format: { type: 'json_schema', name, strict: true, schema } } }),
   });
   const j = await r.json();

@@ -76,7 +76,7 @@ const canon = (brain) => {
 // the brain in use: { map, byId, videos, md5 }, rebuilt only when the bucket's copy changes. `map` = the rules + the
 // short map of everything (wiki-chain.js); the full canon() is no longer sent - kept for reference / a fallback
 const chain = require('./wiki-chain');
-const fromBrain = (brain, md5) => ({ map: RULES + '\n\n' + chain.mapText(brain), byId: Object.fromEntries(brain.characters.map((c) => [c.id, c])),
+const fromBrain = (brain, md5) => ({ map: RULES + '\n\n' + chain.mapText(brain), small: RULES + '\n\n' + chain.mapText(brain, true), byId: Object.fromEntries(brain.characters.map((c) => [c.id, c])),
   videos: Object.fromEntries(brain.videos.map((v) => [v.id, v])), games: Object.fromEntries((brain.games || []).map((g) => [g.id, g])), md5 });
 let current = fromBrain(bundled, 'bundled');
 let checked = 0;
@@ -237,11 +237,14 @@ exports._test = { RULES, canon, modeText };
 // test (his ask 2026-11-07: "exactly the chat we built for the characters, with a clear instruction that it runs a process -
 // it invents well in the chat"). The chat's map as the (cached) instructions, the character's part as in the chat; the process
 // adds its own task and a JSON schema after the conversation (process.js).
-exports.persona = async (mode) => {
+const SLIM_MATERIAL = 10000;
+exports.persona = async (mode, slim = false) => {
   const cur = await canonNow();
   const b = chain.base(cur, mode, []);
-  const material = chain.material(cur, b.characters, b.videos);
-  return { instructions: cur.map, dev: modeText(mode, cur.byId) + (b.scope ? '\n' + b.scope : '') + (material ? '\n\n' + material : '') };
+  // slim (the processes, 2026-11-08): who lives here instead of the whole map, and only the character's own profile + a few of
+  // their videos (~10K characters) - a step of a process cost like a chat message that read every video's card
+  const material = slim ? chain.material(cur, [mode], b.videos, SLIM_MATERIAL) : chain.material(cur, b.characters, b.videos);
+  return { instructions: slim ? cur.small : cur.map, dev: modeText(mode, cur.byId) + (b.scope ? '\n' + b.scope : '') + (material ? '\n\n' + material : '') };
 };  // the side-by-side test of the old full-canon answer (scripts/wiki/chain_test.cjs)
 
 // 3 questions without an account, IN TOTAL (no exp - it never resets), then 10 a day with an account (his call,

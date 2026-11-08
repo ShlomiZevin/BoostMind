@@ -26,7 +26,14 @@ Answer JSON only: {"characters": ["id", ...], "videos": ["id", ...]}`;
 const pub = (u) => (typeof u === 'string' ? u : u?.url || '').replace('https://boostmind-b052c.web.app', 'https://shlomiverse.com');
 exports.pub = pub;
 
-exports.mapText = (brain) => {
+// small: only who lives here (the site's processes - Miriam, Demokratovich's booth, the simulation - 2026-11-08: the full map
+// is ~100K characters, 70% of it the videos, and each step of a process paid for all of it)
+exports.mapText = (brain, small = false) => {
+  if (small) {
+    const lines = ['# Who lives in the Shlomiverse (id | name | world | tagline)'];
+    for (const c of brain.characters) lines.push([c.id, c.name, c.world || '', c.tagline || ''].join(' | '));
+    return lines.join('\n');
+  }
   const lines = ['# The Shlomiverse map (everything that exists; full details of the residents and videos a question is about come with it)', '## Series'];
   for (const w of brain.worlds) lines.push(`${w.id} | ${w.title} | ${w.blurb || ''}${w.brief ? ' | ' + w.brief : ''}${w.site ? ' | site: ' + pub(w.site) : ''}`);
   lines.push('## Residents (id | name | also called | world | role | tagline | their own site)');
@@ -69,10 +76,10 @@ exports.earlier = (cur, turns) => {
 };
 
 // the full material, within MAX_MATERIAL: residents first (whole profiles), then videos
-exports.material = (cur, charIds, videoIds) => {
+exports.material = (cur, charIds, videoIds, max = MAX_MATERIAL) => {
   const out = [];
   let size = 0;
-  const add = (s) => { if (size + s.length > MAX_MATERIAL) return false; out.push(s); size += s.length; return true; };
+  const add = (s) => { if (size + s.length > max) return false; out.push(s); size += s.length; return true; };
   for (const id of new Set(charIds)) {
     const c = cur.byId[id];
     if (c) add('### Resident ' + id + ' (full profile)\n' + JSON.stringify(c).replaceAll('https://boostmind-b052c.web.app', 'https://shlomiverse.com'));
