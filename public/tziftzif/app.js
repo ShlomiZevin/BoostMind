@@ -32,6 +32,7 @@ const I = {
   search: S('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'),
   home: S('<path d="M3.5 11 12 4l8.5 7v9h-6v-6h-5v6h-6z"/>'),
   bell: S('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'),
+  people: S('<circle cx="9" cy="8" r="3.4"/><path d="M2.8 19.5c.9-3.2 3.2-5 6.2-5s5.3 1.8 6.2 5"/><circle cx="17" cy="9" r="2.7"/><path d="M16.4 14.2c2.6.1 4.3 1.7 5 4.3"/>'),
   user: S('<circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/>'),
 };
 // the checks: ח24 = the news channel (red), ציפציפ itself = the official account (orange), a resident = a quiet one
@@ -44,6 +45,8 @@ function ago(t) {
   return new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' });
 }
 const toast = (m) => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
+// loading = the logo with its word (his note 2026-11-08)
+const loader = () => '<div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""><span class="word">ציפ<i>ציפ</i></span></div>';
 const count = (n) => (n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n) : '');
 
 // who wrote a post: a resident, ח24, ציפציפ's official account (his), or a citizen
@@ -66,7 +69,7 @@ const avatar = (w, cls = '') => (w.img ? `<${w.href ? `a href="${w.href}"` : 'sp
   : `<span class="av fan ${cls}">${esc((w.name || '?').slice(0, 1))}</span>`);
 // @hani -> the resident's page
 const idOf = (h) => Object.keys(ME.names || {}).find((id) => ME.names[id].handle === h) || h;   // a verse handle -> the resident
-const linkify = (t) => esc(t).replace(/@([a-z][a-z0-9_-]{1,30})/g, (m, h) => { const id = idOf(h); return C[id] || id === 'charadot' ? `<a class="m" href="${id === 'charadot' ? '/charadot' : '/tziftzif/u/' + id}">@${id === 'charadot' ? id : hdl(id)}</a>` : m; });
+const linkify = (t) => esc(t).replace(/@([a-z][a-z0-9_-]{1,30})/g, (m, h) => { const id = idOf(h); return C[id] || id === 'charadot' ? `<a class="m" href="/tziftzif/u/${id}">@${id === 'charadot' ? id : hdl(id)}</a>` : m; });
 
 // ---------- talking to the server ----------
 async function token(ask) {
@@ -91,7 +94,7 @@ const take = (r) => { Object.assign(D.quoted, r.quoted || {}); Object.assign(D.a
 function inner(p, small) {
   let h = '';
   const a = p.article && D.articles[p.article];
-  if (a) h += `<a class="art" href="/charadot/a/${a.id}">${a.img && !small ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b>${small ? '' : `<small>${esc(a.sub)}</small>`}</div></a>`;
+  if (a) h += `<a class="art" href="/tziftzif/a/${a.id}">${a.img && !small ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">ח24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b>${small ? '' : `<small>${esc(a.sub)}</small>`}</div></a>`;
   const q = p.quote && D.quoted[p.quote];
   if (q && !small) { const w = who(q); h += `<a class="qt" href="/tziftzif/p/${q.id}"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}</div><div class="tx">${linkify(q.text)}</div>${inner(q, true)}</a>`; }
   if (p.link && !small) h += `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener">${p.link.img ? `<img src="${esc(p.link.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="lt"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></span></a>`;
@@ -126,16 +129,17 @@ function gate() {
 }
 const fab = () => (ME.citizen ? `<button class="fab" data-compose aria-label="ציוץ חדש">${I.pen}</button>` : '');
 // the bottom (mockup tz-pro/P1, his note "make it professional"): a slim tab bar - home, ח24, the bell and "me" are the verse's own
+// every tab stays inside ציפציפ (his note: "don't show links that take me out - people won't come back")
 const tabbar = (on) => `<nav class="tabbar"><a href="/tziftzif" class="${on === 'home' ? 'on' : ''}">${I.home}<span>בית</span></a>`
-  + `<a href="/charadot"><img src="/charadot/img/avatar.png" alt=""><span>ח24</span></a>`
-  + `<a href="${VERSE}/notes">${I.bell}<span>התראות</span></a><a href="${VERSE}/me">${I.user}<span>אני</span></a></nav>`;
+  + `<a href="/tziftzif/people" class="${on === 'people' ? 'on' : ''}">${I.people}<span>התושבים</span></a>`
+  + `<a href="/tziftzif/u/charadot" class="${on === 'news' ? 'on' : ''}"><img src="/charadot/img/avatar.png" alt=""><span>ח24</span></a></nav>`;
 
 let FEED = null;
 async function home() {
   document.title = 'ציפציפ';
   // the top in ONE thin line (his note: "very thin, the main is the main area"): the logo, the two tabs, search
-  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<div class="tabs pill"><button data-tab="all" class="${TAB === 'all' ? 'on' : ''}">בשבילך</button><button data-tab="follow" class="${TAB === 'follow' ? 'on' : ''}">במעקב</button></div><a class="ic" href="/charadot" title="ח24">${I.search}</a></div></div>
-    <div id="list" class="withbar"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>${gate()}${fab()}${tabbar('home')}`;
+  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<div class="tabs pill"><button data-tab="all" class="${TAB === 'all' ? 'on' : ''}">בשבילך</button><button data-tab="follow" class="${TAB === 'follow' ? 'on' : ''}">במעקב</button></div><a class="ic" href="/tziftzif/people" title="התושבים">${I.people}</a></div></div>
+    <div id="list" class="withbar">${loader()}</div>${gate()}${fab()}${tabbar('home')}`;
   if (!FEED) {
     const r = await api('feed');
     if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = `<div class="empty">משהו לא נטען. נסו לרענן.</div>`);
@@ -168,7 +172,7 @@ async function moreFeed(btn) {
 }
 
 async function thread(id) {
-  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">ציוץ</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>`;
+  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">ציוץ</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list">${loader()}</div>`;
   const r = await api('post', { id });
   if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = '<div class="empty">הציוץ הזה כבר לא כאן.</div>');
   take(r);
@@ -186,20 +190,45 @@ async function thread(id) {
 }
 
 async function resident(id) {
-  const c = C[id] || (id === 'charadot' ? null : { name: id });
-  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">${esc(c ? nm(id) : 'חרדות')}</span><span style="margin-inline-start:auto">${brand()}</span></div></div>
+  const news = id === 'charadot';
+  const c = news ? { name: 'חרדות', img: '/charadot/img/avatar.png', tagline: 'ערוץ החדשות של השלומיוורס. כל הדרמה, כל הזמן. הישארו איתנו.', color: '#c8101a' } : C[id] || { name: id };
+  app.innerHTML = `<div class="top"><div class="bar"><button class="ic" data-back>${I.back}</button><span class="ttl">${esc(news ? c.name : nm(id))}</span><span style="margin-inline-start:auto">${brand()}</span></div></div>
     <div class="prof"><div class="cov" style="${c && c.color ? `background:linear-gradient(135deg, ${esc(c.color)}55, #0b0b0e 75%)` : ''}"></div>
-    <div class="row"><div class="pic">${c && c.img ? `<img src="${esc(c.img)}" alt="">` : ''}</div><a class="btn ghost" href="${VERSE}/c/${esc(id)}">בשלומיוורס</a></div>
-    <h1>${esc(c ? nm(id) : id)} ${CHECK('#7d8590')}</h1><span class="hn">@${esc(hdl(id))}</span>
-    <p>${esc(c && (c.tagline || c.role) || '')}</p></div><div id="list" class="withbar"><div class="load"><img src="/tziftzif/img/mark-dark.svg" alt=""></div></div>${tabbar('')}`;
-  document.title = `${c ? nm(id) : id} · ציפציפ`;
+    <div class="row"><div class="pic">${c.img ? `<img src="${esc(c.img)}" alt="">` : ''}</div></div>
+    <h1>${esc(news ? c.name : nm(id))} ${CHECK(news ? '#e3101b' : '#7d8590')}</h1><span class="hn">@${esc(news ? id : hdl(id))}</span>
+    <p>${esc(c && (c.tagline || c.role) || '')}</p></div><div id="list" class="withbar">${loader()}</div>${tabbar(news ? 'news' : '')}`;
+  document.title = `${news ? c.name : nm(id)} · ציפציפ`;
   const r = await api('resident', { char: id });
   if (r.error) return r.error === 'soon' ? soon() : null;
   take(r);
-  document.getElementById('list').innerHTML = r.posts.map((p) => card(p)).join('') || `<div class="empty">${esc(c ? nm(id) : id)} עוד לא צייצ/ה.</div>`;
+  document.getElementById('list').innerHTML = r.posts.map((p) => card(p)).join('') || `<div class="empty">${esc(news ? c.name : nm(id))} עוד לא צייצ/ה.</div>`;
   track('tz_resident', id);
 }
 
+// a ח24 article, read inside ציפציפ: the headline, the picture, the body, the residents' reactions - nothing leaves the app
+async function article(id) {
+  app.innerHTML = `<div class="top"><div class="bar one"><button class="ic" data-back>${I.back}</button><span class="ttl">ח24</span><span style="margin-inline-start:auto">${brand()}</span></div></div><div id="list" class="withbar">${loader()}</div>${tabbar('news')}`;
+  const r = await api('article', { id });
+  if (r.error) return r.error === 'soon' ? soon() : (document.getElementById('list').innerHTML = '<div class="empty">הכתבה הזאת ירדה מהאוויר.</div>');
+  const a = r.article;
+  document.title = `${a.headline} · ח24 בציפציפ`;
+  const rx = r.reactions.map((p) => card(p)).join('');
+  document.getElementById('list').innerHTML = `<article class="read"><a class="by" href="/tziftzif/u/charadot"><img src="/charadot/img/avatar.png" alt=""><span><b>חרדות ${CHECK('#e3101b')}</b><small>@charadot · ${ago(a.t)}</small></span></a>
+    <span class="tg">${esc(a.tag || 'חדשות')}</span><h1>${esc(a.headline)}</h1><p class="sub">${esc(a.sub)}</p>
+    ${a.img ? `<img class="pic" src="${esc(a.img)}" alt="">` : ''}<div class="body">${(a.body || []).map((x) => `<p>${esc(x)}</p>`).join('')}</div>
+    ${a.src ? `<p class="src">לפי ${esc(a.src.src)}: ${esc(a.src.title)}</p>` : ''}</article>
+    ${rx ? `<div class="rxh">מה אומרים בציפציפ</div>${rx}` : ''}`;
+  track('ch_article', id);
+}
+// התושבים: everyone who posts on ציפציפ, with their verse names - each opens their posts here
+function people() {
+  document.title = 'התושבים · ציפציפ';
+  const list = Object.values(C).filter((c) => c.img).sort((a, b) => (b.videos || []).length - (a.videos || []).length);
+  app.innerHTML = `<div class="top"><div class="bar one">${brand()}<span class="ttl" style="margin-inline:auto">התושבים</span><span class="ic"></span></div></div>
+    <a class="ppl news" href="/tziftzif/u/charadot"><span class="av"><img src="/charadot/img/avatar.png" alt=""></span><span class="pb"><b>חרדות ${CHECK('#e3101b')}</b><small>@charadot · ערוץ החדשות של השלומיוורס</small></span></a>
+    <div id="list" class="withbar">${list.map((c) => `<a class="ppl" href="/tziftzif/u/${c.id}"><span class="av"><img src="${esc(c.img)}" alt="" loading="lazy"></span><span class="pb"><b>${esc(nm(c.id))}</b><small>@${esc(hdl(c.id))}${c.role ? ' · ' + esc(String(c.role).slice(0, 60)) : ''}</small></span></a>`).join('')}</div>${tabbar('people')}`;
+  track('tz_resident', 'people');
+}
 function soon() {
   document.title = 'ציפציפ - בקרוב';
   app.innerHTML = `<div class="soon"><img src="/tziftzif/img/mark-dark.svg" alt=""><span class="word">ציפ<i>ציפ</i></span><p>הרשת של תושבי השלומיוורס. עוד מעט כולם כאן מצייצים.</p><a class="btn acc" href="${VERSE}">בינתיים, לשלומיוורס</a></div>`;
@@ -288,7 +317,9 @@ function go(path) { history.pushState(null, '', path); route(); scrollTo(0, 0); 
 function route() {
   const [, , kind, id] = location.pathname.split('/');
   if (kind === 'p' && id) return thread(id);
-  if (kind === 'u' && id) return id === 'charadot' ? (location.href = '/charadot') : resident(id);
+  if (kind === 'u' && id) return resident(id);
+  if (kind === 'people') return people();
+  if (kind === 'a' && id) return article(id);
   return home();
 }
 document.addEventListener('click', (e) => {

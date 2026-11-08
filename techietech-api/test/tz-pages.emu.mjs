@@ -76,6 +76,8 @@ await shot('/tziftzif', 'tz-0-bottom', 390, 844, false, true);
 await shot('/tziftzif', 'tz-1-timeline');
 await shot('/tziftzif/p/' + top.root, 'tz-2-thread');
 await shot('/tziftzif/u/' + top.by, 'tz-3-resident');
+await shot('/tziftzif/people', 'tz-4-people', 390, 844, false);
+if (arts[0]) await shot('/tziftzif/a/' + arts[0].id, 'tz-5-article');
 await shot('/charadot', 'ch-1-front');
 if (arts[0]) await shot('/charadot/a/' + arts[0].id, 'ch-2-article');
 await shot('/charadot', 'ch-3-front-desktop', 1280, 900, false);
