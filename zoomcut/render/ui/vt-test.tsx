@@ -6,6 +6,7 @@ import { Player, PlayerRef } from '@remotion/player';
 import { AbsoluteFill } from 'remotion';
 import { VideoTrack } from '../src/layers/VideoTrack';
 import { AudioTrack } from '../src/layers/AudioTrack';
+import { flatten } from '../src/layers/view.js';
 
 const Comp: React.FC<any> = (p) => (
   <AbsoluteFill style={{ background: '#000' }}>
@@ -21,7 +22,8 @@ function Bench() {
   const [d, setD] = useState<any>(null);
   const [playing, setPlaying] = useState(false);
   const player = useRef<PlayerRef>(null);
-  useEffect(() => { fetch(`/api/p/${id}`).then((r) => r.json()).then(setD); }, []);
+  // (a dialogue project as the editor plays it: the strip's rows cut to who is seen - render/src/layers/view.js)
+  useEffect(() => { fetch(`/api/p/${id}`).then((r) => r.json()).then((v) => setD({ ...v, project: flatten(v.project) })); }, []);
   useEffect(() => {
     const pl = player.current; if (!pl) return;
     const on = () => setPlaying(true), off = () => setPlaying(false);

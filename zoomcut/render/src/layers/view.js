@@ -49,6 +49,33 @@ function clip(it, spans, fps) {
   return out.map((pc, k) => ({ ...pc, id: `${it.id}~${k}` }));
 }
 
+// where the strip shows a row that has no clip (a cut moved past the clip's handles): that row's nearest frame held
+// (rate 0 - the clip before ends -> its last frame, else the clip after -> its first), never a black hole in the
+// picture; the strip marks the stretch hatched so he sees it is frozen
+function holds(strip, l, items, fps) {
+  const own = (l.items || []).filter((i) => !i.hidden && i.dur > 0);
+  if (!own.length) return [];
+  const out = [];
+  for (const s of strip) {
+    if (s.show !== l.id) continue;
+    const cover = items.filter((i) => !i.hidden && i.from < s.from + s.dur && i.from + i.dur > s.from).map((i) => [i.from, i.from + i.dur]).sort((a, b) => a[0] - b[0]);
+    const gaps = [];
+    let t = s.from;
+    for (const [a, b] of cover) { if (a > t + 0.5) gaps.push([t, a]); t = Math.max(t, b); }
+    if (s.from + s.dur > t + 0.5) gaps.push([t, s.from + s.dur]);
+    for (const [a, b] of gaps) {
+      const before = own.filter((i) => i.from + i.dur <= a + 0.5).sort((x, y) => y.from + y.dur - (x.from + x.dur))[0];
+      const after = own.filter((i) => i.from >= b - 0.5).sort((x, y) => x.from - y.from)[0];
+      const src = before && (!after || a - (before.from + before.dur) <= after.from - b) ? before : after;
+      if (!src || src.in == null) continue;
+      const at = src === before ? src.in + (src.dur / fps) * (src.rate ?? 1) - 1 / fps : src.in;
+      const { fade_in, fade_out, ...rest } = src;
+      out.push({ ...rest, id: `${src.id}~h${out.length}`, from: a, dur: b - a, in: +Math.max(0, at).toFixed(4), rate: 0 });
+    }
+  }
+  return out;
+}
+
 // a clip's background -> a picture item (canvas pixels, like any picture; no box = covers the frame)
 function bgItem(p, l, it) {
   const bg = { ...(l.props?.bg || {}), ...(it.bg || {}) };
@@ -79,6 +106,7 @@ export function flatten(p) {
     if (l.kind !== 'video') continue;
     const spans = governed.has(l.id) ? shownSpans(strip, l.id) : null;
     const items = spans ? (l.items || []).flatMap((it) => clip(it, spans, fps)) : (l.items || []);
+    if (spans) items.push(...holds(strip, l, items, fps));
     const bgs = items.map((it) => bgItem(p, l, it)).filter(Boolean);
     const props = { ...(l.props || {}) };
     delete props.bg;
@@ -112,5 +140,5 @@ export function flatten(p) {
   return { ...p, layers: out };
 }
 
-/** A flattened item id back to the item it came from ("p12~1" -> "p12"). */
-export const sourceId = (id) => String(id).replace(/~\d+$/, '');
+/** A flattened item id back to the item it came from ("p12~1" -> "p12", a held frame "p12~h0" -> "p12"). */
+export const sourceId = (id) => String(id).replace(/~h?\d+$/, '');

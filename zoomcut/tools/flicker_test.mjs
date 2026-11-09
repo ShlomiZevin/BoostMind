@@ -1,6 +1,6 @@
 // Cuts checked frame by frame (render/ui/vt-test.html + render/src/layers/VideoTrack.tsx): plays across a project's
 // cuts and logs, on every animation frame, each video layer's copy on screen and whether its video is ready.
-//   node tools/flicker_test.mjs [project=_gl] [cuts=12]
+//   node tools/flicker_test.mjs [project=_gl] [cuts=12]      (ZC_PORT=4848: a second studio)
 // A "blank" frame = a layer has an item at that frame but no copy is lit; "not ready" = the lit copy is seeking or
 // has no frame decoded (readyState < 2). Both should be 0 while playing.
 import path from 'node:path';
@@ -16,7 +16,7 @@ const b = await puppeteer.launch({ executablePath: chrome, args: ['--autoplay-po
 const p = await b.newPage();
 await p.setViewport({ width: 600, height: 1000 });
 p.on('pageerror', (e) => console.log('PAGEERROR:', String(e).slice(0, 300)));
-await p.goto(`http://localhost:4747/vt-test.html?id=${encodeURIComponent(id)}`, { waitUntil: 'networkidle2' });
+await p.goto(`http://localhost:${process.env.ZC_PORT || 4747}/vt-test.html?id=${encodeURIComponent(id)}`, { waitUntil: 'networkidle2' });
 for (let i = 0; i < 240; i++) {  // every copy playing from memory
   await wait(500);
   const s = await p.evaluate(() => { const v = [...document.querySelectorAll('video')]; return { n: v.length, mem: v.filter((x) => x.src.startsWith('blob:')).length }; });

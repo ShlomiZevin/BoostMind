@@ -203,14 +203,16 @@ hear the last one after the picture moved on). Live like everything else - his d
   the strip has an item, only the row it names is drawn (its clips' backgrounds with it); every other layer (texts,
   subtitles, stickers, effects, a video row the strip never names) as usual. Where the strip says nothing, every row
   draws as before. A row's clips have HANDLES (more of the take before / after the line, inside the safe margins -
-  never the recording's first 0.7 s / last 0.45 s), so moving a strip cut never runs out of picture; a stretch where
-  the named row has no clip is hatched on the strip and shows nothing of him (the canvas colour).
+  never the recording's first 0.7 s / last 0.45 s), so moving a strip cut rarely runs out of picture; a stretch where
+  the named row has no clip is hatched on the strip and HOLDS that row's nearest frame (rate 0 - never a black hole;
+  moving 19 cuts of haredit-5 by 0.4 s ran past the handles at 3 of them, 9-11 frames each).
 - `edit: {"ripple": false}` - nothing pushes anything else.
 - How it is drawn: `render/src/layers/view.js` `flatten()` turns the strip + the clip backgrounds into plain layers
   (each clip cut to where the strip shows its row, `in` moved with it; the backgrounds a picture layer `<row>~bg`
   under the rows - one for all the rows when they sit together) - the editor's composition (Layers.tsx), its stills
-  and the export (export_layers.py through `tools/flatten_view.mjs`) all draw that one result. Test: `node
-  tools/view_test.mjs`.
+  and the export (export_layers.py through `tools/flatten_view.mjs`) all draw that one result. Tests: `node
+  tools/view_test.mjs`; playing across cuts `ZC_PORT=<a test studio> node tools/flicker_test.mjs <copy>` (the bench
+  flattens too) - haredit-5's copy: 0 blank frames over 36 cuts, drags at 60 fps (2026-11-09).
 - In the editor (dialogue.ts + Timeline.tsx): the strip on top (coloured per character, the rows carry the same
   colour); drag the line between two blocks = who is seen changes there (snaps to a voice's start / end, a clip's edge,
   the playhead within 6 px; `,` `.` nudge it a frame once picked); click a block = pick who is seen; **S** = a new cut

@@ -48,4 +48,10 @@ assert.deepEqual(flatten(F), F);
 // rows apart (a picture between them): each its own background layer
 const apart = { ...P, layers: [P.layers[0], { id: 'pic', kind: 'image', items: [] }, ...P.layers.slice(2)] };
 assert.deepEqual(flatten(apart).layers.map((l) => l.id), ['hani.video~bg', 'hani.video', 'pic', 'osnat.video~bg', 'osnat.video', 'osnat.voice', 'subs']);
+// the strip shows a row past its clips: that row's nearest frame is held (rate 0), never nothing
+const past = { ...P, layers: P.layers.map((l) => (l.id === 'view' ? { ...l, items: [{ id: 'w1', from: 0, dur: 200, show: 'hani.video' }, { id: 'w2', from: 200, dur: 100, show: 'osnat.video' }] } : l)) };
+const H = flatten(past).layers.find((l) => l.id === 'hani.video').items;
+assert.deepEqual(H.map((i) => [i.id, i.from, i.dur, i.in, i.rate]), [['h1', 0, 150, 2, undefined], ['h1~h0', 150, 50, 6.9667, 0]]);
+assert.equal(H[1].fade_in, undefined, 'a held frame has no fade');
+assert.equal(flatten(past).layers.find((l) => l.id.endsWith('~bg')).items.filter((i) => i.id === 'h1~h0')[0].asset, 's1', 'its background too');
 console.log('view.js ok');
