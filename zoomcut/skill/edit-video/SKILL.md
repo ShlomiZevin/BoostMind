@@ -151,7 +151,9 @@ move with what plays under them when a take is made longer / shorter. When he sa
      the take's seconds (the tool prints "@ N s in the source"; measure the pause edges from the words / the voice
      level). His note overrides "pauses inside a take stay" for THAT pause only. A whisper, a stare, acting in it is
      not silence - look at the still / frames first and reply with a question if it is acted.
-3. Answer each: `node tools/notes.mjs <ep> done <id> "what I did"` (he reads it on the note and can reopen it); a note
+3. Answer each: `node tools/notes.mjs <ep> done <id> "what I did"` (he reads it on the note and can reopen it; a done
+   note is GREEN = "fixed on this run" until he checks it - his timeline's "Check fixed ›" walks through them, "Looks
+   good" hides each, "Not yet" sends it back open; 2026-11-09); a note
    you can't do or that needs his call: `... reply <id> "the question"` (stays open). Never delete his notes.
 4. Tell him: F5, then a short list - note by note, what changed.
 

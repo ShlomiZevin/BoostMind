@@ -20,7 +20,7 @@ import { Handles, pickAt } from './Handles';
 import { Subtitles } from './Subtitles';
 import { VideoPeek } from './VideoPeek';
 import { FaceSwap } from './FaceSwap';
-import { Note, notesOf, saveNotes, newNote, NoteWindow, NoteSpots } from './Notes';
+import { Note, notesOf, saveNotes, newNote, NoteWindow, NoteSpots, NoteView, inView, noteState } from './Notes';
 import { removeBlock } from './dialogue';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back
@@ -196,8 +196,15 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   // notes for Claude (Notes.tsx): the open one's window; a new one is only saved once it has words
   const notes = notesOf(project);
   const [noteOpen, setNoteOpen] = useState<{ note: Note; isNew: boolean } | null>(null);
-  const [showDone, setShowDone] = useState(() => localStorage.getItem('zc-notes-done') !== '0');  // handled notes on the timeline
-  useEffect(() => { try { localStorage.setItem('zc-notes-done', showDone ? '1' : '0'); } catch {} }, [showDone]);
+  // which notes the timeline shows (Notes.tsx: open / fixed / checked)
+  const [noteView, setNoteView] = useState<NoteView>(() => { try { return (localStorage.getItem('zc-notes-view') as NoteView) || 'active'; } catch { return 'active'; } });
+  useEffect(() => { try { localStorage.setItem('zc-notes-view', noteView); } catch {} }, [noteView]);
+  // "Looks good" on a fixed note: the next fixed one (after it in the video, else from the start) opens
+  const nextFixed = (cur: Note) => {
+    const rest = notes.filter((n) => n.id !== cur.id && noteState(n) === 'fixed').sort((a, b) => a.at - b.at);
+    const n = rest.find((x) => x.at >= cur.at) || rest[0];
+    if (n) openNote(n); else setNoteOpen(null);
+  };
   const openNote = (n: Note | null, at?: number) => {  // (at: a new note there - the ruler's note button at its line)
     player.current?.pause();
     if (n) { seek(n.at); setNoteOpen({ note: n, isNew: false }); }
@@ -504,7 +511,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
               className={`frame ${noteOpen ? 'note-pick' : ''}`}
               onClick={(e) => { if (noteOpen) { noteSpot(e); return; } const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else player.current?.toggle(); }}>
               {!noteOpen && <Handles project={project} sel={sel} frame={frame} host={frameEl.current} send={L.send} onPick={setSel} />}
-              <NoteSpots notes={showDone ? notes : notes.filter((n) => !n.done)} frame={frame} fps={fps} canvas={project.canvas} open={noteOpen?.note || null} />
+              <NoteSpots notes={notes.filter((n) => inView(noteView, n))} frame={frame} fps={fps} canvas={project.canvas} open={noteOpen?.note || null} />
               {inputProps && <Player ref={player} component={Layers as any} inputProps={inputProps} durationInFrames={total} fps={fps}
                 compositionWidth={project.canvas.w} compositionHeight={project.canvas.h} controls={false} clickToPlay={false} playbackRate={speed}
                 numberOfSharedAudioTags={0} style={{ width: '100%', height: '100%' }} />}
@@ -537,11 +544,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} onOpen={openClip} playing={playing} notes={notes} onNote={openNote} showDone={showDone} onShowDone={setShowDone}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} onOpen={openClip} playing={playing} notes={notes} onNote={openNote} noteView={noteView} onNoteView={setNoteView}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
       {openedView()}
       {noteOpen && <NoteWindow note={noteOpen.note} isNew={noteOpen.isNew} fps={fps} speed={speed} onSave={saveNote} onSeek={seek}
-        onDelete={() => deleteNote(noteOpen.note.id)} onClose={() => setNoteOpen(null)} />}
+        onDelete={() => deleteNote(noteOpen.note.id)} onClose={() => setNoteOpen(null)} onNext={() => nextFixed(noteOpen.note)} />}
     </div>
   );
 }

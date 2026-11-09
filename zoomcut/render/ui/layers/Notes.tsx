@@ -7,7 +7,17 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { fmtT, Send } from './api';
 import './notes.css';
 
-export type Note = { id: string; at: number; text: string; kind?: string; x?: number; y?: number; done?: boolean; reply?: string; t?: number };
+export type Note = { id: string; at: number; text: string; kind?: string; x?: number; y?: number; done?: boolean; reply?: string; t?: number;
+  fixed?: number; seen?: boolean };
+
+// a note's life (his ask, 2026-11-09 - "know what was fixed on the last run, go to those places, then make them
+// disappear"): open (yellow, for Claude) -> fixed (green: Claude fixed it - tools/notes.mjs done sets `fixed`; he hasn't
+// looked yet) -> checked (grey, hidden: he looked - `seen`, or he ticked it himself). Older handled notes = checked.
+export type NoteState = 'open' | 'fixed' | 'checked';
+export const noteState = (n: Note): NoteState => (!n.done ? 'open' : n.fixed && !n.seen ? 'fixed' : 'checked');
+export type NoteView = 'active' | 'open' | 'fixed' | 'all';
+export const NOTE_VIEWS: [NoteView, string][] = [['active', 'Open + fixed'], ['open', 'Open'], ['fixed', 'Fixed - to check'], ['all', 'All (+ checked)']];
+export const inView = (v: NoteView, n: Note) => { const s = noteState(n); return v === 'all' || (v === 'active' ? s !== 'checked' : s === v); };
 
 // ready-made notes (his ask, 2026-10-28) - one click; `kind` tells the session exactly what to do (SKILL.md "fix notes")
 export const PRESETS = [
@@ -21,8 +31,8 @@ export const newNote = (at: number): Note => ({ id: 'n' + Date.now().toString(36
 
 const PinIc = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v13l-7 5-7-5z" /></svg>;
 
-/** The notes on the ruler: a flag each (yellow open, grey answered). Click opens it; drag moves it along the video. */
-export function NotePins({ notes, hideDone, px, pps, fps, total, onOpen, send }: { notes: Note[]; hideDone?: boolean; px: (f: number) => number; pps: number; fps: number; total: number;
+/** The notes on the ruler: a flag each (yellow open, green fixed, grey checked). Click opens it; drag moves it along. */
+export function NotePins({ notes, view = 'active', px, pps, fps, total, onOpen, send }: { notes: Note[]; view?: NoteView; px: (f: number) => number; pps: number; fps: number; total: number;
   onOpen: (n: Note) => void; send: Send }) {
   const down = (e: React.MouseEvent, n: Note) => {
     e.stopPropagation(); e.preventDefault();
@@ -42,9 +52,9 @@ export function NotePins({ notes, hideDone, px, pps, fps, total, onOpen, send }:
     };
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
-  return <>{notes.filter((n) => !(hideDone && n.done)).map((n) => (
-    <div key={n.id} data-note={n.id} className={`ltl-note ${n.done ? 'done' : ''}`} style={{ left: px(n.at) }} onMouseDown={(e) => down(e, n)}
-      title={`${n.done ? 'Handled' : 'Open'} note at ${fmtT(n.at / fps)}: ${n.text}${n.reply ? `\nClaude: ${n.reply}` : ''}\n(click to open, drag to move)`}><PinIc /></div>))}</>;
+  return <>{notes.filter((n) => inView(view, n)).map((n) => (
+    <div key={n.id} data-note={n.id} className={`ltl-note ${noteState(n)}`} style={{ left: px(n.at) }} onMouseDown={(e) => down(e, n)}
+      title={`${{ open: 'Open', fixed: 'Fixed - check it', checked: 'Checked' }[noteState(n)]} note at ${fmtT(n.at / fps)}: ${n.text}${n.reply ? `\nClaude: ${n.reply}` : ''}\n(click to open, drag to move)`}><PinIc /></div>))}</>;
 }
 
 /** The spots on the picture: a ring where a note points, while the playhead is at it (the open one always). */
@@ -57,8 +67,8 @@ export function NoteSpots({ notes, frame, fps, canvas, open }: { notes: Note[]; 
 
 /** The note's window: right above its flag on the ruler (a new one: above the playhead) - his ask, 2026-10-28; a click
  *  on the video marks the spot. */
-export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose, onSeek }: { note: Note; isNew: boolean; fps: number; speed: number;
-  onSave: (n: Note) => void; onDelete: () => void; onClose: () => void; onSeek: (f: number) => void }) {
+export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose, onSeek, onNext }: { note: Note; isNew: boolean; fps: number; speed: number;
+  onSave: (n: Note) => void; onDelete: () => void; onClose: () => void; onSeek: (f: number) => void; onNext?: () => void }) {
   const [text, setText] = useState(note.text);
   const [kind, setKind] = useState(note.kind);
   const box = useRef<HTMLTextAreaElement>(null);
@@ -110,9 +120,14 @@ export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose,
         placeholder="What's wrong here and what to fix… (Ctrl+Enter saves)" />
       <div className="help" style={{ margin: 0 }}>{note.x != null ? 'The spot is marked on the video - click the video to move it.' : 'Optional: click the video to point at the exact spot.'}</div>
       {note.reply && <div className="note-reply"><b>Claude:</b> <span dir="auto">{note.reply}</span></div>}
+      {noteState(note) === 'fixed' && <div className="note-check">
+        <span className="grow">Claude fixed this - is it right?</span>
+        <button className="btn ghost" onClick={() => { onSave({ ...note, done: false, fixed: undefined, seen: undefined }); }} title="Not fixed: it goes back to Claude (open)">Not yet</button>
+        <button className="btn ok" onClick={() => { onSave({ ...note, seen: true }); onNext ? onNext() : onClose(); }} title="Checked - it hides; the next fixed note opens">Looks good ✓</button>
+      </div>}
       <div className="note-acts">
-        {!isNew && <label className={`note-handled ${note.done ? 'on' : ''}`} title="Handled = fixed (Claude ticks it when he fixes it; untick to reopen)">
-          <input type="checkbox" checked={!!note.done} onChange={(e) => onSave({ ...note, text: text.trim() || note.text, kind, done: e.target.checked })} /> Handled</label>}
+        {!isNew && noteState(note) !== 'fixed' && <label className={`note-handled ${note.done ? 'on' : ''}`} title="Handled: done (ticked = checked, it hides with the others); untick to reopen it for Claude">
+          <input type="checkbox" checked={!!note.done} onChange={(e) => onSave({ ...note, text: text.trim() || note.text, kind, done: e.target.checked, seen: e.target.checked || undefined, ...(e.target.checked ? {} : { fixed: undefined }) })} /> Handled</label>}
         {note.x != null && <button className="btn ghost" onClick={() => onSave({ ...note, text: text.trim() || note.text, kind, x: undefined, y: undefined })}>Clear the spot</button>}
         <div className="grow" />
         <button className="btn ghost" style={{ color: 'var(--bad)' }} onClick={() => { onDelete(); onClose(); }}>{isNew ? 'Cancel' : 'Delete'}</button>

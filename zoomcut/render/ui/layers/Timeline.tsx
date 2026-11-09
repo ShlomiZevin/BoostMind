@@ -7,7 +7,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
 import './timeline.css';
 import { ask } from './ask';
-import { Note, NotePins, PRESETS, saveNotes, newNote } from './Notes';
+import { Note, NotePins, PRESETS, saveNotes, newNote, NoteView, NOTE_VIEWS, inView, noteState } from './Notes';
 import { Find } from './Find';
 import { tempoOf } from '../../src/layers/clock.js';
 import { tabProject } from '../common';
@@ -24,7 +24,7 @@ type Props = {
   onSolo?: (s: Sel) => void; soloKey?: string | null;  // play one clip alone in the video (Shift+Space, the edge card)
   playing?: boolean;  // (stopped: the quick notes wait, faint, beside the playhead on the ruler)
   onOpen?: (s: Sel) => void;  // open the clip's own file in a window (▶ above the block, on hover)
-  notes?: Note[]; onNote?: (n: Note | null, at?: number) => void; showDone?: boolean; onShowDone?: (v: boolean) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
+  notes?: Note[]; onNote?: (n: Note | null, at?: number) => void; noteView?: NoteView; onNoteView?: (v: NoteView) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
 };
 
 const TH = 30;  // lane height
@@ -82,7 +82,7 @@ const blockText = (l: any, it: any, project: any) => {
   return a ? a.label || String(a.src).split('/').pop() : '';
 };
 
-export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, playing, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, showDone = true, onShowDone }: Props) {
+export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, playing, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, noteView = 'active', onNoteView }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
@@ -655,8 +655,19 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
           title="The video ends at the playhead - everything after it goes, in every layer (an end card pinned to the end moves with it). Ctrl+Z undoes">End here ⇥</button>
         {onNote && <button className="btn" style={{ height: 26, padding: '0 9px', fontSize: 12 }} onClick={() => onNote(null)}
           title="A note for Claude at the playhead: what's wrong here and what to fix - then tell Claude &quot;fix notes&quot; (N)">+ Note{notes.some((n) => !n.done) ? ` · ${notes.filter((n) => !n.done).length} open` : ''}</button>}
-        {onShowDone && notes.some((n) => n.done) && <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} onClick={() => onShowDone(!showDone)}
-          title={showDone ? 'Hide the handled notes on the timeline' : 'Show the handled notes on the timeline'}>{showDone ? 'Hide' : 'Show'} handled ({notes.filter((n) => n.done).length})</button>}
+        {onNoteView && notes.length > 0 && <select className="field tl-notes" value={noteView} onChange={(e) => onNoteView(e.target.value as NoteView)}
+          title="Which notes the timeline shows: open = for Claude, fixed = Claude fixed them on the last run (green), checked = you looked (hidden)">
+          {NOTE_VIEWS.map(([v, label]) => <option key={v} value={v}>{label} ({notes.filter((n) => inView(v, n)).length})</option>)}</select>}
+        {(() => {
+          const fixed = notes.filter((n) => noteState(n) === 'fixed').sort((a, b) => a.at - b.at);
+          if (!fixed.length || !onNote) return null;
+          return <>
+            <button className="btn" style={{ height: 26, padding: '0 9px', fontSize: 12, color: 'var(--ok)' }} onClick={() => onNote(fixed[0])}
+              title="Go through what Claude fixed: each fixed note opens at its place - Looks good hides it and opens the next">Check fixed ({fixed.length}) ›</button>
+            <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} title="Every fixed note is checked - they all hide (Ctrl+Z undoes)"
+              onClick={() => saveNotes(send, notes.map((n) => (noteState(n) === 'fixed' ? { ...n, seen: true } : n)), 'fixed notes checked')}>All look good ✓</button>
+          </>;
+        })()}
         <div className="vsep" />
         <Find project={project} fps={fps} onGo={(h) => { onSel({ layer: h.layer, item: h.item }); onSeek(h.at); }} />
         <div className="grow" />
@@ -672,7 +683,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
             <div className="ltl-name" />
             <div className="ltl-track" style={{ width }} onMouseDown={seekAt} onMouseMove={onNote ? qnMove : undefined} onMouseLeave={onNote ? qnLeave : undefined}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
-              {onNote && <NotePins notes={notes} hideDone={!showDone} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
+              {onNote && <NotePins notes={notes} view={noteView} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
                 <button title="A note for Claude right here (at the line) - write what to fix" onClick={() => onNote(null, qnAt.current)}>{QN_IC.note}</button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}

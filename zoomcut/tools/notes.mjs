@@ -29,7 +29,8 @@ const mmss = (f) => { const s = f / fps / speed; return `${Math.floor(s / 60)}:$
 if (cmd === 'done' || cmd === 'reply') {
   const n = notes.find((x) => x.id === id);
   if (!n) { console.log(`no note "${id}" - ids: ${notes.map((x) => x.id).join(', ')}`); process.exit(1); }
-  const next = notes.map((x) => (x.id === id ? { ...x, reply: rest.join(' ').trim() || x.reply, ...(cmd === 'done' ? { done: true } : {}) } : x));
+  // done = fixed on this run: green on his timeline until he checks it (Notes.tsx noteState; `seen` cleared - a new fix)
+  const next = notes.map((x) => { if (x.id !== id) return x; const { seen, ...y } = x; return { ...y, reply: rest.join(' ').trim() || x.reply, ...(cmd === 'done' ? { done: true, fixed: Date.now() } : { seen }) }; });
   const r = await fetch(`${base}/api/p/${encodeURIComponent(ep)}/ops`, { method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ rev: p.rev, ops: [{ op: 'project', set: { notes: next } }] }) });
   const j = await r.json().catch(() => ({}));

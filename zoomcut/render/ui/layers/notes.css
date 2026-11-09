@@ -2,7 +2,8 @@
 .ltl-note { position: absolute; top: 2px; transform: translateX(-50%); z-index: 4; width: 18px; height: 20px; display: flex; align-items: center;
   justify-content: center; color: #f0b44c; cursor: pointer; border-radius: 4px; }
 .ltl-note:hover { background: rgba(240, 180, 76, 0.16); }
-.ltl-note.done { color: var(--faint); }
+.ltl-note.fixed { color: var(--ok, #4cc38a); }
+.ltl-note.checked { color: var(--faint); }
 .ltl-note::after { content: ''; position: absolute; left: 50%; top: 17px; width: 1px; height: 8px; background: currentColor; opacity: 0.7; }
 
 .note-spot { position: absolute; z-index: 6; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; pointer-events: none;
@@ -47,3 +48,11 @@
 .ltl-qp:hover button { opacity: 1; }
 .ltl-qp button:hover { background: var(--warn, #f0b44c); color: #1a1716; }
 .ltl-track:has(.ltl-qp:hover) .ltl-qn { display: none; }
+
+/* a fixed note's window: Looks good (checked, the next fixed opens) / Not yet (back to Claude) */
+.note-check { display: flex; align-items: center; gap: 6px; padding: 7px 9px; border-radius: 6px; font-size: 12.5px;
+  background: color-mix(in srgb, var(--ok, #4cc38a) 13%, transparent); border: 1px solid color-mix(in srgb, var(--ok, #4cc38a) 40%, transparent); }
+.note-check .btn { height: 26px; padding: 0 10px; font-size: 12px; }
+.note-check .btn.ok { background: var(--ok, #4cc38a); color: #10231a; border-color: transparent; font-weight: 600; }
+/* the timeline bar's notes: which to show, and going through the fixed ones */
+.tl-notes { height: 26px; font-size: 12px; padding: 0 6px; }
