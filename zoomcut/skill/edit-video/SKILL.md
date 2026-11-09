@@ -132,6 +132,32 @@ The rules:
 5. **Show before applying** a look or sound change: stills of the tiles (big AND small), short before / after mp3s.
 6. **Time-box debugging:** two or three attempts, then the simplest route that works.
 
+## Dialogue projects - working in the new format (learned on haredit-5-dialogue, 2026-11-09)
+Format: `layers.md` -> "Dialogue". A row group per character: **video** (cut-out clips) / **רקע** (one background per
+clip, linked, moves with it; may be a video) / **voice** (the character's sound). One **"What we see"** strip picks who is
+on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <project> <new-id>` (every frame checked).
+- **Once he edits it, it is HIS - be gentle** ("the version is almost perfect, don't ruin it"): never re-convert or
+  rebuild it; only small targeted ops on exactly what his note names; say which clip / row changes. No backups needed.
+- **What you see is what you get** (his rule): every change must be visible on a layer and undoable there. A fix for
+  one section = a per-clip setting (e.g. `clean: "nn"` on just those voice clips - shown in the clip's "Clean the noise")
+  or its own clip / row - never something baked or hidden; name the exact clip in the reply.
+- **A character's other sounds go on its own voice row** (chewing, a whisper) as clips with overrides
+  `voice: false, clean: "off", level: "off"` + gain - he saw Osnat chewing on screen and "no Osnat sound" under it
+  because the chewing sat on a separate row far below.
+- **An overlay shot (a reaction / "the look") needs its own background clips** under it (a `*.bg` row), else the person
+  of the row below shows through.
+- **A tight join he wants to fine-tune = two rows**: put the next line on a second voice row of the same character
+  (`קול - חני 2`, same props) so he can drag the end of one and the start of the other independently.
+- **Cutting a silence in a dialogue project**: cut every row, the strip, the captions and his notes together (split
+  clips that cross the cut, `in` moved); measure the WORD edges first - three cuts clipped a word ("לך" -> "לה",
+  "בפוניבז'", the "ה" of "הסתכלתי"); a few frames given back fixes it. Moving something later = shift everything after.
+- **No fades anywhere** (his rule) - 0.01 s click guard only.
+- A text / card meant on top (over a poster) must be the TOP layer - index 0 is the bottom.
+- The studio holds the old format checker until it restarts once after a format merge (he restarts it, or allows you).
+- Stems folders can hold cloud "(conflict ...)" copies - ignore them when measuring.
+- A missing editor feature (no background row, a sound not under its picture) = a message to the tool session, not a
+  workaround in the project.
+
 ## "fix notes" - his notes on the timeline (2026-10-28)
 He leaves notes for you IN the editor: "+ Note" on the timeline bar (or N) puts a yellow flag on the ruler at the
 playhead, his words in a window right above it, optionally a spot he clicked on the picture. They live in project.json

@@ -382,3 +382,16 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   - read the export log for "sound graph failed" before telling him it's sent; workaround = run tools/audio_layers.mjs
   on the job alone, touch job.<key>.done, export again. FIXED the same day by Sketch Studio Online (protocolTimeout 30 min,
   a second sound pass after the picture, a Full export that still fails exits 1 and sends nothing) - no workaround now.
+- **The ending (haredit-5, 2026-11-09)**: a sponsor poster in the in-world brand ("הסרטון בחסות עיגוליות" - GPT Image from
+  the real `ads/igulyot-box.jpg`, the slogan "מפוצץ שוקולד / ובכלל פרווה!" ON the picture) with a Leonardo dialogue-v3
+  voice-over (vowel marks: "פַּרְוֶה", plain was read as fur), then a Shlomiverse card: the space look of
+  `_assets/shlomiverse/source/frame-logo.jpg` with a SMALL logo, the product, the slogan again and "shlomiverse.com"
+  glowing orange ("לאזרחי השלומיוורס – הנחה מיוחדת!"). Never a plain white text box ("super bad... we have a very good
+  standard"). The voice-over = ONE continuous read by the same voice (a second, separate read sounded worse); the
+  Shlomiverse part sped up with ffmpeg atempo (pitch kept) - he settled on x1.2 after x2 ("way too fast") and x1.4.
+  The site's words: תייר / תושב / אזרח, never "משתמשים"; ask Shlomiverse Conversion for the funnel wording.
+- **A story picture with many real people** (the "how Hani knows Rivki Weiss" connection board): GPT Image places 8
+  references badly (wrong card, repeats) - make each photo on its own (canon portraits as refs: Avraham Moshe, Shindy,
+  Savta Friedman from `tree/`), have GPT empty the board ("remove all pinned photos, keep everything else"), then pin
+  the photos in code (PIL: white frame, slight tilt, shadow, red pin) - one per card, never two the same
+  (`h5/story/compose.py`). It is a connection board, not a family tree.
