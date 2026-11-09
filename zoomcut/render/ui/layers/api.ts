@@ -151,9 +151,9 @@ export const upload = async (ep: string, file: File) => {
 export const build = (ep: string, body: any) => post(`/api/p/${ep}/build`, body).then((r) => r.json);
 
 export const KIND_LABEL: Record<string, string> = {
-  video: 'Video', backdrop: 'Background', image: 'Picture', text: 'Text', subtitles: 'Subtitles', shape: 'Shape', audio: 'Sound', effect: 'Effect',
+  video: 'Video', backdrop: 'Background', image: 'Picture', text: 'Text', subtitles: 'Subtitles', shape: 'Shape', audio: 'Sound', effect: 'Effect', view: 'What we see',
 };
 export const KIND_COLOR: Record<string, string> = {
-  video: '#4a86e8', backdrop: '#5c6b7a', image: '#c2507a', text: '#e9c46a', subtitles: '#8a8580', shape: '#6b6560', audio: '#45a86a', effect: '#8a5cd6',
+  video: '#4a86e8', backdrop: '#5c6b7a', image: '#c2507a', text: '#e9c46a', subtitles: '#8a8580', shape: '#6b6560', audio: '#45a86a', effect: '#8a5cd6', view: '#d9a441',
 };
 export const fmtT = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}.${Math.floor((s % 1) * 10)}`;

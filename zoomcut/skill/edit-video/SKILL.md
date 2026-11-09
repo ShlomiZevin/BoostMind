@@ -81,6 +81,11 @@ layers a builder made; the editor and the export don't know or care which builde
    same moment - J-cuts (hear the next speaker while still seeing the one who finished) and L-cuts (see the next one /
    a reaction while the first finishes), mixed with straight cuts; cut away to the listener during long runs. Details:
    `recipes/hani.md` → haredit-5.
+   **A dialogue is built as a row per character + the "What we see" strip** (his approved model, 2026-11-09 -
+   `layers.md` → "Dialogue"): each clip = its video + its own background + its voice under it, with handles; the strip
+   says who is seen when, so he makes the J / L cuts himself by dragging a line - nothing rebuilds, nothing pushes.
+   Build it that way from the first cut (fill the strip by the rules above); an older one-row cut becomes a dialogue
+   copy with `tools/to_dialogue.py`.
 5. **The editor is the tool; this skill uses it.** Making a video = setting up a project's layers with the tool as it
    is, then he (or you, on his word) changes them. A video session does not change the tool. Something the tool can't
    do = a deliberate, generic tool improvement (a layer kind / control every project gets, written in `editor.md`) -

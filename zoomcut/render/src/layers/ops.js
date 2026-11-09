@@ -3,7 +3,7 @@
 // skill/edit-video/layers.md; validate() is its checker - the server refuses a write that breaks it.
 
 export const FORMAT = 'sketch-studio/1';
-export const LAYER_KINDS = ['video', 'backdrop', 'image', 'text', 'subtitles', 'shape', 'audio', 'effect'];
+export const LAYER_KINDS = ['video', 'backdrop', 'image', 'text', 'subtitles', 'shape', 'audio', 'effect', 'view'];
 export const ASSET_KINDS = ['video', 'image', 'audio', 'font'];
 // which layer kinds make sound / pictures (the export splits the stack by these)
 export const SOUND = new Set(['audio']);
@@ -175,6 +175,7 @@ export function validate(p) {
       if (!t || t.kind !== 'video') at(w, 'props.target must name a video layer');
       if (l.props?.asset && p.assets?.[l.props.asset]?.kind !== 'image') at(w, 'props.asset must be an image asset');
     }
+    if (l.kind === 'view' && (p.layers || []).filter((x) => x.kind === 'view').length > 1) at(w, 'one "What we see" strip per project');
     const iids = new Set();
     for (const it of l.items || []) {
       const wi = `${w} item ${it.id}`;
@@ -192,6 +193,11 @@ export function validate(p) {
       if ((l.kind === 'video' || l.kind === 'shape') && !(it.box || l.props?.box)) at(wi, 'needs a box {x, y, w, h}');
       if ((l.kind === 'text' || l.kind === 'subtitles') && typeof it.text !== 'string') at(wi, 'needs text');
       if (it.in != null && (!isNum(it.in) || it.in < 0)) at(wi, 'in: seconds into the source, >= 0');
+      // the "What we see" strip: whose video row is on screen (render/src/layers/view.js)
+      if (l.kind === 'view' && (p.layers || []).find((x) => x.id === it.show)?.kind !== 'video') at(wi, 'show must name a video layer');
+      // a clip's own background (dialogue rows): a picture
+      const bg = l.kind === 'video' && (it.bg || l.props?.bg);
+      if (bg && bg.asset && p.assets?.[bg.asset]?.kind !== 'image') at(wi, `bg.asset "${bg.asset}" must be an image asset`);
     }
   }
   return e;

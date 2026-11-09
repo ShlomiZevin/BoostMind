@@ -35,7 +35,25 @@ from .compose import LOW, PIECES, X264_THREADS, _look
 from .layer_geometry import backdrop_box, fit_box, image_box
 
 VIDEO_KINDS = {"video", "backdrop"}
-SKIP_KINDS = {"audio", "effect"}
+SKIP_KINDS = {"audio", "effect", "view"}
+
+
+def flatten_view(project):
+    """A dialogue project (a "What we see" strip, a background per clip) -> the plain layers the editor draws: the very
+    same function (render/src/layers/view.js through tools/flatten_view.mjs), so the export shows what he saw."""
+    if not any(l["kind"] == "view" or (l["kind"] == "video" and ((l.get("props") or {}).get("bg") or any(i.get("bg") for i in l.get("items", []))))
+               for l in project["layers"]):
+        return project
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as fh:
+        json.dump(project, fh, ensure_ascii=False)
+    try:
+        r = subprocess.run(["node", os.path.join(ROOT, "tools", "flatten_view.mjs"), fh.name], capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
+    finally:
+        os.remove(fh.name)
+    if r.returncode:
+        raise RuntimeError("could not read the What-we-see strip: " + r.stderr[-600:])
+    return json.loads(r.stdout)
 def animated_styles():
     """The text / subtitle styles that move every frame by themselves - read from the registry (`animated: true` in
     render/src/layers/styles*.tsx, tools/animated_styles.mjs), cached until a style file changes."""
@@ -440,6 +458,7 @@ def export(ep, quick=False, test=False):
     project = projectlib.load(ep)
     if not project:
         sys.exit("✖ no project.json")
+    project = flatten_view(project)
     if test or quick:  # (an old check video never stays looking like this one's - a failed run leaves nothing behind)
         stale = ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4")
         if os.path.exists(stale):

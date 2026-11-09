@@ -1,6 +1,7 @@
 // Work ON the video: the picked item gets a frame you drag (move), a corner (size), and on a background or a video the
 // wheel zooms it; clicking anything on the video picks it. Every drag is live (a draft) and saved on release - an op
 // like any other, so Ctrl+Z undoes it.
+import { flatten, sourceId } from '../../src/layers/view.js';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { fitBox, backdropBox, imageBox } from '../../src/layers/geometry.js';
 import { Send } from './api';
@@ -118,7 +119,10 @@ export function Handles({ project, sel, frame, host, send, onPick }: {
 }
 
 /** What's under a click on the video: whatever is drawn on top at that point (locked layers are skipped). */
-export function pickAt(project: any, frame: number, host: HTMLElement, clientX: number, clientY: number): Sel {
+export function pickAt(project0: any, frame: number, host: HTMLElement, clientX: number, clientY: number): Sel {
+  // (a dialogue project: only the row the strip shows is there to click - render/src/layers/view.js; a piece the strip
+  // cut is its clip, "p12~1" -> p12)
+  const project = flatten(project0);
   const scale = host.clientWidth / project.canvas.w;
   const h = host.getBoundingClientRect();
   const x = (clientX - h.left) / scale, y = (clientY - h.top) / scale;
@@ -138,7 +142,7 @@ export function pickAt(project: any, frame: number, host: HTMLElement, clientX: 
       const b = i.box || l.props?.box;
       if (!b || !visible(i, frame) || x < b.x || x > b.x + b.w || y < b.y || y > b.y + b.h) continue;
       const k = (i.z ?? 0) * 1000 + li;
-      if (!v || k > v.k) v = { k, rank: li, sel: { layer: l.id, item: i.id } };
+      if (!v || k > v.k) v = { k, rank: li, sel: { layer: l.id, item: sourceId(i.id) } };
     }
   });
   if (g && v) return g.rank > v.rank ? g.sel : v.sel;

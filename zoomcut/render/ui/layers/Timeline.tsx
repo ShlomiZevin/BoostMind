@@ -10,6 +10,7 @@ import { ask } from './ask';
 import { Note, NotePins, PRESETS, saveNotes, newNote } from './Notes';
 import { Find } from './Find';
 import { tempoOf } from '../../src/layers/clock.js';
+import { viewLayer, characters, rowColors, followers, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -37,10 +38,13 @@ export function groupsOf(project: any) {
   // top layer first; a group sits where its topmost layer is
   const out: { name: string; layers: any[] }[] = [];
   for (const l of [...(project.layers || [])].reverse()) {
+    if (l.kind === 'view') continue;  // (the "What we see" strip has its own row on top)
     const g = l.group || KIND_LABEL[l.kind] || 'Layers';
     const hit = out.find((x) => x.name === g);
     if (hit) hit.layers.push(l); else out.push({ name: g, layers: [l] });
   }
+  // a dialogue project: in each character's group the clips first, the voice right under them
+  if ((project.layers || []).some((l: any) => l.kind === 'view')) for (const g of out) g.layers.sort((a, b) => Number(a.kind === 'audio') - Number(b.kind === 'audio'));
   // sound-only groups go under the pictures, like any editor
   return [...out.filter((g) => g.layers.some((l) => l.kind !== 'audio')), ...out.filter((g) => g.layers.every((l) => l.kind === 'audio'))];
 }
@@ -62,6 +66,11 @@ const OPEN_WORD: Record<string, string> = { video: 'video', image: 'picture', au
 // what a block says: its words (a text, a subtitle, a voice's line), else its file's name
 const blockText = (l: any, it: any, project: any) => {
   if (it.text != null) return String(it.text).replace('{clock}', '00:00');
+  if (it.link && (l.kind === 'video' || l.kind === 'audio') && (project.layers || []).some((x: any) => x.kind === 'view')) {  // (a dialogue clip / voice: its line's words)
+    const words = (project.layers || []).filter((x: any) => x.kind === 'subtitles').flatMap((x: any) => (x.items || []).filter((s: any) => s.link === it.link))
+      .filter((s: any) => s.from < it.from + it.dur && s.from + s.dur > it.from).sort((a: any, b: any) => a.from - b.from).map((s: any) => s.text);
+    if (words.length) return words.join(' ');
+  }
   if (l.kind === 'audio' && it.ref?.line != null) { const ln = (project.script || []).find((x: any) => x.n === it.ref.line); if (ln) return ln.text; }
   const a = project.assets?.[it.asset ?? l.props?.asset];
   return a ? a.label || String(a.src).split('/').pop() : '';
@@ -107,6 +116,12 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const width = px(total) + 200;
   const groups = useMemo(() => groupsOf(project), [project]);
   const selLink = sel?.item ? project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item)?.link : null;
+  // a dialogue project (dialogue.ts): the "What we see" strip on top, a colour per character on its rows
+  const view = viewLayer(project);
+  const chars = useMemo(() => characters(project), [project]);
+  const colors = useMemo(() => rowColors(project), [project]);
+  const [choose, setChoose] = useState<string | null>(null);  // the strip block whose "who is seen" list is open
+  const [cutTip, setCutTip] = useState<{ x: number; text: string } | null>(null);
   const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string } | null>(null);
 
   // something picked (on the video, in a panel): unfold its group, bring its lane and block into view
@@ -143,6 +158,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   // moving / trimming one block by d frames, from the project as it was when it began: the ops, and the frames it
   // really moved (never past the take's ends). A drag and a nudge both go through here, so they behave the same
   const trimmer = (l: any, it: any, side: 'l' | 'r' | 'm', chain = false) => {
+    if (l.kind === 'view') return cutTrimmer(l, it, side);
     const asset = project.assets?.[it.asset];
     const rate = (it.rate || 1) * tempoOf(l);  // (seconds of the source per second here - a sound row's tempo too)
     // never past the video's end: moved there it ends at the end, stretched there it stops at it (his takes excepted -
@@ -171,6 +187,9 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       return [{ op: 'item.update', layer: l.id, id: it.id, set: { from: it.from + dd, dur: it.dur - dd, ...(it.in != null ? { in: +(it.in + (dd / fps) * rate).toFixed(4) } : {}) } }];
     };
     const moved = (d: number) => { const s: any = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
+    // a dialogue row: a clip moved takes its voice and the line's subtitles along, a voice its subtitles (dialogue.ts)
+    const fol = side === 'm' ? followers(project, l, it) : [];
+    const follow = (ops: any[], d: number) => (fol.length ? [...ops, ...fol.map((f) => ({ op: 'item.update', layer: f.layer, id: f.it.id, set: { from: Math.max(0, f.it.from + moved(d)) } }))] : ops);
     const base = project;
     // a nudge (chain): an edge where the clip is STUCK to the next one on its lane moves that one and every clip stuck
     // after it (and their linked voice / subtitles) - the join stays a join; a clip with space after it just changes.
@@ -195,15 +214,64 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       return ops;
     };
     // live while it changes (a take in a continuous cut: everything after it moves along)
-    const preview = (d: number) => { const ops = (onItemPreview && onItemPreview(l, it, side, moved(d), base)) || chainOps(d); send(ops, { commit: false }); return ops; };
+    const preview = (d: number) => { const ops = (onItemPreview && onItemPreview(l, it, side, moved(d), base)) || follow(chainOps(d), d); send(ops, { commit: false }); return ops; };
     // done: one undoable change - or the builder takes it (its live edit shows until the builder's answer lands)
     const commit = (d: number, label: string) => {
       if (!d || !moved(d)) { send([], { commit: false }); return; }
       const taken = onItemEdit && onItemEdit(l, it, side, moved(d));
       if (taken) { if (taken !== 'keep') send([], { commit: false }); return; }
-      send(chainOps(d), { label });
+      send(follow(chainOps(d), d), { label });
     };
     return { it, moved, preview, commit, stuck: stuck.length > 0 };
+  };
+  // the strip's blocks: an edge between two blocks is a cut - moving it changes who is seen there and nothing else
+  // (both neighbours change); a block's body doesn't move (the strip has no gaps). A drag, a nudge: the same path
+  const cutTrimmer = (l: any, it: any, side: 'l' | 'r' | 'm') => {
+    const list = [...(l.items || [])].sort((a: any, b: any) => a.from - b.from), k = list.indexOf(it);
+    const left = side === 'r' ? it : side === 'l' ? list[k - 1] : null;  // (the block whose END is this cut)
+    const after = left ? list[list.indexOf(left) + 1] : null;
+    const joinedCut = !!after && Math.abs(after.from - (left.from + left.dur)) <= 1;
+    const lim = (d: number) => Math.max(-it.from, Math.min(d, it.dur - 1));
+    const plain = (d: number) => side === 'r' ? [{ op: 'item.update', layer: l.id, id: it.id, set: { dur: Math.max(1, it.dur + d) } }]
+      : side === 'l' ? [{ op: 'item.update', layer: l.id, id: it.id, set: { from: it.from + lim(d), dur: it.dur - lim(d) } }] : [];
+    const opsFor = (d: number) => (side === 'm' ? [] : joinedCut ? moveCut(project, left, d).ops : plain(d));
+    const moved = (d: number) => (side === 'm' ? 0 : joinedCut ? moveCut(project, left, d).moved : side === 'r' ? Math.max(1, it.dur + d) - it.dur : lim(d));
+    const preview = (d: number) => { const ops = opsFor(d); send(ops, { commit: false }); return ops; };
+    const commit = (d: number, label: string) => { if (!d || !moved(d)) { send([], { commit: false }); return; } send(opsFor(d), { label: label === 'nudge' ? 'nudge cut' : 'cut' }); };
+    return { it, moved, preview, commit, stuck: joinedCut };
+  };
+  // dragging a cut on the strip (the grip between two blocks): it snaps to a voice's start / end, a clip's edge and the
+  // playhead when it comes within 6 px
+  const snaps = useMemo(() => snapFrames(project), [project]);
+  const startCut = (e: React.MouseEvent, a: any) => {
+    e.stopPropagation(); e.preventDefault();
+    flushNudge(); setChoose(null);
+    if (view.locked) return;
+    const x0 = e.clientX, at0 = a.from + a.dur, near = (6 / pps) * fps;
+    let last = 0;
+    const mv = (m: MouseEvent) => {
+      let f = at0 + ((m.clientX - x0) / pps) * fps;
+      const c = [...snaps, frame].reduce((b, x) => (Math.abs(x - f) < Math.abs(b - f) ? x : b), Infinity);
+      f = Math.abs(c - f) <= near ? c : Math.round(f);
+      const r = moveCut(project, a, f - at0);
+      if (r.moved === last) return;
+      last = r.moved;
+      send(r.ops, { commit: false });
+      setCutTip({ x: px(at0 + r.moved), text: `${fmtT((at0 + r.moved) / fps)}${r.moved ? ` · ${r.moved > 0 ? '+' : '−'}${(Math.abs(r.moved) / fps).toFixed(2)} s` : ''}` });
+    };
+    const up = () => {
+      removeEventListener('mousemove', mv); removeEventListener('mouseup', up); document.body.style.cursor = ''; setCutTip(null);
+      if (!last) { send([], { commit: false }); return; }
+      send(moveCut(project, a, last).ops, { label: 'cut' });
+    };
+    document.body.style.cursor = 'ew-resize';
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  };
+  const splitHere = () => {
+    const r = view && splitAt(project, Math.round(frame));
+    if (!r) return;
+    send(r.ops, { label: 'new cut' });
+    onSel({ layer: view.id, item: r.id }); setChoose(r.id);
   };
 
   // a block dragged: d frames (live draft), committed on release. A grip clicked without dragging picks that edge
@@ -346,6 +414,9 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const k = (e: KeyboardEvent) => {
       // (an undo / redo: the card's count starts again from where the edge is now)
       if (edge && (e.ctrlKey || e.metaKey) && /^[zy]$/i.test(e.key)) { flushNudge(); setEdge({ ...edge, total: 0, f0: undefined }); return; }
+      const tag0 = (e.target as HTMLElement).tagName;
+      if (view && e.code === 'KeyS' && !e.ctrlKey && !e.metaKey && !e.altKey && tag0 !== 'INPUT' && tag0 !== 'TEXTAREA' && tag0 !== 'SELECT') { e.preventDefault(); splitHere(); return; }
+      if (choose && e.key === 'Escape') { setChoose(null); return; }
       if (!edge || e.ctrlKey || e.metaKey || e.altKey) return;
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
@@ -458,7 +529,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <div className="ec-top">
           {t ? <b>{sign(t)}{toMs(Math.abs(t))} ms</b> : <b>{edge!.side === 'l' ? 'Start' : 'End'}</b>}
           <span>{t ? `${fr(t)} · ${(edge!.side === 'l') === t > 0 ? 'shorter' : 'longer'}` : `at ${(f / fps).toFixed(2)} s`}</span>
-          <span className="ec-what">{joined ? 'the clips after it follow' : 'just this clip'}</span>
+          <span className="ec-what">{edge!.layer === view?.id ? 'who is seen changes here' : joined ? 'the clips after it follow' : 'just this clip'}</span>
         </div>
         {typing != null ? <div className="ec-type">
           <input autoFocus value={typing} size={6} spellCheck={false} onChange={(e) => setTyping(e.target.value)}
@@ -520,17 +591,63 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>
+          {view && (() => {
+            const list = [...(view.items || [])].sort((a: any, b: any) => a.from - b.from);
+            const who = (id: string) => chars.find((c) => c.id === id);
+            return <div data-lane={view.id} className={`ltl-row ltl-lay ltl-view ${sel?.layer === view.id ? 'sel' : ''}`}>
+              <div className="ltl-name" onClick={() => onSel({ layer: view.id })} title="Who is on screen - drag the line between two blocks to change who is seen there (nothing else moves); click a block to pick who is seen; S = a new cut at the playhead">
+                <span className="dot" style={{ background: KIND_COLOR.view }} /><span className="nm">What we see</span>
+                <button className="btn ghost icon" style={{ width: 22, height: 22 }} title="A new cut at the playhead (S)" onClick={(e) => { e.stopPropagation(); splitHere(); }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M8.2 8.2 20 20M8.2 15.8 20 4" /></svg></button>
+              </div>
+              <div className="ltl-track" style={{ width }} onMouseDown={(e) => { if (e.target === e.currentTarget) { setChoose(null); onSel({ layer: view.id }); seekAt(e); } }}>
+                {list.map((s: any, k: number) => {
+                  const c = who(s.show), isSel = sel?.layer === view.id && sel.item === s.id, w = px(s.dur);
+                  const ed = isSel && edge?.layer === view.id && edge.item === s.id ? edge.side : null;
+                  const next = list[k + 1], cut = next && Math.abs(next.from - (s.from + s.dur)) <= 1;
+                  return <React.Fragment key={s.id}>
+                    <div data-layer={view.id} data-item={s.id} className={`blk vblk ${isSel ? 'sel' : ''} ${ed ? 'edge-' + ed : ''}`}
+                      style={{ left: px(s.from), width: Math.max(3, w), background: c?.color || '#555', top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0, color: '#fff', fontSize: 11 }}
+                      title={`${c?.name || s.show} is seen - click: who is seen here · the line between two blocks: drag it`}
+                      onMouseDown={(e) => {
+                        e.stopPropagation(); e.preventDefault(); flushNudge();
+                        const r = (e.currentTarget as HTMLElement).getBoundingClientRect(), x = e.clientX - r.left;
+                        const side = w >= 24 && x <= 7 ? 'l' : w >= 24 && x >= r.width - 7 ? 'r' : null;
+                        onSel({ layer: view.id, item: s.id }); setTyping(null);
+                        setEdge(side ? { layer: view.id, item: s.id, side, total: 0 } : null);
+                        if (side) { setChoose(null); onSeek(side === 'l' ? s.from : s.from + s.dur - 1); } else setChoose(choose === s.id ? null : s.id);
+                      }}>
+                      {noPicture(project, s).map(([a, b], j) => <i key={j} className="vnone" style={{ left: px(a - s.from), width: Math.max(2, px(b - a)) }} title="Nothing of this character here - no clip on the row" />)}
+                      {w > 24 && <span className="he vname">{c?.name || s.show}</span>}
+                      {choose === s.id && <div className="vpick" onMouseDown={(e) => e.stopPropagation()}>
+                        <div className="vpick-h">Who is seen here</div>
+                        {chars.map((o) => <button key={o.id} className={o.id === s.show ? 'on' : ''} onClick={() => {
+                          setChoose(null);
+                          if (o.id !== s.show) send([{ op: 'item.update', layer: view.id, id: s.id, set: { show: o.id } }], { label: 'who is seen' });
+                        }}><i style={{ background: o.color }} />{o.name}</button>)}
+                      </div>}
+                    </div>
+                    {cut && <div className="vcut" style={{ left: px(s.from + s.dur) }} onMouseDown={(e) => startCut(e, s)} title="Drag: who is seen changes here (it snaps to the start / end of a voice and to the playhead)" />}
+                  </React.Fragment>;
+                })}
+                {cutTip && <span className="blk-tip" style={{ left: cutTip.x, bottom: 'auto', top: -22 }}>{cutTip.text}</span>}
+                {edge?.layer === view.id && edgeItem && !drag && edgeCard()}
+              </div>
+            </div>;
+          })()}
           {groups.map((g) => (
             <React.Fragment key={g.name}>
               <div className="ltl-row ltl-grp">
                 <div className="ltl-name" onClick={() => setClosed({ ...closed, [g.name]: !closed[g.name] })}>
-                  <span className="caret">{closed[g.name] ? '▸' : '▾'}</span><span className="nm he" dir="auto" style={{ textAlign: 'left', unicodeBidi: 'plaintext' }}>{g.name}</span>
+                  <span className="caret">{closed[g.name] ? '▸' : '▾'}</span>
+                  {(() => { const c = g.layers.map((l) => colors[l.id]).find(Boolean); return c ? <span className="gdot" style={{ background: c }} /> : null; })()}
+                  <span className="nm he" dir="auto" style={{ textAlign: 'left', unicodeBidi: 'plaintext' }}>{g.name}</span>
                 </div>
                 <div className="ltl-track" style={{ width }} onMouseDown={seekAt} />
               </div>
               {!closed[g.name] && g.layers.map((l) => (
                 <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${l.kind === 'audio' ? 'snd' : ''} ${sel?.layer === l.id ? 'sel' : ''} ${lmove?.id === l.id ? 'lmoving' : ''} ${lmove?.over === l.id ? (lmove.below ? 'drop-below' : 'drop-above') : ''}`}>
-                  <div className={`ltl-name ${vtip?.k === l.id ? 'vol-on' : ''}`} style={{ opacity: l.hidden ? 0.5 : 1 }} onMouseDown={(e) => startLayerMove(e, l)}
+                  <div className={`ltl-name ${vtip?.k === l.id ? 'vol-on' : ''}`} style={{ opacity: l.hidden ? 0.5 : 1, ...(colors[l.id] ? { boxShadow: `inset 3px 0 0 ${colors[l.id]}` } : {}) }} onMouseDown={(e) => startLayerMove(e, l)}
                     onClick={() => { if (lmoved.current) { lmoved.current = false; return; } onSel({ layer: l.id }); }} title={`${KIND_LABEL[l.kind]} · ${l.id} - drag it up or down to move the layer`}>
                     <span className="dot" style={{ background: KIND_COLOR[l.kind] }} />
                     <span className="nm" dir="auto">{l.name || l.id}</span>
@@ -559,9 +676,10 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                       const linked = !isSel && !!it.link && it.link === selLink;  // the same line's voice / subtitle
                       const w = px(it.dur);
                       const ed = isSel && edge?.layer === l.id && edge.item === it.id ? edge.side : null;  // its picked edge
+                      const tint = colors[l.id], off = tint ? soundOffset(project, l, it) : null;
                       return (
                         <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${l.kind === 'audio' ? 'snd' : ''} ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''} ${ed ? 'edge-' + ed : ''}`}
-                          style={{ left: px(it.from), width: Math.max(3, w), background: KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
+                          style={{ left: px(it.from), width: Math.max(3, w), background: tint ? (l.kind === 'audio' ? `color-mix(in srgb, ${tint} 55%, #1d1c1b)` : tint) : KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
                             color: l.kind === 'text' ? '#2a2000' : '#fff', fontSize: 11 }}
                           title={isSel ? `${blockText(l, it, project)} - drag it, or its edges (click an edge, then , . or type ±ms)` : `${blockText(l, it, project)} - click to pick it (near its start / end: that edge)`}
                           onMouseMove={onOpen ? (e) => { const el = e.currentTarget; el.style.setProperty('--mx', `${e.clientX - el.getBoundingClientRect().left}px`); } : undefined}
@@ -578,6 +696,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
                           {isSel && <><div className="hd l" title="Drag: where it starts · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
                           {l.kind === 'audio' && w > 90 && (it.gain ?? 1) !== 1 && <span className="blk-db">{dbTxt(it.gain)}</span>}
+                          {off != null && w > 60 && <span className="blk-off" title="This voice is moved from its own picture - heard before (−) / after (+) we see it">sound {off < 0 ? '−' : '+'}{Math.abs(off).toFixed(2)} s</span>}
                           {l.kind === 'audio' && !drag && w > 10 && (
                             <div className={`blk-vol ${vtip?.k === `${l.id}|${it.id}` ? 'on' : ''}`} style={{ top: `${lineAt(it.gain ?? 1) * 100}%` }}
                               title="Volume of this clip - drag up / down · double-click: back to 0 dB"

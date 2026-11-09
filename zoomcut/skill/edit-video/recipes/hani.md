@@ -287,6 +287,8 @@ sound-effects model · the office ambience · slow, sparse music beds · a blurr
 
 
 ## haredit-5 - a DIALOGUE in Osnat's (HR) room, each character filmed alone (his brief, 2026-11-08, the day before the shoot)
+**The tool has dialogue rows since 2026-11-09 (layers.md -> "Dialogue"):** the next dialogue is made as a row per character
++ the "What we see" strip from the start; this one-row cut becomes a dialogue copy with `python tools/to_dialogue.py haredit-5 <new id>`.
 Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in, nothing copied from haredit-4). Project
 `haredit-5`, script `scripts/haredit-5.txt`, Drop folder `haredit-5`. **He has no time for rounds: "make it good on first run".**
 - **Cut EVERY silence** (his words: "cut any silence ... fast editing for the conversation") - this is NOT a phone call,

@@ -9,6 +9,7 @@ import { VideoTrack } from './layers/VideoTrack';
 import { AudioTrack } from './layers/AudioTrack';
 import { EffectWrap } from './layers/effects';
 import { topEffect } from './layers/effect_curve.js';
+import { flatten } from './layers/view.js';
 
 export type LayersProps = {
   project: any;
@@ -62,7 +63,7 @@ function Graphic({ p, layer, it, f, fonts }: { p: LayersProps; layer: any; it: a
     // this same composition) matches
     const look = [props.blur ? `blur(${props.blur}px)` : '', props.brightness != null && props.brightness !== 1 ? `brightness(${props.brightness})` : '',
       props.saturate != null && props.saturate !== 1 ? `saturate(${props.saturate})` : ''].filter(Boolean).join(' ') || undefined;
-    return <Img data-l={layer.id} data-i={it.id} src={src(p, props.asset)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, maxWidth: 'none',
+    return <Img data-l={layer.nopick ? undefined : layer.id} data-i={layer.nopick ? undefined : it.id} src={src(p, props.asset)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, maxWidth: 'none',
       opacity: op, borderRadius: props.radius, transform: animTransform(it, t), filter: look }} />;
   }
   if (layer.kind === 'shape') {
@@ -117,7 +118,11 @@ function runsOf(layers: any[]) {
   return runs;
 }
 
-export const Layers: React.FC<LayersProps> = (p) => {
+export const Layers: React.FC<LayersProps> = (p0) => {
+  // a dialogue project: the "What we see" strip and each clip's background become plain layers (layers/view.js -
+  // the export does the same first), so everything below draws them as it draws any project
+  const flat = React.useMemo(() => flatten(p0.project), [p0.project]);
+  const p = flat === p0.project ? p0 : { ...p0, project: flat };
   const frame = useCurrentFrame();
   const fonts = useFonts(p);
   const pr = p.project;
