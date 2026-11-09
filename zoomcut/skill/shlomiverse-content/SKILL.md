@@ -79,6 +79,12 @@ never duplicates.
 **A site / a new page:** deploy the page (`bash scripts/deploy.sh`), then build.py + push.cjs (it reads the page's
 title / picture), then /all/ (CLAUDE.md).
 
+**A sponsored banner ("ממומן" - a sponsor from his videos, first עיגוליות, 2026-11-09):** one record in Firestore `ads/<id>`
+(techietech-api/ads.js, the site's verse/ads.js). Write `scripts/verse/ads/<id>.json` (sponsor, href, places: `home` /
+`c/<character>`, a wide 4:1 picture + a ~2:1 phone card, optional coupon with its code - the code reaches citizens only),
+then `node scripts/verse/ads.cjs put scripts/verse/ads/<id>.json` - live within a minute, no deploy. `off <id>` / `on <id>`,
+`list` (with how many citizens took the coupon). The pictures: GPT Image, in the approved slot look (scripts/v2-design/ad-slot.mjs).
+
 **Take something off / bring it back:** `node scripts/verse/content.mjs hide <kind> <id>` / `show <kind> <id>`
 (kind: character | series | game | site; a video: `hide video <id>`).
 

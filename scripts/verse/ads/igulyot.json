@@ -1,0 +1,18 @@
+{
+  "id": "igulyot",
+  "sponsor": "ברכת השפע",
+  "href": "/birkat-hashefa/",
+  "alt": "עיגוליות של מאפיית ברכת השפע - זה בכלל פרווה! הנחה לאזרחי השלומיוורס",
+  "places": ["home", "c/hani"],
+  "order": 1,
+  "wide": "~/Documents/shlomiverse-v2-design/ad/igulyot/wide.jpg",
+  "card": "~/Documents/shlomiverse-v2-design/ad/igulyot/card.jpg",
+  "coupon": {
+    "code": "פרווה",
+    "title": "הקופון של אזרחי השלומיוורס",
+    "line": "15% הנחה על עיגוליות בכל סניפי שפע עד",
+    "fine": "*הקופון לאזרחים עם דרכון שלומיוורס בלבד. לא כולל פרווה.",
+    "logo": "~/Documents/shlomiverse-v2-design/ad/igulyot/logo.jpg",
+    "pic": "~/Documents/shlomiverse-v2-design/ad/igulyot/box.jpg"
+  }
+}

@@ -713,6 +713,7 @@ const pages = {
             ${c.site ? `<a class="btn ghost" href="${esc(c.site)}" target="_blank" rel="noopener">לאתר ←</a>` : ''}</div>
         </div></div></section>
       <div class="wrap" style="--c:${color(c)}">
+        ${HOOK.adSlot ? HOOK.adSlot('c/' + id) : ''}
         ${c.quotes.length ? `<section class="sec"><div class="sec-h"><h2>משפטים מוכרים</h2></div><div class="bubbles">${c.quotes.map((x) => `<div class="bubble">${esc(x.replace(/^[״"]|[״"]$/g, ''))}</div>`).join('')}</div></section>` : ''}
         ${charGamesSec(c)}
         <section class="sec"><div class="sec-h"><h2>סרטונים</h2></div>

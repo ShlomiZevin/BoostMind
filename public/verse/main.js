@@ -12,6 +12,7 @@ import { mountHome as recordsHome, unmountHome as recordsOff } from './records.j
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
 import { mountTz } from './tzhome.js';
+import { adSlot } from './ads.js';
 import { citizenPage } from './citizen.js';
 appBoot();
 
@@ -33,6 +34,7 @@ Object.assign(HOOK, {
   heroHi,
   homeSlot,
   stickersSlot,
+  adSlot,        // the sponsored banner on a character's page (ads.js)
   requestCard,
   signinCard,
   stickerCard,   // [[sticker:ID]] in a chat reply
