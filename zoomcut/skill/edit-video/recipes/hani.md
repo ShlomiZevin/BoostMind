@@ -370,3 +370,14 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   by L / J extensions, inserts, the end). Retake switches hidden behind Osnat. Hani pitch +0.5 (as haredit-2/3), the
   freilach bed 0.12, speed 1.3. A dramatic turn = stinger + push-in. A mezuzah must sit where the hand touches.
   Checks before handing over: `work/scan.py` (frames), `work/words_check.py` (each line transcribed as cut).
+- **Version 5 (2026-11-09) - he called it "amazing"**: no fades anywhere (his rule: a 0.01 s click guard only); every
+  line's sound starts 0.3 s before and ends 0.3 s after its picture ("so the sound always starts before and ends
+  after", every cut); silences cut only at a word boundary (a silence INSIDE a word - "בק..טע", "תפ..וח" - stays; whisper
+  boundaries = the midpoint between two words, within 0.04 s); a line never starts inside its take's previous word
+  (the tail of "בכל" played twice); Yotam's entrance one unbroken piece; the look between Hani and Osnat on its OWN
+  rows (glance + glance.bg) for him to adjust. Captions: line by line (overlaps never mix words), the script's word
+  only where it was SAID (OpenAI gpt-4o-transcribe per line, `work/subs_check.py`, design key, ~$0.02), then a fixed
+  list of hand corrections. A copy in the dialogue format: `tools/to_dialogue.py haredit-5 haredit-5-dialogue`.
+  **Export trap**: the sound graph can fail under load during a Full export and the older mix goes out (and is sent!)
+  - read the export log for "sound graph failed" before telling him it's sent; workaround = run tools/audio_layers.mjs
+  on the job alone, touch job.<key>.done, export again (reported to Sketch Studio Online).
