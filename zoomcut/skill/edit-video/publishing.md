@@ -30,6 +30,12 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
    model (`episodes/*/publish.json`): 2-3 short lines from inside the joke, never explaining it, no emoji, then 4-5
    hashtags. The post lives in `publish.json` in the project folder, so it travels to his other computer with the
    project (the studio online uploads it as soon as it's saved).
+2b. **Who's in this video - fill it before he presses Send** (his rule, 2026-11-09: on haredit-5 I left it empty and he
+   added Hani, Osnat, Yotam by hand): the Send window's "Who's in this video?" = the cast the video gets ON THE
+   SHLOMIVERSE (it lands on each character's page + the wiki). Every character who appears or speaks - leads, the
+   one-line visitor, the off-screen voice - character ids from the Characters page (a new one: make the profile first,
+   SKILL.md -> Characters). Set it with `POST /api/ep/<id>/cast {cast: [ids]}` (saved in publish.json `cast`) and also
+   project.json `characters` (ops `{"op": "project", "set": {"characters": [...]}}`); check the chips in the window.
 3. Tell him the caption in the hand-over. He presses **Send**: an up-to-date full export goes out as is, otherwise
    the button exports first (a Quick / Test export is never published). A stale export can't be published.
 4. After it runs: the window and the Jobs history show each platform's result and link. Tell him what to do by hand:

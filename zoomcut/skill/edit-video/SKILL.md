@@ -272,6 +272,9 @@ take. A framing for a whole take is better as one change you re-apply than as a 
    (`publishing.md`), **always including #שלומיוורס** (every video, every platform - his rule, 2026-11-01; max 5 hashtags,
    only real in-use ones; a high-tech video = exactly #הייטק #הייטקס #צרותבהייטק #שלומיוורס, nothing added) - and its YouTube title, saved into the Send window (`POST /api/ep/<id>/publish {save: true,
    platforms, caption, title}`), so when he opens Send it's all there; tell him the caption in the hand-over.
+   **And who's in it**: the Send window's "Who's in this video?" chips (`POST /api/ep/<id>/cast {cast: [ids]}` + project
+   `characters`) - every character who appears or speaks; that is how the video reaches their pages on the Shlomiverse
+   (his rule, 2026-11-09 - he had to add Hani / Osnat / Yotam himself; publishing.md step 2b).
 8. **Iterate on his notes**, keep a short line going while you work.
 9. **Send - one window for everything** (2026-10-25): the top bar's **Send** button opens it - **Test on my phone**
    (`POST /api/ep/<id>/export {test: true, send: ["telegram"]}`: 378x672, ultrafast, `out/<id>.test.mp4`, marked TEST,
