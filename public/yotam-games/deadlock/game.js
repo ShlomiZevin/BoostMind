@@ -131,7 +131,7 @@ const gy = (r) => OY + (FL.y0 + r * FL.cell) * S;
 let pieces = [], start = null, opt = 0, moves = 0, penalty = 0, lotIdx = 0, lots = [], results = [];
 let state = 'menu', paused = false, tutorial = false, drive = null, hintShow = null, livelockSaid = false;
 let bank = null;
-fetch('lots.json?v=2').then((r) => r.json()).then((j) => { bank = j; }).catch(() => {});
+fetch('lots.json?v=3').then((r) => r.json()).then((j) => { bank = j; }).catch(() => {});
 
 function dayLots() {
   const d = today();

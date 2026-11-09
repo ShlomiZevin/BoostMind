@@ -1,0 +1,8 @@
+tier 3: 1/25 (opt 18, 12 cars)
+tier 3: 2/25 (opt 20, 13 cars)
+tier 3: 3/25 (opt 22, 13 cars)
+tier 3: 4/25 (opt 20, 12 cars)
+tier 3: 5/25 (opt 18, 12 cars)
+tier 3: 6/25 (opt 18, 12 cars)
+tier 3: 7/25 (opt 22, 12 cars)
+tier 3: 8/25 (opt 22, 12 cars)
