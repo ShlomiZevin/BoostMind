@@ -370,7 +370,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const up = () => {
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
       setDrag(null);
-      setEdge(side === 'm' ? null : { layer: l.id, item: it.id, side, total: 0 });
+      // (an edge's card only for a click on the edge - after a drag it just gets in the way, his note 2026-11-09)
+      setEdge(side === 'm' || last !== 0 ? null : { layer: l.id, item: it.id, side, total: 0 });
       if (to) { send(toRow(t.ops(last), l, it, to), { label: 'move to row' }); onSel({ layer: to, item: it.id }); return; }
       t.commit(last, side === 'm' ? 'move' : 'trim');
     };
