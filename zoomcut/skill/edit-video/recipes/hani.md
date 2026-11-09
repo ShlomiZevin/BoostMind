@@ -347,3 +347,14 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   whisper is near silence); Osnat's answer = a silent take (o12) - the slow nod with eyes closed at 3.4-5.8 s (face crops
   at 5 fps). Both play over Yotam's talk (`cover`), the words word by word on top (text row must be the TOP layer -
   index 0 is the bottom, it hid behind the set).
+- **His notes on the first full cut (2026-11-09): "the editing is really bad - the conversation must flow".** His dialogue
+  rule: **whoever talks is SEEN when they start** - cut to the next speaker early (L) or straight, never stay on the
+  one who finished while the next talks (J cuts read as wrong to him: "cut to Osnat first because she starts"); Yotam
+  seen AND heard as he arrives (the reaction beat comes after his first line, not over it); no cutaway over the
+  speaker's big lines ("את קולטת חייבים לראות") - cutaways only while someone narrates; tighter (silences >= 0.2 s cut,
+  0.2-0.35 s overlap between speakers); drop a redundant opening after the other's answer ("start from here after
+  Osnat answers"). **Every voice in one atmosphere** ("Osnat sounds much better than Hani"): measure the bands through
+  the editor's chain and match (Hani needed +11 warmth, +4 presence); the same light clean / speech level / small room
+  on each row. **Scan every frame** for face-filter slips and recording starts (motion + sharpness per frame at 10 fps,
+  `work/scan.py`, then look at the flagged spots): take 6 and take 3 lost the filter on a lunge / head swing.
+  "The frames are excellent" - Hani raised against the chair (seat pictures 1.35x, backrest lower).
