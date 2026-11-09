@@ -184,14 +184,21 @@ dialog textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 
   html, body { background: #fff !important; color: #000; }
   body > *:not(#printpage) { display: none !important; }
   #printpage { display: block; direction: rtl; font: 12.5pt/1.55 Assistant, Inter, sans-serif; color: #000; }
-  #printpage h1 { font-size: 18pt; margin: 0 0 2pt; }
-  #printpage .pm { color: #555; font-size: 10pt; margin-bottom: 14pt; }
-  #printpage .pl { display: grid; grid-template-columns: 26mm 1fr; gap: 0 4mm; padding: 3pt 2.5mm 3pt 0; border-right: 2.5pt solid transparent; break-inside: avoid; }
-  #printpage .pw { font-weight: 700; }
-  #printpage .pl.me { border-right-color: #000; }
-  #printpage .pl.me .pt { font-weight: 700; }
+  /* the whole script: the same look as by character, smaller - every speaker in its colour, your lines stronger */
+  #printpage .ws-h { padding-bottom: 6pt; margin-bottom: 8pt; border-bottom: 3pt solid #222; }
+  #printpage .ws-h b { display: block; font-size: 28pt; line-height: 1.15; }
+  #printpage .ws-h span { color: #555; font-size: 11pt; }
+  #printpage .ws-cast { display: flex; flex-wrap: wrap; gap: 5pt 8pt; margin-bottom: 14pt; }
+  #printpage .ws-cast span { font-weight: 700; font-size: 12pt; color: var(--ink); background: var(--bg); border-right: 4pt solid var(--c); padding: 2pt 7pt; border-radius: 3pt; }
+  #printpage .ws-cast span.me { outline: 1.5pt solid var(--c); }
+  #printpage .pl { display: grid; grid-template-columns: 27mm 1fr; gap: 0 3mm; margin-bottom: 6pt; break-inside: avoid; }
+  #printpage .pw { font-weight: 800; font-size: 13pt; color: var(--ink); padding-top: 4pt; }
+  #printpage .pt { position: relative; font-size: 15pt; line-height: 1.45; font-weight: 500; color: #111; background: var(--bg); border-right: 4pt solid var(--c); padding: 3pt 8pt 3pt 26pt; border-radius: 3pt; }
+  #printpage .pl.me .pt { font-weight: 700; color: var(--ink); background: var(--bg2); border-right-width: 7pt; }
   #printpage .pl.solo { grid-template-columns: 1fr; }
-  #printpage .pd { color: #555; font-style: italic; padding: 3pt 2.5mm 3pt 0; border-right: 2.5pt solid transparent; break-inside: avoid; }
+  #printpage .pt .idir { color: #777; font-weight: 500; font-size: .75em; font-style: italic; }
+  #printpage .pn { position: absolute; left: 6pt; top: 5pt; color: #999; font-size: 8.5pt; font-weight: 600; }
+  #printpage .pd { color: #666; font-style: italic; font-size: 12pt; margin: 2pt 30mm 7pt 0; break-inside: avoid; }
   /* by character: each character's own pages, in its colour, big enough to read on the wall while filming */
   #printpage { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   #printpage .bc + .bc { break-before: page; }
@@ -707,11 +714,17 @@ $('print').onclick = () => {
 };
 $('prX').onclick = () => $('pdlg').close();
 $('prAll').onclick = () => {
-  const meta = [solo ? `${lines.filter((l) => !l.dir).length} שורות` : chars.join(' · '), me ? `אני משחק את: ${me}` : ''].filter(Boolean).join('  ·  ');
-  printPage(`<h1>${esc(printTitle())}</h1><div class="pm">${esc(meta)}</div>` + lines.map((l) => l.dir
-    ? `<div class="pd">[${esc(l.text)}]</div>`
-    : l.solo || !l.who ? `<div class="pl solo"><div class="pt">${esc(l.text)}</div></div>`
-    : `<div class="pl${me && l.who === me ? ' me' : ''}"><div class="pw">${esc(l.who)}</div><div class="pt">${esc(l.text)}</div></div>`).join(''));
+  // (the same look as by character: each speaker in its colour, your own lines stronger, the reader's line numbers)
+  const vars = (c) => c ? `--c:${color(c)};--ink:color-mix(in srgb, ${color(c)} 70%, #000);--bg:color-mix(in srgb, ${color(c)} 9%, #fff);--bg2:color-mix(in srgb, ${color(c)} 20%, #fff)`
+    : '--c:#999;--ink:#222;--bg:#f4f4f4;--bg2:#e8e8e8';
+  const count = lines.filter((l) => !l.dir).length; let n = 0;
+  const cast = solo || !chars.length ? '' : `<div class="ws-cast">${chars.map((c) => `<span class="${me === c ? 'me' : ''}" style="${vars(c)}">${esc(c)}</span>`).join('')}</div>`;
+  printPage(`<div class="ws-h"><b>${esc(printTitle())}</b><span>${count} שורות${me ? `  ·  אני משחק את: ${esc(me)}` : ''}</span></div>${cast}` + lines.map((l) => {
+    if (l.dir) return `<div class="pd">[${esc(l.text)}]</div>`;
+    const t = `<div class="pt"><span class="pn">${++n}</span>${spokenHtml(l.text)}</div>`;
+    return l.solo || !l.who ? `<div class="pl solo" style="${vars()}">${t}</div>`
+      : `<div class="pl${me && l.who === me ? ' me' : ''}" style="${vars(l.who)}"><div class="pw">${esc(l.who)}</div>${t}</div>`;
+  }).join(''));
 };
 $('prChars').onclick = () => {
   const pick = [...$('prPick').querySelectorAll('input:checked')].map((x) => x.value), withCue = $('prCue').checked;
