@@ -79,3 +79,10 @@ principles - apply them to whatever the game is.
 - **Cut sprite sheets by the shapes, then look at every cut** on a contrasting background before it goes in: cutting a sheet into equal cells chops anything wide (a scooter, a side view) and drags in pieces of its neighbour (Sagi, 5 Nov 2026).
 
 - **What you see is what blocks you** (Sagi, 5 Nov 2026): furniture drawn inside its own tiles with a floor shadow; no traps in a random map - every free tile has two ways out and the floor is one piece (check every seed with a script); a turn a moment late still counts. "It looks good and it is fun, but you cannot really play it" came from exactly these.
+
+- **No dead ends** (Osnat, 8 Nov 2026): every wrong action needs a way back inside the game (a wrong item in full hands is swapped out by the next pick). Test the stuck states on purpose, not only the happy path.
+- **Balance with bots of a few skills, fast-forwarded in the page** (a `tick(dt)` in the test hook): a slow, a normal and a sharp bot. If they all die on the same day, that day is a wall - skill must decide how far you get.
+- **Even out the sound levels** (ffmpeg volumedetect, then gain to one mean level): generated effects come back up to 20 dB apart; and run voice clips through speech-to-text to be sure a "laugh" is really a laugh.
+- **Git Bash rewrites /site/paths in arguments** into Windows paths - run deploy-onto-live.js with `MSYS_NO_PATHCONV=1` when you pass `--page=/...`.
+- **The picture IS the button, with a thumb's gap** (Osnat, 8 Nov 2026): a perk that sticks out above its button's box is NOT tappable there (pointer-events: none on the img sends the tap to the canvas below) - make the visible shape the hit area. Round, at least ~48px, >= 14px apart on the smallest phone (two zigzag rows when they don't fit one); test it by measuring the gaps and elementFromPoint on every picture at every size. What the player needs right now (a wanted item) moves; names can go when the request already shows the picture.
+- **Percent heights don't resolve inside a <button>** - size its picture from a CSS variable set in px.
