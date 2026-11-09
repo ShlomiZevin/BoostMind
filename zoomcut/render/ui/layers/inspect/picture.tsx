@@ -52,10 +52,10 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
     </Sec>
     <Sec title="Look" end={<span className="ins-state ok">live</span>}>
       <Opacity P={P} />
-      <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={200} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
-      <Slider label={<>Blur <Ovr S={S} k="blur" /></>} v={S.get('blur', 0)} min={0} max={20} step={0.1} def={0} fmt={(v) => (v ? `${v.toFixed(1)} px` : 'sharp')} onChange={(v, c) => S.set('blur', v || null, c)} />
-      <Slider label={<>Brightness <Ovr S={S} k="brightness" /></>} v={S.get('brightness', 1)} min={0.3} max={1.5} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('brightness', v === 1 ? null : v, c)} />
-      <Slider label={<>Colour <Ovr S={S} k="saturate" /></>} v={S.get('saturate', 1)} min={0} max={2} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('saturate', v === 1 ? null : v, c)} />
+      <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={200} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c, 0)} />
+      <Slider label={<>Blur <Ovr S={S} k="blur" /></>} v={S.get('blur', 0)} min={0} max={20} step={0.1} def={0} fmt={(v) => (v ? `${v.toFixed(1)} px` : 'sharp')} onChange={(v, c) => S.set('blur', v || null, c, 0)} />
+      <Slider label={<>Brightness <Ovr S={S} k="brightness" /></>} v={S.get('brightness', 1)} min={0.3} max={1.5} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('brightness', v === 1 ? null : v, c, 1)} />
+      <Slider label={<>Colour <Ovr S={S} k="saturate" /></>} v={S.get('saturate', 1)} min={0} max={2} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('saturate', v === 1 ? null : v, c, 1)} />
       <Note>A set behind him: a little blur and a touch darker sits him in the room. Drag the picture on the video to move it; its corner zooms.</Note>
     </Sec>
     {item && <Sec title="On screen"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
@@ -97,7 +97,7 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
       <Row label={<>Fill <Ovr S={S} k="fill" /></>}><Swatches value={S.get('fill', '')} colors={['#ffffff', '#000000', '#ff6b57', '#ffd23f']} onPick={(c) => S.set('fill', c)} /></Row>
       <Row label={<>Border <Ovr S={S} k="stroke" /></>}><Swatches value={S.get('stroke', '')} colors={['#ffffff', '#000000', '#ff6b57', '#4cc38a']} onPick={(c) => S.set('stroke', c)} /></Row>
       <Slider label="Border width" v={S.get('width', 2)} min={0} max={40} step={1} def={2} fmt={fmt.px} onChange={(v, c) => S.set('width', v, c)} />
-      <Slider label="Corners" v={S.get('radius', 0)} min={0} max={200} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
+      <Slider label="Corners" v={S.get('radius', 0)} min={0} max={200} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c, 0)} />
       <Opacity P={P} />
     </Sec>
     <Sec title="Box" end={<Ovr S={S} k="box" />}>

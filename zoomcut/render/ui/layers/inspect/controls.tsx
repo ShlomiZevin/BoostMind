@@ -88,9 +88,15 @@ export function useSettings(P: InspectorProps) {
   return {
     get: (k: string, def?: any) => (own(k) ? item[k] : layer.props?.[k] ?? def),
     own,
-    set: (k: string, v: any, commit = true) => send([own(k) || (P.scope === 'clip' && item)
-      ? { op: 'item.update', layer: layer.id, id: item.id, set: { [k]: v } }
-      : { op: 'layer.update', id: layer.id, props: { [k]: v } }], { commit }),
+    // plain: the value `null` stands for (blur 0, brightness 1, mirror off). A clip set back to it while its row has
+    // another value keeps it as its own - null there would drop the clip's value and show the row's (his blur at 0
+    // stayed blurred under a row blur of 6, 2026-11-09)
+    set: (k: string, v: any, commit = true, plain?: any) => {
+      const toItem = own(k) || (P.scope === 'clip' && !!item);
+      if (toItem && v === null && plain !== undefined && layer.props?.[k] != null && layer.props[k] !== plain) v = plain;
+      send([toItem ? { op: 'item.update', layer: layer.id, id: item.id, set: { [k]: v } }
+        : { op: 'layer.update', id: layer.id, props: { [k]: v } }], { commit });
+    },
     reset: (k: string) => P.item && send([{ op: 'item.update', layer: layer.id, id: P.item.id, set: { [k]: null } }]),
     item: (patch: any, commit = true) => P.item && send([{ op: 'item.update', layer: layer.id, id: P.item.id, set: patch }], { commit }),  // (the clip, whatever the bar says)
     layer: (props: any, commit = true) => send([{ op: 'layer.update', id: layer.id, props }], { commit }),

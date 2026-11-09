@@ -88,7 +88,7 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
         {size(30)}
         <Row label="Colour"><Swatches value={S.get('color', '#ffffff')} colors={WHITE_ETC} onPick={(c) => S.set('color', c)} /></Row>
         <Row label="Weight"><Seg options={[[400, 'Regular'], [600, 'Bold'], [800, 'Heavy']]} value={S.get('weight', 600)} onPick={(v) => S.set('weight', v)} /></Row>
-        <Slider label="Outline" v={S.get('stroke', 0)} min={0} max={20} step={1} def={0} fmt={(v) => (v ? `${v} px` : 'off')} onChange={(v, c) => S.set('stroke', v || null, c)} />
+        <Slider label="Outline" v={S.get('stroke', 0)} min={0} max={20} step={1} def={0} fmt={(v) => (v ? `${v} px` : 'off')} onChange={(v, c) => S.set('stroke', v || null, c, 0)} />
         <Row label="Align"><Seg options={[['right', 'Right'], ['center', 'Centre'], ['left', 'Left']]} value={S.get('align', 'center')} onPick={(v) => S.set('align', v)} /></Row>
       </>}
       {style === 'tag' && <Row label="Size"><Seg options={[[32, 'Big tile'], [26, 'Small tile']]} value={S.get('size', 32)} onPick={(v) => S.set('size', v)} /></Row>}
@@ -107,9 +107,9 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
       </>}
       {style === 'thought' && <>
         {size(70)}
-        <Row label="Motion"><Seg options={[['', 'Drift'], ['horror', 'Horror']]} value={S.get('motion', '') || ''} onPick={(v) => S.set('motion', v || null)} /></Row>
+        <Row label="Motion"><Seg options={[['', 'Drift'], ['horror', 'Horror']]} value={S.get('motion', '') || ''} onPick={(v) => S.set('motion', v || null, true, '')} /></Row>
         {S.get('motion') === 'horror' && <Slider label={<>Stays after his voice <Ovr S={S} k="hold" /></>} v={S.get('hold', 0.35)} min={0} max={2} step={0.05} def={0.35} fmt={fmt.s} onChange={(v, c) => S.set('hold', v, c)} />}
-        {S.get('motion') === 'horror' && <Slider label={<>Grows to <Ovr S={S} k="grow" /></>} v={S.get('grow', 1)} min={1} max={2} step={0.05} def={1} fmt={fmt.x} onChange={(v, c) => S.set('grow', v === 1 ? null : v, c)} />}
+        {S.get('motion') === 'horror' && <Slider label={<>Grows to <Ovr S={S} k="grow" /></>} v={S.get('grow', 1)} min={1} max={2} step={0.05} def={1} fmt={fmt.x} onChange={(v, c) => S.set('grow', v === 1 ? null : v, c, 1)} />}
         <ToggleRow label="In its own spot (wanders less)" on={!!S.get('placed')} onChange={(on) => S.set('placed', on || null)} />
         <Note>The words come in one by one, the line floats up and blurs away at the clip's end. Horror: they slam in as he says them, the line grows, then turns to dust.</Note>
       </>}
@@ -146,7 +146,7 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
         <Note>Without a picture the clip's text is the sticker (an emoji or a word).{S.get('image') ? ' A picture shows once the composition hands text styles its asset links.' : ''}</Note>
       </>}
       {style === 'card' && <>
-        <Row label="Looks like"><Seg options={[['', 'Instagram'], ['tiktok', 'TikTok reply']]} value={S.get('variant', '') || ''} onPick={(v) => S.set('variant', v || null)} /></Row>
+        <Row label="Looks like"><Seg options={[['', 'Instagram'], ['tiktok', 'TikTok reply']]} value={S.get('variant', '') || ''} onPick={(v) => S.set('variant', v || null, true, '')} /></Row>
         {size(44, 90)}
         <Slider label={<>Width <Ovr S={S} k="w" /></>} v={S.get('w', 860)} min={400} max={1040} step={10} def={860} fmt={fmt.px} onChange={(v, c) => S.set('w', v, c)} />
         <Field S={S} id={fid} k="asker" label="Who asked" ph="@user" />
@@ -157,7 +157,7 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
           <Field S={S} id={fid} k="label" label="Prompt" ph="שאלו אותי שאלה" />
           <Slider label={<>Prompt size <Ovr S={S} k="label_size" /></>} v={S.get('label_size', Math.round(S.get('size', 44) * 0.85))} min={16} max={80} step={1} def={Math.round(S.get('size', 44) * 0.85)} fmt={fmt.px} onChange={(v, c) => S.set('label_size', v, c)} />
           <Row label="Prompt bar"><Swatches value={S.get('accent', '#262626')} colors={['#262626', '#8a3ab9', '#e1306c', '#0b3d91']} onPick={(c) => S.set('accent', c)} /></Row>
-          <Slider label={<>Card <Ovr S={S} k="box_opacity" /></>} v={S.get('box_opacity', 1)} min={0} max={1} step={0.05} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('box_opacity', v === 1 ? null : v, c)} />
+          <Slider label={<>Card <Ovr S={S} k="box_opacity" /></>} v={S.get('box_opacity', 1)} min={0} max={1} step={0.05} def={1} fmt={fmt.pct} onChange={(v, c) => S.set('box_opacity', v === 1 ? null : v, c, 1)} />
         </>}
       </>}
       {style === 'lower3' && <>

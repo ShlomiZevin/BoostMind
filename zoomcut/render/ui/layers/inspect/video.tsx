@@ -89,9 +89,9 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
       <Slider label={<>Left / right <Ovr S={S} k="x" /></>} v={S.get('x', 0)} min={-0.5} max={0.5} step={0.005} def={0} fmt={fmt.pct} onChange={(v, c) => S.set('x', v, c)} />
       <Slider label={<>Up / down <Ovr S={S} k="y" /></>} v={S.get('y', 0)} min={-0.5} max={0.5} step={0.005} def={0} fmt={fmt.pct} onChange={(v, c) => S.set('y', v, c)} />
       {fit === 'face' && <Slider label={<>Head at <Ovr S={S} k="head" /></>} v={S.get('head', 0.09)} min={0} max={0.45} step={0.005} def={0.09} fmt={fmt.pct} onChange={(v, c) => S.set('head', v, c)} />}
-      <ToggleRow label={<>Mirror (flip left ↔ right) <Ovr S={S} k="mirror" /></>} on={!!S.get('mirror', false)} onChange={(v) => S.set('mirror', v || null)} />
+      <ToggleRow label={<>Mirror (flip left ↔ right) <Ovr S={S} k="mirror" /></>} on={!!S.get('mirror', false)} onChange={(v) => S.set('mirror', v || null, true, false)} />
       <More label="Corners, above others">
-        <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={80} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c)} />
+        <Slider label={<>Corners <Ovr S={S} k="radius" /></>} v={S.get('radius', 0)} min={0} max={80} step={1} def={0} fmt={fmt.px} onChange={(v, c) => S.set('radius', v || null, c, 0)} />
         {item && <Row label="Above others"><Num value={item.z ?? 0} step={1} min={0} max={9} digits={0} onCommit={(v) => S.item({ z: v || null })} /></Row>}
       </More>
     </Sec>
@@ -100,7 +100,7 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
       {!canCut && <Note>No cut-out mask for these takes yet.</Note>}
       {canCut && S.get('cutout', false) && <>
         <Slider label={<>Edge cleanup <Ovr S={S} k="matte_cut" /></>} v={S.get('matte_cut', 0)} min={0} max={240} step={1} def={0}
-          fmt={(v) => (v ? `${Math.round((v / 255) * 100)}%` : 'off')} onChange={(v, c) => S.set('matte_cut', v || null, c)} />
+          fmt={(v) => (v ? `${Math.round((v / 255) * 100)}%` : 'off')} onChange={(v, c) => S.set('matte_cut', v || null, c, 0)} />
         <Slider label={<>Keep desk <Ovr S={S} k="keep" /></>} v={Math.round((1 - (S.get('keep')?.below ?? 1)) * 100)} min={0} max={45} step={1} def={0}
           fmt={(v) => (v ? `bottom ${v}%` : 'off')} onChange={(v, c) => S.set('keep', v ? { ...(S.get('keep') || {}), below: +(1 - v / 100).toFixed(3) } : null, c)} />
         <Note>Live. Edge cleanup drops the half-sure halo around him (white wall behind raised hands); Keep desk keeps the real desk in
