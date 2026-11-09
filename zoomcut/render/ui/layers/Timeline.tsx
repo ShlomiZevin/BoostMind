@@ -674,14 +674,14 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
               {onNote && <NotePins notes={notes} hideDone={!showDone} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
+                <button title="A note for Claude right here (at the line) - write what to fix" onClick={() => onNote(null, qnAt.current)}>{QN_IC.note}</button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
                   onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}</button>)}
-                <button title="A note for Claude right here (at the line) - write what to fix" onClick={() => onNote(null, qnAt.current)}>{QN_IC.note}</button>
               </div>}
               {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()}>
+                <button title="A note for Claude here, at the playhead - write what to fix" onClick={() => onNote(null)}>{QN_IC.note}</button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
                   onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}</button>)}
-                <button title="A note for Claude here, at the playhead - write what to fix" onClick={() => onNote(null)}>{QN_IC.note}</button>
               </div>}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
