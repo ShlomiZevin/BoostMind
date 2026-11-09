@@ -1,5 +1,5 @@
 /* notes for Claude (Notes.tsx): flags on the ruler, a ring on the picture, the note's window over the Media panel */
-.ltl-note { position: absolute; top: 2px; transform: translateX(-50%); z-index: 3; width: 18px; height: 20px; display: flex; align-items: center;
+.ltl-note { position: absolute; top: 2px; transform: translateX(-50%); z-index: 4; width: 18px; height: 20px; display: flex; align-items: center;
   justify-content: center; color: #f0b44c; cursor: pointer; border-radius: 4px; }
 .ltl-note:hover { background: rgba(240, 180, 76, 0.16); }
 .ltl-note.done { color: var(--faint); }
