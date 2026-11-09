@@ -243,7 +243,8 @@ take. A framing for a whole take is better as one change you re-apply than as a 
 7. **Hand over:** the link, the length, the lines you fixed or could not find, 2-4 timestamps worth his ear, one line
    that he can drag any cut edge to pull footage back. **And the post is already written** (his rule, 2026-10-25):
    every video you make comes with its DEFAULT caption - a hook line + 3-6 hashtags, in the character's voice
-   (`publishing.md`), **always including #שלומיוורס** (every video, every platform - his rule, 2026-11-01) - and its YouTube title, saved into the Send window (`POST /api/ep/<id>/publish {save: true,
+   (`publishing.md`), **always including #שלומיוורס** (every video, every platform - his rule, 2026-11-01; max 5 hashtags,
+   only real in-use ones; a high-tech video = exactly #הייטק #הייטקס #צרותבהייטק #שלומיוורס, nothing added) - and its YouTube title, saved into the Send window (`POST /api/ep/<id>/publish {save: true,
    platforms, caption, title}`), so when he opens Send it's all there; tell him the caption in the hand-over.
 8. **Iterate on his notes**, keep a short line going while you work.
 9. **Send - one window for everything** (2026-10-25): the top bar's **Send** button opens it - **Test on my phone**

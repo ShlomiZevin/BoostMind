@@ -19,12 +19,14 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
    גיוס" to "כשהשותף המייסד שמח לבשר…": "זה אף פעם לא אני. זו הדמות"): the post goes out on HIS account, so an "I"
    reads as Shlomi announcing it. Point at the character from outside - a "when <the character> ..." setup line - and
    use only the hashtags he lists when he gives them.
-   **At most 5 hashtags, never more** (his rule, 2026-11-09). **#שלומיוורס always.** A high-tech video: exactly
-   #הייטק #הייטקס #צרותבהייטק #שלומיוורס + at most ONE more. **Every other hashtag must be one people already use
-   (a real, searched tag) - never an invented one** (#חששגזל was invented - wrong); #שלומיוורס is the only made-up tag.
+   **At most 5 hashtags, never more** (his rule, 2026-11-09). **#שלומיוורס always.** **A high-tech video (Techy-Tech,
+   Hani, office, AI, programmers): EXACTLY these four and nothing else - #הייטק #הייטקס #צרותבהייטק #שלומיוורס** (his
+   exact list; I added #חרדים as a "fifth real tag" and he asked why - don't add anything to it). Other videos: up to 5,
+   #שלומיוורס always, and **every other hashtag must be one people already use (a real, searched tag) - never an
+   invented one** (#חששגזל was invented - wrong); #שלומיוורס is the only made-up tag.
    **A high-tech video always carries #הייטק #צרותבהייטק #הייטקס** (his rule, 2026-11-02) - anything set in the
    high-tech world: Techy-Tech and its people (Tzvika, Gilad, Amir, Ofer, Daniel, Ronit...), Hani the Haredi programmer,
-   the Zoom-call sketches, AI / programmers / office life. Then at most one real tag of the video's own, and #שלומיוורס last (5 in all, max). The Hebrew wording comes from SOL (openai-leonardo skill) with two of his earlier captions as the
+   the Zoom-call sketches, AI / programmers / office life. Nothing else on a high-tech video - just those four, #שלומיוורס last. The Hebrew wording comes from SOL (openai-leonardo skill) with two of his earlier captions as the
    model (`episodes/*/publish.json`): 2-3 short lines from inside the joke, never explaining it, no emoji, then 4-5
    hashtags. The post lives in `publish.json` in the project folder, so it travels to his other computer with the
    project (the studio online uploads it as soon as it's saved).
