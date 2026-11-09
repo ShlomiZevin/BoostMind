@@ -1,0 +1,13 @@
+{
+  "slug": "deadlock",
+  "title": "דדלוק",
+  "tagline": "שבע בערב בחניון של טקי-טק וכל הצוות חסם את כולם: הזיזו את המכוניות של גלעד, ארז, אסנת, צביקה ושגיא – והוציאו את יותם בכמה שפחות תנועות. 5 חניונים חדשים כל יום.",
+  "character": "yotam",
+  "chars": ["yotam", "erez", "osnat", "yaniv", "ido", "tzvika", "amir", "ronit", "daniel", "sagi", "gilad", "ofer"],
+  "world": "טקי-טק",
+  "status": "live",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:deadlock:best", "label": "תנועות" },
+  "record": { "unit": "תנועות", "better": "low" },
+  "date": "2026-11-09"
+}

@@ -1,0 +1,4 @@
+A sprite sheet for a top-down parking puzzle game: 3 long vehicles, one per row (1 column, 3 rows), each alone with clear empty space around it, on a transparent background. Each is seen exactly from straight above, pointing to the RIGHT, about three times as long as it is wide, in the same painted premium casual-game style as the reference screenshot. No text, no numbers.
+1. A long black luxury limousine-style car with a sunroof - the CEO's car.
+2. A big grey SUV with a roof box - the VP's car.
+3. A white company shuttle minibus with a blue stripe along it - the shuttle that brings the workers.

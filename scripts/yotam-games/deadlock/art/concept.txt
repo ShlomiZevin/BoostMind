@@ -1,0 +1,10 @@
+A screenshot of a finished mobile puzzle game, upright phone screen (9:19.5), the game is a sliding-car parking puzzle like Rush Hour.
+
+What is on the screen:
+- The main play area: the underground parking lot of a serious Israeli hi-tech company called "Techy-Tech", seen straight from above, a 6 by 6 grid of parking spaces. On the right edge of the grid, in the third row, there is the exit gate with a boom barrier. 
+- About ten cars and two vans parked tightly in the grid, each two or three spaces long, facing horizontally or vertically, blocking each other - a real gridlock. They look like the colleagues' cars: an expensive manager's car, a small hatchback, a scooter-ish mini car, a delivery van.
+- One special small car is the player's car: the car of Yotam (the man in the reference picture), in the same row as the exit, a bright green car with a little galaxy sticker - clearly the hero car.
+- Above the grid: a slim game bar with the move counter, the day's record and a restart and hint button.
+- Below the grid: a speech strip with the head of the man in the reference picture (painted, his black bob wig with bangs, glasses, galaxy t-shirt), lifting one finger to explain, and a short Hebrew speech bubble.
+
+The look: a polished, painted, premium casual-game look, warm concrete and painted parking lines, soft shadows under the cars. The man must look exactly like the reference picture.

@@ -1,0 +1,14 @@
+A sprite sheet for a top-down parking puzzle game: 12 cars, laid out 4 columns by 3 rows, each car alone in its own cell with clear empty space around it, on a transparent background. Every car is seen exactly from straight above, pointing to the RIGHT, the same scale (a normal car, about twice as long as it is wide), the same painted premium casual-game style as the reference screenshot. No text, no numbers, no shadows outside the car.
+Each car belongs to a worker of a hi-tech company and shows who they are, in reading order:
+1. A bright lime-green small hatchback with a galaxy (space nebula) sticker covering the roof - the geek's car.
+2. A light-blue practical family sedan, a child seat seen through the rear window - the team lead's car.
+3. A white compact car with a thin pink stripe and a pink ribbon tied on the side mirror - the HR head's car.
+4. A grey old hatchback with dents, a patch of duct tape on the roof and a red steering-wheel lock - the security engineer's car.
+5. A dark-red hatchback with big headphones and a podcast microphone on the back seat - the backend developer's car.
+6. A beige boxy 1990s sedan, faded paint - the oldest programmer's car.
+7. A dark-navy sports convertible with the roof open, a blazer on the passenger seat - the strategy VP's car.
+8. A black executive sedan, spotless - the COO's car.
+9. A small yellow electric car with a charging cable coiled on the roof - the tech enabler's car.
+10. A teal small car with a kick scooter strapped to a roof rack - the customer success manager's car.
+11. A dark-green crossover with a laptop bag on the seat - the head of AI's car.
+12. A silver premium sedan with a golf bag on the back seat - the business development VP's car.

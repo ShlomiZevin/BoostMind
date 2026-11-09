@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f1d3a">
+<title>דדלוק – המשחק של יותם</title>
+<meta name="description" content="שבע בערב בחניון של טקי-טק, וכל הצוות חסם את כולם. הזיזו את המכוניות של ארז, אסנת, גלעד ושאר הצוות – והוציאו את יותם בכמה שפחות תנועות.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="דדלוק – המשחק של יותם">
+<meta property="og:description" content="כל הצוות של טקי-טק חסם את כולם בחניון. הוציאו את יותם בכמה שפחות תנועות – 5 חניונים חדשים כל יום.">
+<meta property="og:url" content="https://shlomiverse.com/yotam-games/deadlock/">
+<meta property="og:image" content="https://shlomiverse.com/yotam-games/deadlock/assets/share.jpg?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="yotam-games" defer></script>
+<script src="/verse/game-frame.js"></script>
+<style>
+:root{
+  --ink:#0f1d3a; --card:#f5f9ff; --gold:#38bdf8; --lime:#84cc16; --red:#ef4444; --green:#22c55e;
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
+body{background:#1b2333}
+[hidden]{display:none!important}
+button{font-family:inherit;border:0;cursor:pointer}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+/* HUD */
+#hud{position:fixed;top:calc(var(--safe-t) + 8px);left:8px;right:8px;max-width:600px;margin:0 auto;display:none;align-items:center;gap:6px;z-index:3}
+#hud.on{display:flex}
+.ibtn{width:44px;height:44px;border-radius:14px;background:#0f1d3acc;display:grid;place-items:center;flex:none;color:#fff;font-size:22px;font-weight:900}
+.ibtn svg{width:24px;height:24px;fill:#fff}
+.box{height:44px;border-radius:14px;background:#0f1d3acc;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 10px;flex:none;font-weight:900;line-height:1.05}
+.box small{font-size:11px;opacity:.8;font-weight:700;white-space:nowrap}
+#movesBox{flex:1;min-width:0;font-size:20px}
+#movesBox.pen{animation:pen .5s}
+@keyframes pen{30%{transform:scale(1.12);background:#b45309cc}}
+#lotBox{font-size:17px}
+#hintBtn{background:#1d4ed8e6}
+#hintBtn svg{fill:#fde68a}
+#resetBtn{background:#b45309e6}
+
+/* Yotam's strip at the bottom */
+#strip{position:fixed;left:8px;right:8px;bottom:calc(var(--safe-b) + 8px);max-width:600px;margin:0 auto;display:none;align-items:flex-end;gap:8px;z-index:2;pointer-events:none;height:var(--stripH,104px)}
+#strip.on{display:flex}
+#yHead{height:100%;width:auto;flex:none;filter:drop-shadow(0 4px 8px #0008)}
+#bubble{flex:1;min-width:0;align-self:center;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:7px 12px;font-size:var(--sayF,17px);font-weight:700;line-height:1.28;box-shadow:0 4px 0 #0f1d3a55;position:relative;opacity:.0;transform:scale(.94);transition:opacity .15s,transform .15s}
+#bubble.on{opacity:1;transform:none}
+#bubble .who{display:flex;align-items:center;gap:6px;font-size:13px;color:#475569;font-weight:900;margin-bottom:2px}
+#bubble .who img{width:24px;height:24px;border-radius:50%}
+#bubble b{color:#4d7c0f}
+
+/* the verb chip, over the board's bottom edge */
+#chip{position:fixed;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;background:#0f1d3ae6;color:#fff;font-weight:900;font-size:16px;padding:8px 16px;border-radius:22px;white-space:nowrap;z-index:2;pointer-events:none}
+#chip.on{display:flex}
+#chip em{font-style:normal;background:#facc15;color:var(--ink);padding:2px 9px;border-radius:12px}
+
+/* effects */
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:6}
+.pop{position:absolute;font-weight:900;font-size:22px;color:#fff;text-shadow:0 3px 0 #0f1d3a,0 0 12px #000;white-space:nowrap;animation:pop 1.1s ease-out forwards}
+.pop.bad{text-shadow:0 3px 0 #991b1b,0 0 12px #ef4444}
+.pop.good{text-shadow:0 3px 0 #3f6212,0 0 12px #84cc16}
+.tag{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px;background:#0f1d3aee;color:#fff;border-radius:16px;padding:4px 10px 4px 6px;font-weight:900;font-size:14px;white-space:nowrap;animation:tag 1.6s ease-out forwards}
+.tag img{width:26px;height:26px;border-radius:50%}
+.tag small{font-weight:500;opacity:.8}
+@keyframes tag{0%{opacity:0;margin-top:6px}12%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0}}
+@keyframes pop{0%{transform:translate(-50%,0) scale(.6);opacity:0}20%{transform:translate(-50%,-10px) scale(1.1);opacity:1}100%{transform:translate(-50%,-50px) scale(1);opacity:0}}
+#turn{display:none;position:fixed;inset:0;z-index:20;background:#0f1d3a;color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:900;font-size:22px;text-align:center;padding:16px}
+#turn svg{width:64px;height:64px;animation:turn 1.6s ease-in-out infinite}
+@keyframes turn{50%{transform:rotate(-90deg)}}
+body.turn #turn{display:flex}
+
+/* screens */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 16px);background:linear-gradient(#0f1d3acc,#0a1430f2 50%,#0a1430fa);z-index:4;text-align:center}
+.screen.on{display:flex}
+.sub{color:#fff;font-size:17px;font-weight:700;max-width:390px;line-height:1.35;margin:0;text-shadow:0 1px 3px #0008}
+.big{min-width:220px;padding:16px 28px;border-radius:30px;font-size:24px;font-weight:900;color:var(--ink);background:linear-gradient(#bef264,#84cc16);box-shadow:0 5px 0 #3f6212}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 #3f6212}
+.mid{min-width:200px;padding:12px 22px;border-radius:24px;font-size:18px;font-weight:700;color:var(--ink);background:#fff;box-shadow:0 4px 0 #b4c3dc;text-decoration:none;display:inline-block}
+.best{color:#fff;font-size:16px;font-weight:700;line-height:1.5}
+.best b{color:#facc15}
+.over-h{font-size:28px;font-weight:900;color:#fff;margin:0}
+.over-line{background:var(--card);border-radius:18px;padding:10px 16px;font-weight:700;max-width:340px;font-size:17px;line-height:1.35}
+.over-score{font-size:56px;font-weight:900;color:#facc15;text-shadow:0 3px 0 var(--ink);line-height:1}
+.over-score small{display:block;font-size:17px;color:#fff;text-shadow:none;margin-top:4px}
+.newrec{font-size:20px;font-weight:900;color:#fff;background:var(--green);padding:4px 14px;border-radius:14px;display:inline-block}
+.head{width:min(34vw,140px);aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 8px 16px #0008)}
+.links{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.links a{color:#cfe0ff;font-weight:700;font-size:15px;text-decoration:none}
+.dots{display:flex;gap:8px;justify-content:center}
+.dots i{width:14px;height:14px;border-radius:50%;background:#ffffff33;display:block}
+.dots i.done{background:var(--lime);box-shadow:0 0 8px var(--lime)}
+.dots i.now{outline:3px solid #fff}
+
+#start{gap:clamp(10px,2.2vh,20px)}
+#start .hero{width:min(92vw,520px,calc((100vh - 300px) * 1.905));aspect-ratio:1.905;border-radius:22px;box-shadow:0 0 0 4px #ffffff33,0 14px 40px #000a;object-fit:cover;background:#1e3a6b}
+#start .title{width:min(80vw,380px);height:auto;margin:-6px 0 -4px}
+.startBtns{display:flex;flex-direction:column;align-items:center;gap:10px}
+#playBtn{display:flex;align-items:center;justify-content:center;gap:10px;min-width:250px;font-size:28px;padding:16px 34px;animation:breathe 2.4s ease-in-out infinite}
+#playBtn svg{width:24px;height:24px;fill:var(--ink)}
+@keyframes breathe{50%{transform:scale(1.04)}}
+#howBtn{min-width:0;padding:9px 22px;font-size:16px;background:#ffffff1f;color:#fff;box-shadow:none;border:2px solid #ffffff55}
+.foot{display:flex;align-items:center;gap:14px}
+.whoami{color:#9fc3ef;font-size:13px;font-weight:700;margin:0}
+@media (min-width:700px) and (min-height:600px){.startBtns{flex-direction:row-reverse;gap:16px}}
+@media (max-height:620px){.whoami{display:none}#start .sub{font-size:14px}#start .title{width:min(64vw,260px)}#playBtn{font-size:24px;padding:12px 28px}#start{gap:8px}.over-score{font-size:44px}.head{width:90px}}
+
+/* tutorial */
+#tutDim{position:fixed;inset:0;display:none;pointer-events:none;z-index:7}
+#tutDim.on{display:block}
+#tutHole{position:absolute;border-radius:16px;box-shadow:0 0 0 200vmax #0a1430b0;border:3px solid #facc15;transition:all .3s}
+#tutCard{position:fixed;left:10px;right:10px;display:none;background:var(--card);border-radius:20px;padding:12px 14px 10px;box-shadow:0 8px 24px #0009;max-width:460px;margin:0 auto;border:3px solid var(--lime);z-index:8}
+#tutCard.on{display:block}
+#tutText{font-size:17px;font-weight:700;line-height:1.35;min-height:46px}
+#tutText .ok{color:#16a34a}
+#tutBar{height:6px;background:#dde6f3;border-radius:3px;margin:9px 0 7px;overflow:hidden}
+#tutBar i{display:block;height:100%;background:var(--lime);width:0;transition:width .3s}
+#tutRow{display:flex;align-items:center;gap:10px}
+#tutCount{flex:1;font-size:14px;color:#6a7899;font-weight:700}
+#tutSkip{background:none;color:#6a7899;font-size:15px;font-weight:700;padding:8px}
+#tutNext{padding:10px 26px;border-radius:20px;font-size:18px;font-weight:900;color:var(--ink);background:#facc15}
+#tutNext:disabled{background:#c3cddd;color:#6a7899}
+.keyhint{font-size:12px;color:#9aa6bd;font-weight:500}
+@media (hover:none){.keyhint{display:none}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="hud">
+  <button class="ibtn" id="pauseBtn" aria-label="הפסקה"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+  <div class="box" id="lotBox"><span id="lotTxt">1/5</span><small>חניון</small></div>
+  <div class="box" id="movesBox"><span id="movesTxt">0</span><small id="movesSub">תנועות</small></div>
+  <button class="ibtn" id="hintBtn" aria-label="רמז"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2zM9 20h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg></button>
+  <button class="ibtn" id="resetBtn" aria-label="מההתחלה"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button>
+  <button class="ibtn sndBtn" aria-label="צליל"></button>
+</div>
+<div id="strip"><img id="yHead" src="assets/yotam-open.webp" alt=""><div id="bubble"></div></div>
+<div id="chip"></div>
+<div id="fx"></div>
+<div id="turn"><svg viewBox="0 0 24 24" fill="none" stroke="#84cc16" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>סובבו את הטלפון לאורך<br><small style="font-size:15px;font-weight:700;opacity:.8">״לרוחב זה edge case. לא נתמך.״</small></div>
+
+<div class="screen on" id="start">
+  <img class="hero" src="assets/hero.jpg?v=1" alt="דדלוק – המשחק של יותם">
+  <p class="sub">שבע בערב בחניון של טקי-טק, וכל הצוות חסם את כולם.<br>הזיזו את המכוניות שלהם – והוציאו את יותם.</p>
+  <div class="startBtns">
+    <button class="big" id="playBtn"><svg viewBox="0 0 24 24"><path d="M17 4v16L4 12z"/></svg>שחקו</button>
+    <button class="mid" id="howBtn">איך משחקים</button>
+  </div>
+  <div class="best" id="bestStart"></div>
+  <div class="foot">
+    <a class="verse-hide" href="/c/yotam" target="_top" style="color:#cfe0ff;font-weight:700;font-size:15px;text-decoration:none">יותם בשלומיוורס ←</a>
+    <button class="ibtn sndBtn" aria-label="צליל"></button>
+  </div>
+  <p class="whoami">יותם גולדשטיין · Senior AI &amp; Context Engineer, טקי-טק</p>
+</div>
+
+<div class="screen" id="lotDone">
+  <div class="dots" id="lotDots"></div>
+  <p class="over-h" id="lotH">יצאתי!</p>
+  <img class="head" id="lotHead" src="assets/yotam-open.webp" alt="">
+  <div class="over-line" id="lotLine"></div>
+  <div class="best" id="lotStat"></div>
+  <button class="big" id="nextBtn">לחניון הבא</button>
+</div>
+
+<div class="screen" id="over">
+  <div class="dots" id="overDots"></div>
+  <p class="over-h">יותם בחוץ. כל חמשת החניונים.</p>
+  <img class="head" src="assets/yotam-explain.webp" alt="">
+  <div class="over-score" id="overScore">0<small>תנועות היום</small></div>
+  <div class="best" id="overOpt"></div>
+  <div id="overRec"></div>
+  <div class="over-line" id="overLine"></div>
+  <button class="big" id="againBtn">עוד סיבוב על החניונים</button>
+  <div class="links"><a href="/c/yotam" target="_top">יותם בשלומיוורס ←</a> · <a href="/yotamverse/" target="_top">YOTAMVERSE ←</a></div>
+</div>
+
+<div class="screen" id="paused">
+  <p class="over-h">הפסקה</p>
+  <div class="over-line">״גם ל-pipeline מותר לעצור. זה בסדר.״</div>
+  <button class="big" id="resumeBtn">ממשיכים</button>
+  <button class="mid" id="quitBtn">יציאה לתפריט</button>
+</div>
+
+<div id="tutDim"><div id="tutHole"></div></div>
+<div id="tutCard">
+  <div id="tutText"></div>
+  <div id="tutBar"><i></i></div>
+  <div id="tutRow">
+    <span id="tutCount"></span>
+    <button id="tutSkip">דלגו <span class="keyhint">(Esc)</span></button>
+    <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
+  </div>
+</div>
+<script src="game.js?v=2"></script>
+</body>
+</html>
