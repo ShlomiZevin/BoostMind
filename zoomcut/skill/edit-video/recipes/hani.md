@@ -336,3 +336,14 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   cut.py now plans turns: sound overlap 0.12-0.3 s at a change of speaker, picture J / L / straight in turn using the
   pauses in each take (the listening face after / before a line), no picture under 0.8 s; his "חני!" plays over Hani
   freezing (her take 14 runs on) and we cut to him on "אנחנו רוצים".
+- **Osnat (2026-11-09):** 13 takes; he added her EATING ("place it while Hani talks, ping-pong, she's not responding") and
+  asked that the chewing be heard under ALL of Hani's talking while she eats ("if you show Osnat chewing and then Hani
+  without the chewing noise it will be strange"). Done as: a chewing row (`chew`, o2's sound in passes with 0.3 s
+  cross-fades, x4 - it sat ~20 dB under her voice as shot; skip its loud bite at 12.8 s) from her greeting to her next
+  line, and a 1.5 s cutaway to her every ~6 s whose picture `in` = the chewing row's own time at that moment, so mouth
+  and sound always match; cutaways sit on Hani's jump cuts to hide them. **His silent moments are hard to find and
+  important** ("find it because it's important"): Hani's whispered "את קולטת?!" to Osnat when Yotam calls her "חני" was
+  in the silent tail of Hani's take 13 (shocked 5.4 s, turns to the lens and mouths it 8.7-10.5 - frames at 5 fps, the
+  whisper is near silence); Osnat's answer = a silent take (o12) - the slow nod with eyes closed at 3.4-5.8 s (face crops
+  at 5 fps). Both play over Yotam's talk (`cover`), the words word by word on top (text row must be the TOP layer -
+  index 0 is the bottom, it hid behind the set).
