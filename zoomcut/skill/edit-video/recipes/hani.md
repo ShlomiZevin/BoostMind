@@ -380,4 +380,5 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   list of hand corrections. A copy in the dialogue format: `tools/to_dialogue.py haredit-5 haredit-5-dialogue`.
   **Export trap**: the sound graph can fail under load during a Full export and the older mix goes out (and is sent!)
   - read the export log for "sound graph failed" before telling him it's sent; workaround = run tools/audio_layers.mjs
-  on the job alone, touch job.<key>.done, export again (reported to Sketch Studio Online).
+  on the job alone, touch job.<key>.done, export again. FIXED the same day by Sketch Studio Online (protocolTimeout 30 min,
+  a second sound pass after the picture, a Full export that still fails exits 1 and sends nothing) - no workaround now.
