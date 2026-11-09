@@ -164,7 +164,13 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Notes for Claude (2026-10-28, his ask):** `render/ui/layers/Notes.tsx` (+ notes.css) - "+ Note" on the timeline bar /
   N = a note at the playhead (window opens right above its flag on the ruler - his ask; click the video = the spot, a
   ring there while the playhead is at it; Ctrl+Enter / Esc / click Save keeps the words, an empty new one just goes);
-  flags on the ruler (yellow open, grey handled; click opens, drag moves); ready-made notes as chips in the window (`PRESETS` in Notes.tsx: Tighten the cut = kind `tighten`, Cut the silence = `silence` - one click fills the words, again = off; more go in that list + SKILL.md "fix notes"); each note's "Handled" checkbox (= `done`; a session ticks it with `notes.mjs done`), "Hide / Show handled (n)" on the bar hides their flags and rings (localStorage zc-notes-done); stored as project.json `notes` through the
+  flags on the ruler (click opens, drag moves); on the ruler's line / at the playhead three quick buttons: a plain note (first), Tighten the cut, Cut the silence; ready-made notes as chips in the window (`PRESETS` in Notes.tsx: Tighten the cut = kind `tighten`, Cut the silence = `silence` - one click fills the words, again = off; more go in that list + SKILL.md "fix notes");
+  **a note's three states (2026-11-09, his ask: "know what was fixed on the last run, go to those places, then make them
+  disappear")**: open (yellow - for Claude) -> fixed (GREEN: `notes.mjs done` sets `done` + `fixed` = this run's fix) ->
+  checked (grey, hidden: he pressed Looks good = `seen`, or ticked Handled himself). The bar: a small menu of what shows
+  (Open + fixed - the default / Open / Fixed - to check / All, with counts; localStorage zc-notes-view), "Check fixed (n) ›"
+  opens the first fixed note at its place - Looks good ✓ hides it and opens the next, Not yet sends it back open - and
+  "All look good ✓" checks every fixed one at once. Notes from before 2026-11-09 that were handled = checked. stored as project.json `notes` through the
   'project' op; `pipeline/project.py` merge moves them by timemap; sessions: `tools/notes.mjs` (SKILL.md "fix notes").
 - **Quick notes on the ruler (2026-11-03, his ask):** hover the ruler = a yellow line at the mouse + the PRESETS as small
   icon buttons beside it (tighten = arrows together, silence = scissors), faint while the mouse moves; a short rest locks

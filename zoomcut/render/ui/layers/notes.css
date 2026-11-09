@@ -55,4 +55,4 @@
 .note-check .btn { height: 26px; padding: 0 10px; font-size: 12px; }
 .note-check .btn.ok { background: var(--ok, #4cc38a); color: #10231a; border-color: transparent; font-weight: 600; }
 /* the timeline bar's notes: which to show, and going through the fixed ones */
-.tl-notes { height: 26px; font-size: 12px; padding: 0 6px; }
+.tl-notes { flex: none; width: auto; max-width: 170px; height: 26px; font-size: 12px; padding: 0 22px 0 8px; }  /* (its words only - never the whole bar) */
