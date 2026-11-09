@@ -590,6 +590,13 @@ Never print a key, never write one into a file in the repo, never ask him for on
   WIKI_OPENAI_KEY, LEONARDO_API_KEY, MAPS_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY (not ours to touch).
 
 ### ElevenLabs - the whole toolbox (learned 2026-10-27, haredit-2; docs + github.com/elevenlabs/skills)
+**ElevenLabs out of credits? Leonardo resells it** (his tip, 2026-11-09 - "I'm almost certain you can create in
+Leonardo"): `POST https://cloud.leonardo.ai/api/rest/v2/generations {model: "dialogue-v3", public: false, parameters:
+{prompt, voice_id, language_code: "he", prompt_influence: 0.5, quantity: 1}}` = ElevenLabs v3 speech on the Leonardo
+tokens (~$0.13 a short line; voice ids = ElevenLabs' presets - George JBFqnCBsd6RMkjVDRZzb, Brian nPczCjzI2devNBz1zQrb,
+Adam, Daniel...; no Israeli library voices). Hebrew came out exact, audio tags honoured and not read (haredit-5 sponsor
+VO). Poll v1/generations/<id> until COMPLETE; the file URL has the Hebrew words in it - take it from the parsed JSON,
+URL-quote it. (`seed-audio-1.0` = Chinese / English voices only, `music-v1` / `sound-effects-v2` in tools/leonardo.mjs.)
 He said "I don't think you are utilizing all of its power with annotation". What it can do, measured:
 - **Speech: `eleven_v4`** (`POST /v1/text-to-speech/<voice>`, `language_code: "he"`, `voice_settings {stability 0.3,
   similarity_boost 0.75}` - v4 takes only those two; lower stability = more emotion). In Hebrew v4 beat v3: "מלכי
