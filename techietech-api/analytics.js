@@ -68,6 +68,7 @@ const EVENTS = new Set([
   'comment',       // a comment was posted                         x = video id
   'save',          // a video was saved                            x = video id
   'share',         // the share button                             x = video id
+  'download',      // the player's "הורדה" (the marked copy)          x = video id
   'sticker_create',// "sticker from the moment" made a sticker     x = video id
   'stamp',         // a fan stamped another fan's sticker          x = video id
   'story_view',    // a character's story was opened               x = character id

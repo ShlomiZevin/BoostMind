@@ -993,7 +993,7 @@ function renderText(text, streaming) {
         const v = V[m[2]];
         parts.push(v.url
           ? `<div class="mc" style="--cc:var(--c)"><b>${esc(v.title)}</b><button data-video="${v.id}">לצפייה</button></div>`
-          : `<div class="mv"><video data-vid="${v.id}" src="${v.src}" poster="${v.poster || ''}" controls playsinline preload="none"></video><div class="mv-t"><span>${esc(v.title)}</span><button data-video="${v.id}">לעמוד הסרטון</button></div></div>`);
+          : `<div class="mv"><video data-vid="${v.id}" src="${v.src}" poster="${v.poster || ''}" controls controlslist="nodownload" oncontextmenu="return false" playsinline preload="none"></video><div class="mv-t"><span>${esc(v.title)}</span><button data-video="${v.id}">לעמוד הסרטון</button></div></div>`);
         for (const id of v.cast || []) if (C[id] && !named.has(id) && !shown.has(id)) { shown.add(id); faces.push(C[id]); }
       } else if (m && m[1] === 'char' && C[m[2]]) {
         if (para.length) flush();
@@ -1207,7 +1207,7 @@ function openVideo(id) {
   if (HOOK.openPlayer) { HOOK.chatReturn = cx.classList.contains('open') ? cxMode : HOOK.chatReturn || null; closeChat(); nav('/v/' + id); return; }
   cx.querySelectorAll('video').forEach((x) => x.pause());
   t('video', id);
-  player.innerHTML = `<video src="${v.src}" poster="${v.poster || ''}" controls autoplay playsinline></video>
+  player.innerHTML = `<video src="${v.src}" poster="${v.poster || ''}" controls controlslist="nodownload" oncontextmenu="return false" autoplay playsinline></video>
     <div class="info"><button class="icon-btn close" data-close-video aria-label="סגירה">${ICON.x}</button>
       ${stag(v.series)}<h2>${esc(v.title)}</h2>${v.teaser ? `<p>${esc(v.teaser)}</p>` : ''}
       <div class="cast">${v.cast.filter((id) => C[id]).map((id) => `<div><span class="av">${face(C[id])}</span><a class="n" href="/c/${id}">${esc(C[id].name)}</a>${talkBtn(C[id])}</div>`).join('')}</div></div>`;

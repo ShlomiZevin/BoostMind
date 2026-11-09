@@ -2,7 +2,7 @@
 // faded wordmark. One tap pauses and floats in the glass controls (mockup 2): the character + follow, the orange
 // "sticker from the moment" first, comments, save, share, and the episode card with its scrubber. Comments (a sheet:
 // likes, replies, @character answers) and the sticker screen (mockup 3) live here too.
-import { db, F, call } from './fb.js';
+import { db, F, call, downloadLink } from './fb.js';
 import { T } from './copy.js';
 import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE, LINK_RE, linkTag, ofc, lockScroll, unlockScroll } from './ui.js';
 import { st, onState, needFan, follow, save, signedIn } from './state.js';
@@ -74,6 +74,7 @@ export function openPlayer(id, q = {}) {
         <button data-comments><span class="vx-round">${I.comment}</span>${esc(T.comments)}<small data-count-c></small></button>
         <button data-save><span class="vx-round">${I.save}</span><span data-save-l>${esc(T.save)}</span></button>
         <button data-share><span class="vx-round">${I.share}</span>${esc(T.share)}</button>
+        <button data-dl><span class="vx-round">${I.download}</span>${esc(T.dl.btn)}</button>
       </div>
       <div class="vp-ep">
         <div><h2>${esc(v.title)}</h2><div class="meta">${esc(S[v.series] && eps.length > 1 ? T.episode(n + 1, S[v.series].title) : (S[v.series]?.title || (lead ? C[lead].name : '')))}</div><a class="vp-credit" data-credit hidden></a></div>
@@ -84,6 +85,8 @@ export function openPlayer(id, q = {}) {
   document.body.append(el);
   lockScroll();   // the page behind stays put (iPhone scrolls a body under overflow: hidden)
   const video = $('video', el);
+  // the clean file is the site's own: no "save video as" (a download is the marked copy, the rail's "הורדה")
+  video.addEventListener('contextmenu', (e) => e.preventDefault());
   P = { el, v, video, lead, off: [fit(el)], hideT: 0 };
   opened();
 
@@ -153,6 +156,7 @@ export function openPlayer(id, q = {}) {
     else if (b.matches('[data-comments]')) openComments();
     else if (b.matches('[data-save]')) save(id);
     else if (b.matches('[data-share]')) share(v);
+    else if (b.matches('[data-dl]')) download(v);
     else if (b.matches('[data-sticker]')) openSticker();
     else if (b.matches('[data-ep]') && b.dataset.ep) nav('/v/' + b.dataset.ep, true);
     else if (b.matches('.vp-who')) { /* the link closes the player through the router */ }
@@ -376,6 +380,45 @@ function share(v) {
   track('share', v.id);
   if (navigator.share) navigator.share({ title: v.title, text: T.shareText(v.title), url }).catch(() => {});
   else { navigator.clipboard?.writeText(url); toast(T.linkCopied); }
+}
+// ---------- download: signed-in visitors take the video home, always with the Shlomiverse's mark (his call, 2026-11-09) ----------
+// The file carries the logo + shlomiverse.com (verse-download/), so every copy on WhatsApp / TikTok brings people back.
+// iPhone: the file is fetched here, then "save to Photos" opens the share sheet (it has to be a tap of its own);
+// elsewhere the browser downloads the link itself.
+async function download(v) {
+  if (!(await needFan('download'))) return;
+  track('download', v.id);
+  const h = sheet(`<div class="dl"><h2 class="vx-h">${esc(T.dl.title)}</h2><p class="vx-sub" data-msg>${esc(T.dl.making)}</p>
+      <div class="dl-bar"><i></i></div><div class="dl-btns"></div></div>`, { cls: 'dl-sheet' });
+  const msg = $('[data-msg]', h.el), bar = $('.dl-bar i', h.el), btns = $('.dl-btns', h.el);
+  let r;
+  try { r = await downloadLink(v.id); }
+  catch (e) { msg.textContent = /slow_down/.test(e.message) ? T.dl.slow : T.errGeneric; bar.parentNode.remove(); return; }
+  if (!isIOS()) {
+    Object.assign(document.createElement('a'), { href: r.url, download: r.name }).click();
+    msg.textContent = T.dl.started; bar.style.width = '100%';
+    setTimeout(() => h.close(), 2600);
+    return;
+  }
+  msg.textContent = T.dl.loading;
+  let file;
+  try {
+    const res = await fetch(r.url);
+    if (!res.ok) throw new Error('http ' + res.status);
+    const total = +res.headers.get('content-length') || 0, rd = res.body.getReader(), parts = [];
+    let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; if (total) bar.style.width = Math.round((got / total) * 100) + '%'; }
+    file = new File(parts, r.name, { type: 'video/mp4' });
+  } catch (e) { console.warn('download', e); location.href = r.url; h.close(); return; }   // Safari downloads the link itself
+  bar.style.width = '100%';
+  msg.textContent = T.dl.ready;
+  btns.innerHTML = `<button class="vx-btn main block" data-save-v>${I.download}${esc(T.dl.save)}</button>`;
+  $('[data-save-v]', h.el).onclick = async () => {
+    try { if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); h.close(); return; } }
+    catch (e) { if (e.name === 'AbortError') return; }
+    Object.assign(document.createElement('a'), { href: URL.createObjectURL(file), download: r.name }).click();
+    h.close();
+  };
 }
 function close() { nav(backTo); }
 function destroy() {

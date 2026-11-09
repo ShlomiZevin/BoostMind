@@ -166,6 +166,11 @@ textarea.vx-field { height: auto; min-height: 96px; padding: 14px 18px; resize: 
 .vp-rail .vx-round.main { width: 54px; height: 54px; }
 .vp-rail .vx-round.main svg { width: 25px; height: 25px; }
 .vp-rail button { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: .84rem; font-weight: 700; text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
+.dl { text-align: center; padding: 4px 4px 8px; }
+.dl-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .12); overflow: hidden; margin: 18px 0; }
+.dl-bar i { display: block; height: 100%; width: 8%; background: var(--vx-accent); transition: width .3s; animation: dl-wait 1.6s ease-in-out infinite alternate; }
+.dl-bar i[style] { animation: none; }
+@keyframes dl-wait { from { width: 8%; } to { width: 38%; } }
 .vp-rail small { font-size: .74rem; opacity: .85; margin-top: -4px; }
 .vp-ep { position: absolute; bottom: calc(16px + env(safe-area-inset-bottom)); inset-inline: 14px; background: var(--vx-glass); -webkit-backdrop-filter: var(--vx-blur); backdrop-filter: var(--vx-blur);
   border: 1px solid var(--vx-glass-line); border-radius: var(--vx-r); padding: 16px 18px 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: center; }

@@ -27,6 +27,9 @@ export const VAPID = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuu
 export const OWNER_API = LOCAL ? '/api/verseOwner' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
 
 const verse = Fn.httpsCallable(fns, 'verse', { timeout: 120000 });
+// a video with the Shlomiverse's mark (verse-download/: its own function - a copy not made yet takes about a minute)
+const dl = Fn.httpsCallable(fns, 'verseDownload', { timeout: 300000 });
+export const downloadLink = async (id) => (await dl({ id })).data;
 // every fan action goes through the one `verse` function
 export async function call(op, data = {}) {
   try { return (await verse({ op, ...data })).data; }
