@@ -103,7 +103,9 @@ const take = (r) => { [r.post, ...(r.posts || []), ...(r.thread || []), ...(r.re
 function inner(p, small) {
   const a = p.article && D.articles[p.article];
   const q = p.quote && D.quoted[p.quote];
-  if (small) return a ? `<span class="art mini">${a.img ? `<span class="im" style="background-image:url('${esc(a.img)}')"></span>` : ''}<span class="in"><span class="tg">החרדות 24 · ${esc(a.tag || 'חדשות')}</span>${a.headline.trim() === String(p.text).trim() ? '' : `<b>${esc(a.headline)}</b>`}</span></span>` : '';
+  // inside a repost: the quoted post's article - or the news it shares, so a repost of a take still says what it is about (his note 2026-11-09)
+  if (small) return a ? `<span class="art mini">${a.img ? `<span class="im" style="background-image:url('${esc(a.img)}')"></span>` : ''}<span class="in"><span class="tg">החרדות 24 · ${esc(a.tag || 'חדשות')}</span>${a.headline.trim() === String(p.text).trim() ? '' : `<b>${esc(a.headline)}</b>`}</span></span>`
+    : p.link ? `<span class="art mini">${p.link.img ? `<span class="im" style="background-image:url('${esc(p.link.img)}')"></span>` : ''}<span class="in"><span class="tg">${esc(p.link.src)}</span><b>${esc(p.link.title)}</b></span></span>` : '';
   if (q) { const w = who(q); return `<a class="qt" href="/tziftzif/p/${q.id}"><div class="hd">${avatar({ ...w, href: null })}<span class="nm">${esc(w.name)}</span>${w.badge}${w.handle ? `<span class="hn">@${esc(w.handle)}</span>` : ''}</div><div class="tx">${linkify(q.text)}</div>${inner(q, true)}</a>`; }
   if (a) return `<a class="art" href="/tziftzif/a/${a.id}">${a.img ? `<div class="im" style="background-image:url('${esc(a.img)}')"></div>` : ''}<div class="in"><span class="tg">החרדות 24 · ${esc(a.tag || 'חדשות')}</span><b>${esc(a.headline)}</b><small>${esc(a.sub)}</small></div></a>`;
   if (p.link) return `<a class="lk" href="${esc(p.link.url)}" target="_blank" rel="noopener">${p.link.img ? `<img src="${esc(p.link.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="lt"><small>${I.link}${esc(p.link.src)}</small><b>${esc(p.link.title)}</b></span></a>`;

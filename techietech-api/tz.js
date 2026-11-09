@@ -103,7 +103,7 @@ const ALIASES = {
   'avi-shushan': { name: 'אבי שוש-און', handle: 'shush_on' },
   hatzroni: { name: 'פרופסור מעלוני', handle: 'prof_maaloni' },
   'mordechai-david': { name: 'מרדכי חוסם', handle: 'hosem' },
-  'neve-dromi': { name: 'נווה צפוני', handle: 'neve_tzfoni' },
+  'neve-tzafoni': { name: 'נווה צפוני', handle: 'neve_tzfoni' },   // the verse name (his call 2026-11-09: the two neve characters are one)
   oded: { name: 'עודד קלישאש', handle: 'klishash' },
   alon: { name: 'אלון טיפון', handle: 'tifun' },
   'omer-koli': { name: 'עומר קוליטוב', handle: 'kolitov' },
@@ -136,12 +136,30 @@ async function brainNow() {
 }
 const byId = (b) => Object.fromEntries(b.characters.map((c) => [c.id, c]));
 // one line per resident for the picking call (fixed text, so OpenAI's cache serves it run after run)
-const rosterLine = (c) => `${c.id} | ${nameOf(c)} | ${lastVid[c.id] ? 'newest video ' + day(lastVid[c.id]) : 'no video yet'} | ${c.world} | ${short(c.role, 90)} | ${short((c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`)), 140)}`;
-// the full voice of a resident for the writing call
-const voice = (c) => [`### ${c.id} - ${nameOf(c)} (${c.world}) - ${short(c.role, 120)}`, ...(AL[c.id] ? [`ON ציפציפ THIS RESIDENT IS CALLED "${AL[c.id].name}" - never write the original name "${c.name}", not even in other residents' posts`] : []),
-  `personality: ${short(c.personality, 400)}`, `catchphrases: ${short(c.catchphrases, 200)}`, `speech: ${short(c.speech, 500)}`,
-  `writing rules: ${short(c.writing_rules, 450)}`, `never: ${short(c.dont, 300)}`,
-  `relations: ${short((c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`)), 300)}`].join('\n');
+const rels = (c) => (c.relations || []).map((r) => (typeof r === 'string' ? r : `${r.id || r.name}: ${r.rel || r.relation || ''}`));
+// who they are in one line (the brief) too, so the matching knows which news this person would really jump on (his "smart", 2026-11-09)
+const rosterLine = (c) => `${c.id} | ${nameOf(c)} | ${lastVid[c.id] ? 'newest video ' + day(lastVid[c.id]) : 'no video yet'} | ${c.world} | ${short(c.role, 90)} | ${short(c.brief, 140)} | ${short(rels(c), 140)}`;
+// how one resident is related to another (from either side's relations), for a reply that knows whom it answers
+const relOf = (a, b) => { if (!a || !b) return ''; const hit = (x, id) => rels(x).find((r) => new RegExp(`(^|[^\\w-])${id}([^\\w-]|$)`).test(r)); const r = hit(a, b.id) || hit(b, a.id); return r ? short(r, 160) : ''; };
+// the voice for the writing call = the chat's core profile (wiki.js core(): brief, personality, speech, catchphrases, comedy,
+// writing rules, never, themes, behavior last - his note 2026-11-09: "the chat works great, they need to tweet the same, careful with
+// the prompt size"), within VOICE_MAX characters (the chat's is 4000; a tweet needs the voice, not the whole history)
+const VOICE_MAX = 2400;
+const VOICE = [['brief', 'who'], ['personality', 'personality'], ['speech', 'speech'], ['catchphrases', 'catchphrases'], ['comedy', 'comedy'],
+  ['writing_rules', 'writing rules'], ['dont', 'never'], ['themes', 'themes'], ['behavior', 'behavior']];
+const voice = (c) => {
+  let out = [`### ${c.id} - ${nameOf(c)} (${c.world}) - ${short(c.role, 120)}`, ...(AL[c.id] ? [`ON ציפציפ THIS RESIDENT IS CALLED "${AL[c.id].name}" - never write the original name "${c.name}", not even in other residents' posts`] : [])].join('\n');
+  const tail = `\nrelations: ${short(rels(c), 300)}`;
+  for (const [k, label] of VOICE) {
+    let t = (Array.isArray(c[k]) ? c[k].join(' · ') : typeof c[k] === 'object' && c[k] ? JSON.stringify(c[k]) : String(c[k] || '')).trim();
+    if (!t) continue;
+    const room = VOICE_MAX - out.length - tail.length - label.length - 3;
+    if (room < 80) break;
+    if (t.length > room) t = t.slice(0, t.lastIndexOf(' ', room)) + '…';
+    out += `\n${label}: ${t}`;
+  }
+  return out + tail;
+};
 
 // ---------- OpenAI ----------
 async function ask(k, instructions, input, schema, name, effort = 'low', max = 2400) {
@@ -308,7 +326,20 @@ async function desk(slot = 'manual', n) {
 const POST_RULES = `You write posts for "ציפציפ", the Shlomiverse's own social network - exactly like X / Twitter, and like Twitter mostly about the news. The Shlomiverse is a comedy universe whose residents are REAL people living in a parallel universe: write them as real people posting from their phone, never as characters; never mention a parody, AI, a script or Shlomi.
 POSTS: Hebrew, short like real tweets (one to three short lines, at most 240 characters), in the resident's OWN voice - their speech, catchphrases (sparingly, not in every post), world and relations from their profile below. Each takes the news through their own life and worldview: a hot take, a complaint, sarcasm, a "back in my day", a professional opinion, an argument. Funny through their point of view, never by explaining the joke. ALWAYS HEBREW - even a resident who lectures in English or mixes English writes in Hebrew here, at most a single English word. No hashtags, no emoji. Each post a different rhythm - never two opening the same way.
 REAL PEOPLE IN THE NEWS: facts only from the headline; never invent a quote, an action or a private detail about a real person; the opinions and jokes are the resident's own. A resident who is an impression of a real public figure speaks only in opinions and jokes in that figure's style - never announces a concrete fact or decision as if it happened. No insults about religion, origin, gender or body. Children never talk about politics.
-NAMES: residents are called only by the names given in their profiles here (some go by a verse name - never use the original one). The news channel is "החרדות 24" (never "ח24" or "חרדות" alone).`;
+NAMES: residents are called only by the names given in their profiles here (some go by a verse name - never use the original one). The news channel is "החרדות 24" (never "ח24" or "חרדות" alone).
+CLEAR ABOVE ALL (his note 2026-11-09: "gibberish, no logic, nobody wants to read it"): a stranger scrolling ציפציפ who never met this resident must get the post in ONE read - what it is about, and the joke. So:
+- NAME THE SUBJECT in the post itself, in plain words: "הפועל תל אביב ביורוליג", "מחירי הדלק", "החנות של Be בקניון" - never "it", "this", "the thing" or a detail of the story that only someone who read it knows.
+- ONE idea, ONE joke, said simply. Plain everyday Hebrew a person really types - no word salad, no stacked metaphors, no riddles, no jargon pile-up.
+- NO PRIVATE REFERENCES: never a name, place, event or inside joke from the resident's own life that the reader can't know (a neighbour's name, an old episode, "כמו בפעם ההיא") - their life shows through WHO they are and HOW they talk, not through references. Family, friends and colleagues by their role ("בעלי", "הבוס שלי", "השכנה"), never by name.
+- ONLY WHAT A PERSON TYPES: no stage directions, brackets, sound effects, captions or video formats ("[נחתך]", "[הסר: ...]", "POV:", "be like") - a running gag from their videos shows only as something a real person would really type in a post. Never the words "דמות", "סרטון", "פרק".
+- A post of their own never addresses another resident ("צביקה, ..."); talking to someone happens only in a reply to that person's post.
+- A reply / repost answers THAT post directly and stays on its subject - it makes sense right under it, and a little on its own too.
+- The joke = their known point of view meeting the news: the Haredi mother counts the kids' sandwiches in it, the tech CEO turns it into a pitch, the taxi driver blames the traffic. Recognisable in one beat.
+EXAMPLES of the difference:
+BAD (gibberish): "מקרר מחובר זה פרודקשן עם מדבקות של גלידות ותיעוד אינסידנט יותר גרוע." - what fridge? what happened? nobody knows.
+GOOD: "קראתי שפרצו למקררים חכמים. אצלי המקרר לא מתחבר אפילו לחשמל כמו שצריך, שינסו."
+BAD: "לא, אני לא הבנתי, מדף המשחות זה בדרך כלל אצל זוהרה." - who is זוהרה? which shelf?
+GOOD: "חנות של Be נפתחת בלב המפרץ. מצוין, עוד מקום שבו אני מחפשת משחת שיניים ארבעים דקות ויוצאת עם קרם ידיים."`;
 
 // ---------- the residents' run (his rule 2026-11-09: "randomly choose characters, more weight to the loved ones; then find
 // which news is relevant to which character; only then ask each one for their tweet - dedicated per character", not all the
@@ -329,8 +360,9 @@ The residents who post now were already drawn by an algorithm - never add or swa
 const MATCH_SCHEMA = S({ bad_day: bool, why: str, main: arr(S({ id: str, kind: { type: 'string', enum: ['news', 'ch_quote', 'ch_reply', 'answer', 'life'] }, ref: int, angle: str })),
   react: arr(S({ id: str, to: int, kind: { type: 'string', enum: ['reply', 'quote'] }, angle: str })), new_story: str });
 const ONE_RULES = POST_RULES + `
-NOW YOU WRITE ONE POST of ONE resident (their full profile below) about ONE thing, given below with the take. text = the post. link = true only for a post of their own about a real headline that shares the news link (never on a reply or a repost).`;
-const ONE_SCHEMA = S({ text: str, link: bool });
+YOU ARE THIS PERSON in everything (as in the verse's chat): every opinion comes from their own religion and how strictly they keep it, community, values, job and habits in the profile - never what they would never do or say. The profile's "comedy", "writing rules" and "never" are directing notes: follow them, never quote them. A smart post = what THIS person, and nobody else, would notice in the news.
+NOW YOU WRITE ONE POST of ONE resident (their profile below) about ONE thing, given below with the take. text = the post. (A post about a real headline goes up with the news link under it - still name the subject in the text.)`;
+const ONE_SCHEMA = S({ text: str });
 
 async function writeOne(c, what, angle, last) {
   return ask(tzKey(), ONE_RULES, [{ role: 'user', content: `${voice(c)}\n\nTHEIR LAST POSTS (never repeat a take or an opening):\n${last.map((t) => '- ' + t).join('\n') || '(none yet)'}\n\nNOW THEY POST:\n${what}\n\nTHE TAKE: ${angle}` }],
@@ -362,6 +394,8 @@ async function run(slot = 'manual') {
   const now = new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 16).replace('T', ' ');
   const arc = cfg.arc && cfg.arc.until > Date.now() ? cfg.arc : null, mayStart = !arc && Math.random() < BIG_CHANCE;
   const nm = (id) => (C[id] ? nameOf(C[id]) : id);
+  // a reply knows whom it answers - their mother, a colleague, a rival (his "smart reactions", 2026-11-09)
+  const rl = (a, b) => { const r = relOf(C[a], C[b]); return r ? `\nHOW THEY KNOW ${nm(b)}: ${r}` : ''; };
 
   const match = await ask(tzKey(), MATCH_RULES, [{ role: 'user', content: `Now (Israel): ${now}.
 HEADLINES:
@@ -397,7 +431,7 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
   const last = async (id) => (await liveNow(db().collection('tzPosts').where('by', '==', id)).limit(6).get()).docs.map((d) => clip(d.data().text, 140));
   const what = (m) => {
     if (m.kind === 'news') { const h = fresh[m.ref]; return `A REAL HEADLINE [${h.src}]: ${h.title}${h.desc ? ' - ' + h.desc : ''}\nA post of their own about it.`; }
-    if (m.kind === 'answer') { const p = res[m.ref]; return `${nm(p.by)} posted on ציפציפ: "${p.text}"\nThey REPLY to it (a comment under that post).`; }
+    if (m.kind === 'answer') { const p = res[m.ref]; return `${nm(p.by)} posted on ציפציפ: "${p.text}"${p.link ? ` (sharing the real headline [${p.link.src}]: ${p.link.title})` : ''}${rl(m.id, p.by)}\nThey REPLY to it (a comment under that post).`; }
     if (m.kind === 'life') return 'Their own day - no news: something small and real from their world, the way people post on Twitter.';
     const x = ch[m.ref];
     return `החרדות 24 (the verse's hysterical news channel) posted: "${x.text}" - its take on the real story [${x.real.src}]: ${x.real.title}\n${m.kind === 'ch_quote' ? 'They REPOST it with their own comment on top (a quote tweet).' : 'They COMMENT under it (a reply).'}`;
@@ -412,7 +446,8 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
     const m = plan[i], w = wrote[i];
     if (!w || !clip(w.text, 1)) { mains.push(null); continue; }
     let x = {};
-    if (m.kind === 'news' && w.link) { const h = fresh[m.ref]; if (!h.img) h.img = await ogImage(h.url); x = { link: { url: h.url, title: h.title, src: h.src, img: h.img || null } }; }
+    if (m.kind === 'news') {   // always with its news link - a take without its story is gibberish (his note 2026-11-09)
+      const h = fresh[m.ref]; if (!h.img) h.img = await ogImage(h.url); x = { link: { url: h.url, title: h.title, src: h.src, img: h.img || null } }; }
     if (m.kind === 'ch_quote') x = { quote: ch[m.ref].post };
     if (m.kind === 'ch_reply') x = { parent: ch[m.ref].post, root: ch[m.ref].post };
     if (m.kind === 'answer') x = { parent: res[m.ref].id, root: res[m.ref].root || res[m.ref].id };
@@ -426,7 +461,7 @@ STORY: ${arc ? `ongoing story in the verse (since ${day(arc.at)}): ${arc.text}` 
   const rwrote = await Promise.all(reacts.map(async (r) => {
     const t = at[r.to];
     const about = t.m.kind === 'news' ? ` (about the real headline: ${fresh[t.m.ref].title})` : t.m.kind.startsWith('ch') ? ` (about החרדות 24's post: "${ch[t.m.ref].text}")` : '';
-    try { const o = await writeOne(C[r.id], `${nm(t.m.id)} posted on ציפציפ: "${t.d.text}"${about}\n${r.kind === 'quote' ? 'They REPOST it with their own comment on top (a quote tweet).' : 'They REPLY to it (a comment under that post).'}`, r.angle, await last(r.id)); add(o.u); return o.out; }
+    try { const o = await writeOne(C[r.id], `${nm(t.m.id)} posted on ציפציפ: "${t.d.text}"${about}${rl(r.id, t.m.id)}\n${r.kind === 'quote' ? 'They REPOST it with their own comment on top (a quote tweet).' : 'They REPLY to it (a comment under that post).'}`, r.angle, await last(r.id)); add(o.u); return o.out; }
     catch (e) { console.error('tz react', r.id, e.message); return null; }
   }));
   reacts.forEach((r, i) => { const w = rwrote[i], t = at[r.to].d; if (w && clip(w.text, 1)) doc(r.id, w.text, r.kind === 'quote' ? { quote: t.id } : { parent: t.id, root: t.root }); });
@@ -531,17 +566,25 @@ async function resident(uid, char, before) {
 // the verse's home page module (the Shlomiverse Conversion session designs it): ח24's newest article + the newest top
 // posts, and `quiet` when nothing came today (a silent day, or no run yet) - so the home says "מהימים האחרונים"
 async function home(cfg, uid) {
-  const [arts, all] = await Promise.all([liveNow(db().collection('tzArticles')).limit(1).get(), liveNow(db().collection('tzPosts')).limit(80).get()]);
+  const [arts, all] = await Promise.all([liveNow(db().collection('tzArticles')).limit(12).get(), liveNow(db().collection('tzPosts')).limit(150).get()]);
   // the residents' posts only (his note 2026-11-09: "mainly the characters, not החרדות") - ח24 is the banner above them
   const every = all.docs.map((d) => pub(d.data())), tops = every.filter((p) => !p.parent && !p.fan && p.by !== NEWS).slice(0, 5);
-  const lead = arts.docs[0] ? pubArt(arts.docs[0].data()) : null;
-  // the citizen's card: what the residents said about the lead story (its post's comments and reposts), else their latest comments
-  const onLead = lead && lead.post ? every.filter((p) => !p.fan && p.by !== NEWS && (p.parent === lead.post || p.quote === lead.post)) : [];
-  const talk = [...onLead, ...every.filter((p) => p.parent && !p.fan && p.by !== NEWS && !onLead.includes(p))].slice(0, 2);
-  const q = await quoted([...tops, ...talk]), startToday = Date.parse(day() + 'T00:00:00+02:00');
+  const list = arts.docs.map((d) => pubArt(d.data())), lead = list[0] || null;
+  // the citizen's card (his note 2026-11-09: "not clear what the characters are reacting to"): ח24's post on the newest story
+  // the residents really answered (its comments and reposts, in the last day and a half), and only those answers under it -
+  // never someone's comment on something else
+  const said = (a) => (a.post ? every.filter((p) => !p.fan && p.by !== NEWS && (p.parent === a.post || p.quote === a.post)) : []);
+  const topic = list.find((a) => a.t > Date.now() - 36 * 3600e3 && said(a).length) || null;
+  const talk = topic ? said(topic).sort((a, b) => a.t - b.t).slice(0, 3) : [];
+  const chPost = topic && every.find((p) => p.id === topic.post);
+  const q = await quoted([...tops, ...talk]), qa = await articlesOf(Object.values(q)), startToday = Date.parse(day() + 'T00:00:00+02:00');
+  // what a post is about, in one small row on the home: the news it shares, or the post it reposts (with ח24's headline)
+  const lk = (l) => (l ? { title: l.title, src: l.src } : null);
   return { lead,
-    talk: talk.map((p) => ({ id: p.id, by: p.by, text: p.text, t: p.t, stamps: p.stamps, replies: p.replies, root: p.root })),
-    posts: tops.map((p) => ({ id: p.id, by: p.by, text: p.text, t: p.t, stamps: p.stamps, replies: p.replies, article: p.article, quote: p.quote && q[p.quote] ? { id: p.quote, by: q[p.quote].by, text: q[p.quote].text } : null })),
+    topic: topic ? { ...topic, text: chPost ? chPost.text : topic.headline } : null,
+    talk: talk.map((p) => ({ id: p.id, by: p.by, text: p.text, t: p.t, stamps: p.stamps, replies: p.replies, root: p.root, kind: p.quote === topic.post ? 'quote' : 'reply' })),
+    posts: tops.map((p) => ({ id: p.id, by: p.by, text: p.text, t: p.t, stamps: p.stamps, replies: p.replies, article: p.article, link: lk(p.link),
+      quote: p.quote && q[p.quote] ? { id: p.quote, by: q[p.quote].by, text: q[p.quote].text, link: lk(q[p.quote].link), headline: q[p.quote].article && qa[q[p.quote].article] ? qa[q[p.quote].article].headline : null } : null })),
     silent: cfg.silent === day(), quiet: cfg.silent === day() || !tops.length || tops[0].t < startToday,
     // the verse names of the impressions it shows (id -> {name, handle}, like op=me), so the home needs one call
     names: Object.fromEntries([...new Set([...tops, ...talk].flatMap((p) => [p.by, p.quote && q[p.quote] && q[p.quote].by]))].filter((id) => id && AL[id]).map((id) => [id, AL[id]])),

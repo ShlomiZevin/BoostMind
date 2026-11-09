@@ -1349,25 +1349,11 @@ section.hero .scroll-hint { z-index: 1; }
 
 /* ---- daily records (verse/records.js; mockups scripts/v2-design/records.mjs) ---- */
 .rec-sub { color: var(--dim, rgba(255, 255, 255, .6)); font-size: .92rem; margin-top: 4px; }
-.rec-home .grow { gap: 12px; }
-.rec-card { flex: none; width: 168px; scroll-snap-align: start; display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; background: var(--card, #141418);
-  border: 1px solid var(--line, rgba(255, 255, 255, .1)); text-align: center; }
-.rec-card.has { border-color: rgba(255, 106, 31, .45); box-shadow: 0 0 0 1px rgba(255, 106, 31, .12), 0 10px 30px rgba(255, 106, 31, .08); }
-.rc-pic { aspect-ratio: 1.6; background: var(--card2, #1b1b20); overflow: hidden; }
-.rc-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.rc-body { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 10px 12px; flex: 1; }
-.rc-game { font-weight: 800; font-size: .95rem; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; }
-.rc-face { position: relative; margin-top: 4px; }
-.rc-face .vx-av { width: 48px; height: 48px; border: 2px solid var(--vx-accent); }
 .rc-crown { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; color: #ffc94a; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .6)); }
-.rc-crown svg, .rb-place i svg, .rm-crown svg { width: 100%; height: 100%; display: block; }
+.rp-place i svg, .rb-place i svg, .rm-crown svg { width: 100%; height: 100%; display: block; }
 .rc-who { display: flex; flex-direction: column; align-items: center; line-height: 1.2; min-width: 0; max-width: 100%; }
 .rc-who b { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .rc-who small { color: var(--dim, rgba(255, 255, 255, .6)); font-size: .8rem; }
-.rc-n { font-size: 1.7rem; font-weight: 900; color: var(--vx-accent); line-height: 1; margin-top: 4px; }
-.rc-unit { font-size: .8rem; color: var(--dim, rgba(255, 255, 255, .6)); }
-.rc-empty { color: var(--dim, rgba(255, 255, 255, .6)); font-size: .88rem; flex: 1; display: flex; align-items: center; padding: 10px 0; }
-.rc-go { margin-top: auto; height: 38px; font-size: .86rem; padding: 0 12px; width: 100%; justify-content: center; }
 .vx-btn.ghost-o { background: transparent; border: 1.5px solid var(--vx-accent); color: var(--vx-accent); }
 /* the table */
 .rb-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -2379,7 +2365,7 @@ body:not([data-page="home"]) > footer { display: none !important; }
 /* one card: ח24's lead as a short WIDE banner with the headline over the picture, "מה אומרים בציפציפ" with each post's likes and
    comments on the side, two quiet links. On a computer it shares a row with the card beside it (.tzh-row): "זכות הדיבור" for the
    signed in, the citizenship card for the signed out (his "on desktop it's terrible and nothing like the design") */
-.tzh-row { display: grid; gap: 16px; margin-top: 28px; }
+.tzh-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 28px; }   /* minmax: a one-line row never widens the phone */
 .tzh-row > .signin-card { margin-top: 0; }
 #tz-home:empty, #tz-side:empty { display: none; }
 @media (min-width: 900px) {
@@ -2403,11 +2389,13 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .tzh-lt em { font-style: normal; align-self: flex-start; background: #c8211c; color: #fff; font-size: .74rem; font-weight: 800; padding: 1px 8px; border-radius: 6px; }
 .tzh-lt b { font-weight: 900; font-size: 1.08rem; line-height: 1.28; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
 .tzh-lt small { color: rgba(255,255,255,.72); font-size: .76rem; } .tzh-lt small span { white-space: nowrap; }
-/* a phone: the words take more of the banner, the quoted line inside a post stays out (the design shows none) */
-@media (max-width: 600px) { .tzh-lead { height: 196px; } .tzh-lt { width: 80%; padding: 10px 12px; } .tzh-lt b { font-size: 1rem; } .tzh-logo { width: 74px; } .tzh-post .tzh-q { display: none; }
+/* a phone: the words take more of the banner */
+@media (max-width: 600px) { .tzh-lead { height: 196px; } .tzh-lt { width: 80%; padding: 10px 12px; } .tzh-lt b { font-size: 1rem; } .tzh-logo { width: 74px; }
+  .tzh-posts .tzh-post { flex-wrap: wrap; row-gap: 4px; } .tzh-post .tzh-n { flex-basis: 100%; padding-inline-start: 50px; align-self: auto; }
   .tzh-lead::after { background: linear-gradient(to left, rgba(8,8,10,.95) 0%, rgba(8,8,10,.82) 55%, rgba(8,8,10,.15) 95%); } }
 @media (min-width: 900px) { .tzh-lead { height: 210px; } .tzh-lt { width: 58%; } .tzh-lt b { font-size: 1.22rem; } .tzh-logo { width: 110px; } }
-.tzh-sub { display: flex; align-items: center; gap: 8px; margin: 16px 0 4px; }
+.tzh-sub { display: flex; align-items: center; gap: 8px; margin: 16px 0 4px; color: inherit; text-decoration: none; }
+.tzh-sub .tzh-go { margin-inline-start: auto; color: var(--dim); font-weight: 700; } .tzh-sub:hover .tzh-go { color: var(--vx-accent); }
 .tzh-sub img { width: 30px; height: auto; }
 .tzh-sub b { font-size: .98rem; font-weight: 800; }
 /* ציפציפ's own word in its colours: ציפ white, ציפ orange (his note) */
@@ -2421,8 +2409,11 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .tzh-l1 b { font-weight: 800; font-size: .9rem; }
 .tzh-l1 time { color: var(--dim); font-size: .76rem; }
 .tzh-pb p { margin-top: 2px; font-size: .9rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tzh-q { margin-top: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 5px 9px; color: var(--dim); font-size: .8rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-.tzh-q b { color: var(--text, #fff); font-weight: 700; }
+/* what the post is about (his note 2026-11-09): the reposted post with its writer's face, or the news it shares - one line */
+.tzh-q { margin-top: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 5px 9px; color: var(--dim); font-size: .8rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-height: calc(2.8em + 12px); }
+.tzh-q b { color: var(--text, #fff); font-weight: 700; margin-inline-end: 5px; } .tzh-q > img, .tzh-q > span.tzh-qf, .tzh-q > svg { vertical-align: -5px; margin-inline-end: 5px; }
+.tzh-ini { display: inline-grid; place-items: center; font-weight: 900; color: #fff; background: #3a3a44; font-size: .9em; }
+.tzh-qf { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; object-position: top; display: inline-block; } .tzh-lk svg { width: 15px; height: 15px; }
 /* the post's likes (the verse's planet) and comments, on the far side like the design */
 .tzh-n { display: flex; gap: 12px; flex: none; align-self: center; color: var(--dim); font-size: .8rem; padding-inline-start: 6px; }
 .tzh-n span { display: inline-flex; align-items: center; gap: 4px; } .tzh-n svg { width: 17px; height: 17px; --pl-fill: var(--card); }
@@ -2432,7 +2423,8 @@ body:not([data-page="home"]) > footer { display: none !important; }
 /* the card beside it, signed in: "זכות הדיבור שלך" for a citizen, the way to a passport for a resident without one */
 .tzh-side { display: flex; flex-direction: column; gap: 14px; height: 100%; padding: 20px; border-radius: var(--vx-r2, 22px); border: 1px solid var(--line);
   background: linear-gradient(140deg, color-mix(in srgb, var(--vx-accent) 22%, var(--card)), var(--card)); }
-.tzh-sh { display: flex; align-items: center; gap: 10px; margin-bottom: auto; } .tzh-sh h2 { font-size: 1.45rem; font-weight: 900; line-height: 1.15; }
+.tzh-sh { display: flex; align-items: center; gap: 10px; margin-bottom: auto; }
+.tzh-mk { flex: none; display: flex; } .tzh-mk img { width: 36px; height: auto; } .tzh-mk:hover { transform: scale(1.06); } .tzh-sh h2 { font-size: 1.45rem; font-weight: 900; line-height: 1.15; }
 .tzh-chip { margin-inline-start: auto; border: 1px solid var(--line); border-radius: 10px; padding: 3px 10px; font-size: .82rem; font-weight: 700; color: var(--text, #fff); }
 .tzh-sp { color: var(--dim); line-height: 1.55; flex: 1; }
 .tzh-me { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
@@ -2444,14 +2436,20 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .tzh-ask small { color: var(--dim); font-size: .9rem; margin-top: 4px; }
 .tzh-side .vx-btn { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
 .tzh-mine { color: var(--dim); font-size: .84rem; text-align: center; margin-top: auto; }
-/* two residents' posts about the lead (his "I should see tweets here", 2026-11-09) */
-.tzh-talk { display: flex; flex-direction: column; gap: 8px; }
-.tzh-talk > small { color: var(--dim); font-size: .8rem; font-weight: 700; }
-.tzh-tk { display: flex; gap: 10px; align-items: flex-start; color: inherit; text-decoration: none; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.22); border: 1px solid var(--line); }
-.tzh-tk:hover { border-color: var(--vx-accent); }
-.tzh-tk .tzh-face { width: 34px; height: 34px; }
-.tzh-tk span { min-width: 0; } .tzh-tk b { font-weight: 800; font-size: .86rem; }
-.tzh-tk p { font-size: .86rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* the story as a ציפציפ thread (his notes 2026-11-09: a face on every post, clear what they answer): ח24's post with the story's
+   picture, the residents' answers under it joined by the thread line */
+.tzh-th { display: flex; flex-direction: column; border-radius: 14px; background: rgba(0,0,0,.28); border: 1px solid var(--line); padding: 4px 12px; }
+.tzh-tp, .tzh-tk { position: relative; display: flex; gap: 10px; align-items: flex-start; color: inherit; text-decoration: none; padding: 10px 0; }
+.tzh-tp .tzh-face, .tzh-tk .tzh-face { width: 36px; height: 36px; position: relative; z-index: 1; }
+.tzh-th > a + a::before { content: ''; position: absolute; top: -10px; height: 20px; inset-inline-start: 17px; width: 2px; background: var(--line2, rgba(255,255,255,.18)); }
+.tzh-tb, .tzh-tk > span { min-width: 0; flex: 1; display: block; }
+.tzh-th .tzh-l1 b { font-size: .86rem; } .tzh-th .tzh-l1 time { font-size: .74rem; }
+.tzh-th p { font-size: .88rem; line-height: 1.42; margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tzh-tp:hover p, .tzh-tk:hover p { color: var(--vx-accent); }
+.tzh-ta { display: flex; gap: 8px; align-items: center; margin-top: 7px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: rgba(0,0,0,.25); }
+.tzh-ta img { width: 72px; height: 54px; object-fit: cover; flex: none; }
+.tzh-ta span { min-width: 0; padding-block: 4px; padding-inline-end: 8px; font-size: .8rem; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tzh-ta small { color: #ff5a52; font-weight: 800; margin-inline-end: 6px; }
 .tzh-side > .tzh-sp + .vx-btn { margin-bottom: auto; }
 
 /* "זכויות דיבור" on the passport page (plan tz-perks, his pick A): a card like the simulation row, a row per site */
@@ -2505,3 +2503,110 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .adc-fine { font-size: .78rem; color: #6b4a33; }
 .adc-more { font-size: .88rem; font-weight: 700; color: #8a1c14; }
 .adc .vx-brand { color: inherit; } .adc .vx-brand b { color: #c8501c; }   /* the brand's two colours, readable on the paper */
+
+/* ---------- שיאי היום, round 2 (his approval 2026-11-09, scripts/v2-design/records-2.mjs): the home's slim rows ---------- */
+.rec-rows { display: grid; gap: 10px; }
+.rec-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) minmax(0, 1.25fr) 48px; align-items: center; gap: 12px; padding: 6px 6px 6px 10px;
+  border-radius: 18px; background: var(--card, #141418); border: 1px solid var(--line); color: var(--text); transition: border-color .15s, transform .15s; }
+.rec-row:hover { border-color: color-mix(in srgb, var(--vx-accent) 55%, transparent); }
+.rec-row:active { transform: scale(.99); }
+.rr-pic { width: 88px; height: 64px; border-radius: 13px; overflow: hidden; background: var(--card2, #1b1b20); }
+.rr-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rr-game { font-weight: 800; font-size: 1rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rr-lead { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.rr-lead .vx-av { width: 44px; height: 44px; flex: none; border: 2px solid var(--vx-accent); }
+.rr-who { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.rr-who b { font-size: .88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rr-who span, .rp-who span { color: var(--dim); font-size: .8rem; white-space: nowrap; }
+.rr-who i, .rp-who i { font-style: normal; font-weight: 900; font-size: 1.15rem; color: var(--vx-accent); }
+.rr-none { color: var(--dim); font-size: .86rem; }
+.rr-go { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--vx-accent); border: 1.5px solid color-mix(in srgb, var(--vx-accent) 75%, transparent); justify-self: end; }
+.rr-go svg { width: 18px; height: 18px; transform: scaleX(-1); }   /* "play" points the way Hebrew reads - to the left */
+.rec-all { margin-top: 12px; height: 48px; }
+@media (max-width: 899px) {
+  .rec-row:nth-child(n+5) { display: none; }   /* a phone: 4 games, then the page */
+  .rec-row { grid-template-columns: 64px minmax(0, .85fr) minmax(0, 1.45fr) 34px; gap: 8px; padding: 6px 6px 6px 8px; }
+  .rr-pic { width: 64px; height: 52px; }
+  .rr-game { font-size: .92rem; }
+  .rr-lead { gap: 7px; } .rr-lead .vx-av { width: 34px; height: 34px; }
+  .rr-who b { font-size: .82rem; } .rr-who span { font-size: .74rem; overflow: hidden; text-overflow: ellipsis; } .rr-who i { font-size: 1.02rem; }
+  .rr-go { width: 34px; height: 34px; } .rr-go svg { width: 14px; height: 14px; }
+}
+@media (max-width: 380px) { .rr-game { font-size: .86rem; } .rr-lead .vx-av { width: 32px; height: 32px; } .rec-row { grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.3fr) 34px; } .rr-pic { width: 64px; height: 50px; } }
+@media (min-width: 900px) {
+  .rec-rows { grid-template-columns: 1fr 1fr; gap: 12px 14px; }   /* a computer: every game, two columns, nothing to scroll */
+  .rec-all { display: none; }
+}
+
+/* ---------- /records: the full board ---------- */
+.rec-page { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; }
+.rp-head h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -.02em; }
+.rp-live { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: .92rem; margin-top: 6px; min-height: 1.4em; }
+.rp-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--vx-accent); box-shadow: 0 0 10px var(--vx-accent); }
+.rp-list { display: grid; gap: 14px; margin-top: 22px; }
+.rp-card { display: grid; grid-template-columns: 150px minmax(0, 1fr) 170px; gap: 16px; align-items: stretch; padding: 12px; border-radius: 22px;
+  background: var(--card, #141418); border: 1px solid color-mix(in srgb, var(--vx-accent) 28%, var(--line)); }
+.rp-pic { position: relative; border-radius: 16px; overflow: hidden; min-height: 150px; background: var(--card2, #1b1b20); color: #fff; }
+.rp-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rp-pic b { position: absolute; inset-inline: 0; bottom: 0; padding: 22px 10px 9px; text-align: center; font-weight: 900; font-size: 1rem; line-height: 1.2;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .85)); }
+.rp-top { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: center; }
+.rp-top li { display: grid; grid-template-columns: 26px 40px minmax(0, 1fr); align-items: center; gap: 10px; }
+.rp-top li.me .rp-who b { color: var(--vx-accent); }
+.rp-top .vx-av { width: 40px; height: 40px; }
+.rp-place { width: 26px; height: 26px; display: grid; place-items: center; font-weight: 900; font-size: .9rem; color: var(--dim); }
+.rp-place.p1 { color: #ffc94a; } .rp-place.p1 i { width: 24px; height: 24px; display: block; }
+.rp-place.p2 { color: #d9dde6; } .rp-place.p3 { color: #e0975a; }
+.rp-who { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.rp-who b { font-weight: 700; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-empty { display: block !important; color: var(--dim); font-size: .9rem; }
+.rp-side { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 10px; padding-inline-start: 16px; border-inline-start: 1px solid var(--line); text-align: center; }
+.rp-n { color: var(--dim); font-size: .85rem; }
+.rp-me { display: flex; flex-direction: column; padding: 8px; border-radius: 14px; border: 1px solid var(--line); background: color-mix(in srgb, var(--text) 3%, transparent); }
+.rp-me b { font-size: 1.8rem; font-weight: 900; color: var(--vx-accent); line-height: 1.1; }
+.rp-me small { color: var(--dim); font-size: .78rem; }
+.rp-go { height: 44px; font-size: .92rem; padding: 0 12px; }
+@media (min-width: 1100px) { .rp-list { grid-template-columns: 1fr 1fr; } .rp-card { grid-template-columns: 140px minmax(0, 1fr) 150px; } }
+@media (max-width: 640px) {
+  .rec-page { padding: 20px 14px 40px; }
+  .rp-head h1 { font-size: 1.8rem; }
+  .rp-card { grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 10px; }
+  .rp-pic { min-height: 132px; }
+  .rp-side { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 10px 0 0; border-inline-start: 0; border-top: 1px solid var(--line); text-align: right; }
+  .rp-me { flex-direction: row; align-items: baseline; gap: 6px; padding: 4px 10px; }
+  .rp-me b { font-size: 1.2rem; }
+  .rp-go { flex: 1 0 100%; }
+}
+
+/* ---------- a computer: the rows that move sideways get round arrows, never a grey scrollbar (his note 2026-11-09) ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .row, .srow, .grow, .yv-picks, .yv-st, .rings { scrollbar-width: none !important; }
+  .row::-webkit-scrollbar, .srow::-webkit-scrollbar, .grow::-webkit-scrollbar, .yv-picks::-webkit-scrollbar, .yv-st::-webkit-scrollbar, .rings::-webkit-scrollbar { display: none; }
+}
+.vx-rowhost { position: relative; }
+.vx-arrow { position: absolute; top: 50%; z-index: 4; width: 46px; height: 46px; margin-top: -23px; border-radius: 50%; display: grid; place-items: center;
+  color: var(--vx-accent); background: rgba(14, 14, 18, .82); border: 1.5px solid color-mix(in srgb, var(--vx-accent) 80%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(0, 0, 0, .5); cursor: pointer; transition: opacity .2s, transform .15s; }
+.vx-arrow:hover { transform: scale(1.06); }
+.vx-arrow svg { width: 22px; height: 22px; }
+.vx-arrow.next { left: -22px; } .vx-arrow.prev { right: -22px; }   /* Hebrew: what comes next is on the left */
+.vx-arrow.off { opacity: 0; pointer-events: none; }
+@media (max-width: 1260px) { .vx-arrow.next { left: 4px; } .vx-arrow.prev { right: 4px; } }
+
+/* ---------- "מה הלאה" on a computer: a balanced grid, every tile with a picture (mockup R5, 2026-11-09) ---------- */
+.cd-art { display: none; }
+@media (min-width: 900px) {
+  .cmy-band .cando { grid-template-columns: repeat(12, 1fr); gap: 14px; }
+  .cmy-band .cd-2, .cmy-band .cd-3 { display: contents; }
+  .cmy-band .cd-hero, .cmy-band .cd-pack { grid-column: span 4; min-height: 176px; }
+  .cmy-band .cd-2 .cd-t:first-child { grid-column: span 4; }
+  .cmy-band .cd-2 .cd-t + .cd-t, .cmy-band .cd-3 .cd-t { grid-column: span 3; }
+  .cmy-band .cd-pack { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 16px; }
+  .cmy-band .cd-pack > i { display: none; }
+  .cmy-band .cd-t { position: relative; overflow: hidden; display: flex !important; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px; min-height: 176px; }
+  .cmy-band .cd-t b { font-size: 1.05rem !important; position: relative; } .cmy-band .cd-t small { font-size: .84rem !important; max-width: 58%; position: relative; }
+  .cmy-band .cd-art { display: block; position: absolute; left: 10px; bottom: 0; height: 84%; max-width: 46%; object-fit: contain; object-position: bottom; pointer-events: none; }
+  .cmy-band .cd-art.round { height: auto; width: 92px; aspect-ratio: 1; border-radius: 50%; object-fit: cover; bottom: 16px; left: 16px; border: 2px solid var(--vx-accent); }
+  .cmy-band .cd-faces { height: auto; } .cmy-band .cd-faces img { width: 64px; height: 64px; margin-inline-start: -16px; border-width: 2.5px; }
+  .cmy-band .cd-art.cover { height: 58%; width: 42%; max-width: none; object-fit: cover; border-radius: 14px; bottom: 14px; left: 14px; }
+}
