@@ -358,3 +358,13 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   on each row. **Scan every frame** for face-filter slips and recording starts (motion + sharpness per frame at 10 fps,
   `work/scan.py`, then look at the flagged spots): take 6 and take 3 lost the filter on a lunge / head swing.
   "The frames are excellent" - Hani raised against the chair (seat pictures 1.35x, backrest lower).
+- **Version 3 (2026-11-09, his 35 notes + "the talk must be MUCH faster, I'm begging"):** the overlaps never happened
+  because line ENDS were measured with a loose threshold (breath + room counted as voice) - measure edges strictly
+  (peak - 24 dB), cut silences under peak - 28 dB (>= 0.18 s), clamp an end before the next transcript word; then a
+  300-500 ms overlap is real. He wants J and L both ("sound continues into the next shot, or starts before its
+  picture") - the earlier "cut to Osnat first" was a J that ran too long. **Osnat's tongue laugh plays on her face into
+  the next speaker's first words** (laughs found by sound outside words after her lines, confirmed on mouth crops).
+  **No frame from the first 0.7 s / last 0.45 s of any take** (most of his notes were recording starts / stops reached
+  by L / J extensions, inserts, the end). Retake switches hidden behind Osnat. Hani pitch +0.5 (as haredit-2/3), the
+  freilach bed 0.12, speed 1.3. A dramatic turn = stinger + push-in. A mezuzah must sit where the hand touches.
+  Checks before handing over: `work/scan.py` (frames), `work/words_check.py` (each line transcribed as cut).
