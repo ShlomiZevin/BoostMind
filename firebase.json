@@ -151,6 +151,10 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/records",
+        "destination": "/wiki/index.html"
+      },
+      {
         "source": "/business",
         "destination": "/wiki/index.html"
       },

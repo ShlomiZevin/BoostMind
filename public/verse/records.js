@@ -19,33 +19,69 @@ export const TROPHY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 const who = (x) => `<span class="rc-who"><b>${esc(x.nick)}</b>${x.first && x.first !== x.nick ? `<small>${esc(x.first)}</small>` : ''}</span>`;
 const myFirst = () => String(st.user?.displayName || '').trim().split(/\s+/)[0] || '';
 
-// ---------- the home: "שיאי היום", one card per game, live ----------
+// ---------- the home: "שיאי היום" - one slim row per game, the leader only (round 2, his approval 2026-11-09:
+// scripts/v2-design/records-2.mjs R6 / R7 - the tall stacked cards were "ugly"); a phone shows 4 then the page, a computer
+// all of them in two columns. The full board is a page of its own: /records ----------
 let homeOff = [];
-export function mountHome() {
+const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>';
+// the boards of every scoring game, live; draw() runs on each change while its slot is on the page
+function live(slot, draw) {
   homeOff.forEach((u) => u()); homeOff = [];
+  const games = recGames(), boards = {};
+  const paint = () => { if (document.body.contains(slot)) draw(games.slice().sort((a, b) => ((boards[b.id]?.players || 0) - (boards[a.id]?.players || 0))), boards); };
+  paint();
+  for (const g of games) homeOff.push(F.onSnapshot(docOf(g), (s) => { boards[g.id] = s.data() || null; paint(); }, () => {}));
+  return paint;
+}
+const playersToday = (boards) => Object.values(boards).reduce((n, b) => n + (b?.players || 0), 0);
+const unitOf = (g) => esc(g.record.unit);
+export function mountHome() {
   const slot = document.getElementById('rec-slot');
-  const games = recGames();
-  if (!slot || !games.length) return;
-  const boards = {};
-  const draw = () => {
-    if (!document.body.contains(slot)) return;
-    const order = games.slice().sort((a, b) => ((boards[b.id]?.players || 0) - (boards[a.id]?.players || 0)));
-    slot.innerHTML = `<section class="sec rec-home"><div class="sec-h"><div><h2>${esc(R().title)}</h2><p class="rec-sub">${esc(R().sub)}</p></div></div>
-      <div class="grow">${order.map((g) => {
+  if (!slot || !recGames().length) { homeOff.forEach((u) => u()); homeOff = []; return; }
+  live(slot, (games, boards) => {
+    const n = playersToday(boards);
+    slot.innerHTML = `<section class="sec rec-home"><div class="sec-h"><div><h2>${esc(R().title)}</h2><p class="rec-sub">${esc(R().sub)}${n ? ` · ${esc(fill(R().players, { n }))}` : ''}</p></div><a href="/records">${esc(R().all)} ←</a></div>
+      <div class="rec-rows">${games.map((g) => {
         const top = boards[g.id]?.top?.[0];
-        return `<a class="rec-card ${top ? 'has' : ''}" href="/play/${g.id}">
-          <span class="rc-pic">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ''}</span>
-          <span class="rc-body"><span class="rc-game">${esc(g.title)}</span>
-          ${top ? `<span class="rc-face">${av({ fan: top })}<i class="rc-crown">${CROWN}</i></span>${who(top)}
-            <span class="rc-n">${fmt(top.value)}</span><span class="rc-unit">${esc(g.record.unit)}</span>`
-          : `<span class="rc-empty">${esc(R().empty)}</span>`}
-          <span class="vx-btn ${top ? 'ghost-o' : 'main'} rc-go">${esc(R().beat)}</span></span></a>`;
-      }).join('')}</div></section>`;
-  };
-  draw();
-  for (const g of games) homeOff.push(F.onSnapshot(docOf(g), (s) => { boards[g.id] = s.data() || null; draw(); }, () => {}));
+        return `<a class="rec-row" href="/play/${g.id}">
+          <span class="rr-pic">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ''}</span>
+          <span class="rr-game">${esc(g.title)}</span>
+          ${top ? `<span class="rr-lead">${av({ fan: top })}<span class="rr-who"><b>${esc(top.nick)}</b><span><i>${fmt(top.value)}</i> ${unitOf(g)}</span></span></span>`
+            : `<span class="rr-lead rr-none">${esc(R().empty)}</span>`}
+          <span class="rr-go" aria-label="${esc(R().beat)}">${PLAY}</span></a>`;
+      }).join('')}</div>
+      ${games.length > 4 ? `<a class="vx-btn ghost-o block rec-all" href="/records">${esc(fill(R().allN, { n: games.length }))} ←</a>` : ''}</section>`;
+  });
 }
 export function unmountHome() { homeOff.forEach((u) => u()); homeOff = []; }
+
+// ---------- the page: /records - every game, today's top 3, how many played, your place (R3 on a phone, R7 on a computer) ----------
+export function recordsPage() {
+  setTimeout(mountPage, 0);   // live once it is on the page (it is drawn again when the account changes)
+  return `<div class="rec-page"><div class="rp-head"><h1>${esc(R().title)}</h1><p class="rec-sub">${esc(R().pageSub)}</p><p class="rp-live" data-live></p></div><div id="rec-page-list" class="rp-list"></div></div>`;
+}
+export function mountPage() {
+  const slot = document.getElementById('rec-page-list');
+  if (!slot) return;
+  const mine = {};
+  const paint = live(slot, (games, boards) => {
+    const n = playersToday(boards), lv = document.querySelector('.rec-page [data-live]');
+    if (lv) lv.innerHTML = n ? `<i></i>${esc(fill(R().players, { n }))}` : '';
+    slot.innerHTML = games.map((g) => {
+      const b = boards[g.id], top = (b?.top || []).slice(0, 3), me = mine[g.id];
+      return `<article class="rp-card">
+        <a class="rp-pic" href="/play/${g.id}">${g.img ? `<img src="${esc(g.img)}" alt="" loading="lazy">` : ''}<b>${esc(g.title)}</b></a>
+        <ol class="rp-top">${top.length ? top.map((x, i) => `<li class="${st.user && x.uid === st.user.uid ? 'me' : ''}"><span class="rp-place p${i + 1}">${i ? i + 1 : `<i>${CROWN}</i>`}</span>${av({ fan: x })}<span class="rp-who"><b>${esc(x.nick)}</b><span><i>${fmt(x.value)}</i> ${unitOf(g)}</span></span></li>`).join('')
+          : `<li class="rp-empty">${esc(R().tableEmpty)}</li>`}</ol>
+        <div class="rp-side">${b?.players ? `<span class="rp-n">${esc(fill(R().played, { n: b.players }))}</span>` : ''}
+          ${me && me.value ? `<span class="rp-me"><small>${esc(R().youAt)}</small><b>${me.place}</b><small>${esc(fill(R().youWith, { n: fmt(me.value), unit: g.record.unit }))}</small></span>` : ''}
+          <a class="vx-btn ${top.length ? 'ghost-o' : 'main'} rp-go" href="/play/${g.id}">${esc(top.length ? R().beat : R().first)}</a></div></article>`;
+    }).join('');
+  });
+  // the visitor's own place in each game (signed in) - asked once a visit to the page
+  if (signedIn()) recGames().forEach((g) => call('rank', { game: g.id }).then((r) => { if (r && r.value) { mine[g.id] = r; paint(); } }).catch(() => {}));
+  track('records', 'page');
+}
 
 // ---------- the table on a game's page ----------
 export function openBoard(g, { onAgain } = {}) {

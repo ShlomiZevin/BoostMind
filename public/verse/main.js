@@ -8,7 +8,8 @@ import { openStory, closeStory, storyRing, onStories, setStoryBack, paintStoryRi
 import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest, chatIdeaCard } from './community.js';
 import { renderTop, yourVerse, homeSlot, stickersSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
-import { mountHome as recordsHome, unmountHome as recordsOff } from './records.js';
+import { mountHome as recordsHome, unmountHome as recordsOff, recordsPage } from './records.js';
+import { startRowArrows } from './rows.js';
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
 import { mountTz } from './tzhome.js';
@@ -58,7 +59,7 @@ Object.assign(HOOK, {
     if (page === 'notes') document.title = `${T.notesTitle} · שלומיוורס`;
     if (!page) mountBand();   // "אתם חיים בסימולציה?" under the question box (sim.js)
     if (!page) mountTz();   // "עכשיו בחרדות" under the stories (tzhome.js - only once ציפציפ answers)
-    if (!page) recordsHome(); else if (!/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום" lives on the home
+    if (!page) recordsHome(); else if (page !== 'records' && !/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום": the home's rows, and its own page
   },
 });
 // the account's pages wait for Firebase to say who this is: the loader until then, never a "sign in" card that flips a
@@ -75,8 +76,10 @@ pages['my-stickers'] = known(myStickersPage);
 pages.install = installPage;
 pages.simulation = simPage;
 pages.citizenship = citizenPage;
+pages.records = recordsPage;   // שיאי היום, the full board (records.js)
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
+startRowArrows();   // a computer: arrows on the rows that move sideways (rows.js)
 onStories(() => { refresh(); paintStoryRing(); });
 
 // the wiki rendered before this module arrived (the Firebase SDK loads first). On the home: fill in only the account parts

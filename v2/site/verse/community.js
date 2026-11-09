@@ -88,7 +88,11 @@ function stickerTiles() {
 export function homeBand() {
   const top = ideas.slice(0, 3);
   const faces = storyFaces();
-  const tile = (key, icon, extra = '') => `<button class="cd-t" data-do="${key}">${extra || `<span class="cd-ic">${icon}</span>`}<b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small></button>`;
+  // a computer gives every tile a picture (mockup R5, 2026-11-09): a face to talk to / follow, a game's cover, a site's picture
+  const withImg = W.characters.filter((c) => c.img), game = (W.games || []).find((g) => g.img), site = (W.site_list || []).find((x) => x.img);
+  const ART = { chat: withImg[0] && ['round', withImg[0].img], follow: withImg[1] && ['round', withImg[1].img], games: game && ['cover', game.img], sites: site && ['cover', site.img] };
+  const art = (key) => (ART[key] ? `<img class="cd-art ${ART[key][0]}" src="${esc(abs(ART[key][1]))}" alt="" loading="lazy">` : '');
+  const tile = (key, icon, extra = '') => `<button class="cd-t" data-do="${key}">${extra || `<span class="cd-ic">${icon}</span>`}<b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small>${art(key)}</button>`;
   return `<section class="cmy-band">
     <div class="cmy-ideas-h"><div><h2>${esc(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
     <div class="cando">
