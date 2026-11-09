@@ -596,7 +596,8 @@ Leonardo"): `POST https://cloud.leonardo.ai/api/rest/v2/generations {model: "dia
 tokens (~$0.13 a short line; voice ids = ElevenLabs' presets - George JBFqnCBsd6RMkjVDRZzb, Brian nPczCjzI2devNBz1zQrb,
 Adam, Daniel...; no Israeli library voices). Hebrew came out exact, audio tags honoured and not read (haredit-5 sponsor
 VO). Poll v1/generations/<id> until COMPLETE; the file URL has the Hebrew words in it - take it from the parsed JSON,
-URL-quote it. (`seed-audio-1.0` = Chinese / English voices only, `music-v1` / `sound-effects-v2` in tools/leonardo.mjs.)
+URL-quote it. **Ambiguous Hebrew words: write the vowel marks** - plain "פרווה" was read as fur (parva); "פַּרְוֶה" came out
+parve (check a word's sound: transcribe just that word with language 'en'). (`seed-audio-1.0` = Chinese / English voices only, `music-v1` / `sound-effects-v2` in tools/leonardo.mjs.)
 He said "I don't think you are utilizing all of its power with annotation". What it can do, measured:
 - **Speech: `eleven_v4`** (`POST /v1/text-to-speech/<voice>`, `language_code: "he"`, `voice_settings {stability 0.3,
   similarity_boost 0.75}` - v4 takes only those two; lower stability = more emotion). In Hebrew v4 beat v3: "מלכי
