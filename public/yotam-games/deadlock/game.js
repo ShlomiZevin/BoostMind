@@ -50,7 +50,7 @@ const LINES = {
 // ───────────────────────── sound ─────────────────────────
 const SND = { ctx: null, raw: {}, buf: {}, on: store.get(KEY.snd) !== '0', last: {}, master: null };
 const SFX = ['slide-1', 'slide-2', 'slide-3', 'bump-1', 'bump-2', 'bump-3', 'honk-1', 'honk-2', 'honk-3', 'gate', 'win', 'pick', 'start'];
-for (const n of SFX) fetch(`assets/sfx/${n}.mp3`).then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { if (b) { SND.raw[n] = b; decode(n); } }).catch(() => {});
+for (const n of SFX) fetch(`assets/sfx/${n}.mp3?v=2`).then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { if (b) { SND.raw[n] = b; decode(n); } }).catch(() => {});
 function decode(n) {
   if (!SND.ctx || !SND.raw[n] || SND.buf[n]) return;
   const b = SND.raw[n]; SND.raw[n] = null;
@@ -64,7 +64,7 @@ function audioUnlock() {
   decodeMusic();
 }
 let music = null, musicBuf = null, musicRaw = null;
-fetch('assets/music.mp3').then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { musicRaw = b; decodeMusic(); }).catch(() => {});
+fetch('assets/music.mp3?v=2').then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { musicRaw = b; decodeMusic(); }).catch(() => {});
 function decodeMusic() { if (!SND.ctx || !musicRaw || musicBuf) return; const b = musicRaw; musicRaw = null; SND.ctx.decodeAudioData(b).then((x) => { musicBuf = x; if (state === 'play') musicOn(); }).catch(() => {}); }
 function musicOn() { if (!SND.ctx || !musicBuf || music) return; const src = SND.ctx.createBufferSource(), g = SND.ctx.createGain(); src.buffer = musicBuf; src.loop = true; g.gain.value = 0.18; src.connect(g).connect(SND.master); src.start(); music = src; }
 function musicOff() { if (music) { try { music.stop(); } catch (e) {} music = null; } }
