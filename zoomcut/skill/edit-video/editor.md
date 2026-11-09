@@ -254,7 +254,7 @@ end must show at once, with the real footage there.
   and export time before his click; a STALE export can't be published (server refuses 409 - export again); one run,
   no retries. Platforms (keys in zoomcut/.env, never print them): **Instagram** live (@shlomizevin, Creator; Reels via
   `video_url` - the file staged in the Drop bucket's hidden `_publish/` with a random Firebase download token (a
-  private link - publish.mjs privateLink), deleted after; key renews itself, IG_TOKEN_EXPIRES; the API can't delete a post); **Facebook** personal profile
+  private link - publish.mjs privateLink), deleted after; uploaded in ONE piece - gcloud's split upload of a file over ~150 MB refuses the token's metadata, 2026-11-09; key renews itself, IG_TOKEN_EXPIRES; the API can't delete a post); **Facebook** personal profile
   = no API: he taps "Share to Facebook" on the Instagram Reel; **X** (OAuth 1.0a on the plaxzy app, his account via
   PIN - X_* keys; 280 chars, 2:20), **TikTok** (to his drafts - TT_CLIENT_KEY/SECRET/REFRESH_TOKEN), **YouTube**
   Shorts (YT_CLIENT_ID/SECRET/REFRESH_TOKEN) are written and switch on when their keys exist. **TikTok is live**
