@@ -24,7 +24,7 @@ type Props = {
   onSolo?: (s: Sel) => void; soloKey?: string | null;  // play one clip alone in the video (Shift+Space, the edge card)
   playing?: boolean;  // (stopped: the quick notes wait, faint, beside the playhead on the ruler)
   onOpen?: (s: Sel) => void;  // open the clip's own file in a window (▶ above the block, on hover)
-  notes?: Note[]; onNote?: (n: Note | null) => void; showDone?: boolean; onShowDone?: (v: boolean) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
+  notes?: Note[]; onNote?: (n: Note | null, at?: number) => void; showDone?: boolean; onShowDone?: (v: boolean) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
 };
 
 const TH = 30;  // lane height
@@ -64,6 +64,7 @@ const lineAt = (g: number) => { const d = Math.max(-18, Math.min(6, dbOf(g))); r
 /** the ready-made notes' icons, for the quick buttons on the ruler (tighten = two clips pushed together; silence = scissors) */
 const QN_IC: Record<string, React.ReactNode> = {
   tighten: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h7M6 8.5 9.5 12 6 15.5M22 12h-7M18 8.5 14.5 12l3.5 3.5M12 4v16" /></svg>,
+  note: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4z" /><path d="M12 8.5v4M10 10.5h4" /></svg>,
   silence: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M8.2 8.2 20 20M8.2 15.8 20 4" /></svg>,
 };
 const OPEN_WORD: Record<string, string> = { video: 'video', image: 'picture', audio: 'sound', text: 'text', subtitle: 'line' };
@@ -387,7 +388,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const qnMove = (e: React.MouseEvent) => {
     const tr = e.currentTarget as HTMLElement, x = e.clientX - tr.getBoundingClientRect().left, st = qn.current;
     if ((e.target as HTMLElement).closest('.ltl-qn, .ltl-qp')) return;  // (on the buttons: the line stays - never stopPropagation here, it would cut a playhead drag)
-    if (st.lock != null && x >= st.lock - 10 && x <= st.lock + 64) return;
+    if (st.lock != null && x >= st.lock - 10 && x <= st.lock + 90) return;  // (the three buttons right of the line)
     if (st.lock != null) { st.lock = null; tr.classList.remove('qn-lock'); }
     qnAt.current = Math.max(0, Math.min(total - 1, Math.round((x / pps) * fps)));
     tr.style.setProperty('--qx', `${px(qnAt.current)}px`);
@@ -675,10 +676,12 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
                   onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}</button>)}
+                <button title="A note for Claude right here (at the line) - write what to fix" onClick={() => onNote(null, qnAt.current)}>{QN_IC.note}</button>
               </div>}
               {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()}>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
                   onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}</button>)}
+                <button title="A note for Claude here, at the playhead - write what to fix" onClick={() => onNote(null)}>{QN_IC.note}</button>
               </div>}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>

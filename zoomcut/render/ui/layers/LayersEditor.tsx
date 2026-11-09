@@ -198,9 +198,10 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   const [noteOpen, setNoteOpen] = useState<{ note: Note; isNew: boolean } | null>(null);
   const [showDone, setShowDone] = useState(() => localStorage.getItem('zc-notes-done') !== '0');  // handled notes on the timeline
   useEffect(() => { try { localStorage.setItem('zc-notes-done', showDone ? '1' : '0'); } catch {} }, [showDone]);
-  const openNote = (n: Note | null) => {
+  const openNote = (n: Note | null, at?: number) => {  // (at: a new note there - the ruler's note button at its line)
     player.current?.pause();
-    if (n) { seek(n.at); setNoteOpen({ note: n, isNew: false }); } else setNoteOpen({ note: newNote(frame), isNew: true });
+    if (n) { seek(n.at); setNoteOpen({ note: n, isNew: false }); }
+    else { if (at != null) seek(at); setNoteOpen({ note: newNote(at ?? frame), isNew: true }); }
   };
   const saveNote = (n: Note) => {
     const c: Note = { ...n };
