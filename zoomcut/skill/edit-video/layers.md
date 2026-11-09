@@ -262,6 +262,12 @@ Delete a whole layer in the editor: the trash on its name (on hover), Delete wit
 "Delete layer" - always through our own window (render/ui/layers/ask.ts - never the browser's confirm box, his ask);
 Ctrl+Z brings it back. Move a layer: drag its name in the timeline up / down (a line shows where it lands; higher in the
 list = drawn on top) - `layer.move`.
+Move a clip to another row (2026-11-09, his ask): drag it up / down onto a row of its kind (video -> video, picture ->
+picture, sound -> sound; the row lights up) - it lands where it is dropped, nothing else moves (`item.remove` + `item.add`,
+one Ctrl+Z); a dialogue clip takes its background to the background row of the character it is dropped on.
+Copy / paste a clip: right-click a clip -> Copy (Ctrl+C = the picked clip); right-click a row -> Paste here (where it was
+clicked), Ctrl+V = at the playhead on the picked row (a row of another kind: the row it came from). It lands where it is
+put (nothing moves, his choice); a dialogue clip comes with its background, a new `link` for the copy.
 End here ⇥ (the layered timeline's bar): the video ends at the playhead - every item past it goes, one across it is
 cut there, `pin: "end"` items move to the new end; one undoable change (`project.duration` + item ops).
 The end's handle on the ruler drags the length left / right (nothing deleted; past the end is dimmed). Dragging a

@@ -177,3 +177,11 @@
 .ltl-grp .gdot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .ltl .vblk { justify-content: center; }
 .ltl .vblk .vname { position: relative; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; font-size: 12.5px; font-weight: 700; }
+/* a clip dragged onto another row of its kind: that row lights up */
+.ltl-lay.drop-to .ltl-track { background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: inset 0 0 0 1px var(--accent); }
+/* the right-click menu on a clip / a row (copy, paste here, delete) */
+.ctxm { position: fixed; z-index: 60; min-width: 190px; padding: 4px; background: var(--panel-2); border: 1px solid var(--edge-2); border-radius: 8px; display: flex; flex-direction: column; }
+.ctxm button { display: flex; align-items: center; gap: 12px; height: 28px; padding: 0 10px; border: 0; border-radius: 5px; background: none; color: var(--text); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; }
+.ctxm button:hover:not(:disabled) { background: var(--panel-3); }
+.ctxm button:disabled { color: var(--faint); cursor: default; }
+.ctxm kbd { margin-left: auto; color: var(--faint); font: inherit; font-size: 11px; }

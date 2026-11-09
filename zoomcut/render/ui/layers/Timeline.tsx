@@ -10,6 +10,7 @@ import { ask } from './ask';
 import { Note, NotePins, PRESETS, saveNotes, newNote } from './Notes';
 import { Find } from './Find';
 import { tempoOf } from '../../src/layers/clock.js';
+import { tabProject } from '../common';
 import { viewLayer, characters, rowColors, followers, edgeFollowers, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 
 export type Sel = { layer: string; item?: string } | null;
@@ -33,6 +34,10 @@ const EyeIc = ({ off }: { off?: boolean }) => <svg width="14" height="14" viewBo
   <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{off && <path d="M4 4l16 16" />}</svg>;
 const SpkIc = ({ off }: { off?: boolean }) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
   <path d="M4 9v6h4l5 4V5L8 9z" />{off ? <path d="M17 9l5 6M22 9l-5 6" /> : <path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12" />}</svg>;
+
+// the copied clip (right-click -> Copy, or Ctrl+C): the clip + what of its character's rows is linked to it (its
+// background) - pasted (right-click a row -> Paste here, or Ctrl+V at the playhead) as new copies in this project
+let CLIP: { ep: string; kind: string; layer: string; group?: string; it: any; with: { layer: string; kind: string; it: any }[] } | null = null;
 
 export function groupsOf(project: any) {
   // top layer first; a group sits where its topmost layer is
@@ -122,7 +127,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const colors = useMemo(() => rowColors(project), [project]);
   const [choose, setChoose] = useState<string | null>(null);  // the strip block whose "who is seen" list is open
   const [cutTip, setCutTip] = useState<{ x: number; text: string } | null>(null);
-  const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string } | null>(null);
+  const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string; to?: string | null; dy?: number } | null>(null);
 
   // something picked (on the video, in a panel): unfold its group, bring its lane and block into view
   useEffect(() => {
@@ -227,7 +232,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       if (taken) { if (taken !== 'keep') send([], { commit: false }); return; }
       send(follow(chainOps(d), d), { label });
     };
-    return { it, moved, preview, commit, stuck: stuck.length > 0 };
+    return { it, moved, preview, commit, ops: (d: number) => follow(chainOps(d), d), stuck: stuck.length > 0 };
   };
   // the strip's blocks: an edge between two blocks is a cut - moving it changes who is seen there and nothing else
   // (both neighbours change); a block's body doesn't move (the strip has no gaps). A drag, a nudge: the same path
@@ -243,7 +248,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const moved = (d: number) => (side === 'm' ? 0 : joinedCut ? moveCut(project, left, d).moved : side === 'r' ? Math.max(1, it.dur + d) - it.dur : lim(d));
     const preview = (d: number) => { const ops = opsFor(d); send(ops, { commit: false }); return ops; };
     const commit = (d: number, label: string) => { if (!d || !moved(d)) { send([], { commit: false }); return; } send(opsFor(d), { label: label === 'nudge' ? 'nudge cut' : 'cut' }); };
-    return { it, moved, preview, commit, stuck: joinedCut };
+    return { it, moved, preview, commit, ops: opsFor, stuck: joinedCut };
   };
   // dragging a cut on the strip (the grip between two blocks): it snaps to a voice's start / end, a clip's edge and the
   // playhead when it comes within 6 px
@@ -272,6 +277,47 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     document.body.style.cursor = 'ew-resize';
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
+  // copy / paste a clip (his ask, 2026-11-09): a right-click menu on a clip / a row, Ctrl+C / Ctrl+V
+  const [ctx, setCtx] = useState<{ x: number; y: number; layer: string; item?: string; at: number } | null>(null);
+  const [, setCopied] = useState(0);
+  const copyClip = (l: any, it: any) => {
+    const withIt = it.link && l.group ? project.layers.filter((x: any) => x.id !== l.id && x.group === l.group && !['audio', 'view'].includes(x.kind))
+      .flatMap((x: any) => (x.items || []).filter((i: any) => i.link === it.link).map((i: any) => ({ layer: x.id, kind: x.kind, it: i }))) : [];
+    CLIP = { ep: tabProject.get(), kind: l.kind, layer: l.id, group: l.group, it: JSON.parse(JSON.stringify(it)), with: JSON.parse(JSON.stringify(withIt)) };
+    setCopied((n) => n + 1);
+  };
+  const canPaste = (l: any) => !!CLIP && CLIP.ep === tabProject.get() && (l?.kind === CLIP.kind || project.layers.some((x: any) => x.id === CLIP!.layer));
+  const pasteClip = (l: any, at: number) => {
+    if (!CLIP || CLIP.ep !== tabProject.get()) return;
+    const tl = l?.kind === CLIP.kind ? l : project.layers.find((x: any) => x.id === CLIP!.layer);
+    if (!tl) return;
+    const stamp = Date.now().toString(36), from = Math.max(0, Math.round(at));
+    const link = CLIP.it.link ? `${CLIP.it.link}.c${stamp}` : undefined;
+    const fresh = (x: any, layer: any, f: number) => {
+      let id = `${x.id}c${stamp}`;
+      while ((layer.items || []).some((i: any) => i.id === id)) id += 'x';
+      return { ...x, id, from: Math.max(0, f), ...(link ? { link } : {}) };
+    };
+    const ops: any[] = [{ op: 'item.add', layer: tl.id, item: fresh(CLIP.it, tl, from) }];
+    for (const w of CLIP.with) {  // (its background: on the same kind of row of the character it is pasted to)
+      const d = tl.group && tl.group !== CLIP.group ? project.layers.find((x: any) => x.group === tl.group && x.kind === w.kind && x.id !== tl.id) : project.layers.find((x: any) => x.id === w.layer);
+      if (d) ops.push({ op: 'item.add', layer: d.id, item: fresh(w.it, d, from + (w.it.from - CLIP.it.from)) });
+    }
+    send(ops, { label: 'paste' });
+    onSel({ layer: tl.id, item: ops[0].item.id });
+  };
+  const frameAt = (e: React.MouseEvent) => {
+    const tr = (e.currentTarget as HTMLElement).closest('.ltl-track') as HTMLElement | null;
+    return tr ? Math.max(0, Math.min(total - 1, Math.round(((e.clientX - tr.getBoundingClientRect().left) / pps) * fps))) : frame;
+  };
+  useEffect(() => {
+    if (!ctx) return;
+    const off = (e: Event) => { if (!(e.target as HTMLElement).closest?.('.ctxm')) setCtx(null); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); setCtx(null); } };
+    addEventListener('mousedown', off, true); addEventListener('keydown', esc, true); addEventListener('blur', () => setCtx(null), { once: true });
+    return () => { removeEventListener('mousedown', off, true); removeEventListener('keydown', esc, true); };
+  }, [ctx]);
+
   const splitHere = () => {
     const r = view && splitAt(project, Math.round(frame));
     if (!r) return;
@@ -280,6 +326,21 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   };
 
   // a block dragged: d frames (live draft), committed on release. A grip clicked without dragging picks that edge
+  // a move's ops with the clip landing on another row: it leaves its row for that one (same id unless taken); what of its
+  // own character's rows moved with it (its background) goes to the same kind of row of the new row's character
+  const toRow = (ops: any[], l: any, it: any, to: string) => {
+    const L = (id: string) => project.layers.find((x: any) => x.id === id);
+    const tl = L(to);
+    const dest = (ly: any) => (ly.id === l.id ? tl : l.group && ly.group === l.group && ly.kind !== 'audio' && tl.group && tl.group !== l.group
+      ? project.layers.find((x: any) => x.group === tl.group && x.kind === ly.kind && x.id !== tl.id) : null);
+    return ops.flatMap((o: any) => {
+      const ly = o.op === 'item.update' && L(o.layer), d = ly && dest(ly);
+      if (!d) return [o];
+      const x = ly.items.find((i: any) => i.id === o.id);
+      const id = (d.items || []).some((i: any) => i.id === x.id) ? `${x.id}m${Date.now().toString(36)}` : x.id;
+      return [{ op: 'item.remove', layer: ly.id, id: x.id }, { op: 'item.add', layer: d.id, item: { ...x, ...o.set, id } }];
+    });
+  };
   const startDrag = (e: React.MouseEvent, l: any, it: any, side: 'l' | 'r' | 'm') => {
     e.stopPropagation(); e.preventDefault();
     flushNudge();
@@ -287,18 +348,30 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     if (l.locked) return;
     const x0 = e.clientX;
     const t = trimmer(l, it, side);
-    let last = 0;
+    let last = 0, to: string | null = null, dy = 0;
+    // a clip moved up / down onto another row of its kind (video -> video, picture -> picture, sound -> sound)
+    const laneAt = (m: MouseEvent) => {
+      if (side !== 'm') return null;
+      const row = (document.elementFromPoint(m.clientX, m.clientY) as HTMLElement | null)?.closest('[data-lane]') as HTMLElement | null;
+      const tl = row && project.layers.find((x: any) => x.id === row.dataset.lane);
+      if (!tl || tl.id === l.id || tl.kind !== l.kind || tl.locked || l.kind === 'view') return null;
+      const src = lanes.current?.querySelector(`[data-lane="${CSS.escape(l.id)}"]`) as HTMLElement | null;
+      return { id: tl.id, dy: src ? row!.getBoundingClientRect().top - src.getBoundingClientRect().top : 0 };
+    };
     const mv = (m: MouseEvent) => {
       const d = Math.round(((m.clientX - x0) / pps) * fps);
-      if (d === last) return;
-      last = d;
-      setDrag({ layer: l.id, item: it.id, d, side });
-      t.preview(d);
+      const at = laneAt(m);
+      if (d === last && (at?.id ?? null) === to) return;
+      const dChanged = d !== last;
+      last = d; to = at?.id ?? null; dy = at?.dy ?? 0;
+      setDrag({ layer: l.id, item: it.id, d, side, to, dy });
+      if (dChanged) t.preview(d);
     };
     const up = () => {
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
       setDrag(null);
       setEdge(side === 'm' ? null : { layer: l.id, item: it.id, side, total: 0 });
+      if (to) { send(toRow(t.ops(last), l, it, to), { label: 'move to row' }); onSel({ layer: to, item: it.id }); return; }
       t.commit(last, side === 'm' ? 'move' : 'trim');
     };
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
@@ -420,6 +493,11 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       // (an undo / redo: the card's count starts again from where the edge is now)
       if (edge && (e.ctrlKey || e.metaKey) && /^[zy]$/i.test(e.key)) { flushNudge(); setEdge({ ...edge, total: 0, f0: undefined }); return; }
       const tag0 = (e.target as HTMLElement).tagName;
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyC' || e.code === 'KeyV') && tag0 !== 'INPUT' && tag0 !== 'TEXTAREA' && tag0 !== 'SELECT' && !window.getSelection()?.toString()) {
+        const sl = sel && project.layers.find((x: any) => x.id === sel.layer), si = sl && sel!.item && (sl.items || []).find((i: any) => i.id === sel!.item);
+        if (e.code === 'KeyC' && sl && si && sl.kind !== 'view') { e.preventDefault(); copyClip(sl, si); return; }
+        if (e.code === 'KeyV' && CLIP) { e.preventDefault(); pasteClip(sl && sl.kind !== 'view' ? sl : null, frame); return; }
+      }
       if (view && e.code === 'KeyS' && !e.ctrlKey && !e.metaKey && !e.altKey && tag0 !== 'INPUT' && tag0 !== 'TEXTAREA' && tag0 !== 'SELECT') { e.preventDefault(); splitHere(); return; }
       if (choose && e.key === 'Escape') { setChoose(null); return; }
       if (!edge || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -555,8 +633,16 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     </>;
   };
 
+  const ctxL = ctx && project.layers.find((x: any) => x.id === ctx.layer);
+  const ctxI = ctxL && ctx!.item ? (ctxL.items || []).find((i: any) => i.id === ctx!.item) : null;
   return (
     <div className="tl">
+      {ctx && ctxL && <div className="ctxm" style={{ left: ctx.x, top: ctx.y }} onContextMenu={(e) => e.preventDefault()}>
+        {ctxI && <button onClick={() => { copyClip(ctxL, ctxI); setCtx(null); }}>Copy<kbd>Ctrl+C</kbd></button>}
+        <button disabled={!canPaste(ctxL)} onClick={() => { pasteClip(ctxL, ctx.at); setCtx(null); }}
+          title={CLIP && CLIP.kind !== ctxL.kind ? 'The copied clip goes on its own kind of row - here it lands on the row it came from' : ''}>Paste here · {fmtT(ctx.at / fps)}<kbd>Ctrl+V</kbd></button>
+        {ctxI && <button onClick={() => { send([{ op: 'item.remove', layer: ctxL.id, id: ctxI.id }], { label: 'delete' }); setCtx(null); }}>Delete<kbd>Del</kbd></button>}
+      </div>}
       <div className="tl-bar">
         <button className="btn ghost icon" disabled={!canUndo} title="Undo (Ctrl+Z)" onClick={() => { if (edge) setEdge({ ...edge, total: 0, f0: undefined }); onUndo(); }}>↶</button>
         <button className="btn ghost icon" disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" onClick={() => { if (edge) setEdge({ ...edge, total: 0, f0: undefined }); onRedo(); }}>↷</button>
@@ -651,7 +737,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                 <div className="ltl-track" style={{ width }} onMouseDown={seekAt} />
               </div>
               {!closed[g.name] && g.layers.map((l) => (
-                <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${l.kind === 'audio' ? 'snd' : ''} ${sel?.layer === l.id ? 'sel' : ''} ${lmove?.id === l.id ? 'lmoving' : ''} ${lmove?.over === l.id ? (lmove.below ? 'drop-below' : 'drop-above') : ''}`}>
+                <div key={l.id} data-lane={l.id} className={`ltl-row ltl-lay ${l.kind === 'audio' ? 'snd' : ''} ${sel?.layer === l.id ? 'sel' : ''} ${lmove?.id === l.id ? 'lmoving' : ''} ${lmove?.over === l.id ? (lmove.below ? 'drop-below' : 'drop-above') : ''} ${drag?.to === l.id ? 'drop-to' : ''}`}>
                   <div className={`ltl-name ${vtip?.k === l.id ? 'vol-on' : ''}`} style={{ opacity: l.hidden ? 0.5 : 1, ...(colors[l.id] ? { boxShadow: `inset 3px 0 0 ${colors[l.id]}` } : {}) }} onMouseDown={(e) => startLayerMove(e, l)}
                     onClick={() => { if (lmoved.current) { lmoved.current = false; return; } onSel({ layer: l.id }); }} title={`${KIND_LABEL[l.kind]} · ${l.id} - drag it up or down to move the layer`}>
                     <span className="dot" style={{ background: KIND_COLOR[l.kind] }} />
@@ -669,7 +755,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                     </div>}
                   </div>
                   <div className="ltl-track" style={{ width, opacity: l.hidden || l.muted ? 0.45 : 1 }}
-                    onMouseDown={(e) => { if (e.target === e.currentTarget) { onSel({ layer: l.id }); seekAt(e); } }}>
+                    onMouseDown={(e) => { if (e.target === e.currentTarget && e.button === 0) { onSel({ layer: l.id }); seekAt(e); } }}
+                    onContextMenu={(e) => { if (e.target !== e.currentTarget || l.kind === 'view') return; e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, layer: l.id, at: frameAt(e) }); }}>
                     {l.kind === 'backdrop' && (() => {
                       const t = project.layers.find((x: any) => x.id === l.props?.target);
                       const span = t?.items?.length ? [Math.min(...t.items.map((i: any) => i.from)), Math.max(...t.items.map((i: any) => i.from + i.dur))] : [0, total];
@@ -684,7 +771,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                       const tint = colors[l.id], off = tint ? soundOffset(project, l, it) : null;
                       return (
                         <div key={it.id} data-layer={l.id} data-item={it.id} className={`blk ${l.kind === 'audio' ? 'snd' : ''} ${isSel ? 'sel' : ''} ${linked ? 'linked' : ''} ${drag?.item === it.id && drag.layer === l.id ? 'dragging' : ''} ${ed ? 'edge-' + ed : ''}`}
-                          style={{ left: px(it.from), width: Math.max(3, w), background: tint ? (l.kind === 'audio' ? `color-mix(in srgb, ${tint} 55%, #1d1c1b)` : tint) : KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
+                          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onSel({ layer: l.id, item: it.id }); setCtx({ x: e.clientX, y: e.clientY, layer: l.id, item: it.id, at: frameAt(e) }); }}
+                          style={{ ...(drag?.to && drag.item === it.id && drag.layer === l.id ? { transform: `translateY(${drag.dy}px)`, zIndex: 5, pointerEvents: 'none' } : {}), left: px(it.from), width: Math.max(3, w), background: tint ? (l.kind === 'audio' ? `color-mix(in srgb, ${tint} 55%, #1d1c1b)` : tint) : KIND_COLOR[l.kind], opacity: it.hidden ? 0.4 : 1, top: 4, bottom: 4, padding: w > 30 ? '0 6px' : 0,
                             color: l.kind === 'text' ? '#2a2000' : '#fff', fontSize: 11 }}
                           title={isSel ? `${blockText(l, it, project)} - drag it, or its edges (click an edge, then , . or type ±ms)` : `${blockText(l, it, project)} - click to pick it (near its start / end: that edge)`}
                           onMouseMove={onOpen ? (e) => { const el = e.currentTarget; el.style.setProperty('--mx', `${e.clientX - el.getBoundingClientRect().left}px`); } : undefined}
