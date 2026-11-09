@@ -62,6 +62,22 @@ const keepMask = (below: number | undefined, still: string) => {
 };
 const RAMP = 'linear-gradient(to right, transparent 0%, black 7%, black 93%, transparent 100%)';
 
+// Rows waiting at a cut (2026-11-09, dialogue - one video row per character): at a strip cut the outgoing row has
+// nothing active, the incoming row may need a moment for its first frame. One row used to keep its last frame by
+// itself; across rows the outgoing one hid at once and the picture showed only the background. Now a row that just
+// went out keeps its last frame (a few frames at most) while another row is still waiting for its first one.
+const WAITING = new Set<string>(), WAKE = new Set<() => void>();
+const setWaiting = (id: string, on: boolean) => {
+  if (on === WAITING.has(id)) return;
+  if (on) WAITING.add(id); else WAITING.delete(id);
+  queueMicrotask(() => { for (const w of WAKE) w(); });  // (after this row's own look - never inside it)
+};
+const HOLD_MAX = 12;  // frames a row keeps its last frame for another (then it goes - never a stuck picture)
+const PRE = 8;        // frames before its cut a waiting copy starts playing (hidden), so it comes in already running
+// drift while playing: within 2 frames nothing; up to 0.5 s the copy runs a little faster / slower until it is back
+// (a seek is a visible jump); past 0.5 s (a jump, a slow page) it seeks
+const DEAD = 2, JUMP = 0.5;
+
 // lag: drawn that many frames back (the Ghost trail effect lays such a copy over the picture - its own copies)
 export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; lag?: number }> = ({ p, layer, backdrop, lag = 0 }) => {
   const f = Math.max(0, useCurrentFrame() - lag);
@@ -96,6 +112,7 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
   const els = useRef<Record<string, HTMLVideoElement | null>>({});
   const boxes = useRef<Record<string, HTMLDivElement | null>>({});
   const lit = useRef<Record<string, any>>({});  // the copies on screen now -> the item each shows
+  const last = useRef<{ copies: Record<string, any>; f: number }>({ copies: {}, f: -1e9 });  // shown last while active
   const litOpacity = (it: any, f: number) => itemOpacity(it, layer.props || {}, Math.min(f, it.from + it.dur - 1), fps);
   // stacking: an item's z first, then its order (the later of two overlapping items is on top - it fades in over)
   const stackOf = (it: any, parts: any[]) => (it.z ?? 0) * 10000 + parts.indexOf(parts.find((x: any) => x.id === it.id)) + 1;
@@ -109,6 +126,8 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
     const { parts, f, playing, rate } = live.current;
     const act = activeParts(parts, f);
     const waits = nextUses(parts, f);
+    const held = last.current;  // (what this row showed last, kept a moment for a row still waiting - below)
+    const keep = (copy: string) => !!held.copies[copy] && f >= held.f && f - held.f < HOLD_MAX;
     for (const ek of Object.keys(els.current)) {
       const el = els.current[ek];
       const copy = ek.split('~')[0];  // (a keep-desk twin plays exactly as its copy)
@@ -118,12 +137,32 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
         const want = Math.min(srcAt(A, f, fps), (el.duration || Infinity) - 0.04);
         const r = rate * (A.rate ?? 1);
         const still = A.rate === 0;  // a held frame (rate 0): the copy waits on it
-        if (!still && el.playbackRate !== r) el.playbackRate = r;
-        if (!el.seeking && Math.abs(el.currentTime - want) > (playing && !still ? 0.25 : 0.5 / fps)) el.currentTime = want;
-        if (playing && !still) { if (el.paused) el.play().catch(() => {}); } else if (!el.paused) el.pause();
+        const off = el.currentTime - want;
+        if (playing && !still) {
+          if (!el.seeking && Math.abs(off) > JUMP) { el.currentTime = want; el.playbackRate = r; }
+          else {  // (a little behind / ahead: catch up by speed, never a jump)
+            const k = Math.abs(off) * fps <= DEAD ? 1 : Math.min(1.5, Math.max(0.5, 1 - off * 1.5));
+            if (Math.abs(el.playbackRate - r * k) > 0.005) el.playbackRate = r * k;
+          }
+          if (el.paused) el.play().catch(() => {});
+        } else {
+          if (!still && el.playbackRate !== r) el.playbackRate = r;
+          if (!el.seeking && Math.abs(off) > 0.5 / fps) el.currentTime = want;
+          if (!el.paused) el.pause();
+        }
       } else {
-        if (!el.paused) el.pause();  // (an old copy freezes on its last frame - never plays on past its cut)
         const n = waits[copy];
+        const lead = n ? (n.from - f) / fps : Infinity, from = n ? (n.in ?? 0) - lead * (n.rate ?? 1) : 0;
+        if (n && playing && n.rate !== 0 && lead <= PRE / fps && from >= 0 && !keep(copy)) {
+          // (its cut is a moment away: it plays already - hidden - and arrives at its first frame on time)
+          const r = rate * (n.rate ?? 1);
+          if (el.playbackRate !== r) el.playbackRate = r;
+          if (!el.seeking && Math.abs(el.currentTime - from) > 0.12) el.currentTime = from;
+          if (el.paused) el.play().catch(() => {});
+          continue;
+        }
+        if (!el.paused) el.pause();  // (an old copy freezes on its last frame - never plays on past its cut)
+        if (keep(copy)) continue;  // (it may still be shown for a row that is waiting - no seek away yet)
         if (n && !el.seeking && Math.abs(el.currentTime - (n.in ?? 0)) > 0.04) el.currentTime = n.in ?? 0;
       }
     }
@@ -134,7 +173,13 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
       const el = els.current[copy];
       if (before[copy] || (el && el.readyState >= 2 && !el.seeking)) now[copy] = A;
     }
-    if (Object.keys(act).length && !Object.keys(now).length) Object.assign(now, before);
+    const nAct = Object.keys(act).length;
+    setWaiting(layer.id, playing && !!nAct && !Object.keys(now).length);
+    if (nAct && !Object.keys(now).length) Object.assign(now, before);
+    // (nothing of this row now, but it showed something a moment ago and another row is still waiting for its first
+    // frame: keep showing that - the picture never drops to the background alone at a cut)
+    else if (!nAct && playing && Object.keys(held.copies).some(keep) && [...WAITING].some((id) => id !== layer.id)) Object.assign(now, held.copies);
+    if (nAct && Object.keys(now).length) last.current = { copies: now, f };
     lit.current = now;
     const dbg = (window as any).__vtDebug;  // (tools/flicker_test.mjs: what it meant to show)
     if (dbg) dbg[layer.id] = { f, active: Object.keys(act).join(','), lit: Object.keys(now).join(','), playing };
@@ -152,6 +197,8 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
   const hooked = useRef(new WeakSet<HTMLVideoElement>());
   const syncRef = useRef(sync);
   syncRef.current = sync;
+  // (another row starts / stops waiting for its first frame: this one looks again - keep its last frame or let it go)
+  useEffect(() => { const w = () => syncRef.current(); WAKE.add(w); return () => { WAKE.delete(w); setWaiting(layer.id, false); }; }, [layer.id]);
   const refEl = (copy: string) => (refFns.current[copy] ??= (el) => {
     if (el && !hooked.current.has(el)) {
       hooked.current.add(el);
