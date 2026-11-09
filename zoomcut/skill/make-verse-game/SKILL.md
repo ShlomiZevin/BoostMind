@@ -128,8 +128,18 @@ Read before any idea - the game must be something THIS character would be in:
   (Hani's games are the exception: they have their own site, המשחקייה של חני, AND appear in the verse.) The game's
   back / "more" links go to the character's wiki page with `target="_top"` (the game may run inside the verse's layer).
 - Stats: the folder name is the game's stats site (`data-site` on `/t.js`) - add it to `SITES` in
-  `techietech-api/analytics.js` (then deploy the `track` function - from the main PC, it needs `owner.json`) and to
-  `SITE` + the game to `GAME` in `public/backstage/index.html` and `v2/site/backstage/`.
+  `techietech-api/analytics.js` and to `SITE` + the game to `GAME` in `public/backstage/index.html` and
+  `v2/site/backstage/`. **Editing them is not enough - both must be DEPLOYED, on release day, from any PC**
+  (Osnat, 9 Nov 2026: the game went live with its visits counted as "other" and Backstage without its name, because
+  the deploy was put off to "the main PC"):
+  - the `track` function: `cd techietech-api && firebase deploy --only functions:track --project boostmind-b052c`.
+    It needs the git-ignored `owner.json` (only a hash, not the key). A PC without it takes it from the deployed source:
+    `gcloud functions describe track --region=europe-west1 --project=boostmind-b052c` gives the zip in
+    `gcf-v2-sources-...`, `gcloud storage cp` it and unzip `owner.json`. Diff the zip's `analytics.js` / `index.js`
+    against git first - deploy only when the one difference is yours. A build failing on `npm ci` ("lock file not in
+    sync") = this PC's untracked `package-lock.json` is stale: `npm install --package-lock-only`, deploy again.
+  - Backstage: `deploy-onto-live.js --page=/backstage/index.html=public/backstage/index.html`.
+  - Check: `curl -s https://shlomiverse.com/backstage/ | grep <site>`.
 - One folder per game: `index.html`, `game.js` (or `src/` + a small build), `game.json`, `cover.jpg`, `assets/`
   (pictures, sounds, models). Ordinary web files - as many and as big as the game needs; only keep phone loading
   sensible (jpg/webp at the size shown, mp3 sounds trimmed, models compressed).
@@ -232,7 +242,10 @@ spot / try).
 - **A new page is not done until it is listed** (BoostMind CLAUDE.md): `/all/` (`python scripts/all/catalog.py`), the
   character's studio profile (`links` / `site`), their world's `site` (`content.mjs put series <id> --set site=<url>`) if it gets a site, the
   links page's sites strip, and the sites table in `zoomcut/skill/edit-video/wiki.md`.
-- Verify live: open the real URL on a phone size with Playwright and play a round.
+- **Release checklist** (all in the same turn - "released" means every line is done): game.json `status: "live"` in
+  git AND on the live site (deploy-onto-live the game.json too - other sessions read the live one), wiki build + push,
+  stats deployed (above), git pushed, the story posted (or handed to the session that posts it).
+- Verify live: open the real URL (without `?solo=1`) on a phone size with Playwright and play a round.
 
 ## 9. Tell the verse - a cover and a story
 - The cover, title art, hero and share picture (see "Every game ships with its cover and its title") are in place
