@@ -190,7 +190,7 @@ if (!TEST) setTimeout(() => {
 app.get('/api/episodes', async (_q, res) => {
   const list = fs.readdirSync(EPS).filter((d) => !d.startsWith('_') && fs.existsSync(path.join(EPS, d, 'episode.json')));  // (_name: a test, not in the list)
   // (+ the projects that are only in the cloud so far - opening one brings it to this computer)
-  const cloudOnly = (await cloud.cloudOnly().catch(() => [])).map((id) => ({ id, title: id, done: false, created: 0, template: '', test: id.endsWith('-test'), cloud: true }));
+  const cloudOnly = (await cloud.cloudOnly().catch(() => [])).map((p) => ({ id: p.id, title: p.title, done: p.done, created: 0, template: '', test: p.id.endsWith('-test'), cloud: true }));
   res.json([...list.map((id) => {
     const cfg = readJson(path.join(EPS, id, 'episode.json'), {});
     return { id, title: cfg.title || id, done: !!cfg.done, created: fs.statSync(path.join(EPS, id)).birthtimeMs,
@@ -199,7 +199,11 @@ app.get('/api/episodes', async (_q, res) => {
 });
 
 // mark a project done / not done (the dropdown shows it differently)
-app.post('/api/ep/:id/done', (q, res) => {
+app.post('/api/ep/:id/done', async (q, res) => {
+  if (!fs.existsSync(path.join(EPS, path.basename(q.params.id), 'episode.json'))) {  // a project only in the cloud: marked there
+    try { return res.json({ ok: true, done: await cloud.setCloudDone(path.basename(q.params.id), !!q.body?.done) }); }
+    catch (e) { return res.status(404).json({ error: e.message }); }
+  }
   const d = epDir(q.params.id);
   const cfg = readJson(path.join(d, 'episode.json'));
   cfg.done = !!q.body?.done;

@@ -243,14 +243,30 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
   app.post('/api/cloud/:id/push', async (q, res) => { try { res.json(await serial(q.params.id, () => push(q.params.id))); } catch (e) { res.json({ error: e.message }); } });
 
   // the projects in the cloud that aren't on this computer yet (the project menu lists them; opening one brings it)
-  let cloudIds = { at: 0, ids: [] };
+  // [{id, title, done}] - its title and Done come from the cloud's episode.json (marking one Done here writes it there:
+  // his ask 2026-11-09, "I marked them done and they keep returning"); a folder with no episode.json in the cloud is
+  // not a project (a workshop folder, e.g. shlomiverse-intro) and is not listed
+  let cloudIds = { at: 0, ids: [] }, cloudEp = {};  // (cloudEp: id -> {title, done} | null = not a project)
   const cloudOnly = async () => {
     if (mode() === 'off') return [];
-    if (Date.now() - cloudIds.at > 120e3) cloudIds = { at: Date.now(), ids: await folders('projects/').catch(() => cloudIds.ids) };
-    // (a project here is never "only in the cloud"; nor a workshop folder that isn't one, e.g. shlomiverse-intro. A folder
-    // the sync knows whose episode.json is gone - a git pull took it - is: opening it brings the project back)
-    return cloudIds.ids.filter((id) => allowed(id) && !fs.existsSync(path.join(EPS, id, 'episode.json'))
+    if (Date.now() - cloudIds.at > 120e3) { cloudIds = { at: Date.now(), ids: await folders('projects/').catch(() => cloudIds.ids) }; cloudEp = {}; }
+    // (a project here is never "only in the cloud". A folder the sync knows whose episode.json is gone - a git pull
+    // took it - is: opening it brings the project back)
+    const ids = cloudIds.ids.filter((id) => allowed(id) && !fs.existsSync(path.join(EPS, id, 'episode.json'))
       && (!fs.existsSync(path.join(EPS, id)) || fs.existsSync(stateFile(id))));
+    await pool(ids.filter((id) => !(id in cloudEp)), 6, async (id) => {
+      const r = await getJson(`projects/${id}/episode.json`).catch(() => undefined);  // (undefined: couldn't read - listed, asked again next time)
+      if (r !== undefined) cloudEp[id] = r && { title: r.v?.title || id, done: !!r.v?.done };
+    });
+    return ids.filter((id) => cloudEp[id] !== null).map((id) => ({ id, ...(cloudEp[id] || { title: id, done: false }) }));
   };
-  return { pushSoon, cloudOnly, pull, push, lock, unlock, mode, allowed };
+  const setCloudDone = async (id, done) => {
+    if (!allowed(id)) throw new Error('no such project');
+    const name = `projects/${id}/episode.json`, r = await getJson(name);
+    if (!r) throw new Error('no such project');
+    if (await putJson(name, { ...r.v, done }, r.gen) == null) throw new Error('it changed just now - try again');
+    cloudEp[id] = { title: r.v?.title || id, done };
+    return done;
+  };
+  return { pushSoon, cloudOnly, setCloudDone, pull, push, lock, unlock, mode, allowed };
 }
