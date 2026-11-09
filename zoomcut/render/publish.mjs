@@ -31,7 +31,11 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     fs.writeFileSync(ENV, t + '\n');
   };
   const json = async (r) => { const t = await r.text(); try { return JSON.parse(t); } catch { return { raw: t.slice(0, 300) }; } };
-  const gcloud = (args) => new Promise((ok, fail) => execFile('cmd', ['/c', 'gcloud', ...args], { windowsHide: true }, (e) => (e ? fail(e) : ok())));
+  // (one-piece uploads: above ~150 MB gcloud splits the upload into parts, and that path refuses the download token's
+  // custom metadata - "Existing custom fields should not exist" - so a 164 MB video never reached Instagram, 2026-11-09)
+  const gcloud = (args) => new Promise((ok, fail) => execFile('cmd', ['/c', 'gcloud', ...args],
+    { windowsHide: true, maxBuffer: 16 << 20, env: { ...process.env, CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED: 'False' } },
+    (e, _o, err) => (e ? fail(new Error(String(err || '').split(/\r?\n/).filter((l) => /ERROR/.test(l)).join(' ') || e.message)) : ok())));
   // a private link to the file - for the platforms that download the video themselves. Staged in the Drop bucket's
   // hidden _publish/ folder with a random download token (the bucket is linked to Firebase Storage: the token is the
   // only way in, the file is unlisted, nothing is public); the returned drop() deletes it
