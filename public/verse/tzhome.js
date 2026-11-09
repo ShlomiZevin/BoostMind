@@ -45,17 +45,20 @@ export function tzHome() {
 }
 
 // the card beside it for a signed-in visitor (plan tz-home D1, his "what for citizens?" 2026-11-08): a citizen gets "זכות הדיבור
-// שלך" - their passport, ח24's lead as a prompt and "לצייץ על זה" (ציפציפ opens with ח24's post quoted), their own numbers;
+// שלך" - their passport, ח24's lead as a prompt, two residents' posts about it (his "I should see tweets here", 2026-11-09),
+// "לצייץ על זה" (ציפציפ opens with ח24's post quoted), their own numbers;
 // a resident without a passport gets the way to one. Signed out, pages.js puts the citizenship card there instead.
 export function tzSide() {
   if (!tzHomeOpen() || !signedIn() || !data || !data.lead) return '';
-  const L = data.lead, f = st.fan || {}, n = f.citizen && f.citizen.n, m = data.mine || { posts: 0, stamps: 0 };
+  const L = data.lead, f = st.fan || {}, n = f.citizen && f.citizen.n, m = data.mine || { posts: 0, stamps: 0 }, talk = data.talk || [];
   if (!n) return `<aside class="tzh-side"><div class="tzh-sh"><h2>זכות הדיבור</h2></div>
       <p class="tzh-sp">בציפציפ מצייצים, מגיבים ומחתימים רק אזרחי השלומיוורס - עם דרכון. התושבים כבר מתווכחים על החדשות של היום.</p>
       <a class="vx-btn main block" href="/citizenship" data-tzh="side-passport">להוציא דרכון</a></aside>`;
   return `<aside class="tzh-side"><div class="tzh-sh"><h2>זכות הדיבור שלך</h2><span class="tzh-chip">אזרח/ית</span></div>
       <div class="tzh-me">${av({ fan: f, cls: 'tzh-meav' })}<b>${esc(f.nick || '')}</b><span>אזרח/ית מס' ${esc(Number(n).toLocaleString('he-IL'))}</span></div>
       <a class="tzh-ask" href="/charadot/a/${esc(L.id)}" data-tzh="side-lead"><img src="/charadot/img/logo-wide.png?v=2" alt="החרדות 24"><b>${esc(L.headline)}</b><small>מה דעתך?</small></a>
+      ${talk.length ? `<div class="tzh-talk"><small>מה אומרים התושבים</small>${talk.map((p) => `<a class="tzh-tk" href="/tziftzif/p/${esc(p.root || p.id)}" data-tzh="side-talk">
+          <img class="tzh-face" src="${esc(face(p.by))}" alt="" loading="lazy"><span><b>${esc(nm(p.by, data.names))}</b><p>${esc(p.text)}</p></span></a>`).join('')}</div>` : ''}
       <a class="vx-btn main block" href="/tziftzif${L.post ? `?quote=${esc(L.post)}` : ''}" data-tzh="side-tweet">${PEN}לצייץ על זה</a>
       <p class="tzh-mine">הציוצים שלך: ${m.posts} · חותמות שקיבלת: ${m.stamps}</p></aside>`;
 }
