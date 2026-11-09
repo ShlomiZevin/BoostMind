@@ -4,6 +4,6 @@
  "text": "משחק חדש: אסנת מגייסת גן זי – תביאו הכול לפני הגוסטינג",
  "link": "/osnat-games/not-a-cog/",
  "label": "לשחק עכשיו",
- "everyone": false,
+ "everyone": true,
  "boxes": []
 }
