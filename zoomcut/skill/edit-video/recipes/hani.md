@@ -320,3 +320,11 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
     distance (a standing person close in the doorway; seated ones at the chair's height, the backrest under the shoulders).
 - The opening (2026-11-08): greeting at the door -> Osnat "מה שלומך?" -> Hani sits -> the miracle story (שלוימי, 1, choked
   on an apple Brachi gave him; אברהם משה home only because רֶבּ שמוליק went to the ER) -> into the name request.
+- **Hani's pass (2026-11-09):** her 18 takes came in the Drop folder "חני ומשאבי אנוש" (not `haredit-5` - pulled by hand
+  into the project's folder). The cut is `episodes/haredit-5/work/cut.py` (SPEC = the dialogue in script order: Hani's
+  pieces + Osnat / Yotam lines waiting for their takes; silences >= 0.3 s cut by voice level, acted beats `keep`;
+  subtitles = the script's words on the recogniser's times; every piece its own Set item) - run it again after any change
+  and after Osnat / Yotam land (fill their takes into SPEC, then the J/L offsets). Picks: greeting take 2 (the clearer
+  kiss), name take 6, yichus 10 + 11, "אני אזוז" 14 (its silent tail = the freeze at Yotam), goodbye 18 (stands with the
+  bag). Hani mirrored (her mezuzah hand lands on the door picture's side), seated y 150 / door y 0, subtitles y 1430.
+  Hani's Yotam lines (takes 15-17, she looks at the lens) = `hani-seat-door.jpg` (Yotam's view from the doorway).
