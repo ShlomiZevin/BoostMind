@@ -88,13 +88,23 @@ def convert(p, picture="person", sets="set", handles=1.5):
             strip[-1]["dur"] = i["from"] + i["dur"] - strip[-1]["from"]
         else:
             strip.append({"id": f"w{len(strip)}", "from": i["from"], "dur": i["dur"], "show": show})
+    # where the strip says something (a person is seen): a handle never reaches past it - where the strip is silent
+    # (a poster after the last clip, a picture before the first) every row draws (view.js shownSpans)
+    seen = []
+    for s in strip:
+        if seen and s["from"] <= seen[-1][1] + 1:
+            seen[-1][1] = max(seen[-1][1], s["from"] + s["dur"])
+        else:
+            seen.append([s["from"], s["from"] + s["dur"]])
+    span_of = lambda f: next((sp for sp in seen if sp[0] <= f < sp[1]), (f, f))
     for n, items in rows.items():
         for k, it in enumerate(items):
             if it.get("in") is None or (it.get("rate") or 1) != 1:
                 continue
             length = p["assets"][it["asset"]].get("duration") or 0
-            prev_end = items[k - 1]["from"] + items[k - 1]["dur"] if k else 0
-            nxt = items[k + 1]["from"] if k + 1 < len(items) else 10 ** 9
+            sp = span_of(it["from"])
+            prev_end = max(items[k - 1]["from"] + items[k - 1]["dur"] if k else 0, sp[0])
+            nxt = min(items[k + 1]["from"] if k + 1 < len(items) else 10 ** 9, sp[1])
             rl = int(max(0, min(handles * fps, it["from"] - prev_end, (it["in"] - SAFE_HEAD) * fps)))
             rr = int(max(0, min(handles * fps, nxt - (it["from"] + it["dur"]), (length - SAFE_TAIL - it["in"] - it["dur"] / fps) * fps)))
             it["from"] -= rl
