@@ -11,6 +11,10 @@ import numpy as np
 
 from .common import ROOT, SR, log
 
+# Each failed graph run is noted here: the export runs the sound again once the picture is done (CPU free) and never
+# hands out a Full export whose sound fell back to the older mix (2026-11-09: two haredit-5 exports were sent with it).
+FAILED = []
+
 
 def render(ep, project, n):
     """{layer id: mono float32 track of n samples, before its volume} for every audio layer, or None if it failed."""
@@ -72,6 +76,7 @@ def render(ep, project, n):
                            encoding="utf-8", errors="replace")
         if r.returncode:
             log("  · sound graph failed - the older mix is used: " + (r.stdout + r.stderr).strip()[-400:])
+            FAILED.append(key)
             return None
         open(done, "w").close()
     out = {}

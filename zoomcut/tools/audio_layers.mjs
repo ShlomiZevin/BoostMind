@@ -38,7 +38,9 @@ const srv = http.createServer((q, r) => {
 await new Promise((ok) => srv.listen(0, '127.0.0.1', ok));
 const base = `http://127.0.0.1:${srv.address().port}`;
 
-const browser = await puppeteer.launch({ executablePath: chrome });
+// (a long layer rendered while the picture export loads the CPU took longer than puppeteer's 3-minute default per call
+// - 'CdpFrame.evaluate' timed out and the export fell back to the older mix, 2026-11-09)
+const browser = await puppeteer.launch({ executablePath: chrome, protocolTimeout: 30 * 60 * 1000 });
 try {
   const page = await browser.newPage();
   page.on('console', (m) => console.log('  page:', m.text()));

@@ -28,7 +28,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from . import cutout as cutout_fx, film_fx, layers_audio, look
+from . import audio_render, cutout as cutout_fx, film_fx, layers_audio, look
 from . import project as projectlib
 from .common import FFMPEG, ROOT, Episode, ffprobe, log, run
 from .compose import LOW, PIECES, X264_THREADS, _look
@@ -477,6 +477,7 @@ def export(ep, quick=False, test=False):
     sub = lambda keep: {**project, "layers": [l for l in project["layers"] if keep(ids.index(l["id"]))]}
     passes = [stack_runs(sub(lambda i: i < top)), stack_runs(sub(lambda i: i > top))] if top >= 0 else [stack_runs(project)]
     # the sound doesn't depend on the picture: it is mixed alongside it
+    audio_render.FAILED.clear()
     sound_pool = ThreadPoolExecutor(max_workers=1)
     sound = sound_pool.submit(layers_audio.mix, ep, project, ep.work("layers", "export.wav"))
     # the graphics runs are drawn two at a time (a still one - the set - doesn't wait for the long one)
@@ -533,6 +534,14 @@ def export(ep, quick=False, test=False):
     log(f"  · picture done in {time.time() - t_start:.0f}s ({len(chunks)} pieces) - the sound")
     wav = sound.result()
     sound_pool.shutdown()
+    if audio_render.FAILED:  # the editor's graph failed under the picture's load: once more, alone
+        log("  · the sound graph failed while the picture rendered - running the sound again on its own")
+        audio_render.FAILED.clear()
+        wav = layers_audio.mix(ep, project, ep.work("layers", "export.wav"))
+        if audio_render.FAILED:
+            if not small:  # (exit code 1: the studio marks it failed and sends nothing)
+                sys.exit("✖ the sound graph failed twice - this export's sound would not be what the editor plays; nothing was sent. Export again.")
+            log("⚠ the sound graph failed - this check video has the older mix (not exactly what the editor plays)")
     os.makedirs(ep.p("out"), exist_ok=True)
     final = ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4" if quick else f"{ep.id}.mp4")
     abr = "96k" if test else "192k"
