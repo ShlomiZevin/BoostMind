@@ -55,6 +55,9 @@ function continueRow() {
   return `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvContinue)}</h2></div><div class="row cw">${list.map(([id, x]) =>
     vcard(V[id]).replace('<div class="play">', `<span class="bar"><i style="width:${Math.round((x.t / x.d) * 100)}%"></i></span><div class="play">`)).join('')}</div></section>`;
 }
+// the newest videos, right under "continue watching" (his ask, 2026-11-09: it came too late, after games and stickers);
+// the wiki page draws it there only when this file isn't loaded
+const latestRow = () => `<section class="sec"><div class="sec-h"><h2>${esc(T.yvLatest)}</h2><a href="/videos">${esc(T.yvAllVideos)} ←</a></div>${vrow(fresh().slice(0, 14))}</section>`;
 // the hero's greeting (signed in, or was last time and Firebase hasn't answered yet)
 export const heroHi = () => (signedIn() ? T.hi(st.fan.nick) : !st.ready && cachedMe() ? T.hi(cachedMe().nick) : null);
 // signed in, under the hero: their characters, what's new from them, characters to pick, the fans' stickers
@@ -76,7 +79,7 @@ function yourBlock() {
       ${mine.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvNew)}</h2></div>${vrow(mine)}</section>` : ''}
       ${picks}
       ${continueRow()}
-    </section>`;
+    </section>${latestRow()}`;
 }
 // the fans' best stickers: under the games row (his note 2026-11-07: games before stickers) - the home's #stk-slot;
 // the "what's next" band (its first tile is the sticker) comes under the games too, signed in or out
@@ -111,7 +114,7 @@ export function homeSlot() {
   // the sponsored banner (ads.js, his note 2026-11-09): first under the hero - where a visitor from the video lands
   const ad = adSlot('home');
   if (signedIn()) return ad + citizenBanner() + yourBlock() + `<div class="tzh-row">${tz}<div id="tz-side">${tzSide()}</div></div>`;   // the citizenship journey's banner until they finish it (citizen.js)
-  if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>';
+  if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>' + latestRow();
   const rings = ringsHtml();
   return `${ad}${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}<div class="tzh-row">${tz}
     <div class="signin-card"><div class="sc-top"><h2>${brand(T.signinCardTitle)}</h2>${statusChip()}</div>
@@ -119,7 +122,7 @@ export function homeSlot() {
       <p class="sc-more">${I.plus}<span>${esc(T.signinCardMore)}</span></p>
       <p class="sc-soon">${SI.id}<span>${esc(T.signinCardSoon)}</span></p>
       <button class="vx-btn main block" data-signin="card">${esc(T.signinCardGo)}</button></div></div>
-    ${continueRow()}`;
+    ${continueRow()}${latestRow()}`;
 }
 
 // the community band (ideas wall + ask / business) - lives in community.js, imported lazily to avoid a cycle
@@ -395,6 +398,7 @@ export function refresh(now) {
       // the home is already drawn: only its two account-dependent pieces change, the wall of faces stays as it is
       const slot = HOOK.homeSlot ? HOOK.homeSlot() : '';
       if (slot !== lastSlot) { $('#home-slot').innerHTML = slot; lastSlot = slot; }
+      const early = $('#latest-page'); if (early) early.remove();   // drawn by the page before this file loaded - the slot has it now
       const stk = stickersSlot(), sb = $("#stk-slot"); if (sb && stk !== lastStk) { sb.innerHTML = stk; lastStk = stk; }
       const line = $('section.hero .hero-logo small'), fresh = heroLine();
       if (line && line.outerHTML !== fresh) line.outerHTML = fresh;

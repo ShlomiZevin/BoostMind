@@ -634,8 +634,8 @@ const pages = {
         <div class="grow">${games.map((g) => gcard(g)).join('')}</div></section>` : ''}
       ${games.some((g) => g.record) ? '<div id="rec-slot"></div>' : ''}
       <div id="stk-slot">${HOOK.stickersSlot ? HOOK.stickersSlot() : ''}</div>
-      <section class="sec"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="/videos">כל הסרטונים ←</a></div>
-        <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>
+      ${HOOK.homeSlot ? '' : `<section class="sec" id="latest-page"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="/videos">כל הסרטונים ←</a></div>
+        <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>`}
       <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="/characters">כל הדמויות ←</a></div>
         <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
       ${sitesTop().length ? `<section class="sec"><div class="sec-h"><div><h2>האתרים של הדמויות</h2><p class="sec-sub">כל הדלתות פתוחות. האחריות עליכם.</p></div><a href="/sites">כל האתרים ←</a></div>

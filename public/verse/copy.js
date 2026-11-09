@@ -271,6 +271,7 @@ export const T = {
   hiSub: 'הנה מה שקרה בשלומיוורס.',
   yvNew: 'אצל הדמויות שלכם',
   yvContinue: 'להמשיך לצפות',
+  yvLatest: 'סרטונים אחרונים', yvAllVideos: 'כל הסרטונים',
   yvFollowSome: 'עוד לא עוקבים אחרי אף אחד. בחרו כמה דמויות, ומה שקורה להן יגיע אליכם.',
   yvPick: 'לבחור דמויות',
   // the community (mockups G-J, 2026-11-01)
