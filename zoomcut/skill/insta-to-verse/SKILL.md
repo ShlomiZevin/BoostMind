@@ -116,6 +116,11 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
      `gcloud secrets versions access latest --secret=VERSE_PUBLISH_KEY --project boostmind-b052c` - never print,
      save or commit it.
    Check live: `https://shlomiverse.com/c/<id>`; the home page must NOT show the reel.
+   - **A visitor asked for this video** (the chat saves video requests in Firestore `requests`, kind 'video'; open ones:
+     `verseOwner?op=list&k=requests`, or Backstage → פניות): after publishing, POST
+     `https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner?op=found` with header
+     `authorization: Key <owner key>` and `{id: <request doc id>, videoId: 'ig-<id>'}`. The visitor is told once (bell,
+     push, mail). The owner key: ask him each time, never save it. Or he presses נמצא in Backstage.
 7. **The chat knows it - a reel is not done until this passes (his ask, 2026-10-31).** Every reel goes into the chat's
    brain (the character's bible + every reel's card and words; versePublish writes the reel's card), so 3
    minutes after publishing, on the LIVE function:
