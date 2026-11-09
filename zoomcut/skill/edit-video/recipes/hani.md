@@ -328,3 +328,11 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   kiss), name take 6, yichus 10 + 11, "אני אזוז" 14 (its silent tail = the freeze at Yotam), goodbye 18 (stands with the
   bag). Hani mirrored (her mezuzah hand lands on the door picture's side), seated y 150 / door y 0, subtitles y 1430.
   Hani's Yotam lines (takes 15-17, she looks at the lens) = `hani-seat-door.jpg` (Yotam's view from the doorway).
+- **Yotam (2026-11-09):** 5 takes in the same Drop folder; he shot his entrance twice and chose **the wider one from below
+  at the door** ("not the first one") = y4 (y5 = same angle, y1 + y2 = the first one in the room, not used); y3 = all his
+  answers. A shot from below needs a background from below: `door-up.jpg` (the doorway from Hani's chair, tilted up,
+  ceiling lights). **Yotam's items `mirror: false`** (his shirt has words) while the Hani row stays mirrored. Each
+  character its own voice row (`voice` Hani, `voice.yotam`, later `voice.osnat`) - voices overlap at a change of speaker.
+  cut.py now plans turns: sound overlap 0.12-0.3 s at a change of speaker, picture J / L / straight in turn using the
+  pauses in each take (the listening face after / before a line), no picture under 0.8 s; his "חני!" plays over Hani
+  freezing (her take 14 runs on) and we cut to him on "אנחנו רוצים".
