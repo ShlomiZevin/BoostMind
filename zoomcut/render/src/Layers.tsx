@@ -63,7 +63,7 @@ function Graphic({ p, layer, it, f, fonts }: { p: LayersProps; layer: any; it: a
     // this same composition) matches
     const look = [props.blur ? `blur(${props.blur}px)` : '', props.brightness != null && props.brightness !== 1 ? `brightness(${props.brightness})` : '',
       props.saturate != null && props.saturate !== 1 ? `saturate(${props.saturate})` : ''].filter(Boolean).join(' ') || undefined;
-    return <Img data-l={layer.nopick ? undefined : layer.id} data-i={layer.nopick ? undefined : it.id} src={src(p, props.asset)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, maxWidth: 'none',
+    return <Img data-l={layer.id} data-i={it.id} src={src(p, props.asset)} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, maxWidth: 'none',
       opacity: op, borderRadius: props.radius, transform: animTransform(it, t), filter: look }} />;
   }
   if (layer.kind === 'shape') {

@@ -5,10 +5,12 @@ on one picture row, one item per shot) and a voice row per character - like hare
     python tools/to_dialogue.py <project> <new id> [--picture person] [--set set] [--handles 1.5]
 
 What the copy gets:
-  - a video row per character (group = the character's name), each clip = its shot + its own background (item `bg`,
-    the set item's picture and box) + HANDLES: more of the take before / after (up to --handles s, never over the row's
-    next clip, never the recording's first 0.7 s / last 0.45 s) - the strip decides what is seen, so a cut can move;
-  - the voice rows moved into their character's group, each voice linked to the clip of the same take it overlaps most;
+  - a group of rows per character (group = the character's name): its video row, each clip = its shot + HANDLES: more
+    of the take before / after (up to --handles s, never over the row's next clip, never past what the strip shows,
+    never the recording's first 0.7 s / last 0.45 s) - the strip decides what is seen, so a cut can move; its
+    background row right under it ("רקע", one picture per clip = the set item's picture and box, linked to the clip);
+    its voice row(s), each voice linked to the clip of the same take it overlaps most; any other sound of its takes
+    (chewing, a whisper) moved onto its voice row with that row's settings as the clip's own (sounds as it did);
     each subtitle linked to the voice under it;
   - a "What we see" strip = who was on screen, shot by shot (a jump cut inside one person is not a strip cut);
   - every other layer as it was; `edit.ripple` off (nothing pushes); notes left behind (they belong to the original).
@@ -111,6 +113,33 @@ def convert(p, picture="person", sets="set", handles=1.5):
             it["in"] = round(it["in"] - rl / fps, 4)
             it["dur"] += rl + rr
             it["link"] = f"k.{slug[n]}.{k}"
+    for n, items in rows.items():
+        for k, it in enumerate(items):
+            it.setdefault("link", f"k.{slug[n]}.{k}")
+    # each clip's background -> an item of the character's background row, linked to it
+    bgrows = {n: [dict({"id": f"b{k}", "from": it["from"], "dur": it["dur"], "link": it["link"]}, **it.pop("bg"))
+                  for k, it in enumerate(items) if it.get("bg")] for n, items in rows.items()}
+    # a character's other sounds (chewing, a whisper - a row of its takes that is not a voice row): onto its voice row,
+    # that row's settings kept on each clip (so it sounds as it did), linked to the clip it plays under
+    vrow = {}
+    for l in voices:
+        vrow.setdefault(name_of(l), l)
+    moved = []
+    for l in p["layers"]:
+        if l["kind"] != "audio" or l in voices or not l.get("items") or not all(i.get("asset") in who for i in l["items"]):
+            continue
+        for i in l["items"]:
+            v = vrow.get(who[i["asset"]])
+            if not v:
+                break
+            sp, vp = l.get("props") or {}, v.get("props") or {}
+            c = dict(i, id=f"{l['id']}.{i['id']}", gain=round((i.get("gain") or 1) * (sp.get("volume") or 1) / (vp.get("volume") or 1), 3))
+            for k in ("voice", "clean", "level", "fx", "pitch"):
+                if sp.get(k) != vp.get(k):
+                    c[k] = sp.get(k) if sp.get(k) is not None else (False if k in ("voice", "fx") else "off" if k in ("clean", "level") else 1)
+            v.setdefault("items", []).append(c)
+        else:
+            moved.append(l["id"])
     linked = []
     for l in voices:
         n = name_of(l)
@@ -132,12 +161,14 @@ def convert(p, picture="person", sets="set", handles=1.5):
     bgdef = {k: setl["props"][k] for k in ("blur", "brightness", "saturate") if setl and k in (setl.get("props") or {})}
     out, vids = [], {id(l) for l in voices}
     for l in p["layers"]:
-        if (setl and l["id"] == setl["id"]) or id(l) in vids:
+        if (setl and l["id"] == setl["id"]) or id(l) in vids or l["id"] in moved:
             continue
         if l["id"] == person["id"]:
-            for n in reversed(names):  # (the first to speak on top of the list; each voice row right with its clips)
+            for n in reversed(names):  # (the first to speak on top of the list; under the clips its background, its voice)
+                if bgrows[n]:
+                    out.append({"id": f"{slug[n]}.bg", "kind": "image", "name": "רקע", "group": n, "props": dict(bgdef), "items": bgrows[n]})
                 out.append({"id": f"{slug[n]}.video", "kind": "video", "name": "וידאו", "group": n,
-                            "props": dict(props, mirror=mirror_row[n], **({"bg": bgdef} if bgdef else {})), "items": rows[n]})
+                            "props": dict(props, mirror=mirror_row[n]), "items": rows[n]})
                 out += [v for v in voices if name_of(v) == n]
             continue
         out.append(l)
@@ -163,7 +194,7 @@ def same_frames(orig, new, picture, sets):
     at = lambda items, t: [i for i in items if not i.get("hidden") and i["from"] <= t < i["from"] + i["dur"]]
     O = {l["id"]: l for l in orig["layers"]}
     rows = [l for l in f["layers"] if l["kind"] == "video" and re.fullmatch(r"c\d+\.video", l["id"])]
-    bgs = [l for l in f["layers"] if l["id"].endswith("~bg")]
+    bgs = [l for l in f["layers"] if re.fullmatch(r"c\d+\.bg", l["id"])]
     key = lambda i, t: i and (i["asset"], round((i.get("in") or 0) + (t - i["from"]) / fps * (i.get("rate") or 1), 3), json.dumps(i.get("box")), i.get("zoom"))
     bk = lambda i: i and (i["asset"], json.dumps(i.get("box")))
     bad = []

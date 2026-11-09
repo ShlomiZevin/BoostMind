@@ -195,9 +195,6 @@ export function validate(p) {
       if (it.in != null && (!isNum(it.in) || it.in < 0)) at(wi, 'in: seconds into the source, >= 0');
       // the "What we see" strip: whose video row is on screen (render/src/layers/view.js)
       if (l.kind === 'view' && (p.layers || []).find((x) => x.id === it.show)?.kind !== 'video') at(wi, 'show must name a video layer');
-      // a clip's own background (dialogue rows): a picture
-      const bg = l.kind === 'video' && (it.bg || l.props?.bg);
-      if (bg && bg.asset && p.assets?.[bg.asset]?.kind !== 'image') at(wi, `bg.asset "${bg.asset}" must be an image asset`);
     }
   }
   return e;

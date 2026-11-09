@@ -1,10 +1,10 @@
-// A dialogue project (skill/edit-video/layers.md -> "Dialogue"): one video row per character, each clip carrying its
-// own background (item `bg`), and the "What we see" strip (a `view` layer: items {from, dur, show: <video layer id>})
-// that says whose row is on screen when. flatten() turns that into the plain layers every drawing already knows - the
-// clips cut to where the strip shows their row, each clip's background as a picture right under it - so the editor
-// (render/src/Layers.tsx), its stills and the export (pipeline/export_layers.py, through tools/flatten_view.mjs) draw
-// the very same frames. Pure, cheap (it runs on every change while he drags), and a project without a strip or a clip
-// background comes back as it is.
+// A dialogue project (skill/edit-video/layers.md -> "Dialogue"): a group of rows per character - its video row (the
+// clips), its background row (a picture or a video under the clips; each background item linked to its clip), its voice,
+// any picture or text of its own - and the "What we see" strip (a `view` layer: items {from, dur, show: <video layer
+// id>}) that says whose rows are on screen when. Everything is a real layer he sees and changes; flatten() only cuts
+// each character's drawn rows to where the strip shows that character, so the editor (render/src/Layers.tsx), its
+// stills and the export (pipeline/export_layers.py, through tools/flatten_view.mjs) draw the very same frames. Pure,
+// cheap (it runs on every change while he drags), and a project without a strip comes back as it is.
 
 const ROWS_OK = new Set(['audio', 'view']);  // (layers that may sit between the character rows - nothing drawn)
 
@@ -51,7 +51,8 @@ function clip(it, spans, fps) {
 
 // where the strip shows a row that has no clip (a cut moved past the clip's handles): that row's nearest frame held
 // (rate 0 - the clip before ends -> its last frame, else the clip after -> its first), never a black hole in the
-// picture; the strip marks the stretch hatched so he sees it is frozen
+// picture; the strip marks the stretch hatched so he sees it is frozen. A held frame keeps its clip's `link`, so the
+// clip's background (and anything else linked to it in the character's group) is held with it - memberHolds().
 function holds(strip, l, items, fps) {
   const own = (l.items || []).filter((i) => !i.hidden && i.dur > 0);
   if (!own.length) return [];
@@ -68,74 +69,82 @@ function holds(strip, l, items, fps) {
       const after = own.filter((i) => i.from >= b - 0.5).sort((x, y) => x.from - y.from)[0];
       const src = before && (!after || a - (before.from + before.dur) <= after.from - b) ? before : after;
       if (!src || src.in == null) continue;
-      const at = src === before ? src.in + (src.dur / fps) * (src.rate ?? 1) - 1 / fps : src.in;
-      const { fade_in, fade_out, ...rest } = src;
-      out.push({ ...rest, id: `${src.id}~h${out.length}`, from: a, dur: b - a, in: +Math.max(0, at).toFixed(4), rate: 0 });
+      out.push(held(src, a, b, src === before, fps, `${src.id}~h${out.length}`));
     }
   }
   return out;
 }
 
-// a clip's background -> a picture item (canvas pixels, like any picture; no box = covers the frame)
-function bgItem(p, l, it) {
-  const bg = { ...(l.props?.bg || {}), ...(it.bg || {}) };
-  const a = bg.asset && p.assets?.[bg.asset];
-  if (!a) return null;
-  let box = bg.box;
-  if (!box) {
-    const { w: W, h: H } = p.canvas, s = Math.max(W / (a.w || W), H / (a.h || H));
-    box = { x: (W - a.w * s) / 2, y: (H - a.h * s) / 2, w: a.w * s, h: a.h * s };
-  }
-  const o = { id: it.id, from: it.from, dur: it.dur, asset: bg.asset, box };
-  for (const k of ['blur', 'brightness', 'saturate']) if (bg[k] != null) o[k] = bg[k];
-  for (const k of ['opacity', 'fade_in', 'fade_out', 'hidden']) if (it[k] != null) o[k] = it[k];
+// an item frozen over [a, b): a video at its last (end) or first frame, a picture / text as it is
+function held(src, a, b, end, fps, id) {
+  const { fade_in, fade_out, ...rest } = src;
+  const o = { ...rest, id, from: a, dur: b - a };
+  if (src.in != null) Object.assign(o, { in: +Math.max(0, end ? src.in + (src.dur / fps) * (src.rate ?? 1) - 1 / fps : src.in).toFixed(4), rate: 0 });
   return o;
 }
 
+// a row's held frames -> the same stretch for its linked items in another row of the character's group (its background)
+function memberHolds(rowHolds, l, items, fps) {
+  const out = [];
+  for (const h of rowHolds) {
+    if (!h.link || items.some((i) => !i.hidden && i.from < h.from + h.dur && i.from + i.dur > h.from)) continue;
+    const src = (l.items || []).filter((i) => !i.hidden && i.dur > 0 && i.link === h.link).sort((x, y) => x.from - y.from);
+    if (!src.length) continue;
+    const end = src[0].from < h.from, s = end ? src[src.length - 1] : src[0];
+    out.push(held(s, h.from, h.from + h.dur, end, fps, `${s.id}~h${out.length}`));
+  }
+  return out;
+}
+
+const NOT_OWN = new Set(['audio', 'view', 'effect', 'subtitles']);  // (rows in a character's group that are not drawn as theirs)
+
 export function flatten(p) {
   const layers = p?.layers || [];
-  const hasView = layers.some((l) => l.kind === 'view');
-  const hasBg = layers.some((l) => l.kind === 'video' && (l.props?.bg || (l.items || []).some((i) => i.bg)));
-  if (!hasView && !hasBg) return p;
+  if (!layers.some((l) => l.kind === 'view')) return p;
   const fps = p.canvas?.fps || 30;
   const strip = stripOf(p);
   const governed = new Set(strip.map((s) => s.show));
-  // each video row: its items cut to the strip, and its clips' backgrounds
-  const rows = new Map();
+  // whose each drawn row is: a character's video row (named on the strip), and every drawn row in its group
+  const rowOf = new Map();
+  for (const l of layers) if (l.kind === 'video' && governed.has(l.id)) rowOf.set(l.id, l);
   for (const l of layers) {
-    if (l.kind !== 'video') continue;
-    const spans = governed.has(l.id) ? shownSpans(strip, l.id) : null;
-    const items = spans ? (l.items || []).flatMap((it) => clip(it, spans, fps)) : (l.items || []);
-    if (spans) items.push(...holds(strip, l, items, fps));
-    const bgs = items.map((it) => bgItem(p, l, it)).filter(Boolean);
-    const props = { ...(l.props || {}) };
-    delete props.bg;
-    rows.set(l.id, { layer: { ...l, props, items: items.map(({ bg, ...it }) => it) }, bgs });
+    if (rowOf.has(l.id) || !l.group || NOT_OWN.has(l.kind)) continue;
+    const r = layers.find((x) => x.kind === 'video' && governed.has(x.id) && x.group === l.group);
+    if (r) rowOf.set(l.id, r);
   }
-  const bgLayer = (id, name, items, hidden) => ({ id, kind: 'image', name, hidden: !!hidden, nopick: true, props: {}, items });
-  // the character rows next to each other with nothing drawn between them (the strip shows one at a time): their
-  // backgrounds go in ONE picture layer under them, the rows right above it - one picture run + one video run for the
-  // export, as a project without rows. Otherwise each row gets its own background layer right under it.
+  // each cut to where the strip shows its character; the video row's held frames hold its linked rows too
+  const cut = new Map(), rowHolds = new Map();
+  for (const l of layers) {
+    if (rowOf.get(l.id)?.id !== l.id) continue;
+    const items = (l.items || []).flatMap((it) => clip(it, shownSpans(strip, l.id), fps));
+    const h = holds(strip, l, items, fps);
+    rowHolds.set(l.id, h);
+    cut.set(l.id, { ...l, items: [...items, ...h] });
+  }
+  for (const l of layers) {
+    const r = rowOf.get(l.id);
+    if (!r || r.id === l.id) continue;
+    const items = (l.items || []).flatMap((it) => clip(it, shownSpans(strip, r.id), fps));
+    cut.set(l.id, { ...l, items: [...items, ...memberHolds(rowHolds.get(r.id) || [], l, items, fps)] });
+  }
+  // the characters' rows next to each other with nothing else drawn between them (the strip shows one at a time):
+  // everyone's rows above their clips, then the clips, then everyone's rows under them (the backgrounds) - few runs for
+  // the export, as a project without characters. Otherwise each row stays where it is.
   const ids = layers.map((l) => l.id);
-  const gov = layers.filter((l) => l.kind === 'video' && governed.has(l.id));
-  const i0 = gov.length ? ids.indexOf(gov[0].id) : -1, i1 = gov.length ? ids.indexOf(gov[gov.length - 1].id) : -1;
-  const together = gov.length > 1 && layers.slice(i0, i1 + 1).every((l) => governed.has(l.id) || ROWS_OK.has(l.kind));
+  const mine = layers.filter((l) => rowOf.has(l.id));
+  const i0 = mine.length ? ids.indexOf(mine[0].id) : -1, i1 = mine.length ? ids.indexOf(mine[mine.length - 1].id) : -1;
+  const together = governed.size > 1 && layers.slice(i0, i1 + 1).every((l) => rowOf.has(l.id) || ROWS_OK.has(l.kind));
+  // (layers are bottom first: under the clips = before its video row)
+  const side = (x) => { const r = rowOf.get(x.id); return r.id === x.id ? 1 : ids.indexOf(x.id) < ids.indexOf(r.id) ? 0 : 2; };
   const out = [];
   for (const [i, l] of layers.entries()) {
     if (l.kind === 'view') continue;
     if (together && i >= i0 && i <= i1) {
-      if (i === i0) {
-        const bgs = gov.flatMap((g) => (g.hidden ? [] : rows.get(g.id).bgs));
-        if (bgs.length) out.push(bgLayer(`${gov[0].id}~bg`, 'Backgrounds', bgs, false));
-        for (const g of gov) out.push(rows.get(g.id).layer);
-      }
-      if (l.kind !== 'video') out.push(l);  // (a voice row between them stays where it was)
+      if (i === i0) for (const k of [0, 1, 2]) for (const x of mine) if (side(x) === k) out.push(cut.get(x.id));
+      if (!rowOf.has(l.id)) out.push(l);  // (a voice row between them stays where it was)
       continue;
     }
-    const r = rows.get(l.id);
-    if (!r) { out.push(l); continue; }
-    if (r.bgs.length) out.push(bgLayer(`${l.id}~bg`, `${l.name || l.id} - backgrounds`, r.bgs, l.hidden));
-    out.push(r.layer);
+    out.push(cut.get(l.id) || l);
   }
   return { ...p, layers: out };
 }

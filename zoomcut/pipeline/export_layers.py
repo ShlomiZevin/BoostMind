@@ -39,10 +39,9 @@ SKIP_KINDS = {"audio", "effect", "view"}
 
 
 def flatten_view(project):
-    """A dialogue project (a "What we see" strip, a background per clip) -> the plain layers the editor draws: the very
-    same function (render/src/layers/view.js through tools/flatten_view.mjs), so the export shows what he saw."""
-    if not any(l["kind"] == "view" or (l["kind"] == "video" and ((l.get("props") or {}).get("bg") or any(i.get("bg") for i in l.get("items", []))))
-               for l in project["layers"]):
+    """A dialogue project (a "What we see" strip over the characters' rows) -> the plain layers the editor draws: the
+    very same function (render/src/layers/view.js through tools/flatten_view.mjs), so the export shows what he saw."""
+    if not any(l["kind"] == "view" for l in project["layers"]):
         return project
     import tempfile
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as fh:

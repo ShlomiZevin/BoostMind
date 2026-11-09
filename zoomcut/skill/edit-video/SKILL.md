@@ -82,7 +82,8 @@ layers a builder made; the editor and the export don't know or care which builde
    a reaction while the first finishes), mixed with straight cuts; cut away to the listener during long runs. Details:
    `recipes/hani.md` → haredit-5.
    **A dialogue is built as a row per character + the "What we see" strip** (his approved model, 2026-11-09 -
-   `layers.md` → "Dialogue"): each clip = its video + its own background + its voice under it, with handles; the strip
+   `layers.md` → "Dialogue"): a group of rows per character - video, background (its own row), voice, its pictures -
+   every one a row he sees and changes (a background hidden inside the clip was rejected); clips with handles; the strip
    says who is seen when, so he makes the J / L cuts himself by dragging a line - nothing rebuilds, nothing pushes.
    Build it that way from the first cut (fill the strip by the rules above); an older one-row cut becomes a dialogue
    copy with `tools/to_dialogue.py`.

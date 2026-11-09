@@ -65,8 +65,8 @@ One format, one composition, one editor, one export. The format and the API: `la
   order with `rev`).
 - **Dialogue rows + "What we see" (2026-11-09, plans/dialogue-editing.md):** a project with a `view` layer is a
   dialogue - `ui/layers/dialogue.ts` (the strip's ops, who moves with what, the character colours), the strip row and
-  the linked moves in Timeline.tsx, `render/src/layers/view.js` `flatten()` in Layers.tsx (and the export) so the
-  strip and each clip's background draw as plain layers. Format and gestures: layers.md -> "Dialogue". A project
+  the linked moves in Timeline.tsx, `render/src/layers/view.js` `flatten()` in Layers.tsx (and the export) cuts each
+  character's rows (video, background, pictures - all real rows he picks and changes) to where the strip shows it. Format and gestures: layers.md -> "Dialogue". A project
   without a strip is untouched (flatten returns it as it is). Tests: `node tools/view_test.mjs` (+ ops_roundtrip).
 - **Builders**: zoomcut.py analyzes as before; `pipeline/to_layers.py` writes its layers (window chrome picture from
   `render/src/builders/ZoomChrome.tsx`, title / timer / count as text, tiles as video items with `z`, office photos as

@@ -1,6 +1,7 @@
-// A dialogue project in the timeline (layers.md -> "Dialogue"; the drawing side is render/src/layers/view.js): a row
-// per character (its video clips, each with its own background, and its voice under it), and the "What we see" strip
-// on top - whose row is on screen when. Dragging a clip takes its voice (and the line's subtitles) along; a voice drags
+// A dialogue project in the timeline (layers.md -> "Dialogue"; the drawing side is render/src/layers/view.js): a group
+// of rows per character (its video clips, its background row under them, its voice, any picture of its own), and the
+// "What we see" strip on top - whose rows are on screen when. Dragging a clip takes everything linked to it along (its
+// background, its voice, the line's subtitles); trimming a clip trims the background that ends with it; a voice drags
 // alone (heard before / after its picture); the strip's cuts move only who is seen. Nothing pushes anything else.
 // The pure helpers here give the ops; Timeline.tsx wires them to the mouse and the keys.
 import { stripOf } from '../../src/layers/view.js';
@@ -11,11 +12,15 @@ export const isDialogue = (p: any) => !!viewLayer(p);
 // one colour per character - the strip's block and the character's rows share it
 const PALETTE = ['#4a86e8', '#e0795a', '#3fa66b', '#c2507a', '#d9a441', '#8a5cd6', '#3aa7b8'];
 
-/** The characters: every video row that is named on the strip or sits in a group, in the order of the layers (top
- *  first, as the timeline lists them) - {id (the video row), name, color, group}. */
+/** The characters: every video row that is named on the strip (or, in a group nobody on the strip is in, the group's
+ *  top video row - a video background is not a character), in the order of the layers (top first, as the timeline
+ *  lists them) - {id (the video row), name, color, group}. */
 export function characters(p: any) {
   const named = new Set(stripOf(p).map((s: any) => s.show));
-  const vids = [...(p.layers || [])].reverse().filter((l: any) => l.kind === 'video' && (named.has(l.id) || l.group));
+  const ls = [...(p.layers || [])].reverse();
+  const groupsNamed = new Set(ls.filter((l: any) => named.has(l.id)).map((l: any) => l.group).filter(Boolean));
+  const vids = ls.filter((l: any, i: number) => l.kind === 'video' && (named.has(l.id)
+    || (l.group && !groupsNamed.has(l.group) && !ls.slice(0, i).some((x: any) => x.kind === 'video' && x.group === l.group))));
   return vids.map((l: any, i: number) => ({ id: l.id, name: l.group || l.name || l.id, color: PALETTE[i % PALETTE.length], group: l.group }));
 }
 
@@ -30,19 +35,32 @@ export function rowColors(p: any): Record<string, string> {
   return out;
 }
 
-/** What moves with a clip that is moved (not trimmed): a video clip takes its voice and the line's subtitles (same
- *  `link`); a voice takes only the line's subtitles. Everything else stays (nothing pushes). */
+/** What moves with a clip that is moved (not trimmed): a video clip takes everything with its `link` - its background
+ *  and any row of its character's group, its voice, the line's subtitles; a voice takes only the line's subtitles.
+ *  Everything else stays (nothing pushes). */
 export function followers(p: any, l: any, it: any) {
   if (!it.link || !isDialogue(p) || !(l.kind === 'video' || l.kind === 'audio')) return [] as { layer: string; it: any }[];
   const out: { layer: string; it: any }[] = [];
   for (const ly of p.layers || []) {
     if (ly.id === l.id) continue;
-    const take = l.kind === 'video' ? ly.kind === 'audio' || ly.kind === 'subtitles' : ly.kind === 'subtitles';
+    const take = l.kind === 'video' ? ly.kind !== 'view' : ly.kind === 'subtitles';
     if (!take) continue;
     // (a voice: only the subtitles over it - a line said in several pieces keeps the others' words where they are)
     const over = (x: any) => l.kind === 'video' || (x.from + x.dur / 2 >= it.from && x.from + x.dur / 2 < it.from + it.dur);
     for (const x of ly.items || []) if (x.link === it.link && over(x)) out.push({ layer: ly.id, it: x });
   }
+  return out;
+}
+
+/** What a trimmed clip's edge takes along: the linked items of its character's other drawn rows (its background) whose
+ *  same edge was with the clip's - so a background never ends before (or after) its picture. */
+export function edgeFollowers(p: any, l: any, it: any, side: 'l' | 'r') {
+  if (!it.link || !isDialogue(p) || l.kind !== 'video' || !l.group) return [] as { layer: string; it: any }[];
+  const edge = (x: any) => (side === 'l' ? x.from : x.from + x.dur);
+  const out: { layer: string; it: any }[] = [];
+  for (const ly of p.layers || [])
+    if (ly.id !== l.id && ly.group === l.group && ly.kind !== 'audio' && ly.kind !== 'view')
+      for (const x of ly.items || []) if (x.link === it.link && Math.abs(edge(x) - edge(it)) <= 1) out.push({ layer: ly.id, it: x });
   return out;
 }
 

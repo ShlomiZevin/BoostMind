@@ -10,7 +10,7 @@ import { ask } from './ask';
 import { Note, NotePins, PRESETS, saveNotes, newNote } from './Notes';
 import { Find } from './Find';
 import { tempoOf } from '../../src/layers/clock.js';
-import { viewLayer, characters, rowColors, followers, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
+import { viewLayer, characters, rowColors, followers, edgeFollowers, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -188,8 +188,13 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     };
     const moved = (d: number) => { const s: any = opsFor(d)[0].set; return side === 'r' ? s.dur - it.dur : s.from - it.from; };
     // a dialogue row: a clip moved takes its voice and the line's subtitles along, a voice its subtitles (dialogue.ts)
+    // (a trimmed clip: the background that ended with it trims along - a video background's footage slips with it)
     const fol = side === 'm' ? followers(project, l, it) : [];
-    const follow = (ops: any[], d: number) => (fol.length ? [...ops, ...fol.map((f) => ({ op: 'item.update', layer: f.layer, id: f.it.id, set: { from: Math.max(0, f.it.from + moved(d)) } }))] : ops);
+    const efol = side !== 'm' ? edgeFollowers(project, l, it, side as 'l' | 'r') : [];
+    const edgeOp = (x: any, ly: string, m: number) => (side === 'r' ? { op: 'item.update', layer: ly, id: x.id, set: { dur: Math.max(1, x.dur + m) } }
+      : { op: 'item.update', layer: ly, id: x.id, set: { from: Math.max(0, x.from + m), dur: Math.max(1, x.dur - m), ...(x.in != null ? { in: +Math.max(0, x.in + (m / fps) * (x.rate ?? 1)).toFixed(4) } : {}) } });
+    const follow = (ops: any[], d: number) => [...ops, ...fol.map((f) => ({ op: 'item.update', layer: f.layer, id: f.it.id, set: { from: Math.max(0, f.it.from + moved(d)) } })),
+      ...(side === 'l' && stuck.length ? [] : efol.map((f) => edgeOp(f.it, f.layer, moved(d))))];  // (a start stuck to the clip before keeps its place)
     const base = project;
     // a nudge (chain): an edge where the clip is STUCK to the next one on its lane moves that one and every clip stuck
     // after it (and their linked voice / subtitles) - the join stays a join; a clip with space after it just changes.

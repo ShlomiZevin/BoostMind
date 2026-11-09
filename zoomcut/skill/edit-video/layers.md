@@ -188,40 +188,46 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 `anim: {"opacity": [[t, v], ...], "scale": [...], "x": [...], "y": [...]}` - t = seconds from the item's start,
 linear between keys, held at the ends. Text / image / shape items.
 
-### Dialogue - a row per character + "What we see" (2026-11-09, plans/dialogue-editing.md)
+### Dialogue - a group of rows per character + "What we see" (2026-11-09, plans/dialogue-editing.md)
 Characters filmed alone, woven into a conversation and cut like a film (hear the next one before we see them, still
 hear the last one after the picture moved on). Live like everything else - his drag IS the edit, nothing rebuilds.
-- **A row per character** (never a row per clip): a group named after the character with its `video` row
-  (`<c>.video`, cut-out, every clip pointing at the WHOLE take) and its voice row (audio) right under it. A clip and its
-  voice pieces share a `link`; each subtitle carries the link of the voice under it.
-- **A background per clip**: video item `bg: {asset, box, blur?, brightness?, saturate?}` - a picture (canvas pixels
-  like an image item; no box = covers the frame) drawn right behind that clip, moving and trimming with it. Layer
-  `props.bg` = the row's defaults under every clip's own (`{blur: 6, brightness: 0.96, saturate: 0.95}` - a set
-  behind a person). Canvas space on purpose: a seated person's box is moved down (y 150) - a picture inside the
-  clip's box would leave the top empty.
+- **Every element is a row he sees** (his words, 2026-11-09: "everything is on a layer, what you see is what you get - a
+  person can have a person, a sound, and background, and also maybe images on top of it"; a background hidden inside
+  the clip was rejected). A **group per character** (`group` = the character's name), never a row per clip:
+  - its `video` row (`<c>.video`, cut-out, every clip pointing at the WHOLE take);
+  - its **background row** right under it (`<c>.bg`, "רקע"): an `image` row - or a `video` row for a moving
+    background - one item per clip with the clip's `link`, canvas pixels like any picture (`props` blur / brightness /
+    saturate = the set look, `{blur: 6, brightness: 0.96, saturate: 0.95}`). He picks it on the timeline or on the
+    picture (outside the person) and replaces / moves / blurs it like any picture;
+  - its voice row(s) (audio) - its other sounds too (chewing, a whisper: on the voice row, the clip carrying its own
+    `voice` / `clean` / `level` / `gain`, so one row shows everything the character says or does);
+  - any picture / text of its own (a hat, a name tag): a row in the group, above the clips.
+  A clip, its background and its voice pieces share a `link`; each subtitle carries the link of the voice under it.
 - **"What we see"**: ONE `view` layer, items `{id, from, dur, show: "<video layer id>"}`, back to back, no gaps. Where
-  the strip has an item, only the row it names is drawn (its clips' backgrounds with it); every other layer (texts,
-  subtitles, stickers, effects, a video row the strip never names) as usual. Where the strip says nothing, every row
+  the strip has an item, only the character it names is drawn (its video row and every drawn row of its group - the
+  background, its pictures); every other layer (texts, subtitles, stickers, effects, rows of no character) as usual. Where the strip says nothing, every row
   draws as before. A row's clips have HANDLES (more of the take before / after the line, inside the safe margins -
   never the recording's first 0.7 s / last 0.45 s), so moving a strip cut rarely runs out of picture; a stretch where
   the named row has no clip is hatched on the strip and HOLDS that row's nearest frame (rate 0 - never a black hole;
-  moving 19 cuts of haredit-5 by 0.4 s ran past the handles at 3 of them, 9-11 frames each).
+  moving 19 cuts of haredit-5 by 0.4 s ran past the handles at 3 of them, 9-11 frames each) - and the background linked
+  to that clip with it.
 - `edit: {"ripple": false}` - nothing pushes anything else.
-- How it is drawn: `render/src/layers/view.js` `flatten()` turns the strip + the clip backgrounds into plain layers
-  (each clip cut to where the strip shows its row, `in` moved with it; the backgrounds a picture layer `<row>~bg`
-  under the rows - one for all the rows when they sit together) - the editor's composition (Layers.tsx), its stills
+- How it is drawn: `render/src/layers/view.js` `flatten()` cuts each character's drawn rows to where the strip shows
+  that character (`in` moved with it) and drops the strip; when the characters' groups sit together it orders them
+  everyone's backgrounds -> everyone's clips -> everyone's pictures, so the export has few runs - the editor's composition (Layers.tsx), its stills
   and the export (export_layers.py through `tools/flatten_view.mjs`) all draw that one result. Tests: `node
   tools/view_test.mjs`; playing across cuts `ZC_PORT=<a test studio> node tools/flicker_test.mjs <copy>` (the bench
   flattens too) - haredit-5's copy: 0 blank frames over 36 cuts, drags at 60 fps (2026-11-09).
 - In the editor (dialogue.ts + Timeline.tsx): the strip on top (coloured per character, the rows carry the same
   colour); drag the line between two blocks = who is seen changes there (snaps to a voice's start / end, a clip's edge,
   the playhead within 6 px; `,` `.` nudge it a frame once picked); click a block = pick who is seen; **S** = a new cut
-  at the playhead; Delete = the block goes, its neighbour takes the time. Move a clip = its voice + the line's
-  subtitles move with it; move / trim a voice = only that voice + the subtitles over it (the block then says "sound
+  at the playhead; Delete = the block goes, its neighbour takes the time. Move a clip = everything linked moves with it
+  (its background, its voice, the line's subtitles); trim a clip = the background that ended with it trims too; move / trim a voice = only that voice + the subtitles over it (the block then says "sound
   −0.30 s" - heard before / after its own picture). Trim a clip = more / less of the take.
 - **An older one-row cut -> a dialogue COPY** (the original untouched): `python tools/to_dialogue.py <project> <new id>
   [--picture person] [--set set] [--handles 1.5]` - who is who from the voice rows (a take nobody hears: the character
-  whose clips share its background), the strip from the shots, handles, links; every frame checked against the
+  whose clips share its background), a background row per character from the set row, the character's other sounds
+  onto its voice row, the strip from the shots, handles (never past what the strip shows - a poster tail stays), links; every frame checked against the
   original before it writes (same take, moment, box, background); files hard-linked, project.json new.
 
 ### link and ripple - editing like one piece
