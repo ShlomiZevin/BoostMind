@@ -140,3 +140,6 @@ zoomcut/characters/index.json
 
 # the Shlomiverse design / session scripts' own OpenAI key (2026-11-06) - never in git; node scripts/design-env.mjs makes it on a computer
 scripts/design.env
+
+# script backups a session keeps while editing (haredit-5.txt.bak2 ...) - the script itself is in git
+zoomcut/scripts/*.bak*
