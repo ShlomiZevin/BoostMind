@@ -98,7 +98,8 @@ Run the stories in parallel (`&` ... `wait`). Up to ~5 references work well.
 - **The words come from Terra** (`gpt-5.6-terra`, `openai-leonardo` skill) - ask for several short options, pick.
 - **Never stretch a picture to 9:16** - crop it or have the model paint it at 1088x1920 (Osnat, 9 Nov: "it's stretched").
   And he wants the story READY TO POST - the picture with its words, the brand and the link box - not a bare picture.
-- **Send the final to his Telegram twice**: as a photo (to look at) and as a document (full quality, to post).
+- **Send it to his Telegram ONCE, as one file** (a document, full quality). Never the same picture twice - photo + file
+  annoyed him (10 Nov: "stop sending me everything twice").
 - **Worked example**: `scripts/yotam-games/deadlock/story/` - `prompt3.txt` (the poster), `face2.txt` + `face-mask2.png`
   (the head fix from video frames), `story.html` + `shot.js` (brand + link box laid on in code -> `deadlock-story.jpg`).
   Copy that folder's story.html for the next one: change the picture and the words, keep the brand and the box.
