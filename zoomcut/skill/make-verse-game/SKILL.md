@@ -150,6 +150,13 @@ Read before any idea - the game must be something THIS character would be in:
     sync") = this PC's untracked `package-lock.json` is stale: `npm install --package-lock-only`, deploy again.
   - Backstage: `deploy-onto-live.js --page=/backstage/index.html=public/backstage/index.html`.
   - Check: `curl -s https://shlomiverse.com/backstage/ | grep <site>`.
+  - **Then prove it with real numbers, on release day** (Rosenblum drill, 10 Nov 2026 - he asked "is it in the analytics? I
+    don't see it"): open the game once from the verse (#/play/<id>, a browser without `?notrack`), start a round, then
+    read today's counters: `curl -s -H "Authorization: Bearer $(gcloud auth print-access-token)"
+    "https://firestore.googleapis.com/v1/projects/boostmind-b052c/databases/(default)/documents/analytics_days/<YYYY-MM-DD>"`
+    and find `site.<site>`, `view|_<site>_<slug>_`, `game_start|<slug>` and `game|<site>-<slug>` (the verse's open). All
+    four there = counted; tell him which Backstage list shows each (games = "משחקים" by rounds, sites = by site). A
+    missing key = fix it before you say "released". His own phone is marked notrack - his plays never count.
 - One folder per game: `index.html`, `game.js` (or `src/` + a small build), `game.json`, `cover.jpg`, `assets/`
   (pictures, sounds, models). Ordinary web files - as many and as big as the game needs; only keep phone loading
   sensible (jpg/webp at the size shown, mp3 sounds trimmed, models compressed).
