@@ -174,7 +174,7 @@ One format, one composition, one editor, one export. The format and the API: `la
   'project' op; `pipeline/project.py` merge moves them by timemap; sessions: `tools/notes.mjs` (SKILL.md "fix notes").
 - **Range notes (2026-11-10, his ask: "mark a range ... start and end"):** Shift+drag on the ruler (a plain drag still
   moves the playhead) or press the ruler's note button and drag along it = a note on that stretch (`end` frame; a dashed
-  band with its times while dragging, then the window says "0:12.3 – 0:15.1"). On the ruler it is a band from the flag:
+  band with its times while dragging, then the window says "0:12.3 – 0:15.1"). On the ruler it is a slim bar along its bottom from the flag (under the quick buttons, on top where they meet - a click always reaches it):
   drag it = move, its edges = start / end; "Just the start" in its window makes it a moment again. notes.mjs prints the
   stretch, everything playing through it and a still of its first and last frame; project.py merge moves `end` too.
 - **Quick notes on the ruler (2026-11-03, his ask):** hover the ruler = a yellow line at the mouse + the PRESETS as small

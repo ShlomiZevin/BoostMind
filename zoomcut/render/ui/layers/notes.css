@@ -4,18 +4,21 @@
 .ltl-note:hover { background: rgba(240, 180, 76, 0.16); }
 .ltl-note.fixed { color: var(--ok, #4cc38a); }
 .ltl-note.checked { color: var(--faint); }
-/* a range note (his ask, 2026-11-10): a band from its start to its end; its edges change them */
-.ltl-nband { position: absolute; top: 3px; height: 17px; z-index: 3; border-radius: 3px; cursor: grab; color: #f0b44c;
-  background: color-mix(in srgb, currentColor 22%, transparent); border: 1px solid color-mix(in srgb, currentColor 70%, transparent); box-sizing: border-box; }
+/* a range note (his ask, 2026-11-10): a slim bar along the ruler's bottom from its flag to its end - under the quick
+   buttons (they sit in the middle), on top of them where they meet, so it can always be clicked; its ends = start / end */
+.ltl-nband { position: absolute; top: 23px; height: 6px; z-index: 6; border-radius: 3px; cursor: grab; color: #f0b44c;
+  background: color-mix(in srgb, currentColor 55%, transparent); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
+.ltl-nband::before { content: ''; position: absolute; left: 0; right: 0; top: -4px; bottom: -1px; }  /* (an easier target than 6 px) */
 .ltl-nband.fixed { color: var(--ok, #4cc38a); }
 .ltl-nband.checked { color: var(--faint); }
-.ltl-nband:hover { background: color-mix(in srgb, currentColor 34%, transparent); }
-.ltl-nband i { position: absolute; top: -1px; bottom: -1px; width: 7px; cursor: ew-resize; }
-.ltl-nband i.l { left: -4px; } .ltl-nband i.r { right: -4px; }
-.ltl-nband i::after { content: ''; position: absolute; top: 3px; bottom: 3px; left: 3px; width: 2px; border-radius: 1px; background: currentColor; opacity: 0; }
-.ltl-nband:hover i::after { opacity: 0.9; }
+.ltl-nband:hover { background: currentColor; }
+.ltl-nband i { position: absolute; top: -4px; bottom: -1px; width: 9px; cursor: ew-resize; z-index: 1; }
+.ltl-nband i.l { left: -5px; } .ltl-nband i.r { right: -5px; }
+.ltl-nband i::after { content: ''; position: absolute; top: 1px; bottom: 0; left: 3px; width: 3px; border-radius: 2px; background: currentColor; opacity: 0; transition: opacity .1s; }
+.ltl-nband:hover i::after { opacity: 1; }
+.ltl-track:has(.ltl-nband:hover) .ltl-qn { display: none; }
 /* marking a range (Shift+drag on the ruler / dragging from its note button): the stretch while the mouse moves */
-.ltl-nband.draft { pointer-events: none; z-index: 6; border-style: dashed; }
+.ltl-nband.draft { pointer-events: none; z-index: 7; background: repeating-linear-gradient(90deg, #f0b44c 0 6px, transparent 6px 10px); }
 .ltl-nband.draft span { position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px;
   padding: 1px 6px; border-radius: 4px; background: #f0b44c; color: #1a1716; font-weight: 600; }
 .ltl-note::after { content: ''; position: absolute; left: 50%; top: 17px; width: 1px; height: 8px; background: currentColor; opacity: 0.7; }
