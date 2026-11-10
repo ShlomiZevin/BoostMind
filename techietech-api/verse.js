@@ -1101,14 +1101,17 @@ async function peopleList() {
   const users = [];
   let next;
   do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users); next = r.pageToken; } while (next && users.length < 50000);
-  const [fans, sites] = await Promise.all([db.collection('fans').select('nick', 'official').get(), db.collection('siteUsers').select('sites').get()]);
+  const [fans, sites, czs] = await Promise.all([db.collection('fans').select('nick', 'official').get(), db.collection('siteUsers').select('sites').get(),
+    db.collection('citizens').select('stamped', 'n', 'test').get()]);
   const fan = Object.fromEntries(fans.docs.map((d) => [d.id, d.data()]));
+  // citizens (his ask 2026-11-10: "how many citizens already", at the top of אנשים): stamped = they have a passport number; tests don't count
+  const cz = Object.fromEntries(czs.docs.filter((d) => !d.data().test).map((d) => [d.id, d.data()]));
   const site = Object.fromEntries(sites.docs.map((d) => [d.id, d.data().sites || []]));
   return users.map((u) => ({ uid: u.uid, email: u.email || null, name: u.displayName || null, photo: u.photoURL || null,
     created: Date.parse(u.metadata.creationTime) || null, last: Date.parse(u.metadata.lastRefreshTime || u.metadata.lastSignInTime) || null,
     // a real account: Google, or an email proved by a code (emailIn - no provider on those, 2026-11-06: Backstage counted
     // only the Google ones, so 5 sign-ups showed as 2); anonymous visitors have neither
-    google: u.providerData.length > 0 || (!!u.email && !!u.emailVerified), fan: u.uid in fan, nick: fan[u.uid]?.nick || null, official: !!fan[u.uid]?.official, sites: site[u.uid] || [] }));
+    google: u.providerData.length > 0 || (!!u.email && !!u.emailVerified), fan: u.uid in fan, citizen: !!cz[u.uid]?.stamped, czStarted: u.uid in cz && !cz[u.uid].stamped, czN: cz[u.uid]?.n || null, nick: fan[u.uid]?.nick || null, official: !!fan[u.uid]?.official, sites: site[u.uid] || [] }));
 }
 
 // the numbers Terra answers from: 90 days of counters (without page routes / search words), every account (no emails -

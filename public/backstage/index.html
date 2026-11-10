@@ -434,6 +434,7 @@
   .gl { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
   .gl > *, .dgrid > *, .cols > * { min-width: 0; }
   .kgrid.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kgrid.k4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .k .trend { white-space: nowrap; }
   .bars .br { display: grid; grid-template-columns: minmax(0, 1fr) 54px; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: .92rem; }
   .bars .br:first-child { border-top: 0; }
@@ -593,7 +594,7 @@
   .ml-bar .btn { height: 42px; padding: 0 16px; font-size: .92rem; white-space: nowrap; }
   .ml-bar .ml-err { margin: 0; }
   @media (max-width: 900px) {
-    .kgrid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kgrid, .kgrid.k4 { grid-template-columns: 1fr 1fr; gap: 10px; }
     .k { padding: 12px 13px; border-radius: 18px; } .k b { font-size: 1.65rem; } .k .spark { width: 50px; }
     .dgrid { grid-template-columns: 1fr; }
     .gl { grid-template-columns: minmax(0, 1fr); }
@@ -1635,20 +1636,21 @@ let pQuery = '', pFilter = 'all', pDay = null;
 function people() {
   const all = accounts().sort((a, b) => (b.created || 0) - (a.created || 0)), q = pQuery.trim().toLowerCase();
   const today = dayIL(), weekAgo = dayStart(dayBack(6));
-  const list = all.filter((p) => (pFilter === 'all' || (pFilter === 'verse' && p.fan) || (pFilter === 'sites' && p.sites.length) || (pFilter === 'today' && dayIL(p.created) === today) || (pFilter === 'week' && p.created >= weekAgo))
+  const list = all.filter((p) => (pFilter === 'all' || (pFilter === 'verse' && p.fan) || (pFilter === 'citizens' && p.citizen) || (pFilter === 'sites' && p.sites.length) || (pFilter === 'today' && dayIL(p.created) === today) || (pFilter === 'week' && p.created >= weekAgo))
     && (!pDay || dayIL(p.created) === pDay)
     && (!q || [p.email, p.name, p.nick, ...p.sites.map((x) => SITES[x] || x)].join(' ').toLowerCase().includes(q)));
-  const from = (p) => [p.fan ? '<span class="tag or">שלומיוורס</span>' : '', ...p.sites.map((x) => `<span class="tag wh">${esc(SITES[x] || x)}</span>`)].join('');
+  const from = (p) => [p.citizen ? `<span class="tag or">אזרח/ית${p.czN ? ' #' + p.czN : ''}</span>` : '', p.fan ? '<span class="tag or">שלומיוורס</span>' : '', ...p.sites.map((x) => `<span class="tag wh">${esc(SITES[x] || x)}</span>`)].join('');
   $('#pane').innerHTML = `
     <div class="top"><div><h1>אנשים</h1><p>כל מי שנכנס עם חשבון Google, מהחדש לישן.</p></div>
       <button class="btn" id="pp-copy">${IC.mail}העתקת המיילים${q || pFilter !== 'all' || pDay ? ' (מהרשימה)' : ''}</button></div>
-    <div class="kgrid k3">
+    <div class="kgrid k4">
       <div class="k"><span class="kh">${IC.people}רשומים</span><b>${fmt(all.length)}</b><span class="kf"><small class="note">${fmt(all.filter((p) => p.fan).length)} בשלומיוורס</small></span></div>
+      <div class="k"><span class="kh">${IC.join}אזרחים</span><b>${fmt(all.filter((p) => p.citizen).length)}</b><span class="kf"><small class="note">${fmt(all.filter((p) => p.czStarted).length)} באמצע הדרך לדרכון</small></span></div>
       <div class="k"><span class="kh">${IC.join}השבוע</span><b><bdi dir="ltr">+${fmt(all.filter((p) => p.created >= weekAgo).length)}</bdi></b></div>
       <div class="k"><span class="kh">${IC.join}היום</span><b><bdi dir="ltr">+${fmt(all.filter((p) => dayIL(p.created) === today).length)}</bdi></b></div></div>
     <div class="card" style="margin-bottom:14px"><div class="card-h"><h2>הרשמות ביום</h2><small class="hint">${pDay ? `${dayName(pDay)} · <button data-pday="" style="color:#ff9a5c;font-weight:700">כל הימים</button>` : 'לחיצה על יום מציגה מי נרשם בו'}</small></div><div class="chart" id="p-ch"></div></div>
     <label class="search" style="margin-bottom:12px">${IC.search}<input id="pp-q" placeholder="חיפוש לפי שם, מייל או אתר" value="${esc(pQuery)}"></label>
-    <div class="chips">${[['all', 'הכול'], ['verse', 'שלומיוורס'], ['sites', 'מהאתרים'], ['today', 'היום'], ['week', 'השבוע']].map(([k, l]) => `<button data-pf="${k}" class="${k === pFilter ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div class="chips">${[['all', 'הכול'], ['verse', 'שלומיוורס'], ['citizens', 'אזרחים'], ['sites', 'מהאתרים'], ['today', 'היום'], ['week', 'השבוע']].map(([k, l]) => `<button data-pf="${k}" class="${k === pFilter ? 'on' : ''}">${l}</button>`).join('')}</div>
     <div>${list.map((p) => `<button class="person" data-person="${p.uid}">${personFace(p)}
       <div class="body"><b>${esc(personName(p))}</b>${p.official ? OFC : ''}<div class="em">${esc(p.email || '')}</div><div class="when">נרשם/ה ${stamp(p.created)}${p.last ? ` · נראה/תה ${ago(p.last)}` : ''}</div></div>
       <div class="tags">${from(p)}</div></button>`).join('') || '<div class="empty">אין כאן אף אחד.</div>'}</div>`;
