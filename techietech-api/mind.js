@@ -470,6 +470,8 @@ ${gone.map(line).join('\n') || '(none)'}`,
   throw new Error('unknown op');
 }
 
+// for verse.js (the archive's requests reach him as Mind tasks, 2026-11-10)
+exports._mind = { addItem, updateItem };
 exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256MiB', timeoutSeconds: 60, secrets: [OPENAI, VAPID_PRIVATE],
   cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/] }, async (req, res) => {
   res.set('cache-control', 'no-store');

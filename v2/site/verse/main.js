@@ -10,7 +10,7 @@ import { renderTop, yourVerse, homeSlot, stickersSlot, heroHi, notesPage, mePage
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff, recordsPage } from './records.js';
 import { startRowArrows } from './rows.js';
-import { archivePage } from './archive.js';
+import { archivePage, archiveCard } from './archive.js';
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
 import { mountTz } from './tzhome.js';
@@ -42,6 +42,7 @@ Object.assign(HOOK, {
   stickerCard,   // [[sticker:ID]] in a chat reply
   ideaCard: chatIdeaCard,   // [[idea:KIND|TEXT]] in a chat reply: the visitor's idea, ready to send
   quizCard,      // [[quiz]] in a chat reply: the character suggests the simulation test (sim.js)
+  archiveCard,   // [[archive]] in a chat reply: a video it didn't find - the archive (archive.js)
   nearestId: nearest,
   // the chat sends the account with each question (3 in total without an account, 10 a day signed in), and signs in from its note
   chatToken: () => (st.user ? st.user.getIdToken() : Promise.resolve(null)),

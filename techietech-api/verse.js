@@ -568,7 +568,11 @@ const ops = {
         ...(permalink && !ws.data()?.permalink ? { permalink } : {}) }, { merge: true });
       if (on) tx.set(mine, { t: now }); else tx.delete(mine);
       tx.set(db.collection('wishVoters').doc(ig), { uids: on ? FieldValue.arrayUnion(uid) : FieldValue.arrayRemove(uid) }, { merge: true });
-      return { ok: true, n: Math.max(0, n + (on ? 1 : -1)), mine: on };
+      return { ok: true, n: Math.max(0, n + (on ? 1 : -1)), mine: on, _new: on };
+    }).then(async (r) => {
+      if (r._new && !isOwner(auth)) await wishToMind(ig, uid, note).catch((e) => console.error('wish -> mind', e.message));
+      delete r._new;
+      return r;
     });
   },
   // the page's marks: mine + how many asked for each open one + which are in the verse already (ig -> video id)
@@ -879,6 +883,7 @@ async function wishFound(ig, vid) {
   const ref = db.collection('wishes').doc(ig), was = await ref.get();
   if (was.exists && was.data().done) return { told: 0 };
   await ref.set({ ig, done: true, videoId, doneAt: FieldValue.serverTimestamp(), ...(was.exists ? {} : { n: 0, t: FieldValue.serverTimestamp() }) }, { merge: true });
+  if (was.data()?.mind) await require('./mind')._mind.updateItem(was.data().mind, { status: 'done', note: `עלה לשלומיוורס: ${SITE}/v/${videoId}` }, 'הארכיון').catch((e) => console.error('wish mind done', e.message));
   const uids = ((await db.collection('wishVoters').doc(ig).get()).data() || {}).uids || [];
   if (!uids.length) return { told: 0 };
   const url = await pageOf(videoId), title = oneLine(v.title, 120);
@@ -894,6 +899,32 @@ async function wishFound(ig, vid) {
   }
   return { told: uids.length };
 }
+// a resident asked for an archive post (his ask 2026-11-10: "how will I know?" - "open a task for me on Mind, Mind notifies me"):
+// one Mind task per post, waiting for him (Mind buzzes his phone when it turns to waiting); more asks for the same post update
+// that task (no second buzz until he has handled it); when the video is in the verse (wishFound) the task is done.
+let igList = null, igAt = 0;
+async function igPost(ig) {
+  if (!igList || Date.now() - igAt > 30 * 60e3) {
+    const r = await fetch('https://storage.googleapis.com/shlomiverse-media/insta/list.json').then((x) => x.json()).catch(() => null);
+    if (r?.items) { igList = Object.fromEntries(r.items.map((x) => [x.id, x])); igAt = Date.now(); }
+  }
+  return igList?.[ig] || null;
+}
+async function wishToMind(ig, uid, note) {
+  const { addItem, updateItem } = require('./mind')._mind;
+  const [w, fan, post] = await Promise.all([db.collection('wishes').doc(ig).get().then((d) => d.data() || {}), db.collection('fans').doc(uid).get().then((d) => d.data() || {}), igPost(ig)]);
+  const who = fan.nick || 'תושב/ת', cap = oneLine(String(post?.cap || '').replace(/#[\p{L}\p{N}_]+/gu, ''), 70);
+  const day = post?.d ? post.d.split('-').reverse().map(Number).join('.') : '';
+  const text = `בקשה מהארכיון: ${cap || 'פוסט ' + (day || ig)}${w.n > 1 ? ` (${w.n} ביקשו)` : ''}`;
+  const body = [`${(w.n || 1) === 1 ? 'תושב אחד ביקש' : `${w.n} תושבים ביקשו`} להביא את הפוסט${day ? ` מ-${day}` : ''} לשלומיוורס.`, post?.p ? `הפוסט: https://www.instagram.com/reel/${post.p}/` : (w.permalink ? `הפוסט: ${w.permalink}` : ''),
+    `כל הבקשות: https://shlomiverse.com/backstage/ (סרטונים)`, `להביא אותו: סשן insta-to-verse, ig ${ig} - כשהוא עולה, מי שביקש מקבל הודעה והמשימה נסגרת לבד.`].filter(Boolean).join('\n');
+  const said = `${who} ביקש/ה${note ? `: "${oneLine(note, 200)}"` : ''}`;
+  if (w.mind) { try { return await updateItem(w.mind, { text, body, status: 'waiting', note: said }, 'הארכיון'); } catch (e) { /* the task was deleted - open a new one */ } }
+  const it = await addItem({ text, body, type: 'task', project: 'BoostMind', tags: ['archive'], note: said }, 'הארכיון');
+  await db.collection('wishes').doc(ig).set({ mind: it.id }, { merge: true });
+  await updateItem(it.id, { status: 'waiting', note: said }, 'הארכיון');   // waiting = his phone buzzes
+}
+
 async function wishSweep() {
   const open = await db.collection('wishes').where('done', '==', false).select().get();
   if (open.empty) return;
@@ -1394,4 +1425,4 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
 });
 
 // for scripts/tests: the archive wishes without the callable wrapper
-exports._wish = { wish: (uid, d, auth) => ops.wish(uid, d, auth), wishes: (uid) => ops.wishes(uid), wishFound, wishSweep };
+exports._wish = { wish: (uid, d, auth) => ops.wish(uid, d, auth), wishes: (uid) => ops.wishes(uid), wishFound, wishSweep, wishToMind };

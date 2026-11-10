@@ -92,6 +92,15 @@ export function archiveStrip(onReady) {
       <img class="arc-planet" src="/verse/logo-512.png" alt=""></div></a>`;
 }
 
+// the archive's card inside a chat reply ([[archive]], wiki.js MISSING): the covers + the planet, one line, the way in
+export function archiveCard() {
+  const S = A().strip;
+  if (!strip) archiveStrip();
+  const covers = strip ? strip.covers.slice(-3) : [];
+  return `<a class="arc-chat" href="/archive">${covers.length ? `<span class="arc-chat-fan" aria-hidden="true">${covers.map((c, i) => `<img class="f${i}" src="${COVER(c.id)}" alt="" loading="lazy">`).join('')}</span>` : ''}
+    <span class="arc-chat-t"><b>${esc(S.title)}</b><small>${esc(strip ? A().chatLine(num(strip.n), strip.from) : A().chatLine0)}</small><span class="arc-chat-go">${esc(S.go)} ${I.next}</span></span></a>`;
+}
+
 // ---------- the page ----------
 export function archivePage() {
   setTimeout(mount, 0);

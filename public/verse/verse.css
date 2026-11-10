@@ -2832,3 +2832,13 @@ body:not([data-page="home"]) > footer { display: none !important; }
   .arc-c { width: 31%; bottom: 44px; } .arc-c.c0 { left: 8%; } .arc-c.c1 { left: 24%; } .arc-c.c2 { left: 42%; } .arc-c.c3 { left: 58%; }
   .arc-planet { width: 46%; }
 }
+
+/* the archive's card inside a chat reply ([[archive]]) */
+.arc-chat { display: flex; align-items: center; gap: 14px; margin: 10px 0; padding: 12px 14px; border-radius: 18px; text-decoration: none; color: var(--text);
+  background: radial-gradient(120% 140% at 10% 50%, rgba(255, 106, 31, .2), transparent 60%), #141419; border: 1.5px solid color-mix(in srgb, var(--vx-accent) 60%, transparent); }
+.arc-chat-fan { position: relative; flex: none; width: 92px; height: 74px; }
+.arc-chat-fan img { position: absolute; bottom: 0; width: 42px; height: 66px; object-fit: cover; border-radius: 8px; border: 1.5px solid rgba(255, 140, 61, .8); box-shadow: 0 6px 14px rgba(0, 0, 0, .5); transform-origin: 50% 100%; }
+.arc-chat-fan .f0 { left: 0; transform: rotate(-12deg); } .arc-chat-fan .f1 { left: 25px; transform: translateY(-4px); z-index: 2; } .arc-chat-fan .f2 { left: 50px; transform: rotate(12deg); }
+.arc-chat-t { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.arc-chat-t b { font-size: 1.05rem; font-weight: 900; } .arc-chat-t small { color: var(--dim); font-size: .84rem; line-height: 1.35; }
+.arc-chat-go { display: inline-flex; align-items: center; gap: 4px; color: var(--vx-accent); font-weight: 800; font-size: .9rem; } .arc-chat-go svg { width: 16px; height: 16px; }

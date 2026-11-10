@@ -1011,6 +1011,9 @@ function renderText(text, streaming) {
       } else if (m && m[1] === 'request' && HOOK.requestCard) {
         flush();
         parts.push(streaming ? '' : HOOK.requestCard(m[2], cxMode, m[3]));
+      } else if (line.trim() === '[[archive]]') {   // the archive's card: a video the chat didn't find (wiki.js MISSING, archive.js)
+        flush();
+        parts.push(streaming ? '' : HOOK.archiveCard ? HOOK.archiveCard() : '<a class="ms" href="/archive"><span class="ms-t"><span><b>הארכיון</b></span><span class="go">לחפש בארכיון ←</span></span></a>');
       } else if (line.trim() === '[[invite]]') {   // today's 10 are used: their own invite link (wiki.js LIMIT.done)
         flush();
         parts.push(streaming ? '' : inviteCard());
