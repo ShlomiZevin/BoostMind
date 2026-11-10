@@ -28,7 +28,7 @@ GROUPS = [
 FOLDER = {
     'links': 'verse', 'wiki': 'verse', 'archive': 'verse', 'tziftzif': 'verse', 'charadot': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'piko': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
-    'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters',
+    'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters', 'neve-tidhar': 'characters',
     'sketch-studio': 'tools', 'karaoke': 'tools', 'sticker-lab': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
     'wholos': 'wholos', 'wholos-app': 'wholos', 'matzav': 'wholos', 'matzav-app': 'wholos', 'marketing-hub': 'wholos',
     'brand-strip': 'wholos', 'uploads': 'wholos', 'meeting-sergio': 'wholos', 'trial-options': 'wholos', 'wellbeing': 'wholos',
@@ -42,6 +42,7 @@ PROPOSAL = re.compile(r'שלומי זוין|נועם זוין|Shlomi Zovin|Shlom
 
 EXTRA = [
     # the Shlomiverse and his socials
+    ('verse', 'הארכיון · כל האינסטגרם, לסמן מה להביא', 'https://shlomiverse.com/archive', ''),
     ('verse', 'TikTok', 'https://www.tiktok.com/@shlomizevin', 'רשת'),
     ('verse', 'Instagram', 'https://www.instagram.com/shlomizevin', 'רשת'),
     ('verse', 'YouTube', 'https://www.youtube.com/@shlomizevin', 'רשת'),
