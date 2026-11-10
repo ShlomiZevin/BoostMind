@@ -43,6 +43,16 @@ function ideaCard(x) {
         <button class="icon-btn" data-share-idea="${x.id}" aria-label="${esc(T.ideaShare)}">${I.share}</button></span></div></div></div>`;
 }
 
+// the home's idea of the week: two lines of it, its step, its votes and the way to all of them - one compact block (ideas-row.mjs)
+function ideaLine(x) {
+  const on = myVotes.has(x.id);
+  return `<div class="cx-iw" id="idea-${x.id}"><div class="cx-iw-by"><em>${esc(T.ideaWeek)}</em>${av({ fan: x })}<span>${esc(x.nick || '')}</span>${ofc(x)}</div>
+    <a class="cx-iw-text" href="/community?idea=${x.id}">${esc(x.text)}</a>
+    <div class="cx-iw-foot"><a class="cx-iw-all" href="/community">${esc(T.ideasAll)} ←</a><span class="cx-iw-acts">${stepBadge(x)}
+      <button class="vote ${on ? 'on' : ''}" data-vote="${x.id}" aria-label="+1">${LIKE}<b dir="ltr">${x.votes ? x.votes : '+1'}</b></button>
+      <button class="icon-btn" data-share-idea="${x.id}" aria-label="${esc(T.ideaShare)}">${I.share}</button></span></div></div>`;
+}
+
 // ---------- the community page (#/community) ----------
 export function communityPage(q = {}) {
   if (q.idea) { focusIdea = q.idea; setTimeout(() => document.getElementById('idea-' + q.idea)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120); }
@@ -113,11 +123,11 @@ export function homeBand() {
   return `<section class="cmy-band cx-band">
     <div class="cmy-ideas-h"><div><h2>${brand(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
     <div class="cxg">${['sticker', 'pack', 'chat', 'follow', 'stories', 'games', 'sites'].map(card).join('')}</div>
-    <div class="cx-idea"><div class="cx-idea-h"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div>
+    <div class="cx-idea${top ? '' : ' solo'}"><div class="cx-idea-h"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div>
       <button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
-      ${top ? `<div class="cx-idea-top">${ideaCard(top)}<a class="cd-all" href="/community">${esc(T.ideasAll)} ←</a></div>` : ''}</div>
+      ${top ? ideaLine(top) : ''}</div>
     <button class="cx-biz" data-biz>
-      <span class="cx-biz-art" aria-hidden="true"><img src="/verse/art/biz-media.jpg" alt="" loading="lazy"></span>
+      <span class="cx-biz-art" aria-hidden="true"><img class="a" src="/verse/art/biz-media-a.jpg" alt="" loading="lazy"><img class="b" src="/verse/art/biz-media.jpg" alt="" loading="lazy"></span>
       <span class="cx-biz-txt"><em>${esc(T.biz2.tag)}</em><b>${brand(T.biz2.title)}</b><small>${esc(T.biz2.line)}</small>
         <span class="cx-biz-row"><span class="vx-btn main">${esc(T.biz2.cta)}</span>
           <span class="cx-chips">${T.biz2.chips.map((c, i) => `<span>${[I.planet, I.play, I.people][i]}${esc(c)}</span>`).join('')}</span></span></span></button>
@@ -336,7 +346,7 @@ const bizForm = () => `<form class="biz-form"><h2>${esc(T.bizFormTitle)}</h2><p>
       <button class="vx-btn main block">${esc(T.bizSend)}</button></form>`;
 export function bizSheet() {
   track('click', 'biz_open');
-  sheet(`<div class="in biz-sheet"><img class="biz-sheet-art" src="/verse/art/biz-media.jpg" alt="">${bizForm()}</div>`, { cls: 'biz-sh' });
+  sheet(`<div class="in biz-sheet"><img class="biz-sheet-art" src="/verse/art/biz-media-a.jpg" alt="">${bizForm()}</div>`, { cls: 'biz-sh' });
 }
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-biz], a[href="/business"]');
@@ -351,7 +361,7 @@ async function bizSignIn() {
   return !!st.user;
 }
 export function businessPage() {
-  return `<div class="biz biz-only"><img class="biz-sheet-art" src="/verse/art/biz-media.jpg" alt="">${bizForm()}</div>`;
+  return `<div class="biz biz-only"><img class="biz-sheet-art" src="/verse/art/biz-media-a.jpg" alt="">${bizForm()}</div>`;
 }
 document.addEventListener('click', (e) => { const t = e.target.closest('[data-topic]'); if (t) t.parentElement.querySelectorAll('[data-topic]').forEach((b) => b.classList.toggle('on', b === t)); });
 document.addEventListener('submit', async (e) => {
