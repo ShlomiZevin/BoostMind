@@ -3002,3 +3002,26 @@ button.cx-biz { width: 100%; padding: 0; font: inherit; text-align: right; curso
   .cx-biz-art img.b { display: block; position: static; flex: 1; min-width: 0; height: 100%; object-fit: cover; object-position: 28% 30%;
     -webkit-mask-image: linear-gradient(270deg, transparent 0, #000 22%); mask-image: linear-gradient(270deg, transparent 0, #000 22%); }
 }
+
+/* the strip's carousel (his ask 2026-11-10: "an immersive carousel, auto"): A (the dedicated video in front of the site's banner),
+   the real devices, B (Hani + Yotam filming) - each fades in with a slow zoom; dots show which */
+.cx-biz-art { position: relative; }
+.cx-slides { position: absolute; inset: 0; overflow: hidden; }
+.cx-slides .sl { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.4s ease; display: block; }
+.cx-slides img.sl { object-position: 30% 35%; }
+.cx-slides .sl.on { opacity: 1; animation: cx-zoom 7s ease-out both; }
+.cx-slides .sl.dev { display: none; }
+@keyframes cx-zoom { from { transform: scale(1.0); } to { transform: scale(1.07); } }
+@media (prefers-reduced-motion: reduce) { .cx-slides .sl.on { animation: none; } }
+.cx-dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 3; }
+.cx-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .35); transition: width .3s, background .3s; }
+.cx-dots i.on { width: 20px; border-radius: 99px; background: var(--vx-accent); }
+@media (max-width: 899px) { .cx-dots i:nth-child(3) { display: none; } .cx-biz-art { height: 210px; } .cx-slides { -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); } }
+@media (min-width: 900px) {
+  .cx-biz, .cx-biz { grid-template-columns: minmax(0, 1fr) 46%; min-height: 260px; }
+  .cx-slides { -webkit-mask-image: linear-gradient(90deg, #000 72%, transparent); mask-image: linear-gradient(90deg, #000 72%, transparent); }
+  .cx-slides .sl.dev { display: flex; align-items: center; justify-content: center; }
+  .cx-slides .sl.dev .cx-dev { margin: 0 auto; }
+  .cx-slides img.sl:nth-child(2) { object-position: 30% 45%; }
+}
+@media (min-width: 1240px) { .cx-biz { grid-template-columns: minmax(0, 1fr) 52%; } }

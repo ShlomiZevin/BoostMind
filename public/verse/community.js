@@ -127,7 +127,9 @@ export function homeBand() {
       <button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
       ${top ? ideaLine(top) : ''}</div>
     <button class="cx-biz" data-biz>
-      <span class="cx-biz-art" aria-hidden="true">${bizDevices()}<img class="b" src="/verse/art/biz-media.jpg" alt="" loading="lazy"></span>
+      <span class="cx-biz-art" aria-hidden="true"><span class="cx-slides">
+        <img class="sl on" src="/verse/art/biz-media.jpg" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-media-a.jpg" alt="" loading="lazy"><span class="sl dev">${bizDevices()}</span>
+      </span><span class="cx-dots"><i class="on"></i><i></i><i></i></span></span>
       <span class="cx-biz-txt"><em>${esc(T.biz2.tag)}</em><b>${brand(T.biz2.title)}</b><small>${esc(T.biz2.line)}</small>
         <span class="cx-biz-row"><span class="vx-btn main">${esc(T.biz2.cta)}</span>
           <span class="cx-chips">${T.biz2.chips.map((c, i) => `<span>${[I.planet, I.play, I.people][i]}${esc(c)}</span>`).join('')}</span></span></span></button>
@@ -342,6 +344,25 @@ function bizDevices() {
   return `<span class="cx-dev"><span class="cx-lap"><span class="scr"><img src="/verse/art/biz-site.jpg" alt="" loading="lazy"></span><i></i></span>
     <span class="cx-ph"><span class="scr">${v ? `<img src="${esc(abs(v.poster))}" alt="" loading="lazy">` : ''}<em>${esc(T.biz2.collab)}</em></span></span></span>`;
 }
+
+// the strip's pictures change by themselves (his ask 2026-11-10: "an immersive carousel, auto"): a slow crossfade + zoom every 5 s,
+// one timer for the page, it stops by itself when the strip is gone; a phone skips the devices (too small there)
+let bizTimer = 0;
+function bizCarousel() {
+  clearInterval(bizTimer);
+  bizTimer = setInterval(() => {
+    const box = document.querySelector('.cx-slides');
+    if (!box) { clearInterval(bizTimer); bizTimer = 0; return; }
+    if (document.hidden) return;
+    const phone = matchMedia('(max-width: 899px)').matches;
+    const all = [...box.querySelectorAll('.sl')], use = all.filter((s) => !(phone && s.classList.contains('dev')));
+    const i = use.findIndex((s) => s.classList.contains('on')), next = use[(i + 1) % use.length];
+    all.forEach((s) => s.classList.toggle('on', s === next));
+    box.parentElement.querySelectorAll('.cx-dots i').forEach((d, k) => d.classList.toggle('on', all[k] === next));
+  }, 5000);
+}
+const startBiz = () => { if (document.querySelector('.cx-slides') && !bizTimer) bizCarousel(); };
+new MutationObserver(startBiz).observe(document.body, { childList: true, subtree: true });
 
 // one business form for every way in (his ask 2026-11-10: "no business page for now - a form I get notified about"; the home's
 // strip, "לעסקים" in the top bar and the footer all open it). A Google sign-in only - no resident profile needed for a business.
