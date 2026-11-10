@@ -95,3 +95,4 @@ principles - apply them to whatever the game is.
 - **Every tap on a character answers** - even with nothing to give him he reacts (a hop and a line). A dead tap feels broken.
 - **Restart is one tap away during play**, and when the round can no longer be won the game stops and asks "להתחיל מחדש?" with restart as the main button.
 - **Hebrew menus read right to left**: the main action is the first (rightmost/top) button; times as 0:26 (a number + "שנ׳" flips in RTL); "עצרנו", not "הפסקה" (a break); a level card shows the goal and the tools you get.
+- **Nothing drawn on top of anything** (הקטר המאסף, 10 Nov 2026): a level is checked by a script at the narrowest screen for doors / props / characters that overlap (classroom door over the yard door looked like a broken double door). Run it whenever levels change.
