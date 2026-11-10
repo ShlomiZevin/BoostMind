@@ -46,6 +46,10 @@ Reply in English; Hebrew only in the story.
 5. **Look before you post.** `scripts/stories/preview.mjs` draws it with the site's own code on three screens and checks
    every box; exit 1 = fix it. Then LOOK at the pictures yourself - the checker only knows the areas you told it.
 
+**An Instagram version he posts himself (with a link sticker)** is not a verse story: follow `marketing-stories`,
+"A story he posts with a link sticker" - link box centre ~25% from the bottom, GPT-painted poster with its words,
+Shlomiverse logo + two-colour wordmark + URL, few elements, the character painted from frames of their own videos.
+
 ## The flow
 1. **The picture** - a tall 9:16 picture (1088x1920 or 1080x1920; another shape is fine, it fits whole) or a short clip.
    - New picture: GPT Image 2.5 (the `marketing-stories` skill's way: real references of the people, the scene's
