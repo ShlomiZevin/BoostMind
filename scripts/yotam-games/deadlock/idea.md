@@ -43,3 +43,15 @@
 - Sounds: ElevenLabs studio key was OUT OF CREDITS -> reused Plaxzy library sounds (container-pack slide/fit,
   tiny-racers bumps, gan-run honks + bus) + Pac-Man's start/clear/music. Replace with ElevenLabs once credits return.
 - Tests: tools/t1-play.js (tutorial + all 5 lots by real drags), tools/t2-phones.js (4 phones by touch + landscape).
+
+## Round 2 (10 Nov 2026) - his notes: "sounds not great", "people lean out of the window, colleagues - can't shout",
+"buttons hide that it's a Techy-Tech parking", "bottom area wasted", "make it more Techy-Tech / my verse", a story poster
+- Sounds remade (Leonardo; ElevenLabs still 0 credits): 2 candidates each, sfx2/fix.js cuts the leading silence (old ones
+  started 0.2-0.6 s late), trims, fades, peak -1.5 dB. 8 slides, 4 bumps, 5 honks, 5 window motors, gate, 2 picks, start, 2 wins.
+- Window peeks: after a move / a bump / when blocking Yotam, the owner's face slides from the roof to the side window with a
+  polite bubble (Terra lines, lines/window.json) + a window-motor sound. No honks on bumps.
+- HUD moved to the bottom; the board is pinned to the top so the Techy-Tech wall sign is never covered.
+- Lobby strip (assets/lobby.jpg, flare from floor.jpg): elevator, badge reader, charger, Sagi's scooter, logo - fills the bottom.
+- Team chat card "#חניון-b2" in the lobby (Terra lines, lines/chat.json): 2 teammates post at each lot's start, one cheers on exit.
+- End screen: "the team who blocked me today" faces -> /c/<id> in the verse.
+- Story poster: story/story.html + art.jpg -> story/deadlock-story.jpg (empty dashed box for the link sticker), sent to Telegram.
