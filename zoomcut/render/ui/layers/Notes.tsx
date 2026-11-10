@@ -37,23 +37,26 @@ const PinIc = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="curren
 
 /** The notes on the ruler: a flag each (yellow open, green fixed, grey checked); a range note also a band to its end.
  *  Click opens it; drag the flag / the band moves it along, a band's edge changes its start / end. */
-export function NotePins({ notes, view = 'active', px, pps, fps, total, onOpen, send }: { notes: Note[]; view?: NoteView; px: (f: number) => number; pps: number; fps: number; total: number;
-  onOpen: (n: Note) => void; send: Send }) {
+export function NotePins({ notes, view = 'active', px, pps, fps, total, onOpen, send, onSeek }: { notes: Note[]; view?: NoteView; px: (f: number) => number; pps: number; fps: number; total: number;
+  onOpen: (n: Note) => void; send: Send; onSeek?: (f: number) => void }) {
   const down = (e: React.MouseEvent, n: Note, side: 'm' | 'l' | 'r' = 'm') => {
     e.stopPropagation(); e.preventDefault();
-    const x0 = e.clientX, len = n.end != null ? n.end - n.at : 0;
+    const x0 = e.clientX, len = n.end != null ? n.end - n.at : 0, tr = (e.currentTarget as HTMLElement).closest('.ltl-track');
     let moved = false, next = n;
     const mv = (m: MouseEvent) => {
       if (!moved && Math.abs(m.clientX - x0) < 4) return;
+      if (!moved) tr?.classList.add('ranging');  // (the quick buttons hide while a note is dragged)
       moved = true;
       const d = Math.round(((m.clientX - x0) / pps) * fps);
       if (side === 'm') { const at = Math.max(0, Math.min(total - 1 - len, n.at + d)); next = { ...n, at, ...(n.end != null ? { end: at + len } : {}) }; }
       else if (side === 'l') next = { ...n, at: Math.max(0, Math.min(n.end! - 1, n.at + d)) };
       else next = { ...n, end: Math.max(n.at + 1, Math.min(total, n.end! + d)) };
       send([{ op: 'project', set: { notes: notes.map((x) => (x.id === n.id ? next : x)) } }], { commit: false });
+      onSeek?.(side === 'r' ? Math.min(total - 1, next.end! - 1) : next.at);  // (the viewer shows the edge being set)
     };
     const up = () => {
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
+      tr?.classList.remove('ranging');
       if (!moved) { onOpen(n); return; }
       send([], { commit: false });
       saveNotes(send, notes.map((x) => (x.id === n.id ? next : x)), side === 'm' ? 'move note' : 'note range');

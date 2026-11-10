@@ -387,6 +387,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const qnAt = useRef(0), qn = useRef<{ lock: number | null; t: any }>({ lock: null, t: 0 });
   const qnMove = (e: React.MouseEvent) => {
     const tr = e.currentTarget as HTMLElement, x = e.clientX - tr.getBoundingClientRect().left, st = qn.current;
+    tr.classList.toggle('shift', e.shiftKey);  // (Shift held = about to mark a stretch: the quick buttons step aside)
     if ((e.target as HTMLElement).closest('.ltl-qn, .ltl-qp')) return;  // (on the buttons: the line stays - never stopPropagation here, it would cut a playhead drag)
     if (st.lock != null && x >= st.lock - 10 && x <= st.lock + 90) return;  // (the three buttons right of the line)
     if (st.lock != null) { st.lock = null; tr.classList.remove('qn-lock'); }
@@ -395,11 +396,16 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     clearTimeout(st.t);
     st.t = setTimeout(() => { st.lock = px(qnAt.current); tr.classList.add('qn-lock'); }, 160);
   };
-  const qnLeave = (e: React.MouseEvent) => { const st = qn.current; clearTimeout(st.t); st.lock = null; (e.currentTarget as HTMLElement).classList.remove('qn-lock'); };
+  const qnLeave = (e: React.MouseEvent) => { const st = qn.current; clearTimeout(st.t); st.lock = null; (e.currentTarget as HTMLElement).classList.remove('qn-lock', 'shift'); };
   // a range note (his ask, 2026-11-10: "dragging the mouse ... mark a range and say something on it"): Shift+drag on
   // the ruler (a plain drag there still moves the playhead), or press the ruler's note button and drag along it. The
   // stretch shows while the mouse moves; letting go opens the note for it (a tiny drag = the plain click)
   const [rangeDraft, setRangeDraft] = useState<{ a: number; b: number } | null>(null);
+  useEffect(() => {  // (Shift pressed / let go: the quick buttons step aside at once, not only on the next mouse move)
+    const k = (e: KeyboardEvent) => { if (e.key === 'Shift') document.querySelector('.ltl-ruler .ltl-track')?.classList.toggle('shift', e.type === 'keydown'); };
+    addEventListener('keydown', k); addEventListener('keyup', k);
+    return () => { removeEventListener('keydown', k); removeEventListener('keyup', k); };
+  }, []);
   const rangeDragged = useRef(false);
   const markRange = (e: React.MouseEvent, from?: number) => {
     const tr = (e.currentTarget as HTMLElement).closest('.ltl-track') as HTMLElement;
@@ -407,14 +413,19 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const a = from ?? fAt(e.clientX), x0 = e.clientX;
     let b = a;
     rangeDragged.current = false;
+    // (the viewer shows the frame under the mouse the whole way - his ask: "see the right frame ... when I started the
+    // mark and when I ended it"; the quick buttons hide meanwhile)
     const mv = (m: MouseEvent) => {
       if (!rangeDragged.current && Math.abs(m.clientX - x0) < 5) return;
+      if (!rangeDragged.current) { tr.classList.add('ranging'); onSeek(Math.min(total - 1, a)); }
       rangeDragged.current = true;
       b = fAt(m.clientX);
       setRangeDraft({ a, b });
+      onSeek(Math.min(total - 1, b));
     };
     const up = () => {
       removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
+      tr.classList.remove('ranging');
       setRangeDraft(null);
       if (rangeDragged.current && Math.abs(b - a) >= 2) onNote!(null, Math.min(a, b), Math.max(a, b));
       else if (from == null) onSeek(Math.min(total - 1, a));
@@ -709,7 +720,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
             <div className="ltl-track" style={{ width }} onMouseDown={(e) => (onNote && e.shiftKey ? (e.preventDefault(), markRange(e)) : seekAt(e))} onMouseMove={onNote ? qnMove : undefined} onMouseLeave={onNote ? qnLeave : undefined}
               title={onNote ? 'Click / drag = move the playhead · Shift+drag = mark a stretch and write a note on it' : undefined}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
-              {onNote && <NotePins notes={notes} view={noteView} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
+              {onNote && <NotePins notes={notes} view={noteView} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} onSeek={onSeek} />}
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
                 <button title="A note for Claude right here (at the line) - write what to fix. Press and drag along the ruler = a note on that stretch"
                   onMouseDown={(e) => markRange(e, qnAt.current)} onClick={() => { if (!rangeDragged.current) onNote(null, qnAt.current); rangeDragged.current = false; }}>{QN_IC.note}</button>
