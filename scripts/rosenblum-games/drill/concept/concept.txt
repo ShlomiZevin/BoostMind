@@ -1,0 +1,9 @@
+A screenshot of a finished, polished mobile game, upright phone screen (portrait). The game is a Lemmings-style puzzle game set during a school shelter drill in an Israeli high school.
+
+The play area is a side-view cross-section of the school building, three floors stacked top to bottom, painted in a warm, detailed, hand-painted cartoon style: a classroom with a green door on the top floor, a corridor with notice boards and lockers, a toilets door, a stairwell going down, a corridor under repair with a gap in the floor, and at the very bottom a protected shelter room (a heavy steel door, benches).
+
+Dozens of tiny schoolchildren walk out of the classroom in a neat column, two by two, holding hands, marching along the floors and down the stairs like Lemmings. One pair has stopped with arms spread out, blocking the way. The last child walks alone at the end of the column with a backpack.
+
+At the top of the screen, a strip with the teacher's head (the man in the reference photo: grey messy wig with bangs, thin metal glasses, black polo shirt, beard) peering over his glasses, with a short Hebrew speech line: "שניים שניים! לסגור רווחים!". A small siren timer bar and a counter.
+
+At the bottom, a row of four big round command buttons for the thumb, each with an icon and a Hebrew word: "עצור!", "חזור!", "גשר!", "פתח!", each with a small number.

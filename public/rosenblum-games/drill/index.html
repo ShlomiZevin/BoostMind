@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#24343a">
+<title>הקטר המאסף – המשחק של המורה רוזנבלום</title>
+<meta name="description" content="תרגיל ירידה למרחב מוגן: הכיתה של המורה רוזנבלום יוצאת שניים שניים והולכת לבד – לשירותים, לחצר, אחרי הכיתה של רעות. אתם נותנים את ההוראות ומורידים את כולם למקלט, ושחר הקטר המאסף – אחרון.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="הקטר המאסף – המשחק של המורה רוזנבלום">
+<meta property="og:description" content="שניים שניים! לא לעזוב ידיים! הורידו את הכיתה של רוזנבלום למרחב המוגן.">
+<meta property="og:url" content="https://shlomiverse.com/rosenblum-games/drill/">
+<meta property="og:image" content="https://shlomiverse.com/rosenblum-games/drill/assets/share.jpg?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="rosenblum-games" defer></script>
+<script src="/verse/game-frame.js"></script>
+<style>
+:root{
+  --ink:#1f2a2e; --board:#24343a; --chalk:#f4efe2; --red:#e2483d; --blue:#2f7fd6; --yellow:#f2b530; --green:#2fa457;
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
+  --topH:74px; --barH:104px;
+}
+@media (max-height:640px){:root{--topH:62px;--barH:88px}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
+body{background:var(--board)}
+:root{--sw:100vw}
+@media (min-aspect-ratio:4/5){
+  :root{--sw:calc(100vh * .5625)}
+  html{background:radial-gradient(circle at 50% 40%,#3c5560,#111a1d)}
+  body{width:var(--sw);margin:0 auto;transform:translateZ(0);box-shadow:0 0 0 1px #ffffff22,0 20px 60px #0009}
+}
+[hidden]{display:none!important}
+button{font-family:inherit;border:0;cursor:pointer}
+
+/* play layout: top strip (Rosenblum + timer + count), the building, the orders */
+#play{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--safe-t);padding-bottom:var(--safe-b)}
+#top{height:var(--topH);flex:none;display:flex;align-items:center;gap:8px;padding:0 8px;background:linear-gradient(#2c3f46,#24343a);border-bottom:3px solid #6b4a2b}
+#head{height:calc(var(--topH) - 6px);width:auto;flex:none;align-self:flex-end;filter:drop-shadow(0 2px 3px #0006)}
+#say{flex:1;min-width:0;background:var(--chalk);border-radius:14px;padding:6px 10px;font-weight:700;font-size:15px;line-height:1.25;position:relative;max-height:calc(var(--topH) - 12px);overflow:hidden;transition:opacity .2s}
+#say:before{content:"";position:absolute;right:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-left-color:var(--chalk);border-right:0}
+#say.quiet{opacity:.0}
+#stats{flex:none;display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.stat{background:#0007;color:#fff;border-radius:10px;padding:3px 8px;font-weight:900;font-size:15px;display:flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;direction:ltr}
+.stat small{font-size:11px;font-weight:700;opacity:.8;direction:rtl}
+#timer.low{background:#b3261ecc;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+#stage{flex:1;position:relative;min-height:0}
+canvas{position:absolute;display:block;touch-action:none}
+#bar{height:var(--barH);flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px;background:linear-gradient(#24343a,#1b272b);border-top:3px solid #6b4a2b}
+#orders{flex:1;display:flex;gap:6px;justify-content:space-between;height:100%}
+.ord{flex:1;max-width:84px;border-radius:18px;position:relative;color:#fff;font-weight:900;font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:inset 0 -5px 0 #0003,0 3px 0 #0006;transition:transform .1s}
+.ord svg{width:32px;height:32px;fill:#fff}
+@media (max-height:640px){.ord svg{width:26px;height:26px}.ord{font-size:13px}}
+.ord[data-o=stop]{background:var(--red)}.ord[data-o=turn]{background:var(--blue)}.ord[data-o=bridge]{background:var(--yellow);color:#4a2f00}.ord[data-o=bridge] svg{fill:#4a2f00}.ord[data-o=open]{background:var(--green)}
+.ord.sel{transform:translateY(-4px);outline:4px solid #fff;outline-offset:-1px}
+.ord.empty{filter:grayscale(1) brightness(.6)}
+.ord.off{display:none}
+.ord b{position:absolute;top:-6px;left:-4px;background:#111;color:#fff;border:2px solid #fff;border-radius:99px;min-width:26px;height:26px;display:grid;place-items:center;font-size:14px}
+#ctl{display:flex;flex-direction:column;gap:5px;flex:none}
+.ibtn{width:44px;height:calc((var(--barH) - 22px) / 3);min-height:26px;border-radius:10px;background:#ffffff1f;display:grid;place-items:center}
+.ibtn svg{width:20px;height:20px;fill:#fff}
+.ibtn.on{background:#f2b530}
+.ibtn.on svg{fill:#3a2500}
+
+/* screens - one at a time */
+.screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(var(--safe-t) + 14px) 18px calc(var(--safe-b) + 14px);background:#000a;text-align:center}
+#start{background:#24343a;justify-content:flex-start;gap:9px;overflow:hidden}
+#start .hero{width:100%;max-width:520px;flex:1 1 0;min-height:90px;max-height:52vh;object-fit:cover;object-position:50% 30%;border-radius:20px;box-shadow:0 8px 30px #0008}
+#start .title{width:auto;max-width:86%;height:15vh;max-height:150px;object-fit:contain;margin-top:-9vh;filter:drop-shadow(0 4px 6px #000a);position:relative;flex:none}
+#start>*:not(.hero){flex:none}
+@media (max-height:700px){#start p{font-size:14px}#start .big{font-size:21px;padding:11px 40px}#levels button{width:32px;height:32px}}
+#start p{color:var(--chalk);margin:0;font-size:16px;line-height:1.35;max-width:420px}
+.big{background:var(--yellow);color:#3a2500;font-weight:900;font-size:24px;padding:14px 46px;border-radius:99px;box-shadow:0 5px 0 #a8730f;animation:breathe 1.6s infinite}
+@keyframes breathe{50%{transform:scale(1.05)}}
+.soft{background:#ffffff22;color:#fff;font-weight:700;font-size:16px;padding:10px 22px;border-radius:99px}
+.rec{color:#ffd77a;font-weight:700;font-size:15px}
+.links a{color:#cfe6d7;font-weight:700;font-size:15px;text-decoration:none}
+#levels{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:380px}
+#levels button{width:36px;height:36px;border-radius:10px;background:#ffffff1c;color:#fff;font-weight:900;font-size:15px}
+#levels button.done{background:#2fa457}
+#levels button.now{background:var(--yellow);color:#3a2500}
+#levels button:disabled{opacity:.3}
+.card{background:var(--chalk);border-radius:22px;padding:18px 18px 16px;max-width:360px;width:100%;box-shadow:0 10px 40px #000a}
+.card h2{margin:0 0 4px;font-size:26px}
+.card .lvl{font-size:14px;font-weight:700;color:#6b4a2b}
+.card .q{font-size:17px;margin:8px 0;line-height:1.35}
+.card .row{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.card .row button{font-size:18px;padding:12px 22px;animation:none}
+.card .soft{background:#24343a}
+.card img{width:110px;margin:-60px auto 0;display:block;filter:drop-shadow(0 4px 6px #0006)}
+.nums{display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:right;font-size:16px;margin:10px auto 0;max-width:260px}
+.nums b{text-align:left;direction:ltr}
+.nums .tot{border-top:2px solid #0002;padding-top:4px;font-size:19px;font-weight:900}
+
+/* tutorial: a card + a spotlight on the real thing */
+#tut{position:fixed;inset:0;z-index:30;pointer-events:none}
+#spot{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px #0009;border:3px solid #ffd77a;transition:all .25s;pointer-events:none}
+#spot.none{box-shadow:0 0 0 9999px #0009;width:0;height:0;border:0;left:50%;top:50%}
+#tcard{position:absolute;left:12px;right:12px;max-width:420px;margin:0 auto;background:var(--chalk);border-radius:18px;padding:12px 14px;box-shadow:0 8px 30px #000a;pointer-events:auto;font-size:16px;line-height:1.35;font-weight:500}
+#tcard .n{font-size:12px;color:#6b4a2b;font-weight:700}
+#tcard .verb{display:inline-block;background:#24343a;color:#fff;border-radius:8px;padding:1px 8px;margin-top:4px;font-weight:900;font-size:14px}
+#tcard .tb{display:flex;gap:8px;margin-top:8px;justify-content:space-between;align-items:center}
+#tcard .tb .big{font-size:18px;padding:8px 26px;animation:none}
+#tcard .tb .skip{background:none;color:#6b4a2b;font-weight:700;font-size:14px}
+#rotate{position:fixed;inset:0;z-index:50;background:#24343a;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;font-weight:700;text-align:center;padding:30px}
+@media (orientation:landscape) and (max-height:500px){#rotate{display:flex}}
+</style>
+</head>
+<body>
+<div id="play" hidden>
+  <div id="top">
+    <img id="head" src="assets/headTalk.webp" alt="המורה רוזנבלום">
+    <div id="say"></div>
+    <div id="stats">
+      <div class="stat" id="timer"><span id="tval">2:30</span></div>
+      <div class="stat" id="count"><span id="cval">0/23</span><small>בפנים</small></div>
+    </div>
+  </div>
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <div id="bar">
+    <div id="orders">
+      <button class="ord" data-o="stop"><b>2</b><svg viewBox="0 0 24 24"><path d="M12.5 2c.8 0 1.5.7 1.5 1.5V11h1V4.5a1.5 1.5 0 0 1 3 0V12h1V7.5a1.5 1.5 0 0 1 3 0V15c0 4-3 7-7 7h-1c-2.4 0-4.2-1-5.6-2.8L4.3 14.6a1.5 1.5 0 0 1 2.3-1.9L9 15V4.5a1.5 1.5 0 0 1 3 0V11h0V3.5C11 2.7 11.7 2 12.5 2z"/></svg>עצור!</button>
+      <button class="ord" data-o="turn"><b>2</b><svg viewBox="0 0 24 24"><path d="M9 4 3 9.5 9 15v-4h6a4 4 0 0 1 0 8h-3v3h3a7 7 0 0 0 0-14H9z"/></svg>חזור!</button>
+      <button class="ord" data-o="bridge"><b>2</b><svg viewBox="0 0 24 24"><path d="M3 9h18v3h-2v8h-2.5v-8h-9v8H5v-8H3z"/></svg>גשר!</button>
+      <button class="ord" data-o="open"><b>2</b><svg viewBox="0 0 24 24"><path d="M4 21V3h11v2H6v14h9v2H4zm10-4 1.4-1.4L12.8 13H21v-2h-8.2l2.6-2.6L14 7l-5 5z" transform="scale(-1 1) translate(-24 0)"/></svg>פתח!</button>
+    </div>
+    <div id="ctl">
+      <button class="ibtn" id="bPause" aria-label="עצירה"><svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg></button>
+      <button class="ibtn" id="bFast" aria-label="מהר"><svg viewBox="0 0 24 24"><path d="M2 5l9 7-9 7zm10 0 9 7-9 7z"/></svg></button>
+      <button class="ibtn" id="bRestart" aria-label="מההתחלה"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 8 8h-3a5 5 0 1 1-5-5v3l5-4.5L12 1z"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="start">
+  <img class="hero" src="assets/hero.jpg" alt="">
+  <img class="title" src="assets/title.png" alt="הקטר המאסף">
+  <p>צופר! תרגיל ירידה למרחב מוגן. הכיתה יוצאת שניים שניים – והולכת לבד לאן שהרגליים לוקחות. אתם המורה רוזנבלום: תנו הוראות והורידו את כולם למקלט.</p>
+  <button class="big" id="bPlay">שחקו</button>
+  <div id="levels"></div>
+  <button class="soft" id="bHow">איך משחקים</button>
+  <div class="rec" id="rec"></div>
+  <div class="links verse-hide"><a href="/c/rosenblum" target="_top">המורה רוזנבלום בשלומיוורס ←</a></div>
+</div>
+
+<div class="screen" id="pause" hidden>
+  <div class="card">
+    <h2>הפסקה</h2>
+    <p class="q">"אני מחכה. כשאדון יסיים – נמשיך."</p>
+    <div class="row"><button class="big" id="bResume">ממשיכים</button><button class="soft" id="bMenu">לתפריט</button></div>
+  </div>
+</div>
+
+<div class="screen" id="intro" hidden>
+  <div class="card">
+    <img src="assets/headTalk.webp" alt="">
+    <div class="lvl" id="iLvl"></div>
+    <h2 id="iName"></h2>
+    <p class="q" id="iText"></p>
+    <div class="row"><button class="big" id="bGo">יורדים!</button></div>
+  </div>
+</div>
+
+<div class="screen" id="end" hidden>
+  <div class="card">
+    <img id="eHead" src="assets/headTalk.webp" alt="">
+    <div class="lvl" id="eLvl"></div>
+    <h2 id="eTitle"></h2>
+    <p class="q" id="eText"></p>
+    <div class="nums" id="eNums"></div>
+    <div class="row"><button class="big" id="eNext">לשלב הבא</button><button class="soft" id="eAgain">שוב</button></div>
+    <div class="row"><button class="soft" id="eMenu" style="font-size:15px;padding:8px 18px">לתפריט</button></div>
+    <div class="links" style="margin-top:10px"><a href="/c/rosenblum" target="_top" style="color:#6b4a2b">המורה רוזנבלום בשלומיוורס ←</a></div>
+  </div>
+</div>
+
+<div id="tut" hidden><div id="spot"></div><div id="tcard"></div></div>
+<div id="rotate">סובבו את הטלפון לאורך 📱</div>
+
+<script src="game.js?v=1"></script>
+</body>
+</html>

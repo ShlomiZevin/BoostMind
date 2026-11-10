@@ -1,0 +1,13 @@
+A sprite sheet of props for a 2D side-view game set inside an Israeli high school (tichon) during a shelter drill, same painted cartoon game style as the reference picture. Transparent background, each prop whole and separate with space around it, grid of 4 columns x 3 rows, all props seen straight from the front (side cut of a building), on one floor line:
+1) an open green classroom door in its frame.
+2) a closed blue toilets door with a toilets sign (man and woman icons) and the Hebrew word "שירותים".
+3) a glass door to the schoolyard, sunlight and a football visible through it.
+4) a heavy grey steel shelter door, wide open, sign with the Hebrew words "מרחב מוגן".
+5) a closed brown wooden door with a "closed" chain and padlock.
+6) a flight of concrete stairs seen from the side, going down from top-left to bottom-right, with a metal handrail.
+7) an orange traffic cone.
+8) a school chair (wood seat, metal legs), side view.
+9) a cork notice board with papers.
+10) a row of blue school lockers.
+11) a potted plant.
+12) a green emergency exit sign (running figure and arrow).

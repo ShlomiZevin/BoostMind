@@ -1,0 +1,7 @@
+shots/
+_*.jpg
+*.log
+art/*.png
+art/*.jpg
+sfx/*.mp3
+concept/rosenblum-ref.jpg

@@ -1,0 +1,11 @@
+A sprite sheet for a 2D side-view game: the same pair of Israeli high-school teens (a boy and a girl, white school t-shirts, jeans, backpacks) as in the first reference picture's game, doing the game's actions. Grid of 4 columns x 2 rows, one pose per cell:
+IMPORTANT: they are 16-17 year old high-school students (Israeli tichon, grade 11) - tall, teen proportions with longer legs and bodies and smaller heads than children, teenage faces, some boys with a little stubble or messy hair, girls with teen hairstyles; NOT children, not middle school.
+1) facing the viewer, both arms spread wide to block the way, still holding hands in the middle ("stop!").
+2) same blocking pose, slightly different (breathing frame).
+3) the boy bending to put down a school chair in front of them.
+4) the girl pushing a door handle forward, opening a door.
+5) both falling, arms up, surprised.
+6) both cheering, arriving safe.
+7) both turning around, looking back over the shoulder.
+8) both walking away sadly, heads down (lost).
+Same painted cartoon game style as the first reference picture (the game's concept screen). Transparent background. Side view, every figure facing RIGHT, full body head to shoes, nothing cut off, generous empty space around each figure, figures not touching each other, all figures the same size and standing on the same foot line in their row. (Poses 1-2 face the viewer; the rest face RIGHT.)

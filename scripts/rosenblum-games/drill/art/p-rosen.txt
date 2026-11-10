@@ -1,0 +1,6 @@
+A sprite sheet for a 2D side-view game: Teacher Rosenblum (the man in the second reference picture: in his late 50s, messy grey wig with bangs, thin metal glasses, short beard, black polo shirt, grey trousers), full body, standing at the door of the school's protected shelter. Grid of 4 columns x 1 row, facing LEFT toward the incoming students:
+1) counting the students with a pointing finger, holding a clipboard.
+2) same, the finger moved, mouth open counting.
+3) one hand raised for silence, strict.
+4) holding his head, shocked, glasses crooked.
+Same painted cartoon game style as the first reference picture. Transparent background, full body head to shoes, nothing cut off, generous empty space around each figure, all the same size on one foot line.

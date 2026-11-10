@@ -1,0 +1,1 @@
+A seamless, tileable texture (repeats left-right without seams) of a building's floor slab seen in cross-section from the side, filling the whole picture: a thin strip of beige terrazzo floor tiles on top, then grey concrete below with a brown wooden skirting line on top. Nothing else - no objects, no text. Painted cartoon game style like the reference picture.

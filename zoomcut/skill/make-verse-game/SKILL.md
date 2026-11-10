@@ -93,6 +93,16 @@ Read before any idea - the game must be something THIS character would be in:
   Breakout, Tetris, a runner, a fishing reel... - a real, known game whose loop is fun by itself - and put the
   character's story on it. Never invent a new mechanic, and never make a quiz or a dialogue picker ("pick the right
   answer") - those were all rejected for Asaf. Each idea = "<known game> + <who the character is>".
+- **A simple mobile hit, in our own version - and never one we already made** (his rule, 10 Nov 2026: "all what you
+  showed me was something we already done"). Pick from mechanics that worked in simple phone games (Lemmings, Flow
+  Free, Tetris, Where's Waldo, Angry Birds, Cut the Rope, Fruit Ninja, Crossy Road, Doodle Jump, 2048, Candy-Crush
+  match-3, Helix Jump, Stack, Paper.io, Tapper...), then twist it into our own version through the character's story.
+  **Before suggesting, list what is already taken** - every `public/*-games/*/game.json` (and Hani's playhouse), plus
+  the Plaxzy games in the memory notes - and offer none of those mechanics. Taken so far: snake (Sagi), whack-a-mole
+  (Asaf), Pac-Man (Yotam), Rush Hour (Yotam), Diner Dash (Osnat), runner (Hani gan-run), story-chain cards (Hani),
+  drag-in-millimeters (Yaniv), Lemmings (Rosenblum); on Plaxzy: Breakout, Volfied, Missile Command, bubble shooter,
+  Space Invaders, pinball, Keen platformer, Frogger-style traffic, gold miner, chain reaction. Add each new game's
+  mechanic to this line.
 - **About who the character IS, not one video**: their running traits across all their videos (Asaf is always on the
   sofa, can't be happy for you) - the newest video is a source of lines, not the whole game.
 - **The story carries the character, not a skin on a generic game.** Learnt the hard way

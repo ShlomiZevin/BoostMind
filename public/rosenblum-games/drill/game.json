@@ -1,0 +1,13 @@
+{
+  "slug": "drill",
+  "title": "הקטר המאסף",
+  "tagline": "תרגיל ירידה למרחב מוגן: הכיתה של המורה רוזנבלום יוצאת שניים שניים והולכת לבד – לשירותים, לחצר, אחרי הכיתה של רעות. תנו הוראות והורידו את כולם למקלט, ושחר הקטר המאסף – אחרון.",
+  "character": "rosenblum",
+  "chars": ["rosenblum", "reut", "omer-student"],
+  "world": "המורה רוזנבלום",
+  "status": "live",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:drill:best", "label": "נקודות" },
+  "record": { "unit": "נקודות", "better": "high" },
+  "date": "2026-11-10"
+}
