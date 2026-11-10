@@ -81,6 +81,10 @@ Run the stories in parallel (`&` ... `wait`). Up to ~5 references work well.
 - **Characters are painted from their real photos, at their real age and attitude** - a stylised painting from an
   earlier painting drifts toward a cute kid (round baby face, tiny chubby hands). Reference the real photo and say who
   they are (a grown-up geek, skeptical) in the prompt.
+  The real photo = the character's verse portrait, `https://storage.googleapis.com/shlomiverse-media/wiki/img/c/<id>.jpg`
+  (not another AI picture of them - one gave Yotam a narrow, frowning face: "doesn't look like himself"). If the face
+  still drifts, fix it with a masked edit of the head only (ref = the poster + the portrait), compare side by side with
+  the portrait, and keep the rest of the poster. Characters Shlomi plays: the lazy LEFT eye too.
 
 **Then proofread every word at full size** (crop + zoom the headline). The model slips on single letters (it wrote
 עכשין for עכשיו twice). Fix with an **edit pass on that same image**: ref = the image, prompt = "keep everything exactly,
