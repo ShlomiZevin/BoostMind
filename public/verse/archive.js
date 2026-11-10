@@ -8,7 +8,7 @@
 // gs://shlomiverse-media/insta/list.json {items: [{id, d, l, c, cap, p, k, t, h?, v?, who?}]} + covers insta/t/<id>.jpg.
 import { call } from './fb.js';
 import { T } from './copy.js';
-import { I, esc, sheet, toast, track } from './ui.js';
+import { I, esc, sheet, toast, track, av } from './ui.js';
 import { needFan, signedIn, onState } from './state.js';
 
 const A = () => T.arc;
@@ -29,6 +29,10 @@ const longDate = (d) => { const [y, m, dd] = ymd(d); return `${dd} ב${A().month
 const monthKey = (d) => d.slice(0, 7);
 const monthTitle = (mk) => { const [y, m] = mk.split('-').map(Number); return `${A().months[m - 1]} ${y}`; };
 const norm = (s) => String(s || '').toLowerCase().replace(/[֑-ׇ]/g, '').replace(/[״"׳'`’]/g, '');
+// the cast as faces (his note 2026-11-10: the names "just out there"): list.json carries their names - find each in the verse
+const charOf = (name) => (typeof W !== 'undefined' && W?.characters || []).find((c) => c.name === name || (c.aka || []).includes(name));
+const castFaces = (x) => { const cs = (x.who || []).map((n) => ({ n, c: charOf(n) })); return cs.length ? `<div class="ar-cast">${cs.slice(0, 3).map(({ c }) => (c ? av({ char: c.id }) : '')).join('')}<span>${esc(cs.map((o) => o.n.split(' ')[0]).join(', '))}</span></div>` : ''; };
+const castChips = (x) => (x.who || []).map((n) => { const c = charOf(n); return c ? `<a href="/c/${esc(c.id)}" data-vx-close>${av({ char: c.id })}${esc(n)}</a>` : `<b>${esc(n)}</b>`; }).join('');
 const tagsOf = (x) => (Array.isArray(x.h) && x.h.length ? x.h : [...String(x.cap || '').matchAll(/#([\p{L}\p{N}_]+)/gu)].map((m) => m[1]));
 const textOf = (x) => String(x.cap || '').replace(/#[\p{L}\p{N}_]+/gu, '').replace(/\s+\n/g, '\n').trim();
 
@@ -153,7 +157,7 @@ function card(x) {
   return `<article class="ar-card${vid ? ' in' : ''}" data-id="${x.id}">
     <div class="ar-cover">${x.t ? `<img src="${COVER(x.id)}" alt="" loading="lazy" decoding="async">` : ''}${badge}</div>
     <div class="ar-meta"><span class="ar-date">${dot(x.d)}</span><span>${HEART}${k(x.l)}</span><span>${BUBBLE}${k(x.c)}</span></div>
-    <p class="ar-cap">${esc(cap)}</p>${vid && x.who?.length ? `<p class="ar-who">${esc(x.who.join(' · '))}</p>` : ''}
+    <p class="ar-cap" dir="rtl">${esc(cap)}</p>${vid ? castFaces(x) : ''}
     <div class="ar-act">${act}</div></article>`;
 }
 // what I asked for: the chip's count and the bar at the bottom
@@ -238,7 +242,7 @@ function jumpSheet() {
 function postSheet(x) {
   const draw = () => {
     const vid = x.v || done[x.id], n = counts[x.id] || 0, me = mine.has(x.id);
-    const ask = vid ? `<a class="vx-btn main block" href="/v/${esc(vid)}" data-vx-close>${I.play}<span>${esc(A().watch)} ${esc(A().inVerse)}</span></a>${x.who?.length ? `<p class="ar-s-who">${esc(x.who.join(' · '))}</p>` : ''}`
+    const ask = vid ? `<a class="vx-btn main block" href="/v/${esc(vid)}" data-vx-close>${I.play}<span>${esc(A().watch)} ${esc(A().inVerse)}</span></a>${x.who?.length ? `<p class="ar-s-in">${esc(A().withCast)}</p><div class="ar-s-cast">${castChips(x)}</div>` : ''}`
       : `${me ? `<div class="ar-s-done">${I.check}<div><b>${esc(A().askedTitle)}</b><small>${esc(A().askedSub)}</small></div></div>` : ''}
         <textarea id="ar-note" maxlength="300" rows="2" placeholder="${esc(A().note)}"></textarea>
         <button class="vx-btn main block" data-ar-send>${esc(me ? A().askSave : A().askGo)}</button>
@@ -246,7 +250,7 @@ function postSheet(x) {
     return `<div class="ar-s"><a class="ar-s-cover" href="${IG(x.p)}" target="_blank" rel="noopener">${x.t ? `<img src="${COVER(x.id)}" alt="">` : ''}</a>
       <div class="ar-s-body"><p class="ar-s-date">${esc(longDate(x.d))}</p>
         <div class="ar-s-nums"><span>${HEART}${k(x.l)}</span><span>${BUBBLE}${k(x.c)}</span></div>
-        <p class="ar-s-cap">${esc(textOf(x))}</p>
+        <p class="ar-s-cap" dir="rtl">${esc(textOf(x))}</p>
         ${x._tags.length ? `<div class="ar-s-tags">${x._tags.map((t) => `<button data-ar-tag="${esc(t)}">#${esc(t)}</button>`).join('')}</div>` : ''}
         <a class="vx-btn glass block" href="${IG(x.p)}" target="_blank" rel="noopener">${I.out}<span>${esc(A().onInsta)}</span></a>
         <div class="ar-s-ask">${ask}</div></div></div>`;

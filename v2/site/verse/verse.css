@@ -2694,8 +2694,16 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .ar-meta span { display: inline-flex; align-items: center; gap: 3px; }
 .ar-meta svg { width: 13px; height: 13px; }
 .ar-date { color: var(--text); font-weight: 800; margin-inline-end: auto; }
-.ar-cap { margin: 6px 12px 0; font-size: .9rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; min-height: 2.8em; unicode-bidi: plaintext; }
-.ar-who { margin: 4px 12px 0; font-size: .8rem; color: var(--vx-accent-2, #ff8a3d); font-weight: 700; }
+.ar-cap { margin: 6px 12px 0; font-size: .9rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; min-height: 2.8em; direction: rtl; text-align: right; }
+.ar-cast { display: flex; align-items: center; gap: 6px; margin: 8px 12px 0; min-width: 0; }
+.ar-cast .vx-av { width: 24px; height: 24px; flex: none; border: 1.5px solid var(--vx-accent); margin-inline-start: -8px; }
+.ar-cast .vx-av:first-child { margin-inline-start: 0; }
+.ar-cast span { font-size: .78rem; font-weight: 700; color: var(--vx-accent-2, #ff8a3d); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ar-s-cast { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ar-s-cast a, .ar-s-cast b { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding-inline: 5px 14px; border-radius: 999px; border: 1px solid var(--line2, rgba(255,255,255,.16));
+  background: var(--card); color: var(--text); font-weight: 700; font-size: .9rem; text-decoration: none; }
+.ar-s-cast .vx-av { width: 28px; height: 28px; flex: none; }
+.ar-s-in { margin: 0; text-align: center; color: var(--dim); font-size: .85rem; }
 .ar-act { margin-top: auto; padding: 10px 12px 12px; }
 .ar-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 40px; border-radius: 999px; border: 0; background: var(--vx-accent); color: #fff;
   font: inherit; font-weight: 800; font-size: .92rem; cursor: pointer; text-decoration: none; }
@@ -2722,7 +2730,7 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .ar-s-date { color: var(--dim); font-weight: 700; margin: 0; }
 .ar-s-nums { display: flex; gap: 14px; margin: 6px 0 10px; font-weight: 800; }
 .ar-s-nums span { display: inline-flex; align-items: center; gap: 5px; } .ar-s-nums svg { width: 18px; height: 18px; }
-.ar-s-cap { unicode-bidi: plaintext; white-space: pre-line; line-height: 1.55; margin: 0 0 10px; font-size: 1rem; max-height: 9.5em; overflow: auto; }
+.ar-s-cap { direction: rtl; text-align: right; white-space: pre-line; line-height: 1.55; margin: 0 0 10px; font-size: 1rem; max-height: 9.5em; overflow: auto; }
 .ar-s-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .ar-s-tags button { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line2, rgba(255,255,255,.16)); background: none; color: #d9d6de; font: inherit; font-size: .86rem; cursor: pointer; }
 .ar-s-body .vx-btn { height: 48px; font-size: .98rem; }
@@ -2732,7 +2740,7 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .ar-s-done svg { width: 22px; height: 22px; flex: none; } .ar-s-done b { display: block; color: var(--text); } .ar-s-done small { color: var(--dim); }
 .ar-s-n { display: flex; align-items: center; gap: 8px; color: var(--dim); margin: 0; font-size: .92rem; } .ar-s-n svg { width: 20px; height: 20px; }
 .ar-s-undo { background: none; border: 0; color: var(--dim); text-decoration: underline; font: inherit; font-size: .88rem; cursor: pointer; justify-self: center; }
-.ar-s-who { margin: 0; color: var(--vx-accent-2, #ff8a3d); font-weight: 700; text-align: center; }
+
 .ar-jump h2 { display: flex; align-items: center; gap: 8px; font-size: 1.3rem; margin: 0 0 12px; } .ar-jump h2 svg { width: 22px; height: 22px; color: var(--vx-accent); }
 .ar-jy { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
 .ar-jy b { flex: none; width: 52px; font-size: 1.05rem; padding-top: 6px; }
@@ -2799,12 +2807,28 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .arc-c.c2 { left: 40%; transform: rotate(5deg) translateY(-8px); z-index: 3; }
 .arc-c.c3 { left: 58%; transform: rotate(14deg); z-index: 2; }
 .arc-planet { position: absolute; left: 50%; bottom: 0; width: 58%; transform: translateX(-50%); z-index: 4; filter: drop-shadow(0 4px 14px rgba(255, 106, 31, .55)); }
-@media (max-width: 380px) { .arc-strip { grid-template-columns: minmax(0, 1fr) 36%; } .arc-title { font-size: 1.35rem; } .arc-txt p { font-size: .82rem; } .arc-fan { height: 160px; } .arc-go { font-size: .9rem; padding-inline: 12px 4px; } }
+/* a phone: mockup P1 (his note 2026-11-10 "mobile is ugly"): the covers + planet as a band on top, the words centred under it */
+@media (max-width: 899px) {
+  .arc-strip { grid-template-columns: 1fr; gap: 4px; padding: 14px 16px 16px; text-align: center; }
+  .arc-fan { order: -1; height: 168px; margin: 0 -6px; }
+  .arc-c { width: 21%; bottom: 30px; border-radius: 11px; }
+  .arc-c.c0 { left: 13%; } .arc-c.c1 { left: 29.5%; } .arc-c.c2 { left: 49.5%; } .arc-c.c3 { left: 66%; }
+  .arc-planet { width: 38%; bottom: -2px; }
+  .arc-txt { align-items: center; gap: 7px; }
+  .arc-txt { position: static; }
+  .arc-tag { position: absolute; top: 12px; inset-inline-start: 14px; z-index: 5; }
+  .arc-title { font-size: 1.7rem; margin-top: 6px; }
+  .arc-txt p { font-size: .9rem; max-width: 330px; }
+  .arc-vs { justify-content: center; flex-wrap: nowrap; }
+  .arc-go { max-width: none; height: 50px; }
+  .arc-only { justify-content: center; }
+}
+@media (max-width: 370px) { .arc-title { font-size: 1.5rem; } .arc-vs span { font-size: .74rem; padding: 3px 8px; } .arc-fan { height: 152px; } }
 @media (min-width: 900px) {
   .arc-strip { grid-template-columns: minmax(0, 1fr) 380px; padding: 22px 28px; gap: 24px; margin: 24px 0 10px; }
   .arc-title { font-size: 2rem; } .arc-txt p { font-size: 1rem; max-width: 560px; } .arc-txt { gap: 9px; }
   .arc-vs span { font-size: .86rem; padding: 4px 12px; }
-  .arc-fan { height: 210px; }
-  .arc-c { width: 31%; } .arc-c.c0 { left: 8%; } .arc-c.c1 { left: 24%; } .arc-c.c2 { left: 42%; } .arc-c.c3 { left: 58%; }
+  .arc-fan { height: 250px; }   /* covers + planet one block, centred with the words (his note: the logo sat too high) */
+  .arc-c { width: 31%; bottom: 44px; } .arc-c.c0 { left: 8%; } .arc-c.c1 { left: 24%; } .arc-c.c2 { left: 42%; } .arc-c.c3 { left: 58%; }
   .arc-planet { width: 46%; }
 }
