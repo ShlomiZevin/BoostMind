@@ -112,6 +112,7 @@
   .person h3 { margin: 0; font-size: 1.12rem; color: var(--navy); }
   .person .role { margin: 2px 0 6px; color: var(--blue); font-weight: 500; font-size: .9rem; line-height: 1.35; }
   .person p { margin: 0; color: var(--dim); font-size: .9rem; line-height: 1.45; }
+  @media (max-width: 759px) { .staff .person:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); } }
   .soonline { margin: 14px 0 0; color: var(--dim); font-size: .93rem; text-align: center; }
 
   /* drill */
@@ -308,8 +309,7 @@
       <p class="sub">אנשי ונשות החינוך המלווים את תלמידי המקיף נווה תדהר לאורך הדרך.</p>
     </div>
     <div class="staff">
-      <!-- one <article class="person"> per staff member (photo in img/<id>.jpg, 480x600, git-ignored when it is his face).
-           Next: the teacher רעות (כיתת המחוננים) - add her card when her portrait exists. -->
+      <!-- one <article class="person"> per staff member (photo in img/<id>.jpg, 480x600, git-ignored when it is his face) -->
       <article class="person">
         <img src="img/esther.jpg" alt="תמונת אסתר" width="480" height="600" >
         <div><h3>אסתר</h3><p class="role">מנהלת בית הספר</p><p>מובילה את בית הספר מתוך הקפדה על סדר, אחריות ועמידה בנהלים.</p></div>
@@ -317,6 +317,10 @@
       <article class="person">
         <img src="img/rosenblum.jpg" alt="תמונת רוזנבלום" width="480" height="600" >
         <div><h3>רוזנבלום</h3><p class="role">מתמטיקה, מחנך ח'3, 36 שנות הוראה</p><p>מלמד במקצועיות ובקפדנות, תוך הקפדה על למידה מסודרת ודיבור בהצבעה בלבד.</p></div>
+      </article>
+      <article class="person">
+        <img src="img/reut.jpg" alt="תמונת רעות" width="480" height="600" >
+        <div><h3>רעות</h3><p class="role">מתמטיקה, מחנכת כיתת המחוננים</p><p>מלמדת במקצועיות, בחדות וביעילות, תוך הקפדה על קצב למידה גבוה ומיצוי חומר הלימוד.</p></div>
       </article>
     </div>
     <p class="soonline">דפי צוות נוספים מתעדכנים באתר בקרוב.</p>
