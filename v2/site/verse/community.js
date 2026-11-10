@@ -128,8 +128,8 @@ export function homeBand() {
       ${top ? ideaLine(top) : ''}</div>
     <button class="cx-biz" data-biz>
       <span class="cx-biz-art" aria-hidden="true"><span class="cx-slides">
-        <img class="sl on" src="/verse/art/biz-media-a.jpg?v=4" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-media.jpg?v=3" alt="" loading="lazy">
-      </span><span class="cx-dots"><i class="on"></i><i></i></span></span>
+        <img class="sl on" src="/verse/art/biz-media-a.jpg?v=4" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-fan.jpg?v=1" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-hand.jpg?v=1" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-media.jpg?v=3" alt="" loading="lazy">
+      </span><span class="cx-dots"><i class="on"></i><i></i><i></i><i></i></span></span>
       <span class="cx-biz-txt"><em>${esc(T.biz2.tag)}</em><b>${brand(T.biz2.title)}</b><small>${esc(T.biz2.line)}</small>
         <span class="cx-biz-row"><span class="vx-btn main">${esc(T.biz2.cta)}</span>
           <span class="cx-chips">${T.biz2.chips.map((c, i) => `<span>${[I.planet, I.play, I.people][i]}${esc(c)}</span>`).join('')}</span></span></span></button>

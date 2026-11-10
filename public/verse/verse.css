@@ -3030,3 +3030,8 @@ button.cx-biz { width: 100%; padding: 0; font: inherit; text-align: right; curso
 @media (max-width: 899px) { .cx-dots i:nth-child(2) { display: block; } .cx-slides img.sl:first-child { object-position: 20% 50%; } }
 .biz-sheet-art { object-position: 30% 45% !important; }
 @media (min-width: 900px) { .cx-biz { min-height: 290px; } .cx-slides img.sl:first-child { object-position: 0% 50%; } }
+
+/* four slides (his ask 2026-11-10: "at least 3"): devices, three phones, a phone in hand, Hani + Yotam - every dot shows, every device */
+.cx-dots i:nth-child(n) { display: block !important; }
+.cx-slides img.sl:nth-child(2) { object-position: 30% 35%; } .cx-slides img.sl:nth-child(3) { object-position: 20% 40%; }
+@media (min-width: 900px) { .cx-slides img.sl:nth-child(2) { object-position: 0% 40%; } .cx-slides img.sl:nth-child(3) { object-position: 0% 35%; } }

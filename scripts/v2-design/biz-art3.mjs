@@ -24,7 +24,16 @@ const SCENE = `A premium, photo-real advertising media-kit scene, 3:2, dark warm
 an open modern laptop on a dark wooden desk, slightly angled, and a modern smartphone standing upright on a small stand IN FRONT AND TO THE LEFT of the
 laptop - the phone must NOT cover any part of the laptop screen. BOTH SCREENS ARE A SOLID, FLAT, PURE CHROMA GREEN (#00FF00), perfectly uniform edge to
 edge, no reflections, no glare, no UI, no text. Sharp clean device edges. Keep the RIGHT third of the picture calm and dark (text goes there). No logos.`;
+const HAND = `A premium, photo-real lifestyle advertising shot, 3:2, warm evening living room, soft orange lamp light and bokeh: a person's hand (no face)
+holding a modern smartphone upright, the phone large and sharp, slightly angled, on the LEFT half of the picture. The phone SCREEN IS A SOLID, FLAT, PURE CHROMA
+GREEN (#00FF00), perfectly uniform edge to edge, no glare, no UI, no text, fingers NOT covering the screen. Keep the RIGHT third calm and dark. No logos.`;
+const FAN = `A premium, photo-real advertising media-kit shot, 3:2, dark warm studio background (#111014) with an orange glow: THREE modern smartphones standing
+upright side by side in a gentle fan on a dark glossy surface, the middle one slightly forward, all on the LEFT two thirds of the picture, not overlapping each
+other's screens. ALL THREE SCREENS ARE SOLID, FLAT, PURE CHROMA GREEN (#00FF00), perfectly uniform edge to edge, no glare, no UI, no text. Keep the RIGHT third
+calm and dark. No logos.`;
 await Promise.all([
+  run('scene-hand', HAND, ['biz-media-a.png']),
+  run('scene-fan', FAN, ['biz-media-a.png']),
   run('scene-green-1', SCENE, ['biz-media-a.png']),
   run('scene-green-2', SCENE + ' A slightly lower camera angle, the laptop a little more to the centre.', ['biz-media-a.png']),
   run('biz-media-b2', 'Rewrite ONLY the small orange pill label on the phone screen so it reads "המותג שלכם" in white bold Hebrew letters (right to left, spelled exactly). Keep its orange pill shape and place (it may be a little wider). Change nothing else.', ['biz-media-b.png'], 'mask-b.png'),
