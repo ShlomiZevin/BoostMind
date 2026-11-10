@@ -82,6 +82,7 @@ C = {  # id: (description, ref)
  'teen': ("An Israeli teenage girl, about 15, sulky and bored: straight black bob wig with heavy bangs, huge fake eyelashes, glossy pouty lips, dark tank top, holding a phone, a 'seriously?' eye-roll look. Smooth, clean-shaven feminine face - no beard, no stubble. Background: a softly blurred hotel lobby instead of the grey studio.", None),
  'taxi-driver': ("An Israeli taxi driver in his 40s leaning out of his cab window, one hand out making a confident 'let me through' gesture: bald, glasses, short beard, black tank top. Totally sure of himself. Background: a softly blurred busy Tel Aviv road with buses instead of the grey studio.", None),
  'neve-tzafoni-studio': ("An Israeli TV news interviewer in his 40s in a news studio, poised and polite with a sharp 'one more question, Mr. President' look: short black bob-cut hair, dark blue shirt open at the collar. Background: a softly blurred TV news studio with screens instead of the grey studio.", None),
+ 'reut': ("Reut, a strict Israeli high-school teacher in her early 50s, a woman: a sleek straight black bob with a heavy fringe, thin dark-framed glasses, a big animal-print (leopard / snake pattern) scarf wrapped around her neck over a dark top. Smooth, clean-shaven feminine face - no beard, no stubble. Lips pressed, chin up, a cold, efficient, unimpressed 'I don't have time for this' look - the teacher students fear. Background: a softly blurred classroom with a green chalkboard instead of the grey studio.", None),
 }
 
 def run(cid):
