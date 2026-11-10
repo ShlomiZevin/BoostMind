@@ -8,7 +8,7 @@ Writes gs://shlomiverse-media/insta/list.json and the covers gs://shlomiverse-me
 each - Instagram's cover links expire, ours don't). Views / shares: Instagram refuses them to this key (no insights
 permission) - not in the list.
 """
-import io, json, os, subprocess, sys, urllib.request
+import io, json, os, re, subprocess, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 
@@ -74,6 +74,7 @@ for m in media:
     cast = (r or {}).get('cast') or st.get('cast') or []
     items.append({'id': m['id'], 'd': m['timestamp'][:10], 'l': m.get('like_count') or 0, 'c': m.get('comments_count') or 0,
                   'cap': (m.get('caption') or '').strip()[:400], 'p': m['permalink'].rstrip('/').split('/')[-1],
+                  'h': list(dict.fromkeys(re.findall(r'#(\w+)', m.get('caption') or ''))),   # from the FULL caption
                   'k': 'v' if m.get('media_type') == 'VIDEO' else 'i',
                   't': os.path.exists(os.path.join(THUMBS, m['id'] + '.jpg')),
                   **({'v': vid, 'who': [chars.get(c, c) for c in cast]} if vid else {})})
