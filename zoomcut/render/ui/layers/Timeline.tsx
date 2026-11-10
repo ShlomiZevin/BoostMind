@@ -24,7 +24,7 @@ type Props = {
   onSolo?: (s: Sel) => void; soloKey?: string | null;  // play one clip alone in the video (Shift+Space, the edge card)
   playing?: boolean;  // (stopped: the quick notes wait, faint, beside the playhead on the ruler)
   onOpen?: (s: Sel) => void;  // open the clip's own file in a window (▶ above the block, on hover)
-  notes?: Note[]; onNote?: (n: Note | null, at?: number) => void; noteView?: NoteView; onNoteView?: (v: NoteView) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
+  notes?: Note[]; onNote?: (n: Note | null, at?: number, end?: number) => void; noteView?: NoteView; onNoteView?: (v: NoteView) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
 };
 
 const TH = 30;  // lane height
@@ -396,6 +396,31 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     st.t = setTimeout(() => { st.lock = px(qnAt.current); tr.classList.add('qn-lock'); }, 160);
   };
   const qnLeave = (e: React.MouseEvent) => { const st = qn.current; clearTimeout(st.t); st.lock = null; (e.currentTarget as HTMLElement).classList.remove('qn-lock'); };
+  // a range note (his ask, 2026-11-10: "dragging the mouse ... mark a range and say something on it"): Shift+drag on
+  // the ruler (a plain drag there still moves the playhead), or press the ruler's note button and drag along it. The
+  // stretch shows while the mouse moves; letting go opens the note for it (a tiny drag = the plain click)
+  const [rangeDraft, setRangeDraft] = useState<{ a: number; b: number } | null>(null);
+  const rangeDragged = useRef(false);
+  const markRange = (e: React.MouseEvent, from?: number) => {
+    const tr = (e.currentTarget as HTMLElement).closest('.ltl-track') as HTMLElement;
+    const fAt = (cx: number) => Math.max(0, Math.min(total, Math.round(((cx - tr.getBoundingClientRect().left) / pps) * fps)));
+    const a = from ?? fAt(e.clientX), x0 = e.clientX;
+    let b = a;
+    rangeDragged.current = false;
+    const mv = (m: MouseEvent) => {
+      if (!rangeDragged.current && Math.abs(m.clientX - x0) < 5) return;
+      rangeDragged.current = true;
+      b = fAt(m.clientX);
+      setRangeDraft({ a, b });
+    };
+    const up = () => {
+      removeEventListener('mousemove', mv); removeEventListener('mouseup', up);
+      setRangeDraft(null);
+      if (rangeDragged.current && Math.abs(b - a) >= 2) onNote!(null, Math.min(a, b), Math.max(a, b));
+      else if (from == null) onSeek(Math.min(total - 1, a));
+    };
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  };
   const quickNote = (k: string, at = qnAt.current) => {
     const pr = PRESETS.find((x) => x.kind === k)!;
     saveNotes(send, [...notes, { ...newNote(at), kind: pr.kind, text: pr.text }], pr.label.toLowerCase());
@@ -681,19 +706,24 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <div className="ltl-in" style={{ width: NW + width }}>
           <div className="ltl-row ltl-ruler">
             <div className="ltl-name" />
-            <div className="ltl-track" style={{ width }} onMouseDown={seekAt} onMouseMove={onNote ? qnMove : undefined} onMouseLeave={onNote ? qnLeave : undefined}>
+            <div className="ltl-track" style={{ width }} onMouseDown={(e) => (onNote && e.shiftKey ? (e.preventDefault(), markRange(e)) : seekAt(e))} onMouseMove={onNote ? qnMove : undefined} onMouseLeave={onNote ? qnLeave : undefined}
+              title={onNote ? 'Click / drag = move the playhead · Shift+drag = mark a stretch and write a note on it' : undefined}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
               {onNote && <NotePins notes={notes} view={noteView} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} />}
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
-                <button title="A note for Claude right here (at the line) - write what to fix" onClick={() => onNote(null, qnAt.current)}>{QN_IC.note}</button>
+                <button title="A note for Claude right here (at the line) - write what to fix. Press and drag along the ruler = a note on that stretch"
+                  onMouseDown={(e) => markRange(e, qnAt.current)} onClick={() => { if (!rangeDragged.current) onNote(null, qnAt.current); rangeDragged.current = false; }}>{QN_IC.note}</button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
                   onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}</button>)}
               </div>}
               {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()}>
-                <button title="A note for Claude here, at the playhead - write what to fix" onClick={() => onNote(null)}>{QN_IC.note}</button>
+                <button title="A note for Claude here, at the playhead - write what to fix. Press and drag along the ruler = a note on that stretch"
+                  onMouseDown={(e) => markRange(e, frame)} onClick={() => { if (!rangeDragged.current) onNote(null); rangeDragged.current = false; }}>{QN_IC.note}</button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
                   onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}</button>)}
               </div>}
+              {rangeDraft && <div className="ltl-nband draft" style={{ left: px(Math.min(rangeDraft.a, rangeDraft.b)), width: Math.max(2, Math.abs(px(rangeDraft.b) - px(rangeDraft.a))) }}>
+                <span>{fmtT(Math.min(rangeDraft.a, rangeDraft.b) / fps / (+project.speed || 1))} – {fmtT(Math.max(rangeDraft.a, rangeDraft.b) / fps / (+project.speed || 1))}</span></div>}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>

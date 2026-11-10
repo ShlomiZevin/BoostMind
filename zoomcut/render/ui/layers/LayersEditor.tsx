@@ -205,10 +205,10 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     const n = rest.find((x) => x.at >= cur.at) || rest[0];
     if (n) openNote(n); else setNoteOpen(null);
   };
-  const openNote = (n: Note | null, at?: number) => {  // (at: a new note there - the ruler's note button at its line)
+  const openNote = (n: Note | null, at?: number, end?: number) => {  // (end: a new note on a stretch - Shift+drag on the ruler)  // (at: a new note there - the ruler's note button at its line)
     player.current?.pause();
     if (n) { seek(n.at); setNoteOpen({ note: n, isNew: false }); }
-    else { if (at != null) seek(at); setNoteOpen({ note: newNote(at ?? frame), isNew: true }); }
+    else { if (at != null) seek(at); setNoteOpen({ note: newNote(at ?? frame, end), isNew: true }); }
   };
   const saveNote = (n: Note) => {
     const c: Note = { ...n };

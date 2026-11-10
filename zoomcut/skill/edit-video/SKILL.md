@@ -161,7 +161,7 @@ on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <pro
 ## "fix notes" - his notes on the timeline (2026-10-28)
 He leaves notes for you IN the editor: "+ Note" on the timeline bar (or N) puts a yellow flag on the ruler at the
 playhead, his words in a window right above it, optionally a spot he clicked on the picture. They live in project.json
-`notes: [{id, at (frame), text, x?, y? (canvas px), done?, reply?}]` - saved, Ctrl+Z, kept through rebuilds, and they
+`notes: [{id, at (frame), end? (frame - a note on a STRETCH: fix the whole of it, at..end), text, x?, y? (canvas px), done?, reply?}]` - saved, Ctrl+Z, kept through rebuilds, and they
 move with what plays under them when a take is made longer / shorter. When he says **"fix notes"** (or "תתקן את
 ההערות"):
 1. `node tools/notes.mjs <ep>` - every open note: when, his words, the spot, EVERY layer's item at that frame (ids,

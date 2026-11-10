@@ -41,8 +41,8 @@ if (cmd === 'done' || cmd === 'reply') {
 const list = notes.filter((n) => flag('--all') || !n.done).sort((a, b) => a.at - b.at);
 if (!list.length) { console.log(notes.length ? `no open notes (${notes.length} answered - --all shows them)` : 'no notes'); process.exit(0); }
 
-// what is on screen / heard at a frame: every layer (top first) and its item there
-const at = (f) => [...p.layers].reverse().flatMap((l) => (l.items || []).filter((i) => f >= i.from && f < i.from + i.dur).map((i) => {
+// what is on screen / heard at a frame (or through a stretch f..g - a range note): every layer (top first) and its items there
+const at = (f, g = f + 1) => [...p.layers].reverse().flatMap((l) => (l.items || []).filter((i) => i.from < g && i.from + i.dur > f).map((i) => {
   const a = p.assets?.[i.asset ?? l.props?.asset];
   const line = i.ref?.line != null ? (p.script || []).find((s) => s.n === i.ref.line) : null;
   const what = i.text != null ? `"${i.text}"` : line ? `line ${line.n} "${line.text}"` : a ? path.basename(String(a.src)) : '';
@@ -79,25 +79,31 @@ if (!flag('--no-stills')) {
   still = async (n) => {
     const out = path.join(dir, `${n.id}.png`);
     await renderStill({ composition, serveUrl, output: out, inputProps, frame: Math.max(0, Math.min(p.duration - 1, Math.round(n.at))) });
+    let endStill = null;
+    if (n.end != null) {  // (a range note: its last frame too)
+      endStill = path.join(dir, `${n.id}.end.png`);
+      await renderStill({ composition, serveUrl, output: endStill, inputProps, frame: Math.max(0, Math.min(p.duration - 1, Math.round(n.end) - 1)) });
+    }
     if (n.x != null) {  // (the spot he pointed at: a yellow box around it)
       const s = 120, x = Math.round(n.x - s / 2), y = Math.round(n.y - s / 2), tmp = out.replace(/\.png$/, '.raw.png');
       fs.renameSync(out, tmp);
       execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', tmp, '-vf', `drawbox=x=${x}:y=${y}:w=${s}:h=${s}:color=0xf0b44c:t=8`, out]);
       fs.rmSync(tmp);
     }
-    return out;
+    return endStill ? `${out}  (start) + ${endStill}  (end)` : out;
   };
 }
 
 console.log(`${ep}: ${list.length} note${list.length === 1 ? '' : 's'}${speed !== 1 ? ` (times as he sees them, at ${speed}x)` : ''}\n`);
 for (const n of list) {
-  console.log(`● ${n.id}${n.done ? ' (done)' : ''}  at ${mmss(n.at)}  (frame ${Math.round(n.at)} of ${p.duration})${n.x != null ? `  spot x ${n.x}, y ${n.y} of ${p.canvas.w}x${p.canvas.h}` : ''}`);
+  const when = n.end != null ? `from ${mmss(n.at)} to ${mmss(n.end)} - A STRETCH, the whole of it  (frames ${Math.round(n.at)}-${Math.round(n.end)} of ${p.duration})` : `at ${mmss(n.at)}  (frame ${Math.round(n.at)} of ${p.duration})`;
+  console.log(`● ${n.id}${n.done ? ' (done)' : ''}  ${when}${n.x != null ? `  spot x ${n.x}, y ${n.y} of ${p.canvas.w}x${p.canvas.h}` : ''}`);
   if (n.kind) console.log(`  kind: ${n.kind} = ${KIND[n.kind] || n.kind}`);
   console.log(`  his note: ${n.text}`);
   if (n.kind === 'tighten') console.log(['  nearest join:', ...(joins(n.at).length ? joins(n.at) : ['   (no two clips meet near here)'])].join('\n'));
   if (n.reply) console.log(`  replied: ${n.reply}`);
-  console.log('  on screen / heard there:');
-  console.log(at(n.at).join('\n') || '   (nothing)');
+  console.log(n.end != null ? '  on screen / heard through the stretch:' : '  on screen / heard there:');
+  console.log(at(n.at, n.end ?? n.at + 1).join('\n') || '   (nothing)');
   if (still) console.log(`  still: ${await still(n)}`);
   console.log('');
 }

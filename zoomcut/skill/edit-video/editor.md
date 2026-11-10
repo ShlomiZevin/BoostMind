@@ -172,6 +172,11 @@ One format, one composition, one editor, one export. The format and the API: `la
   opens the first fixed note at its place - Looks good ✓ hides it and opens the next, Not yet sends it back open - and
   "All look good ✓" checks every fixed one at once. Notes from before 2026-11-09 that were handled = checked. stored as project.json `notes` through the
   'project' op; `pipeline/project.py` merge moves them by timemap; sessions: `tools/notes.mjs` (SKILL.md "fix notes").
+- **Range notes (2026-11-10, his ask: "mark a range ... start and end"):** Shift+drag on the ruler (a plain drag still
+  moves the playhead) or press the ruler's note button and drag along it = a note on that stretch (`end` frame; a dashed
+  band with its times while dragging, then the window says "0:12.3 – 0:15.1"). On the ruler it is a band from the flag:
+  drag it = move, its edges = start / end; "Just the start" in its window makes it a moment again. notes.mjs prints the
+  stretch, everything playing through it and a still of its first and last frame; project.py merge moves `end` too.
 - **Quick notes on the ruler (2026-11-03, his ask):** hover the ruler = a yellow line at the mouse + the PRESETS as small
   icon buttons beside it (tighten = arrows together, silence = scissors), faint while the mouse moves; a short rest locks
   them (solid) so the mouse can reach them; one click = that note at the line, no window. Stopped (Space) = the same two

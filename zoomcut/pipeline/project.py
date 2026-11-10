@@ -236,7 +236,8 @@ def merge(old, new):
     out["duration"] = new_dur
     m = timemap(old, new)
     if m and old.get("notes"):  # his notes for Claude stay on the moment they are about
-        out["notes"] = [{**n, "at": round(m(n["at"]))} if isinstance(n.get("at"), (int, float)) else n for n in old["notes"]]
+        out["notes"] = [{**n, "at": round(m(n["at"])), **({"end": max(round(m(n["at"])) + 1, round(m(n["end"])))} if isinstance(n.get("end"), (int, float)) else {})}
+                        if isinstance(n.get("at"), (int, float)) else n for n in old["notes"]]  # (a range note: its end too)
     olds ={l["id"]: l for l in old.get("layers", [])}
     news = {l["id"]: l for l in new.get("layers", [])}
     layers = []
