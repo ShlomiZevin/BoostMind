@@ -32,48 +32,61 @@ const STUDENTS = PAIRS * 2 + 1;
 // slabs [floor, a, b] | ramps [floor, topX, dir, len] (stairs down to the next floor) | walls [floor, x]
 // locked [floor, x] (a locked door - פתח) | zones [type, floor, x] wc / yard | reut {f, from, to, every, first}
 // zones [type, floor, x, side]: side = 1 - the one toilets door the column walks past; a runner heads for it
-// wet [floor, a, b]: a wet floor - whoever steps on it slips (to the nurse) unless a גשר of chairs covers it,
-// or the class is turned away from it (הכוונה) when there is another way down
+// wet [floor, a, b]: whoever steps on it slips - גשר covers it, מגב mops it, or הכוונה turns the class away
+// barricade [floor, x]: a pile of desks - a wall until פנו pushes it away
 const LEVELS = [
   { name: 'שניים שניים', text: 'החצר מימין, וחור ברצפה למטה. שתי הוראות.', quota: 25, time: 150,
     orders: { guide: 1, bridge: 1 }, mischief: { every: 15 },
     slabs: [[0, 110, 352], [1, 8, 180], [1, 240, 262], [2, 90, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90], [2, 90, -1, 80]],
     zones: [['yard', 0, 322], ['wc', 2, 110, 1]], start: [0, 200, 1], exit: [3, 250] },
-  { name: 'רצפה רטובה', text: 'בקומה 2: קצה מימין ושלולית משמאל. מה קודם?', quota: 25, time: 160,
-    orders: { guide: 1, bridge: 1 }, mischief: { every: 15 },
+  { name: 'רצפה רטובה', text: 'קצה מימין, שלולית משמאל. ויש מגב!', quota: 25, time: 160,
+    orders: { guide: 1, mop: 1 }, mischief: { every: 15 },
     slabs: [[0, 8, 180], [1, 90, 340], [2, 8, 260], [3, 8, 352]], ramps: [[0, 180, 1, 100], [1, 90, -1, 80], [2, 260, 1, 90]],
     wet: [[1, 150, 220]], zones: [['wc', 2, 24, 1]], start: [0, 40, 1], exit: [3, 180] },
-  { name: 'בירידה אין שירותים', text: 'שירותים, חור, ושלולית ליד המקלט.', quota: 25, time: 160,
-    orders: { guide: 1, bridge: 2 }, mischief: { every: 15 },
+  { name: 'סגרו את הדלת', text: 'השירותים פתוחים בדרך. "סגור!" – ואף אחד לא נכנס.', quota: 25, time: 160,
+    orders: { close: 1, bridge: 2 }, mischief: { every: 15 },
     slabs: [[0, 8, 120], [1, 90, 352], [2, 8, 150], [2, 210, 262], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 90, -1, 80], [2, 262, 1, 90]],
     wet: [[3, 230, 300]], zones: [['wc', 1, 322]], start: [0, 40, 1], exit: [3, 180] },
   { name: 'מדרגות משולחנות', text: 'החצר פתוחה, ושתי קומות בלי מדרגות.', quota: 27, time: 160,
     orders: { guide: 1, stairs: 2 }, mischief: { every: 14 },
     slabs: [[0, 8, 160], [1, 140, 352], [2, 8, 220], [3, 8, 352]], ramps: [[0, 160, 1, 100]],
     zones: [['yard', 1, 340], ['wc', 1, 150, 1]], start: [0, 40, 1], exit: [3, 180] },
+  { name: 'קיר שולחנות', text: 'ערימות שולחנות חוסמות. "פנו!" מזיז אותן, "מזרן!" – קופצים בבטחה.', quota: 25, time: 170,
+    orders: { clear: 2, mat: 1 }, mischief: { every: 14 },
+    slabs: [[0, 8, 240], [1, 100, 352], [2, 8, 262], [3, 8, 352]], ramps: [[0, 240, 1, 100], [2, 262, 1, 90]],
+    barricade: [[0, 150], [2, 200]], zones: [['yard', 0, 20], ['wc', 2, 24, 1]], start: [0, 40, 1], exit: [3, 180] },
   { name: 'דלת נעולה', text: 'ארבע הוראות. תחשבו איפה הגשר הכי חשוב.', quota: 27, time: 170,
     orders: { open: 1, guide: 1, bridge: 1, stairs: 1 }, mischief: { every: 13 },
     slabs: [[0, 8, 200], [1, 60, 352], [2, 8, 250], [3, 8, 352]], ramps: [[0, 200, 1, 100], [1, 60, -1, 50]],
     locked: [[0, 150]], wet: [[1, 320, 345], [3, 230, 300]], zones: [['yard', 0, 20], ['wc', 2, 24, 1]], start: [0, 40, 1], exit: [3, 200] },
   { name: 'הכיתה של רעות', text: 'שלולית בקומה 2, והכיתה של רעות למטה.', quota: 25, time: 180,
-    orders: { stop: 2, bridge: 1 }, mischief: { every: 14 },
+    orders: { stop: 2, bridge: 1, hurry: 1 }, mischief: { every: 14 },
     slabs: [[0, 8, 230], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 230, 1, 100], [1, 100, -1, 90], [2, 260, 1, 90]],
     wet: [[1, 200, 260]], zones: [['wc', 1, 115, 1]], reut: { f: 3, from: 22, to: 340, every: 22, first: 34 }, start: [0, 56, 1], exit: [3, 260] },
   { name: 'זה לא תהלוכה', text: 'חצר, חור, קצה – ורעות למטה.', quota: 25, time: 200,
     orders: { guide: 1, bridge: 1, stairs: 1, stop: 2 }, mischief: { every: 13 },
     slabs: [[0, 110, 352], [1, 8, 180], [1, 240, 262], [2, 150, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90]],
     zones: [['yard', 0, 322], ['wc', 2, 345, 1]], reut: { f: 3, from: 340, to: 22, every: 26, first: 40 }, start: [0, 200, 1], exit: [3, 70] },
-  { name: 'מחליקים במסדרון', text: 'רצפה רטובה, חור, ורעות למטה.', quota: 25, time: 190,
-    orders: { bridge: 2, stop: 2 }, mischief: { every: 13 },
+  { name: 'מזרן התעמלות', text: 'שלולית, קצה, שירותים פתוחים וקצה. ארבעה כלים.', quota: 25, time: 190,
+    orders: { mop: 1, mat: 1, close: 1, stairs: 1 }, mischief: { every: 13 },
+    slabs: [[0, 100, 352], [1, 8, 250], [2, 100, 352], [3, 8, 352]], ramps: [[2, 100, -1, 90]],
+    wet: [[0, 180, 240]], zones: [['wc', 1, 200]], start: [0, 300, -1], exit: [3, 200] },
+  { name: 'מחליקים במסדרון', text: 'שלולית, חור, ורעות למטה.', quota: 25, time: 190,
+    orders: { mop: 1, bridge: 1, stop: 2 }, mischief: { every: 13 },
     slabs: [[0, 100, 352], [1, 8, 200], [2, 140, 352], [3, 8, 352]], ramps: [[0, 100, -1, 90], [1, 262, 1, 90], [2, 140, -1, 100]],
     wet: [[0, 150, 220]], zones: [['wc', 2, 155, 1]], reut: { f: 3, from: 340, to: 22, every: 24, first: 26 }, start: [0, 300, -1], exit: [3, 130] },
+  { name: 'חסום!', text: 'שתי ערימות שולחנות, ורעות למטה.', quota: 25, time: 200,
+    orders: { clear: 2, stop: 2, hurry: 1 }, mischief: { every: 13 },
+    slabs: [[0, 8, 236], [1, 120, 352], [2, 8, 262], [3, 8, 352]], ramps: [[0, 236, 1, 100], [1, 120, -1, 100], [2, 262, 1, 90]],
+    barricade: [[0, 150], [1, 220]], zones: [['yard', 0, 20], ['wc', 2, 30, 1]], reut: { f: 3, from: 22, to: 340, every: 24, first: 34 },
+    start: [0, 40, 1], exit: [3, 270] },
   { name: 'סוגרים רווחים', text: 'דלת, קצה, שלולית – ורעות. והזמן קצר.', quota: 25, time: 170,
     orders: { open: 1, stairs: 1, bridge: 1, stop: 2 }, mischief: { every: 12 },
     slabs: [[0, 8, 240], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 240, 1, 100], [2, 260, 1, 90]],
     locked: [[0, 160]], wet: [[2, 120, 180]], zones: [['yard', 0, 22], ['wc', 2, 24, 1]], reut: { f: 3, from: 22, to: 340, every: 26, first: 40 },
     start: [0, 60, 1], exit: [3, 290] },
-  { name: 'מה השמחה הגדולה?', text: 'חור, שלולית, חור – ורעות.', quota: 25, time: 200,
-    orders: { bridge: 2, stairs: 1, stop: 2 }, mischief: { every: 12 },
+  { name: 'מה השמחה הגדולה?', text: 'חור, שלולית, חור – ורעות. כל כלי פעם אחת.', quota: 25, time: 200,
+    orders: { bridge: 1, mop: 1, mat: 1, stop: 2 }, mischief: { every: 12 },
     slabs: [[0, 8, 150], [0, 210, 262], [1, 90, 352], [2, 8, 140], [2, 200, 262], [3, 8, 352]], ramps: [[0, 262, 1, 90], [1, 90, -1, 80], [2, 262, 1, 90]],
     wet: [[1, 150, 250]], zones: [['wc', 1, 100, 1]], reut: { f: 3, from: 340, to: 22, every: 26, first: 40 }, start: [0, 40, 1], exit: [3, 270] },
   { name: 'כולם ביחד', text: 'הכוונה, גשר, פתח, מדרגות ועצור – הכול בשלב אחד.', quota: 23, time: 210,
@@ -81,21 +94,27 @@ const LEVELS = [
     slabs: [[0, 110, 352], [1, 8, 170], [1, 230, 262], [2, 150, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90]],
     locked: [[2, 250]], zones: [['yard', 0, 322], ['wc', 1, 20, 1]], reut: { f: 3, from: 340, to: 22, every: 26, first: 40 },
     start: [0, 200, 1], exit: [3, 70] },
+  { name: 'הכלים החדשים', text: 'סגור, מגב, מזרן, פנו – ולהזדרז אם צריך.', quota: 25, time: 190,
+    orders: { close: 1, mop: 1, mat: 1, clear: 1, hurry: 1 }, mischief: { every: 13 },
+    slabs: [[0, 110, 352], [1, 8, 180], [2, 140, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [2, 140, -1, 100]],
+    wet: [[1, 60, 120]], barricade: [[2, 162]], zones: [['yard', 0, 322], ['wc', 2, 340, 1]], start: [0, 200, 1], exit: [3, 200] },
   { name: 'הצופר האחרון', text: 'הכול ביחד. רבותיי וגבירותיי – עיניים אליי.', quota: 25, time: 210,
-    orders: { stop: 2, open: 1, bridge: 2 }, mischief: { every: 12 },
+    orders: { open: 1, mop: 1, bridge: 1, stop: 2 }, mischief: { every: 12 },
     slabs: [[0, 8, 236], [1, 120, 352], [2, 8, 190], [2, 250, 262], [3, 8, 352]], ramps: [[0, 236, 1, 100], [1, 120, -1, 100], [2, 262, 1, 90]],
     locked: [[0, 150]], wet: [[1, 200, 300]], zones: [['yard', 0, 22], ['wc', 1, 130, 1]], reut: { f: 3, from: 30, to: 340, every: 26, first: 30 },
     start: [0, 60, 1], exit: [3, 230] },
 ];
 
-const TIPS = ["\"הכוונה!\" לזוג הראשון לפני החצר – כולם יסתובבו אל המדרגות. בקומה 2: \"גשר!\" לזוג הראשון לפני החור.", "בקומה 2 יש קצה מימין: \"הכוונה!\" לזוג הראשון שנוחת שם – כולם יפנו שמאלה. ואז \"גשר!\" לזוג הבא – לפני השלולית.", "\"הכוונה!\" לזוג הראשון בקומה 2 לפני השירותים. \"גשר!\" לחור בקומה 1. ו\"גשר!\" שני לשלולית ליד המקלט.", "\"הכוונה!\" לזוג הראשון שנוחת בקומה 2 – לפני החצר. \"מדרגות!\" לזוג הבא – לקצה משמאל. ובקומה 1: שוב \"מדרגות!\".", "\"פתח!\" לזוג הראשון. בקומה 2 – \"הכוונה!\" (לא גשר!) לפני השלולית. \"מדרגות!\" לקצה בקומה 1. ואת הגשר – לשלולית ליד המקלט.", "\"גשר!\" לזוג הראשון בקומה 2 – לפני השלולית. ולמטה: כשסימן ! מהבהב בדלת של רעות – \"עצור!\" בקומה 1, וכשהיא עוברת – לשחרר.", "\"הכוונה!\" לפני החצר, \"גשר!\" לחור בקומה 2, \"מדרגות!\" לקצה בקומה 1 – ו\"עצור!\" בקומה 1 כשרעות עוברת, ואז לשחרר.", "\"גשר!\" לזוג הראשון – לשלולית. \"גשר!\" לזוג הראשון בקומה 2 – לחור. ולמטה: \"עצור!\" בקומה 1 כשרעות עוברת.", "\"פתח!\" לזוג הראשון. \"מדרגות!\" לקצה בקומה 2. \"גשר!\" לשלולית בקומה 1. ו\"עצור!\" כשרעות עוברת – ואז לשחרר.", "\"גשר!\" לחור בקומה 3, \"גשר!\" לשלולית בקומה 2, \"מדרגות!\" לחור בקומה 1 – ו\"עצור!\" לפני החור כשרעות עוברת.", "לפי הסדר: \"הכוונה!\" לפני החצר, \"גשר!\" לחור בקומה 2, \"פתח!\" לדלת בקומה 1, \"מדרגות!\" לקצה שאחריה – ו\"עצור!\" כשרעות עוברת.", "\"פתח!\" לזוג הראשון, \"גשר!\" לשלולית בקומה 2, \"גשר!\" לחור בקומה 1, ו\"עצור!\" כשרעות עוברת."];
-const ORDERS = ['stop', 'guide', 'bridge', 'stairs', 'open'];
-const ORDER_NAME = { stop: 'עצור!', guide: 'הכוונה!', bridge: 'גשר!', stairs: 'מדרגות!', open: 'פתח!' };
+const TIPS = ["\"הכוונה!\" לזוג הראשון לפני החצר – כולם יסתובבו אל המדרגות. בקומה 2: \"גשר!\" לזוג הראשון לפני החור.", "בקומה 2 יש קצה מימין: \"הכוונה!\" לזוג הראשון שנוחת שם, צעד אחרי הנחיתה. ואז \"מגב!\" לזוג הבא – הוא ינגב את השלולית.", "\"סגור!\" לזוג הראשון שנוחת בקומה 2 – הוא יסגור את השירותים. \"גשר!\" לחור בקומה 1. ו\"גשר!\" שני לשלולית ליד המקלט.", "\"הכוונה!\" לזוג הראשון שנוחת בקומה 2 – לפני החצר. \"מדרגות!\" לזוג הבא – לקצה משמאל. ובקומה 1: שוב \"מדרגות!\".", "\"פנו!\" לזוג הראשון – לערימת השולחנות. בקומה 2: \"מזרן!\" לזוג הראשון – לפני הקצה. ובקומה 1: שוב \"פנו!\".", "\"פתח!\" לזוג הראשון. בקומה 2 – \"הכוונה!\" (לא גשר!) לפני השלולית. \"מדרגות!\" לקצה בקומה 1. ואת הגשר – לשלולית ליד המקלט.", "\"גשר!\" לזוג הראשון בקומה 2 – לפני השלולית. ולמטה: כשסימן ! מהבהב בדלת של רעות – \"עצור!\" בקומה 1, וכשהיא עוברת – לשחרר.", "\"הכוונה!\" לפני החצר, \"גשר!\" לחור בקומה 2, \"מדרגות!\" לקצה בקומה 1 – ו\"עצור!\" בקומה 1 כשרעות עוברת, ואז לשחרר.", "\"מגב!\" לזוג הראשון – לשלולית. \"מזרן!\" לקצה בקומה 3. בקומה 2: \"סגור!\" לשירותים ו\"מדרגות!\" לקצה.", "\"מגב!\" לזוג הראשון – לשלולית. \"גשר!\" לזוג הראשון בקומה 2 – לחור. ולמטה: \"עצור!\" בקומה 1 כשרעות עוברת.", "\"פנו!\" לזוג הראשון, \"פנו!\" לזוג הראשון בקומה 2 – ו\"עצור!\" בקומה 1 כשרעות עוברת. \"להזדרז!\" אם הזמן קצר.", "\"פתח!\" לזוג הראשון. \"מדרגות!\" לקצה בקומה 2. \"גשר!\" לשלולית בקומה 1. ו\"עצור!\" כשרעות עוברת – ואז לשחרר.", "\"גשר!\" לחור בקומה 3, \"מגב!\" לשלולית בקומה 2, \"מזרן!\" לחור בקומה 1 – הוא יורד ישר למקלט – ו\"עצור!\" כשרעות עוברת.", "לפי הסדר: \"הכוונה!\" לפני החצר, \"גשר!\" לחור בקומה 2, \"פתח!\" לדלת בקומה 1, \"מדרגות!\" לקצה שאחריה – ו\"עצור!\" כשרעות עוברת.", "\"סגור!\" לזוג הראשון – לחצר. \"מגב!\" לשלולית בקומה 2, \"מזרן!\" לקצה שאחריה, ו\"פנו!\" לערימה בקומה 1.", "\"פתח!\" לזוג הראשון, \"מגב!\" לשלולית בקומה 2, \"גשר!\" לחור בקומה 1, ו\"עצור!\" כשרעות עוברת."];
+const ORDERS = ['stop', 'guide', 'bridge', 'stairs', 'open', 'mop', 'clear', 'mat', 'close', 'hurry'];
+const ARMED = ['bridge', 'stairs', 'open', 'mop', 'clear', 'mat', 'close'];   // jobs a pair carries until it reaches the place
+const ORDER_NAME = { stop: 'עצור!', guide: 'הכוונה!', bridge: 'גשר!', stairs: 'מדרגות!', open: 'פתח!', mop: 'מגב!', clear: 'פנו!', mat: 'מזרן!', close: 'סגור!', hurry: 'להזדרז!' };
+const BTN = { stop: 'btnStop', guide: 'btnGuide', bridge: 'btnBridge', stairs: 'btnStairs', open: 'btnOpen', mop: 'btnMop', clear: 'btnClear', mat: 'btnMat', close: 'btnClose', hurry: 'btnHurry' };
 
 // ---------- assets ----------
 const IMG = {}, SPR = {};
 const imgNames = ['pairA', 'pairB', 'pairC', 'shahar', 'omer', 'block', 'build', 'open', 'fall', 'cheer', 'turn', 'sad', 'reut', 'reutKids', 'rosen',
-  'doorClass', 'doorWc', 'doorYard', 'doorShelter', 'doorLocked', 'stairs', 'cone', 'chair', 'ball', 'point', 'key', 'wetSign', 'puddle', 'btnStop', 'btnGuide', 'btnBridge', 'btnStairs', 'btnOpen', 'board', 'lockers', 'plant', 'exitSign'];
+  'doorClass', 'doorWc', 'doorYard', 'doorShelter', 'doorLocked', 'stairs', 'cone', 'chair', 'ball', 'btnMop', 'btnClear', 'btnMat', 'btnClose', 'btnHurry', 'mop', 'push', 'throw', 'barricade', 'gymmat', 'barrier', 'point', 'key', 'wetSign', 'puddle', 'btnStop', 'btnGuide', 'btnBridge', 'btnStairs', 'btnOpen', 'board', 'lockers', 'plant', 'exitSign'];
 function loadImg(n, src) { return new Promise((r) => { const i = new Image(); i.onload = () => { IMG[n] = i; r(); }; i.onerror = () => r(); i.src = src; }); }
 const ready = fetch('assets/sprites.json').then((r) => r.json()).then((m) => { Object.assign(SPR, m); return Promise.all([
   ...imgNames.map((n) => loadImg(n, 'assets/' + n + '.webp')),
@@ -160,6 +179,9 @@ function buildLevel(i) {
   doors = (d.locked || []).map(([f, x]) => ({ f, x: X(x), open: false, t: 0 }));
   L.lostLeft = STUDENTS - d.quota;
   L.wet = (d.wet || []).map(([f, a, b]) => ({ f, a: X(a), b: X(b), covered: false }));
+  L.barr = (d.barricade || []).map(([f, x]) => ({ f, x: X(x), gone: false }));
+  for (const b of L.barr) fill(b.x - 8, F[b.f] - 42, b.x + 8, F[b.f], 1);
+  L.mats = []; L.hurry = 0;
   for (const dr of doors) fill(dr.x - 5, F[dr.f] - 52, dr.x + 5, F[dr.f], 1);
   for (const [t, f, x, side] of d.zones || []) L.zones.push({ t, f, x: X(x), side: !!side });
   L.cls = { f: d.start[0], x: X(d.start[1]) };
@@ -167,7 +189,7 @@ function buildLevel(i) {
   if (d.reut) L.reut = { ...d.reut, from: X(d.reut.from), to: X(d.reut.to), every: d.reut.every * W / 300, first: d.reut.first * W / 300 };
   walkers = []; chairs = []; fx = [];
   reutCol = { members: [], next: L.reut ? L.reut.first : Infinity, warn: 0 };
-  L.left = { stop: 0, guide: 0, bridge: 0, stairs: 0, open: 0, ...d.orders };
+  L.left = { ...Object.fromEntries(ORDERS.map((o) => [o, 0])), ...d.orders };
   L.k = W / 300; L.t = 0; L.timeLeft = d.time * L.k; L.spawned = 0; L.spawnT = 0.8; L.saved = 0; L.lostN = 0; L.savedOrder = [];
   L.over = false; L.lines = {}; L.counting = 0; L.mischT = d.mischief ? 9 + d.mischief.every * 0.4 : Infinity;
   L.decor = makeDecor(i);
@@ -199,7 +221,8 @@ function spawn() {
   if (k === 0) play('steps', 0.5);
 }
 const nStudents = (w) => w.kind === 'shahar' ? 1 : 2;
-const active = (w) => w.st === 'walk' || w.st === 'slip' || w.st === 'guide' || w.st === 'stairs' || w.st === 'fall' || w.st === 'block' || w.st === 'build' || w.st === 'open';
+const JOBST = ['mop', 'clear', 'mat', 'close'];
+const active = (w) => w.st === 'walk' || w.st === 'slip' || JOBST.includes(w.st) || w.st === 'guide' || w.st === 'stairs' || w.st === 'fall' || w.st === 'block' || w.st === 'build' || w.st === 'open';
 
 function lose(w, why) {
   if (!active(w)) return;
@@ -233,7 +256,7 @@ const NUM = ['', 'אחד', 'שניים', 'שלושה', 'ארבעה', 'חמישה
 
 function step(dt) {
   if (L.over) return;
-  L.t += dt; L.timeLeft -= dt;
+  L.t += dt; L.timeLeft -= dt; if (L.hurry > 0) L.hurry -= dt;
   // the class comes out of the classroom, a pair at a time, Shahar last
   if (L.spawned <= PAIRS) { L.spawnT -= dt; if (L.spawnT <= 0) { spawn(); L.spawnT = SPAWN_EVERY; } }
   if (L.counting > 0) L.counting -= dt;
@@ -263,8 +286,12 @@ function stepWalker(w, dt) {
   if (w.st === 'gone' || w.st === 'in') { w.fade -= dt * 1.6; return; }
   if (w.st === 'tag') return;
   w.out += dt;
-  const v = (w.kind === 'shahar' ? V_SHAHAR : V) * (w.mis && w.mis.go ? RUN : 1) * dt;
+  const v = (w.kind === 'shahar' ? V_SHAHAR : V) * (w.mis && w.mis.go ? RUN : 1) * (L.hurry > 0 ? 1.7 : 1) * dt;
   if (w.st === 'block' || w.st === 'guide') return;
+  if (w.st === 'mop') { if (w.t > 1.4) { w.wz.covered = true; w.wz.mopped = true; w.st = 'walk'; w.t = 0; } return; }
+  if (w.st === 'clear') { if (w.t > 1.1) { const b = w.barr; b.gone = true; fill(b.x - 8, F[b.f] - 42, b.x + 8, F[b.f], 0); play('chair', 0.8); w.st = 'walk'; w.t = 0; } return; }
+  if (w.st === 'close') { if (w.t > 0.6) { w.zone.closed = true; play('door', 0.8); for (const o of walkers) if (o.mis && o.mis.door === w.zone) o.mis = null; w.st = 'walk'; w.t = 0; } return; }
+  if (w.st === 'mat') { if (w.t > 0.7) { L.mats.push({ f: w.matF, x: w.x + w.d * 10 }); w.st = 'fall'; w.fy0 = w.y; w.x += w.d * 6; } return; }
   if (w.st === 'slip') { w.x += w.d * V * 2.2 * dt * Math.max(0, 1 - w.t); if (w.t > 0.7) lose(w, 'slip'); return; }
   if (w.st === 'stairs') {
     const n = Math.min(6, Math.floor(w.t / 0.3));
@@ -298,7 +325,7 @@ function stepWalker(w, dt) {
   if (w.st === 'fall') {
     const y0 = w.y; w.y += 120 * dt;
     for (const r of L.ramps) if ((w.x - r.x0) * (w.x - r.x1) <= 0) { const ry = rampY(r, w.x); if (y0 <= ry && w.y >= ry) { w.y = ry; if (ry - w.fy0 > FALL_SAFE) { lose(w, 'nurse'); return; } w.ramp = r; w.st = 'walk'; return; } }
-    if (solid(w.x, w.y)) { while (solid(w.x, w.y - 1)) w.y--; if (w.y - w.fy0 > FALL_SAFE) lose(w, 'nurse'); else w.st = 'walk'; }
+    if (solid(w.x, w.y)) { while (solid(w.x, w.y - 1)) w.y--; const soft = L.mats.some((m) => Math.abs(F[m.f] - w.y) < 6 && Math.abs(m.x - w.x) < 26); if (w.y - w.fy0 > FALL_SAFE && !soft) lose(w, 'nurse'); else { w.st = 'walk'; if (soft) w.hop = 0.45; } }
     if (w.y > H) lose(w, 'nurse');
     return;
   }
@@ -309,7 +336,7 @@ function stepWalker(w, dt) {
     if (b === w || b.ramp || Math.abs(b.y - w.y) >= 8 || !active(b)) continue;
     const dx = (b.x - w.x) * w.d;
     if (b.st === 'guide' && w.d !== b.gd) { if (dx > 0 && dx < 12) { turn(w); break; } continue; }
-    const wall = b.st === 'block' || b.st === 'build' || b.st === 'open' || b.st === 'stairs' || (b.waiting && b.d === w.d);
+    const wall = b.st === 'block' || b.st === 'build' || b.st === 'open' || b.st === 'stairs' || JOBST.includes(b.st) || (b.waiting && b.d === w.d);
     if (wall && dx > 0 && dx < (b.waiting ? 15 : 14)) { w.waiting = true; return; }
   }
   if (w.ramp) {
@@ -322,10 +349,13 @@ function stepWalker(w, dt) {
     if (wall) {
       const dr = doors.find((d) => !d.open && d.f === floorOf(w) && Math.abs(d.x - ahead) < 8);
       if (dr && w.armed === 'open') { w.armed = null; w.st = 'open'; w.t = 0; w.door = dr; play('door'); return; }
+      const bz = L.barr.find((b) => !b.gone && b.f === floorOf(w) && Math.abs(b.x - ahead) < 12);
+      if (bz && w.armed === 'clear') { w.armed = null; w.st = 'clear'; w.t = 0; w.barr = bz; return; }
       turn(w);
     } else {
       const wz = L.wet.find((z) => !z.covered && z.f === floorOf(w) && nx >= z.a && nx <= z.b);
       if (wz && !(w.x >= wz.a && w.x <= wz.b) && !w.ramp) {
+        if (w.armed === 'mop') { w.armed = null; w.st = 'mop'; w.t = 0; w.wz = wz; return; }
         if (w.armed === 'bridge') { w.armed = null; w.st = 'build'; w.t = 0; w.laid = 0; w.wet = wz; w.bx = w.d > 0 ? wz.a - 4 : wz.b + 4; return; }
         w.x = nx; w.st = 'slip'; w.t = 0; play('fall', 0.7); return;
       }
@@ -335,6 +365,10 @@ function stepWalker(w, dt) {
       if (r && (g === null || g > w.y)) { w.ramp = r; w.x = r.x0 + w.d * 0.5; w.y = rampY(r, w.x); }
       else if (g !== null) { w.x = nx; w.y = g; }
       else if (w.armed === 'bridge') { w.armed = null; w.st = 'build'; w.t = 0; w.laid = 0; w.bx = w.x - w.d * 3; return; }
+      else if (w.armed === 'mat' && floorOf(w) >= 0 && floorOf(w) < 3) {
+        let fy = floorOf(w) + 1; while (fy < 3 && !solid(w.x + w.d * 10, F[fy] + 2)) fy++;
+        w.armed = null; w.st = 'mat'; w.t = 0; w.matF = fy; play('chair', 0.6); return;
+      }
       else if (w.armed === 'stairs' && floorOf(w) >= 0 && floorOf(w) < 3) {
         const f = floorOf(w); let len = 84; while (len > 34 && (w.x + w.d * len < 12 || w.x + w.d * len > W - 12)) len -= 4;
         if (len > 34) { w.armed = null; w.st = 'stairs'; w.t = 0; w.laid = 0; w.newRamp = { f, x0: w.x, y0: F[f], x1: w.x + w.d * len, y1: F[f + 1], d: w.d, built: true }; return; }
@@ -346,7 +380,8 @@ function stepWalker(w, dt) {
   // zones
   const f = floorOf(w);
   if (Math.abs(w.x - L.ex.x) < 8 && f === L.ex.f && !w.ramp) { save(w); return; }
-  for (const z of L.zones) if (z.f === f && Math.abs(w.x - z.x) < 6 && !w.ramp && (!z.side || (w.mis && w.mis.go && w.mis.door === z))) { lose(w, z.t); return; }
+  if (w.armed === 'close' && !w.ramp) { const z = L.zones.find((z) => !z.closed && z.f === f && (z.x - w.x) * w.d > 0 && (z.x - w.x) * w.d < 22); if (z) { w.armed = null; w.st = 'close'; w.t = 0; w.zone = z; return; } }
+  for (const z of L.zones) if (!z.closed && z.f === f && Math.abs(w.x - z.x) < 6 && !w.ramp && (!z.side || (w.mis && w.mis.go && w.mis.door === z))) { lose(w, z.t); return; }
 }
 const floorOf = (w) => { for (let f = 0; f < 4; f++) if (Math.abs(w.y - F[f]) < 6) return f; return -1; };
 function turn(w) { w.d = -w.d; w.turnT = 0.25; if (Math.random() < 0.3) play('turn', 0.35); }
@@ -356,7 +391,7 @@ function calm(w) { w.mis = null; floatText(w.x, w.y - 44, 'מתאפק', '#cfe6d7
 // (any order selected - catching costs nothing) and he goes back into the column; miss him and he is gone.
 const WARN = 0.8, RUN = 1.6;   // a runner starts far from the toilets and is catchable: ~3 seconds to tap him
 function stepMischief(dt) {
-  const wc = L.zones.find((z) => z.t === 'wc');
+  const wc = L.zones.find((z) => z.t === 'wc' && !z.closed);
   L.mischT -= dt;
   if (L.mischT <= 0 && wc && wc.f !== L.ex.f) {   // never on the shelter floor: a runner there is already at the finish
     const can = walkers.filter((w) => w.st === 'walk' && !w.armed && !w.ramp && !w.mis && floorOf(w) === wc.f && Math.abs(w.x - wc.x) > Math.max(150, W * 0.45) && w.kind !== 'shahar');
@@ -424,13 +459,14 @@ function give(w, o) {
   if (!active(w)) return false;
   if (w.st === 'fall') { hint('באמצע הנפילה? לא עכשיו'); return false; }
   if (w.st !== 'walk') { hint('הזוג הזה כבר עסוק'); return false; }
-  if ((o === 'bridge' || o === 'open' || o === 'stairs') && w.armed) { hint('הזוג הזה כבר קיבל הוראה'); return false; }
+  if (ARMED.includes(o) && w.armed) { hint('הזוג הזה כבר קיבל הוראה'); return false; }
   if ((o === 'stop' || o === 'guide') && w.ramp) { hint('לא עוצרים על המדרגות'); return false; }
   L.left[o]--; w.flash = 0.5; w.jobPop = 0.9;
   for (let i = bubbles.length - 1; i >= 0; i--) if (bubbles[i].w === w) bubbles.splice(i, 1);
   if (o === 'stop') { w.st = 'block'; w.t = 0; w.mis = null; play('stop'); }
   if (o === 'guide') { w.st = 'guide'; w.gd = -w.d; w.d = w.gd; w.t = 0; w.mis = null; play('stop', 0.7); }
-  if (o === 'bridge' || o === 'open' || o === 'stairs') { w.armed = o; play('tap'); }
+  if (ARMED.includes(o)) { w.armed = o; play('tap'); }
+  if (o === 'hurry') { L.hurry = 6 * L.k; w.armed = null; play('stop'); floatText(w.x, w.y - KID - 30, 'הופ! הופ! הופ!', '#d6ff7a'); say('הופ! הופ! הופ! כולם להזדרז!', 'angry', 2200); }
   renderOrders();
   return true;
 }
@@ -561,7 +597,11 @@ function draw() {
     if (L.slabs.some(([f2, a2, b2]) => f2 === f && (side > 0 ? Math.abs(a2 - x) < 2 : Math.abs(b2 - x) < 2))) continue;
     prop('cone', x - side * 7, F[f], 18);
   }
+  for (const b of L.barr) if (!b.gone) prop('barricade', b.x, F[b.f] + 2, 44);
+  for (const m of L.mats) prop('gymmat', m.x, F[m.f] + 2, 12);
+  for (const z of L.zones) if (z.closed) prop('barrier', z.x, F[z.f] + 1, 36);
   for (const z of L.wet) {
+    if (z.mopped) continue;
     if (IMG.puddle) ctx.drawImage(IMG.puddle, z.a - 4, F[z.f] - 6, z.b - z.a + 8, 10);
     if (!z.covered) { prop('wetSign', z.a - 10, F[z.f], 26); prop('wetSign', z.b + 10, F[z.f], 26, true); }
   }
@@ -593,6 +633,7 @@ function draw() {
   ctx.globalAlpha = 1;
   for (const b of bubbles) drawBubble(b);
   for (const w of walkers) drawJob(w);
+  if (L.hurry > 0) { ctx.fillStyle = '#d6ff7a'; ctx.font = '900 13px Rubik'; ctx.textAlign = 'center'; ctx.fillText('⚡ להזדרז ' + Math.ceil(L.hurry / BASE), W / 2, 30); }
 }
 function flight(r, n, fill, edge, rail, upto = n) {
   const pts = [];
@@ -625,13 +666,16 @@ function drawWalker(w) {
   else if (w.st === 'stairs') { name = single ? 'shahar' : 'build'; fr = 0; }
   else if (w.st === 'build') { name = single ? 'shahar' : 'build'; fr = 0; }
   else if (w.st === 'open') { name = single ? 'shahar' : 'key'; fr = w.t > 0.5 ? 1 : 0; }
+  else if (w.st === 'mop') { name = single ? 'shahar' : 'mop'; fr = 0; }
+  else if (w.st === 'clear' || w.st === 'close') { name = single ? 'shahar' : 'push'; fr = 0; }
+  else if (w.st === 'mat') { name = single ? 'shahar' : 'throw'; fr = 0; }
   else if (w.st === 'fall' || w.st === 'slip') { name = single ? 'shahar' : 'fall'; fr = 0; }
   else if (w.st === 'in') { name = single ? 'shahar' : 'cheer'; fr = 0; }
   else if (w.st === 'gone' && w.why !== 'nurse') { name = single ? 'shahar' : 'sad'; }
   else if (w.turnT > 0 && !single) { name = 'turn'; fr = 0; }
   if (w.flash > 0) { ctx.fillStyle = '#ffd77a88'; ctx.beginPath(); ctx.ellipse(w.x, w.y - 2, 15, 5, 0, 0, 7); ctx.fill(); }
   else { ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 11, 3, 0, 0, 7); ctx.fill(); }
-  const onChairs = L.wet.some((z) => z.covered && z.f === floorOf(w) && w.x >= z.a - 2 && w.x <= z.b + 2);
+  const onChairs = L.wet.some((z) => z.covered && !z.mopped && z.f === floorOf(w) && w.x >= z.a - 2 && w.x <= z.b + 2);
   const hop = (w.hop > 0 ? Math.sin((0.45 - w.hop) / 0.45 * Math.PI) * 9 : 0) + (onChairs ? 6 : 0);
   sprite(name, fr, w.x, w.y + 1 - hop, H2, flip, a);
   if (w.mis) {
@@ -647,17 +691,17 @@ function drawWalker(w) {
   if (w.kind === 'shahar' && active(w)) { ctx.fillStyle = '#ffd77a'; ctx.font = '900 9px Rubik'; ctx.textAlign = 'center'; ctx.fillText('שחר', w.x, w.y - KID - 3); }
 }
 // jobs are drawn above everything (even speech): the job's own button picture over the head; a pop when it is given
-const JOB_IMG = { block: 'btnStop', guide: 'btnGuide', bridge: 'btnBridge', stairs: 'btnStairs', open: 'btnOpen', build: 'btnBridge' };
+const JOB_IMG = { ...BTN, block: 'btnStop', build: 'btnBridge' };
 function drawJob(w) {
   if (!active(w)) return;
-  const job = w.armed || (w.st === 'block' ? 'block' : w.st === 'guide' ? 'guide' : w.st === 'build' ? 'build' : w.st === 'stairs' ? 'stairs' : w.st === 'open' ? 'open' : null);
+  const job = w.armed || (w.st === 'block' ? 'block' : ['guide', 'build', 'stairs', 'open', ...JOBST].includes(w.st) ? w.st : null);
   if (!job) return;
   const im = IMG[JOB_IMG[job]]; if (!im) return;
   const pop = w.jobPop > 0 ? w.jobPop / 0.9 : 0, r = 11 + 9 * pop, cy = w.y - KID - 12 - 8 * pop;
   ctx.drawImage(im, w.x - r, cy - r, r * 2, r * 2);
   if (job === 'guide') { ctx.fillStyle = '#fff'; ctx.font = '900 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(w.gd < 0 ? '◀' : '▶', w.x + (w.gd < 0 ? -r - 6 : r + 6), cy + 4); }
   if (pop > 0) {
-    const t = { block: 'עצור', guide: 'הכוונה', bridge: 'גשר', stairs: 'מדרגות', open: 'פתח', build: 'גשר' }[job];
+    const t = job === 'block' ? 'עצור' : job === 'build' ? 'גשר' : ORDER_NAME[job].replace('!', '');
     ctx.font = '900 12px Rubik'; const tw = ctx.measureText(t).width + 14;
     ctx.globalAlpha = Math.min(1, pop * 2); ctx.fillStyle = '#1a3149'; ctx.beginPath(); ctx.roundRect(w.x - tw / 2, cy - r - 20, tw, 18, 8); ctx.fill();
     ctx.fillStyle = '#ffd76a'; ctx.textAlign = 'center'; ctx.fillText(t, w.x, cy - r - 7); ctx.globalAlpha = 1;
@@ -715,7 +759,7 @@ function renderOrders() {
 addEventListener('keydown', (e) => {
   if (tut.on) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); tutNext(true); } else if (e.key === 'Escape') tutEnd(); return; }
   if (game.mode !== 'play') return;
-  const k = { 1: 'stop', 2: 'guide', 3: 'bridge', 4: 'stairs', 5: 'open' }[e.key]; if (k && L.left[k] !== undefined && (LEVELS[L.i].orders[k] || 0) > 0) selectOrder(k);
+  const k = ORDERS.filter((o) => (LEVELS[L.i].orders[o] || 0) > 0)[+e.key - 1]; if (k && L.left[k] !== undefined && (LEVELS[L.i].orders[k] || 0) > 0) selectOrder(k);
   if (e.key === 'p' || e.key === 'Escape') setPause(!game.paused);
   if (e.key === 'f') setFast();
 });
@@ -764,7 +808,6 @@ function intro(i) {
   $('#iName').textContent = l.name;
   $('#iText').textContent = l.text;
   $('#iGoal').textContent = '🎯 להכניס ' + l.quota + ' מתוך ' + STUDENTS;
-  const BTN = { stop: 'btnStop', guide: 'btnGuide', bridge: 'btnBridge', stairs: 'btnStairs', open: 'btnOpen' };
   $('#iJobs').innerHTML = ORDERS.filter((o) => l.orders[o]).map((o) => '<span><b>' + l.orders[o] + '</b><img src="assets/' + BTN[o] + '.webp" alt=""><i>' + ORDER_NAME[o].replace('!', '') + '</i></span>').join('');
   $('#bGo').onclick = () => startLevel(i);
 }
@@ -811,7 +854,7 @@ const STEPS = [
     spot: () => { const w = walkers[0]; return worldRect(w.x - 28, w.y - KID - 6, 56, KID + 12); }, wait: (k, w) => k === 'tap' && w === walkers[0], after: () => give(walkers[0], 'guide') },
   { t: 'הקישו עליו שוב כדי לשחרר. בחינם.', verb: 'הקישו שוב', spot: () => { const w = walkers[0]; return worldRect(w.x - 28, w.y - KID - 6, 56, KID + 12); },
     wait: (k, w) => k === 'tap' && w === walkers[0], after: () => give(walkers[0], null) },
-  { t: 'כל הוראה היא תפקיד שעוזר לכולם: עצור, הכוונה, גשר, מדרגות, פתח. כל אחת בשלב משלה.', spot: () => elRect('#orders') },
+  { t: 'כל הוראה היא תפקיד שעוזר לכולם – עצור, הכוונה, גשר, מדרגות, פתח, מגב, פנו, מזרן, סגור, להזדרז. כל אחת מגיעה בשלב משלה.', spot: () => elRect('#orders') },
   { t: 'פתאום מישהו רץ לשירותים! הקישו עליו מהר – והוא חוזר לטור.' },
   { t: '⏩ מהר יותר: ×2, ×3, ×5. ⏸ עצירה, ↻ מההתחלה.', spot: () => elRect('#bFast') },
   { t: 'שחר אחרון = טור מושלם. יורדים!' },

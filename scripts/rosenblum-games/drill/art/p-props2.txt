@@ -1,0 +1,7 @@
+A sprite sheet for a 2D side-view school game, same painted cartoon game style and same teenage students as the reference sheet. Transparent background, grid of 3 columns x 2 rows, each item whole and separate with space around, on one floor line, facing RIGHT:
+1) the same pair of high-school teens (boy and girl, white t-shirts, jeans, backpacks): the boy mopping the floor with a mop.
+2) the same pair pushing hard against something in front of them with both free hands.
+3) the same pair: the girl throwing a folded blue gym mat forward and down.
+4) a messy pile of school desks and chairs blocking a corridor, side view, about as tall as a student's waist.
+5) a flat blue gym mat lying on the floor, side view, wide and soft.
+6) a wooden sawhorse barrier with red and white stripes (a "closed" barrier).
