@@ -7,19 +7,19 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GAME = os.path.join(HERE, '..', '..', '..', '..', 'public', 'rosenblum-games', 'drill', 'assets')
+GAME = os.path.join(HERE, '..', '..', '..', 'public', 'rosenblum-games', 'drill', 'assets')
 SV = 'C:/workspace/studio/zoomcut/episodes/_assets/shlomiverse'
 FONT = 'C:/workspace/sv-intro-natural/fonts/Heebo-VariableFont_wght.ttf'
 W, H, FPS = 1080, 1920, 30
-FR = os.environ.get('FRAMES', 'frames1')
+FR = os.environ.get('FRAMES', 'frames')
 os.makedirs(os.path.join(HERE, 'out'), exist_ok=True)
 
 # the cut: (source first frame, source last frame) of the recording
-SEGS = [(45, 345)]   # set after the recording: one clear round
+SEGS = [(12, 185), (590, 715)]   # siren + walk out + עצור! on the lead pair + a troublemaker tapped | the last pairs in, Shahar last, the win card
 CAPS = [  # (output-second from, to, text) - one caption per action (his ask: show taking, giving, releasing)
-    (3.45, 5.5, '1. אזעקה. יוצאים בזוגות'),
-    (5.6, 8.0, '2. תנו פקודה, הקישו על זוג'),
-    (8.1, 10.0, '3. שחר נכנס אחרון'),
+    (3.45, 5.95, '1. אזעקה. יוצאים בזוגות'),
+    (6.0, 9.15, '2. תנו פקודה, הקישו על זוג'),
+    (9.25, 12.4, '3. שחר נכנס אחרון'),
 ]
 
 def font(sz, wt=900):
@@ -98,8 +98,20 @@ def src_to_out(t):
         if a <= f <= b: return (off + f - a) / FPS
         off += b - a + 1
     return None
-snd = [(src_to_out(t), n) for t, n in json.load(open(os.path.join(HERE, (FR if FR != 'frames' else '') + 'sounds.json')))]
+snd = [(src_to_out(t), n) for t, n in json.load(open(os.path.join(HERE, FR + 'sounds.json')))]
 snd = [(t, n) for t, n in snd if t is not None]
+# the game picks one of a few variants (stop1/stop2...) - here too, never the same one twice in a row; a sound repeated
+# within 0.3 s (a crowd turning at a blocker) is played once
+VAR = {}; last = {}; prev = {}; snd2 = []
+for t, n in snd:
+    if t - prev.get(n, -9) < 0.3: continue
+    prev[n] = t
+    if not os.path.exists(f'{GAME}/sfx/{n}.mp3'):
+        k = 1
+        while os.path.exists(f'{GAME}/sfx/{n}{k + 1}.mp3'): k += 1
+        i = (last.get(n, 0) % k) + 1; last[n] = i; n = f'{n}{i}'
+    if os.path.exists(f'{GAME}/sfx/{n}.mp3'): snd2.append((t, n))
+snd = snd2
 inputs = ['-i', out, '-i', f'{GAME}/music.mp3', '-i', f'{SV}/verse-presents.mp4', '-i', f'{SV}/verse-only.mp4']
 flt = [f'[1:a]atrim=0:{DUR},volume=0.42,afade=t=out:st={DUR - 1.2}:d=1.2[m]', '[2:a]volume=0.9[ai]',
        f'[3:a]volume=0.9,adelay={int(GAME_END / FPS * 1000)}|{int(GAME_END / FPS * 1000)}[ao]']
@@ -109,9 +121,9 @@ flt += [f'[4:a]volume=0.8,adelay={TT}|{TT}[th]', f'[5:a]volume=0.7,adelay={ET}|{
 labels = ['[m]', '[ai]', '[ao]', '[th]', '[et]']
 for j, (t, n) in enumerate(snd):
     inputs += ['-i', f'{GAME}/sfx/{n}.mp3']
-    ms = int(t * 1000); vol = 0.55 if n.startswith('ping') else 0.8
+    ms = int(t * 1000); vol = 0.35 if n.startswith(('turn', 'steps')) else 0.6 if n.startswith('saved') else 0.8
     flt.append(f'[{6 + j}:a]volume={vol},adelay={ms}|{ms}[s{j}]'); labels.append(f'[s{j}]')
-flt.append(''.join(labels) + f'amix=inputs={len(labels)}:normalize=0,alimiter=limit=0.9,atrim=0:{DUR}[a]')
+flt.append(''.join(labels) + f'amix=inputs={len(labels)}:normalize=0,volume=1.45,alimiter=limit=0.9,atrim=0:{DUR}[a]')
 final = os.path.join(HERE, 'out', 'drill-promo.mp4')
 subprocess.run(['ffmpeg', '-y', '-v', 'error', *inputs, '-filter_complex', ';'.join(flt), '-map', '0:v', '-map', '[a]',
                 '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', final], check=True)
