@@ -1,0 +1,5 @@
+A sprite sheet for a 2D side-view game: the same pair of Israeli high-school teens as in the reference sheet (16-17 years old, a boy and a girl, white school t-shirts, jeans, backpacks, holding hands), same painted cartoon game style, same size. Transparent background, grid of 4 columns x 1 row, one pose per cell, full body, nothing cut off, space around each, all on one foot line, facing RIGHT:
+1) the boy points forward with his free arm straight out, showing everyone the way, confident.
+2) the same, his pointing arm a little higher, waving the way forward.
+3) the girl holds up a big golden old-fashioned key toward the right, about to unlock a door.
+4) the same, the key turned, both smiling.

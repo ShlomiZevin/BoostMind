@@ -32,11 +32,16 @@ const STUDENTS = PAIRS * 2 + 1;
 // slabs [floor, a, b] | ramps [floor, topX, dir, len] (stairs down to the next floor) | walls [floor, x]
 // locked [floor, x] (a locked door - פתח) | zones [type, floor, x] wc / yard | reut {f, from, to, every, first}
 // zones [type, floor, x, side]: side = 1 - the one toilets door the column walks past; a runner heads for it
+// wet [floor, a, b]: a wet floor - whoever steps on it slips (to the nurse) unless a גשר of chairs covers it
 const LEVELS = [
   { name: 'הכוונה', text: 'הכיתה הולכת ישר לחצר. "הכוונה!" לזוג הראשון.', quota: 25, time: 140,
     orders: { guide: 1 }, mischief: { every: 15 },
     slabs: [[0, 110, 352], [1, 8, 240], [2, 90, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 240, 1, 100], [2, 90, -1, 80]],
     zones: [['yard', 0, 322], ['wc', 2, 110, 1]], start: [0, 200, 1], exit: [3, 250] },
+  { name: 'רצפה רטובה', text: 'מישהו שפך מים בקומה 2. מי שדורך – מחליק. גשר כיסאות מעל!', quota: 25, time: 150,
+    orders: { bridge: 1 }, mischief: { every: 15 },
+    slabs: [[0, 8, 220], [1, 90, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 220, 1, 100], [1, 90, -1, 80], [2, 260, 1, 90]],
+    wet: [[1, 150, 230]], zones: [['wc', 2, 24, 1]], start: [0, 40, 1], exit: [3, 180] },
   { name: 'בירידה אין שירותים', text: 'שירותים בדרך, וחור ברצפה. הוראה אחת מכל סוג.', quota: 25, time: 150,
     orders: { guide: 1, bridge: 1 }, mischief: { every: 15 },
     slabs: [[0, 8, 120], [1, 90, 352], [2, 8, 150], [2, 210, 262], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 90, -1, 80], [2, 262, 1, 90]],
@@ -45,10 +50,10 @@ const LEVELS = [
     orders: { stairs: 2 }, mischief: { every: 14 },
     slabs: [[0, 8, 200], [1, 140, 352], [2, 8, 220], [3, 8, 352]], ramps: [[0, 200, 1, 100]],
     zones: [['wc', 1, 335, 1]], start: [0, 40, 1], exit: [3, 180] },
-  { name: 'דלת נעולה', text: 'דלת נעולה, והחצר מאחור. מהר!', quota: 27, time: 120,
-    orders: { open: 1 }, mischief: { every: 13 },
+  { name: 'דלת נעולה', text: 'דלת נעולה, ולמטה רצפה רטובה.', quota: 27, time: 130,
+    orders: { open: 1, bridge: 1 }, mischief: { every: 13 },
     slabs: [[0, 8, 120], [1, 8, 260], [2, 100, 352], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 260, 1, 90], [2, 100, -1, 90]],
-    locked: [[1, 240]], zones: [['yard', 1, 40], ['wc', 2, 120, 1]], start: [0, 40, 1], exit: [3, 250] },
+    locked: [[1, 240]], wet: [[2, 180, 260]], zones: [['yard', 1, 40], ['wc', 2, 120, 1]], start: [0, 40, 1], exit: [3, 250] },
   { name: 'הכיתה של רעות', text: 'הכיתה של רעות עוברת למטה. עצרו, חכו, שחררו.', quota: 25, time: 170,
     orders: { stop: 2 }, mischief: { every: 14 },
     slabs: [[0, 8, 230], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 230, 1, 100], [1, 100, -1, 90], [2, 260, 1, 90]],
@@ -57,33 +62,38 @@ const LEVELS = [
     orders: { guide: 1, bridge: 1, stairs: 1 }, mischief: { every: 13 },
     slabs: [[0, 110, 352], [1, 8, 180], [1, 240, 262], [2, 150, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90]],
     zones: [['yard', 0, 322], ['wc', 2, 345, 1]], start: [0, 200, 1], exit: [3, 200] },
-  { name: 'לא מטיילים באמצע השיירה', text: 'חור, ורעות למטה.', quota: 25, time: 180,
-    orders: { bridge: 1, stop: 2 }, mischief: { every: 13 },
+  { name: 'מחליקים במסדרון', text: 'רצפה רטובה, חור, ורעות למטה.', quota: 25, time: 190,
+    orders: { bridge: 2, stop: 2 }, mischief: { every: 13 },
     slabs: [[0, 100, 352], [1, 8, 200], [2, 140, 352], [3, 8, 352]], ramps: [[0, 100, -1, 90], [1, 262, 1, 90], [2, 140, -1, 100]],
-    zones: [['wc', 2, 155, 1]], reut: { f: 3, from: 340, to: 22, every: 24, first: 24 }, start: [0, 300, -1], exit: [3, 130] },
+    wet: [[0, 150, 220]], zones: [['wc', 2, 155, 1]], reut: { f: 3, from: 340, to: 22, every: 24, first: 26 }, start: [0, 300, -1], exit: [3, 130] },
   { name: 'סוגרים רווחים', text: 'דלת נעולה וקצה. הזמן קצר.', quota: 27, time: 120,
     orders: { open: 1, stairs: 1 }, mischief: { every: 12 },
     slabs: [[0, 8, 240], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 240, 1, 100], [2, 260, 1, 90]],
     locked: [[0, 160]], zones: [['yard', 0, 22], ['wc', 2, 24, 1]], start: [0, 60, 1], exit: [3, 120] },
-  { name: 'מה השמחה הגדולה?', text: 'שני חורים. גשר אחד ומדרגות אחת.', quota: 27, time: 170,
-    orders: { bridge: 1, stairs: 1 }, mischief: { every: 12 },
+  { name: 'מה השמחה הגדולה?', text: 'חור, רצפה רטובה וחור. מה הולך לאן?', quota: 27, time: 180,
+    orders: { bridge: 2, stairs: 1 }, mischief: { every: 12 },
     slabs: [[0, 8, 150], [0, 210, 262], [1, 90, 352], [2, 8, 140], [2, 200, 262], [3, 8, 352]], ramps: [[0, 262, 1, 90], [1, 90, -1, 80], [2, 262, 1, 90]],
-    zones: [['wc', 1, 100, 1]], start: [0, 40, 1], exit: [3, 270] },
-  { name: 'הצופר האחרון', text: 'הכול ביחד. רבותיי וגבירותיי – עיניים אליי.', quota: 25, time: 200,
-    orders: { stop: 2, open: 1, bridge: 1 }, mischief: { every: 12 },
+    wet: [[1, 150, 250]], zones: [['wc', 1, 100, 1]], start: [0, 40, 1], exit: [3, 270] },
+  { name: 'כולם ביחד', text: 'הכוונה, גשר, פתח, מדרגות ועצור – הכול בשלב אחד.', quota: 23, time: 210,
+    orders: { guide: 1, bridge: 1, open: 1, stairs: 1, stop: 2 }, mischief: { every: 13 },
+    slabs: [[0, 110, 352], [1, 8, 170], [1, 230, 262], [2, 150, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90]],
+    locked: [[2, 250]], zones: [['yard', 0, 322], ['wc', 1, 20, 1]], reut: { f: 3, from: 340, to: 22, every: 26, first: 40 },
+    start: [0, 200, 1], exit: [3, 70] },
+  { name: 'הצופר האחרון', text: 'הכול ביחד. רבותיי וגבירותיי – עיניים אליי.', quota: 25, time: 210,
+    orders: { stop: 2, open: 1, bridge: 2 }, mischief: { every: 12 },
     slabs: [[0, 8, 236], [1, 120, 352], [2, 8, 190], [2, 250, 262], [3, 8, 352]], ramps: [[0, 236, 1, 100], [1, 120, -1, 100], [2, 262, 1, 90]],
-    locked: [[0, 150]], zones: [['yard', 0, 22], ['wc', 1, 130, 1]], reut: { f: 3, from: 30, to: 340, every: 26, first: 30 },
+    locked: [[0, 150]], wet: [[1, 200, 300]], zones: [['yard', 0, 22], ['wc', 1, 130, 1]], reut: { f: 3, from: 30, to: 340, every: 26, first: 30 },
     start: [0, 60, 1], exit: [3, 230] },
 ];
 
-const TIPS = ["תנו \"הכוונה!\" לזוג הראשון, לפני שהוא מגיע לחצר. הוא יסתובב ויפנה את כולם לכיוון השני – אל המדרגות.", "קודם \"הכוונה!\" לזוג הראשון בקומה 2, לפני השירותים. אחר כך \"גשר!\" לזוג הראשון בקומה 1, לפני החור.", "תנו \"מדרגות!\" לזוג הראשון – בקצה הקומה הוא יבנה מדרגות. בקומה הבאה: שוב \"מדרגות!\" לזוג הראשון שם.", "תנו \"פתח!\" לזוג הראשון לפני שהוא מגיע לדלת הנעולה. אחרת כולם יסתובבו – ישר לחצר.", "כשסימן ! מהבהב בדלת של רעות (למטה) – תנו \"עצור!\" לזוג בקומה 1, לפני המדרגות. כולם יחכו מאחוריו. כשרעות עוברת – הקישו עליו שוב, והטור ממשיך.", "שלושה צעדים: \"הכוונה!\" לזוג הראשון לפני החצר, \"גשר!\" לפני החור בקומה 2, ו\"מדרגות!\" לפני הקצה בקומה 1.", "\"גשר!\" לזוג הראשון. למטה – כשסימן ! מהבהב בדלת של רעות, \"עצור!\" לזוג בקומה 1 עד שהיא עוברת, ואז שחררו.", "\"פתח!\" לזוג הראשון – לדלת הנעולה. ו\"מדרגות!\" לזוג הראשון בקומה 2, לפני הקצה.", "\"גשר!\" לזוג הראשון – לחור בקומה 3. ו\"מדרגות!\" לזוג בקומה 1 לפני החור – המדרגות יורידו ישר למקלט.", "\"פתח!\" לזוג הראשון, \"גשר!\" לחור בקומה 1, ו\"עצור!\" בקומה 1 כשרעות עוברת – ואז לשחרר."];
+const TIPS = ["תנו \"הכוונה!\" לזוג הראשון, לפני שהוא מגיע לחצר. הוא יסתובב ויפנה את כולם לכיוון השני – אל המדרגות.", "תנו \"גשר!\" לזוג הראשון. כשיגיע לרצפה הרטובה בקומה 2 הוא יניח עליה כיסאות, וכולם יעברו בלי להחליק.", "קודם \"הכוונה!\" לזוג הראשון בקומה 2, לפני השירותים. אחר כך \"גשר!\" לזוג הראשון בקומה 1, לפני החור.", "תנו \"מדרגות!\" לזוג הראשון – בקצה הקומה הוא יבנה מדרגות. בקומה הבאה: שוב \"מדרגות!\" לזוג הראשון שם.", "\"פתח!\" לזוג הראשון – לדלת הנעולה. ואז \"גשר!\" לזוג הראשון בקומה 1 – לפני הרצפה הרטובה.", "כשסימן ! מהבהב בדלת של רעות (למטה) – \"עצור!\" לזוג בקומה 1, לפני המדרגות. כולם יחכו מאחוריו. כשרעות עוברת – הקישו עליו שוב.", "שלושה צעדים: \"הכוונה!\" לזוג הראשון לפני החצר, \"גשר!\" לפני החור בקומה 2, ו\"מדרגות!\" לפני הקצה בקומה 1.", "\"גשר!\" לזוג הראשון – לרצפה הרטובה. \"גשר!\" שני לזוג הראשון בקומה 2 – לחור. ולמטה: \"עצור!\" בקומה 1 כשרעות עוברת.", "\"פתח!\" לזוג הראשון – לדלת הנעולה. ו\"מדרגות!\" לזוג הראשון בקומה 2, לפני הקצה.", "\"גשר!\" לחור בקומה 3, \"גשר!\" לרצפה הרטובה בקומה 2, ו\"מדרגות!\" לחור בקומה 1 – הן יורידו ישר למקלט.", "לפי הסדר: \"הכוונה!\" לפני החצר, \"גשר!\" לחור בקומה 2, \"פתח!\" לדלת בקומה 1, \"מדרגות!\" לקצה שאחריה – ו\"עצור!\" כשרעות עוברת למטה.", "\"פתח!\" לזוג הראשון, \"גשר!\" לרצפה הרטובה בקומה 2, \"גשר!\" לחור בקומה 1, ו\"עצור!\" כשרעות עוברת."];
 const ORDERS = ['stop', 'guide', 'bridge', 'stairs', 'open'];
 const ORDER_NAME = { stop: 'עצור!', guide: 'הכוונה!', bridge: 'גשר!', stairs: 'מדרגות!', open: 'פתח!' };
 
 // ---------- assets ----------
 const IMG = {}, SPR = {};
 const imgNames = ['pairA', 'pairB', 'pairC', 'shahar', 'omer', 'block', 'build', 'open', 'fall', 'cheer', 'turn', 'sad', 'reut', 'reutKids', 'rosen',
-  'doorClass', 'doorWc', 'doorYard', 'doorShelter', 'doorLocked', 'stairs', 'cone', 'chair', 'ball', 'btnStop', 'btnGuide', 'btnBridge', 'btnStairs', 'btnOpen', 'board', 'lockers', 'plant', 'exitSign'];
+  'doorClass', 'doorWc', 'doorYard', 'doorShelter', 'doorLocked', 'stairs', 'cone', 'chair', 'ball', 'point', 'key', 'wetSign', 'puddle', 'btnStop', 'btnGuide', 'btnBridge', 'btnStairs', 'btnOpen', 'board', 'lockers', 'plant', 'exitSign'];
 function loadImg(n, src) { return new Promise((r) => { const i = new Image(); i.onload = () => { IMG[n] = i; r(); }; i.onerror = () => r(); i.src = src; }); }
 const ready = fetch('assets/sprites.json').then((r) => r.json()).then((m) => { Object.assign(SPR, m); return Promise.all([
   ...imgNames.map((n) => loadImg(n, 'assets/' + n + '.webp')),
@@ -147,6 +157,7 @@ function buildLevel(i) {
   for (const [f, x] of d.walls || []) { fill(X(x) - 4, ceilY(f), X(x) + 4, F[f], 1); L.walls.push({ f, x: X(x) }); }
   doors = (d.locked || []).map(([f, x]) => ({ f, x: X(x), open: false, t: 0 }));
   L.lostLeft = STUDENTS - d.quota;
+  L.wet = (d.wet || []).map(([f, a, b]) => ({ f, a: X(a), b: X(b), covered: false }));
   for (const dr of doors) fill(dr.x - 5, F[dr.f] - 52, dr.x + 5, F[dr.f], 1);
   for (const [t, f, x, side] of d.zones || []) L.zones.push({ t, f, x: X(x), side: !!side });
   L.cls = { f: d.start[0], x: X(d.start[1]) };
@@ -186,18 +197,19 @@ function spawn() {
   if (k === 0) play('steps', 0.5);
 }
 const nStudents = (w) => w.kind === 'shahar' ? 1 : 2;
-const active = (w) => w.st === 'walk' || w.st === 'guide' || w.st === 'stairs' || w.st === 'fall' || w.st === 'block' || w.st === 'build' || w.st === 'open';
+const active = (w) => w.st === 'walk' || w.st === 'slip' || w.st === 'guide' || w.st === 'stairs' || w.st === 'fall' || w.st === 'block' || w.st === 'build' || w.st === 'open';
 
 function lose(w, why) {
   if (!active(w)) return;
   w.st = why === 'reut' ? 'tag' : 'gone'; w.why = why; w.t = 0;
   L.lostN += nStudents(w);
-  const words = { wc: 'לשירותים', yard: 'לחצר', nurse: 'לאחות', reut: 'עם רעות', cls: 'חזר לכיתה', time: '' };
+  const words = { wc: 'לשירותים', yard: 'לחצר', nurse: 'לאחות', slip: 'החליק – לאחות', reut: 'עם רעות', cls: 'חזר לכיתה', time: '' };
   floatText(w.x, w.y - 40, words[why], '#ffd2c8');
   if (why === 'nurse') play('fall'); else play('lost', 0.9);
   if (w.kind === 'shahar' && why === 'cls') { say('עומר, איפה שחר?', 'angry', 2600); setTimeout(() => bubble('omer', 'בכיתה, המורה. אמרת לו לחזור אחורה.'), 1300); }
   else if (why === 'wc') sayOnce('wc', ['בירידה אין שירותים! מתאפקים עד לסיום התרגיל!', 'אמרתי: לא עוזבים ידיים, גם לא לשירותים!'], 'angry');
   else if (why === 'yard') sayOnce('yard', ['זה לא תהלוכה, זה תרגיל!', 'מה פתאום חצר?! מה פתאום כדור?!'], 'angry');
+  else if (why === 'slip') sayOnce('slip', ['רצפה רטובה! לא רצים! גשר כיסאות – מהר!'], 'angry');
   else if (why === 'nurse') sayOnce('nurse', ['בצורה מסודרת ומאורגנת! לא קופצים!', 'במדרגות לא רצים, ובחורים לא קופצים!'], 'angry');
   else if (why === 'reut') sayOnce('reut', ['לא להיגרר אחרי כיתות אחרות!', 'לכל כיתה יש מחנך וקטר מאסף משלה!'], 'angry');
 }
@@ -251,6 +263,7 @@ function stepWalker(w, dt) {
   w.out += dt;
   const v = (w.kind === 'shahar' ? V_SHAHAR : V) * (w.mis && w.mis.go ? RUN : 1) * dt;
   if (w.st === 'block' || w.st === 'guide') return;
+  if (w.st === 'slip') { w.x += w.d * V * 2.2 * dt * Math.max(0, 1 - w.t); if (w.t > 0.7) lose(w, 'slip'); return; }
   if (w.st === 'stairs') {
     const n = Math.min(6, Math.floor(w.t / 0.3));
     if (n > w.laid) { w.laid = n; play('chair', 0.7); }
@@ -258,6 +271,12 @@ function stepWalker(w, dt) {
     return;
   }
   if (w.st === 'build') {
+    if (w.wet) {   // chairs laid over a wet floor, one by one, until it is all covered
+      const z = w.wet, need = Math.ceil((z.b - z.a) / 12) + 1, n = Math.min(need, Math.floor(w.t / 0.3));
+      while (w.laid < n) { const cx = w.bx + w.d * (w.laid * 12 + 6); chairs.push({ x: cx, y: w.y, d: w.d, wet: true }); w.laid++; play('chair', 0.7); }
+      if (w.laid >= need) { z.covered = true; w.wet = null; w.st = 'walk'; w.t = 0; }
+      return;
+    }
     // chairs, one by one, until the far side is reached (at most 10)
     const n = Math.min(10, Math.floor(w.t / 0.3));
     while (w.laid < n && !w.done) {
@@ -271,7 +290,7 @@ function stepWalker(w, dt) {
     return;
   }
   if (w.st === 'open') {
-    if (w.t > 0.8) { const dr = w.door; dr.open = true; fill(dr.x - 5, F[dr.f] - 52, dr.x + 5, F[dr.f], 0); w.st = 'walk'; w.t = 0; }
+    if (w.t > 1.0) { const dr = w.door; dr.open = true; fill(dr.x - 5, F[dr.f] - 52, dr.x + 5, F[dr.f], 0); w.st = 'walk'; w.t = 0; }
     return;
   }
   if (w.st === 'fall') {
@@ -303,6 +322,11 @@ function stepWalker(w, dt) {
       if (dr && w.armed === 'open') { w.armed = null; w.st = 'open'; w.t = 0; w.door = dr; play('door'); return; }
       turn(w);
     } else {
+      const wz = L.wet.find((z) => !z.covered && z.f === floorOf(w) && nx >= z.a && nx <= z.b);
+      if (wz && !(w.x >= wz.a && w.x <= wz.b) && !w.ramp) {
+        if (w.armed === 'bridge') { w.armed = null; w.st = 'build'; w.t = 0; w.laid = 0; w.wet = wz; w.bx = w.d > 0 ? wz.a - 4 : wz.b + 4; return; }
+        w.x = nx; w.st = 'slip'; w.t = 0; play('fall', 0.7); return;
+      }
       let g = null;
       for (let y = w.y - STEP; y <= w.y + 3; y++) if (solid(nx, y) && !solid(nx, y - 1)) { g = y; break; }
       const r = L.ramps.find((r) => r.d === w.d && Math.abs(r.x0 - nx) < 2 && Math.abs(r.y0 - w.y) < 4);
@@ -535,14 +559,26 @@ function draw() {
     if (L.slabs.some(([f2, a2, b2]) => f2 === f && (side > 0 ? Math.abs(a2 - x) < 2 : Math.abs(b2 - x) < 2))) continue;
     prop('cone', x - side * 7, F[f], 18);
   }
-  for (const c of chairs) prop('chair', c.x, c.y + 7, 17, c.d < 0);
+  for (const z of L.wet) {
+    if (IMG.puddle) ctx.drawImage(IMG.puddle, z.a - 4, F[z.f] - 6, z.b - z.a + 8, 10);
+    if (!z.covered) { prop('wetSign', z.a - 10, F[z.f], 26); prop('wetSign', z.b + 10, F[z.f], 26, true); }
+  }
+  for (const c of chairs) prop('chair', c.x, c.y + (c.wet ? 4 : 7), c.wet ? 14 : 17, c.d < 0);
   // desk-stairs: a wooden flight that grows step by step, chairs on it
   for (const r of [...L.ramps.filter((r) => r.built), ...walkers.filter((w) => w.st === 'stairs').map((w) => ({ ...w.newRamp, n: w.laid }))]) {
     const n = r.n === undefined ? 6 : r.n; if (!n) continue;
     flight(r, 6, '#b8834f', '#6e4a28', false, n);
     for (let i = 1; i < n; i += 2) { const u = (i + 0.5) / 6; prop('chair', r.x0 + (r.x1 - r.x0) * u, r.y0 + (r.y1 - r.y0) * u + 1, 14, r.d < 0); }
   }
-  for (const d of doors) { if (!d.open) prop('doorLocked', d.x, F[d.f] + 1, 58); else { ctx.save(); ctx.globalAlpha = 0.85; prop('doorLocked', d.x + 12, F[d.f] + 1, 58); ctx.restore(); } }
+  for (const d of doors) {
+    const op = walkers.find((w) => w.st === 'open' && w.door === d), p = d.open ? 1 : op ? Math.min(1, op.t / 1.0) : 0;
+    const im = IMG.doorLocked; if (!im) continue;
+    const h = 58, fw = im.width * h / im.height, left = d.x - fw / 2;
+    if (p > 0) { ctx.fillStyle = '#1d1712'; ctx.fillRect(left + 2, F[d.f] - h + 4, fw - 4, h - 4); }
+    const k = 1 - 0.78 * (p < 0.25 ? 0 : (p - 0.25) / 0.75);   // the lock first, then the swing
+    ctx.save(); ctx.translate(left, F[d.f] + 1); ctx.drawImage(im, 0, -h, fw * k, h); ctx.restore();
+    if (op && p < 0.6) { const ki = IMG.btnOpen; if (ki) { const r = 9 + 3 * Math.sin(op.t * 20); ctx.drawImage(ki, d.x - r, F[d.f] - 34 - r, r * 2, r * 2); } }
+  }
   // Rosenblum counting at the shelter door
   sprite('rosen', L.over && L.saved < L.quota ? 3 : L.counting > 0 ? (L.counting > 0.3 ? 1 : 0) : 0, L.ex.x - 36, F[L.ex.f], 52, false);
   // Reut's column
@@ -583,17 +619,18 @@ function drawWalker(w) {
   const single = w.kind === 'shahar';
   let name = w.spr, fr = Math.floor(w.ph);
   if (w.st === 'block') { name = single ? 'shahar' : 'block'; fr = single ? 0 : Math.floor(w.t * 2); }
-  else if (w.st === 'guide') { name = single ? 'shahar' : 'open'; fr = 0; }
+  else if (w.st === 'guide') { name = single ? 'shahar' : 'point'; fr = single ? 0 : Math.floor(w.t * 1.5); }
   else if (w.st === 'stairs') { name = single ? 'shahar' : 'build'; fr = 0; }
   else if (w.st === 'build') { name = single ? 'shahar' : 'build'; fr = 0; }
-  else if (w.st === 'open') { name = single ? 'shahar' : 'open'; fr = 0; }
-  else if (w.st === 'fall') { name = single ? 'shahar' : 'fall'; fr = 0; }
+  else if (w.st === 'open') { name = single ? 'shahar' : 'key'; fr = w.t > 0.5 ? 1 : 0; }
+  else if (w.st === 'fall' || w.st === 'slip') { name = single ? 'shahar' : 'fall'; fr = 0; }
   else if (w.st === 'in') { name = single ? 'shahar' : 'cheer'; fr = 0; }
   else if (w.st === 'gone' && w.why !== 'nurse') { name = single ? 'shahar' : 'sad'; }
   else if (w.turnT > 0 && !single) { name = 'turn'; fr = 0; }
   if (w.flash > 0) { ctx.fillStyle = '#ffd77a88'; ctx.beginPath(); ctx.ellipse(w.x, w.y - 2, 15, 5, 0, 0, 7); ctx.fill(); }
   else { ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 11, 3, 0, 0, 7); ctx.fill(); }
-  const hop = w.hop > 0 ? Math.sin((0.45 - w.hop) / 0.45 * Math.PI) * 9 : 0;
+  const onChairs = L.wet.some((z) => z.covered && z.f === floorOf(w) && w.x >= z.a - 2 && w.x <= z.b + 2);
+  const hop = (w.hop > 0 ? Math.sin((0.45 - w.hop) / 0.45 * Math.PI) * 9 : 0) + (onChairs ? 6 : 0);
   sprite(name, fr, w.x, w.y + 1 - hop, H2, flip, a);
   if (w.mis) {
     const left = w.mis.go ? Math.max(0, Math.abs(w.x - w.mis.door.x) / w.mis.dist) : 1;
