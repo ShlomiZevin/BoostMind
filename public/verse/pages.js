@@ -269,6 +269,7 @@ export function mePage() {
       ${tile('/saved', I.save, T.mmSaved, st.saves.size)}
       ${tile('/my-stickers', I.sticker, T.mmStickers, myStickers ? myStickers.length : null)}
       ${tile('/notes', I.bell, T.mmBell, st.unread || null)}
+      ${tile('/archive?mine=1', I.play, T.arc.meTile, null)}
       ${simTile()}
     </div>
     ${aboutCard()}

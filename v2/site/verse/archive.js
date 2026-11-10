@@ -71,6 +71,7 @@ export function archivePage() {
 async function mount() {
   const root = document.getElementById('ar-root');
   if (!root) return;
+  if (new URLSearchParams(location.search).get('mine') === '1') filter = 'mine';
   if (!unsub) unsub = onState(() => { if (!document.getElementById('ar-root')) { unsub(); unsub = null; return; } if (signedIn() !== (root.dataset.in === '1')) mount(); });
   await load();
   if (!document.getElementById('ar-root')) return;
@@ -83,10 +84,11 @@ async function mount() {
   root.innerHTML = `<div class="ar-head"><h1>${esc(A().title)}</h1><p>${esc(A().sub(num(items.length), items[items.length - 1].d.slice(0, 4)))}</p></div>
     <label class="ar-search">${SEARCH}<input id="ar-q" type="search" enterkeyhint="search" autocomplete="off" placeholder="${esc(A().search)}" value="${esc(q)}"></label>
     <div class="ar-tags"><span>${esc(A().popular)}</span>${tags.map((t) => `<button data-ar-tag="${esc(t)}">#${esc(t)}</button>`).join('')}</div>
-    <div class="ar-chips">${[['all', A().all], ['out', A().notIn], ['mine', A().mine]].map(([kk, l]) => `<button data-ar-filter="${kk}" class="${filter === kk ? 'on' : ''}">${esc(l)}</button>`).join('')}
+    <div class="ar-chips">${[['all', A().all], ['out', A().notIn], ['mine', A().mine]].map(([kk, l]) => `<button data-ar-filter="${kk}" class="${filter === kk ? 'on' : ''}">${esc(l)}${kk === 'mine' ? '<i class="ar-mine-n"></i>' : ''}</button>`).join('')}
       <span class="ar-sep"></span>${[['new', A().newest], ['old', A().oldest], ['liked', A().liked]].map(([kk, l]) => `<button data-ar-sort="${kk}" class="${sort === kk ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
     <div class="ar-body"><aside class="ar-time" id="ar-time"></aside><div class="ar-main"><div class="ar-count" id="ar-count"></div><div id="ar-list"></div></div></div>`;
   let qt;
+  root.insertAdjacentHTML('beforeend', `<div class="ar-bar" id="ar-bar"><div><b id="ar-bar-n"></b><small>${esc(A().barSub)}</small></div><button class="vx-btn main small" data-ar-mine></button></div>`);
   root.querySelector('#ar-q').addEventListener('input', (e) => { clearTimeout(qt); qt = setTimeout(() => { q = e.target.value.trim(); paint(); }, 160); });
   paint();
   loadWishes();
@@ -128,6 +130,21 @@ function card(x) {
     <p class="ar-cap">${esc(cap)}</p>${vid && x.who?.length ? `<p class="ar-who">${esc(x.who.join(' · '))}</p>` : ''}
     <div class="ar-act">${act}</div></article>`;
 }
+// what I asked for: the chip's count and the bar at the bottom
+function mineUi() {
+  const n = mine.size, c = document.querySelector('.ar-mine-n'), bar = document.getElementById('ar-bar');
+  if (c) c.textContent = n ? ` · ${n}` : '';
+  if (!bar) return;
+  bar.classList.toggle('show', n > 0);
+  document.getElementById('ar-bar-n').textContent = A().barN(n);
+  bar.querySelector('[data-ar-mine]').textContent = filter === 'mine' ? A().barAll : A().barList;
+}
+// one post drawn again in place - asking never redraws the list (his note 2026-11-10: "I asked for a movie and the page jumped")
+function updateCard(x) {
+  const el = document.querySelector(`.ar-card[data-id="${x.id}"]`);
+  if (el) el.outerHTML = card(x);
+  mineUi();
+}
 function paint() {
   const root = document.getElementById('ar-root'), list = document.getElementById('ar-list');
   if (!root || !list) return;
@@ -142,6 +159,7 @@ function paint() {
     <div class="ar-grid">${m.list.map(card).join('')}</div></section>`).join('');
   timeline(months.map((m) => m.mk));
   watch();
+  mineUi();
 }
 
 // ---------- the timeline: years, and the months of the year you're in ----------
@@ -225,7 +243,7 @@ async function ask(x, on, note = '') {
     const r = await call('wish', { ig: x.id, on, note, permalink: IG(x.p) });
     if (r.done) { done[x.id] = r.videoId; mine.delete(x.id); toast(A().toastIn); }
     else { counts[x.id] = r.n; r.mine ? mine.add(x.id) : mine.delete(x.id); toast(on ? A().toastAsked : A().toastUndo); track('click', on ? 'arc_ask' : 'arc_undo'); }
-    paint();
+    updateCard(x);
     return true;
   } catch (e) {
     toast(e.code === 'closed' ? A().toastClosed : e.code === 'text_bad' ? A().toastBad : A().toastFail);
@@ -244,6 +262,7 @@ document.addEventListener('click', async (e) => {
   if (!t) return;
   if (t.matches('[data-ar-in]')) { e.preventDefault(); if (await needFan('archive')) mount(); return; }
   if (t.matches('[data-ar-tag]')) return setTag(t.dataset.arTag);
+  if (t.matches('[data-ar-mine]')) { filter = filter === 'mine' ? 'all' : 'mine'; document.querySelectorAll('[data-ar-filter]').forEach((b) => b.classList.toggle('on', b.dataset.arFilter === filter)); paint(); window.scrollTo({ top: 0 }); return; }
   if (t.matches('[data-ar-filter]')) { filter = t.dataset.arFilter; t.parentElement.querySelectorAll('[data-ar-filter]').forEach((b) => b.classList.toggle('on', b === t)); paint(); return; }
   if (t.matches('[data-ar-sort]')) { sort = t.dataset.arSort; curMk = null; t.parentElement.querySelectorAll('[data-ar-sort]').forEach((b) => b.classList.toggle('on', b === t)); paint(); window.scrollTo({ top: 0 }); return; }
   if (t.matches('[data-ar-year]')) { const mk = tl.find((m) => m.startsWith(t.dataset.arYear)); if (mk) goMonth(mk); return; }

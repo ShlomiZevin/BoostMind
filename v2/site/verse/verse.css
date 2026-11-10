@@ -2756,3 +2756,12 @@ body:not([data-page="home"]) > footer { display: none !important; }
   .ar-sheet .ar-s { grid-template-columns: 220px minmax(0, 1fr); gap: 22px; }
 }
 @media (min-width: 1280px) { .ar-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+/* the archive: what I asked for - a bar at the bottom once I asked for something (round 2, his note 2026-11-10) */
+.ar-mine-n { font-style: normal; }
+.ar-bar { position: fixed; inset-inline: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 40; max-width: 640px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 10px 10px 10px 14px; padding-inline: 16px 10px; border-radius: 22px; border: 1px solid var(--vx-glass-line); background: rgba(18, 18, 22, .9); -webkit-backdrop-filter: var(--vx-blur); backdrop-filter: var(--vx-blur);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .45); transform: translateY(220%); transition: transform .25s ease; }
+.ar-bar.show { transform: none; }
+.ar-bar b { display: block; font-size: 1rem; } .ar-bar small { color: var(--dim); font-size: .8rem; }
+@media (min-width: 1000px) { .ar-bar { bottom: 22px; } }
