@@ -24,9 +24,9 @@
 :root{
   --ink:#1f2a2e; --board:#24343a; --chalk:#f4efe2; --red:#e2483d; --blue:#2f7fd6; --yellow:#f2b530; --green:#2fa457;
   --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
-  --topH:74px; --barH:104px;
+  --topH:56px; --barH:80px;
 }
-@media (max-height:640px){:root{--topH:62px;--barH:88px}}
+@media (max-height:640px){:root{--topH:50px;--barH:70px}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
 body{background:var(--board)}
@@ -42,32 +42,36 @@ button{font-family:inherit;border:0;cursor:pointer}
 /* play layout: top strip (Rosenblum + timer + count), the building, the orders */
 #play{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--safe-t);padding-bottom:var(--safe-b)}
 #top{height:var(--topH);flex:none;display:flex;align-items:center;gap:8px;padding:0 8px;background:linear-gradient(#2c3f46,#24343a);border-bottom:3px solid #6b4a2b}
-#head{height:calc(var(--topH) - 6px);width:auto;flex:none;align-self:flex-end;filter:drop-shadow(0 2px 3px #0006)}
-#say{flex:1;min-width:0;background:var(--chalk);border-radius:14px;padding:6px 10px;font-weight:700;font-size:15px;line-height:1.25;position:relative;max-height:calc(var(--topH) - 12px);overflow:hidden;transition:opacity .2s}
+#head{height:calc(var(--topH) - 4px);width:auto;flex:none;align-self:flex-end;filter:drop-shadow(0 2px 3px #0006)}
+#say{flex:1;min-width:0;background:var(--chalk);border-radius:12px;padding:4px 8px;font-weight:700;font-size:13px;line-height:1.2;position:relative;max-height:calc(var(--topH) - 12px);overflow:hidden;transition:opacity .2s}
 #say:before{content:"";position:absolute;right:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-left-color:var(--chalk);border-right:0}
 #say.quiet{opacity:.0}
-#stats{flex:none;display:flex;flex-direction:column;gap:4px;align-items:stretch}
-.stat{background:#0007;color:#fff;border-radius:10px;padding:3px 8px;font-weight:900;font-size:15px;display:flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;direction:ltr}
-.stat small{font-size:11px;font-weight:700;opacity:.8;direction:rtl}
+#stats{flex:none;display:grid;grid-template-columns:auto auto;gap:3px}
+.stat{background:#0007;color:#fff;border-radius:8px;padding:1px 6px;font-weight:900;font-size:13px;height:calc((var(--topH) - 13px) / 2);display:flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;direction:ltr}
+.stat small{font-size:10px;font-weight:700;opacity:.8;direction:rtl}
+#lost.over{background:#b3261ecc}
 #timer.low{background:#b3261ecc;animation:pulse 1s infinite}
 @keyframes pulse{50%{transform:scale(1.06)}}
 #stage{flex:1;position:relative;min-height:0}
 canvas{position:absolute;display:block;touch-action:none}
 #bar{height:var(--barH);flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px;background:linear-gradient(#24343a,#1b272b);border-top:3px solid #6b4a2b}
-#orders{flex:1;display:flex;gap:6px;justify-content:space-between;height:100%}
-.ord{flex:1;max-width:84px;border-radius:18px;position:relative;color:#fff;font-weight:900;font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:inset 0 -5px 0 #0003,0 3px 0 #0006;transition:transform .1s}
-.ord svg{width:32px;height:32px;fill:#fff}
-@media (max-height:640px){.ord svg{width:26px;height:26px}.ord{font-size:13px}}
-.ord[data-o=stop]{background:var(--red)}.ord[data-o=turn]{background:var(--blue)}.ord[data-o=bridge]{background:var(--yellow);color:#4a2f00}.ord[data-o=bridge] svg{fill:#4a2f00}.ord[data-o=open]{background:var(--green)}
+#orders{flex:1;display:flex;gap:6px;justify-content:center;height:100%}
+.ord{flex:1;max-width:84px;min-width:0;border-radius:16px;position:relative;color:#fff;font-weight:900;font-size:13px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:inset 0 -5px 0 #0003,0 3px 0 #0006;transition:transform .1s}
+.ord svg{width:28px;height:28px;fill:#fff}
+@media (max-height:640px){.ord svg{width:22px;height:22px}.ord{font-size:12px}}
+@media (max-width:370px){.ord{font-size:11px}.ord svg{width:22px;height:22px}}
+.ord[data-o=stop]{background:var(--red)}.ord[data-o=guide]{background:var(--blue)}.ord[data-o=stairs]{background:#8a5a34}.ord[data-o=bridge]{background:var(--yellow);color:#4a2f00}.ord[data-o=bridge] svg{fill:#4a2f00}.ord[data-o=open]{background:var(--green)}
 .ord.sel{transform:translateY(-4px);outline:4px solid #fff;outline-offset:-1px}
 .ord.empty{filter:grayscale(1) brightness(.6)}
 .ord.off{display:none}
-.ord b{position:absolute;top:-6px;left:-4px;background:#111;color:#fff;border:2px solid #fff;border-radius:99px;min-width:26px;height:26px;display:grid;place-items:center;font-size:14px}
+.ord b{position:absolute;top:-6px;left:-4px;background:#111;color:#fff;border:2px solid #fff;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px}
 #ctl{display:flex;flex-direction:column;gap:5px;flex:none}
-.ibtn{width:44px;height:calc((var(--barH) - 22px) / 3);min-height:26px;border-radius:10px;background:#ffffff1f;display:grid;place-items:center}
+.ibtn{width:40px;height:calc((var(--barH) - 22px) / 3);min-height:20px;position:relative;border-radius:10px;background:#ffffff1f;display:grid;place-items:center}
 .ibtn svg{width:20px;height:20px;fill:#fff}
 .ibtn.on{background:#f2b530}
 .ibtn.on svg{fill:#3a2500}
+#bFast::after{content:attr(data-x);position:absolute;right:-4px;top:-6px;font-size:11px;font-weight:900;color:#3a2500;background:#fff;border-radius:6px;padding:0 3px}
+#bFast:not(.on)::after{display:none}
 
 /* screens - one at a time */
 .screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(var(--safe-t) + 14px) 18px calc(var(--safe-b) + 14px);background:#000a;text-align:center}
@@ -120,15 +124,18 @@ canvas{position:absolute;display:block;touch-action:none}
     <div id="say"></div>
     <div id="stats">
       <div class="stat" id="timer"><span id="tval">2:30</span></div>
+      <div class="stat" id="out"><span id="oval">29</span><small>בכיתה</small></div>
       <div class="stat" id="count"><span id="cval">0/23</span><small>בפנים</small></div>
+      <div class="stat" id="lost"><span id="lval">0/6</span><small>אבדו</small></div>
     </div>
   </div>
   <div id="stage"><canvas id="cv"></canvas></div>
   <div id="bar">
     <div id="orders">
       <button class="ord" data-o="stop"><b>2</b><svg viewBox="0 0 24 24"><path d="M12.5 2c.8 0 1.5.7 1.5 1.5V11h1V4.5a1.5 1.5 0 0 1 3 0V12h1V7.5a1.5 1.5 0 0 1 3 0V15c0 4-3 7-7 7h-1c-2.4 0-4.2-1-5.6-2.8L4.3 14.6a1.5 1.5 0 0 1 2.3-1.9L9 15V4.5a1.5 1.5 0 0 1 3 0V11h0V3.5C11 2.7 11.7 2 12.5 2z"/></svg>עצור!</button>
-      <button class="ord" data-o="turn"><b>2</b><svg viewBox="0 0 24 24"><path d="M9 4 3 9.5 9 15v-4h6a4 4 0 0 1 0 8h-3v3h3a7 7 0 0 0 0-14H9z"/></svg>חזור!</button>
+      <button class="ord" data-o="guide"><b>2</b><svg viewBox="0 0 24 24"><path d="M10 3h4v8h5l-7 9-7-9h5z" transform="rotate(90 12 12)"/></svg>הכוונה!</button>
       <button class="ord" data-o="bridge"><b>2</b><svg viewBox="0 0 24 24"><path d="M3 9h18v3h-2v8h-2.5v-8h-9v8H5v-8H3z"/></svg>גשר!</button>
+      <button class="ord" data-o="stairs"><b>2</b><svg viewBox="0 0 24 24"><path d="M3 20v-4h4v-4h4V8h4V4h6v3h-3v4h-4v4h-4v4H7v1z"/></svg>מדרגות!</button>
       <button class="ord" data-o="open"><b>2</b><svg viewBox="0 0 24 24"><path d="M4 21V3h11v2H6v14h9v2H4zm10-4 1.4-1.4L12.8 13H21v-2h-8.2l2.6-2.6L14 7l-5 5z" transform="scale(-1 1) translate(-24 0)"/></svg>פתח!</button>
     </div>
     <div id="ctl">
@@ -184,6 +191,6 @@ canvas{position:absolute;display:block;touch-action:none}
 <div id="tut" hidden><div id="spot"></div><div id="tcard"></div></div>
 <div id="rotate">סובבו את הטלפון לאורך 📱</div>
 
-<script src="game.js?v=1"></script>
+<script src="game.js?v=2"></script>
 </body>
 </html>

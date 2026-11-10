@@ -5,7 +5,17 @@
 - Picked Lemmings: "lemmings is awesome!!!!!" - "do it as fun as simple as addictive as lemmings",
   "especially cause the teacher says there to walk in columns, not like an ant swarm".
 
-## The game
+## Round 2 (his notes, 10 Nov 2026 evening)
+- Siren much lower (nobody should get scared); faster by default (x1.6), the speed button steps x2 / x3.
+- HUD shows how many are still in the classroom, inside/needed, lost/allowed.
+- Trails of old pixels fixed (the holes in the floors were never repainted).
+- Toilets runners walk to the REAL toilets door ("side" doors the column passes; only a runner goes in) - you cover their path.
+- No catching a specific student to correct him: "חזור" and tap-to-stop are gone. Every order is a Lemmings JOB that serves
+  everyone behind: עצור (holds the column), הכוונה (turns and points everyone one way, lets the others pass), גשר (chairs
+  over a hole), מדרגות (desk-stairs down to the floor below), פתח (opens a locked door). 11 levels.
+- The game takes the space: a phone-shaped building (300x630), slimmer bars, students ~30% bigger.
+
+## The game (round 1)
 Lemmings, our version. Upright phone. A side cut through the school (המקיף נווה תדהר): the class on the top floor,
 the shelter (מרחב מוגן) at the bottom. The siren goes, the classroom door opens and the class walks out by itself,
 **two by two, holding hands** - 14 pairs, and last, alone, **Shahar the קטר מאסף**. They walk straight on, turn at a

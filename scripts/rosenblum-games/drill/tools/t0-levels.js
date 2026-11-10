@@ -33,18 +33,17 @@ const SOL = require('./solutions.js');
           else if (s.who === 'shahar') w = ws.find((w) => w.kind === 'shahar');
           else if (s.who === 'blocker') w = ws.find((w) => w.st === 'block');
           else if (typeof s.who === 'number') w = ws.find((w) => w.id === s.who);
-          else { const y = DRILL.F[s.who.f]; w = ws.filter((w) => w.st === 'walk' && Math.abs(w.y - y) < 3 && Math.abs(w.x - s.who.x) < 6).sort((a, b) => a.id - b.id)[0]; }
+          else { const y = DRILL.F[s.who.f]; w = ws.filter((w) => w.st === 'walk' && Math.abs(w.y - y) < 3 && Math.abs(w.x - DRILL.X(s.who.x)) < 6).sort((a, b) => a.id - b.id)[0]; }
           if (!w) continue;
           if (s.o) DRILL.order(s.o);
           if (DRILL.tap(w.id) || s.o === undefined) { s.done = true; log.push(t.toFixed(1) + ' ' + (s.o || 'release') + ' #' + w.id); }
         }
         if (sol.hold) {
           const ws = DRILL.walkers, bl = ws.find((w) => w.st === 'block');
-          if (DRILL.state.reut && !bl) { const y = DRILL.F[sol.hold.f]; const w = ws.filter((w) => w.st === 'walk' && Math.abs(w.y - y) < 3 && Math.abs(w.x - sol.hold.x) < 70).sort((a, b) => Math.abs(a.x - sol.hold.x) - Math.abs(b.x - sol.hold.x))[0]; if (w) { DRILL.order('stop'); DRILL.tap(w.id); } }
+          if (DRILL.state.reut && !bl) { const y = DRILL.F[sol.hold.f]; const w = ws.filter((w) => w.st === 'walk' && Math.abs(w.y - y) < 3 && Math.abs(w.x - DRILL.X(sol.hold.x)) < 60).sort((a, b) => Math.abs(a.x - DRILL.X(sol.hold.x)) - Math.abs(b.x - DRILL.X(sol.hold.x)))[0]; if (w) { DRILL.order('stop'); DRILL.tap(w.id); } }
           if (!DRILL.state.reut && bl && !DRILL.walkers.some((w) => w.st === 'walk' && Math.abs(w.y - DRILL.F[3]) < 3 && w.x > 0 && false)) DRILL.tap(bl.id);
         }
-        if (!window.NOFIX) for (const w of DRILL.walkers) if (w.mis && Math.random() < 0.08) DRILL.tap(w.id);
-        DRILL.tick(0.1);
+                DRILL.tick(0.1);
       }
       const st = DRILL.state;
       return { saved: st.saved, quota: st.quota, t: Math.round(st.timeLeft), log: log.join(' | '), why: DRILL.walkers.filter((w) => w.st === 'lost').map((w) => w.kind[0] + ':' + w.why).join(','), shaharLast: null };
