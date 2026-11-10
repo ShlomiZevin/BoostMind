@@ -320,7 +320,7 @@ export const T = {
   waStepsDesktop: ['לוחצים על „העתיקו סטיקר“', 'בוואטסאפ ווב הדביקו, או בחרו „הורדת הסטיקר“'],
 
   // stories
-  storiesTitle: 'סטוריז',
+  storiesTitle: 'הסטוריז של הדמויות',
   storyAgo: (s) => s,
 
   // your verse (signed-in home)

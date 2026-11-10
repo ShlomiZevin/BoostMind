@@ -118,7 +118,7 @@ function yourBlock() {
         <button class="vx-pill" data-yv-follow="${c.id}">${I.plus}${esc(T.follow)}</button></div>`).join('')}</div></section>` : '';
   return `<section class="yv-me">
       ${faces}
-      ${rings ? `<div class="yv-sec">${rings}</div>` : ''}
+      ${rings ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}
       ${mine.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvNew)}</h2></div>${vrow(mine)}</section>` : ''}
       ${picks}
       ${continueRow()}
