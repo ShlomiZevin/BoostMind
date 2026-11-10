@@ -15,11 +15,11 @@ FR = os.environ.get('FRAMES', 'frames')
 os.makedirs(os.path.join(HERE, 'out'), exist_ok=True)
 
 # the cut: (source first frame, source last frame) of the recording
-SEGS = [(15, 285), (385, 505)] if FR == 'frames2' else [(12, 185), (590, 715)]   # round 2: siren + מדרגות! on the first pair + the desk-stairs + the class going down | the last in, Shahar last, the win card (round 1 = frames)
+SEGS = [(15, 355), (440, 560)] if FR == 'frames3' else [(15, 285), (385, 505)] if FR == 'frames2' else [(12, 185), (590, 715)]   # round 2: siren + מדרגות! on the first pair + the desk-stairs + the class going down | the last in, Shahar last, the win card (round 1 = frames)
 CAPS = [  # (output-second from, to, text) - one caption per action (his ask: show taking, giving, releasing)
-    (3.45, 5.2, '1. אזעקה. יוצאים בזוגות') if FR == 'frames2' else (3.45, 5.95, '1. אזעקה. יוצאים בזוגות'),
-    (5.25, 12.3, '2. תנו פקודה, הקישו על זוג') if FR == 'frames2' else (6.0, 9.15, '2. תנו פקודה, הקישו על זוג'),
-    (12.45, 15.0, '3. שחר נכנס אחרון') if FR == 'frames2' else (9.25, 12.4, '3. שחר נכנס אחרון'),
+    (3.45, 5.0, '1. אזעקה. יוצאים בזוגות') if FR == 'frames3' else (3.45, 5.2, '1. אזעקה. יוצאים בזוגות') if FR == 'frames2' else (3.45, 5.95, '1. אזעקה. יוצאים בזוגות'),
+    (5.05, 14.85, '2. תנו פקודה, הקישו על זוג') if FR == 'frames3' else (5.25, 12.3, '2. תנו פקודה, הקישו על זוג') if FR == 'frames2' else (6.0, 9.15, '2. תנו פקודה, הקישו על זוג'),
+    (15.0, 17.7, '3. שחר נכנס אחרון') if FR == 'frames3' else (12.45, 15.0, '3. שחר נכנס אחרון') if FR == 'frames2' else (9.25, 12.4, '3. שחר נכנס אחרון'),
 ]
 
 def font(sz, wt=900):
@@ -124,7 +124,7 @@ for j, (t, n) in enumerate(snd):
     ms = int(t * 1000); vol = 0.35 if n.startswith(('turn', 'steps')) else 0.6 if n.startswith('saved') else 0.8
     flt.append(f'[{6 + j}:a]volume={vol},adelay={ms}|{ms}[s{j}]'); labels.append(f'[s{j}]')
 flt.append(''.join(labels) + f'amix=inputs={len(labels)}:normalize=0,volume=1.45,alimiter=limit=0.9,atrim=0:{DUR}[a]')
-final = os.path.join(HERE, 'out', 'drill-promo2.mp4' if FR == 'frames2' else 'drill-promo.mp4')
+final = os.path.join(HERE, 'out', 'drill-promo3.mp4' if FR == 'frames3' else 'drill-promo2.mp4' if FR == 'frames2' else 'drill-promo.mp4')
 subprocess.run(['ffmpeg', '-y', '-v', 'error', *inputs, '-filter_complex', ';'.join(flt), '-map', '0:v', '-map', '[a]',
                 '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', final], check=True)
 print('wrote', final, f'{DUR:.1f}s', len(snd), 'sounds')

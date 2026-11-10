@@ -24,17 +24,24 @@ fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(OUT, { recursive:
     const fin = document.createElement('div');
     fin.style.cssText = 'position:fixed;z-index:99;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:6px solid #fff;background:rgba(255,210,63,.55);box-shadow:0 0 0 3px rgba(27,42,74,.35);pointer-events:none;opacity:0';
     document.documentElement.appendChild(fin);
-    let finT = 9, given = null, armedAt = 0, logN = 0;
+    let finT = 9, given = null, armedAt = 0, logN = 0, g2 = 0, arm2 = 0, y0 = 0;
     const show = (x, y) => { fin.style.left = x + 'px'; fin.style.top = y + 'px'; finT = 0; };
     window.__bot = (t) => {
       __t = t;
       const log = D.sndLog; while (logN < log.length) __snd.push([t, log[logN++]]);
       finT += 1 / 30; const k = Math.min(1, finT / 0.6); fin.style.opacity = finT < 0.6 ? String(1 - k * k) : '0'; fin.style.transform = `scale(${0.7 + k * 0.5})`;
-      if (D.state.mode !== 'play' || D.state.over || given !== null) return;
-      const w = D.walkers.find((w) => w.kind === 'pair' && w.st === 'walk' && w.x > D.X(PICK_X));
+      if (D.state.mode !== 'play' || D.state.over) return;
+      const ws = D.walkers;
+      // round 3: a toilets runner (mis warn/run) is caught by a tap
+      const run = ws.find((m) => m.mis === 'warn' || m.mis === 'run');
+      if (run && finT > 0.35) { const s = D.toScreen(run.x, run.y - 14); show(s.x, s.y); if (D.tap(run.id)) __ev.push([t, 'catch', run.id]); return; }
+      // the same pair builds again one floor down (levels with two floors without stairs)
+      if (given !== null && !g2) { const g = ws.find((w) => w.id === given); if (g && g.st === 'walk' && !g.armed && g.y > y0 + 50) { if (!arm2) { const btn = document.querySelector(`.ord[data-o="${ORD}"]`); const r = btn.getBoundingClientRect(); show(r.left + r.width / 2, r.top + r.height / 2); D.order(ORD); arm2 = t; return; } if (t - arm2 > 0.5) { const s = D.toScreen(g.x, g.y - 14); show(s.x, s.y); if (D.tap(g.id)) { g2 = 1; __ev.push([t, ORD + '2', g.id]); } } } }
+      if (given !== null) return;
+      const w = ws.find((w) => w.kind === 'pair' && w.st === 'walk' && w.x > D.X(PICK_X));
       if (!w) return;
       if (!armedAt) { const btn = document.querySelector(`.ord[data-o="${ORD}"]`); const r = btn.getBoundingClientRect(); show(r.left + r.width / 2, r.top + r.height / 2); D.order(ORD); armedAt = t; __ev.push([t, 'pick', ORD]); return; }
-      if (t - armedAt > 0.7) { const s = D.toScreen(w.x, w.y - 14); show(s.x, s.y); if (D.tap(w.id)) { given = w.id; __ev.push([t, ORD, w.id]); } }
+      if (t - armedAt > 0.7) { const s = D.toScreen(w.x, w.y - 14); show(s.x, s.y); if (D.tap(w.id)) { given = w.id; y0 = w.y; __ev.push([t, ORD, w.id]); } }
     };
   }, [ORD, PICK_X]);
   const N0 = Math.round(0.5 * FPS);
