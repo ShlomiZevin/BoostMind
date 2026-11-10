@@ -85,4 +85,15 @@ with open(os.path.join(WORK, 'archive.json'), 'w', encoding='utf8') as f:
 subprocess.run([GC, 'storage', 'rsync', THUMBS, BUCKET + '/t', '--cache-control=public,max-age=31536000,immutable', ], check=True)
 subprocess.run([GC, 'storage', 'cp', os.path.join(WORK, 'archive.json'), BUCKET + '/list.json',
                 '--cache-control=public,max-age=300', '--content-type=application/json', ], check=True)
+# the home's archive strip (the 2.0 session's, commit e1031f1) reads this tiny file: per year the most-liked video with a cover
+best = {}
+for i in items:
+    if i['k'] == 'v' and i['t'] and (i['d'][:4] not in best or i['l'] > best[i['d'][:4]]['l']):
+        best[i['d'][:4]] = i
+strip = {'n': len(items), 'from': min(best), 'covers': [{'id': best[y]['id'], 'y': y} for y in sorted(best)],
+         'updated': __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(timespec='seconds')}
+with open(os.path.join(WORK, 'strip.json'), 'w', encoding='utf8') as f:
+    json.dump(strip, f, ensure_ascii=False, separators=(',', ':'))
+subprocess.run([GC, 'storage', 'cp', os.path.join(WORK, 'strip.json'), BUCKET + '/strip.json',
+                '--cache-control=no-cache, max-age=0', '--content-type=application/json'], check=True)
 print(f"list.json: {len(items)} posts, {sum(1 for i in items if i.get('v'))} in the verse; covers {sum(1 for i in items if i['t'])}")
