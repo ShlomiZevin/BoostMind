@@ -2285,7 +2285,11 @@ def plain_preview(ls, person):
 def take_src(ls, n, gaze):
     """A take's video file: the original, or its eye-contact copy (same frames, same timing)."""
     g = ls.work("gaze", f"{n}.{gaze_sig(ls)}.mp4")
-    return g if gaze and os.path.exists(g) else os.path.join(ls.cfg["input_dir"], n + os.path.splitext(ls.takes[0])[1])
+    if gaze and os.path.exists(g):
+        return g
+    # (each take its own extension - a .mov take next to .mp4 ones looked for '<name>.mp4', 2026-11-10 rosenblum-1-v3)
+    own = next((t for t in ls.takes if os.path.splitext(os.path.basename(t))[0] == n), None)
+    return own or os.path.join(ls.cfg["input_dir"], n + os.path.splitext(ls.takes[0])[1])
 
 
 def take_proxy(ls, n, gaze, kind):
