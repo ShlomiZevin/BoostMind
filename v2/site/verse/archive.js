@@ -63,6 +63,31 @@ async function loadWishes() {
   } catch (e) { wishesLoaded = false; }
 }
 
+// ---------- the home's strip (his choice 2026-11-10: H4's layout with H3's fanned covers + the planet, mockups
+// scripts/v2-design/archive-home.mjs; under the hero as a strip, never in it): an announcement - the archive is everything,
+// far more than the verse; find any video, ask for it. One small file (insta/strip.json: the count, the first year, one
+// cover a year) - the home never loads the whole list. ----------
+let strip = null;
+export function archiveStrip(onReady) {
+  if (strip === null) {
+    strip = false;
+    fetch('https://storage.googleapis.com/shlomiverse-media/insta/strip.json', { cache: 'no-cache' }).then((r) => r.json())
+      .then((d) => { if (d && d.n && d.covers?.length) { strip = d; onReady?.(); } }).catch(() => {});
+  }
+  if (!strip) return '';
+  const S = A().strip, v = (typeof W !== 'undefined' && W?.videos?.length) || 0;
+  let seen = false; try { seen = !!localStorage.getItem('vx-arc-seen'); } catch (e) {}
+  const covers = strip.covers.slice(-4);
+  return `<a class="arc-strip" href="/archive" data-arc-strip>
+    <div class="arc-txt">${seen ? '' : `<span class="arc-tag">${esc(S.tag)}</span>`}<b class="arc-title">${esc(S.title)}</b>
+      <p class="arc-long">${esc(S.line(num(strip.n), strip.from, num(v)))}</p><p class="arc-short">${esc(S.short(num(strip.n), num(v)))}</p>
+      <div class="arc-vs"><span class="on">${esc(S.arc)} · <b>${num(strip.n)}</b></span><span>${esc(S.verse)} · <b>${num(v)}</b></span></div>
+      <span class="arc-go"><span>${esc(S.go)}</span><i>${I.next}</i></span>
+      <small class="arc-only">${LOCK}${esc(S.only)}</small></div>
+    <div class="arc-fan" aria-hidden="true">${covers.map((c, i) => `<span class="arc-c c${i}"><img src="${COVER(c.id)}" alt="" loading="lazy"><em>${c.y}</em></span>`).join('')}
+      <img class="arc-planet" src="/verse/logo-512.png" alt=""></div></a>`;
+}
+
 // ---------- the page ----------
 export function archivePage() {
   setTimeout(mount, 0);
@@ -72,6 +97,7 @@ async function mount() {
   const root = document.getElementById('ar-root');
   if (!root) return;
   if (new URLSearchParams(location.search).get('mine') === '1') filter = 'mine';
+  try { localStorage.setItem('vx-arc-seen', '1'); } catch (e) {}
   if (!unsub) unsub = onState(() => { if (!document.getElementById('ar-root')) { unsub(); unsub = null; return; } if (signedIn() !== (root.dataset.in === '1')) mount(); });
   await load();
   if (!document.getElementById('ar-root')) return;

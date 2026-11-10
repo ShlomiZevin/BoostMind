@@ -13,6 +13,7 @@ import { nextBar, czOpen } from './gates.js';
 import { aboutCard } from './about.js';
 import { tzHome, tzSide } from './tzhome.js';
 import { adSlot } from './ads.js';
+import { archiveStrip } from './archive.js';
 // "מה סיפרתם לנו" arrived or changed (verse/about.js): the אני page draws again
 window.addEventListener('vx-about', () => { if (cur.page === 'me') refresh(true); });
 
@@ -154,7 +155,7 @@ export function homeSlot() {
   // on a computer the module and a card beside it share one row (plan tz-home D1): signed in - "זכות הדיבור" (tzhome.js);
   // signed out - the citizenship card. On a phone they stack.
   // the sponsored banner (ads.js, his note 2026-11-09): first under the hero - where a visitor from the video lands
-  const ad = adSlot('home');
+  const ad = adSlot('home') + archiveStrip(() => refresh(true));   // הארכיון's announcement strip (archive.js), under the hero
   if (signedIn()) return ad + citizenBanner() + yourBlock() + `<div class="tzh-row">${tz}<div id="tz-side">${tzSide()}</div></div>`;   // the citizenship journey's banner until they finish it (citizen.js)
   if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>' + videoRows();
   const rings = ringsHtml();

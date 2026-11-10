@@ -2765,3 +2765,46 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .ar-bar.show { transform: none; }
 .ar-bar b { display: block; font-size: 1rem; } .ar-bar small { color: var(--dim); font-size: .8rem; }
 @media (min-width: 1000px) { .ar-bar { bottom: 22px; } }
+
+/* ---------- the archive's announcement strip on the home (his choice 2026-11-10: H4's layout, H3's fanned covers + planet) ---------- */
+.arc-strip { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 42%; align-items: center; gap: 10px; margin: 18px 0 8px; padding: 16px 16px 16px 6px;
+  padding-inline: 16px 6px; border-radius: 24px; color: var(--text); text-decoration: none; overflow: hidden;
+  background: radial-gradient(120% 140% at 15% 50%, rgba(255, 106, 31, .22), transparent 60%), linear-gradient(180deg, #17171c, #101014);
+  border: 1.5px solid color-mix(in srgb, var(--vx-accent) 65%, transparent); box-shadow: 0 0 0 1px rgba(255, 106, 31, .08), 0 14px 40px rgba(0, 0, 0, .45), 0 0 34px rgba(255, 106, 31, .16); }
+.arc-strip:active { transform: scale(.995); }
+.arc-txt { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; position: relative; z-index: 1; }
+.arc-tag { padding: 3px 12px; border-radius: 999px; background: var(--vx-accent); color: #fff; font-weight: 900; font-size: .8rem; }
+.arc-title { font-size: 1.55rem; font-weight: 900; letter-spacing: -.02em; line-height: 1.1; }
+.arc-txt p { margin: 0; color: #cfccd5; font-size: .88rem; line-height: 1.45; }
+.arc-long { display: none; }
+@media (min-width: 900px) { .arc-long { display: block; } .arc-short { display: none; } }
+.arc-vs { display: flex; flex-wrap: wrap; gap: 6px; }
+.arc-vs span { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line2, rgba(255,255,255,.16)); font-size: .78rem; color: var(--dim); white-space: nowrap; }
+.arc-vs span.on { border-color: color-mix(in srgb, var(--vx-accent) 70%, transparent); color: var(--vx-accent-2, #ff8a3d); }
+.arc-vs b { color: var(--text); font-weight: 900; } .arc-vs .on b { color: var(--vx-accent-2, #ff8a3d); }
+.arc-go { white-space: nowrap; display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; max-width: 280px; height: 46px; margin-top: 2px; padding-inline: 18px 5px;
+  border-radius: 999px; border: 1.5px solid var(--vx-accent); background: rgba(0, 0, 0, .35); font-weight: 900; font-size: .98rem; box-shadow: 0 0 18px rgba(255, 106, 31, .22); }
+.arc-go i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--vx-accent); color: #fff; }
+.arc-go i svg { width: 18px; height: 18px; }
+.arc-only { display: inline-flex; align-items: center; gap: 5px; color: var(--dim); font-size: .76rem; }
+.arc-only svg { width: 13px; height: 13px; }
+/* the fan: one cover a year, the newest in the middle-front, the planet over them */
+.arc-fan { position: relative; height: 190px; }
+.arc-c { position: absolute; bottom: 26px; width: 40%; aspect-ratio: 9 / 15; border-radius: 12px; overflow: hidden; border: 2px solid rgba(255, 140, 61, .75);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .55), 0 0 14px rgba(255, 106, 31, .25); background: #1b1b20; transform-origin: 50% 100%; }
+.arc-c img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.arc-c em { position: absolute; top: 5px; inset-inline: 0; text-align: center; font-style: normal; font-weight: 900; font-size: .78rem; color: #fff; text-shadow: 0 1px 6px rgba(0, 0, 0, .9); }
+.arc-c.c0 { left: 2%; transform: rotate(-14deg); z-index: 1; }
+.arc-c.c1 { left: 20%; transform: rotate(-5deg) translateY(-8px); z-index: 2; }
+.arc-c.c2 { left: 40%; transform: rotate(5deg) translateY(-8px); z-index: 3; }
+.arc-c.c3 { left: 58%; transform: rotate(14deg); z-index: 2; }
+.arc-planet { position: absolute; left: 50%; bottom: 0; width: 58%; transform: translateX(-50%); z-index: 4; filter: drop-shadow(0 4px 14px rgba(255, 106, 31, .55)); }
+@media (max-width: 380px) { .arc-strip { grid-template-columns: minmax(0, 1fr) 36%; } .arc-title { font-size: 1.35rem; } .arc-txt p { font-size: .82rem; } .arc-fan { height: 160px; } .arc-go { font-size: .9rem; padding-inline: 12px 4px; } }
+@media (min-width: 900px) {
+  .arc-strip { grid-template-columns: minmax(0, 1fr) 380px; padding: 22px 28px; gap: 24px; margin: 24px 0 10px; }
+  .arc-title { font-size: 2rem; } .arc-txt p { font-size: 1rem; max-width: 560px; } .arc-txt { gap: 9px; }
+  .arc-vs span { font-size: .86rem; padding: 4px 12px; }
+  .arc-fan { height: 210px; }
+  .arc-c { width: 31%; } .arc-c.c0 { left: 8%; } .arc-c.c1 { left: 24%; } .arc-c.c2 { left: 42%; } .arc-c.c3 { left: 58%; }
+  .arc-planet { width: 46%; }
+}
