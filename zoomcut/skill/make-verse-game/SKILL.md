@@ -242,6 +242,11 @@ spot / try).
 - Then show him: the local link (`python -m http.server <port>` in `public/`) and two or three screenshots.
 
 ## 8. Live on shlomiverse.com - only on his word
+- **While a game is being made it is a DRAFT that only he can see** (his rule, 10 Nov 2026): it may be deployed to its
+  own address so he can play it on his phone (send him the link), but `game.json` says `"status": "draft"`, there is
+  NO game record in the verse (no `content.mjs put game`, or `content.mjs hide game <id>` if one exists), and no link
+  to it anywhere on the site (character page, games row, /games, /all/, links page, stories). Only his explicit
+  "release it" / "put it on the verse" makes it `live` - and "silently" means live in the verse without a story.
 - **Hani's games**: follow `hani-games.md` in this folder (the playhouse's release tool; the hub page has its owner).
 - **Every other game**: commit its folder (`public/<character>-games/<slug>/`) and its workshop
   (`scripts/<character>-games/<slug>/`), rebase on `origin/main`, push, then `bash scripts/deploy.sh` (the one deploy -

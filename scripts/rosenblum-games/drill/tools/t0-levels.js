@@ -9,7 +9,7 @@ const URL = 'http://localhost:8731/rosenblum-games/drill/?solo=1';
 const SOL = require('./solutions.js');
 (async () => {
   const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--use-angle=swiftshader'] });
-  const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })).newPage();
+  const p = await (await b.newContext({ viewport: { width: 390, height: +(process.env.VH || 844) }, deviceScaleFactor: 1 })).newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   await p.goto(URL); await p.waitForTimeout(1200);
   const n = await p.evaluate(() => DRILL.levels.length);
@@ -43,7 +43,8 @@ const SOL = require('./solutions.js');
           if (DRILL.state.reut && !bl) { const y = DRILL.F[sol.hold.f]; const w = ws.filter((w) => w.st === 'walk' && Math.abs(w.y - y) < 3 && Math.abs(w.x - DRILL.X(sol.hold.x)) < 60).sort((a, b) => Math.abs(a.x - DRILL.X(sol.hold.x)) - Math.abs(b.x - DRILL.X(sol.hold.x)))[0]; if (w) { DRILL.order('stop'); DRILL.tap(w.id); } }
           if (!DRILL.state.reut && bl && !DRILL.walkers.some((w) => w.st === 'walk' && Math.abs(w.y - DRILL.F[3]) < 3 && w.x > 0 && false)) DRILL.tap(bl.id);
         }
-                DRILL.tick(0.1);
+                for (const w of DRILL.walkers) if (w.mis && Math.random() < 0.12) DRILL.tap(w.id); // CATCH runners, ~1s reaction
+        DRILL.tick(0.1);
       }
       const st = DRILL.state;
       return { saved: st.saved, quota: st.quota, t: Math.round(st.timeLeft), log: log.join(' | '), why: DRILL.walkers.filter((w) => w.st === 'lost').map((w) => w.kind[0] + ':' + w.why).join(','), shaharLast: null };

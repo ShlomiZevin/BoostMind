@@ -24,9 +24,9 @@
 :root{
   --ink:#1f2a2e; --board:#24343a; --chalk:#f4efe2; --red:#e2483d; --blue:#2f7fd6; --yellow:#f2b530; --green:#2fa457;
   --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
-  --topH:56px; --barH:80px;
+  --topH:50px; --barH:68px;
 }
-@media (max-height:640px){:root{--topH:50px;--barH:70px}}
+@media (max-height:640px){:root{--topH:46px;--barH:60px}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
 body{background:var(--board)}
@@ -41,36 +41,50 @@ button{font-family:inherit;border:0;cursor:pointer}
 
 /* play layout: top strip (Rosenblum + timer + count), the building, the orders */
 #play{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--safe-t);padding-bottom:var(--safe-b)}
-#top{height:var(--topH);flex:none;display:flex;align-items:center;gap:8px;padding:0 8px;background:linear-gradient(#2c3f46,#24343a);border-bottom:3px solid #6b4a2b}
-#head{height:calc(var(--topH) - 4px);width:auto;flex:none;align-self:flex-end;filter:drop-shadow(0 2px 3px #0006)}
-#say{flex:1;min-width:0;background:var(--chalk);border-radius:12px;padding:4px 8px;font-weight:700;font-size:13px;line-height:1.2;position:relative;max-height:calc(var(--topH) - 12px);overflow:hidden;transition:opacity .2s}
+#top{height:var(--topH);flex:none;display:flex;align-items:center;gap:6px;padding:0 6px;background:linear-gradient(#23415f,#1a3149);border-bottom:2px solid #0e1d2c}
+#head{height:calc(var(--topH) - 8px);width:calc(var(--topH) - 8px);flex:none;border-radius:50%;object-fit:cover;object-position:50% 12%;border:2px solid #fff;background:#3b5b7a;box-shadow:0 0 0 2px #4aa3ff88}
+#say{flex:1;min-width:0;background:var(--chalk);border-radius:12px;padding:3px 8px;font-weight:700;font-size:14px;line-height:1.15;position:relative;height:calc(var(--topH) - 8px);overflow:hidden;display:flex;align-items:center;transition:opacity .2s}
 #say:before{content:"";position:absolute;right:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-left-color:var(--chalk);border-right:0}
 #say.quiet{opacity:.0}
 #stats{flex:none;display:grid;grid-template-columns:auto auto;gap:3px}
-.stat{background:#0007;color:#fff;border-radius:8px;padding:1px 6px;font-weight:900;font-size:13px;height:calc((var(--topH) - 13px) / 2);display:flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;direction:ltr}
+#timer{grid-column:1 / 3}
+.stat{background:#0b1a29cc;color:#fff;border-radius:8px;padding:1px 6px;font-weight:900;font-size:13px;height:calc((var(--topH) - 13px) / 2);display:flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;direction:ltr}
+.stat img{width:15px;height:15px}
 .stat small{font-size:10px;font-weight:700;opacity:.8;direction:rtl}
 #lost.over{background:#b3261ecc}
 #timer.low{background:#b3261ecc;animation:pulse 1s infinite}
 @keyframes pulse{50%{transform:scale(1.06)}}
 #stage{flex:1;position:relative;min-height:0}
 canvas{position:absolute;display:block;touch-action:none}
-#bar{height:var(--barH);flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px;background:linear-gradient(#24343a,#1b272b);border-top:3px solid #6b4a2b}
+#bar{height:var(--barH);flex:none;display:flex;align-items:center;gap:4px;padding:4px 6px 2px;background:linear-gradient(#1f3a57,#14273b);border-top:2px solid #0e1d2c}
 #orders{flex:1;display:flex;gap:6px;justify-content:center;height:100%}
-.ord{flex:1;max-width:84px;min-width:0;border-radius:16px;position:relative;color:#fff;font-weight:900;font-size:13px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:inset 0 -5px 0 #0003,0 3px 0 #0006;transition:transform .1s}
+.ord{flex:1;max-width:76px;min-width:0;background:none!important;position:relative;color:#fff;font-weight:900;font-size:12px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;transition:transform .12s;padding:0}
+.ord img{height:calc(var(--barH) - 22px);width:auto;max-width:100%;filter:drop-shadow(0 3px 2px #0007)}
+.ord.sel{transform:translateY(-3px)}
+.ord.sel img{filter:drop-shadow(0 0 6px #ffd76a) drop-shadow(0 0 2px #fff)}
+.ord span{line-height:1.1;text-shadow:0 1px 2px #000}
 .ord svg{width:28px;height:28px;fill:#fff}
 @media (max-height:640px){.ord svg{width:22px;height:22px}.ord{font-size:12px}}
 @media (max-width:370px){.ord{font-size:11px}.ord svg{width:22px;height:22px}}
 .ord[data-o=stop]{background:var(--red)}.ord[data-o=guide]{background:var(--blue)}.ord[data-o=stairs]{background:#8a5a34}.ord[data-o=bridge]{background:var(--yellow);color:#4a2f00}.ord[data-o=bridge] svg{fill:#4a2f00}.ord[data-o=open]{background:var(--green)}
-.ord.sel{transform:translateY(-4px);outline:4px solid #fff;outline-offset:-1px}
+
 .ord.empty{filter:grayscale(1) brightness(.6)}
 .ord.off{display:none}
-.ord b{position:absolute;top:-6px;left:-4px;background:#111;color:#fff;border:2px solid #fff;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px}
-#ctl{display:flex;flex-direction:column;gap:5px;flex:none}
+.ord b{position:absolute;top:-4px;left:calc(50% - 30px);background:#111;color:#fff;border:2px solid #fff;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px}
+#ctl{display:flex;flex:none;height:100%}
+.bigctl{width:60px;height:100%;background:none;display:grid;place-items:center;position:relative}
+.bigctl img{height:calc(var(--barH) - 10px);filter:drop-shadow(0 3px 2px #0007)}
+.bigctl.on img{filter:drop-shadow(0 0 6px #ffd76a)}
+.bigctl svg{width:30px;height:30px;fill:#fff}
+.bigctl.on{background:#f2b530}.bigctl.on svg{fill:#3a2500}
+#bPause{width:calc(var(--topH) - 8px);height:calc(var(--topH) - 8px);background:none;display:grid;place-items:center;flex:none;padding:0}
+#bPause img{width:100%;height:100%}
+#bPause svg{width:24px;height:24px;fill:#fff}
 .ibtn{width:40px;height:calc((var(--barH) - 22px) / 3);min-height:20px;position:relative;border-radius:10px;background:#ffffff1f;display:grid;place-items:center}
 .ibtn svg{width:20px;height:20px;fill:#fff}
 .ibtn.on{background:#f2b530}
 .ibtn.on svg{fill:#3a2500}
-#bFast::after{content:attr(data-x);position:absolute;right:-4px;top:-6px;font-size:11px;font-weight:900;color:#3a2500;background:#fff;border-radius:6px;padding:0 3px}
+#bFast::after{content:attr(data-x);position:absolute;right:-4px;top:-8px;font-size:14px;font-weight:900;color:#3a2500;background:#fff;border-radius:6px;padding:0 3px}
 #bFast:not(.on)::after{display:none}
 
 /* screens - one at a time */
@@ -123,25 +137,24 @@ canvas{position:absolute;display:block;touch-action:none}
     <img id="head" src="assets/headTalk.webp" alt="המורה רוזנבלום">
     <div id="say"></div>
     <div id="stats">
-      <div class="stat" id="timer"><span id="tval">2:30</span></div>
-      <div class="stat" id="out"><span id="oval">29</span><small>בכיתה</small></div>
-      <div class="stat" id="count"><span id="cval">0/23</span><small>בפנים</small></div>
-      <div class="stat" id="lost"><span id="lval">0/6</span><small>אבדו</small></div>
+      <div class="stat" id="timer"><img src="assets/icTimer.webp" alt=""><span id="tval">2:30</span></div>
+      <div class="stat" id="count"><img src="assets/icIn.webp" alt=""><span id="cval">0/23</span></div>
+      <div class="stat" id="lost"><img src="assets/icLost.webp" alt=""><span id="lval">0/6</span></div>
     </div>
+    <button id="bPause" aria-label="עצירה"><img src="assets/btnPause.webp" alt=""></button>
   </div>
   <div id="stage"><canvas id="cv"></canvas></div>
   <div id="bar">
     <div id="orders">
-      <button class="ord" data-o="stop"><b>2</b><svg viewBox="0 0 24 24"><path d="M12.5 2c.8 0 1.5.7 1.5 1.5V11h1V4.5a1.5 1.5 0 0 1 3 0V12h1V7.5a1.5 1.5 0 0 1 3 0V15c0 4-3 7-7 7h-1c-2.4 0-4.2-1-5.6-2.8L4.3 14.6a1.5 1.5 0 0 1 2.3-1.9L9 15V4.5a1.5 1.5 0 0 1 3 0V11h0V3.5C11 2.7 11.7 2 12.5 2z"/></svg>עצור!</button>
-      <button class="ord" data-o="guide"><b>2</b><svg viewBox="0 0 24 24"><path d="M10 3h4v8h5l-7 9-7-9h5z" transform="rotate(90 12 12)"/></svg>הכוונה!</button>
-      <button class="ord" data-o="bridge"><b>2</b><svg viewBox="0 0 24 24"><path d="M3 9h18v3h-2v8h-2.5v-8h-9v8H5v-8H3z"/></svg>גשר!</button>
-      <button class="ord" data-o="stairs"><b>2</b><svg viewBox="0 0 24 24"><path d="M3 20v-4h4v-4h4V8h4V4h6v3h-3v4h-4v4h-4v4H7v1z"/></svg>מדרגות!</button>
-      <button class="ord" data-o="open"><b>2</b><svg viewBox="0 0 24 24"><path d="M4 21V3h11v2H6v14h9v2H4zm10-4 1.4-1.4L12.8 13H21v-2h-8.2l2.6-2.6L14 7l-5 5z" transform="scale(-1 1) translate(-24 0)"/></svg>פתח!</button>
+      <button class="ord" data-o="stop"><b>2</b><img src="assets/btnStop.webp" alt=""><span>עצור</span></button>
+      <button class="ord" data-o="guide"><b>2</b><img src="assets/btnGuide.webp" alt=""><span>הכוונה</span></button>
+      <button class="ord" data-o="bridge"><b>2</b><img src="assets/btnBridge.webp" alt=""><span>גשר</span></button>
+      <button class="ord" data-o="stairs"><b>2</b><img src="assets/btnStairs.webp" alt=""><span>מדרגות</span></button>
+      <button class="ord" data-o="open"><b>2</b><img src="assets/btnOpen.webp" alt=""><span>פתח</span></button>
     </div>
     <div id="ctl">
-      <button class="ibtn" id="bPause" aria-label="עצירה"><svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg></button>
-      <button class="ibtn" id="bFast" aria-label="מהר"><svg viewBox="0 0 24 24"><path d="M2 5l9 7-9 7zm10 0 9 7-9 7z"/></svg></button>
-      <button class="ibtn" id="bRestart" aria-label="מההתחלה"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 8 8h-3a5 5 0 1 1-5-5v3l5-4.5L12 1z"/></svg></button>
+      <button class="bigctl" id="bFast" aria-label="מהר יותר"><img src="assets/btnFast.webp" alt=""></button>
+      <button id="bRestart" hidden></button>
     </div>
   </div>
 </div>
@@ -149,7 +162,7 @@ canvas{position:absolute;display:block;touch-action:none}
 <div class="screen" id="start">
   <img class="hero" src="assets/hero.jpg" alt="">
   <img class="title" src="assets/title.png" alt="הקטר המאסף">
-  <p>צופר! תרגיל ירידה למרחב מוגן. הכיתה יוצאת שניים שניים – והולכת לבד לאן שהרגליים לוקחות. אתם המורה רוזנבלום: תנו הוראות והורידו את כולם למקלט.</p>
+  <p>תרגיל ירידה למרחב מוגן. תנו לתלמידים תפקידים, והורידו את כולם למקלט.</p>
   <button class="big" id="bPlay">שחקו</button>
   <div id="levels"></div>
   <button class="soft" id="bHow">איך משחקים</button>
@@ -161,7 +174,7 @@ canvas{position:absolute;display:block;touch-action:none}
   <div class="card">
     <h2>הפסקה</h2>
     <p class="q">"אני מחכה. כשאדון יסיים – נמשיך."</p>
-    <div class="row"><button class="big" id="bResume">ממשיכים</button><button class="soft" id="bMenu">לתפריט</button></div>
+    <div class="row"><button class="big" id="bResume">ממשיכים</button></div><div class="row"><button class="soft" id="bRestart2">מההתחלה</button><button class="soft" id="bMenu">לתפריט</button></div>
   </div>
 </div>
 
@@ -191,6 +204,6 @@ canvas{position:absolute;display:block;touch-action:none}
 <div id="tut" hidden><div id="spot"></div><div id="tcard"></div></div>
 <div id="rotate">סובבו את הטלפון לאורך 📱</div>
 
-<script src="game.js?v=2"></script>
+<script src="game.js?v=4"></script>
 </body>
 </html>

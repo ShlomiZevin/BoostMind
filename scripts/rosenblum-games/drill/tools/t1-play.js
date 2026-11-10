@@ -18,13 +18,13 @@ const PHONES = [['se', 320, 568], ['s360', 360, 640], ['p390', 390, 844], ['p412
     // the tutorial: next / the try-it taps
     for (let k = 0; k < 20; k++) {
       const st = await p.evaluate(() => DRILL.state.tut); if (st < 0) break;
-      if (k === 1 || st === 7) await p.screenshot({ path: `${OUT}/${name}-2tut${st}.png` });
+      if (k === 1 || st === 6) await p.screenshot({ path: `${OUT}/${name}-2tut${st}.png` });
       const next = await p.$('#tNext');
       if (next) { await next.tap({ force: true }); await p.waitForTimeout(300); continue; }
-      if (st === 6) { await p.tap('.ord[data-o=stop]'); await p.waitForTimeout(900); continue; }
+      if (st === 5) { await p.tap('.ord[data-o=guide]'); await p.waitForTimeout(900); continue; }
       const pt = await p.evaluate(() => { const w = DRILL.walkers[0]; return DRILL.toScreen(w.x, w.y - 16); });
       await p.touchscreen.tap(pt.x, pt.y); await p.waitForTimeout(900);
-      if (st === 8) await p.screenshot({ path: `${OUT}/${name}-2tut8.png` });
+      if (st === 7) await p.screenshot({ path: `${OUT}/${name}-2tut8.png` });
     }
     await p.waitForTimeout(400); await p.screenshot({ path: `${OUT}/${name}-3intro.png` });
     await p.tap('#bGo', { force: true }); await p.waitForTimeout(800);

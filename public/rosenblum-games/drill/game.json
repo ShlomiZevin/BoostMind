@@ -5,7 +5,7 @@
   "character": "rosenblum",
   "chars": ["rosenblum", "reut", "omer-student"],
   "world": "המורה רוזנבלום",
-  "status": "live",
+  "status": "draft",
   "cover": "cover.jpg",
   "best": { "key": "shlomiverse:drill:best", "label": "נקודות" },
   "record": { "unit": "נקודות", "better": "high" },

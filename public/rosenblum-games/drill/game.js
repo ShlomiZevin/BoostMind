@@ -10,11 +10,17 @@ const store = {
   set(k, v) { try { localStorage.setItem('shlomiverse:' + SLUG + ':' + k, String(v)); } catch (e) {} },
 };
 const $ = (s) => document.querySelector(s);
-const W = 300, H = 630;                    // the building in world units - phone-shaped
-const F = [132, 286, 440, 594];             // the floors' walking surface
+// the building's height is fixed; its WIDTH follows the screen (more corridor, never stretched) - set by fitWorld()
+let W = 300;
+const H = 540;
+const F = [120, 250, 380, 510];             // the floors' walking surface
 // levels are written on a 360-wide plan; X() puts a plan x into this building
 const X = (x) => 8 + (x - 8) * (W - 16) / 344;
-const SLAB = 14, HEAD = 26, STEP = 6;
+const SLAB = 14, HEAD = 34, STEP = 6, KID = 46;
+function fitWorld() {
+  const st = $('#stage').getBoundingClientRect();
+  W = Math.round(Math.max(270, Math.min(420, H * st.width / Math.max(1, st.height))));
+}
 const V = 24, V_SHAHAR = 29, V_REUT = 33;
 const FALL_SAFE = 60;                       // a longer drop = to the nurse
 const SPAWN_EVERY = 1.5;
@@ -25,52 +31,48 @@ const STUDENTS = PAIRS * 2 + 1;
 // ---------- levels ----------
 // slabs [floor, a, b] | ramps [floor, topX, dir, len] (stairs down to the next floor) | walls [floor, x]
 // locked [floor, x] (a locked door - פתח) | zones [type, floor, x] wc / yard | reut {f, from, to, every, first}
-// zones [type, floor, x, side]: side = 1 - a toilets door the column walks past; only a pair that suddenly needs it goes in
+// zones [type, floor, x, side]: side = 1 - the one toilets door the column walks past; a runner heads for it
 const LEVELS = [
-  { name: 'רק הולכים', text: 'תרגיל ראשון. שניים שניים, בטור, למרחב המוגן. תסתכלו איך הם הולכים.', quota: 23, time: 150,
-    orders: { stop: 2 },
-    slabs: [[0, 8, 230], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 230, 1, 100], [1, 100, -1, 90], [2, 260, 1, 90]],
-    start: [0, 56, 1], exit: [3, 180] },
-  { name: 'בירידה אין שירותים', text: 'הכיתה הולכת ישר לשירותים. תנו לזוג הראשון "הכוונה!" – הוא יסתובב ויפנה את כל מי שמגיע אליו לכיוון הנכון.', quota: 25, time: 150,
-    orders: { guide: 2, stop: 1 }, mischief: { every: 16, kinds: ['wc'] },
-    slabs: [[0, 8, 120], [1, 90, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 90, -1, 80], [2, 260, 1, 90]],
-    zones: [['wc', 1, 322]], start: [0, 40, 1], exit: [3, 180] },
-  { name: 'גשר מכיסאות', text: 'חור ברצפה, יש שיפוצים. תנו לזוג הראשון "גשר!" – כשיגיע לחור הוא יניח כיסאות, וכולם יעברו.', quota: 25, time: 160,
-    orders: { bridge: 2, stop: 1 }, mischief: { every: 14, kinds: ['wc', 'ball'] },
-    slabs: [[0, 8, 200], [1, 180, 352], [2, 8, 250], [3, 8, 352]], ramps: [[0, 200, 1, 100], [1, 120, -1, 100], [2, 250, 1, 100]],
-    zones: [['wc', 2, 150, 1]], start: [0, 40, 1], exit: [3, 170] },
-  { name: 'מדרגות משולחנות', text: 'בקומה הזאת אין מדרגות – רק קצה. תנו "מדרגות!": הזוג יבנה מדרגות משולחנות עד הקומה למטה.', quota: 25, time: 160,
-    orders: { stairs: 2, stop: 1 }, mischief: { every: 14, kinds: ['wc', 'ball'] },
-    slabs: [[0, 8, 200], [1, 140, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 200, 1, 100], [2, 260, 1, 90]],
-    zones: [['wc', 2, 150, 1]], start: [0, 40, 1], exit: [3, 180] },
-  { name: 'זה לא תהלוכה', text: 'החצר פתוחה והכדור שם. מצאו את הדרך למטה – יש כאן יותר מדרך אחת.', quota: 25, time: 160,
-    orders: { guide: 1, stop: 1, stairs: 1 }, mischief: { every: 12, kinds: ['ball', 'wc'] },
+  { name: 'הכוונה', text: 'הכיתה הולכת ישר לחצר. "הכוונה!" לזוג הראשון.', quota: 25, time: 140,
+    orders: { guide: 1 }, mischief: { every: 15 },
     slabs: [[0, 110, 352], [1, 8, 240], [2, 90, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 240, 1, 100], [2, 90, -1, 80]],
-    zones: [['yard', 0, 322], ['wc', 1, 150, 1], ['wc', 3, 322]], start: [0, 200, 1], exit: [3, 250] },
-  { name: 'דלת נעולה', text: 'הדלת בדרך נעולה. תנו "פתח!" לזוג הראשון – כשיגיע לדלת הוא יפתח אותה לכולם.', quota: 25, time: 160,
-    orders: { open: 1, guide: 1 }, mischief: { every: 12, kinds: ['wc', 'ball'] },
+    zones: [['yard', 0, 322], ['wc', 2, 200, 1]], start: [0, 200, 1], exit: [3, 250] },
+  { name: 'בירידה אין שירותים', text: 'שירותים בדרך, וחור ברצפה. הוראה אחת מכל סוג.', quota: 25, time: 150,
+    orders: { guide: 1, bridge: 1 }, mischief: { every: 15 },
+    slabs: [[0, 8, 120], [1, 90, 352], [2, 8, 150], [2, 210, 262], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 90, -1, 80], [2, 262, 1, 90]],
+    zones: [['wc', 1, 322]], start: [0, 40, 1], exit: [3, 180] },
+  { name: 'מדרגות משולחנות', text: 'שתי קומות בלי מדרגות. בונים לבד.', quota: 27, time: 150,
+    orders: { stairs: 2 }, mischief: { every: 14 },
+    slabs: [[0, 8, 200], [1, 140, 352], [2, 8, 220], [3, 8, 352]], ramps: [[0, 200, 1, 100]],
+    zones: [['wc', 3, 60, 1]], start: [0, 40, 1], exit: [3, 180] },
+  { name: 'דלת נעולה', text: 'דלת נעולה, והחצר מאחור. מהר!', quota: 27, time: 120,
+    orders: { open: 1 }, mischief: { every: 13 },
     slabs: [[0, 8, 120], [1, 8, 260], [2, 100, 352], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 260, 1, 90], [2, 100, -1, 90]],
-    locked: [[1, 240]], zones: [['wc', 1, 40]], start: [0, 40, 1], exit: [3, 250] },
-  { name: 'הכיתה של רעות', text: 'הכיתה של המורה רעות עוברת למטה. מי שנוגע בטור שלה – נגרר אחריה. עצרו, חכו שתעבור, שחררו.', quota: 23, time: 170,
-    orders: { stop: 3, stairs: 1 }, mischief: { every: 12, kinds: ['wc', 'ball'] },
+    locked: [[1, 240]], zones: [['yard', 1, 40], ['wc', 2, 230, 1]], start: [0, 40, 1], exit: [3, 250] },
+  { name: 'הכיתה של רעות', text: 'הכיתה של רעות עוברת למטה. עצרו, חכו, שחררו.', quota: 25, time: 170,
+    orders: { stop: 2 }, mischief: { every: 14 },
     slabs: [[0, 8, 230], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 230, 1, 100], [1, 100, -1, 90], [2, 260, 1, 90]],
-    zones: [['wc', 1, 200, 1]], reut: { f: 3, from: 22, to: 340, every: 26, first: 38 }, start: [0, 56, 1], exit: [3, 260] },
-  { name: 'לא מטיילים באמצע השיירה', text: 'חור, שירותים, וגם רעות. הכול באותה ירידה.', quota: 23, time: 180,
-    orders: { bridge: 1, stop: 2, guide: 1, stairs: 1 }, mischief: { every: 12, kinds: ['wc', 'ball'] },
+    zones: [['wc', 1, 200, 1]], reut: { f: 3, from: 22, to: 340, every: 22, first: 34 }, start: [0, 56, 1], exit: [3, 260] },
+  { name: 'זה לא תהלוכה', text: 'חצר, חור וקצה. שלוש הוראות, אחת מכל סוג.', quota: 25, time: 160,
+    orders: { guide: 1, bridge: 1, stairs: 1 }, mischief: { every: 13 },
+    slabs: [[0, 110, 352], [1, 8, 180], [1, 240, 262], [2, 150, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90]],
+    zones: [['yard', 0, 322], ['wc', 3, 300, 1]], start: [0, 200, 1], exit: [3, 200] },
+  { name: 'לא מטיילים באמצע השיירה', text: 'חור, ורעות למטה.', quota: 25, time: 180,
+    orders: { bridge: 1, stop: 2 }, mischief: { every: 13 },
     slabs: [[0, 100, 352], [1, 8, 200], [2, 140, 352], [3, 8, 352]], ramps: [[0, 100, -1, 90], [1, 262, 1, 90], [2, 140, -1, 100]],
-    zones: [['wc', 3, 322], ['wc', 2, 300, 1]], reut: { f: 3, from: 340, to: 22, every: 26, first: 24 }, start: [0, 300, -1], exit: [3, 130] },
-  { name: 'סוגרים רווחים', text: 'שתי דלתות נעולות והזמן קצר. אולי יש קיצור דרך?', quota: 25, time: 130,
-    orders: { open: 2, stop: 1, stairs: 1 }, mischief: { every: 12, kinds: ['wc', 'ball'] },
-    slabs: [[0, 8, 240], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 240, 1, 100], [1, 100, -1, 90], [2, 260, 1, 90]],
-    locked: [[0, 160], [2, 200]], zones: [['yard', 0, 22], ['wc', 1, 220, 1]], start: [0, 60, 1], exit: [3, 120] },
-  { name: 'מה השמחה הגדולה?', text: 'שני חורים בדרך, וכל הוראה פעם אחת. גשר – או מדרגות?', quota: 25, time: 180,
-    orders: { bridge: 1, stairs: 1, stop: 1, guide: 1 }, mischief: { every: 12, kinds: ['wc', 'ball'] },
+    zones: [['wc', 2, 300, 1]], reut: { f: 3, from: 340, to: 22, every: 24, first: 24 }, start: [0, 300, -1], exit: [3, 130] },
+  { name: 'סוגרים רווחים', text: 'דלת נעולה וקצה. הזמן קצר.', quota: 27, time: 120,
+    orders: { open: 1, stairs: 1 }, mischief: { every: 12 },
+    slabs: [[0, 8, 240], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 240, 1, 100], [2, 260, 1, 90]],
+    locked: [[0, 160]], zones: [['yard', 0, 22], ['wc', 2, 120, 1]], start: [0, 60, 1], exit: [3, 120] },
+  { name: 'מה השמחה הגדולה?', text: 'שני חורים. גשר אחד ומדרגות אחת.', quota: 27, time: 170,
+    orders: { bridge: 1, stairs: 1 }, mischief: { every: 12 },
     slabs: [[0, 8, 150], [0, 210, 262], [1, 90, 352], [2, 8, 140], [2, 200, 262], [3, 8, 352]], ramps: [[0, 262, 1, 90], [1, 90, -1, 80], [2, 262, 1, 90]],
-    zones: [['wc', 1, 200, 1], ['wc', 3, 120, 1]], start: [0, 40, 1], exit: [3, 270] },
-  { name: 'הצופר האחרון', text: 'הכול ביחד: דלת נעולה, חור והכיתה של רעות. רבותיי וגבירותיי – עיניים אליי.', quota: 23, time: 200,
-    orders: { stop: 2, guide: 1, bridge: 1, open: 1, stairs: 1 }, mischief: { every: 12, kinds: ['wc', 'ball'] },
+    zones: [['wc', 1, 200, 1]], start: [0, 40, 1], exit: [3, 270] },
+  { name: 'הצופר האחרון', text: 'הכול ביחד. רבותיי וגבירותיי – עיניים אליי.', quota: 25, time: 200,
+    orders: { stop: 2, open: 1, bridge: 1 }, mischief: { every: 12 },
     slabs: [[0, 8, 236], [1, 120, 352], [2, 8, 190], [2, 250, 262], [3, 8, 352]], ramps: [[0, 236, 1, 100], [1, 120, -1, 100], [2, 262, 1, 90]],
-    locked: [[0, 150]], zones: [['yard', 0, 22], ['wc', 1, 300, 1]], reut: { f: 3, from: 30, to: 340, every: 28, first: 30 },
+    locked: [[0, 150]], zones: [['yard', 0, 22], ['wc', 1, 300, 1]], reut: { f: 3, from: 30, to: 340, every: 26, first: 30 },
     start: [0, 60, 1], exit: [3, 230] },
 ];
 
@@ -84,7 +86,7 @@ const imgNames = ['pairA', 'pairB', 'pairC', 'shahar', 'omer', 'block', 'build',
 function loadImg(n, src) { return new Promise((r) => { const i = new Image(); i.onload = () => { IMG[n] = i; r(); }; i.onerror = () => r(); i.src = src; }); }
 const ready = fetch('assets/sprites.json').then((r) => r.json()).then((m) => { Object.assign(SPR, m); return Promise.all([
   ...imgNames.map((n) => loadImg(n, 'assets/' + n + '.webp')),
-  loadImg('wall', 'assets/wall.jpg'), loadImg('concrete', 'assets/concrete.jpg'), loadImg('slab', 'assets/slab.jpg')]); });
+  loadImg('wall', 'assets/wall2.jpg'), loadImg('shelter', 'assets/shelter2.jpg'), loadImg('concrete', 'assets/concrete.jpg'), loadImg('slab', 'assets/slab.jpg')]); });
 
 // ---------- sound ----------
 const SND = { music: 'music' };
@@ -144,15 +146,15 @@ function buildLevel(i) {
   for (const [f, x] of d.walls || []) { fill(X(x) - 4, ceilY(f), X(x) + 4, F[f], 1); L.walls.push({ f, x: X(x) }); }
   doors = (d.locked || []).map(([f, x]) => ({ f, x: X(x), open: false, t: 0 }));
   L.lostLeft = STUDENTS - d.quota;
-  for (const dr of doors) fill(dr.x - 5, F[dr.f] - 44, dr.x + 5, F[dr.f], 1);
+  for (const dr of doors) fill(dr.x - 5, F[dr.f] - 52, dr.x + 5, F[dr.f], 1);
   for (const [t, f, x, side] of d.zones || []) L.zones.push({ t, f, x: X(x), side: !!side });
   L.cls = { f: d.start[0], x: X(d.start[1]) };
   L.ex = { f: d.exit[0], x: X(d.exit[1]) };
-  if (d.reut) L.reut = { ...d.reut, from: X(d.reut.from), to: X(d.reut.to) };
+  if (d.reut) L.reut = { ...d.reut, from: X(d.reut.from), to: X(d.reut.to), every: d.reut.every * W / 300, first: d.reut.first * W / 300 };
   walkers = []; chairs = []; fx = [];
-  reutCol = { members: [], next: d.reut ? d.reut.first : Infinity, warn: 0 };
+  reutCol = { members: [], next: L.reut ? L.reut.first : Infinity, warn: 0 };
   L.left = { stop: 0, guide: 0, bridge: 0, stairs: 0, open: 0, ...d.orders };
-  L.t = 0; L.timeLeft = d.time; L.spawned = 0; L.spawnT = 0.8; L.saved = 0; L.lostN = 0; L.savedOrder = [];
+  L.k = W / 300; L.t = 0; L.timeLeft = d.time * L.k; L.spawned = 0; L.spawnT = 0.8; L.saved = 0; L.lostN = 0; L.savedOrder = [];
   L.over = false; L.lines = {}; L.counting = 0; L.mischT = d.mischief ? 9 + d.mischief.every * 0.4 : Infinity;
   L.decor = makeDecor(i);
 }
@@ -244,7 +246,7 @@ function stepWalker(w, dt) {
   if (w.st === 'gone' || w.st === 'in') { w.fade -= dt * 1.6; return; }
   if (w.st === 'tag') return;
   w.out += dt;
-  const v = (w.kind === 'shahar' ? V_SHAHAR : V) * (w.mis && w.mis.go ? 1.7 : 1) * dt;
+  const v = (w.kind === 'shahar' ? V_SHAHAR : V) * (w.mis && w.mis.go ? RUN : 1) * dt;
   if (w.st === 'block' || w.st === 'guide') return;
   if (w.st === 'stairs') {
     const n = Math.min(6, Math.floor(w.t / 0.3));
@@ -253,18 +255,20 @@ function stepWalker(w, dt) {
     return;
   }
   if (w.st === 'build') {
-    const n = Math.min(6, Math.floor(w.t / 0.32));
-    while (w.laid < n) {
+    // chairs, one by one, until the far side is reached (at most 10)
+    const n = Math.min(10, Math.floor(w.t / 0.3));
+    while (w.laid < n && !w.done) {
       const i = w.laid, a = w.bx + w.d * i * 12, b = a + w.d * 12;
-      if (solid((a + b) / 2, w.y - 10)) { w.laid = 6; break; }
+      if (solid((a + b) / 2, w.y - 10)) { w.done = true; break; }
       fill(Math.min(a, b), w.y, Math.max(a, b), w.y + 4, 1);
       chairs.push({ x: (a + b) / 2, y: w.y, d: w.d }); w.laid++; play('chair', 0.7);
+      if (i >= 1 && (solid(b - w.d * 2, w.y + 7) || L.ramps.some((r) => Math.abs(r.y0 - w.y) < 4 && w.d * (b - r.x0) >= -1 && w.d * (b - r.x0) < 14))) w.done = true;
     }
-    if (w.laid >= 6) { w.st = 'walk'; w.t = 0; }
+    if (w.done || w.laid >= 10) { w.st = 'walk'; w.t = 0; w.done = false; }
     return;
   }
   if (w.st === 'open') {
-    if (w.t > 0.8) { const dr = w.door; dr.open = true; fill(dr.x - 5, F[dr.f] - 44, dr.x + 5, F[dr.f], 0); w.st = 'walk'; w.t = 0; }
+    if (w.t > 0.8) { const dr = w.door; dr.open = true; fill(dr.x - 5, F[dr.f] - 52, dr.x + 5, F[dr.f], 0); w.st = 'walk'; w.t = 0; }
     return;
   }
   if (w.st === 'fall') {
@@ -276,9 +280,9 @@ function stepWalker(w, dt) {
   }
   // walking: blockers turn you, Reut's column takes you, doors swallow you
   for (const b of walkers) {
-    if (b === w || w.ramp || Math.abs(b.y - w.y) >= 8) continue;
+    if (b === w || w.ramp || (w.mis && w.mis.go) || Math.abs(b.y - w.y) >= 8) continue;
     const holds = b.st === 'block' || b.st === 'build' || b.st === 'open' || b.st === 'stairs' || (b.st === 'guide' && w.d !== b.gd);
-    if (holds) { const dx = (b.x - w.x) * w.d; if (dx > 0 && dx < 9) { turn(w); if (w.mis) calm(w); break; } }
+    if (holds) { const dx = (b.x - w.x) * w.d; if (dx > 0 && dx < 12) { turn(w); break; } }
   }
   if (w.ramp) {
     const r = w.ramp; w.x += w.d * v; const u = (w.x - r.x0) / (r.x1 - r.x0);
@@ -315,52 +319,44 @@ const floorOf = (w) => { for (let f = 0; f < 4; f++) if (Math.abs(w.y - F[f]) < 
 function turn(w) { w.d = -w.d; w.turnT = 0.25; if (Math.random() < 0.3) play('turn', 0.35); }
 function calm(w) { w.mis = null; floatText(w.x, w.y - 44, 'מתאפק', '#cfe6d7'); }
 
-// mischief: a pair suddenly needs the toilets (walks to the real toilets door on its floor, faster) or pulls out a ball
-// (runs to the yard door, or races off the other way). Nobody catches them by hand - a blocker or a guide in their way
-// calms them ("מתאפק"), so the player plans where the column's jobs stand.
-const WARN = 1.6;
+// a toilets runner: a student far from the level's one toilets door suddenly runs for it, through the crowd. Tap him
+// (any order selected - catching costs nothing) and he goes back into the column; miss him and he is gone.
+const WARN = 0.7, RUN = 2.3;
 function stepMischief(dt) {
+  const wc = L.zones.find((z) => z.t === 'wc');
   L.mischT -= dt;
-  if (L.mischT <= 0) {
-    const opts = [];
-    for (const w of walkers) {
-      if (w.st !== 'walk' || w.ramp || w.mis || floorOf(w) < 0) continue;
-      for (const k of L.mischief.kinds) {
-        const door = L.zones.find((z) => z.f === floorOf(w) && (k === 'wc' ? z.t === 'wc' : z.t === 'yard' && !z.side));
-        if (k === 'wc' && !door) continue;
-        opts.push({ w, k, door });
-      }
-    }
-    if (opts.length) {
-      const { w, k, door } = opts[Math.floor(Math.random() * opts.length)];
-      w.mis = { k, t: 0, door }; play('tap', 0.5);
-      if (k === 'wc') bubbleAt(w, w.kind === 'omer' ? 'המורה, הוא מחטט באף! אני הולך לשירותים!' : 'המורה, אני חייב לשירותים!');
-      else bubbleAt(w, 'מי משחק? יש כדור!');
-    }
-    L.mischT = L.mischief.every * (0.75 + Math.random() * 0.5);
+  if (L.mischT <= 0 && wc) {
+    const can = walkers.filter((w) => w.st === 'walk' && !w.ramp && !w.mis && floorOf(w) === wc.f && Math.abs(w.x - wc.x) > 110 && w.kind !== 'shahar');
+    if (can.length) {
+      const w = can[Math.floor(Math.random() * can.length)];
+      w.mis = { t: 0, door: wc, d0: w.d }; play('tap', 0.6);
+      bubbleAt(w, w.kind === 'omer' ? 'המורה, הוא מחטט באף! אני רץ לשירותים!' : 'המורה, אני חייב לשירותים!');
+      L.mischT = L.mischief.every * (0.75 + Math.random() * 0.5);
+    } else L.mischT = 1.5;
   }
   for (const w of walkers) {
     if (!w.mis) continue;
-    if (!active(w)) { w.mis = null; continue; }
+    if (!active(w) || w.st !== 'walk') { w.mis = null; continue; }
     w.mis.t += dt;
-    if (w.mis.t >= WARN && !w.mis.go && w.st === 'walk' && !w.ramp) {
-      w.mis.go = true; w.mis.t = 0;
-      if (w.mis.door) { const want = Math.sign(w.mis.door.x - w.x) || w.d; if (want !== w.d) turn(w); }
-      else turn(w);
-      if (w.mis.k === 'wc') sayOnce('wcRun', ['לאן?! בירידה אין שירותים! מתאפקים עד לסיום התרגיל!'], 'angry');
-      else sayOnce('ball', ['היי! היי! מה פתאום כדור?! תביא לי את הכדור!'], 'angry');
+    if (w.mis.t >= WARN && !w.mis.go) {
+      w.mis.go = true; const want = Math.sign(w.mis.door.x - w.x) || w.d; if (want !== w.d) { w.d = want; w.turnT = 0.25; }
+      sayOnce('wcRun', ['לאן?! בירידה אין שירותים! מתאפקים עד לסיום התרגיל!'], 'angry');
     }
-    if (w.mis && w.mis.go && !w.mis.door && w.mis.t > 7) w.mis = null;   // the ball game is over, back in the column
   }
+}
+function catchRunner(w) {
+  w.d = w.mis.d0; w.mis = null; w.flash = 0.6; play('stop', 0.7);
+  floatText(w.x, w.y - 50, 'חזור לטור!', '#fff6c8');
+  say(['בירידה אין שירותים. מתאפקים עד לסיום התרגיל.', 'גם אם בן הזוג צריך לשירותים – לא עוזבים ידיים!', w.kind === 'omer' ? 'עומר! תנהל את עצמך!' : 'חזור לטור. שניים שניים.'][Math.floor(Math.random() * 3)], 'angry', 2200);
 }
 
 function stepReut(dt) {
   const R = L.reut, c = reutCol;
   c.next -= dt;
-  if (c.next < 5 && c.next > 0) { if (!c.warn) bubble('reutDoor', 'הכיתה של רעות יורדת!'); c.warn = 1; } else c.warn = 0;
+  if (c.next < 5 * L.k && c.next > 0) { if (!c.warn) bubble('reutDoor', 'הכיתה של רעות יורדת!'); c.warn = 1; } else c.warn = 0;
   if (c.next <= 0 && !c.members.length) {
     const d = Math.sign(R.to - R.from);
-    c.members = [{ x: R.from, spr: 'reut' }]; for (let k = 1; k <= 3; k++) c.members.push({ x: R.from - d * k * 26, spr: 'reutKids' });
+    c.members = [{ x: R.from, spr: 'reut' }]; for (let k = 1; k <= 3; k++) c.members.push({ x: R.from - d * k * 32, spr: 'reutKids' });
     c.d = d; c.next = R.every; c.ph = 0;
     bubble('reut', ['אין לנו זמן מיותר היום.', 'שבו שבו שבו – לרדת!', 'אצלי בכיתה כבר שבעה-שמונה תרגילים קדימה.'][Math.floor(Math.random() * 3)]);
     if (!L.lines.reutHi) { L.lines.reutHi = 1; setTimeout(() => say('בוקר טוב, המורה רעות... מאוד מסודר הטור שלך.', 'talk', 2600), 1600); }
@@ -369,8 +365,8 @@ function stepReut(dt) {
   c.ph += dt * 9;
   for (const m of c.members) m.x += c.d * V_REUT * dt;
   // contact = mixed into her class
-  for (const w of walkers) if (active(w) && floorOf(w) === R.f) for (const m of c.members) if (Math.abs(m.x - w.x) < 11 && Math.abs(F[R.f] - w.y) < 8) {
-    lose(w, 'reut'); w.tagIdx = c.members.length; c.members.push({ x: m.x - c.d * 26, spr: w.spr, w }); break; }
+  for (const w of walkers) if (active(w) && floorOf(w) === R.f) for (const m of c.members) if (Math.abs(m.x - w.x) < 14 && Math.abs(F[R.f] - w.y) < 8) {
+    lose(w, 'reut'); w.tagIdx = c.members.length; c.members.push({ x: m.x - c.d * 32, spr: w.spr, w }); break; }
   for (const m of c.members) if (m.w) { m.w.x = m.x; m.w.y = F[R.f]; m.w.d = c.d; }
   const last = c.members[c.members.length - 1];
   if ((last.x - R.to) * c.d > 4) { for (const m of c.members) if (m.w) m.w.st = 'gone'; c.members = []; }
@@ -378,6 +374,7 @@ function stepReut(dt) {
 
 // ---------- orders ----------
 function give(w, o) {
+  if (w.mis) { catchRunner(w); return true; }
   if (w.st === 'block' || w.st === 'guide') { w.st = 'walk'; w.t = 0; play('tap', 0.6); if (Math.random() < 0.5) say('מי נתן הוראה להתקדם?! ...טוב, אני נתתי. להתקדם!', 'talk', 2000); return true; }
   if (!o) { hint('בחרו הוראה למטה, ואז הקישו על זוג'); return false; }
   if (!active(w)) return false;
@@ -420,14 +417,15 @@ function finish() {
   if (win && total > 0 && window.VerseFrame && VerseFrame.score) VerseFrame.score(total);
   setTimeout(() => showEnd(win, perfect, sc, total), win ? 900 : 600);
   play(win ? 'win' : 'lose', 0.8);
-  if (!win) say('עשרים ושש, עשרים ושבע, עשרים ושמונה... רגע, יצאנו עשרים ותשעה.', 'shock', 4000);
+  if (!win) say('...עשרים ושמונה. רגע, יצאנו עשרים ותשעה!', 'shock', 4000);
 }
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
 
 // ---------- words ----------
 let sayT = 0;
 function say(text, mood = 'talk', ms = 2600) {
-  $('#say').textContent = text; $('#say').classList.remove('quiet');
+  const el = $('#say'); el.textContent = text; el.classList.remove('quiet');
+  for (const px of [14, 13, 12, 11, 10, 9]) { el.style.fontSize = px + 'px'; if (el.scrollHeight <= el.clientHeight + 1) break; }
   $('#head').src = 'assets/head' + { talk: 'Talk', angry: 'Angry', shock: 'Shock' }[mood] + '.webp';
   clearTimeout(sayT); sayT = setTimeout(() => { $('#head').src = 'assets/headTalk.webp'; }, ms);
 }
@@ -475,35 +473,41 @@ function pattern(name, scale) {
 function draw() {
   ctx.setTransform(view.s * view.dpr, 0, 0, view.s * view.dpr, 0, 0);
   ctx.fillStyle = '#3a2f27'; ctx.fillRect(0, 0, W, H);   // the whole frame every time (the holes in the floors left trails)
-  // back walls per floor
+  // back walls: the painted corridor strip (windows, lamp) per floor, the shelter strip at the bottom - never stretched
   for (let f = 0; f < 4; f++) {
-    const y0 = ceilY(f), y1 = F[f];
-    const top = f === 3 ? y0 : y1 - 140;
-    ctx.fillStyle = f === 3 ? pattern('concrete', 0.22) : pattern('wall', 140 / 512);
-    ctx.save(); ctx.translate(0, top); ctx.fillRect(0, y0 - top, W, y1 - y0); ctx.restore();
+    const y0 = ceilY(f), y1 = F[f], im = IMG[f === 3 ? 'shelter' : 'wall']; if (!im) continue;
+    const h = y1 - y0, w = im.width * h / im.height;
+    for (let x = -((f * 37) % w); x < W; x += w) ctx.drawImage(im, x, y0, w, h);
   }
-  for (const d of L.decor) {
-    if (d.kind === 'board') prop('board', d.x, F[d.f] - 46, 32); else prop(d.kind, d.x, F[d.f], d.kind === 'lockers' ? 52 : 30);
+  for (const d of L.decor) if (d.kind !== 'board') prop(d.kind, d.x, F[d.f], d.kind === 'lockers' ? 62 : 36);
+  // floor names
+  for (let f = 0; f < 4; f++) {
+    const t = f === 3 ? 'מקלט' : 'קומה ' + (3 - f);
+    ctx.font = '900 10px Rubik'; const tw = ctx.measureText(t).width + 12;
+    ctx.fillStyle = '#1f2a2edd'; ctx.beginPath(); ctx.roundRect(W - 10 - tw, ceilY(f) + 4, tw, 16, 6); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(t, W - 10 - tw / 2, ceilY(f) + 15.5);
   }
   // doors on the back walls
-  prop('doorClass', L.cls.x, F[L.cls.f] + 1, 58);
-  for (const z of L.zones) prop(z.t === 'wc' ? 'doorWc' : 'doorYard', z.x, F[z.f] + 1, 56);
-  prop('doorShelter', L.ex.x, F[L.ex.f] + 1, 62);
-  prop('exitSign', L.ex.x, F[L.ex.f] - 66, 14);
+  prop('doorClass', L.cls.x, F[L.cls.f] + 1, 72);
+  { const left = STUDENTS - Math.min(STUDENTS, L.spawned * 2 - (L.spawned > PAIRS ? 1 : 0));
+    ctx.fillStyle = '#24343aee'; ctx.beginPath(); ctx.roundRect(L.cls.x - 27, F[L.cls.f] - 96, 54, 18, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '900 11px Rubik'; ctx.textAlign = 'center'; ctx.fillText('בכיתה ' + left, L.cls.x, F[L.cls.f] - 83); }
+  for (const z of L.zones) prop(z.t === 'wc' ? 'doorWc' : 'doorYard', z.x, F[z.f] + 1, 70);
+  prop('doorShelter', L.ex.x, F[L.ex.f] + 1, 78);
+  prop('exitSign', L.ex.x, F[L.ex.f] - 84, 15);
   if (L.reut) {
-    for (const x of [L.reut.from, L.reut.to]) prop('doorClass', x, F[L.reut.f] + 1, 56, x > 180);
+    for (const x of [L.reut.from, L.reut.to]) prop('doorClass', x, F[L.reut.f] + 1, 70, x > W / 2);
     if (reutCol.warn && Math.floor(L.t * 4) % 2) { ctx.fillStyle = '#e2483d'; ctx.font = '900 26px Rubik'; ctx.textAlign = 'center'; ctx.fillText('!', L.reut.from + 18, F[L.reut.f] - 30); }
   }
-  // stairs
-  for (const r of L.ramps) {
-    if (r.built) continue;
-    const x = Math.min(r.x0, r.x1), w = Math.abs(r.x1 - r.x0), h = r.y1 - r.y0 + SLAB;
-    const im = IMG.stairs; if (!im) continue;
-    ctx.save(); ctx.translate(x + w / 2, r.y0 - 4); if (r.d < 0) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -18, w, h + 18); ctx.restore();
-  }
+  // stairs: a flight of steps along each ramp, drawn to its real slope (the painted sprite stretched on steep ones)
+  for (const r of L.ramps) if (!r.built) flight(r, 9, '#a39683', '#5d564c', true);
   // slabs and walls
-  ctx.fillStyle = pattern('slab', 22 / ((IMG.slab && IMG.slab.height) || 235));
-  for (const [f, a, b] of L.slabs) { ctx.save(); ctx.translate(0, F[f] - 3); ctx.fillRect(a, 3, b - a, f === 3 ? H - F[3] : SLAB); ctx.restore(); }
+  for (const [f, a, b] of L.slabs) {
+    const hh = f === 3 ? H - F[3] : SLAB;
+    ctx.fillStyle = '#3b4247'; ctx.fillRect(a, F[f], b - a, hh);
+    ctx.fillStyle = '#c9b48f'; ctx.fillRect(a, F[f], b - a, 4);
+    ctx.fillStyle = '#00000033'; ctx.fillRect(a, F[f] + hh - 3, b - a, 3);
+  }
   ctx.fillStyle = '#5b4a3b'; ctx.fillRect(0, 0, 8, H); ctx.fillRect(W - 8, 0, 8, H);
   ctx.fillStyle = '#6d5a48'; for (const wl of L.walls) ctx.fillRect(wl.x - 4, ceilY(wl.f), 8, F[wl.f] - ceilY(wl.f));
   // cones at every edge that drops a whole floor
@@ -511,24 +515,20 @@ function draw() {
     if (x <= 8 || x >= W - 8 || f === 3) continue;
     if (L.ramps.some((r) => r.f === f && Math.abs(r.x0 - x) < 3)) continue;
     if (L.slabs.some(([f2, a2, b2]) => f2 === f && (side > 0 ? Math.abs(a2 - x) < 2 : Math.abs(b2 - x) < 2))) continue;
-    prop('cone', x - side * 6, F[f], 14);
+    prop('cone', x - side * 7, F[f], 18);
   }
-  for (const c of chairs) prop('chair', c.x, c.y + 6, 15, c.d < 0);
-  // desk-stairs: drawn as stairs that grow step by step, a chair on top of each step
+  for (const c of chairs) prop('chair', c.x, c.y + 7, 17, c.d < 0);
+  // desk-stairs: a wooden flight that grows step by step, chairs on it
   for (const r of [...L.ramps.filter((r) => r.built), ...walkers.filter((w) => w.st === 'stairs').map((w) => ({ ...w.newRamp, n: w.laid }))]) {
-    const n = r.n === undefined ? 6 : r.n, im = IMG.stairs; if (!im || !n) continue;
-    const x = Math.min(r.x0, r.x1), w = Math.abs(r.x1 - r.x0), h = r.y1 - r.y0 + SLAB, k = n / 6;
-    ctx.save(); ctx.beginPath();
-    if (r.d > 0) ctx.rect(r.x0, 0, w * k, H); else ctx.rect(r.x0 - w * k, 0, w * k, H);
-    ctx.clip(); ctx.filter = 'sepia(0.6) saturate(1.4) brightness(0.95)';
-    ctx.translate(x + w / 2, r.y0 - 4); if (r.d < 0) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -18, w, h + 18); ctx.restore();
-    for (let i = 0; i < n; i += 2) { const u = (i + 0.5) / 6; prop('chair', r.x0 + (r.x1 - r.x0) * u, r.y0 + (r.y1 - r.y0) * u + 2, 13, r.d < 0); }
+    const n = r.n === undefined ? 6 : r.n; if (!n) continue;
+    flight(r, 6, '#b8834f', '#6e4a28', false, n);
+    for (let i = 1; i < n; i += 2) { const u = (i + 0.5) / 6; prop('chair', r.x0 + (r.x1 - r.x0) * u, r.y0 + (r.y1 - r.y0) * u + 1, 14, r.d < 0); }
   }
-  for (const d of doors) { if (!d.open) prop('doorLocked', d.x, F[d.f] + 1, 46); else { ctx.save(); ctx.globalAlpha = 0.85; prop('doorLocked', d.x + 10, F[d.f] + 1, 46); ctx.restore(); } }
+  for (const d of doors) { if (!d.open) prop('doorLocked', d.x, F[d.f] + 1, 58); else { ctx.save(); ctx.globalAlpha = 0.85; prop('doorLocked', d.x + 12, F[d.f] + 1, 58); ctx.restore(); } }
   // Rosenblum counting at the shelter door
-  sprite('rosen', L.over && L.saved < L.quota ? 3 : L.counting > 0 ? (L.counting > 0.3 ? 1 : 0) : 0, L.ex.x - 30, F[L.ex.f], 40, false);
+  sprite('rosen', L.over && L.saved < L.quota ? 3 : L.counting > 0 ? (L.counting > 0.3 ? 1 : 0) : 0, L.ex.x - 36, F[L.ex.f], 52, false);
   // Reut's column
-  for (const m of reutCol.members) if (!m.w) sprite(m.spr, Math.floor(reutCol.ph) + (m.x | 0), m.x, F[L.reut.f], m.spr === 'reut' ? 37 : 34, reutCol.d < 0);
+  for (const m of reutCol.members) if (!m.w) sprite(m.spr, Math.floor(reutCol.ph) + (m.x | 0), m.x, F[L.reut.f], m.spr === 'reut' ? KID + 3 : KID, reutCol.d < 0);
   // the class
   for (const w of walkers) drawWalker(w);
   // floating words
@@ -537,9 +537,30 @@ function draw() {
   ctx.globalAlpha = 1;
   for (const b of bubbles) drawBubble(b);
 }
+function flight(r, n, fill, edge, rail, upto = n) {
+  const pts = [];
+  for (let i = 0; i < upto; i++) {
+    const xa = r.x0 + (r.x1 - r.x0) * i / n, xb = r.x0 + (r.x1 - r.x0) * (i + 1) / n, y = r.y0 + (r.y1 - r.y0) * (i + 1) / n;
+    pts.push([xa, y], [xb, y]);
+  }
+  const k = upto / n, ex = r.x0 + (r.x1 - r.x0) * k, ey = r.y0 + (r.y1 - r.y0) * k;
+  ctx.beginPath(); ctx.moveTo(r.x0, r.y0);
+  for (const [x, y] of pts) ctx.lineTo(x, y);
+  ctx.lineTo(ex, ey + 22); ctx.lineTo(r.x0, r.y0 + 22); ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = edge; ctx.lineWidth = 1.5; ctx.stroke();
+  // a light edge on each tread, a shadow under the flight
+  ctx.strokeStyle = '#ffffff66'; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let i = 0; i < pts.length; i += 2) { ctx.moveTo(pts[i][0], pts[i][1] + 1); ctx.lineTo(pts[i + 1][0], pts[i + 1][1] + 1); }
+  ctx.stroke();
+  ctx.strokeStyle = '#00000040'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(r.x0, r.y0 + 23); ctx.lineTo(ex, ey + 23); ctx.stroke();
+  if (rail) {
+    ctx.strokeStyle = '#59626a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(r.x0, r.y0 - 26); ctx.lineTo(r.x1, r.y1 - 26); ctx.stroke();
+    ctx.lineWidth = 1.5; for (let i = 0; i <= 4; i++) { const u = i / 4, x = r.x0 + (r.x1 - r.x0) * u, y = r.y0 + (r.y1 - r.y0) * u; ctx.beginPath(); ctx.moveTo(x, y - 26); ctx.lineTo(x, y); ctx.stroke(); }
+  }
+}
 function drawWalker(w) {
   if ((w.st === 'gone' || w.st === 'in') && w.fade <= 0) return;
-  const flip = w.d < 0, H2 = 38, a = w.st === 'gone' || w.st === 'in' ? Math.max(0, w.fade) : 1;
+  const flip = w.d < 0, H2 = KID, a = w.st === 'gone' || w.st === 'in' ? Math.max(0, w.fade) : 1;
   const single = w.kind === 'shahar';
   let name = w.spr, fr = Math.floor(w.ph);
   if (w.st === 'block') { name = single ? 'shahar' : 'block'; fr = single ? 0 : Math.floor(w.t * 2); }
@@ -554,20 +575,20 @@ function drawWalker(w) {
   if (w.flash > 0) { ctx.fillStyle = '#ffd77a88'; ctx.beginPath(); ctx.ellipse(w.x, w.y - 2, 15, 5, 0, 0, 7); ctx.fill(); }
   else { ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 11, 3, 0, 0, 7); ctx.fill(); }
   sprite(name, fr, w.x, w.y + 1, H2, flip, a);
-  if (w.st === 'guide') { ctx.fillStyle = '#2f7fd6'; ctx.beginPath(); ctx.arc(w.x, w.y - 46, 8, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '900 11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(w.gd < 0 ? '◀' : '▶', w.x, w.y - 42); }
+  if (w.st === 'guide') { ctx.fillStyle = '#2f7fd6'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 9, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '900 12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(w.gd < 0 ? '◀' : '▶', w.x, w.y - KID - 6); }
   if (w.mis) {
     const p = 1 + 0.15 * Math.sin(w.mis.t * 14);
     ctx.strokeStyle = '#e2483d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(w.x, w.y - 1, 15 * p, 5 * p, 0, 0, 7); ctx.stroke();
-    ctx.fillStyle = '#e2483d'; ctx.beginPath(); ctx.arc(w.x, w.y - 44, 9 * p, 0, 7); ctx.fill();
-    ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(w.mis.k === 'wc' ? '🚽' : '⚽', w.x, w.y - 40);
+    ctx.fillStyle = '#e2483d'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 10 * p, 0, 7); ctx.fill();
+    ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('🚽', w.x, w.y - KID - 6);
   }
-  if (w.mis && w.mis.k === 'ball' && w.mis.go && IMG.ball) { const bx = w.x + w.d * 14, by = w.y - 4 - Math.abs(Math.sin(w.t * 9)) * 10; prop('ball', bx, by + 4, 8); }
-  if (w.armed) { ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(w.x, w.y - 42, 8, 0, 7); ctx.fill(); ctx.fillText({ bridge: '🪑', open: '🚪', stairs: '🪜' }[w.armed], w.x, w.y - 37.5); }
-  if (w.kind === 'shahar' && active(w)) { ctx.fillStyle = '#ffd77a'; ctx.font = '900 9px Rubik'; ctx.textAlign = 'center'; ctx.fillText('שחר', w.x, w.y - 38); }
+  if (false) { const bx = w.x + w.d * 14, by = w.y - 4 - Math.abs(Math.sin(w.t * 9)) * 10; prop('ball', bx, by + 4, 8); }
+  if (w.armed) { ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 8, 9, 0, 7); ctx.fill(); ctx.fillText({ bridge: '🪑', open: '🚪', stairs: '🪜' }[w.armed], w.x, w.y - KID - 3.5); }
+  if (w.kind === 'shahar' && active(w)) { ctx.fillStyle = '#ffd77a'; ctx.font = '900 9px Rubik'; ctx.textAlign = 'center'; ctx.fillText('שחר', w.x, w.y - KID - 3); }
 }
 function drawBubble(b) {
   let x, y;
-  if (b.who === 'w') { x = b.w.x; y = b.w.y - 52; }
+  if (b.who === 'w') { x = b.w.x; y = b.w.y - KID - 18; }
   else if (b.who === 'reutDoor') { x = L.reut.from; y = F[L.reut.f] - 70; }
   else if (b.who === 'reut') { const m = reutCol.members[0]; if (!m) { b.t = 99; return; } x = m.x; y = F[L.reut.f] - 44; }
   else { const o = walkers.find((w) => w.kind === 'omer' && active(w)) || { x: L.ex.x - 30, y: F[L.ex.f] }; x = o.x; y = o.y - 44; }
@@ -592,9 +613,9 @@ function pick(x, y) {
   let best = null, bd = 1e9;
   for (const w of walkers) {
     if (!active(w)) continue;
-    const dx = Math.abs(w.x - x), dy = y - (w.y - 17);
-    if (dx > 20 || Math.abs(dy) > 28) continue;
-    const d = dx * dx + dy * dy * 0.5 + (w.st === 'block' || w.st === 'guide' ? 40 : 0);
+    const dx = Math.abs(w.x - x), dy = y - (w.y - KID / 2);
+    if (dx > (w.mis ? 32 : 22) || Math.abs(dy) > 34) continue;
+    const d = dx * dx + dy * dy * 0.5 + (w.st === 'block' || w.st === 'guide' ? 40 : 0) - (w.mis ? 400 : 0);
     if (d < bd) { bd = d; best = w; }
   }
   return best;
@@ -624,6 +645,7 @@ addEventListener('keydown', (e) => {
 $('#bPause').onclick = () => setPause(true);
 $('#bFast').onclick = () => setFast();
 $('#bRestart').onclick = () => { if (!tut.on) startLevel(L.i, true); };
+$('#bRestart2').onclick = () => { setPause(false); startLevel(L.i, true); };
 $('#bResume').onclick = () => setPause(false);
 $('#bMenu').onclick = () => { setPause(false); menu(); };
 function setPause(p) { game.paused = p; $('#pause').hidden = !p; if (p) stopAll(); else { loop('music', 0.35); } }
@@ -654,7 +676,7 @@ function intro(i) {
 function startLevel(i, restart) {
   game.level = i; game.mode = 'play'; game.paused = false;
   $('#start').hidden = true; $('#intro').hidden = true; $('#end').hidden = true; $('#pause').hidden = true; $('#play').hidden = false;
-  buildLevel(i); pats = {}; game.speed = 1; showSpeed();
+  fitWorld(); buildLevel(i); pats = {}; game.speed = 1; showSpeed();
   const firstOrder = ORDERS.find((o) => (LEVELS[i].orders[o] || 0) > 0); game.sel = firstOrder;
   resize(); renderOrders(); bubbles.length = 0;
   say(['הופ! הופ! הופ! כולם לקום! להזדרז!', 'שניים שניים! לסגור רווחים! לא לעזוב ידיים!', 'במדרגות לא רצים! יורדים בטורים, בצורה מסודרת ומאורגנת!'][i % 3], 'talk', 3000);
@@ -683,21 +705,20 @@ const tut = { on: false, i: 0, wait: null };
 const worldRect = (x, y, w, h) => { const r = cv.getBoundingClientRect(); return { left: r.left + x * view.s, top: r.top + y * view.s, width: w * view.s, height: h * view.s }; };
 const elRect = (sel) => $(sel).getBoundingClientRect();
 const STEPS = [
-  { t: 'אתם המורה רוזנבלום. נשמע צופר: תרגיל ירידה למרחב מוגן.' },
-  { t: 'מהכיתה יוצאים 29 תלמידים: 14 זוגות, שניים שניים – ובסוף שחר, הקטר המאסף. הם הולכים לבד, ישר, ומסתובבים רק כשיש קיר.', spot: () => worldRect(L.cls.x - 30, F[0] - 66, 60, 70) },
-  { t: 'המטרה: להכניס למרחב המוגן מספיק תלמידים. רוזנבלום עומד בדלת וסופר.', spot: () => worldRect(L.ex.x - 56, F[3] - 72, 90, 76) },
-  { t: 'כאן רואים כמה נכנסו מתוך כמה שצריך, כמה עוד בכיתה, וכמה הלכו לאיבוד מתוך כמה שמותר לאבד.', spot: () => elRect('#stats') },
-  { t: 'התרגיל מוגבל בזמן. מי שלא נכנס עד הסוף – לא נספר. ומי שנכנס לשירותים, יוצא לחצר או קופץ לחור – הולך לאיבוד.', spot: () => elRect('#timer') },
-  { t: 'אלה ההוראות של רוזנבלום. בוחרים הוראה, ואז מקישים על זוג. המספר = כמה נשארו.', spot: () => elRect('#orders') },
-  { t: 'נסו: בחרו "עצור!".', verb: 'הקישו', spot: () => elRect('.ord[data-o=stop]'), wait: (k, v) => k === 'order' && v === 'stop' },
-  { t: 'עכשיו הקישו על הזוג הראשון. הוא יעצור, וכל מי שיגיע אליו – יסתובב.', verb: 'הקישו על הזוג', run: () => { while (walkers.length < 1 || walkers[0].x < X(120)) step(1 / 60); },
-    spot: () => { const w = walkers[0]; return worldRect(w.x - 24, w.y - 44, 48, 50); }, wait: (k, w) => k === 'tap' && w === walkers[0], after: () => give(walkers[0], 'stop') },
-  { t: 'יפה! כדי לשחרר אותו – הקישו עליו שוב. זה בחינם.', verb: 'הקישו שוב', spot: () => { const w = walkers[0]; return worldRect(w.x - 24, w.y - 44, 48, 50); },
+  { t: 'אתם המורה רוזנבלום. צופר: תרגיל ירידה למרחב מוגן.' },
+  { t: '29 תלמידים יוצאים שניים שניים, ושחר אחרון. הם הולכים לבד.', spot: () => worldRect(L.cls.x - 34, F[0] - 100, 68, 104) },
+  { t: 'המטרה: להכניס מספיק תלמידים למרחב המוגן.', spot: () => worldRect(L.ex.x - 64, F[3] - 86, 104, 90) },
+  { t: 'כמה בפנים מתוך כמה שצריך, וכמה אבדו מתוך כמה שמותר.', spot: () => elRect('#stats') },
+  { t: 'ההוראות: בוחרים הוראה, ואז מקישים על זוג.', spot: () => elRect('#orders') },
+  { t: 'בחרו "הכוונה!".', verb: 'הקישו', spot: () => elRect('.ord[data-o=guide]'), wait: (k, v) => k === 'order' && v === 'guide' },
+  { t: 'עכשיו הקישו על הזוג הראשון. הוא יסתובב ויפנה את כולם אחורה – הרחק מהחצר.', verb: 'הקישו על הזוג', run: () => { while (walkers.length < 1 || walkers[0].x < X(120)) step(1 / 60); },
+    spot: () => { const w = walkers[0]; return worldRect(w.x - 28, w.y - KID - 6, 56, KID + 12); }, wait: (k, w) => k === 'tap' && w === walkers[0], after: () => give(walkers[0], 'guide') },
+  { t: 'הקישו עליו שוב כדי לשחרר. בחינם.', verb: 'הקישו שוב', spot: () => { const w = walkers[0]; return worldRect(w.x - 28, w.y - KID - 6, 56, KID + 12); },
     wait: (k, w) => k === 'tap' && w === walkers[0], after: () => give(walkers[0], null) },
-  { t: 'כל הוראה היא תפקיד שעוזר לכל מי שמאחור: "הכוונה!" מפנה את כולם לכיוון אחד, "גשר!" מניח כיסאות מעל חור, "מדרגות!" בונה מדרגות משולחנות לקומה למטה, "פתח!" פותח דלת נעולה. כל אחת מגיעה בשלב משלה.', spot: () => elRect('#orders') },
-  { t: 'ופתאום מישהו "חייב לשירותים" או שולף כדור – מופיע עליו סימן אדום והוא הולך לדלת. עצור או הכוונה בדרך שלו – והוא מתאפק.', spot: () => elRect('#stage') },
-  { t: '⏸ עצירה, ⏩ מהר יותר – לחיצה שוב: ×2, ×3. ↻ להתחיל את השלב מחדש.', spot: () => elRect('#ctl') },
-  { t: 'ואם שחר נכנס אחרון – טור מושלם, 300 נקודות. מוכנים? יורדים!' },
+  { t: 'כל הוראה היא תפקיד שעוזר לכולם: עצור, הכוונה, גשר, מדרגות, פתח. כל אחת בשלב משלה.', spot: () => elRect('#orders') },
+  { t: 'פתאום מישהו רץ לשירותים! הקישו עליו מהר – והוא חוזר לטור.' },
+  { t: '⏩ מהר יותר: ×2, ×3. ⏸ עצירה והתחלה מחדש.', spot: () => elRect('#bFast') },
+  { t: 'שחר אחרון = טור מושלם. יורדים!' },
 ];
 function startTutorial() {
   startLevel(0, true); game.paused = true; tut.on = true; tut.i = 0;
@@ -749,13 +770,13 @@ function hud() {
   $('#count').style.background = L.saved >= L.quota ? '#2fa457cc' : '';
   $('#lval').textContent = L.lostN + '/' + L.lostLeft;
   $('#lost').classList.toggle('over', L.lostN > L.lostLeft);
-  $('#oval').textContent = STUDENTS - Math.min(STUDENTS, L.spawned * 2 - (L.spawned > PAIRS ? 1 : 0));
+
 }
 
 // test hook (tests and the promo bot read the game through it)
 window.DRILL = {
   get state() { return { mode: game.mode, level: L ? L.i : -1, saved: L && L.saved, lost: L && L.lostN, quota: L && L.quota, timeLeft: L && L.timeLeft, over: L && L.over, left: L && { ...L.left }, sel: game.sel, tut: tut.on ? tut.i : -1, reut: !!(reutCol && (reutCol.members.length || reutCol.warn)) }; },
-  get walkers() { return (walkers || []).map((w) => ({ id: w.id, kind: w.kind, x: w.x, y: w.y, d: w.d, st: w.st === 'in' ? 'saved' : w.st === 'gone' || w.st === 'tag' ? 'lost' : w.st, gd: w.gd, why: w.why, armed: w.armed, mis: w.mis ? w.mis.k : null })); },
+  get walkers() { return (walkers || []).map((w) => ({ id: w.id, kind: w.kind, x: w.x, y: w.y, d: w.d, st: w.st === 'in' ? 'saved' : w.st === 'gone' || w.st === 'tag' ? 'lost' : w.st, gd: w.gd, why: w.why, armed: w.armed, mis: w.mis ? (w.mis.go ? 'run' : 'warn') : null })); },
   start(i = 0) { store.set('tut', 1); tut.on = false; $('#tut').hidden = true; startLevel(i); },
   tick(dt) { const n = Math.round(dt * 60); for (let k = 0; k < n; k++) step(1 / 60); draw(); hud(); },
   order(o) { selectOrder(o); },
