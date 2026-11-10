@@ -10,6 +10,7 @@ import { renderTop, yourVerse, homeSlot, stickersSlot, heroHi, notesPage, mePage
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff, recordsPage } from './records.js';
 import { startRowArrows } from './rows.js';
+import { archivePage } from './archive.js';
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
 import { mountTz } from './tzhome.js';
@@ -76,6 +77,7 @@ pages['my-stickers'] = known(myStickersPage);
 pages.install = installPage;
 pages.simulation = simPage;
 pages.citizenship = citizenPage;
+pages.archive = archivePage;   // הארכיון - every Instagram post, for residents (archive.js)
 pages.records = recordsPage;   // שיאי היום, the full board (records.js)
 
 onState(() => { renderTop(); paintFollow(); refresh(); });

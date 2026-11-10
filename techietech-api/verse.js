@@ -547,6 +547,17 @@ const ops = {
     if (!isOwner(auth) && !((await db.collection('verseMeta').doc('archive').get()).data() || {}).open) fail('permission-denied', 'closed');
     const permalink = /^https:\/\/(www\.)?instagram\.com\/[\w/.-]{1,120}$/.test(String(d.permalink || '')) ? String(d.permalink) : null;
     const ref = db.collection('wishes').doc(ig), mine = db.collection('fans').doc(uid).collection('wishes').doc(ig);
+    // "what do you remember about it?" (optional, his ask 2026-11-10: they can write something with the ask) - checked like a
+    // comment, kept under the wish (wishes/<ig>/notes/<uid>, one per resident, the latest wins), read in Backstage; taking the ask
+    // back removes it
+    const note = clip(String(d.note || '').trim(), 300);
+    const noteRef = ref.collection('notes').doc(uid);
+    if (d.on !== false && note) {
+      const m = await moderate(note);
+      if (!m.ok) fail('invalid-argument', 'text_bad');
+      const fan = (await db.collection('fans').doc(uid).get()).data() || {};
+      await noteRef.set({ text: note, nick: fan.nick || '', photo: fan.photo || null, t: FieldValue.serverTimestamp() });
+    } else if (d.on === false) await noteRef.delete();
     return db.runTransaction(async (tx) => {
       const [ws, ms] = await Promise.all([tx.get(ref), tx.get(mine)]);
       const on = d.on !== false, n = (ws.data() || {}).n || 0;
@@ -1279,6 +1290,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       const ms = (t) => t?.toMillis?.() || null;
       const rows = q.docs.map((x) => { const w = x.data(); return { ...w, t: ms(w.t), last: ms(w.last), doneAt: ms(w.doneAt) }; }).filter((w) => w.done || w.n > 0)
         .sort((a, c) => (c.n || 0) - (a.n || 0) || (a.t || 0) - (c.t || 0));
+      // what the residents wrote with their ask (the first 80 wishes - the ones he'll look at)
+      await Promise.all(rows.slice(0, 80).map(async (w) => { w.notes = (await db.collection('wishes').doc(w.ig).collection('notes').orderBy('t', 'desc').limit(20).get()).docs.map((x) => ({ ...x.data(), t: ms(x.data().t) })); }));
       return res.json({ open: ((await db.collection('verseMeta').doc('archive').get()).data() || {}).open === true, wishes: rows });
     }
     if (op === 'wishFound') {

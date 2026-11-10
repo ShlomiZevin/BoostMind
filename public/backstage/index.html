@@ -1285,7 +1285,7 @@ let avgAnswer = 0.024;
 
 // ---------- סקירה: status at a glance ----------
 const RQ = { site: ['מהאתרים', 'wh', '#7fb4ff'], business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
-const SITES = { archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
+const SITES = { archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
 const whoOf = (r) => r.name || r.nick || (r.contact && !/\d{6}/.test(r.contact) ? r.contact.split('@')[0] : '') || 'צופה';
 // time on the site: each visit's length in buckets (the track function's TIME_EDGES), the seconds and the visits per day
 const TIME_EDGES = [5, 10, 20, 30, 45, 60, 90, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 2700, 3600];
@@ -1438,7 +1438,7 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 // ---------- נתונים: every number, a day's drill-down, and asking the data ----------
 let metric = 'visitors', drillDay = null, lastAsk = null;
 const SRC = { mail: 'מייל', tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
-const SITE = { links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'yaniv-games': 'המשחקים של יניב', 'asaf-games': 'המשחקים של אסף', 'sagi-games': 'המשחקים של שגיא', 'yotam-games': 'המשחקים של יותם', 'osnat-games': 'המשחקים של אסנת', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', other: 'אחר' };
+const SITE = { links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'yaniv-games': 'המשחקים של יניב', 'asaf-games': 'המשחקים של אסף', 'sagi-games': 'המשחקים של שגיא', 'yotam-games': 'המשחקים של יותם', 'osnat-games': 'המשחקים של אסנת', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', other: 'אחר' };
 const GAME = { millimeters: 'מילימטרים (יניב)', sofa: 'מה אני אגיד לך? (אסף)', 'scooter-snake': 'שמעת על הקורקינט שלי? (שגיא)', pacman: 'פקי-טק (יותם)', deadlock: 'דדלוק (יותם)', 'not-a-cog': 'אתה לא בורג (אסנת)', ketoret: 'מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20 רצים לגן', 'shekel-tov': 'שקל טוב', yosef: 'יוסף מוקיר שבת', pilai: 'פילאי פלואים', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };
 const EV = { sign_in: 'כניסות לחשבון', follow: 'מעקב אחרי דמות', push_optin: 'התראות', comment: 'תגובות', like: 'אהבתי', save: 'שמירות', share: 'שיתופים', download: 'הורדות', st_copy: 'סטיקרים שהועתקו', game: 'משחקים שנפתחו', heart: 'לייקים למשחקים', app_offer: 'הצעות למסך הבית', app_yes: 'רצו לשמור למסך', app_guide: 'מדריך מסך הבית', app_install: 'התקנות (אנדרואיד)', sticker_create: 'סטיקרים', stamp: 'החתמות', story_view: 'צפיות בסטורי', idea: 'רעיונות', vote: 'הצבעות', request: 'פניות', chat_new: 'שיחה חדשה' };
 function barList(title, obj, unit, opts = {}) {
@@ -2026,7 +2026,7 @@ function wishCard() {
       <button class="btn" data-ws-open="${WS.open ? 0 : 1}">${WS.open ? 'פתוח לכל התושבים · לסגור' : 'רק אתה מסמן · לפתוח לכולם'}</button></div>
     <p style="color:var(--dim);margin:0 0 10px;font-size:.9rem">פוסטים ישנים שסימנו ב-<a href="/archive/" target="_blank">/archive/</a> כדי שיעלו לשלומיוורס. מי שביקש מקבל הודעה כשהסרטון עולה.</p>
     ${list.length ? list.slice(0, 60).map((w) => `<div class="item"><img class="th" src="${IGT(w.ig)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div class="body"><b>${fmt(w.n)} ביקשו</b>
-      <p>${w.last ? 'אחרון ' + ago(w.last) : ''}</p></div>${w.permalink ? `<a class="btn" href="${esc(w.permalink)}" target="_blank" rel="noopener">לפוסט ${IC.out}</a>` : ''}</div>`).join('')
+      <p>${w.last ? 'אחרון ' + ago(w.last) : ''}</p>${(w.notes || []).map((n) => `<p style="margin:4px 0 0">"${esc(n.text)}"${n.nick ? ` <small style="color:var(--dim)">- ${esc(n.nick)}</small>` : ''}</p>`).join('')}</div>${w.permalink ? `<a class="btn" href="${esc(w.permalink)}" target="_blank" rel="noopener">לפוסט ${IC.out}</a>` : ''}</div>`).join('')
       : '<div class="empty">עוד אף אחד לא ביקש.</div>'}</div>`;
 }
 async function wishOpen(b) {

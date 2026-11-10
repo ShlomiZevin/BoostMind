@@ -162,6 +162,14 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/archive",
+        "destination": "/wiki/index.html"
+      },
+      {
+        "source": "/archive/",
+        "destination": "/wiki/index.html"
+      },
+      {
         "source": "/business",
         "destination": "/wiki/index.html"
       },

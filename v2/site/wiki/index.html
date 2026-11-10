@@ -741,7 +741,7 @@ const pages = {
 
 // ---------- router ----------
 // the verse's pages, by their first part (shlomiverse.com/<page>/...): anything else is another site of his (/links/, /hani-games/)
-const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation', 'citizenship', 'records']);
+const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation', 'citizenship', 'records', 'archive']);
 const isPage = (pathname) => pathname === '/' || PAGES.has(pathname.split('/')[1]);
 function nav(url, replace = false) {
   if (typeof url === 'string' && url.startsWith('#/')) url = url.slice(1);   // an old-style link
@@ -765,7 +765,7 @@ document.addEventListener('click', (e) => {
 });
 let shownPath = null;
 let NF = false;   // the page now showing is the end of the verse (it set its own title)
-function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות'; }
+function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'archive' ? 'הארכיון · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות'; }
 function route() {
   const path = location.pathname || '/', qs = location.search.slice(1);
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
