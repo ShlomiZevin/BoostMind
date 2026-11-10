@@ -26,7 +26,8 @@ const SOL = require('./solutions.js');
       const todo = sol.map((s) => ({ ...s })); const log = [];
       for (let k = 0; k < 4000 && !DRILL.state.over; k++) {
         const t = k * 0.1;
-        for (const s of todo) if (!s.done && t >= s.at) {
+        const next = todo.find((s) => !s.done);   // the steps in order, like a player
+        for (const s of next ? [next] : []) if (t >= s.at) {
           const ws = DRILL.walkers.filter((w) => ['walk', 'block'].includes(w.st));
           let w = null;
           if (s.who === 'first') w = ws.filter((w) => w.st === 'walk').sort((a, b) => a.id - b.id)[0];
