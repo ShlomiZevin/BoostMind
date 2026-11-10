@@ -128,8 +128,8 @@ export function homeBand() {
       ${top ? ideaLine(top) : ''}</div>
     <button class="cx-biz" data-biz>
       <span class="cx-biz-art" aria-hidden="true"><span class="cx-slides">
-        <img class="sl on" src="/verse/art/biz-media.jpg" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-media-a.jpg" alt="" loading="lazy"><span class="sl dev">${bizDevices()}</span>
-      </span><span class="cx-dots"><i class="on"></i><i></i><i></i></span></span>
+        <img class="sl on" src="/verse/art/biz-media-a.jpg?v=4" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-media.jpg?v=3" alt="" loading="lazy">
+      </span><span class="cx-dots"><i class="on"></i><i></i></span></span>
       <span class="cx-biz-txt"><em>${esc(T.biz2.tag)}</em><b>${brand(T.biz2.title)}</b><small>${esc(T.biz2.line)}</small>
         <span class="cx-biz-row"><span class="vx-btn main">${esc(T.biz2.cta)}</span>
           <span class="cx-chips">${T.biz2.chips.map((c, i) => `<span>${[I.planet, I.play, I.people][i]}${esc(c)}</span>`).join('')}</span></span></span></button>
@@ -376,7 +376,7 @@ const bizForm = () => `<form class="biz-form"><h2>${esc(T.bizFormTitle)}</h2><p>
       <button class="vx-btn main block">${esc(T.bizSend)}</button></form>`;
 export function bizSheet() {
   track('click', 'biz_open');
-  sheet(`<div class="in biz-sheet"><img class="biz-sheet-art" src="/verse/art/biz-media.jpg" alt="">${bizForm()}</div>`, { cls: 'biz-sh' });
+  sheet(`<div class="in biz-sheet"><img class="biz-sheet-art" src="/verse/art/biz-media-a.jpg?v=4" alt="">${bizForm()}</div>`, { cls: 'biz-sh' });
 }
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-biz], a[href="/business"]');
@@ -391,7 +391,7 @@ async function bizSignIn() {
   return !!st.user;
 }
 export function businessPage() {
-  return `<div class="biz biz-only"><img class="biz-sheet-art" src="/verse/art/biz-media.jpg" alt="">${bizForm()}</div>`;
+  return `<div class="biz biz-only"><img class="biz-sheet-art" src="/verse/art/biz-media-a.jpg?v=4" alt="">${bizForm()}</div>`;
 }
 document.addEventListener('click', (e) => { const t = e.target.closest('[data-topic]'); if (t) t.parentElement.querySelectorAll('[data-topic]').forEach((b) => b.classList.toggle('on', b === t)); });
 document.addEventListener('submit', async (e) => {

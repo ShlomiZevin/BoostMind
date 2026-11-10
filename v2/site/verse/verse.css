@@ -3025,3 +3025,8 @@ button.cx-biz { width: 100%; padding: 0; font: inherit; text-align: right; curso
   .cx-slides img.sl:nth-child(2) { object-position: 30% 45%; }
 }
 @media (min-width: 1240px) { .cx-biz { grid-template-columns: minmax(0, 1fr) 52%; } }
+
+/* round 5 (his notes 2026-11-10): two slides - A (real devices: the home with its banner + a strong video frame, "המותג שלכם") and B; a phone shows both */
+@media (max-width: 899px) { .cx-dots i:nth-child(2) { display: block; } .cx-slides img.sl:first-child { object-position: 20% 50%; } }
+.biz-sheet-art { object-position: 30% 45% !important; }
+@media (min-width: 900px) { .cx-biz { min-height: 290px; } .cx-slides img.sl:first-child { object-position: 0% 50%; } }
