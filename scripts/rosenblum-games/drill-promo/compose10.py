@@ -11,7 +11,7 @@ GAME = os.path.join(HERE, '..', '..', '..', 'public', 'rosenblum-games', 'drill'
 SV = 'C:/workspace/studio/zoomcut/episodes/_assets/shlomiverse'
 W, H, FPS = 1080, 1920, 30
 # (recording, from second, to second) - one label each (lab0..lab4.png from caps.js + caps10.json)
-SHOTS = [('frames-l3', 0.45, 1.3), ('frames-l3', 3.2, 4.45), ('frames-l1', 3.1, 4.0), ('frames-l1', 7.0, 7.85), ('frames-l3', 11.9, 12.75)]
+SHOTS = [('frames-l3', 0.45, 1.3), ('frames-l3', 3.2, 4.45), ('frames-l1', 3.15, 4.05), ('frames-l1', 7.0, 7.85), ('frames-l3', 11.9, 12.75)]
 TITLE_N = 27
 
 def read_clip(path):
