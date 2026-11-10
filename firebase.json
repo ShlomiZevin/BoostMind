@@ -74,6 +74,13 @@
         }
       },
       {
+        "source": "/mcp/**",
+        "function": {
+          "functionId": "verseMcp",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "/mind/@(api|hook|mcp)",
         "function": {
           "functionId": "mind",

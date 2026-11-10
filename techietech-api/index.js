@@ -204,7 +204,8 @@ exports.verseTz = tz.verseTz;
 exports.verseTzRun = tz.verseTzRun;
 exports.verseTzOnPost = tz.verseTzOnPost;
 exports.verseTzPage = tz.verseTzPage;   // ציפציפ / ח24's link previews
-exports.verseAds = require('./ads').verseAds;   // the sponsored banners ("ממומן", first sponsor עיגוליות) - see ads.js
+exports.verseAds = require('./ads').verseAds;
+exports.verseMcp = require('./mcp').verseMcp;   // the Shlomiverse as a read-only MCP server for his ChatGPT (mcp.js, shlomiverse.com/mcp/<key>)   // the sponsored banners ("ממומן", first sponsor עיגוליות) - see ads.js
 
 // Shlomi's own analytics (public/t.js -> track, the /stats/ dashboard -> stats) - see analytics.js
 Object.assign(exports, require('./analytics'));
