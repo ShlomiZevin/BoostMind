@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 
-from pipeline.common import FFMPEG, FPS, ROOT, SR, load_json, local_path, log, save_json
+from pipeline.common import FFMPEG, FFPROBE, FPS, ROOT, SR, load_json, local_path, log, save_json
 from pipeline.film_fx import FxFrame as _FxFrame
 from pipeline.media import read_wav
 from pipeline.match import Env
@@ -2322,12 +2322,30 @@ def take_proxy(ls, n, gaze, kind):
     else:
         fc = (f"[1:v]fps={FPS},scale=540:960,format=gray,gblur=sigma=0.7,format=gray[m];"
               f"[0:v]{pic},format=yuva420p[p];[p][m]alphamerge[v]")
-        ff("-i", src, "-i", mk, "-filter_complex", fc, "-map", "[v]", "-shortest",
-           "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8", "-row-mt", "1", "-b:v", "2000k",
-           "-g", "15", "-auto-alt-ref", "0", "-an", part)
+        # (VP9 with alpha = two encoders, the picture's and the alpha's; at a scene change the picture's encoder adds a
+        # keyframe of its own the alpha's doesn't, and Chrome's seek to there never finishes - the editor's copy froze
+        # for every later piece, rosenblum-1-v3 2026-11-10. So: any keyframe off the half-second grid -> encoded
+        # again with a keyframe forced on exactly those frames, which both encoders take. Most takes: one pass.)
+        forced = set()
+        for _ in range(3):
+            kf = "expr:eq(mod(n,15),0)" + "".join(f"+eq(n,{k})" for k in sorted(forced))
+            ff("-i", src, "-i", mk, "-filter_complex", fc, "-map", "[v]", "-shortest",
+               "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-deadline", "realtime", "-cpu-used", "8", "-row-mt", "1", "-b:v", "2000k",
+               "-g", "15", "-force_key_frames", kf, "-auto-alt-ref", "0", "-an", part)
+            odd = {k for k in keyframes(part) if k % 15} - forced
+            if not odd:
+                break
+            forced |= odd
     os.replace(part, out)
     open(stamp, "w").write(sig)
     return out
+
+
+def keyframes(path):
+    """The frame numbers of a video's keyframes (from the container's packet flags - quick, nothing decoded)."""
+    r = subprocess.run([FFPROBE, "-v", "error", "-select_streams", "v", "-show_entries", "packet=pts_time,flags", "-of", "csv=p=0", path],
+                       capture_output=True, text=True)
+    return [round(float(t) * FPS) for t, fl, *_ in (ln.split(",") for ln in r.stdout.split()) if "K" in fl and t not in ("", "N/A")]
 
 
 def take_proxies(ls):
