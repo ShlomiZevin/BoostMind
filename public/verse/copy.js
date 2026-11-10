@@ -283,6 +283,8 @@ export const T = {
   yvNew: 'אצל הדמויות שלכם',
   yvContinue: 'להמשיך לצפות',
   yvLatest: 'סרטונים אחרונים', yvAllVideos: 'כל הסרטונים',
+  // "הכי נצפים" (his ask, 2026-11-10): the top 10 by plays - today / this week / this month / all time
+  topTitle: 'הכי נצפים', topTabs: { day: 'היום', week: 'השבוע', month: 'החודש', all: 'כל הזמנים' },
   yvFollowSome: 'עוד לא עוקבים אחרי אף אחד. בחרו כמה דמויות, ומה שקורה להן יגיע אליכם.',
   yvPick: 'לבחור דמויות',
   // the community (mockups G-J, 2026-11-01)

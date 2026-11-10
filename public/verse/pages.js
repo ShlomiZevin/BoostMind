@@ -58,6 +58,48 @@ function continueRow() {
 // the newest videos, right under "continue watching" (his ask, 2026-11-09: it came too late, after games and stickers);
 // the wiki page draws it there only when this file isn't loaded
 const latestRow = () => `<section class="sec"><div class="sec-h"><h2>${esc(T.yvLatest)}</h2><a href="/videos">${esc(T.yvAllVideos)} ←</a></div>${vrow(fresh().slice(0, 14))}</section>`;
+// "הכי נצפים" (his ask, 2026-11-10, mockups scripts/v2-design/top-videos.mjs): the top 10 by plays, today / this week / this
+// month / all time - analytics.js videoTops writes videoStats/_top every 15 minutes (ids only - the numbers never reach the page,
+// a small count would only look weak). Read once a visit. "Today" shows once enough was played today; "all time" once there is
+// more than a month of counting (until then it is the month).
+const TOP_TABS = ['day', 'week', 'month', 'all'];
+let tops = null, topTab = 'week';
+function topList(k) {
+  const lc = {};
+  for (const v of W.videos) lc[v.id.toLowerCase()] = v;   // the counters keep ids lower-cased
+  return (tops[k] || []).map((id) => lc[id]).filter(Boolean).slice(0, 10);
+}
+const topCards = (list) => list.map((v, i) => `<button class="t10" data-video="${v.id}"><span class="t10-n" aria-hidden="true">${i + 1}</span>
+  <span class="t10-c"><span class="thumb">${v.poster ? `<img src="${esc(abs(v.poster))}" alt="" loading="lazy">` : ''}</span><span class="t">${esc(v.title)}</span></span></button>`).join('');
+function topRow() {
+  if (tops === null) {
+    tops = false;
+    F.getDoc(F.doc(db, 'videoStats', '_top')).then((d) => { if (d.exists()) { tops = d.data(); refresh(true); } }).catch((e) => console.error('top videos', e));
+  }
+  if (!tops) return '';
+  const tabs = TOP_TABS.filter((k) => (k !== 'day' || tops.dayVideos >= 10) && (k !== 'all' || !tops.since) && topList(k).length >= 5);
+  if (!tabs.length) return '';
+  if (!tabs.includes(topTab)) topTab = tabs.includes('week') ? 'week' : tabs[0];
+  // the tabs beside the title on a computer, under it on a phone (they wrap)
+  return `<section class="sec top10"><div class="sec-h"><div class="t10-head"><h2>${esc(T.topTitle)}</h2>
+    <div class="t10-tabs" role="tablist">${tabs.map((k) => `<button role="tab" data-top="${k}" class="${k === topTab ? 'on' : ''}" aria-selected="${k === topTab}">${esc(T.topTabs[k])}</button>`).join('')}</div></div>
+    <a href="/videos">${esc(T.yvAllVideos)} ←</a></div>
+    <div class="row t10-row">${topCards(topList(topTab))}</div></section>`;
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-top]');
+  if (!b || !tops) return;
+  topTab = b.dataset.top;
+  const sec = b.closest('.top10');
+  sec.querySelectorAll('[data-top]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
+  const row = sec.querySelector('.t10-row');
+  row.innerHTML = topCards(topList(topTab));
+  row.scrollLeft = 0;
+  row.dispatchEvent(new Event('scroll'));   // the desktop arrows (rows.js) repaint
+  track('click', 'top_' + topTab);
+});
+// the newest videos, then the most watched
+const videoRows = () => latestRow() + topRow();
 // the hero's greeting (signed in, or was last time and Firebase hasn't answered yet)
 export const heroHi = () => (signedIn() ? T.hi(st.fan.nick) : !st.ready && cachedMe() ? T.hi(cachedMe().nick) : null);
 // signed in, under the hero: their characters, what's new from them, characters to pick, the fans' stickers
@@ -79,7 +121,7 @@ function yourBlock() {
       ${mine.length ? `<section class="yv-sec"><div class="sec-h"><h2>${esc(T.yvNew)}</h2></div>${vrow(mine)}</section>` : ''}
       ${picks}
       ${continueRow()}
-    </section>${latestRow()}`;
+    </section>${videoRows()}`;
 }
 // the fans' best stickers: under the games row (his note 2026-11-07: games before stickers) - the home's #stk-slot;
 // the "what's next" band (its first tile is the sticker) comes under the games too, signed in or out
@@ -114,7 +156,7 @@ export function homeSlot() {
   // the sponsored banner (ads.js, his note 2026-11-09): first under the hero - where a visitor from the video lands
   const ad = adSlot('home');
   if (signedIn()) return ad + citizenBanner() + yourBlock() + `<div class="tzh-row">${tz}<div id="tz-side">${tzSide()}</div></div>`;   // the citizenship journey's banner until they finish it (citizen.js)
-  if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>' + latestRow();
+  if (!st.ready && cachedMe()) return '<div class="yv-wait"></div>' + videoRows();
   const rings = ringsHtml();
   return `${ad}${rings ? `<section class="sec"><div class="sec-h"><h2>${esc(T.storiesTitle)}</h2></div>${rings}</section>` : ''}<div class="tzh-row">${tz}
     <div class="signin-card"><div class="sc-top"><h2>${brand(T.signinCardTitle)}</h2>${statusChip()}</div>
@@ -122,7 +164,7 @@ export function homeSlot() {
       <p class="sc-more">${I.plus}<span>${esc(T.signinCardMore)}</span></p>
       <p class="sc-soon">${SI.id}<span>${esc(T.signinCardSoon)}</span></p>
       <button class="vx-btn main block" data-signin="card">${esc(T.signinCardGo)}</button></div></div>
-    ${continueRow()}${latestRow()}`;
+    ${continueRow()}${videoRows()}`;
 }
 
 // the community band (ideas wall + ask / business) - lives in community.js, imported lazily to avoid a cycle

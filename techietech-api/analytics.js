@@ -211,3 +211,37 @@ exports.stats = onRequest({ region: 'europe-west1', maxInstances: 1, memory: '25
     events: events.docs.map((d) => { const e = d.data(); return { ...e, t: e.t.toMillis(), exp: undefined }; }),
   });
 });
+
+// The home's "most watched" row (his ask, 2026-11-10): the top videos today / this week / this month / all time, from the
+// video|<id> counters above, every 15 minutes into videoStats/_top (public read, ids only - no numbers reach the page).
+// All time = the days older than the month window, summed once into owner/videoTotals (grows by a day at a time), + the month.
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const TOP_N = 30;   // the page drops hidden / missing ones and shows 10
+const videoCounts = (docs, into = {}) => {
+  for (const d of docs) for (const [k, v] of Object.entries(d.data().n || {})) if (k.startsWith('video|') && v > 0) into[k.slice(6)] = (into[k.slice(6)] || 0) + v;
+  return into;
+};
+const topOf = (tot) => Object.entries(tot).sort((a, b) => b[1] - a[1]).slice(0, TOP_N).map(([id]) => id);
+async function videoTops() {
+  const month = (await db.collection('analytics_days').orderBy('d', 'desc').limit(30).get()).docs;
+  if (!month.length) return;
+  const today = dayIL(), from = month[month.length - 1].id;
+  const shelf = db.collection('owner').doc('videoTotals');
+  const closed = (await shelf.get()).data() || { upTo: '', tot: {} };
+  let q = db.collection('analytics_days').where('d', '<', from);
+  if (closed.upTo) q = q.where('d', '>', closed.upTo);
+  const add = (await q.orderBy('d').get()).docs;
+  if (add.length) {
+    videoCounts(add, closed.tot);
+    closed.upTo = add[add.length - 1].id;
+    await shelf.set(closed);
+  }
+  const day = month[0].id === today ? videoCounts([month[0]]) : {};
+  await db.collection('videoStats').doc('_top').set({
+    day: topOf(day), week: topOf(videoCounts(month.filter((d) => d.id > dayIL(new Date(Date.now() - 7 * 864e5))))),
+    month: topOf(videoCounts(month)), all: topOf(videoCounts(month, { ...closed.tot })),
+    dayVideos: Object.keys(day).length, since: closed.upTo ? '' : from, at: Timestamp.now(),
+  });
+}
+exports.videoTops = onSchedule({ schedule: 'every 15 minutes', region: 'europe-west1', memory: '256MiB', timeoutSeconds: 60 }, videoTops);
+exports._videoTops = videoTops;
