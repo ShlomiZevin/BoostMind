@@ -668,7 +668,7 @@ $('#bResume').onclick = () => setPause(false);
 $('#bMenu').onclick = () => { setPause(false); menu(); };
 const clock = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 function setPause(p) { game.paused = p; $('#pause').hidden = !p; if (p) stopAll(); else { loop('music', 0.35); } }
-function setFast() { game.speed = game.speed >= 3 ? 1 : game.speed + 1; showSpeed(); }
+function setFast() { game.speed = { 1: 2, 2: 3, 3: 5 }[game.speed] || 1; showSpeed(); }
 function showSpeed() { $('#bFast').classList.toggle('on', game.speed > 1); $('#bFast').dataset.x = game.speed > 1 ? '×' + game.speed : ''; }
 
 // ---------- flow ----------
@@ -739,7 +739,7 @@ const STEPS = [
     wait: (k, w) => k === 'tap' && w === walkers[0], after: () => give(walkers[0], null) },
   { t: 'כל הוראה היא תפקיד שעוזר לכולם: עצור, הכוונה, גשר, מדרגות, פתח. כל אחת בשלב משלה.', spot: () => elRect('#orders') },
   { t: 'פתאום מישהו רץ לשירותים! הקישו עליו מהר – והוא חוזר לטור.' },
-  { t: '⏩ מהר יותר: ×2, ×3. ⏸ עצירה והתחלה מחדש.', spot: () => elRect('#bFast') },
+  { t: '⏩ מהר יותר: ×2, ×3, ×5. ⏸ עצירה, ↻ מההתחלה.', spot: () => elRect('#bFast') },
   { t: 'שחר אחרון = טור מושלם. יורדים!' },
 ];
 function startTutorial() {
