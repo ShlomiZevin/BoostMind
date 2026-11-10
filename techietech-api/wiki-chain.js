@@ -77,8 +77,10 @@ exports.earlier = (cur, turns) => {
   return { characters: [...new Set(chars.reverse())], videos: [...new Set(vids.reverse())] };  // newest first
 };
 
-// the full material, within MAX_MATERIAL: residents first (whole profiles), then videos
-exports.material = (cur, charIds, videoIds, max = MAX_MATERIAL) => {
+// the full material, within MAX_MATERIAL: residents first (whole profiles), then videos, then a character's own videos as
+// short cards (base: what happens in each, no transcript - the transcripts were 65-90% of what a character held and they
+// answered from their newest videos instead of from who they are; his ask 2026-11-10, after the profile-only test)
+exports.material = (cur, charIds, videoIds, max = MAX_MATERIAL, cardIds = []) => {
   const out = [];
   let size = 0;
   const add = (s) => { if (size + s.length > max) return false; out.push(s); size += s.length; return true; };
@@ -90,6 +92,10 @@ exports.material = (cur, charIds, videoIds, max = MAX_MATERIAL) => {
     const v = cur.videos[id];
     if (v && v.transcript) add(`### Video ${v.id} | ${v.title} | ${v.teaser || ''} | cast: ${(v.cast || []).join(', ')}\n${v.transcript}`);
   }
+  const full = new Set(videoIds);
+  const cards = [...new Set(cardIds)].filter((id) => cur.videos[id] && !full.has(id))
+    .map((id) => { const v = cur.videos[id]; return `${v.id} | ${v.date || ''} | ${v.title} | ${(v.card || v.teaser || '').replace(/\s+/g, ' ')}`; });
+  if (cards.length) add('### Your own videos - moments of your life you remember (id | date | title | what happens). Their words are not here: asked what happened or what was said in one, call look_up with its id\n' + cards.join('\n'));
   return out.length ? '# Full details for this question\n' + out.join('\n\n') : '';
 };
 
@@ -143,7 +149,8 @@ exports.base = (cur, mode, turns) => {
   const allowed = exports.known(cur, mode);
   const own = [...(self.videos || [])].sort((a, b) => String(cur.videos[b]?.date || '').localeCompare(String(cur.videos[a]?.date || '')));
   const people = before.characters.filter((id) => id !== mode && allowed.includes(id));
-  return { characters: [mode, ...people], videos: [...before.videos.filter((v) => !own.includes(v)), ...own], allowed, self: mode, name: self.name,
+  // full transcripts only for videos the talk already showed; the rest of their own videos as cards (material)
+  return { characters: [mode, ...people], videos: before.videos, cards: own, allowed, self: mode, name: self.name,
     scope: exports.scopeText(cur, mode, allowed) };
 };
 
