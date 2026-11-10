@@ -432,6 +432,24 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   is frozen behind a moving person. Sets are empty places; the crowd lives in the SOUND (ambience beds, laughs,
   shouts). Also: an old-school CHARACTER does not mean an old place - "the teacher is old-fashioned, but the school
   shouldn't be"; a present-day Israeli public school (whiteboard, smart screen, AC), mid-range, not a 90s one.
+- **One long TikTok-app take with a face filter (Rosenblum's lips / nose) - rosenblum-1, 2026-11-10, his notes on a
+  "terrible first draft":** (1) the take is many recordings glued together: list the restarts (`ffmpeg -vf
+  scdet=threshold=10`) and **never let a piece cross one** - after each restart the filter is OFF for ~0.3 s (his real
+  face flashes) and before it he reaches for the phone; look at the frames around every restart and every piece edge
+  (a contact sheet of first / middle / last frame of each piece) before he sees it. (2) **No RNNoise on a whispering
+  character** - it removed Rosenblum's whispers ("the whispers are the main thing"): `clean: off`, a firm compressor,
+  quiet pieces lifted by item gain. (3) Off-screen lines he recorded (Omer) go in his pauses over his OWN silent stares
+  (cutaways from elsewhere in the take, never across a restart), each line levelled against his voice around it
+  (0-2 dB under), and on **their own subtitles row** - another colour, font and place, with the name ("עומר:"). (4) A
+  high-school class laughing = adult voices (the sfx model makes little kids from "class"; ask for 18-year-olds with
+  deep voices, pick by measuring the pitch). (5) Measure the balance in a fast test export (music ~12-14 dB under the
+  voice in the gaps), not by guessing gains. (6) **A hand change on a builder piece (zoom, box) makes it his** - the
+  next rebuild keeps it AND adds the new one (doubles); deleting it puts it in `layer.removed` and it never comes back
+  until that list is cleared (`layer.update set {removed: []}`). Do picture tweaks only after the last rebuild.
+  (7) Out-of-order pieces (cutaways, a line moved) break the builder's subtitle placement - write the subtitles from
+  the word times on your own row and hide the builder's row. The AI shot he couldn't film (a ball to the head):
+  Seedance 2.0 **Fast** from a real frame composited on the set (it keeps his face; Mini drifts), cut in just before
+  the action, our own impact sound on the hit frame, the music stops dead on the hit.
 - **EVERY FRAME MUST MAKE SENSE - the set is shot from HIS camera's angle and distance** (rosenblum-1, 2026-11-10 -
   "something which always gets back to it... if we see him, we don't only see the background image and the back. You
   need to adjust the background so it will be really POV, otherwise it looks strange, doesn't make sense"). Before you
