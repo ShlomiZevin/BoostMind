@@ -432,6 +432,16 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   is frozen behind a moving person. Sets are empty places; the crowd lives in the SOUND (ambience beds, laughs,
   shouts). Also: an old-school CHARACTER does not mean an old place - "the teacher is old-fashioned, but the school
   shouldn't be"; a present-day Israeli public school (whiteboard, smart screen, AC), mid-range, not a 90s one.
+- **EVERY FRAME MUST MAKE SENSE - the set is shot from HIS camera's angle and distance** (rosenblum-1, 2026-11-10 -
+  "something which always gets back to it... if we see him, we don't only see the background image and the back. You
+  need to adjust the background so it will be really POV, otherwise it looks strange, doesn't make sense"). Before you
+  make or pick a set, LOOK at his frames and read the camera: how high (a phone held low = looking UP: behind him there
+  is upper wall and ceiling, lights, the top of the board - not desks and the floor), how far (a selfie at arm's length =
+  his head fills a third of the frame, so the room behind him is big and close, never a doll's-house room behind a
+  giant), tilt / lens. Prompt the set with exactly that ("steep low angle from a phone held at chest height 40 cm from a
+  standing man, looking up: ceiling lights and the top of the walls fill most of the frame"), then place and zoom it so
+  the horizon and the scale match his body. Check a still of EVERY set with him on it (big and phone-size) before
+  handing over; a frame where he looks pasted on = not done.
 - **The set must be where the camera really is** (adam-1, 2026-11-08 - "it's not realistic, he is sitting in front of
   the table so you can't see the table behind him... it happens a lot"): a person sitting at a desk / meeting table is
   filmed from ACROSS the table, so behind him there is only what is behind his seat - a wall, a window, his chair's
