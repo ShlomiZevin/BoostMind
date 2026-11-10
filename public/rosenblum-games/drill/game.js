@@ -237,12 +237,13 @@ function step(dt) {
   // everyone else done -> the ones still blocking walk on by themselves
   const job = (w) => w.st === 'block' || w.st === 'guide';
   if (L.spawned > PAIRS && !walkers.some((w) => active(w) && !job(w))) for (const w of walkers) if (job(w)) { if (w.gd) w.d = w.gd; w.st = 'walk'; w.t = 0; }
+  if (L.lostN > L.lostLeft && !L.asked && !tut.on) { L.asked = true; setTimeout(() => { if (game.mode === 'play' && !L.over) { game.paused = true; stopAll(); $('#ask').hidden = false; } }, 700); }
   const live = walkers.some((w) => active(w)) || L.spawned <= PAIRS;
   if (!live || L.timeLeft <= 0) finish();
 }
 
 function stepWalker(w, dt) {
-  w.t += dt; w.ph += dt * 8; if (w.flash > 0) w.flash -= dt; if (w.turnT > 0) w.turnT -= dt;
+  w.t += dt; w.ph += dt * 8; if (w.flash > 0) w.flash -= dt; if (w.turnT > 0) w.turnT -= dt; if (w.hop > 0) w.hop -= dt;
   if (w.st === 'gone' || w.st === 'in') { w.fade -= dt * 1.6; return; }
   if (w.st === 'tag') return;
   w.out += dt;
@@ -321,15 +322,15 @@ function calm(w) { w.mis = null; floatText(w.x, w.y - 44, 'מתאפק', '#cfe6d7
 
 // a toilets runner: a student far from the level's one toilets door suddenly runs for it, through the crowd. Tap him
 // (any order selected - catching costs nothing) and he goes back into the column; miss him and he is gone.
-const WARN = 0.7, RUN = 2.3;
+const WARN = 0.8, RUN = 1.6;   // a runner starts far from the toilets and is catchable: ~3 seconds to tap him
 function stepMischief(dt) {
   const wc = L.zones.find((z) => z.t === 'wc');
   L.mischT -= dt;
   if (L.mischT <= 0 && wc) {
-    const can = walkers.filter((w) => w.st === 'walk' && !w.ramp && !w.mis && floorOf(w) === wc.f && Math.abs(w.x - wc.x) > 110 && w.kind !== 'shahar');
+    const can = walkers.filter((w) => w.st === 'walk' && !w.ramp && !w.mis && floorOf(w) === wc.f && Math.abs(w.x - wc.x) > Math.max(150, W * 0.45) && w.kind !== 'shahar');
     if (can.length) {
       const w = can[Math.floor(Math.random() * can.length)];
-      w.mis = { t: 0, door: wc, d0: w.d }; play('tap', 0.6);
+      w.mis = { t: 0, door: wc, d0: w.d, dist: Math.abs(w.x - wc.x) }; play('tap', 0.6);
       bubbleAt(w, w.kind === 'omer' ? 'המורה, הוא מחטט באף! אני רץ לשירותים!' : 'המורה, אני חייב לשירותים!');
       L.mischT = L.mischief.every * (0.75 + Math.random() * 0.5);
     } else L.mischT = 1.5;
@@ -343,6 +344,17 @@ function stepMischief(dt) {
       sayOnce('wcRun', ['לאן?! בירידה אין שירותים! מתאפקים עד לסיום התרגיל!'], 'angry');
     }
   }
+}
+// a tap on a student with no order to give: he reacts (a hop and a line) - the class is alive under the finger
+const POKE = ['המורה, זה לא אני!', 'אני בטור!', 'מה עשיתי?', 'אבל המורה!', 'שניים שניים, אני יודע', 'הוא התחיל!', 'אני לא מחטט באף!'];
+function poke(w) {
+  if (!active(w)) return;
+  w.hop = 0.45; play('tap', 0.5);
+  const line = w.kind === 'omer' ? ['אבל המורה, זה חשוב!', 'המורה, אפשר לשאול משהו?'][Math.floor(Math.random() * 2)]
+    : w.kind === 'shahar' ? 'אני הקטר המאסף! אני סוגר!' : POKE[Math.floor(Math.random() * POKE.length)];
+  for (let i = bubbles.length - 1; i >= 0; i--) if (bubbles[i].w === w) bubbles.splice(i, 1);
+  bubbleAt(w, line);
+  if (w.kind === 'omer' && Math.random() < 0.5) say('עומר, שאלות אחר כך. זכות הדיבור אצלי כרגע.', 'angry', 2200);
 }
 function catchRunner(w) {
   w.d = w.mis.d0; w.mis = null; w.flash = 0.6; play('stop', 0.7);
@@ -376,9 +388,8 @@ function stepReut(dt) {
 function give(w, o) {
   if (w.mis) { catchRunner(w); return true; }
   if (w.st === 'block' || w.st === 'guide') { w.st = 'walk'; w.t = 0; play('tap', 0.6); if (Math.random() < 0.5) say('מי נתן הוראה להתקדם?! ...טוב, אני נתתי. להתקדם!', 'talk', 2000); return true; }
-  if (!o) { hint('בחרו הוראה למטה, ואז הקישו על זוג'); return false; }
+  if (!o || L.left[o] <= 0) { poke(w); return false; }
   if (!active(w)) return false;
-  if (L.left[o] <= 0) { hint('נגמרו ההוראות "' + ORDER_NAME[o] + '" בשלב הזה'); return false; }
   if (w.st === 'fall') { hint('באמצע הנפילה? לא עכשיו'); return false; }
   if (w.st !== 'walk') { hint('הזוג הזה כבר עסוק'); return false; }
   if ((o === 'bridge' || o === 'open' || o === 'stairs') && w.armed) { hint('הזוג הזה כבר קיבל הוראה'); return false; }
@@ -574,9 +585,13 @@ function drawWalker(w) {
   else if (w.turnT > 0 && !single) { name = 'turn'; fr = 0; }
   if (w.flash > 0) { ctx.fillStyle = '#ffd77a88'; ctx.beginPath(); ctx.ellipse(w.x, w.y - 2, 15, 5, 0, 0, 7); ctx.fill(); }
   else { ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 11, 3, 0, 0, 7); ctx.fill(); }
-  sprite(name, fr, w.x, w.y + 1, H2, flip, a);
+  const hop = w.hop > 0 ? Math.sin((0.45 - w.hop) / 0.45 * Math.PI) * 9 : 0;
+  sprite(name, fr, w.x, w.y + 1 - hop, H2, flip, a);
   if (w.st === 'guide') { ctx.fillStyle = '#2f7fd6'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 9, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '900 12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(w.gd < 0 ? '◀' : '▶', w.x, w.y - KID - 6); }
   if (w.mis) {
+    const left = w.mis.go ? Math.max(0, Math.abs(w.x - w.mis.door.x) / w.mis.dist) : 1;
+    ctx.strokeStyle = '#ffffffaa'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 14, 0, 7); ctx.stroke();
+    ctx.strokeStyle = left > 0.4 ? '#ffd23f' : '#e2483d'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 14, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * left); ctx.stroke();
     const p = 1 + 0.15 * Math.sin(w.mis.t * 14);
     ctx.strokeStyle = '#e2483d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(w.x, w.y - 1, 15 * p, 5 * p, 0, 0, 7); ctx.stroke();
     ctx.fillStyle = '#e2483d'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 10 * p, 0, 7); ctx.fill();
@@ -646,8 +661,12 @@ $('#bPause').onclick = () => setPause(true);
 $('#bFast').onclick = () => setFast();
 $('#bRestart').onclick = () => { if (!tut.on) startLevel(L.i, true); };
 $('#bRestart2').onclick = () => { setPause(false); startLevel(L.i, true); };
+$('#bRestartTop').onclick = () => { if (!tut.on && game.mode === 'play') startLevel(L.i, true); };
+$('#askRestart').onclick = () => { $('#ask').hidden = true; startLevel(L.i, true); };
+$('#askGo').onclick = () => { $('#ask').hidden = true; game.paused = false; loop('music', 0.3); };
 $('#bResume').onclick = () => setPause(false);
 $('#bMenu').onclick = () => { setPause(false); menu(); };
+const clock = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 function setPause(p) { game.paused = p; $('#pause').hidden = !p; if (p) stopAll(); else { loop('music', 0.35); } }
 function setFast() { game.speed = game.speed >= 3 ? 1 : game.speed + 1; showSpeed(); }
 function showSpeed() { $('#bFast').classList.toggle('on', game.speed > 1); $('#bFast').dataset.x = game.speed > 1 ? '×' + game.speed : ''; }
@@ -670,12 +689,15 @@ function intro(i) {
   const l = LEVELS[i];
   $('#iLvl').textContent = 'שלב ' + (i + 1) + ' מתוך ' + LEVELS.length;
   $('#iName').textContent = l.name;
-  $('#iText').innerHTML = l.text + '<br><b>להכניס לפחות ' + l.quota + ' מתוך ' + STUDENTS + '.</b>';
+  $('#iText').textContent = l.text;
+  $('#iGoal').textContent = '🎯 להכניס ' + l.quota + ' מתוך ' + STUDENTS;
+  const BTN = { stop: 'btnStop', guide: 'btnGuide', bridge: 'btnBridge', stairs: 'btnStairs', open: 'btnOpen' };
+  $('#iJobs').innerHTML = ORDERS.filter((o) => l.orders[o]).map((o) => '<span><b>' + l.orders[o] + '</b><img src="assets/' + BTN[o] + '.webp" alt=""><i>' + ORDER_NAME[o].replace('!', '') + '</i></span>').join('');
   $('#bGo').onclick = () => startLevel(i);
 }
 function startLevel(i, restart) {
   game.level = i; game.mode = 'play'; game.paused = false;
-  $('#start').hidden = true; $('#intro').hidden = true; $('#end').hidden = true; $('#pause').hidden = true; $('#play').hidden = false;
+  $('#start').hidden = true; $('#intro').hidden = true; $('#end').hidden = true; $('#pause').hidden = true; $('#ask').hidden = true; $('#play').hidden = false;
   fitWorld(); buildLevel(i); pats = {}; game.speed = 1; showSpeed();
   const firstOrder = ORDERS.find((o) => (LEVELS[i].orders[o] || 0) > 0); game.sel = firstOrder;
   resize(); renderOrders(); bubbles.length = 0;
@@ -693,7 +715,7 @@ function showEnd(win, perfect, sc, total) {
     : perfect ? '"שחר סוגר את הטור. ככה עושים תרגיל."' : '"נכנסנו. שחר, בפעם הבאה – אחרון. אתה הקטר המאסף."';
   if (win && last) play('bonk', 0.9);
   $('#eNums').innerHTML = '<span>נכנסו למרחב המוגן</span><b>' + L.saved + '/' + STUDENTS + '</b><span>צריך היה</span><b>' + L.quota + '</b>' +
-    (win ? '<span>זמן שנשאר</span><b>' + Math.max(0, Math.round(L.timeLeft / BASE)) + ' שנ׳</b>' + (perfect ? '<span>טור מושלם</span><b>+300</b>' : '') +
+    (win ? '<span>זמן שנשאר</span><b>' + clock(Math.max(0, Math.round(L.timeLeft / BASE))) + '</b>' + (perfect ? '<span>טור מושלם</span><b>+300</b>' : '') +
       '<span class="tot">ניקוד השלב</span><b class="tot">' + sc + '</b><span>השיא שלכם היום</span><b>' + total + '</b>' : '');
   $('#eNext').hidden = !win || last; $('#eNext').onclick = () => intro(L.i + 1);
   $('#eAgain').onclick = () => startLevel(L.i, true);

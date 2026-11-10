@@ -57,34 +57,43 @@ button{font-family:inherit;border:0;cursor:pointer}
 #stage{flex:1;position:relative;min-height:0}
 canvas{position:absolute;display:block;touch-action:none}
 #bar{height:var(--barH);flex:none;display:flex;align-items:center;gap:4px;padding:4px 6px 2px;background:linear-gradient(#1f3a57,#14273b);border-top:2px solid #0e1d2c}
-#orders{flex:1;display:flex;gap:6px;justify-content:center;height:100%}
+#orders{flex:1;display:flex;gap:2px;justify-content:space-evenly;height:100%}
 .ord{flex:1;max-width:76px;min-width:0;background:none!important;position:relative;color:#fff;font-weight:900;font-size:12px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;transition:transform .12s;padding:0}
 .ord img{height:calc(var(--barH) - 22px);width:auto;max-width:100%;filter:drop-shadow(0 3px 2px #0007)}
 .ord.sel{transform:translateY(-3px)}
 .ord.sel img{filter:drop-shadow(0 0 6px #ffd76a) drop-shadow(0 0 2px #fff)}
-.ord span{line-height:1.1;text-shadow:0 1px 2px #000}
+.ord span{line-height:1.1;font-size:13px;text-shadow:0 1px 2px #000,0 0 4px #000}
 .ord svg{width:28px;height:28px;fill:#fff}
 @media (max-height:640px){.ord svg{width:22px;height:22px}.ord{font-size:12px}}
 @media (max-width:370px){.ord{font-size:11px}.ord svg{width:22px;height:22px}}
 .ord[data-o=stop]{background:var(--red)}.ord[data-o=guide]{background:var(--blue)}.ord[data-o=stairs]{background:#8a5a34}.ord[data-o=bridge]{background:var(--yellow);color:#4a2f00}.ord[data-o=bridge] svg{fill:#4a2f00}.ord[data-o=open]{background:var(--green)}
 
-.ord.empty{filter:grayscale(1) brightness(.6)}
+.ord.empty img,.ord.empty span{filter:grayscale(1) brightness(.55)}
 .ord.off{display:none}
-.ord b{position:absolute;top:-4px;left:calc(50% - 30px);background:#111;color:#fff;border:2px solid #fff;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px}
+.ord b{position:absolute;z-index:2;top:-3px;left:calc(50% - 32px);background:#e2483d;color:#fff;border:2.5px solid #fff;border-radius:99px;min-width:25px;height:25px;display:grid;place-items:center;font-size:15px;font-weight:900;box-shadow:0 2px 4px #0008;line-height:1}
+.ord.empty b{background:#56606a}
 #ctl{display:flex;flex:none;height:100%}
 .bigctl{width:60px;height:100%;background:none;display:grid;place-items:center;position:relative}
 .bigctl img{height:calc(var(--barH) - 10px);filter:drop-shadow(0 3px 2px #0007)}
 .bigctl.on img{filter:drop-shadow(0 0 6px #ffd76a)}
 .bigctl svg{width:30px;height:30px;fill:#fff}
-.bigctl.on{background:#f2b530}.bigctl.on svg{fill:#3a2500}
+
 #bPause{width:calc(var(--topH) - 8px);height:calc(var(--topH) - 8px);background:none;display:grid;place-items:center;flex:none;padding:0}
 #bPause img{width:100%;height:100%}
+.roundctl{width:calc(var(--topH) - 10px);height:calc(var(--topH) - 10px);flex:none;border-radius:50%;padding:0;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#7d8a96,#46525e);border:2.5px solid #e9eef2;box-shadow:0 2px 3px #0008}
+.roundctl svg{width:58%;height:58%;fill:#fff}
+.goal{background:#24343a;color:#fff;border-radius:14px;padding:8px 10px;margin:10px auto 0;font-weight:900;font-size:17px;max-width:280px}
+.jobs{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.jobs span{position:relative}
+.jobs img{width:46px;height:46px}
+.jobs b{position:absolute;top:-4px;left:-4px;background:#e2483d;color:#fff;border:2px solid #fff;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:13px}
+.jobs i{display:block;font-style:normal;font-size:12px;font-weight:700;color:#24343a}
 #bPause svg{width:24px;height:24px;fill:#fff}
 .ibtn{width:40px;height:calc((var(--barH) - 22px) / 3);min-height:20px;position:relative;border-radius:10px;background:#ffffff1f;display:grid;place-items:center}
 .ibtn svg{width:20px;height:20px;fill:#fff}
 .ibtn.on{background:#f2b530}
 .ibtn.on svg{fill:#3a2500}
-#bFast::after{content:attr(data-x);position:absolute;right:-4px;top:-8px;font-size:14px;font-weight:900;color:#3a2500;background:#fff;border-radius:6px;padding:0 3px}
+#bFast::after{content:attr(data-x);position:absolute;z-index:2;right:0;top:-4px;font-size:14px;font-weight:900;color:#3a2500;background:#fff;border-radius:6px;padding:0 3px}
 #bFast:not(.on)::after{display:none}
 
 /* screens - one at a time */
@@ -112,7 +121,7 @@ canvas{position:absolute;display:block;touch-action:none}
 .card .row{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 .card .row button{font-size:18px;padding:12px 22px;animation:none}
 .card .soft{background:#24343a}
-.card img{width:110px;margin:-60px auto 0;display:block;filter:drop-shadow(0 4px 6px #0006)}
+.card > img{width:110px;margin:-60px auto 0;display:block;filter:drop-shadow(0 4px 6px #0006)}
 .nums{display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:right;font-size:16px;margin:10px auto 0;max-width:260px}
 .nums b{text-align:left;direction:ltr}
 .nums .tot{border-top:2px solid #0002;padding-top:4px;font-size:19px;font-weight:900}
@@ -141,6 +150,7 @@ canvas{position:absolute;display:block;touch-action:none}
       <div class="stat" id="count"><img src="assets/icIn.webp" alt=""><span id="cval">0/23</span></div>
       <div class="stat" id="lost"><img src="assets/icLost.webp" alt=""><span id="lval">0/6</span></div>
     </div>
+    <button id="bRestartTop" class="roundctl" aria-label="מההתחלה"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 8 8h-3a5 5 0 1 1-5-5v3l5-4.5L12 1z"/></svg></button>
     <button id="bPause" aria-label="עצירה"><img src="assets/btnPause.webp" alt=""></button>
   </div>
   <div id="stage"><canvas id="cv"></canvas></div>
@@ -172,9 +182,20 @@ canvas{position:absolute;display:block;touch-action:none}
 
 <div class="screen" id="pause" hidden>
   <div class="card">
-    <h2>הפסקה</h2>
+    <h2>עצרנו</h2>
     <p class="q">"אני מחכה. כשאדון יסיים – נמשיך."</p>
-    <div class="row"><button class="big" id="bResume">ממשיכים</button></div><div class="row"><button class="soft" id="bRestart2">מההתחלה</button><button class="soft" id="bMenu">לתפריט</button></div>
+    <div class="row"><button class="big" id="bResume">ממשיכים</button></div>
+    <div class="row"><button class="soft" id="bRestart2">מההתחלה</button><button class="soft" id="bMenu">לתפריט</button></div>
+  </div>
+</div>
+
+<div class="screen" id="ask" hidden>
+  <div class="card">
+    <img src="assets/headAngry.webp" alt="">
+    <h2>אבדו יותר מדי</h2>
+    <p class="q">"איך אני מראה את הפנים שלי מול המנהלת אסתר?"<br>אי אפשר לעבור את השלב הזה. מתחילים מחדש?</p>
+    <div class="row"><button class="big" id="askRestart">מההתחלה</button></div>
+    <div class="row"><button class="soft" id="askGo">להמשיך בכל זאת</button></div>
   </div>
 </div>
 
@@ -184,6 +205,8 @@ canvas{position:absolute;display:block;touch-action:none}
     <div class="lvl" id="iLvl"></div>
     <h2 id="iName"></h2>
     <p class="q" id="iText"></p>
+    <div class="goal" id="iGoal"></div>
+    <div class="jobs" id="iJobs"></div>
     <div class="row"><button class="big" id="bGo">יורדים!</button></div>
   </div>
 </div>
@@ -204,6 +227,6 @@ canvas{position:absolute;display:block;touch-action:none}
 <div id="tut" hidden><div id="spot"></div><div id="tcard"></div></div>
 <div id="rotate">סובבו את הטלפון לאורך 📱</div>
 
-<script src="game.js?v=4"></script>
+<script src="game.js?v=6"></script>
 </body>
 </html>
