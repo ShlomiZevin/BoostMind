@@ -26,7 +26,7 @@ GROUPS = [
     ('new', 'חדש / לא ממוין'),
 ]
 FOLDER = {
-    'links': 'verse', 'wiki': 'verse', 'tziftzif': 'verse', 'charadot': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'piko': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
+    'links': 'verse', 'wiki': 'verse', 'archive': 'verse', 'tziftzif': 'verse', 'charadot': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'piko': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
     'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters',
     'sketch-studio': 'tools', 'karaoke': 'tools', 'sticker-lab': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',

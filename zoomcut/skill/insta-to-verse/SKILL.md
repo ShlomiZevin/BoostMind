@@ -44,6 +44,20 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
 - **Telegram only when you need something from him** (an unknown character, a name) - never for reports or FYI (his words, 2026-10-31).
 - Profile pictures: OpenAI direct, GPT Image 2.5 flare (or sunburst), **LOW**, MEDIUM at most, never HIGH / Leonardo.
 
+## The archive page - what he (and later everyone) marks to bring (2026-11-10)
+**shlomiverse.com/archive/** (`public/archive/index.html`): his whole Instagram on one page - the grid cover of every
+post (Instagram's `thumbnail_url`, the cover he picked, not the first frame), date, likes, comments, caption, and the
+character badge when it's already in the verse; sort / search / "עוד לא בשלומיוורס". A tap on the circle = a mark (`verse`
+op `wish`, the 2.0 session's backend: `wishes/<ig>`). Marks are his account only until `verseOwner?op=wishOpen`
+{open:true} opens them to every signed-in resident. Views / shares: Instagram refuses them to our key (no insights).
+- **Refresh the list** (new posts, today's numbers, what's in the verse): `zoomcut/.venv/Scripts/python scripts/insta/gallery.py`
+  - free, no AI: list.mjs + new covers (320 px) -> gs://shlomiverse-media/insta/{list.json, t/<id>.jpg}. Run it after
+  every batch so the badges are right.
+- **"Bring what I marked":** `node scripts/insta/wishes.mjs` (Firestore, this computer's login - no owner key) = the open
+  marks, most-asked first, each with its ig media id -> the steps below per id (reel.py <id>, to_wiki.py <id> <cast>).
+  The wish closes and whoever asked is told (bell, push, mail) by itself within 15 minutes of `ig-<id>` going live;
+  `verseOwner?op=wishFound` (owner key - ask him) only to tell them at once.
+
 ## Steps for one reel (from c:\workspace\BoostMind)
 1. **The list** (refresh now and then): `node scripts/insta/list.mjs` -> `scripts/insta/work/media.json` (every post,
    likes, comments, date). Next reel = the NEWEST `timestamp` < 2026-10-17 with `like_count` > 1000, not in `scripts/insta/state.json`.
