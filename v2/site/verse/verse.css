@@ -2842,3 +2842,97 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .arc-chat-t { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .arc-chat-t b { font-size: 1.05rem; font-weight: 900; } .arc-chat-t small { color: var(--dim); font-size: .84rem; line-height: 1.35; }
 .arc-chat-go { display: inline-flex; align-items: center; gap: 4px; color: var(--vx-accent); font-weight: 800; font-size: .9rem; } .arc-chat-go svg { width: 16px; height: 16px; }
+
+/* ---------- "מה הלאה בשלומיוורס?" round 3 (his note 2026-11-10; mockups band.mjs B1 desktop, B3 / B4 phone): one card for all seven,
+   the ideas row, a real business strip ---------- */
+.cmy-band.cx-band { background: none; border: 0; padding: 0; margin-top: 30px; }
+.cxg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.cx-t { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ic art" "txt txt"; align-items: start; gap: 10px 8px;
+  padding: 14px; min-height: 150px; border-radius: 20px; border: 1px solid var(--line2, rgba(255,255,255,.12)); background: var(--card); color: var(--text); text-align: right;
+  cursor: pointer; transition: border-color .15s, transform .15s; overflow: hidden; }
+.cx-t:hover { border-color: color-mix(in srgb, var(--vx-accent) 55%, transparent); }
+.cx-t:active { transform: scale(.985); }
+.cx-ic { grid-area: ic; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--vx-accent) 75%, transparent); color: var(--vx-accent); }
+.cx-ic svg { width: 20px; height: 20px; }
+.cx-txt { grid-area: txt; display: flex; flex-direction: column; gap: 3px; min-width: 0; align-self: end; }
+.cx-txt b { font-size: 1.02rem; font-weight: 900; line-height: 1.2; }
+.cx-txt small { color: var(--dim); font-size: .8rem; line-height: 1.35; }
+.cx-art { grid-area: art; justify-self: end; display: flex; align-items: center; justify-content: flex-end; height: 64px; min-width: 0; }
+.cx-round { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--vx-accent); }
+.cx-cover { width: 96px; height: 64px; border-radius: 12px; object-fit: cover; }
+.cx-cut { height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .45)); }
+.cx-pk { display: flex; } .cx-pk img { width: 46px; height: 46px; object-fit: contain; margin-inline-start: -10px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .4)); } .cx-pk img:first-child { margin: 0; }
+.cx-rings { display: flex; } .cx-rings img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--vx-accent); margin-inline-start: -12px; box-shadow: 0 0 0 2px var(--card); } .cx-rings img:first-child { margin: 0; }
+/* the featured one: the whole width on a phone, the sticker big beside the words */
+.cx-t.big { grid-column: 1 / -1; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "ic txt art"; align-items: center; gap: 14px; min-height: 140px;
+  background: radial-gradient(120% 140% at 15% 50%, rgba(255, 106, 31, .2), transparent 60%), var(--card); border-color: color-mix(in srgb, var(--vx-accent) 55%, transparent); }
+.cx-t.big .cx-ic { width: 52px; height: 52px; } .cx-t.big .cx-ic svg { width: 24px; height: 24px; }
+.cx-t.big .cx-txt { align-self: center; } .cx-t.big .cx-txt b { font-size: 1.3rem; } .cx-t.big .cx-txt small { font-size: .88rem; }
+.cx-t.big .cx-art { height: 112px; }
+
+/* the ideas row */
+.cx-idea { margin-top: 14px; padding: 16px; border-radius: 22px; border: 1px solid var(--line2, rgba(255,255,255,.12)); background: var(--card); display: grid; gap: 14px; }
+.cx-idea-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cx-idea-h b { display: block; font-size: 1.08rem; font-weight: 900; } .cx-idea-h small { display: block; color: var(--dim); font-size: .84rem; margin-top: 3px; }
+.cx-idea-h .vx-btn { height: 44px; padding: 0 18px; gap: 6px; font-size: .95rem; flex: none; box-shadow: none; }
+.cx-idea-h .vx-btn svg { width: 16px; height: 16px; }
+.cx-idea-top .idea { margin: 0; }
+.cx-idea-top .cd-all { margin-top: 8px; }
+
+/* the business strip: a real invitation to advertise */
+.cx-biz { position: relative; display: grid; grid-template-columns: 1fr; margin-top: 14px; border-radius: 24px; overflow: hidden; text-decoration: none; color: var(--text);
+  background: radial-gradient(120% 120% at 20% 100%, rgba(255, 106, 31, .28), transparent 60%), linear-gradient(180deg, #19171a, #111014);
+  border: 1.5px solid color-mix(in srgb, var(--vx-accent) 60%, transparent); box-shadow: 0 0 30px rgba(255, 106, 31, .12); }
+.cx-biz-art { position: relative; height: 190px; overflow: hidden; }
+.cx-biz-art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent); mask-image: linear-gradient(180deg, #000 60%, transparent); }
+.cx-biz-txt { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 4px 18px 18px; }
+.cx-biz-txt em { font-style: normal; color: var(--vx-accent-2, #ff8a3d); font-weight: 900; font-size: .9rem; }
+.cx-biz-txt b { font-size: 1.75rem; font-weight: 900; letter-spacing: -.02em; line-height: 1.1; }
+.cx-biz-txt small { color: #d6d3db; font-size: .95rem; line-height: 1.5; }
+.cx-biz-row { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.cx-biz-row .vx-btn { height: 50px; width: 100%; }
+.cx-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cx-chips span { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line2, rgba(255,255,255,.16)); font-size: .82rem; font-weight: 700; color: #e6e3ea; background: rgba(0, 0, 0, .25); }
+.cx-chips svg { width: 15px; height: 15px; color: var(--vx-accent); }
+@media (max-width: 370px) { .cx-t { padding: 12px; } .cx-round { width: 54px; height: 54px; } .cx-cover { width: 80px; height: 56px; } .cx-t.big .cx-art { height: 92px; } .cx-idea-h { flex-direction: column; align-items: stretch; } }
+
+/* a computer: 4 columns (B1) - the sticker card two wide, every card: the icon and the words on the right, the picture on the left */
+@media (min-width: 900px) {
+  .cxg { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .cx-t { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "ic art" "txt art"; min-height: 168px; padding: 18px; }
+  .cx-art { height: 100%; align-self: center; }
+  .cx-round { width: 92px; height: 92px; } .cx-cover { width: 118px; height: 88px; } .cx-pk img { width: 58px; height: 58px; } .cx-rings img { width: 56px; height: 56px; }
+  .cx-t.big { grid-column: span 2; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "ic art" "txt art"; }
+  .cx-t.big .cx-art { height: 140px; }
+  .cx-idea { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: center; padding: 18px 22px; gap: 22px; }
+  .cx-idea-h { flex-direction: column; align-items: flex-start; }
+  .cx-biz { grid-template-columns: minmax(0, 1fr) 520px; align-items: stretch; min-height: 250px; }
+  .cx-biz-art { order: 2; height: auto; }
+  .cx-biz-art img { position: absolute; inset: 0; -webkit-mask-image: linear-gradient(270deg, #000 55%, transparent); mask-image: linear-gradient(270deg, #000 55%, transparent); }
+  .cx-biz-txt { justify-content: center; padding: 26px 30px; gap: 10px; }
+  .cx-biz-txt b { font-size: 2.3rem; }
+  .cx-biz-row { flex-direction: row; align-items: center; flex-wrap: wrap; }
+  .cx-biz-row .vx-btn { width: auto; padding: 0 28px; }
+}
+
+/* the business strip opens the form (his ask 2026-11-10) - a button, laid out like the link was */
+button.cx-biz { width: 100%; padding: 0; font: inherit; text-align: right; cursor: pointer; }
+.cx-biz-art img { object-position: 30% 35%; }
+.cx-art { max-width: 100%; overflow: hidden; }
+.cx-pk img { width: 38px; height: 38px; }
+@media (min-width: 900px) { .cx-pk img { width: 46px; height: 46px; } .cx-biz-art img { object-position: 20% 40%; } }
+.nav-biz { color: var(--dim) !important; font-size: .92em; }
+@media (max-width: 899px) { .nav-biz { display: none !important; } }   /* a phone: the strip + the footer, never the bottom bar (his note: don't push business at everyone) */
+/* the form: in a sheet from anywhere, or alone at /business */
+.biz-sheet { display: grid; gap: 10px; }
+.biz-sheet-art { width: 100%; height: 150px; object-fit: cover; object-position: 30% 30%; border-radius: 18px; display: block; }
+.biz-sh .biz-form, .biz-only .biz-form { display: grid; gap: 10px; margin: 0; padding: 0; background: none; border: 0; box-shadow: none; }
+.biz-sh .biz-form h2, .biz-only .biz-form h2 { font-size: 1.5rem; font-weight: 900; margin: 4px 0 0; }
+.biz-sh .biz-form p, .biz-only .biz-form p { color: var(--dim); margin: 0 0 4px; line-height: 1.5; }
+.biz-sh .biz-form input, .biz-sh .biz-form textarea, .biz-only .biz-form input, .biz-only .biz-form textarea { width: 100%; height: 48px; border-radius: 14px; border: 1px solid var(--line2, rgba(255,255,255,.16));
+  background: rgba(0, 0, 0, .25); color: var(--text); font: inherit; padding: 0 14px; outline: none; }
+.biz-sh .biz-form textarea, .biz-only .biz-form textarea { height: 96px; padding: 12px 14px; resize: none; }
+.biz-sh .biz-form input:focus, .biz-sh .biz-form textarea:focus { border-color: color-mix(in srgb, var(--vx-accent) 65%, transparent); }
+.biz-sh .biz-topics, .biz-only .biz-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+.biz-only { max-width: 560px; margin: 0 auto; padding: 24px 18px 60px; display: grid; gap: 14px; }
+.biz-only .biz-sheet-art { height: 220px; }

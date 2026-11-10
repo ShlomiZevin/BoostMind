@@ -4,10 +4,10 @@
 // through the `request` op (signed out too); ideas and votes need an account.
 import { db, F, call } from './fb.js';
 import { T } from './copy.js';
-import { I, esc, av, ago, sheet, toast, track, LIKE, ofc, abs, catchphrase } from './ui.js';
+import { I, esc, av, ago, sheet, toast, track, LIKE, ofc, abs, catchphrase, brand } from './ui.js';
 import { storyFaces } from './stories.js';
 import { waCard } from './player.js';
-import { st, onState, needFan, signedIn } from './state.js';
+import { st, onState, needFan, signedIn, signInSheet } from './state.js';
 
 // ---------- the ideas, live ----------
 let ideas = [], myVotes = new Set(), sort = 'top', focusIdea = null, offVotes = null;
@@ -85,24 +85,42 @@ function stickerTiles() {
       <button class="cd-pack" data-do="pack"><span class="cd-pk">${PACK.slice(0, 3).map((p) => `<img src="${esc(p.thumb || p.img)}" alt="">`).join('')}</span>
         <span class="cd-txt"><b>${esc(T.can.pack[0])}</b><small>${esc(T.can.pack[1])}</small></span><i>${GO}</i></button>`;
 }
+// "מה הלאה בשלומיוורס?" round 3 (his note 2026-11-10: on a computer the tiles sat randomly, pictures in random corners, and
+// "לעסקים" was a tiny line - "I want businesses to reach out to me, to offer them advertising"; mockups scripts/v2-design/band.mjs
+// B1 desktop, B3 / B4 phone). ONE card for all seven - its icon, title, line and picture always in the same places: a computer =
+// 4 columns (the sticker card wide), a phone = the sticker card full width + 2 columns. Then the ideas row, then a real strip
+// that sells advertising (-> /business, its form reaches him).
 export function homeBand() {
-  const top = ideas.slice(0, 3);
+  const top = ideas[0];
   const faces = storyFaces();
-  // a computer gives every tile a picture (mockup R5, 2026-11-09): a face to talk to / follow, a game's cover, a site's picture
-  const withImg = W.characters.filter((c) => c.img), game = (W.games || []).find((g) => g.img), site = (W.site_list || []).find((x) => x.img);
-  const ART = { chat: withImg[0] && ['round', withImg[0].img], follow: withImg[1] && ['round', withImg[1].img], games: game && ['cover', game.img], sites: site && ['cover', site.img] };
-  const art = (key) => (ART[key] ? `<img class="cd-art ${ART[key][0]}" src="${esc(abs(ART[key][1]))}" alt="" loading="lazy">` : '');
-  const tile = (key, icon, extra = '') => `<button class="cd-t" data-do="${key}">${extra || `<span class="cd-ic">${icon}</span>`}<b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small>${art(key)}</button>`;
-  return `<section class="cmy-band">
-    <div class="cmy-ideas-h"><div><h2>${esc(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
-    <div class="cando">
-      ${stickerTiles()}
-      <div class="cd-2">${tile('chat', I.comment)}${tile('follow', I.bell)}</div>
-      <div class="cd-3">${tile('stories', '', faces.length ? `<span class="cd-faces">${faces.map((f) => `<img src="${esc(f.img)}" alt="">`).join('')}</span>` : `<span class="cd-ic">${I.play}</span>`)}${tile('games', I.game)}${tile('sites', I.bag)}</div>
-    </div>
-    <div class="cd-idea"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div><button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
-    ${top.length ? `<div class="ideas row3">${top.map(ideaCard).join('')}</div><a class="cd-all" href="/community">${esc(T.ideasAll)} ←</a>` : ''}
-    <a class="cd-biz" href="/business">${I.people}<span>${esc(T.bizCard)}</span><i>${GO}</i></a>
+  const withImg = W.characters.filter((c) => c.img && !['savta'].includes(c.id));
+  const face = (c) => (c ? `<img class="cx-round" src="${esc(abs(c.img))}" alt="" loading="lazy">` : '');
+  const game = (W.games || []).find((g) => g.img), site = (W.site_list || []).find((x) => x.img);
+  const sticker = STICKER_FACE.find((id) => C[id] && C[id].img) || withImg[0]?.id;
+  const hero = PACK.find((p) => p.char === sticker) || PACK[0];
+  const art = {
+    sticker: hero ? `<img class="cx-cut" src="${esc(hero.thumb || hero.img)}" alt="">` : face(C[sticker]),
+    pack: PACK.length ? `<span class="cx-pk">${PACK.slice(0, 3).map((p) => `<img src="${esc(p.thumb || p.img)}" alt="">`).join('')}</span>` : '',
+    chat: face(C.yotam || withImg[0]),
+    follow: face(C.avram || withImg[1]),
+    stories: faces.length === 1 ? `<img class="cx-round" src="${esc(faces[0].img)}" alt="">` : faces.length ? `<span class="cx-rings">${faces.slice(0, 3).map((f) => `<img src="${esc(f.img)}" alt="">`).join('')}</span>` : face(withImg[2]),
+    games: game ? `<img class="cx-cover" src="${esc(abs(game.img))}" alt="" loading="lazy">` : '',
+    sites: site ? `<img class="cx-cover" src="${esc(abs(site.img))}" alt="" loading="lazy">` : '',
+  };
+  const ICON = { sticker: I.sticker, pack: I.sticker, chat: I.comment, follow: I.bell, stories: I.play, games: I.game, sites: I.bag };
+  const card = (key) => `<button class="cx-t${key === 'sticker' ? ' big' : ''}" data-do="${key}"><span class="cx-ic">${ICON[key]}</span>
+      <span class="cx-txt"><b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small></span><span class="cx-art">${art[key]}</span></button>`;
+  return `<section class="cmy-band cx-band">
+    <div class="cmy-ideas-h"><div><h2>${brand(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
+    <div class="cxg">${['sticker', 'pack', 'chat', 'follow', 'stories', 'games', 'sites'].map(card).join('')}</div>
+    <div class="cx-idea"><div class="cx-idea-h"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div>
+      <button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
+      ${top ? `<div class="cx-idea-top">${ideaCard(top)}<a class="cd-all" href="/community">${esc(T.ideasAll)} ←</a></div>` : ''}</div>
+    <button class="cx-biz" data-biz>
+      <span class="cx-biz-art" aria-hidden="true"><img src="/verse/art/biz-media.jpg" alt="" loading="lazy"></span>
+      <span class="cx-biz-txt"><em>${esc(T.biz2.tag)}</em><b>${brand(T.biz2.title)}</b><small>${esc(T.biz2.line)}</small>
+        <span class="cx-biz-row"><span class="vx-btn main">${esc(T.biz2.cta)}</span>
+          <span class="cx-chips">${T.biz2.chips.map((c, i) => `<span>${[I.planet, I.play, I.people][i]}${esc(c)}</span>`).join('')}</span></span></span></button>
   </section>`;
 }
 // a tile: straight to the thing (the sticker one opens a video with the sticker button pointed out)
@@ -306,23 +324,34 @@ function formSheet(kind) {
 }
 
 // ---------- the business page (#/business) ----------
-export function businessPage() {
-  const faces = ['rosenblum', 'ayelet', 'yotam', 'osnat', 'nahor'].filter((id) => C[id]);
-  return `<div class="biz">
-    <section class="biz-hero"><h1>${esc(T.bizTitle)}</h1><p>${esc(T.bizSub)}</p>
-      <div class="biz-stats"><div><b dir="ltr">${W.characters.length}+</b><span>${esc(T.bizChars)}</span></div><div><b dir="ltr">${W.videos.length}+</b><span>${esc(T.bizVideos)}</span></div><div><b dir="ltr">40K</b><span>${esc(T.bizTiktok)}</span></div></div>
-      <div class="biz-faces">${faces.map((id) => `<a href="/c/${id}">${av({ char: id, ring: true })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></section>
-    <div class="biz-glow" aria-hidden="true"><img src="/verse/logo-512.png" alt=""></div>
-    <form class="biz-form"><h2>${esc(T.bizFormTitle)}</h2><p>${esc(T.bizFormSub)}</p>
-      <input name="name" maxlength="80" required placeholder="${esc(T.bizName)}">
-      <input name="company" maxlength="120" placeholder="${esc(T.bizCompany)}">
-      <input name="email" type="email" maxlength="160" required placeholder="${esc(T.bizEmail)}" dir="ltr">
-      <textarea name="text" maxlength="3000" required placeholder="${esc(T.bizMsg)}"></textarea>
+// one business form for every way in (his ask 2026-11-10: "no business page for now - a form I get notified about"; the home's
+// strip, "לעסקים" in the top bar and the footer all open it). A Google sign-in only - no resident profile needed for a business.
+const bizForm = () => `<form class="biz-form"><h2>${esc(T.bizFormTitle)}</h2><p>${esc(T.bizFormSub)}</p>
       <div class="biz-topics">${T.bizTopics.map((t, i) => `<button type="button" class="vx-pill ${i === 0 ? 'on' : ''}" data-topic="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-      <button class="vx-btn main block">${esc(T.bizSend)}</button></form>
-    <section class="biz-what"><h2>${esc(T.bizWhat)}</h2><div class="biz-what-row">
-      ${T.bizWays.map(([h, p], i) => `<div class="biz-way">${[I.sticker, I.people, I.play][i]}<b>${esc(h)}</b><p>${esc(p)}</p></div>`).join('')}</div></section>
-  </div>`;
+      <input name="name" maxlength="80" required placeholder="${esc(T.bizName)}" autocomplete="name">
+      <input name="company" maxlength="120" placeholder="${esc(T.bizCompany)}" autocomplete="organization">
+      <input name="email" type="email" maxlength="160" required placeholder="${esc(T.bizEmail)}" dir="ltr" autocomplete="email">
+      <input name="phone" type="tel" maxlength="40" placeholder="${esc(T.bizPhone)}" dir="ltr" autocomplete="tel">
+      <textarea name="text" maxlength="3000" required placeholder="${esc(T.bizMsg)}"></textarea>
+      <button class="vx-btn main block">${esc(T.bizSend)}</button></form>`;
+export function bizSheet() {
+  track('click', 'biz_open');
+  sheet(`<div class="in biz-sheet"><img class="biz-sheet-art" src="/verse/art/biz-media.jpg" alt="">${bizForm()}</div>`, { cls: 'biz-sh' });
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-biz], a[href="/business"]');
+  if (!b || e.target.closest('.biz')) return;
+  e.preventDefault(); e.stopPropagation();
+  bizSheet();
+}, true);
+async function bizSignIn() {
+  if (st.user) return true;
+  if (!(await signInSheet('business'))) return false;
+  for (let i = 0; i < 60 && !st.user; i++) await new Promise((r) => setTimeout(r, 200));
+  return !!st.user;
+}
+export function businessPage() {
+  return `<div class="biz biz-only"><img class="biz-sheet-art" src="/verse/art/biz-media.jpg" alt="">${bizForm()}</div>`;
 }
 document.addEventListener('click', (e) => { const t = e.target.closest('[data-topic]'); if (t) t.parentElement.querySelectorAll('[data-topic]').forEach((b) => b.classList.toggle('on', b === t)); });
 document.addEventListener('submit', async (e) => {
@@ -331,11 +360,12 @@ document.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = f.email.value.trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast(T.bizBadEmail); f.email.focus(); return; }
-  if (!(await needFan('contact'))) return;
+  if (!(await bizSignIn())) return;
   const btn = f.querySelector('button:not([data-topic])');
   btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
   try {
-    await call('request', { kind: 'business', name: f.name.value.trim(), company: f.company.value.trim(), contact: email, text: f.text.value.trim(),
+    const phone = f.phone ? f.phone.value.trim() : '';
+    await call('request', { kind: 'business', name: f.name.value.trim(), company: f.company.value.trim(), contact: email, text: f.text.value.trim() + (phone ? `\n\nטלפון: ${phone}` : ''),
       topic: f.querySelector('[data-topic].on')?.dataset.topic || '' });
     track('request', 'business');
     f.innerHTML = `<div class="rqs-done">${I.check}<h2>${esc(T.bizDone)}</h2><p>${esc(T.bizDoneSub)}</p></div>`;

@@ -674,10 +674,18 @@ async function request(d, auth, ip) {
   const subject = kind === 'bug' ? `שלומיוורס | משהו לא עובד${doc.nick ? ' · ' + doc.nick : ''}`
     : kind === 'business' ? `שלומיוורס | שיתוף פעולה · ${doc.company || doc.name || 'עסק'}${doc.topic ? ' · ' + doc.topic : ''}`
     : kind === 'video' ? `שלומיוורס | מחפשים סרטון${doc.nick ? ' · ' + doc.nick : ''}` : `שלומיוורס | פנייה${doc.nick ? ' · ' + doc.nick : ''}`;
-  const where = kind === 'bug' ? 'דיווח תקלה' : kind === 'business' ? 'מעמוד העסקים' : d.from === 'community' ? 'מעמוד הקהילה' : 'דרך המדריך בצ׳אט';
+  const where = kind === 'bug' ? 'דיווח תקלה' : kind === 'business' ? 'מטופס העסקים' : d.from === 'community' ? 'מעמוד הקהילה' : 'דרך המדריך בצ׳אט';
   const body = [...(kind === 'bug' ? [`${doc.page}`, `${doc.ua} · ${doc.screen}`, ...(doc.errors.length ? ['שגיאות: ' + doc.errors.join(' | ')] : []), ''] : []),
     ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
     `חשבון Google: ${doc.email}${doc.nick ? ` · בשלומיוורס: ${doc.nick}` : ''}`, '', `${where} · ${new Date().toISOString()} · ${ref.id}`].join('\n');
+  // a business inquiry also reaches him as a Mind task, waiting for him (his ask 2026-11-10: "a form I get a notification on")
+  if (kind === 'business' && !LOCAL) {
+    try {
+      const { addItem, updateItem } = require('./mind')._mind;
+      const it = await addItem({ text: `פנייה עסקית: ${doc.company || doc.name || contact}${doc.topic ? ' · ' + doc.topic : ''}`, body, type: 'task', project: 'BoostMind', tags: ['business'] }, 'פנייה עסקית');
+      await updateItem(it.id, { status: 'waiting', note: `${doc.name || ''} ${doc.company ? '(' + doc.company + ')' : ''} - ${contact}`.trim() }, 'פנייה עסקית');
+    } catch (e) { console.error('business -> mind', e.message); }
+  }
   if (LOCAL) console.log('[local] request mail not sent:', subject, '\n' + body);
   else {
     try {
