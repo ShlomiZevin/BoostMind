@@ -67,6 +67,21 @@ node tools/oai-image.js --model sunburst --size 1088x1920 --quality high \
 ```
 Run the stories in parallel (`&` ... `wait`). Up to ~5 references work well.
 
+**A story he posts with a link sticker** (his rule, 10 Nov 2026 - the Deadlock story took four rounds):
+- **The link box's centre sits ~25% from the bottom** (about y 1420-1540 of 1920), never lower - low on the screen the
+  sticker is hard to see and Instagram's reply bar covers it. Leave that band empty in the prompt and draw the box
+  (a dashed rounded frame, nothing inside) yourself, exactly.
+- **Let GPT image paint the whole poster, its words included** (title, the character's line, a short line) - its
+  typography is good and one painted poster looks far calmer than code text stacked over a picture. Only the brand
+  (logo, two-colour wordmark, URL) and the link box are laid over it in code.
+- **Few elements, room between them**: picture, one line from the character, one short line, the box, the brand. Every
+  extra line made it "a mess". A prefix before the wordmark ("משחק חדש ב-") goes on its own small line, never glued to it.
+- **Shlomiverse branding** = the planet logo (`v2/site/verse/logo-512.png`) + the wordmark "שלומי" white, "וורס"
+  #ff6a1f (weight 900, as `.vx-wordmark` in verse.css) + shlomiverse.com.
+- **Characters are painted from their real photos, at their real age and attitude** - a stylised painting from an
+  earlier painting drifts toward a cute kid (round baby face, tiny chubby hands). Reference the real photo and say who
+  they are (a grown-up geek, skeptical) in the prompt.
+
 **Then proofread every word at full size** (crop + zoom the headline). The model slips on single letters (it wrote
 עכשין for עכשיו twice). Fix with an **edit pass on that same image**: ref = the image, prompt = "keep everything exactly,
 change only <the word>: <what the letter must be and why it is wrong now>". That fixed it in one go where re-generating

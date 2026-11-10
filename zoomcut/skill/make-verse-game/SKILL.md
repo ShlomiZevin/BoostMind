@@ -255,6 +255,10 @@ spot / try).
   the picture's own words, checked with `scripts/stories/preview.mjs`, posted with `scripts/story.mjs --test` first.
   `"everyone": true` only when he says so. Never on Shabbat.
 - If he wants it on Instagram too, a version with the button lifted out of Instagram's bottom zone.
+- An Instagram story poster he posts with a link sticker: follow `marketing-stories` "A story he posts with a link
+  sticker" - GPT image paints the poster with its words, the empty link box's centre ~25% from the bottom (never lower),
+  Shlomiverse logo + two-colour wordmark + URL laid on in code, few elements, the character painted from the real photo
+  at their real age (Deadlock, 10 Nov 2026: four rounds).
 
 ## 10. Remember it
 At the end of the session: a memory note for the game (where it is, its rules, how to update it), and if a lesson is
