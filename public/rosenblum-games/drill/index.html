@@ -47,8 +47,10 @@ button{font-family:inherit;border:0;cursor:pointer}
 #say:before{content:"";position:absolute;right:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-left-color:var(--chalk);border-right:0}
 #say.quiet{opacity:.0}
 #stats{flex:none;display:grid;grid-template-columns:auto auto;gap:3px}
-#timer{grid-column:1 / 3}
-.stat{background:#0b1a29cc;color:#fff;border-radius:8px;padding:1px 6px;font-weight:900;font-size:13px;height:calc((var(--topH) - 13px) / 2);display:flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;direction:ltr}
+#bTip{border:0;font-family:inherit;cursor:pointer;background:#e0a51c;color:#3a2500;font-size:12px}
+#bTip small{font-size:11px;font-weight:900;opacity:1}
+@media (max-width:350px){#bTip small{display:none}.stat{font-size:12px!important}.stat img{width:13px;height:13px}}
+.stat{background:#0b1a29cc;gap:3px!important;padding:1px 5px!important;color:#fff;border-radius:8px;padding:1px 6px;font-weight:900;font-size:13px;height:calc((var(--topH) - 13px) / 2);display:flex;align-items:center;gap:5px;justify-content:center;white-space:nowrap;direction:ltr}
 .stat img{width:15px;height:15px}
 .stat small{font-size:10px;font-weight:700;opacity:.8;direction:rtl}
 #lost.over{background:#b3261ecc}
@@ -150,6 +152,7 @@ canvas{position:absolute;display:block;touch-action:none}
     <img id="head" src="assets/headTalk.webp" alt="המורה רוזנבלום">
     <div id="say"></div>
     <div id="stats">
+      <button class="stat" id="bTip" aria-label="רמז">💡<small>רמז</small></button>
       <div class="stat" id="timer"><img src="assets/icTimer.webp" alt=""><span id="tval">2:30</span></div>
       <div class="stat" id="count"><img src="assets/icIn.webp" alt=""><span id="cval">0/23</span></div>
       <div class="stat" id="lost"><img src="assets/icLost.webp" alt=""><span id="lval">0/6</span></div>
@@ -157,7 +160,7 @@ canvas{position:absolute;display:block;touch-action:none}
     <button id="bRestartTop" class="roundctl" aria-label="מההתחלה"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 8 8h-3a5 5 0 1 1-5-5v3l5-4.5L12 1z"/></svg></button>
     <button id="bPause" aria-label="עצירה"><img src="assets/btnPause.webp" alt=""></button>
   </div>
-  <div id="stage"><canvas id="cv"></canvas><button id="bTip" class="roundctl tipb" aria-label="רמז">💡</button></div>
+  <div id="stage"><canvas id="cv"></canvas></div>
   <div id="bar">
     <div id="orders">
       <button class="ord" data-o="stop"><b>2</b><img src="assets/btnStop.webp" alt=""><span>עצור</span></button>
@@ -242,6 +245,6 @@ canvas{position:absolute;display:block;touch-action:none}
 <div id="tut" hidden><div id="spot"></div><div id="tcard"></div></div>
 <div id="rotate">סובבו את הטלפון לאורך 📱</div>
 
-<script src="game.js?v=10"></script>
+<script src="game.js?v=13"></script>
 </body>
 </html>

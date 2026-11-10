@@ -83,7 +83,7 @@ const ORDER_NAME = { stop: 'עצור!', guide: 'הכוונה!', bridge: 'גשר!
 // ---------- assets ----------
 const IMG = {}, SPR = {};
 const imgNames = ['pairA', 'pairB', 'pairC', 'shahar', 'omer', 'block', 'build', 'open', 'fall', 'cheer', 'turn', 'sad', 'reut', 'reutKids', 'rosen',
-  'doorClass', 'doorWc', 'doorYard', 'doorShelter', 'doorLocked', 'stairs', 'cone', 'chair', 'ball', 'board', 'lockers', 'plant', 'exitSign'];
+  'doorClass', 'doorWc', 'doorYard', 'doorShelter', 'doorLocked', 'stairs', 'cone', 'chair', 'ball', 'btnStop', 'btnGuide', 'btnBridge', 'btnStairs', 'btnOpen', 'board', 'lockers', 'plant', 'exitSign'];
 function loadImg(n, src) { return new Promise((r) => { const i = new Image(); i.onload = () => { IMG[n] = i; r(); }; i.onerror = () => r(); i.src = src; }); }
 const ready = fetch('assets/sprites.json').then((r) => r.json()).then((m) => { Object.assign(SPR, m); return Promise.all([
   ...imgNames.map((n) => loadImg(n, 'assets/' + n + '.webp')),
@@ -333,7 +333,7 @@ function stepMischief(dt) {
   const wc = L.zones.find((z) => z.t === 'wc');
   L.mischT -= dt;
   if (L.mischT <= 0 && wc && wc.f !== L.ex.f) {   // never on the shelter floor: a runner there is already at the finish
-    const can = walkers.filter((w) => w.st === 'walk' && !w.ramp && !w.mis && floorOf(w) === wc.f && Math.abs(w.x - wc.x) > Math.max(150, W * 0.45) && w.kind !== 'shahar');
+    const can = walkers.filter((w) => w.st === 'walk' && !w.armed && !w.ramp && !w.mis && floorOf(w) === wc.f && Math.abs(w.x - wc.x) > Math.max(150, W * 0.45) && w.kind !== 'shahar');
     if (can.length) {
       const w = can[Math.floor(Math.random() * can.length)];
       w.mis = { t: 0, door: wc, d0: w.d, dist: Math.abs(w.x - wc.x) }; play('tap', 0.6);
@@ -400,11 +400,11 @@ function give(w, o) {
   if (w.st !== 'walk') { hint('הזוג הזה כבר עסוק'); return false; }
   if ((o === 'bridge' || o === 'open' || o === 'stairs') && w.armed) { hint('הזוג הזה כבר קיבל הוראה'); return false; }
   if ((o === 'stop' || o === 'guide') && w.ramp) { hint('לא עוצרים על המדרגות'); return false; }
-  L.left[o]--; w.flash = 0.5;
-  if (o === 'stop') { w.st = 'block'; w.t = 0; w.mis = null; play('stop'); if (Math.random() < 0.5) say('עצור! עצור! כולם לעצור!', 'angry', 1600); }
-  if (o === 'guide') { w.st = 'guide'; w.gd = -w.d; w.d = w.gd; w.t = 0; w.mis = null; play('stop', 0.7); if (Math.random() < 0.5) say('יפה. אתה מראה לכולם את הדרך. כולם אחריו!', 'talk', 1800); }
+  L.left[o]--; w.flash = 0.5; w.jobPop = 0.9;
+  for (let i = bubbles.length - 1; i >= 0; i--) if (bubbles[i].w === w) bubbles.splice(i, 1);
+  if (o === 'stop') { w.st = 'block'; w.t = 0; w.mis = null; play('stop'); }
+  if (o === 'guide') { w.st = 'guide'; w.gd = -w.d; w.d = w.gd; w.t = 0; w.mis = null; play('stop', 0.7); }
   if (o === 'bridge' || o === 'open' || o === 'stairs') { w.armed = o; play('tap'); }
-  if (w.kind === 'omer' && !L.lines.omer) { L.lines.omer = 1; bubble('omer', 'אבל המורה, זה חשוב!'); setTimeout(() => say('עומר! אני לא צריך שתעזור לי לנהל את האירוע!', 'angry', 2400), 1100); }
   renderOrders();
   return true;
 }
@@ -443,6 +443,7 @@ let sayT = 0;
 function say(text, mood = 'talk', ms = 2600) {
   const el = $('#say'); el.textContent = text; el.classList.remove('quiet');
   for (const px of [14, 13, 12, 11, 10, 9]) { el.style.fontSize = px + 'px'; if (el.scrollHeight <= el.clientHeight + 1) break; }
+  if (el.scrollHeight > el.clientHeight + 1) { el.textContent = text.split(/(?<=[!?.])\s/)[0]; el.style.fontSize = '11px'; }
   $('#head').src = 'assets/head' + { talk: 'Talk', angry: 'Angry', shock: 'Shock' }[mood] + '.webp';
   clearTimeout(sayT); sayT = setTimeout(() => { $('#head').src = 'assets/headTalk.webp'; }, ms);
 }
@@ -553,6 +554,7 @@ function draw() {
   for (const t of fx) { ctx.globalAlpha = Math.max(0, 1 - t.t / 1.6); ctx.font = '900 11px Rubik'; ctx.lineWidth = 3; ctx.strokeStyle = '#000a'; ctx.strokeText(t.text, t.x, t.y - t.t * 12); ctx.fillStyle = t.color; ctx.fillText(t.text, t.x, t.y - t.t * 12); }
   ctx.globalAlpha = 1;
   for (const b of bubbles) drawBubble(b);
+  for (const w of walkers) drawJob(w);
 }
 function flight(r, n, fill, edge, rail, upto = n) {
   const pts = [];
@@ -593,8 +595,6 @@ function drawWalker(w) {
   else { ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 11, 3, 0, 0, 7); ctx.fill(); }
   const hop = w.hop > 0 ? Math.sin((0.45 - w.hop) / 0.45 * Math.PI) * 9 : 0;
   sprite(name, fr, w.x, w.y + 1 - hop, H2, flip, a);
-  if (w.st === 'block') { ctx.fillStyle = '#e2483d'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 9, 0, 7); ctx.fill(); ctx.font = '11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('✋', w.x, w.y - KID - 6); }
-  if (w.st === 'guide') { ctx.fillStyle = '#2f7fd6'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 9, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '900 12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(w.gd < 0 ? '◀' : '▶', w.x, w.y - KID - 6); }
   if (w.mis) {
     const left = w.mis.go ? Math.max(0, Math.abs(w.x - w.mis.door.x) / w.mis.dist) : 1;
     ctx.strokeStyle = '#ffffffaa'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 14, 0, 7); ctx.stroke();
@@ -605,8 +605,24 @@ function drawWalker(w) {
     ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('🚽', w.x, w.y - KID - 6);
   }
   if (false) { const bx = w.x + w.d * 14, by = w.y - 4 - Math.abs(Math.sin(w.t * 9)) * 10; prop('ball', bx, by + 4, 8); }
-  if (w.armed) { ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 8, 9, 0, 7); ctx.fill(); ctx.fillText({ bridge: '🪑', open: '🚪', stairs: '🪜' }[w.armed], w.x, w.y - KID - 3.5); }
   if (w.kind === 'shahar' && active(w)) { ctx.fillStyle = '#ffd77a'; ctx.font = '900 9px Rubik'; ctx.textAlign = 'center'; ctx.fillText('שחר', w.x, w.y - KID - 3); }
+}
+// jobs are drawn above everything (even speech): the job's own button picture over the head; a pop when it is given
+const JOB_IMG = { block: 'btnStop', guide: 'btnGuide', bridge: 'btnBridge', stairs: 'btnStairs', open: 'btnOpen', build: 'btnBridge' };
+function drawJob(w) {
+  if (!active(w)) return;
+  const job = w.armed || (w.st === 'block' ? 'block' : w.st === 'guide' ? 'guide' : w.st === 'build' ? 'build' : w.st === 'stairs' ? 'stairs' : w.st === 'open' ? 'open' : null);
+  if (!job) return;
+  const im = IMG[JOB_IMG[job]]; if (!im) return;
+  const pop = w.jobPop > 0 ? w.jobPop / 0.9 : 0, r = 11 + 9 * pop, cy = w.y - KID - 12 - 8 * pop;
+  ctx.drawImage(im, w.x - r, cy - r, r * 2, r * 2);
+  if (job === 'guide') { ctx.fillStyle = '#fff'; ctx.font = '900 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(w.gd < 0 ? '◀' : '▶', w.x + (w.gd < 0 ? -r - 6 : r + 6), cy + 4); }
+  if (pop > 0) {
+    const t = { block: 'עצור', guide: 'הכוונה', bridge: 'גשר', stairs: 'מדרגות', open: 'פתח', build: 'גשר' }[job];
+    ctx.font = '900 12px Rubik'; const tw = ctx.measureText(t).width + 14;
+    ctx.globalAlpha = Math.min(1, pop * 2); ctx.fillStyle = '#1a3149'; ctx.beginPath(); ctx.roundRect(w.x - tw / 2, cy - r - 20, tw, 18, 8); ctx.fill();
+    ctx.fillStyle = '#ffd76a'; ctx.textAlign = 'center'; ctx.fillText(t, w.x, cy - r - 7); ctx.globalAlpha = 1;
+  }
 }
 function drawBubble(b) {
   let x, y;
@@ -800,12 +816,13 @@ function frame(t) {
     while (acc >= 1 / 60) { step(1 / 60); acc -= 1 / 60; }
   }
   for (const f of fx) f.t += dt; for (let i = fx.length - 1; i >= 0; i--) if (fx[i].t > 1.6) fx.splice(i, 1);
+  if (walkers) for (const w of walkers) if (w.jobPop > 0) w.jobPop -= dt;   // real time, so the pop shows at any speed
   for (const b of bubbles) b.t += dt; for (let i = bubbles.length - 1; i >= 0; i--) if (bubbles[i].t > 3.2) bubbles.splice(i, 1);
   hud(); draw();
 }
 function hud() {
   const s = Math.max(0, Math.ceil(L.timeLeft / BASE));
-  $('#tval').textContent = '⏱ ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  $('#tval').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   $('#timer').classList.toggle('low', s <= 20 && !L.over);
   $('#cval').textContent = L.saved + '/' + L.quota;
   $('#count').style.background = L.saved >= L.quota ? '#2fa457cc' : '';
