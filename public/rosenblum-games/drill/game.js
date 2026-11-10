@@ -44,7 +44,7 @@ const LEVELS = [
   { name: 'מדרגות משולחנות', text: 'שתי קומות בלי מדרגות. בונים לבד.', quota: 27, time: 150,
     orders: { stairs: 2 }, mischief: { every: 14 },
     slabs: [[0, 8, 200], [1, 140, 352], [2, 8, 220], [3, 8, 352]], ramps: [[0, 200, 1, 100]],
-    zones: [['wc', 3, 60, 1]], start: [0, 40, 1], exit: [3, 180] },
+    zones: [['wc', 1, 335, 1]], start: [0, 40, 1], exit: [3, 180] },
   { name: 'דלת נעולה', text: 'דלת נעולה, והחצר מאחור. מהר!', quota: 27, time: 120,
     orders: { open: 1 }, mischief: { every: 13 },
     slabs: [[0, 8, 120], [1, 8, 260], [2, 100, 352], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 260, 1, 90], [2, 100, -1, 90]],
@@ -56,7 +56,7 @@ const LEVELS = [
   { name: 'זה לא תהלוכה', text: 'חצר, חור וקצה. שלוש הוראות, אחת מכל סוג.', quota: 25, time: 160,
     orders: { guide: 1, bridge: 1, stairs: 1 }, mischief: { every: 13 },
     slabs: [[0, 110, 352], [1, 8, 180], [1, 240, 262], [2, 150, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90]],
-    zones: [['yard', 0, 322], ['wc', 3, 300, 1]], start: [0, 200, 1], exit: [3, 200] },
+    zones: [['yard', 0, 322], ['wc', 2, 345, 1]], start: [0, 200, 1], exit: [3, 200] },
   { name: 'לא מטיילים באמצע השיירה', text: 'חור, ורעות למטה.', quota: 25, time: 180,
     orders: { bridge: 1, stop: 2 }, mischief: { every: 13 },
     slabs: [[0, 100, 352], [1, 8, 200], [2, 140, 352], [3, 8, 352]], ramps: [[0, 100, -1, 90], [1, 262, 1, 90], [2, 140, -1, 100]],
@@ -326,7 +326,7 @@ const WARN = 0.8, RUN = 1.6;   // a runner starts far from the toilets and is ca
 function stepMischief(dt) {
   const wc = L.zones.find((z) => z.t === 'wc');
   L.mischT -= dt;
-  if (L.mischT <= 0 && wc) {
+  if (L.mischT <= 0 && wc && wc.f !== L.ex.f) {   // never on the shelter floor: a runner there is already at the finish
     const can = walkers.filter((w) => w.st === 'walk' && !w.ramp && !w.mis && floorOf(w) === wc.f && Math.abs(w.x - wc.x) > Math.max(150, W * 0.45) && w.kind !== 'shahar');
     if (can.length) {
       const w = can[Math.floor(Math.random() * can.length)];
