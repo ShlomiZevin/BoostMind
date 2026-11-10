@@ -74,9 +74,13 @@ const setWaiting = (id: string, on: boolean) => {
 };
 const HOLD_MAX = 12;  // frames a row keeps its last frame for another (then it goes - never a stuck picture)
 const PRE = 8;        // frames before its cut a waiting copy starts playing (hidden), so it comes in already running
-// drift while playing: within 2 frames nothing; up to 0.5 s the copy runs a little faster / slower until it is back
-// (a seek is a visible jump); past 0.5 s (a jump, a slow page) it seeks
-const DEAD = 2, JUMP = 0.5;
+// drift while playing: within 2 frames nothing; a little off = the copy runs a little faster / slower until it is back
+// (a seek is a visible jump); past 0.5 s (a jump, a slow page) it seeks. Two limits (2026-11-10, rosenblum-1-v3 at
+// 1.4x: a frozen picture with the sound running, the last short pieces wrong): the speed-up stays within 25% (at a fast
+// project speed 1.5x of it asked the PC to decode a cut-out at 2.1x - it fell further behind), and a piece that can't be
+// caught up before it ends (a short one, near its end) seeks - catching up 0.25 s a second, a lag over a quarter of
+// what's left of it never closes
+const DEAD = 2, JUMP = 0.5, CATCH = 0.25;
 
 // lag: drawn that many frames back (the Ghost trail effect lays such a copy over the picture - its own copies)
 export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; lag?: number }> = ({ p, layer, backdrop, lag = 0 }) => {
@@ -139,9 +143,10 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
         const still = A.rate === 0;  // a held frame (rate 0): the copy waits on it
         const off = el.currentTime - want;
         if (playing && !still) {
-          if (!el.seeking && Math.abs(off) > JUMP) { el.currentTime = want; el.playbackRate = r; }
+          const left = (A.from + A.dur - f) / fps / Math.max(0.1, rate);  // (seconds of this piece still to play)
+          if (!el.seeking && Math.abs(off) > Math.min(JUMP, Math.max(DEAD / fps, left * CATCH))) { el.currentTime = want; el.playbackRate = r; }
           else {  // (a little behind / ahead: catch up by speed, never a jump)
-            const k = Math.abs(off) * fps <= DEAD ? 1 : Math.min(1.5, Math.max(0.5, 1 - off * 1.5));
+            const k = Math.abs(off) * fps <= DEAD ? 1 : Math.min(1 + CATCH, Math.max(1 - CATCH, 1 - off * 1.5));
             if (Math.abs(el.playbackRate - r * k) > 0.005) el.playbackRate = r * k;
           }
           if (el.paused) el.play().catch(() => {});
