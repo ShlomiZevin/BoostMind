@@ -67,6 +67,8 @@ const IDEA_COPY = {
 };
 // the video they asked the guide for was found (requestFound)
 const FOUND_COPY = { title: 'מצאנו את הסרטון', body: 'הסרטון שחיפשתם בשלומיוורס: {title}' };
+// a post he (later anyone) asked for from the Instagram archive is in the verse now (wishFound)
+const WISH_COPY = { title: 'הסרטון שביקשתם עלה', body: 'ביקשתם אותו מהארכיון, ועכשיו הוא בשלומיוורס: {title}' };
 const COMMENT_MAX = 500;
 const REGION = 'europe-west1';
 // techytech.web.app too: its job form signs up by email through emailCode / emailIn (site-signin.js, 2026-11-06)
@@ -536,6 +538,39 @@ const ops = {
     return { ok: true, votes: r.n };
   },
 
+  // the Instagram archive (/archive/, insta-to-verse's page, 2026-11-10): a mark on an old post = "bring this one into the verse".
+  // His account only until verseMeta/archive {open: true}. wishes/<ig> = the public count; who asked stays private
+  // (wishVoters/<ig>) and hears once when it's in (wishFound); fans/<uid>/wishes/<ig> = their own marks.
+  async wish(uid, d, auth) {
+    const ig = String(d.ig || '');
+    if (!/^\d{5,30}$/.test(ig)) fail('invalid-argument', 'ig');
+    if (!isOwner(auth) && !((await db.collection('verseMeta').doc('archive').get()).data() || {}).open) fail('permission-denied', 'closed');
+    const permalink = /^https:\/\/(www\.)?instagram\.com\/[\w/.-]{1,120}$/.test(String(d.permalink || '')) ? String(d.permalink) : null;
+    const ref = db.collection('wishes').doc(ig), mine = db.collection('fans').doc(uid).collection('wishes').doc(ig);
+    return db.runTransaction(async (tx) => {
+      const [ws, ms] = await Promise.all([tx.get(ref), tx.get(mine)]);
+      const on = d.on !== false, n = (ws.data() || {}).n || 0;
+      if (on === ms.exists) return { ok: true, n, mine: on };
+      if (on && ws.data()?.done) return { ok: true, n, mine: false, done: true, videoId: ws.data().videoId || null };   // already in the verse
+      const now = FieldValue.serverTimestamp();
+      tx.set(ref, { ig, n: FieldValue.increment(on ? 1 : -1), last: now, ...(ws.exists ? {} : { t: now, done: false, videoId: null }),
+        ...(permalink && !ws.data()?.permalink ? { permalink } : {}) }, { merge: true });
+      if (on) tx.set(mine, { t: now }); else tx.delete(mine);
+      tx.set(db.collection('wishVoters').doc(ig), { uids: on ? FieldValue.arrayUnion(uid) : FieldValue.arrayRemove(uid) }, { merge: true });
+      return { ok: true, n: Math.max(0, n + (on ? 1 : -1)), mine: on };
+    });
+  },
+  // the page's marks: mine + how many asked for each open one + which are in the verse already (ig -> video id)
+  async wishes(uid) {
+    const [mine, open, done] = await Promise.all([
+      db.collection('fans').doc(uid).collection('wishes').select().get(),
+      db.collection('wishes').where('done', '==', false).select('n').get(),   // at most ~1,300 posts - filtered here, no index needed
+      db.collection('wishes').where('done', '==', true).select('videoId').get(),
+    ]);
+    return { mine: mine.docs.map((x) => x.id), counts: Object.fromEntries(open.docs.filter((x) => x.data().n > 0).map((x) => [x.id, x.data().n])),
+      done: Object.fromEntries(done.docs.map((x) => [x.id, x.data().videoId || null])) };
+  },
+
   async pushSub(uid, d) {
     const sub = d.sub;
     if (!sub || typeof sub.endpoint !== 'string' || !/^https:\/\//.test(sub.endpoint) || !sub.keys?.p256dh || !sub.keys?.auth) fail('invalid-argument', 'sub');
@@ -821,6 +856,40 @@ async function requestFound(id, vid) {
   return { told: true };
 }
 
+// a wished-for archive post is in the verse (insta-to-verse calls it after publishing; the 15-minute sweep catches the rest -
+// an Instagram video's id in the verse is ig-<media id>). The wish is marked done and everyone who asked hears once.
+async function wishFound(ig, vid) {
+  ig = String(ig || '');
+  const videoId = String(vid || `ig-${ig}`).trim();
+  if (!/^\d{5,30}$/.test(ig)) return { error: 'ig' };
+  if (!idOk(videoId)) return { error: 'video_id' };
+  const v = (await _canon()).videos[videoId];
+  if (!v) return { error: 'video' };
+  const ref = db.collection('wishes').doc(ig), was = await ref.get();
+  if (was.exists && was.data().done) return { told: 0 };
+  await ref.set({ ig, done: true, videoId, doneAt: FieldValue.serverTimestamp(), ...(was.exists ? {} : { n: 0, t: FieldValue.serverTimestamp() }) }, { merge: true });
+  const uids = ((await db.collection('wishVoters').doc(ig).get()).data() || {}).uids || [];
+  if (!uids.length) return { told: 0 };
+  const url = await pageOf(videoId), title = oneLine(v.title, 120);
+  const batch = db.batch();
+  uids.slice(0, 450).forEach((u) => batch.set(db.collection('fans').doc(u).collection('notes').doc(), { kind: 'found', videoId, text: title, asked: 'מהארכיון', poster: v.poster || null, read: false, t: FieldValue.serverTimestamp() }));
+  await batch.commit();
+  await push(uids, { title: WISH_COPY.title, body: WISH_COPY.body.replace('{title}', clip(title, 80)), url, icon: ICON, badge: BADGE, tag: 'wish_' + ig });
+  for (const u of uids.slice(0, 200)) {
+    const [user, fan] = await Promise.all([admin.auth().getUser(u).catch(() => null), db.collection('fans').doc(u).get()]);
+    if (!user?.email) continue;
+    await require('./mailer').reply('verse-found', { email: user.email, name: fan.data()?.name || fan.data()?.nick || '', uid: u, title, link: url })
+      .catch((e) => console.error('wish mail', e.message));
+  }
+  return { told: uids.length };
+}
+async function wishSweep() {
+  const open = await db.collection('wishes').where('done', '==', false).select().get();
+  if (open.empty) return;
+  const videos = (await _canon()).videos;
+  for (const d of open.docs) if (videos[`ig-${d.id}`]) console.log('wish found', d.id, JSON.stringify(await wishFound(d.id).catch((e) => ({ error: e.message }))));
+}
+
 // ---------- Shlomi's page ----------
 const wrongKey = new Map();
 function ownerOk(req, res) {
@@ -975,7 +1044,7 @@ async function autoAnnounce() {
   if (out.length) console.log('auto announce', JSON.stringify(out));
   return { announced: out };
 }
-exports.verseAutoAnnounce = onSchedule({ schedule: 'every 15 minutes', region: REGION, secrets: SECRETS, timeoutSeconds: 120, memory: '512MiB' }, async () => { await autoAnnounce(); });
+exports.verseAutoAnnounce = onSchedule({ schedule: 'every 15 minutes', region: REGION, secrets: SECRETS, timeoutSeconds: 120, memory: '512MiB' }, async () => { await autoAnnounce(); await wishSweep().catch((e) => console.error('wish sweep', e.message)); });
 
 // every account (Firebase Auth) with where it came from - the admin page's people and its numbers
 async function peopleList() {
@@ -1203,6 +1272,21 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       const r = await requestFound(b.id, b.videoId);
       return r.error ? res.status(r.error === 'request' || r.error === 'video' ? 404 : 400).json(r) : res.json({ ok: true, ...r });
     }
+    // the archive's wishes (insta-to-verse reads them to know what to bring): open ones by how many asked, then the oldest;
+    // {done: true} = the ones already brought
+    if (op === 'wishes') {
+      const q = await db.collection('wishes').where('done', '==', b.done === true).get();
+      const ms = (t) => t?.toMillis?.() || null;
+      const rows = q.docs.map((x) => { const w = x.data(); return { ...w, t: ms(w.t), last: ms(w.last), doneAt: ms(w.doneAt) }; }).filter((w) => w.done || w.n > 0)
+        .sort((a, c) => (c.n || 0) - (a.n || 0) || (a.t || 0) - (c.t || 0));
+      return res.json({ open: ((await db.collection('verseMeta').doc('archive').get()).data() || {}).open === true, wishes: rows });
+    }
+    if (op === 'wishFound') {
+      const r = await wishFound(b.ig, b.videoId);
+      return r.error ? res.status(r.error === 'video' ? 404 : 400).json(r) : res.json({ ok: true, ...r });
+    }
+    // the switch that opens the archive's marks to everyone signed in (closed = his account only)
+    if (op === 'wishOpen') { await db.collection('verseMeta').doc('archive').set({ open: b.open === true }, { merge: true }); return res.json({ ok: true, open: b.open === true }); }
     // a new video is up: everyone who follows someone in its cast hears about it, once
     if (op === 'announce') {
       if (!idOk(b.videoId)) return res.status(400).json({ error: 'video' });
@@ -1295,3 +1379,6 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     return res.status(500).json({ error: 'server', message: e.message });
   }
 });
+
+// for scripts/tests: the archive wishes without the callable wrapper
+exports._wish = { wish: (uid, d, auth) => ops.wish(uid, d, auth), wishes: (uid) => ops.wishes(uid), wishFound, wishSweep };
