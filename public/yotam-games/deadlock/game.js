@@ -47,10 +47,42 @@ const LINES = {
   hint: ['תזיז את {n}. בוחרים Victim Process אחד ומשחררים את כולם.', '{n}. משם מתחיל ה-bottleneck.', 'האוטו של {n}. אתה לא יודע מה זה Hold and Wait? זה בדיוק זה.'],
 };
 
+// what each teammate says out of the car window (Terra, 10 Nov): colleagues - polite, never shouting
+const WIN = {
+  erez: {"moved":["יותם, שלח לי מיקום בוואטסאפ.","סבבה, רק בלי שרשור בסלאק.","אני בשיחה, תזיז חופשי."],"bumped":["הכול טוב, זה לא פרודקשן.","ראיתי, נטפל בזה אחרי השיחה.","קטן, כמו באג קוסמטי."],"blocking":["סליחה, יותם, אני מסיים שיחה.","עוד רגע אני מזיז אותה.","שלחתי לעצמי תזכורת בוואטסאפ."]},
+  osnat: {"moved":["יותם, נוח לך להזיז אותה?","בטח, תודה ששאלת קודם.","איך אתה מרגיש עם המסלול הזה?"],"bumped":["הכול בסדר, תודה שבדקת.","זה היה מגע קטן, נכון?","בוא ננשום, הכול טוב."],"blocking":["סליחה, יותם, אני עם מועמדת.","אני זזה מיד, איך אתה מרגיש?","עוד שנייה, מסיימת שיחת גיוס."]},
+  yaniv: {"moved":["רק בלי לגעת בנעילה, בסדר?","מאשר, תחת פיקוח סביר.","ההגה נעול, מטעמי אבטחה."],"bumped":["ראית משהו חשוד בפגוש?","תיעדת את האירוע, במקרה?","הכול בסדר, אבל נבדוק לוגים."],"blocking":["סליחה, מערכת הנעילה מתעדכנת.","אני פותח גישה עוד רגע.","רק אימות דו-שלבי, יותם."]},
+  ido: {"moved":["כן.","תזיז חופשי.","שקט, הכול עובד."],"bumped":["לא נורא.","פגיעה דטרמיניסטית קטנה.","נדבר על זה בפודקאסט."],"blocking":["רגע.","אני זז.","המסלול חסום זמנית."]},
+  tzvika: {"moved":["המקום הזה עבד מאז תשעים ושמונה.","תזיז, אבל תחזיר בדיוק.","זה לא באג, זו מסורת."],"bumped":["הפגוש כבר ראה גרסאות.","קטן, כמו תיקון לגאסי.","אין צורך לפתוח טיקט."],"blocking":["סליחה, זו החניה הקבועה שלי.","אני זז, לפי הנוהל הישן.","רגע, המערכת מתייצבת."]},
+  amir: {"moved":["מהלך טקטי עם ערך ברור.","מבחינתי, זו סינרגיה בחניון.","תזיז, ונייצר מומנטום."],"bumped":["נפיקה מזה למידה ארגונית.","הסיכון היה מחושב היטב.","בוא נמנף את הרגע."],"blocking":["סליחה, אני מייצר צוואר בקבוק.","מיד אפתח נתיב אסטרטגי.","זו חסימה זמנית, לא כיוון."]},
+  ronit: {"moved":["תודה, יותם, בעדינות בבקשה.","מעולה, רק לשמור מרחק.","הרכב נקי, כן?"],"bumped":["הכול בסדר, בוא נבדוק סימנים.","ראית שריטה חדשה אולי?","תודה שעצרת מיד."],"blocking":["סליחה, אני זזה בזהירות.","עוד רגע, אני בודקת מרווחים.","לא רציתי לחסום לך נתיב."]},
+  daniel: {"moved":["בטח, רק הכבל מחובר.","תזיז בעדינות ליד העמדה.","הסוללה איתך, יותם."],"bumped":["הכול טוב, אין נזק לחשמל.","רק לא על שקע הטעינה.","קטן, כמו ירידת אחוז סוללה."],"blocking":["סליחה, הכבל קצת מגביל.","אני מנתק וזז מיד.","רק מסיים טעינה קצרה."]},
+  sagi: {"moved":["שמעת על הקורקינט שלי?","בטח, הוא הרבה יותר זריז.","תזיז, אני כבר כמעט בקורקינט."],"bumped":["הכול טוב, הקורקינט עבר יותר.","שמעת על הקורקינט שלי?","מזל שלא נגעת בקורקינט."],"blocking":["סליחה, הקורקינט מסבך הכול.","אני זז, ממש כמו קורקינט.","שמעת על הקורקינט שלי?"]},
+  gilad: {"moved":["מצוין, יותם, קדימה קדימה.","סומך עליך שתמצא דרך.","כל תנועה מקדמת אותנו."],"bumped":["הכול טוב, קורה לטובים.","תודה על האחריות, יותם.","נלמד ונמשיך קדימה."],"blocking":["סליחה, יותם, מפנים את הדרך.","עוד רגע כולנו יוצאים קדימה.","תודה על הסבלנות והיוזמה."]},
+  ofer: {"moved":["תזיז, אני סוגר דיל.","ה-SUV זמני, באמת.","רק תשמור על המראה."],"bumped":["הכול טוב, נסגור את זה.","קטן, לא שובר עסקה.","ה-SUV בנוי לזה."],"blocking":["סליחה, ה-SUV קצת רחב.","אני זז אחרי השיחה הזאת.","זה זמני, ממש זמני."]},
+  shuttle: {"moved":["תודה, יותם, המועמדים מחכים.","מעולה, זה משפר חוויית מועמד.","בעדינות, יש כאן קורות חיים."],"bumped":["הכול בסדר, אף מועמד לא נבהל.","תודה שבדקת, יותם.","בוא נשמור על חוויה נעימה."],"blocking":["סליחה, המועמדים עולים עכשיו.","עוד רגע מפנים את הנתיב.","אני מסיימת תדריך קצר."]},
+  general: {"moved":["תודה, יותם, זה עזר מאוד.","מעולה, עכשיו יש מעבר.","איזה מזל שאתה כאן."],"bumped":["הכול בסדר, תודה שעצרת.","לא קרה כלום, באמת.","קטן ועדין, ממשיכים."],"blocking":["סליחה על החסימה, זזים מיד.","עוד רגע הדרך פנויה.","תודה על הסבלנות, יותם."]},
+};
+
+// the team chat, #חניון-b2 (Terra, 10 Nov): what they post while the lot is stuck / when Yotam gets out
+const CHAT = {
+  erez: {"start":["יותם, איתך. ממפה את החסימות.","אני עדיין למעלה, יורד אליכם עכשיו."],"done":["יפה יותם, אקסקיושן נקי תחת לחץ.","תודה כולם, זו עבודת צוות אמיתית."]},
+  osnat: {"start":["אוי, נראה שהרכב שלי חלק מהסיפור.","אני בשיחת גיוס, משתדלת לסיים מהר."],"done":["כל הכבוד יותם, איזה קור רוח.","תודה על הסבלנות, צוות נהדר 💛"]},
+  yaniv: {"start":["מישהו בדק שהמחסום לא ננעל מבחוץ?","הרכב שלי נעול, אבל אולי הוא חוסם."],"done":["יציאה מאושרת. לא זיהיתי חריגות אבטחה.","יותם, תודה שלא עקפת את המחסום."]},
+  ido: {"start":["אני עם האוזניות, יורד בעוד דקה.","יכול להיות שהאוטו שלי מאחורי צביקה."],"done":["מעולה, יותם. נחזור לפרק ששמענו.","החניון פתר את עצמו, כמעט כמו API."]},
+  tzvika: {"start":["הרכב שלי שם מאז לפני המיגרציה.","אני מגיע, אבל היציאה הזו תמיד רגישה."],"done":["יפה. לא נגעתם בכלום מיותר.","המערכת הישנה שוב הוכיחה יציבות."]},
+  amir: {"start":["זו הזדמנות ליישר תנועה סביב יעד משותף.","אני עדיין בפגישה, הרכב שלי בחוץ."],"done":["מצוין, הפכנו חסם לתנופת ביצוע.","יותם הוביל מהלך ממוקד תוצאה."]},
+  ronit: {"start":["רשמתי: חסימה זמנית, בעלים בדרך.","בבקשה לא להזיז רכבים ללא תיאום."],"done":["האירוע נסגר ללא נזק, תודה לכולם.","עדכנתי את הרישום. אפשר להמשיך בערב."]},
+  daniel: {"start":["החשמלית שלי עדיין בטעינה, סליחה.","נשארו לה שבע דקות, ואז אזיז."],"done":["הטעינה הסתיימה בדיוק בזמן, מעולה.","יותם, סע בזהירות."]},
+  sagi: {"start":["שמעתם על הקורקינט שלי? יורד איתו עכשיו.","הרכב שלי אולי ליד העמדה, בודק."],"done":["יש! הלקוח הפנימי שלנו יצא מרוצה.","יותם, ספר לכולם איך ניצחת."]},
+  gilad: {"start":["צוות, נפתור את זה ברוח טקי-טק.","אני עוד במשרד, הרכב שלי בחניה."],"done":["אלופים. גם בחניון אנחנו יודעים להתקדם.","יותם, גאה בהתמדה שלך."]},
+  ofer: {"start":["ה-SUV שלי שם, אבל זה זמני.","אני מסיים שיחה ויורד להזיז אותו."],"done":["נהדר, יותם. ה-SUV כבר לא מפריע.","תודה לכולם על גמישות עסקית."]},
+};
+
 // ───────────────────────── sound ─────────────────────────
 const SND = { ctx: null, raw: {}, buf: {}, on: store.get(KEY.snd) !== '0', last: {}, master: null };
-const SFX = ['slide-1', 'slide-2', 'slide-3', 'bump-1', 'bump-2', 'bump-3', 'honk-1', 'honk-2', 'honk-3', 'gate', 'win', 'pick', 'start'];
-for (const n of SFX) fetch(`assets/sfx/${n}.mp3?v=2`).then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { if (b) { SND.raw[n] = b; decode(n); } }).catch(() => {});
+const SFX = [1,2,3,4,5,6,7,8].map((k) => 'slide-' + k).concat([1,2,3,4].map((k) => 'bump-' + k), [1,2,3,4,5].map((k) => 'honk-' + k), [1,2,3,4,5].map((k) => 'window-' + k), ['gate', 'pick-1', 'pick-2', 'start', 'win-1', 'win-2']);
+for (const n of SFX) fetch(`assets/sfx/${n}.mp3?v=3`).then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { if (b) { SND.raw[n] = b; decode(n); } }).catch(() => {});
 function decode(n) {
   if (!SND.ctx || !SND.raw[n] || SND.buf[n]) return;
   const b = SND.raw[n]; SND.raw[n] = null;
@@ -91,6 +123,7 @@ document.addEventListener('visibilitychange', () => { if (!SND.ctx) return; if (
 const IMG = {};
 const img = (k, src) => { const i = new Image(); i.src = src; IMG[k] = i; return i; };
 img('floor', 'assets/floor.jpg');
+img('lobby', 'assets/lobby.jpg?v=1');
 for (const id in TEAM) { img('car-' + TEAM[id].car, `assets/cars/${TEAM[id].car}.webp`); img('face-' + TEAM[id].face, `assets/faces/${TEAM[id].face}.webp`); }
 const POSES = { open: 'assets/yotam-open.webp', explain: 'assets/yotam-explain.webp', sad: 'assets/yotam-sad.webp' };
 for (const k in POSES) img('pose-' + k, POSES[k]);
@@ -107,16 +140,16 @@ function layout() {
   DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   document.body.classList.toggle('turn', W > H * 1.15 && H < 520);
-  const top = cssPx('var(--safe-t)') + 58;
+  const top = cssPx('var(--safe-t)') + 4;
   const stripH = Math.max(76, Math.min(118, H * 0.14));
   document.documentElement.style.setProperty('--stripH', stripH + 'px');
   document.documentElement.style.setProperty('--sayF', (H < 600 ? 14 : W < 360 ? 15 : 17) + 'px');
-  const bottom = H - stripH - 16 - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-b')) || 0);
+  const bottom = H - stripH - 16 - 52 - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-b')) || 0);
   // show the floor from the wall sign down; on short screens crop the wall so the grid stays big
-  const cropTop = Math.max(0, Math.min(300, FL.y0 - 40 - (bottom - top) * 0.25));
+  const cropTop = Math.max(0, Math.min(60, FL.y0 - 40 - (bottom - top) * 0.25));   // never above the sign (y 90)
   const vis = FL.h - cropTop - 70;
   S = Math.min(W / FL.w, (bottom - top) / vis);
-  OX = (W - FL.w * S) / 2; OY = top + ((bottom - top) - vis * S) / 2 - cropTop * S;
+  OX = (W - FL.w * S) / 2; OY = top - cropTop * S;   // pinned to the top; the lobby takes what is left
   CELL = FL.cell * S;
   const gy = OY + (FL.y0 + N * FL.cell) * S;
   $('chip').style.top = Math.min(gy + 4, bottom - 40) + 'px';
@@ -131,6 +164,7 @@ const gy = (r) => OY + (FL.y0 + r * FL.cell) * S;
 let pieces = [], start = null, opt = 0, moves = 0, penalty = 0, lotIdx = 0, lots = [], results = [];
 let state = 'menu', paused = false, tutorial = false, drive = null, hintShow = null, livelockSaid = false;
 let bank = null;
+const dayTeam = new Set();
 fetch('lots.json?v=3').then((r) => r.json()).then((j) => { bank = j; }).catch(() => {});
 
 function dayLots() {
@@ -162,19 +196,26 @@ function syncRC(p) { if (p.h) p.c = p.pos; else p.r = p.pos; }
 
 function loadLot(i) {
   lotIdx = i; const lot = lots[i];
+  clearPeeks();
   pieces = makePieces(lot, `${SLUG}|${today()}|${i}|cars`); opt = lot.opt; moves = 0; penalty = 0; livelockSaid = false; hintShow = null; drive = null;
   start = pieces.map((p) => p.pos);
   hud();
   say(pickNo(LINES.start, 'start'), 'open');
+  const ids = [...new Set(pieces.slice(1).map((p) => p.id))].filter((id) => CHAT[id]);
+  ids.forEach((id) => dayTeam.add(id));
+  chatClear(); if (i === 0) chatMin = 2;
+  const a = pick(ids), b = pick(ids.filter((x) => x !== a));
+  chatLater(1500, a, 'start'); if (b) chatLater(7000, b, 'start');
 }
 function startGame() {
   if (!bank) { setTimeout(startGame, 200); return; }
-  tutorial = false; lots = dayLots(); results = []; state = 'play';
+  tutorial = false; lots = dayLots(); results = []; state = 'play'; dayTeam.clear();
   show(null); showHUD(true); loadLot(0); musicOn(); play('start', .6);
   chip('גררו', 'מכונית לאורכה');
   window.track && window.track('game_start', SLUG);
 }
 function resetLot() {
+  clearPeeks();
   if (state !== 'play' && state !== 'tut') return;
   if (drive) return;
   pieces.forEach((p, i) => { p.pos = start[i]; p.f = null; syncRC(p); });
@@ -260,6 +301,62 @@ function tagAt(i) {
   const hw = d.offsetWidth / 2 + 6; d.style.left = Math.max(hw, Math.min(W - hw, x)) + 'px';
   setTimeout(() => d.remove(), 1700);
 }
+const peeks = [];   // { i, t, dur, side }
+function peek(i, kind) {
+  const p = pieces[i]; if (!p || i === 0 || p.gone) return;
+  const t = TEAM[p.id], L = WIN[p.id] || WIN.general;
+  const text = pickNo(Math.random() < .25 ? WIN.general[kind] : L[kind], p.id + kind);
+  for (let k = peeks.length - 1; k >= 0; k--) if (peeks[k].i === i || peeks.length > 1) { peeks[k].el.remove(); peeks.splice(k, 1); }
+  // the window on the side facing the middle of the board
+  const side = p.h ? (p.r < N / 2 ? 1 : -1) : (p.c < N / 2 ? 1 : -1);
+  const el = document.createElement('div'); el.className = 'peek';
+  el.innerHTML = `<b>${t.name}</b>${text}`;
+  $('fx').appendChild(el);
+  const k = { i, t: 0, dur: 2.6, side, el };
+  peeks.push(k); placePeek(k);
+  play('window', .45);
+}
+function peekHead(k, full) {
+  const p = pieces[k.i], w = (p.h ? p.len : 1) * CELL, h = (p.h ? 1 : p.len) * CELL;
+  const cx = gx(p.c) + w / 2, cy = gy(p.r) + h / 2;
+  const out = Math.min(1, k.t / .25, (k.dur - k.t) / .3);   // slides out, stays, slides back
+  const e = full ? 1 : out <= 0 ? 0 : 1 - (1 - out) ** 3;
+  const reach = CELL * .5;
+  return p.h ? { x: cx, y: cy + k.side * reach * e, e } : { x: cx + k.side * reach * e, y: cy, e };
+}
+function placePeek(k) {
+  const hd = peekHead(k, true), d = CELL * .62, bw = k.el.offsetWidth, hw = bw / 2 + 6;
+  let y = hd.y - d * .55 - 8, x = Math.max(hw, Math.min(W - hw, hd.x));
+  if (y - k.el.offsetHeight < cssPx('var(--safe-t)') + 4) y = hd.y + d * .55 + k.el.offsetHeight + 14;
+  k.el.style.left = x + 'px'; k.el.style.top = y + 'px';
+  k.el.style.setProperty('--tail', Math.max(14, Math.min(bw - 14, hd.x - x + bw / 2)) + 'px');
+}
+function tickPeeks(dt) {
+  for (let k = peeks.length - 1; k >= 0; k--) { const q = peeks[k]; q.t += dt; if (q.t >= q.dur || !pieces[q.i]) { q.el.remove(); peeks.splice(k, 1); } }
+}
+function clearPeeks() { while (peeks.length) peeks.pop().el.remove(); }
+// ───────────────────────── team chat ─────────────────────────
+let chatQ = [], chatMin = 0;
+function placeChat() {
+  // between the lobby floor and Yotam's bubble, beside his head: two messages when there is room, one when tight
+  const c = $('chat'), sr = $('strip').getBoundingClientRect(), head = $('yHead').getBoundingClientRect();
+  const room = (sr.top || H - 170) + Math.max(0, (sr.height - 74) / 2) - 6 - lobbyFloor, list = $('chatList').children;
+  c.style.top = lobbyFloor + 'px';
+  c.style.right = Math.max(10, W - head.left + 6) + 'px';
+  for (let k = 0; k < list.length; k++) list[k].style.display = room < 96 && k < list.length - 1 ? 'none' : '';
+  c.classList.toggle('on', state === 'play' && room >= 52 && list.length > 0);
+}
+function post(id, kind) {
+  const t = TEAM[id], L = CHAT[id] && CHAT[id][kind]; if (!t || !L) return;
+  const m = document.createElement('div'); m.className = 'msg';
+  chatMin = Math.min(59, chatMin + 1 + Math.floor(Math.random() * 3));
+  m.innerHTML = `<img src="assets/faces/${t.face}.webp" alt=""><div><b>${t.name}</b><i>19:${String(chatMin).padStart(2, '0')}</i><br>${pickNo(L, id + 'c' + kind)}</div>`;
+  const list = $('chatList'); list.appendChild(m);
+  while (list.children.length > 2) list.firstElementChild.remove();
+  placeChat();
+}
+function chatLater(ms, id, kind) { const lot = lotIdx; chatQ.push(setTimeout(() => { if (state === 'play' && lotIdx === lot) post(id, kind); }, ms)); }
+function chatClear() { chatQ.forEach(clearTimeout); chatQ = []; $('chatList').innerHTML = ''; placeChat(); }
 function show(id) { document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id)); }
 
 // ───────────────────────── input: drag a car along its length ─────────────────────────
@@ -289,9 +386,9 @@ cv.addEventListener('pointermove', (e) => {
   // pushing into a car: one bump, and Yotam's own car names who blocks him
   const over = want < drag.b.lo - .3 ? drag.b.blockLo : want > drag.b.hi + .3 ? drag.b.blockHi : -2;
   if (over !== -2 && drag.bumped !== (want < drag.b.lo ? -1 : 1)) {
-    drag.bumped = want < drag.b.lo ? -1 : 1; play('bump', .55);
-    if (drag.i === 0 && over >= 0) say(pickNo(LINES.blocked, 'bl').replace('{n}', TEAM[pieces[over].id].name), 'sad', pieces[over].id);
-    else if (over >= 0 && Math.random() < .35) play('honk', .4);
+    drag.bumped = want < drag.b.lo ? -1 : 1; play('bump', .6);
+    if (drag.i === 0 && over >= 0) { say(pickNo(LINES.blocked, 'bl').replace('{n}', TEAM[pieces[over].id].name), 'sad', pieces[over].id); peek(over, 'blocking'); }
+    else if (over > 0) peek(over, 'bumped');
   } else if (over === -2) drag.bumped = 0;
 });
 function endDrag(e) {
@@ -305,7 +402,7 @@ function endDrag(e) {
     play('slide', .7);
     if (hintShow) hintShow = null;
     if (tut.on) tut.event('move', i);
-    if (i !== 0 && Math.random() < .3) say(pickNo(TEAM[p.id].lines, p.id), 'explain', p.id);
+    if (i !== 0) peek(i, 'moved');
     if (!tutorial && !livelockSaid && moves > opt * 2 + 4) { livelockSaid = true; say(pickNo(LINES.livelock, 'll'), 'sad'); }
     hud();
     if (i === 0 && p.pos === N - 2) win();
@@ -316,7 +413,7 @@ cv.addEventListener('pointerup', endDrag);
 cv.addEventListener('pointercancel', endDrag);
 function tapCar(i) {
   const p = pieces[i];
-  tagAt(i); play(i === 0 ? 'pick' : 'honk', i === 0 ? .6 : .45);
+  tagAt(i); play(i === 0 ? 'pick' : 'honk', i === 0 ? .6 : .3);
   if (i === 0) say('זה אני. האוטו הירוק עם הגלקסיה. צריך להביא אותו עד המחסום.', 'open');
   else say(pickNo(TEAM[p.id].lines, p.id), 'explain', p.id);
   if (tut.on) tut.event('tap', i);
@@ -326,6 +423,7 @@ function tapCar(i) {
 function win() {
   drive = { t: 0 }; hintShow = null; chip(null);
   play('gate', .8);
+  if (!tutorial) { const ids = pieces.slice(1).map((p) => p.id).filter((id) => CHAT[id]); if (ids.length) post(pick(ids), 'done'); }
   const total = moves + penalty;
   if (!tutorial) results[lotIdx] = { moves: total, opt };
   const good = total <= opt;
@@ -336,7 +434,7 @@ function afterDrive() {
   if (tut.on) { pieces[0].gone = true; tut.event('win', 0); return; }
   if (lotIdx === 4) return gameOver();
   const r = results[lotIdx];
-  play('win', .6);
+  play('win', .6); clearPeeks();
   $('lotH').textContent = `חניון ${lotIdx + 1} – יצאתי!`;
   $('lotLine').innerHTML = $('bubble').innerHTML.replace(/<div class="who">.*?<\/div>/, '');
   $('lotHead').src = r.moves <= r.opt ? POSES.explain : POSES.open;
@@ -361,6 +459,8 @@ function gameOver() {
   $('overLine').textContent = total === optSum ? '״חמישה חניונים, אפס overhead. אני ה-System Architect של החיים עצמם. רק שאף אחד לא פתח לי ticket.״'
     : '״חמישה חניונים. מחר אותו גרף, ואני כבר יודע איפה ה-bottleneck. זה בסדר, זה בסדר.״';
   dots('overDots', 5);
+  $('overTeam').innerHTML = [...dayTeam].map((id) => `<a href="/c/${id}" target="_top"><img src="assets/faces/${TEAM[id].face}.webp" alt="">${TEAM[id].name}</a>`).join('');
+  chatClear();
   show('over');
   window.track && window.track('game_over', SLUG);
   window.VerseFrame && VerseFrame.score && VerseFrame.score(total);
@@ -384,12 +484,14 @@ function tick(dt) {
   if (drive) { drive.t += dt; if (drive.t > 1.6) afterDrive(); }
   if (hintShow) hintShow.t += dt;
   if (tut.on) tut.update();
+  tickPeeks(dt);
 }
 function draw(time) {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = '#1b2333'; ctx.fillRect(0, 0, W, H);
   const fl = IMG.floor;
   if (fl.complete && fl.naturalWidth) ctx.drawImage(fl, OX, OY, FL.w * S, FL.h * S);
+  drawLobby();
   if (state === 'menu') return;
   // parking lines
   ctx.save();
@@ -419,6 +521,29 @@ function draw(time) {
   // cars, the dragged one last
   const order = pieces.map((_, i) => i).sort((a, b) => (drag && drag.i === a ? 1 : 0) - (drag && drag.i === b ? 1 : 0));
   for (const i of order) drawCar(i, time);
+  for (const k of peeks) drawPeek(k);
+}
+function drawPeek(k) {
+  const p = pieces[k.i], f = IMG['face-' + TEAM[p.id].face], hd = peekHead(k), d = CELL * .62;
+  if (!f.complete || !f.naturalWidth || hd.e <= 0) return;
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3;
+  ctx.beginPath(); ctx.arc(hd.x, hd.y, d / 2 + 2, 0, 7); ctx.fillStyle = '#fff'; ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.beginPath(); ctx.arc(hd.x, hd.y, d / 2, 0, 7); ctx.clip();
+  ctx.drawImage(f, hd.x - d / 2, hd.y - d / 2, d, d); ctx.restore();
+}
+// the Techy-Tech lobby (elevator up to the office, badge reader, charger, Sagi's scooter) fills the space under the board
+let lobbyFloor = 0;   // where the lobby's floor starts on screen (the chat card sits there)
+function drawLobby() {
+  const lb = IMG.lobby, y0 = Math.round(OY + (FL.h - 8) * S);
+  if (!lb.complete || !lb.naturalWidth || y0 >= H) return;
+  const ih = lb.naturalHeight - 30, sc = Math.min(Math.max(W / lb.naturalWidth, (H - y0) / ih), 1.3 * W / lb.naturalWidth), dw = lb.naturalWidth * sc, dh = ih * sc;
+  ctx.drawImage(lb, 0, 30, lb.naturalWidth, ih, (W - dw) / 2, y0, dw, dh);
+  const lf = Math.round(y0 + (lb.naturalHeight * 345 / 768 - 30) * sc + 6);
+  if (lf !== lobbyFloor) { lobbyFloor = lf; placeChat(); }
+  // a tall phone: the lobby floor goes on down to the bottom
+  if (y0 + dh < H) ctx.drawImage(lb, 0, lb.naturalHeight - 120, lb.naturalWidth, 120, (W - dw) / 2, y0 + dh - 1, dw, H - y0 - dh + 1);
+  const g = ctx.createLinearGradient(0, y0, 0, y0 + 14); g.addColorStop(0, 'rgba(0,0,0,.45)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, y0, W, 14);
 }
 function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 function drawGate() {
@@ -453,7 +578,7 @@ function drawCar(i, time) {
   ctx.restore();
   // the owner's face on the roof, always upright
   const f = IMG['face-' + t.face];
-  if (f.complete && f.naturalWidth) {
+  if (f.complete && f.naturalWidth && !peeks.some((k) => k.i === i && peekHead(k).e > .15)) {
     const d = CELL * (i === 0 ? .6 : .52);
     const fx = x + w / 2 + (p.h ? (p.flip ? 1 : -1) * CELL * .18 * p.len / 2 : 0), fy = y + h / 2 + (p.h ? 0 : (p.flip ? 1 : -1) * CELL * .18 * p.len / 2);
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 6;
@@ -473,7 +598,7 @@ $('pauseBtn').onclick = () => {
   paused = true; musicOff(); SND.ctx && SND.ctx.suspend(); show('paused');
 };
 $('resumeBtn').onclick = () => { paused = false; SND.ctx && SND.ctx.resume(); show(null); if (state === 'play') musicOn(); };
-$('quitBtn').onclick = () => { musicOff(); paused = false; SND.ctx && SND.ctx.resume(); state = 'menu'; tut.end(true); showHUD(false); showBest(); show('start'); };
+$('quitBtn').onclick = () => { musicOff(); paused = false; SND.ctx && SND.ctx.resume(); state = 'menu'; clearPeeks(); chatClear(); tut.end(true); showHUD(false); showBest(); show('start'); };
 addEventListener('keydown', (e) => {
   if (tut.on && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); tut.next(); }
   else if (tut.on && e.key === 'Escape') tut.end();
@@ -501,7 +626,7 @@ const tut = {
   on: false, i: 0, wait: null,
   cur() { return this.on ? STEPS[this.i] : null; },
   begin() {
-    show(null); showHUD(true); state = 'tut'; tutorial = true; this.on = true; this.i = 0;
+    clearPeeks(); show(null); showHUD(true); state = 'tut'; tutorial = true; this.on = true; this.i = 0;
     pieces = TUT_LOT.p.map(([r, c, len, h], k) => ({ r, c, len, h: !!h, id: TUT_IDS[k], flip: false, pos: h ? c : r, f: null }));
     start = pieces.map((p) => p.pos); opt = TUT_LOT.opt; moves = 0; penalty = 0; drive = null; hintShow = null; chip(null);
     hud(); $('tutCard').classList.add('on'); this.enter();
@@ -543,7 +668,7 @@ const tut = {
     // the card sits away from the spotlight: under the HUD when the spot is low, above the strip when it is high
     const card = $('tutCard'), low = sp && sp.y + sp.h / 2 > H * .5;
     card.style.top = low ? 'calc(var(--safe-t) + 60px)' : 'auto';
-    card.style.bottom = low ? 'auto' : `calc(var(--safe-b) + var(--stripH) + 20px)`;
+    card.style.bottom = low ? 'auto' : `calc(var(--safe-b) + var(--stripH) + 72px)`;
     if (w && w.done && !w.shown) { w.shown = true; $('tutText').innerHTML = s.text + ' <span class="ok">יופי!</span>'; chip(null); }
     $('tutNext').disabled = !!(w && !w.done);
   },
@@ -560,5 +685,6 @@ window.DEADLOCK = {
   solve: () => solveFirst(),
   // slide car i to pos as a real move (tests)
   move(i, to) { const p = pieces[i], b = bounds(i); if (to < b.lo || to > b.hi || to === p.pos) return false; p.pos = to; syncRC(p); moves++; hud(); if (i === 0 && to === N - 2) win(); return true; },
+  get signBottom() { return OY + 220 * S - cssPx('var(--safe-t)'); }, get peeks() { return peeks.map((k) => ({ id: pieces[k.i].id, text: k.el.textContent })); },
   skipDrive() { if (drive) drive.t = 9; },
 };

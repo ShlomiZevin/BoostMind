@@ -33,7 +33,7 @@ button{font-family:inherit;border:0;cursor:pointer}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 /* HUD */
-#hud{position:fixed;top:calc(var(--safe-t) + 8px);left:8px;right:8px;max-width:600px;margin:0 auto;display:none;align-items:center;gap:6px;z-index:3}
+#hud{position:fixed;bottom:calc(var(--safe-b) + 8px);left:8px;right:8px;max-width:600px;margin:0 auto;display:none;align-items:center;gap:6px;z-index:3}
 #hud.on{display:flex}
 .ibtn{width:44px;height:44px;border-radius:14px;background:#0f1d3acc;display:grid;place-items:center;flex:none;color:#fff;font-size:22px;font-weight:900}
 .ibtn svg{width:24px;height:24px;fill:#fff}
@@ -48,7 +48,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #resetBtn{background:#b45309e6}
 
 /* Yotam's strip at the bottom */
-#strip{position:fixed;left:8px;right:8px;bottom:calc(var(--safe-b) + 8px);max-width:600px;margin:0 auto;display:none;align-items:flex-end;gap:8px;z-index:2;pointer-events:none;height:var(--stripH,104px)}
+#strip{position:fixed;left:8px;right:8px;bottom:calc(var(--safe-b) + 60px);max-width:600px;margin:0 auto;display:none;align-items:flex-end;gap:8px;z-index:2;pointer-events:none;height:var(--stripH,104px)}
 #strip.on{display:flex}
 #yHead{height:100%;width:auto;flex:none;filter:drop-shadow(0 4px 8px #0008)}
 #bubble{flex:1;min-width:0;align-self:center;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:7px 12px;font-size:var(--sayF,17px);font-weight:700;line-height:1.28;box-shadow:0 4px 0 #0f1d3a55;position:relative;opacity:.0;transform:scale(.94);transition:opacity .15s,transform .15s}
@@ -61,6 +61,29 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #chip{position:fixed;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:8px;background:#0f1d3ae6;color:#fff;font-weight:900;font-size:16px;padding:8px 16px;border-radius:22px;white-space:nowrap;z-index:2;pointer-events:none}
 #chip.on{display:flex}
 #chip em{font-style:normal;background:#facc15;color:var(--ink);padding:2px 9px;border-radius:12px}
+
+/* a teammate's line out of the car window */
+.peek{position:absolute;transform:translate(-50%,-100%);max-width:min(64vw,250px);background:#fff;color:var(--ink);border:2.5px solid var(--ink);border-radius:14px;padding:4px 10px;font-size:14px;font-weight:700;line-height:1.25;text-align:center;box-shadow:0 3px 0 #0f1d3a55;animation:peek 2.6s ease-out forwards}
+.peek b{display:block;font-size:11px;color:#64748b;font-weight:900}
+.peek::after{content:'';position:absolute;left:var(--tail,50%);bottom:-9px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--ink);border-bottom:0}
+@keyframes peek{0%{opacity:0;margin-top:8px}10%{opacity:1;margin-top:0}85%{opacity:1}100%{opacity:0}}
+
+/* the team chat in the lobby (only when there is room for it) */
+#chat{position:fixed;left:10px;right:10px;display:none;background:#0f1d3ad9;border-radius:14px;padding:6px 10px 7px;color:#fff;z-index:1;pointer-events:none;box-shadow:0 4px 14px #0007}
+#chat.on{display:block}
+#chat .ch{font-size:11px;font-weight:900;color:#93c5fd;margin-bottom:3px;display:flex;justify-content:space-between}
+#chat .ch span{color:#94a3b8;font-weight:700}
+.msg{display:flex;gap:7px;align-items:flex-start;font-size:13px;line-height:1.3;padding:2px 0;animation:msg .35s ease-out}
+.msg img{width:24px;height:24px;border-radius:7px;flex:none}
+.msg b{font-weight:900;margin-left:5px}
+.msg i{font-style:normal;color:#94a3b8;font-size:10px;margin-right:4px}
+@keyframes msg{from{opacity:0;transform:translateY(6px)}}
+/* end screen: the team who blocked me today, each to their page in the verse */
+.team{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:360px}
+.team a{display:flex;flex-direction:column;align-items:center;gap:2px;color:#cfe0ff;font-size:11px;font-weight:700;text-decoration:none;width:46px}
+.team img{width:38px;height:38px;border-radius:50%;border:2px solid #ffffff55}
+.teamH{color:#9fc3ef;font-size:13px;font-weight:900;margin:0}
+@media (max-height:620px){.team img{width:30px;height:30px}.team a{width:38px;font-size:10px}.teamH{display:none}}
 
 /* effects */
 #fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:6}
@@ -144,6 +167,7 @@ body.turn #turn{display:flex}
 </div>
 <div id="strip"><img id="yHead" src="assets/yotam-open.webp" alt=""><div id="bubble"></div></div>
 <div id="chip"></div>
+<div id="chat"><div class="ch">צ׳אט הצוות · #חניון-b2 <span>טקי-טק</span></div><div id="chatList"></div></div>
 <div id="fx"></div>
 <div id="turn"><svg viewBox="0 0 24 24" fill="none" stroke="#84cc16" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>סובבו את הטלפון לאורך<br><small style="font-size:15px;font-weight:700;opacity:.8">״לרוחב זה edge case. לא נתמך.״</small></div>
 
@@ -179,6 +203,8 @@ body.turn #turn{display:flex}
   <div class="best" id="overOpt"></div>
   <div id="overRec"></div>
   <div class="over-line" id="overLine"></div>
+  <p class="teamH">הצוות שחסם אותי היום – בשלומיוורס:</p>
+  <div class="team" id="overTeam"></div>
   <button class="big" id="againBtn">עוד סיבוב על החניונים</button>
   <div class="links"><a href="/c/yotam" target="_top">יותם בשלומיוורס ←</a> · <a href="/yotamverse/" target="_top">YOTAMVERSE ←</a></div>
 </div>
@@ -200,6 +226,6 @@ body.turn #turn{display:flex}
     <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
   </div>
 </div>
-<script src="game.js?v=4"></script>
+<script src="game.js?v=6"></script>
 </body>
 </html>

@@ -21,9 +21,11 @@ const URL = process.argv[2] || 'http://localhost:5310/yotam-games/deadlock/?solo
       const hud = document.getElementById('hud').getBoundingClientRect(), strip = document.getElementById('strip').getBoundingClientRect();
       const a = DEADLOCK.cell(0, 0), z = DEADLOCK.cell(5, 5);
       const btns = [...document.querySelectorAll('#hud button')].map((e) => { const r = e.getBoundingClientRect(); return [e.id || e.className, r.width, r.left, r.right]; });
-      return { hudB: hud.bottom, stripT: strip.top, top: a.y - a.size / 2, bottom: z.y + z.size / 2, left: a.x - a.size / 2, right: z.x + z.size / 2, cell: a.size, btns, W: innerWidth };
+      return { hudT: hud.top, hudB: hud.bottom, stripT: strip.top, stripB: strip.bottom, H: innerHeight, signB: DEADLOCK.signBottom, top: a.y - a.size / 2, bottom: z.y + z.size / 2, left: a.x - a.size / 2, right: z.x + z.size / 2, cell: a.size, btns, W: innerWidth };
     });
-    if (lay.top < lay.hudB) bad.push('board under the HUD');
+    if (lay.stripB > lay.hudT + 1) bad.push('strip over the HUD');
+    if (lay.hudB > lay.H) bad.push('HUD off screen');
+    if (lay.signB < 0) bad.push('Techy-Tech sign cut off');
     if (lay.bottom > lay.stripT) bad.push('board under the strip');
     if (lay.left < 0 || lay.right > lay.W) bad.push('board off screen');
     for (const [n, bw, l, r] of lay.btns) { if (bw < 40) bad.push(`${n} only ${bw}px`); if (l < 0 || r > lay.W) bad.push(`${n} off screen`); }
