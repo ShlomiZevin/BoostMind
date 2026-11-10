@@ -82,6 +82,10 @@ canvas{position:absolute;display:block;touch-action:none}
 #bPause img{width:100%;height:100%}
 .roundctl{width:calc(var(--topH) - 10px);height:calc(var(--topH) - 10px);flex:none;border-radius:50%;padding:0;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#7d8a96,#46525e);border:2.5px solid #e9eef2;box-shadow:0 2px 3px #0008}
 .roundctl svg{width:58%;height:58%;fill:#fff}
+.tipb{position:absolute;top:4px;left:calc(50% - 19px);z-index:3;width:38px;height:38px;font-size:19px;line-height:1;background:radial-gradient(circle at 35% 30%,#ffe27a,#e0a51c)}
+#tip{z-index:25}
+@media (max-width:350px){.roundctl:not(.tipb),#bPause{width:32px;height:32px}#top{gap:3px;padding:0 4px}}
+#tipText{font-size:17px;line-height:1.45;font-weight:700;margin:10px 0}
 .goal{background:#24343a;color:#fff;border-radius:14px;padding:8px 10px;margin:10px auto 0;font-weight:900;font-size:17px;max-width:280px}
 .jobs{display:flex;gap:8px;justify-content:center;margin-top:10px}
 .jobs span{position:relative}
@@ -153,7 +157,7 @@ canvas{position:absolute;display:block;touch-action:none}
     <button id="bRestartTop" class="roundctl" aria-label="מההתחלה"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 8 8h-3a5 5 0 1 1-5-5v3l5-4.5L12 1z"/></svg></button>
     <button id="bPause" aria-label="עצירה"><img src="assets/btnPause.webp" alt=""></button>
   </div>
-  <div id="stage"><canvas id="cv"></canvas></div>
+  <div id="stage"><canvas id="cv"></canvas><button id="bTip" class="roundctl tipb" aria-label="רמז">💡</button></div>
   <div id="bar">
     <div id="orders">
       <button class="ord" data-o="stop"><b>2</b><img src="assets/btnStop.webp" alt=""><span>עצור</span></button>
@@ -189,6 +193,15 @@ canvas{position:absolute;display:block;touch-action:none}
   </div>
 </div>
 
+<div class="screen" id="tip" hidden>
+  <div class="card">
+    <div class="lvl" id="tipLvl"></div>
+    <h2>💡 רמז</h2>
+    <p id="tipText"></p>
+    <div class="row"><button class="big" id="tipOk">הבנתי</button></div>
+  </div>
+</div>
+
 <div class="screen" id="ask" hidden>
   <div class="card">
     <img src="assets/headAngry.webp" alt="">
@@ -208,6 +221,7 @@ canvas{position:absolute;display:block;touch-action:none}
     <div class="goal" id="iGoal"></div>
     <div class="jobs" id="iJobs"></div>
     <div class="row"><button class="big" id="bGo">יורדים!</button></div>
+    <div class="row"><button class="soft" id="iTip">💡 רמז לשלב</button></div>
   </div>
 </div>
 
@@ -219,6 +233,7 @@ canvas{position:absolute;display:block;touch-action:none}
     <p class="q" id="eText"></p>
     <div class="nums" id="eNums"></div>
     <div class="row"><button class="big" id="eNext">לשלב הבא</button><button class="soft" id="eAgain">שוב</button></div>
+    <div class="row"><button class="soft" id="eTip">💡 רמז לשלב</button></div>
     <div class="row"><button class="soft" id="eMenu" style="font-size:15px;padding:8px 18px">לתפריט</button></div>
     <div class="links" style="margin-top:10px"><a href="/c/rosenblum" target="_top" style="color:#6b4a2b">המורה רוזנבלום בשלומיוורס ←</a></div>
   </div>
@@ -227,6 +242,6 @@ canvas{position:absolute;display:block;touch-action:none}
 <div id="tut" hidden><div id="spot"></div><div id="tcard"></div></div>
 <div id="rotate">סובבו את הטלפון לאורך 📱</div>
 
-<script src="game.js?v=8"></script>
+<script src="game.js?v=10"></script>
 </body>
 </html>

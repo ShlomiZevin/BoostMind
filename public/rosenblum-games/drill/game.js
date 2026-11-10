@@ -36,7 +36,7 @@ const LEVELS = [
   { name: 'הכוונה', text: 'הכיתה הולכת ישר לחצר. "הכוונה!" לזוג הראשון.', quota: 25, time: 140,
     orders: { guide: 1 }, mischief: { every: 15 },
     slabs: [[0, 110, 352], [1, 8, 240], [2, 90, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 240, 1, 100], [2, 90, -1, 80]],
-    zones: [['yard', 0, 322], ['wc', 2, 200, 1]], start: [0, 200, 1], exit: [3, 250] },
+    zones: [['yard', 0, 322], ['wc', 2, 110, 1]], start: [0, 200, 1], exit: [3, 250] },
   { name: 'בירידה אין שירותים', text: 'שירותים בדרך, וחור ברצפה. הוראה אחת מכל סוג.', quota: 25, time: 150,
     orders: { guide: 1, bridge: 1 }, mischief: { every: 15 },
     slabs: [[0, 8, 120], [1, 90, 352], [2, 8, 150], [2, 210, 262], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 90, -1, 80], [2, 262, 1, 90]],
@@ -48,11 +48,11 @@ const LEVELS = [
   { name: 'דלת נעולה', text: 'דלת נעולה, והחצר מאחור. מהר!', quota: 27, time: 120,
     orders: { open: 1 }, mischief: { every: 13 },
     slabs: [[0, 8, 120], [1, 8, 260], [2, 100, 352], [3, 8, 352]], ramps: [[0, 120, 1, 100], [1, 260, 1, 90], [2, 100, -1, 90]],
-    locked: [[1, 240]], zones: [['yard', 1, 40], ['wc', 2, 230, 1]], start: [0, 40, 1], exit: [3, 250] },
+    locked: [[1, 240]], zones: [['yard', 1, 40], ['wc', 2, 120, 1]], start: [0, 40, 1], exit: [3, 250] },
   { name: 'הכיתה של רעות', text: 'הכיתה של רעות עוברת למטה. עצרו, חכו, שחררו.', quota: 25, time: 170,
     orders: { stop: 2 }, mischief: { every: 14 },
     slabs: [[0, 8, 230], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 230, 1, 100], [1, 100, -1, 90], [2, 260, 1, 90]],
-    zones: [['wc', 1, 200, 1]], reut: { f: 3, from: 22, to: 340, every: 22, first: 34 }, start: [0, 56, 1], exit: [3, 260] },
+    zones: [['wc', 1, 115, 1]], reut: { f: 3, from: 22, to: 340, every: 22, first: 34 }, start: [0, 56, 1], exit: [3, 260] },
   { name: 'זה לא תהלוכה', text: 'חצר, חור וקצה. שלוש הוראות, אחת מכל סוג.', quota: 25, time: 160,
     orders: { guide: 1, bridge: 1, stairs: 1 }, mischief: { every: 13 },
     slabs: [[0, 110, 352], [1, 8, 180], [1, 240, 262], [2, 150, 352], [3, 8, 352]], ramps: [[0, 110, -1, 92], [1, 262, 1, 90]],
@@ -60,22 +60,23 @@ const LEVELS = [
   { name: 'לא מטיילים באמצע השיירה', text: 'חור, ורעות למטה.', quota: 25, time: 180,
     orders: { bridge: 1, stop: 2 }, mischief: { every: 13 },
     slabs: [[0, 100, 352], [1, 8, 200], [2, 140, 352], [3, 8, 352]], ramps: [[0, 100, -1, 90], [1, 262, 1, 90], [2, 140, -1, 100]],
-    zones: [['wc', 2, 300, 1]], reut: { f: 3, from: 340, to: 22, every: 24, first: 24 }, start: [0, 300, -1], exit: [3, 130] },
+    zones: [['wc', 2, 155, 1]], reut: { f: 3, from: 340, to: 22, every: 24, first: 24 }, start: [0, 300, -1], exit: [3, 130] },
   { name: 'סוגרים רווחים', text: 'דלת נעולה וקצה. הזמן קצר.', quota: 27, time: 120,
     orders: { open: 1, stairs: 1 }, mischief: { every: 12 },
     slabs: [[0, 8, 240], [1, 100, 352], [2, 8, 260], [3, 8, 352]], ramps: [[0, 240, 1, 100], [2, 260, 1, 90]],
-    locked: [[0, 160]], zones: [['yard', 0, 22], ['wc', 2, 120, 1]], start: [0, 60, 1], exit: [3, 120] },
+    locked: [[0, 160]], zones: [['yard', 0, 22], ['wc', 2, 24, 1]], start: [0, 60, 1], exit: [3, 120] },
   { name: 'מה השמחה הגדולה?', text: 'שני חורים. גשר אחד ומדרגות אחת.', quota: 27, time: 170,
     orders: { bridge: 1, stairs: 1 }, mischief: { every: 12 },
     slabs: [[0, 8, 150], [0, 210, 262], [1, 90, 352], [2, 8, 140], [2, 200, 262], [3, 8, 352]], ramps: [[0, 262, 1, 90], [1, 90, -1, 80], [2, 262, 1, 90]],
-    zones: [['wc', 1, 200, 1]], start: [0, 40, 1], exit: [3, 270] },
+    zones: [['wc', 1, 100, 1]], start: [0, 40, 1], exit: [3, 270] },
   { name: 'הצופר האחרון', text: 'הכול ביחד. רבותיי וגבירותיי – עיניים אליי.', quota: 25, time: 200,
     orders: { stop: 2, open: 1, bridge: 1 }, mischief: { every: 12 },
     slabs: [[0, 8, 236], [1, 120, 352], [2, 8, 190], [2, 250, 262], [3, 8, 352]], ramps: [[0, 236, 1, 100], [1, 120, -1, 100], [2, 262, 1, 90]],
-    locked: [[0, 150]], zones: [['yard', 0, 22], ['wc', 1, 300, 1]], reut: { f: 3, from: 30, to: 340, every: 26, first: 30 },
+    locked: [[0, 150]], zones: [['yard', 0, 22], ['wc', 1, 130, 1]], reut: { f: 3, from: 30, to: 340, every: 26, first: 30 },
     start: [0, 60, 1], exit: [3, 230] },
 ];
 
+const TIPS = ["תנו \"הכוונה!\" לזוג הראשון, לפני שהוא מגיע לחצר. הוא יסתובב ויפנה את כולם לכיוון השני – אל המדרגות.", "קודם \"הכוונה!\" לזוג הראשון בקומה 2, לפני השירותים. אחר כך \"גשר!\" לזוג הראשון בקומה 1, לפני החור.", "תנו \"מדרגות!\" לזוג הראשון – בקצה הקומה הוא יבנה מדרגות. בקומה הבאה: שוב \"מדרגות!\" לזוג הראשון שם.", "תנו \"פתח!\" לזוג הראשון לפני שהוא מגיע לדלת הנעולה. אחרת כולם יסתובבו – ישר לחצר.", "כשסימן ! מהבהב בדלת של רעות (למטה) – תנו \"עצור!\" לזוג בקומה 1, לפני המדרגות. כולם יחכו מאחוריו. כשרעות עוברת – הקישו עליו שוב, והטור ממשיך.", "שלושה צעדים: \"הכוונה!\" לזוג הראשון לפני החצר, \"גשר!\" לפני החור בקומה 2, ו\"מדרגות!\" לפני הקצה בקומה 1.", "\"גשר!\" לזוג הראשון. למטה – כשסימן ! מהבהב בדלת של רעות, \"עצור!\" לזוג בקומה 1 עד שהיא עוברת, ואז שחררו.", "\"פתח!\" לזוג הראשון – לדלת הנעולה. ו\"מדרגות!\" לזוג הראשון בקומה 2, לפני הקצה.", "\"גשר!\" לזוג הראשון – לחור בקומה 3. ו\"מדרגות!\" לזוג בקומה 1 לפני החור – המדרגות יורידו ישר למקלט.", "\"פתח!\" לזוג הראשון, \"גשר!\" לחור בקומה 1, ו\"עצור!\" בקומה 1 כשרעות עוברת – ואז לשחרר."];
 const ORDERS = ['stop', 'guide', 'bridge', 'stairs', 'open'];
 const ORDER_NAME = { stop: 'עצור!', guide: 'הכוונה!', bridge: 'גשר!', stairs: 'מדרגות!', open: 'פתח!' };
 
@@ -236,14 +237,15 @@ function step(dt) {
   if (sh && !L.lines.run) for (const o of walkers) if (o !== sh && o.st === 'walk' && o.d === sh.d && Math.abs(o.y - sh.y) < 4 && (sh.x - o.x) * sh.d > 0 && (sh.x - o.x) * sh.d < 6) { sayOnce('run', ['שחר! לאן אתה רץ?! אתה הקטר המאסף! תחזור למקומך!'], 'angry'); break; }
   // everyone else done -> the ones still blocking walk on by themselves
   const job = (w) => w.st === 'block' || w.st === 'guide';
-  if (L.spawned > PAIRS && !walkers.some((w) => active(w) && !job(w))) for (const w of walkers) if (job(w)) { if (w.gd) w.d = w.gd; w.st = 'walk'; w.t = 0; }
+  const reutOut = L.reut && (reutCol.members.length || reutCol.warn);
+  if (L.spawned > PAIRS && !reutOut && !walkers.some((w) => active(w) && !job(w) && !w.waiting)) for (const w of walkers) if (job(w)) { if (w.gd) w.d = w.gd; w.st = 'walk'; w.t = 0; }
   if (L.lostN > L.lostLeft && !L.asked && !tut.on) { L.asked = true; setTimeout(() => { if (game.mode === 'play' && !L.over) { game.paused = true; stopAll(); $('#ask').hidden = false; } }, 700); }
   const live = walkers.some((w) => active(w)) || L.spawned <= PAIRS;
   if (!live || L.timeLeft <= 0) finish();
 }
 
 function stepWalker(w, dt) {
-  w.t += dt; w.ph += dt * 8; if (w.flash > 0) w.flash -= dt; if (w.turnT > 0) w.turnT -= dt; if (w.hop > 0) w.hop -= dt;
+  w.t += dt; if (!w.waiting) w.ph += dt * 8; if (w.flash > 0) w.flash -= dt; if (w.turnT > 0) w.turnT -= dt; if (w.hop > 0) w.hop -= dt;
   if (w.st === 'gone' || w.st === 'in') { w.fade -= dt * 1.6; return; }
   if (w.st === 'tag') return;
   w.out += dt;
@@ -280,10 +282,14 @@ function stepWalker(w, dt) {
     return;
   }
   // walking: blockers turn you, Reut's column takes you, doors swallow you
-  for (const b of walkers) {
-    if (b === w || w.ramp || (w.mis && w.mis.go) || Math.abs(b.y - w.y) >= 8) continue;
-    const holds = b.st === 'block' || b.st === 'build' || b.st === 'open' || b.st === 'stairs' || (b.st === 'guide' && w.d !== b.gd);
-    if (holds) { const dx = (b.x - w.x) * w.d; if (dx > 0 && dx < 12) { turn(w); break; } }
+  // עצור (and a pair busy building / opening) = the column WAITS behind it in a tight queue; הכוונה turns them back
+  w.waiting = false;
+  if (!w.ramp && !(w.mis && w.mis.go)) for (const b of walkers) {
+    if (b === w || b.ramp || Math.abs(b.y - w.y) >= 8 || !active(b)) continue;
+    const dx = (b.x - w.x) * w.d;
+    if (b.st === 'guide' && w.d !== b.gd) { if (dx > 0 && dx < 12) { turn(w); break; } continue; }
+    const wall = b.st === 'block' || b.st === 'build' || b.st === 'open' || b.st === 'stairs' || (b.waiting && b.d === w.d);
+    if (wall && dx > 0 && dx < (b.waiting ? 15 : 14)) { w.waiting = true; return; }
   }
   if (w.ramp) {
     const r = w.ramp; w.x += w.d * v; const u = (w.x - r.x0) / (r.x1 - r.x0);
@@ -365,7 +371,7 @@ function catchRunner(w) {
 function stepReut(dt) {
   const R = L.reut, c = reutCol;
   c.next -= dt;
-  if (c.next < 5 * L.k && c.next > 0) { if (!c.warn) bubble('reutDoor', 'הכיתה של רעות יורדת!'); c.warn = 1; } else c.warn = 0;
+  if (c.next < 5 * L.k && c.next > 0) { if (!c.warn) { bubble('reutDoor', 'הכיתה של רעות יורדת!'); say('רעות מגיעה! עצרו את הטור לפני המדרגות!', 'angry', 3200); } c.warn = 1; } else c.warn = 0;
   if (c.next <= 0 && !c.members.length) {
     const d = Math.sign(R.to - R.from);
     c.members = [{ x: R.from, spr: 'reut' }]; for (let k = 1; k <= 3; k++) c.members.push({ x: R.from - d * k * 32, spr: 'reutKids' });
@@ -381,7 +387,7 @@ function stepReut(dt) {
     lose(w, 'reut'); w.tagIdx = c.members.length; c.members.push({ x: m.x - c.d * 32, spr: w.spr, w }); break; }
   for (const m of c.members) if (m.w) { m.w.x = m.x; m.w.y = F[R.f]; m.w.d = c.d; }
   const last = c.members[c.members.length - 1];
-  if ((last.x - R.to) * c.d > 4) { for (const m of c.members) if (m.w) m.w.st = 'gone'; c.members = []; }
+  if ((last.x - R.to) * c.d > 4) { for (const m of c.members) if (m.w) m.w.st = 'gone'; c.members = []; if (walkers.some((w) => w.st === 'block')) say('רעות עברה! שחררו את הטור – הקישו על מי שעוצר.', 'talk', 3200); }
 }
 
 // ---------- orders ----------
@@ -587,6 +593,7 @@ function drawWalker(w) {
   else { ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 11, 3, 0, 0, 7); ctx.fill(); }
   const hop = w.hop > 0 ? Math.sin((0.45 - w.hop) / 0.45 * Math.PI) * 9 : 0;
   sprite(name, fr, w.x, w.y + 1 - hop, H2, flip, a);
+  if (w.st === 'block') { ctx.fillStyle = '#e2483d'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 9, 0, 7); ctx.fill(); ctx.font = '11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('✋', w.x, w.y - KID - 6); }
   if (w.st === 'guide') { ctx.fillStyle = '#2f7fd6'; ctx.beginPath(); ctx.arc(w.x, w.y - KID - 10, 9, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '900 12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(w.gd < 0 ? '◀' : '▶', w.x, w.y - KID - 6); }
   if (w.mis) {
     const left = w.mis.go ? Math.max(0, Math.abs(w.x - w.mis.door.x) / w.mis.dist) : 1;
@@ -661,11 +668,21 @@ $('#bPause').onclick = () => setPause(true);
 $('#bFast').onclick = () => setFast();
 $('#bRestart').onclick = () => { if (!tut.on) startLevel(L.i, true); };
 $('#bRestart2').onclick = () => { setPause(false); startLevel(L.i, true); };
+$('#bTip').onclick = () => { if (game.mode === 'play' && !tut.on && !L.over) showTip(true); };
+$('#iTip').onclick = () => showTip(false);
+$('#tipOk').onclick = () => { $('#tip').hidden = true; if (tipResume) { game.paused = false; loop('music', 0.3); } };
 $('#bRestartTop').onclick = () => { if (!tut.on && game.mode === 'play') startLevel(L.i, true); };
 $('#askRestart').onclick = () => { $('#ask').hidden = true; startLevel(L.i, true); };
 $('#askGo').onclick = () => { $('#ask').hidden = true; game.paused = false; loop('music', 0.3); };
 $('#bResume').onclick = () => setPause(false);
 $('#bMenu').onclick = () => { setPause(false); menu(); };
+let tipResume = false;
+function showTip(inPlay) {
+  const i = inPlay ? L.i : game.introLevel;
+  $('#tipText').textContent = TIPS[i]; $('#tipLvl').textContent = 'שלב ' + (i + 1) + ' – ' + LEVELS[i].name;
+  tipResume = inPlay && !game.paused; if (inPlay) { game.paused = true; stopAll(); }
+  $('#tip').hidden = false;
+}
 const clock = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 function setPause(p) { game.paused = p; $('#pause').hidden = !p; if (p) stopAll(); else { loop('music', 0.35); } }
 function setFast() { game.speed = { 1: 2, 2: 3, 3: 5 }[game.speed] || 1; showSpeed(); }
@@ -685,6 +702,7 @@ function menu() {
 $('#bPlay').onclick = () => { audioInit(); const un = +(store.get('level') || 0); if (!store.get('tut') && un === 0) startTutorial(); else intro(un); };
 $('#bHow').onclick = () => { audioInit(); startTutorial(); };
 function intro(i) {
+  game.introLevel = i;
   $('#start').hidden = true; $('#end').hidden = true; $('#intro').hidden = false;
   const l = LEVELS[i];
   $('#iLvl').textContent = 'שלב ' + (i + 1) + ' מתוך ' + LEVELS.length;
@@ -720,6 +738,7 @@ function showEnd(win, perfect, sc, total) {
   $('#eNext').hidden = !win || last; $('#eNext').onclick = () => intro(L.i + 1);
   $('#eAgain').onclick = () => startLevel(L.i, true);
   $('#eMenu').onclick = menu;
+  $('#eTip').hidden = win; $('#eTip').onclick = () => { game.introLevel = L.i; showTip(false); };
 }
 
 // ---------- tutorial ----------

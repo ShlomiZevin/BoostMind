@@ -2,7 +2,7 @@
 module.exports = [
   [{ at: 0, o: 'guide', who: { x: 280, f: 0 } }],
   [{ at: 0, o: 'guide', who: { x: 270, f: 1 } }, { at: 0, o: 'bridge', who: { x: 60, f: 2 } }],
-  [{ at: 2, o: 'stairs', who: 'first' }, { at: 0, o: 'stairs', who: { x: 120, f: 2 } }],
+  [{ at: 2, o: 'stairs', who: 'first' }, { at: 0, o: 'stairs', who: { first: 2 } }],
   [{ at: 2, o: 'open', who: 'first' }],
   [],
   [{ at: 0, o: 'guide', who: { x: 280, f: 0 } }, { at: 0, o: 'bridge', who: { x: 60, f: 1 } }, { at: 0, o: 'stairs', who: { x: 300, f: 2 } }],

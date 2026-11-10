@@ -33,6 +33,7 @@ const SOL = require('./solutions.js');
           else if (s.who === 'shahar') w = ws.find((w) => w.kind === 'shahar');
           else if (s.who === 'blocker') w = ws.find((w) => w.st === 'block');
           else if (typeof s.who === 'number') w = ws.find((w) => w.id === s.who);
+          else if (s.who.first !== undefined) w = ws.filter((w) => w.st === 'walk' && Math.abs(w.y - DRILL.F[s.who.first]) < 3).sort((a, b) => a.id - b.id)[0];
           else { const y = DRILL.F[s.who.f]; w = ws.filter((w) => w.st === 'walk' && Math.abs(w.y - y) < 3 && Math.abs(w.x - DRILL.X(s.who.x)) < 6).sort((a, b) => a.id - b.id)[0]; }
           if (!w) continue;
           if (s.o) DRILL.order(s.o);
