@@ -1,0 +1,8 @@
+A tall Instagram story poster (9:16) announcing a new phone puzzle game called "דדלוק" (Deadlock), in the painted style of the game's cover (second reference).
+The star is Yotam - the man in the first reference photo: a grown man in his late thirties, a real geek and senior AI engineer - black bob wig with straight bangs, thin rectangular glasses, small moustache, galaxy t-shirt. Paint him true to that photo: an adult face with his dry, skeptical, know-it-all geek expression (one eyebrow slightly raised, a small smug half-smile, explaining something obvious), not a cute or childish face. Adult proportions, adult man's hands, one index finger raised as if explaining.
+He stands in the Techy-Tech company's underground parking garage (level B2) at seven in the evening; behind him the parking is completely jammed: his green car with a galaxy sticker trapped in the middle, his teammates' cars blocking it on every side, each with its owner's round face sticker on the roof as on the cover, the red-white exit barrier closed, the Techy-Tech logo on the wall.
+Words on the poster, spelled exactly, Hebrew, right to left:
+- the game title "דדלוק" big, as the painted lettering in the third reference (a parking barrier over the word);
+- a white speech bubble from Yotam: "זה לא חניון. זה גרף תלויות עם עמודים."
+- one short line: "5 חניונים חדשים כל יום"
+Layout, from top to bottom: the top 13% is plain dark (something is added there later), then the title, then Yotam and the jammed garage, with his speech bubble near the bottom of the scene, then the short line. Between 68% and 82% of the height keep a plain dark empty band with nothing in it (a link sticker goes there later). The bottom 18% stays plain dark floor. No other words or letters anywhere.

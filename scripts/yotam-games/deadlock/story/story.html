@@ -3,26 +3,19 @@
 <style>
 *{margin:0;box-sizing:border-box}
 body{width:1080px;height:1920px;overflow:hidden;font-family:Rubik,sans-serif;background:#0b1220;position:relative}
-.art{position:absolute;left:0;top:170px;width:1080px;height:1924px}
-.top{position:absolute;left:0;right:0;top:0;height:560px;background:linear-gradient(#0b1220 0,#0b1220 38%,#0b1220aa 70%,#0b122000)}
-.bot{position:absolute;left:0;right:0;bottom:0;height:560px;background:linear-gradient(#0b122000,#0b1220e6 30%,#0b1220 52%)}
-/* Shlomiverse: planet logo + the two-colour wordmark + the address, one calm row */
-.brand{position:absolute;top:120px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:16px}
-.brand img{width:104px;height:auto;filter:drop-shadow(0 0 14px #ff6a1f66)}
-.brand .t{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
-.wm{font-weight:900;color:#fff;letter-spacing:-.02em;font-size:48px}.wm b{color:#ff6a1f;font-weight:900}
-.brand small{color:#cbd5e1;font-size:24px;font-weight:700;margin-top:7px;direction:ltr;letter-spacing:.5px}
-.title{position:absolute;top:258px;left:50%;transform:translateX(-50%);width:430px;filter:drop-shadow(0 10px 22px #000a)}
-.head{position:absolute;top:1452px;left:70px;right:70px;text-align:center}
-.head .q{display:inline-block;background:#fff;color:#0f1d3a;border:5px solid #0f1d3a;border-radius:32px;padding:16px 30px;font-size:42px;font-weight:900;line-height:1.2;box-shadow:0 8px 0 #0f1d3a66}
-.sub{position:absolute;top:1590px;left:60px;right:60px;text-align:center;color:#fff;font-size:38px;font-weight:700;line-height:1.35}
-.sub b{color:#facc15;font-weight:900}
-.link{position:absolute;top:1712px;left:50%;transform:translateX(-50%);width:600px;height:96px;border:4px dashed #ffffffaa;border-radius:28px}
+/* the poster (title, Yotam, his line, the short line) is painted by GPT image; only the link box + Shlomiverse are ours */
+.art{position:absolute;left:0;top:0;width:1080px;height:1924px}
+/* the link sticker's place: its centre ~25% from the bottom, where the story's viewer still sees it */
+.link{position:absolute;top:1432px;left:50%;transform:translateX(-50%);width:600px;height:104px;border:4px dashed #ffffffaa;border-radius:28px}
+.brand{position:absolute;top:1598px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:10px}
+.kick{color:#e2e8f0;font-size:34px;font-weight:700}
+.row{display:flex;align-items:center;gap:16px}
+.row img{width:100px;height:auto;filter:drop-shadow(0 0 14px #ff6a1f66)}
+.t{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
+.wm{font-weight:900;color:#fff;letter-spacing:-.02em;font-size:50px}.wm b{color:#ff6a1f;font-weight:900}
+.t small{color:#e2e8f0;font-size:25px;font-weight:700;margin-top:7px;direction:ltr;letter-spacing:.5px}
 </style></head><body>
-<img class="art" src="art2.jpg"><div class="top"></div><div class="bot"></div>
-<div class="brand"><img src="logo.png" alt=""><div class="t"><span class="wm">שלומי<b>וורס</b></span><small>shlomiverse.com</small></div></div>
-<img class="title" src="title.png">
-<div class="head"><span class="q">״זה לא חניון. זה גרף תלויות עם עמודים.״</span></div>
-<div class="sub">הוציאו את יותם מהחניון של טקי-טק<br><b>5 חניונים חדשים כל יום</b></div>
+<img class="art" src="poster-b.jpg">
 <div class="link"></div>
+<div class="brand"><div class="kick">משחק חדש ב-</div><div class="row"><img src="logo.png" alt=""><div class="t"><span class="wm">שלומי<b>וורס</b></span><small>shlomiverse.com</small></div></div></div>
 </body></html>
