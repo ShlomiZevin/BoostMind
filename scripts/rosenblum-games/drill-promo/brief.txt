@@ -1,0 +1,13 @@
+You write short Hebrew launch copy for an Instagram story. Natural, punchy Israeli Hebrew, no emoji.
+
+The game: "הקטר המאסף" - a new browser game on Shlomiverse (a universe of comic characters by Shlomi). It's Lemmings in an Israeli high school's shelter drill.
+The siren goes, the class walks out two by two holding hands, with Shahar (the "קטר מאסף", the last kid) at the end. The kids walk on their own and wander into the toilets, the yard, or another class's column.
+You are Teacher Rosenblum: an old-school veteran teacher (36 years of teaching), dry and strict. You give orders (עצור! / חזור! / גשר! / פתח!) and tap a pair to steer the column down to the shelter (מרחב מוגן). Shahar must come in last.
+His real lines: "שניים שניים! לסגור רווחים!", "אני רוצה לראות טור! לא נחיל של נמלים!", "שחר! לאן אתה רץ?! אתה הקטר המאסף!", "בירידה אין שירותים. מתאפקים."
+
+Give:
+A) 6 options for ONE line Rosenblum says on the poster (max 6 words, can be from his real lines or new in his voice).
+B) 6 options for ONE short line under it saying what you do in the game (max 7 words).
+C) 4 options for the one-line notification text: "משחק חדש: ..." (max 12 words).
+D) 4 options for 3 numbered video captions, one per action: 1) the siren - the class walks out in pairs 2) you give an order and tap a pair 3) they get into the shelter, Shahar last. Max 5 words each.
+Mark your top pick in each.

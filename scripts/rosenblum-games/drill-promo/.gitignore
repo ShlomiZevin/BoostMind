@@ -1,0 +1,5 @@
+ref/
+*.png
+*.jpg
+out/
+frames*/

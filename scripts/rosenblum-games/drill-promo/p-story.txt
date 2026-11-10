@@ -1,0 +1,20 @@
+An Instagram story poster (tall 9:16) announcing a new phone game, "הקטר המאסף", on Shlomiverse - a universe of comic characters.
+
+What it must do: in one second the viewer sees it is a funny game where a strict old teacher leads his class, two by two, down to the school shelter in a drill - and wants to tap the link.
+
+The people:
+- Teacher Rosenblum. References 1-3 are frames from his own videos - that is exactly how he looks: a grown man in his forties-fifties, a messy grey-white wig of hair, thin metal glasses, a long face, a black polo shirt. His attitude: an old-school veteran teacher, dry, strict and a little dramatic - one finger up, giving an order, completely serious. His left eye sits a little lower and turns slightly outward. Paint him in the warm painted game style of reference 4, but keep his real face and age - a grown man, not a cute cartoon kid.
+- His class: Israeli high-school kids (white school shirts, blue trousers, backpacks) walking in a neat column, two by two, holding hands, down a school stairwell toward a heavy grey shelter door marked "מרחב מוגן". At the very end of the column, alone, one boy with a backpack - Shahar, the "קטר מאסף".
+Reference 4 is the game itself - use its look (the school, the kids, the colours, the shelter door).
+
+The words on the poster, spelled exactly, Hebrew right-to-left, nothing else written anywhere (no other signs with words):
+1. The game's title, big, as a bold game logo near the top: הקטר המאסף
+2. Rosenblum's line, in a speech bubble from him: שניים שניים! לסגור רווחים!
+3. One short line, smaller: סדרו את הטור. שחר נכנס אחרון.
+
+Layout (1088x1920):
+- The top 7% is calm background (Instagram puts its bar there) - the title starts below it.
+- Rosenblum big and clear in the upper-middle part, the column of kids going down the stairs to the shelter door below him.
+- The band from 72% to 82% of the height must be EMPTY and plain (a quiet floor or wall, no people, no words, no details) - a link sticker goes there.
+- The bottom 12% is calm and darker (the brand goes there) - nothing important in it.
+- No text over faces. Nothing important in the outer 3% at the sides.
