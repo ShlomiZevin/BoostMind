@@ -1358,10 +1358,11 @@ async function loadChats(r) {
   if (priced.length) avgAnswer = priced.reduce((a, c) => a + PRICE(c.u), 0) / priced.length;
 }
 const peopleBy = () => Object.fromEntries(S.people.map((p) => [p.uid, p]));
-// a conversation = one visitor's session with one character (the same thread the chat keeps)
+// a conversation = the chat's thread with one character, by its own id
 function threads(list = CH) {
   const by = {}, pb = peopleBy();
-  for (const c of list) { const k = `${c.s || c.v || c.id}|${c.mode}`; (by[k] ||= { key: k, mode: c.mode, items: [] }).items.push(c); }
+  // c = the conversation's own id (the chat sends it with every message, since 2026-11-10); older logs: the visit's session
+  for (const c of list) { const k = c.c ? `c:${c.c}` : `${c.s || c.v || c.id}|${c.mode}`; (by[k] ||= { key: k, mode: c.mode, items: [] }).items.push(c); }
   return Object.values(by).map((th) => {
     th.items.sort((a, b) => a.t - b.t);
     th.last = th.items[th.items.length - 1].t;

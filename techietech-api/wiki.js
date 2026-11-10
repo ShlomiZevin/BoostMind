@@ -14,7 +14,7 @@ const SIM_IN_CHAT = true;
 
 if (!admin.apps.length) admin.initializeApp();
 // every exchange is kept for Shlomi's dashboard (/stats/): the visitor's message and the reply, the anonymous visitor
-// id, 90 days (Firestore TTL on `exp`, same as analytics_events). The wiki tells visitors under the chat box.
+// id, the conversation's own id (c - one thread in Backstage), 90 days (Firestore TTL on `exp`, same as analytics_events). The wiki tells visitors under the chat box.
 // His own devices (marked in the analytics) send own: true and are not kept.
 const KEEP_DAYS = 90;
 async function keep(b, mode, turns, reply, u = {}, who = {}) {
@@ -22,7 +22,7 @@ async function keep(b, mode, turns, reply, u = {}, who = {}) {
   const clean = (v, n) => String(v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, n);
   const now = new Date();
   await admin.firestore().collection('chat_logs').add({
-    t: Timestamp.fromDate(now), mode, v: clean(b.v, 10), s: clean(b.s, 10), r: clean(b.r, 12), m: !!b.m,
+    t: Timestamp.fromDate(now), mode, c: clean(b.c, 12), v: clean(b.v, 10), s: clean(b.s, 10), r: clean(b.r, 12), m: !!b.m,
     q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length, in: !!who.uid, uid: who.uid || null,   // uid: the admin page shows a person's conversations
     // the tokens it took (input / of them cached / output) - the dashboard turns them into dollars
     u: [u.input_tokens || 0, u.input_tokens_details?.cached_tokens || 0, u.output_tokens || 0],

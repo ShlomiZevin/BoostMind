@@ -926,6 +926,15 @@ addEventListener('scroll', onScroll, { passive: true });
 // ---------- chat ----------
 const threads = {};
 const load = (mode) => { try { return JSON.parse(sessionStorage.getItem('wiki-chat-' + mode)) || []; } catch (e) { return []; } };
+// a conversation has its own id, kept with its thread: every message of it is logged under it, so Backstage shows it as one
+// conversation whatever the analytics ids are (a browser that blocks /t.js has none); "new conversation" starts a new id
+const convId = (mode) => {
+  try {
+    let id = sessionStorage.getItem('wiki-chat-id-' + mode);
+    if (!id) sessionStorage.setItem('wiki-chat-id-' + mode, id = Math.random().toString(36).slice(2, 12));
+    return id;
+  } catch (e) { return ''; }
+};
 const save = (mode) => { try { sessionStorage.setItem('wiki-chat-' + mode, JSON.stringify(threads[mode].slice(-20))); } catch (e) {} };
 const who = (mode) => (mode === 'guide' ? GUIDE : C[mode]);
 let GENDER = {};
@@ -1131,7 +1140,7 @@ async function send(text, cont = false) {
     // signed in: the account goes with the question (10 a day after the first 3 - wiki.js counts them)
     const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
     const res = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) },
-      body: JSON.stringify({ mode, messages: history, contact: true, ...(cont ? { cont: true } : {}), ...visitor() }) });
+      body: JSON.stringify({ mode, messages: history, contact: true, ...(cont ? { cont: true } : {}), ...visitor(), c: convId(mode) }) });
     if (res.status === 429) { const j = await res.json().catch(() => ({})); inviteDone(j.invite); if (j.error === 'quota' && quota) { quota.left = 0; paintLeft(); } throw Object.assign(new Error(j.error === 'quota' ? 'quota' : 'busy'), { why: j.why }); }
     if (!res.ok || !res.body) throw new Error('fail');
     inviteDone(res.headers.get('X-Invite'));
@@ -1269,7 +1278,7 @@ document.addEventListener('click', (e) => {
       <button class="nc-yes" data-nc-yes>שיחה חדשה</button><button class="nc-no">ביטול</button></div></div>`);
   }
   if (e.target.matches('.nc-ask') || e.target.closest('.nc-no')) $('.nc-ask', cx)?.remove();   // ביטול, or a tap outside the card
-  if (e.target.closest('[data-nc-yes]') && !busy) { threads[cxMode] = []; try { sessionStorage.removeItem('wiki-chat-' + cxMode); } catch (x) {} t('chat_new', cxMode); openChat(cxMode); }
+  if (e.target.closest('[data-nc-yes]') && !busy) { threads[cxMode] = []; try { sessionStorage.removeItem('wiki-chat-' + cxMode); sessionStorage.removeItem('wiki-chat-id-' + cxMode); } catch (x) {} t('chat_new', cxMode); openChat(cxMode); }
   if (!e.target.closest('.search')) { $('#results').classList.remove('open'); $('.search').classList.remove('s-open'); }
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeVideo(); closeChat(); } });

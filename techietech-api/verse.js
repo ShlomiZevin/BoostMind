@@ -1122,7 +1122,7 @@ async function askData(q) {
   const [d, people, chats, comments, ideas, requests] = await Promise.all([
     db.collection('analytics_days').where('d', '>=', from).orderBy('d').get(),
     peopleList(),
-    db.collection('chat_logs').where('t', '>=', Timestamp.fromMillis(Date.now() - 30 * 864e5)).orderBy('t', 'desc').limit(4000).select('t', 'mode', 'q', 'n', 'in', 's', 'v').get(),
+    db.collection('chat_logs').where('t', '>=', Timestamp.fromMillis(Date.now() - 30 * 864e5)).orderBy('t', 'desc').limit(4000).select('t', 'mode', 'q', 'n', 'in', 'c', 's', 'v').get(),
     db.collection('comments').orderBy('t', 'desc').limit(300).select('t', 'videoId', 'char', 'nick').get(),
     db.collection('ideas').orderBy('t', 'desc').limit(100).select('t', 'text', 'votes', 'kind').get(),
     db.collection('requests').orderBy('t', 'desc').limit(200).select('t', 'kind', 'done', 'site').get(),
@@ -1137,7 +1137,7 @@ async function askData(q) {
   for (const x of chats.docs) {
     const c = x.data(), day = dayIL(c.t.toDate()), k = `${day}|${c.mode}`;
     perDay[k] = perDay[k] || { day, character: c.mode, messages: 0, signed_in: 0, threads: new Set() };
-    perDay[k].messages++; if (c.in) perDay[k].signed_in++; perDay[k].threads.add(c.s || c.v);
+    perDay[k].messages++; if (c.in) perDay[k].signed_in++; perDay[k].threads.add(c.c || c.s || c.v);
   }
   const pack = {
     now_israel: hm(Date.now()), today: dayIL(),
