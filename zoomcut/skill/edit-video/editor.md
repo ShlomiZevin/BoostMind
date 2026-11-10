@@ -243,6 +243,11 @@ end must show at once, with the real footage there.
 - **The editor plays the cut itself** (`render/ui/liveplayer.ts` `LiveClock`): edit.json `items` are parts of takes
   (slow motion = `sp`, played as playbackRate); two copies per take so the next part waits ready. It stands in for the
   preview `<video>`, so sound, subtitles and the film look follow it unchanged; while an edge is dragged it `peek`s.
+- **A seek that never ends is recovered** (`render/src/layers/VideoTrack.tsx` `unstick`, 2026-11-10, rosenblum-1-v3: the
+  cut-out webm had stray keyframes after tiny frames - a seek decoding from one never fired 'seeked' and that copy froze
+  in every other piece): a copy seeking > 0.6 s is reloaded and sent ~0.25 s past the spot, which is remembered per file
+  (no copy seeks into it again). Console: `[VideoTrack] a seek to N s never ended`. The cause is the file - remake the
+  proxy; this only keeps the editor playing.
 - **Cut changes = `lesson.py --replan`** (~1.5 s: plan + subtitles + overlay / fx timing + sound stems). Sounds moved
   = `--stems`. Layout, look, voice, music, keep desk, cut-out on/off, eye switch, text, filters are drawn live and saved.
 - **Sounds and music are layers like the video:** drag to move, drag ends (`trim_in`, `len`); music `start` / `end` /

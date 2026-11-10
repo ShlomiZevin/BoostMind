@@ -81,6 +81,32 @@ const PRE = 8;        // frames before its cut a waiting copy starts playing (hi
 // caught up before it ends (a short one, near its end) seeks - catching up 0.25 s a second, a lag over a quarter of
 // what's left of it never closes
 const DEAD = 2, JUMP = 0.5, CATCH = 0.25;
+// A seek that never ends (2026-11-10, rosenblum-1-v3: a seek to 179.43 s of the take's VP9-alpha cut-out never fired
+// 'seeked' in Chrome, and every later seek of that element hung too - copy #1 froze in every other piece): after
+// STUCK_MS the element is reloaded and sent a little past that spot, and the spot is remembered for the file, so no
+// copy seeks into it again (it lands just after it instead)
+const STUCK_MS = 600, SKIP = 0.25;  // (a good seek of a take here: ~30 ms)
+const AVOID = new Map<string, [number, number][]>();  // file -> spots a seek hangs in, [from, to] seconds
+const seekStart = new WeakMap<HTMLVideoElement, number>();
+const clear = (src: string, t: number) => {  // (past every spot it falls in - one spot's end can be inside another)
+  for (let moved = true; moved;) { moved = false; for (const [a, b] of AVOID.get(src) || []) if (t >= a && t < b) { t = b; moved = true; } }
+  return t;
+};
+const seekTo = (el: HTMLVideoElement, t: number) => { el.currentTime = clear(el.currentSrc || el.src, t); };
+const unstick = (el: HTMLVideoElement) => {  // true = it was stuck and is loading again
+  if (!el.seeking) { seekStart.delete(el); return false; }
+  const t0 = seekStart.get(el), now = performance.now();
+  if (t0 == null) { seekStart.set(el, now); return false; }
+  if (now - t0 < STUCK_MS) return false;
+  const src = el.currentSrc || el.src, t = el.currentTime;
+  AVOID.set(src, [...(AVOID.get(src) || []), [t - 0.1, t + SKIP]]);
+  const rate = el.playbackRate;
+  el.removeAttribute('src'); el.load(); el.src = src; el.playbackRate = rate;
+  seekTo(el, t);
+  seekStart.delete(el);
+  console.warn(`[VideoTrack] a seek to ${t.toFixed(2)} s never ended - reloaded, skipping to ${clear(src, t).toFixed(2)} s`);
+  return true;
+};
 
 // lag: drawn that many frames back (the Ghost trail effect lays such a copy over the picture - its own copies)
 export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; lag?: number }> = ({ p, layer, backdrop, lag = 0 }) => {
@@ -136,15 +162,17 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
       const el = els.current[ek];
       const copy = ek.split('~')[0];  // (a keep-desk twin plays exactly as its copy)
       if (!el || !(copy in copies)) continue;
+      if (unstick(el)) continue;
+      const file = el.currentSrc || el.src;
       const A = act[copy];
       if (A) {
-        const want = Math.min(srcAt(A, f, fps), (el.duration || Infinity) - 0.04);
+        const want = clear(file, Math.min(srcAt(A, f, fps), (el.duration || Infinity) - 0.04));
         const r = rate * (A.rate ?? 1);
         const still = A.rate === 0;  // a held frame (rate 0): the copy waits on it
         const off = el.currentTime - want;
         if (playing && !still) {
           const left = (A.from + A.dur - f) / fps / Math.max(0.1, rate);  // (seconds of this piece still to play)
-          if (!el.seeking && Math.abs(off) > Math.min(JUMP, Math.max(DEAD / fps, left * CATCH))) { el.currentTime = want; el.playbackRate = r; }
+          if (!el.seeking && Math.abs(off) > Math.min(JUMP, Math.max(DEAD / fps, left * CATCH))) { seekTo(el, want); el.playbackRate = r; }
           else {  // (a little behind / ahead: catch up by speed, never a jump)
             const k = Math.abs(off) * fps <= DEAD ? 1 : Math.min(1 + CATCH, Math.max(1 - CATCH, 1 - off * 1.5));
             if (Math.abs(el.playbackRate - r * k) > 0.005) el.playbackRate = r * k;
@@ -152,23 +180,24 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
           if (el.paused) el.play().catch(() => {});
         } else {
           if (!still && el.playbackRate !== r) el.playbackRate = r;
-          if (!el.seeking && Math.abs(off) > 0.5 / fps) el.currentTime = want;
+          if (!el.seeking && Math.abs(off) > 0.5 / fps) seekTo(el, want);
           if (!el.paused) el.pause();
         }
       } else {
         const n = waits[copy];
-        const lead = n ? (n.from - f) / fps : Infinity, from = n ? (n.in ?? 0) - lead * (n.rate ?? 1) : 0;
+        const lead = n ? (n.from - f) / fps : Infinity, from = n ? clear(file, (n.in ?? 0) - lead * (n.rate ?? 1)) : 0;
         if (n && playing && n.rate !== 0 && lead <= PRE / fps && from >= 0 && !keep(copy)) {
           // (its cut is a moment away: it plays already - hidden - and arrives at its first frame on time)
           const r = rate * (n.rate ?? 1);
           if (el.playbackRate !== r) el.playbackRate = r;
-          if (!el.seeking && Math.abs(el.currentTime - from) > 0.12) el.currentTime = from;
+          if (!el.seeking && Math.abs(el.currentTime - from) > 0.12) seekTo(el, from);
           if (el.paused) el.play().catch(() => {});
           continue;
         }
         if (!el.paused) el.pause();  // (an old copy freezes on its last frame - never plays on past its cut)
         if (keep(copy)) continue;  // (it may still be shown for a row that is waiting - no seek away yet)
-        if (n && !el.seeking && Math.abs(el.currentTime - (n.in ?? 0)) > 0.04) el.currentTime = n.in ?? 0;
+        const at = n ? clear(file, n.in ?? 0) : 0;  // (where it waits for its next piece)
+        if (n && !el.seeking && Math.abs(el.currentTime - at) > 0.04) seekTo(el, at);
       }
     }
     // on screen: an active copy once its frame is there (one already lit stays lit while it seeks); while a new one is
@@ -204,6 +233,11 @@ export const VideoTrack: React.FC<{ p: LayersProps; layer: any; backdrop: any; l
   syncRef.current = sync;
   // (another row starts / stops waiting for its first frame: this one looks again - keep its last frame or let it go)
   useEffect(() => { const w = () => syncRef.current(); WAKE.add(w); return () => { WAKE.delete(w); setWaiting(layer.id, false); }; }, [layer.id]);
+  // (paused, nothing draws a new frame: a seek that never ends is still looked at, so it is caught - unstick())
+  useEffect(() => {
+    const t = setInterval(() => { if (Object.values(els.current).some((el) => el?.seeking)) syncRef.current(); }, 400);
+    return () => clearInterval(t);
+  }, []);
   const refEl = (copy: string) => (refFns.current[copy] ??= (el) => {
     if (el && !hooked.current.has(el)) {
       hooked.current.add(el);
