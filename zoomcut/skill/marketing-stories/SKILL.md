@@ -91,6 +91,17 @@ Run the stories in parallel (`&` ... `wait`). Up to ~5 references work well.
   (not another AI picture of them - one gave Yotam a narrow, frowning face: "doesn't look like himself"). If the face
   still drifts, fix it with a masked edit of the head only (ref = the poster + the portrait), compare side by side with
   the portrait, and keep the rest of the poster. Characters Shlomi plays: the lazy LEFT eye too.
+  The masked edit: `tools/oai-image.js --ref poster.png --ref frame1.jpg --ref frame2.jpg --mask head-mask.png
+  --prompt-file face.txt` (the mask = a PNG the poster's size, transparent over the head only; the prompt starts
+  "Repaint only the masked area..." and ends "Everything outside the mask stays exactly the same"). A too-small hand or a
+  childish face gets the same treatment. Put the result next to the frames in one picture and LOOK before you send.
+- **The words come from Terra** (`gpt-5.6-terra`, `openai-leonardo` skill) - ask for several short options, pick.
+- **Never stretch a picture to 9:16** - crop it or have the model paint it at 1088x1920 (Osnat, 9 Nov: "it's stretched").
+  And he wants the story READY TO POST - the picture with its words, the brand and the link box - not a bare picture.
+- **Send the final to his Telegram twice**: as a photo (to look at) and as a document (full quality, to post).
+- **Worked example**: `scripts/yotam-games/deadlock/story/` - `prompt3.txt` (the poster), `face2.txt` + `face-mask2.png`
+  (the head fix from video frames), `story.html` + `shot.js` (brand + link box laid on in code -> `deadlock-story.jpg`).
+  Copy that folder's story.html for the next one: change the picture and the words, keep the brand and the box.
 
 **Then proofread every word at full size** (crop + zoom the headline). The model slips on single letters (it wrote
 עכשין for עכשיו twice). Fix with an **edit pass on that same image**: ref = the image, prompt = "keep everything exactly,
@@ -143,6 +154,17 @@ versions told the whole story slowly - rejected. **The host (Hani) is the hook**
 - The model keeps writing a word-final vav as a final nun (עכשין): avoid such words in baked text (כבר באתר!,
   כנסו לשחק!) and let the voice say them; zoom-proofread every frame. An edit pass may also re-frame the picture a
   little - re-check the host's hands and the edges after it.
+
+## A gameplay promo clip for one game (~15 s, 9:16) - "אתה לא בורג", 9 Nov
+His notes, in order: a 10 s cut of fast play was "completely not clear"; "it has to be clear we are presenting a NEW
+game"; "use the actual title of the game all over the place". What he signed off on:
+1. `שלומיוורס מציגים` bookend -> 2. a title card: the GAME'S OWN title art drops in over a blurred frame of the game +
+"משחק חדש" -> 3. ONE clear loop of real play, one numbered caption per action (1. bring the candidate 2. give him what he
+asked 3. sign - he leaves) -> 4. the end card = the Instagram story picture -> 5. `רק בשלומיוורס` bookend.
+- The real game filmed by a bot on the browser's virtual clock (steady 30 fps, a visible finger ring on every tap), its
+  real sounds logged and mixed back at their moments, its own music from frame 0, a white flash on every hand-over.
+- The same title everywhere: title card, story text, end card, `videoTitle`. Never invent a marketing name for it.
+- Worked example: `scripts/osnat-games/genz-hiring/promo/` (record.js, compose.py, caps.js, ig.html).
 
 ## The silent chapter video (for a song he adds in Instagram)
 ~5 s per chapter (slow - 2.5 s was too fast), host in the intro and the end card, each chapter = page picture +
