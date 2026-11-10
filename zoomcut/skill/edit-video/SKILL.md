@@ -427,6 +427,11 @@ take. A framing for a whole take is better as one change you re-apply than as a 
 - **Subtitles follow what he SAID**, not the script (his ad-libs stay - add them to the script line). Hook text starts
   "פוב:" (never "POV:") unless his words have no prefix; his exact words; y ≥ ~250; max ~3 lines so it never covers
   a face (smaller `size` before more lines).
+- **A still set has NO people in it** (rosenblum-1, 2026-11-10 - "it's a movie, so how can it be that people are
+  still, don't move there? It doesn't make sense"): a crowd in a photo backdrop - even blurred, even "motion blur" -
+  is frozen behind a moving person. Sets are empty places; the crowd lives in the SOUND (ambience beds, laughs,
+  shouts). Also: an old-school CHARACTER does not mean an old place - "the teacher is old-fashioned, but the school
+  shouldn't be"; a present-day Israeli public school (whiteboard, smart screen, AC), mid-range, not a 90s one.
 - **The set must be where the camera really is** (adam-1, 2026-11-08 - "it's not realistic, he is sitting in front of
   the table so you can't see the table behind him... it happens a lot"): a person sitting at a desk / meeting table is
   filmed from ACROSS the table, so behind him there is only what is behind his seat - a wall, a window, his chair's
