@@ -175,11 +175,13 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   const total = project?.duration || 1;
   const speed = project?.speed || 1;
   const seek = (f: number) => { const g = Math.max(0, Math.min(total - 1, Math.round(f))); soundJump(g); player.current?.seekTo(g); setFrame(g); };
-  // picking an item shows it: the video jumps into it when the playhead is outside it
-  const pickItem = (s: Sel) => {
-    setSel(s); setLine(null);
-    const it = s?.item && project?.layers.find((l: any) => l.id === s.layer)?.items?.find((i: any) => i.id === s.item);
-    if (it && (frame < it.from || frame >= it.from + it.dur)) seek(it.from + Math.min(it.dur - 1, Math.round(fps * 0.4)));
+  // picking an item never moves the playhead - it stays where he is (his note, 2026-11-10: a click to drag a long clip
+  // jumped him to its start)
+  const pickItem = (s: Sel) => { setSel(s); setLine(null); };
+  // play / pause; at the video's end Play stays there (the player went back to the start - his note, 2026-11-10)
+  const toggle = () => {
+    const pl = player.current; if (!pl) return;
+    if (pl.isPlaying()) pl.pause(); else if (pl.getCurrentFrame() < total - 1) pl.play();
   };
   // a caption picked + the playhead moved onto another caption of its row = that one in the panel (his ask, 2026-11-03:
   // "when I'm on captions and moving the time, put the caption I'm standing on in the property window"); not while
@@ -239,7 +241,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? L.redo() : L.undo(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); L.redo(); }
       else if (e.code === 'Space' && e.shiftKey) { e.preventDefault(); playOnly(); }
-      else if (e.code === 'Space') { e.preventDefault(); player.current?.toggle(); }
+      else if (e.code === 'Space') { e.preventDefault(); toggle(); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); seek(frame + (e.shiftKey ? fps : 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); seek(frame - (e.shiftKey ? fps : 1)); }
       else if (e.key === 'Home') { e.preventDefault(); seek(0); }
@@ -509,11 +511,11 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
           <div className="monitor">
             <div ref={frameEl} style={{ position: 'relative', aspectRatio: `${project.canvas.w}/${project.canvas.h}` }}
               className={`frame ${noteOpen ? 'note-pick' : ''}`}
-              onClick={(e) => { if (noteOpen) { noteSpot(e); return; } const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else player.current?.toggle(); }}>
+              onClick={(e) => { if (noteOpen) { noteSpot(e); return; } const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else toggle(); }}>
               {!noteOpen && <Handles project={project} sel={sel} frame={frame} host={frameEl.current} send={L.send} onPick={setSel} />}
               <NoteSpots notes={notes.filter((n) => inView(noteView, n))} frame={frame} fps={fps} canvas={project.canvas} open={noteOpen?.note || null} />
               {inputProps && <Player ref={player} component={Layers as any} inputProps={inputProps} durationInFrames={total} fps={fps}
-                compositionWidth={project.canvas.w} compositionHeight={project.canvas.h} controls={false} clickToPlay={false} playbackRate={speed}
+                compositionWidth={project.canvas.w} compositionHeight={project.canvas.h} controls={false} clickToPlay={false} moveToBeginningWhenEnded={false} playbackRate={speed}
                 numberOfSharedAudioTags={0} style={{ width: '100%', height: '100%' }} />}
             </div>
           </div>
@@ -521,7 +523,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
             <div><span className="chip">{project.canvas.w}×{project.canvas.h}{speed !== 1 ? ` · ${speed}×` : ''}</span></div>
             <div className="mid">
               <button className="btn ghost icon" title="Back 1 s (Shift+←)" onClick={() => seek(frame - fps)}>⏮</button>
-              <button className="play" title="Play / pause (space)" onClick={() => player.current?.toggle()}>{playing ? '❚❚' : '▶'}</button>
+              <button className="play" title="Play / pause (space)" onClick={() => toggle()}>{playing ? '❚❚' : '▶'}</button>
               <button className="btn ghost icon" title="On 1 s (Shift+→)" onClick={() => seek(frame + fps)}>⏭</button>
             </div>
             <div className="tc">{fmtT(frame / fps / speed)} <span>/ {fmtT(total / fps / speed)}</span></div>
