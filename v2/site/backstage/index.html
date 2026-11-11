@@ -650,6 +650,12 @@
 .ch-n .h{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.74rem;color:var(--dim);margin-bottom:3px;white-space:normal}.ch-n .h button{margin-inline-start:auto;font-size:.74rem;font-weight:800;color:var(--dim);text-decoration:underline}
 .ch-comp{display:grid;gap:6px;margin:6px 0}.ch-comp textarea{width:100%;min-height:90px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--text);font:inherit;padding:10px}.ch-comp div{display:flex;gap:8px}.ch-comp .btn{height:40px}
 .ch-v{display:flex;gap:8px;align-items:flex-start}.ch-v .d{flex:none;width:76px;color:var(--dim);font-size:.8rem;padding-top:3px}
+/* the sheet view */
+.ch-love{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}.ch-love b{font-size:.9rem}.ch-love div{display:flex;gap:4px;flex-wrap:wrap}
+.ch-love button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line2);background:var(--card2);color:var(--dim);font-weight:800;font-size:.85rem}.ch-love button.on{background:rgba(255,106,31,.22);border-color:var(--accent);color:#fff}
+.ch-p{font-size:.98rem;line-height:1.75;margin:2px 0 6px}.ch-ul{margin:2px 0 8px;padding-inline-start:20px;line-height:1.7}.ch-ul li{margin:3px 0}
+.ch-sec.fresh{box-shadow:inset 3px 0 0 #6bd68a}.ch-saved{color:var(--faint);font-size:.75rem;align-self:center}
+@media (max-width:700px){.ch-love button{width:28px;height:28px}}
 @media (max-width:700px){.ch-sec{padding:4px 10px 8px}.ch-v .d{width:64px}.ch-head .ch-av{width:70px;height:88px}.ch-head b{font-size:1.25rem}}
 </style>
 </head>
@@ -833,7 +839,7 @@ function draw() {
   ({ overview, plans, chars, chats, data, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
-const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; crComp = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
+const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
 // the tab marks again without drawing the page (a plan he just opened stops counting)
 function reBadge() {
   const b = badges(), more = b.requests + b.ideas + b.content + b.plans + b.chars;
@@ -853,102 +859,101 @@ function more() {
 
 // ---------- דמויות (2026-11-11, his ask: an ongoing place to shape the characters - "today 10, tomorrow 3 more, then back
 // to some of the 10") - techietech-api/charnotes.js ----------
-// Every character as it is live. He writes a note on any part (a line of the profile, a catchphrase, the site, a person, a
-// video, or the character as a whole) - messy is fine; a session puts it in order into the record and answers under it
-// (scripts/characters/notes.mjs). What changed since he last opened a character is marked green, and the tab's number = the
-// characters with something new for him.
-let CR = null, crId = null, crQ = '', crSeg = 'all', crComp = null, crSnap = 0;
+// Each character as a sheet (scripts/characters/sheet.mjs - his words: "people, not replicas"): who they are, how they talk,
+// what's funny, the parody, the dissonance, the nuances, their catchphrases, how loveable (a tap, 1-10) and their life -
+// one event per video. He writes one general note per character (messy is fine) or a note on a life event; what he types is
+// kept as a draft until he sends it (it used to vanish when he tapped something else). A session puts the notes into the
+// sheet and answers under them (scripts/characters/notes.mjs); what changed since he last opened a character is green, and
+// the tab's number = the characters with something new for him.
+let CR = null, crId = null, crQ = '', crSeg = 'all', crSnap = 0;
+const crOpenRows = new Set();   // the life events whose note box is open - stays open until sent or closed
 const CR_TREE = new Set(['hani', 'avraham-moshe', 'shterni', 'brachi', 'chaimi', 'sruli', 'feigy', 'yanky', 'ruchami', 'malki', 'shloimi']);   // the family-tree pictures (public/friedman/img)
-const CR_KEY = [['personality', 'אישיות'], ['speech', 'דיבור'], ['behavior', 'התנהגות'], ['comedy', 'מה מצחיק'], ['catchphrases', 'משפטי מחץ']];
-const CR_SECS = [['פרופיל', [['brief', 'תקציר'], ['bio', 'ביוגרפיה'], ['role', 'תפקיד'], ['aka', 'שמות נוספים'], ['personality', 'אישיות'], ['speech', 'איך מדבר/ת'], ['behavior', 'התנהגות'], ['themes', 'נושאים'], ['look', 'מראה']]],
-  ['מה מצחיק', [['comedy', 'מה מצחיק'], ['catchphrases', 'משפטי מחץ'], ['writing_rules', 'כללי כתיבה'], ['dont', 'אף פעם לא']]]];
-const crList = (v) => (Array.isArray(v) ? v : v ? [v] : []).map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).filter((x) => x.trim());
-const crFace = (c, cls = 'ch-av') => CR_TREE.has(c.id) ? `<img class="${cls}" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="${cls}" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="${cls}">${esc((c.name || '?')[0])}</span>`;
+const CR_TEXT = [['person', 'מי זה'], ['speech', 'איך מדבר'], ['funny', 'מה מצחיק'], ['parody', 'הפרודיה'], ['dissonance', 'הדיסוננס']];
+const CR_LISTS = [['nuances', 'ניואנסים'], ['catchphrases', 'קאצ\'פרייז / רפליקות']];
+const crFace = (c) => CR_TREE.has(c.id) ? `<img class="ch-av" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="ch-av" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="ch-av">${esc((c.name || '?')[0])}</span>`;
 const crSeen = (id) => (L && L.seen && L.seen['char:' + id]) || 0;
-const crMiss = (c) => CR_KEY.filter(([k]) => !crList(c[k]).length).map(([, l]) => l);
+const crHasSheet = (c) => !!(c.sheet && c.sheet.person);
 const crNotesOf = (id) => (CR?.notes || []).filter((n) => n.char === id);
 const crOpen = (id) => crNotesOf(id).filter((n) => n.by === 'shlomi' && !n.done).length;
-// the last time something in the character changed for him: a field of the record, or a session's answer to his note
-const crLast = (c) => Math.max(0, ...Object.values(CR?.changed?.[c.id] || {}), ...crNotesOf(c.id).filter((n) => n.by === 'claude').map((n) => n.t || 0));
-const crNew = (c) => crLast(c) > crSeen(c.id) && crSeen(c.id) > 0 || (!crSeen(c.id) && crNotesOf(c.id).some((n) => n.by === 'claude'));
+// the last time something in the character changed for him: the sheet / life / love, or a session's answer to his note
+const crLast = (c) => Math.max(0, ...['sheet', 'life', 'love'].map((f) => CR?.changed?.[c.id]?.[f] || 0), ...crNotesOf(c.id).filter((n) => n.by === 'claude').map((n) => n.t || 0));
+const crNew = (c) => crSeen(c.id) > 0 ? crLast(c) > crSeen(c.id) : crNotesOf(c.id).some((n) => n.by === 'claude');
 const crBadge = () => CR ? CR.chars.filter((c) => !c.hidden && crNew(c)).length : 0;
+// drafts: what he typed and didn't send yet, per box, kept on this device (his note: the text vanished on another tap)
+const crDraftKey = (id, anchor) => `cr-draft:${id}:${anchor}`;
+const crDraft = (id, anchor) => { try { return localStorage.getItem(crDraftKey(id, anchor)) || ''; } catch (e) { return ''; } };
+const crKeep = (id, anchor, v) => { try { v ? localStorage.setItem(crDraftKey(id, anchor), v) : localStorage.removeItem(crDraftKey(id, anchor)); } catch (e) {} };
 function crLoad(then) { return api('charList', {}).then((r) => { CR = r; reBadge(); if (then) then(); }).catch((e) => { if (e.message !== 'key' && tab === 'chars') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; }); }
 function chars() {
   if (!CR) { $('#pane').innerHTML = '<div class="empty">טוען את הדמויות…</div>'; crLoad(() => { if (tab === 'chars') chars(); }); return; }
   if (crId) return crView();
   const words = crQ.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const all = CR.chars.filter((c) => !c.hidden);
-  const hay = (c) => [c.name, c.name_en, c.world, c.role, c.tagline, c.brief, c.bio, ...crList(c.aka), ...crList(c.personality), ...crList(c.speech), ...crList(c.behavior), ...crList(c.comedy), ...crList(c.catchphrases),
-    ...c.videos.map((v) => CR.videos[v]?.title || '')].join(' ').toLowerCase();
-  const seg = { all: () => true, miss: (c) => crMiss(c).length, open: (c) => crOpen(c.id), news: crNew }[crSeg] || (() => true);
+  const hay = (c) => [c.name, c.name_en, c.world, c.role, c.tagline, ...Object.values(c.sheet || {}).flat(), ...(c.life || []).map((x) => x.e)].join(' ').toLowerCase();
+  const seg = { all: () => true, news: crNew, open: (c) => crOpen(c.id), none: (c) => !crHasSheet(c) }[crSeg] || (() => true);
   const list = all.filter((c) => seg(c) && words.every((w) => hay(c).includes(w)));
   const n = (f) => all.filter(f).length;
-  $('#pane').innerHTML = `<div class="top"><div><h1>דמויות</h1><p>כל הדמויות כמו שהן באתר ובצ'אט. פותחים דמות וכותבים הערה על כל שורה - בבלגן, איך שבא. סשן מסדר את זה לפרופיל ועונה מתחת להערה, והשינוי מסומן בירוק בפעם הבאה שפותחים.</p></div></div>
-    <div class="ch-bar"><input class="vc-q" placeholder="חיפוש - שם, עולם, מילה מהפרופיל או מסרטון" value="${esc(crQ)}" data-cr-q>
-      <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'חדש בשבילך', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))], ['miss', 'חסר משהו', n((c) => crMiss(c).length)]].map(([k, l, c]) =>
+  $('#pane').innerHTML = `<div class="top"><div><h1>דמויות</h1><p>כל דמות כבן אדם: מי זה, איך מדבר, מה מצחיק, והחיים שלו. כותבים הערה אחת על הדמות, בבלגן - סשן מסדר אותה לדף ועונה מתחת, והשינוי מסומן בירוק בפעם הבאה שפותחים.</p></div></div>
+    <div class="ch-bar"><input class="vc-q" placeholder="חיפוש - שם, עולם, כל מילה" value="${esc(crQ)}" data-cr-q>
+      <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'חדש בשבילך', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))], ['none', 'בלי דף', n((c) => !crHasSheet(c))]].map(([k, l, c]) =>
         `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div></div>
-    <div class="ch-list">${list.map((c) => { const miss = crMiss(c), open = crOpen(c.id);
+    <div class="ch-list">${list.map((c) => { const open = crOpen(c.id);
       return `<button class="item" data-cropen="${c.id}">${crFace(c)}<div class="body"><b>${esc(c.name)}</b><p>${esc(c.world || '')}${c.tagline ? ' · ' + esc(c.tagline) : ''}</p>
-        <div class="ch-tags">${crNew(c) ? '<span class="tag ok">חדש בשבילך</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${miss.length ? `<span class="tag red">חסר: ${miss.join(', ')}</span>` : ''}<span class="tag">${c.videos.length} סרטונים</span></div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
+        <div class="ch-tags">${c.love ? `<span class="tag">אהוב ${c.love}/10</span>` : ''}${crNew(c) ? '<span class="tag ok">חדש בשבילך</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${crHasSheet(c) ? '' : '<span class="tag red">בלי דף</span>'}</div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
   const inp = $('[data-cr-q]'); if (inp) inp.oninput = (e) => { crQ = e.target.value; const pos = e.target.selectionStart; chars(); const x = $('[data-cr-q]'); x.focus(); x.setSelectionRange(pos, pos); };
 }
-// one part of the character: its rows, the notes on it, and (when open) the box to write one
-function crNotesHtml(c, anchor) {
-  const ns = crNotesOf(c.id).filter((n) => n.anchor === anchor), mine = ns.filter((n) => n.by !== 'claude');
-  const rows = mine.map((n) => `<div class="ch-n ${n.done ? 'done' : ''}"><div class="h"><span>${ago(n.t)}</span><span class="tag ${n.done ? 'ok' : 'or'}">${n.done ? 'טופלה' : 'פתוחה'}</span><button data-cdone="${n.id}" data-v="${n.done ? 0 : 1}">${n.done ? 'לפתוח שוב' : 'סמן כטופלה'}</button></div>${esc(n.text)}</div>`
+// the notes on one box (his, with their answers under them) + the box to write one; the text is a draft until sent
+function crNotesHtml(c, anchor, open) {
+  const ns = crNotesOf(c.id).filter((n) => n.anchor === anchor);
+  const rows = ns.filter((n) => n.by !== 'claude').map((n) => `<div class="ch-n ${n.done ? 'done' : ''}"><div class="h"><span>${ago(n.t)}</span><span class="tag ${n.done ? 'ok' : 'or'}">${n.done ? 'טופלה' : 'פתוחה'}</span><button data-cdone="${n.id}" data-v="${n.done ? 0 : 1}">${n.done ? 'לפתוח שוב' : 'סמן כטופלה'}</button></div>${esc(n.text)}</div>`
     + ns.filter((r) => r.by === 'claude' && r.reply === n.id).map((r) => `<div class="ch-n cl"><div class="h"><span>Claude · ${ago(r.t)}</span></div>${esc(r.text)}</div>`).join('')).join('');
-  const comp = crComp === anchor ? `<div class="ch-comp"><textarea data-ctext placeholder="מה לשנות, להוסיף או למחוק - בבלגן, איך שבא"></textarea><div><button class="btn main" data-csend="${esc(anchor)}">שליחה</button><button class="btn" data-ccancel>ביטול</button></div></div>` : '';
+  const comp = open ? `<div class="ch-comp"><textarea data-ctext="${esc(anchor)}" placeholder="${anchor ? 'מה לא נכון באירוע הזה, מה להוסיף' : 'כל מה שיש לך להגיד על ' + esc(c.name) + ' - בבלגן, איך שבא'}">${esc(crDraft(c.id, anchor))}</textarea>
+    <div><button class="btn main" data-csend="${esc(anchor)}">שליחה</button>${anchor ? '<button class="btn" data-cclose="' + esc(anchor) + '">סגירה</button>' : ''}<small class="ch-saved">נשמר כטיוטה עד שתשלח</small></div></div>` : '';
   return rows || comp ? `<div class="ch-notes">${rows}${comp}</div>` : '';
 }
-const crNb = (c, anchor, label) => { const k = crNotesOf(c.id).filter((n) => n.anchor === anchor && n.by === 'shlomi' && !n.done).length;
-  return `<button class="ch-nb ${k ? 'has' : ''}" data-cnote="${esc(anchor)}" data-clabel="${esc(String(label).slice(0, 200))}">${IC.comment}${k ? k : 'הערה'}</button>`; };
 function crView() {
   const c = CR.chars.find((x) => x.id === crId);
   if (!c) { crId = null; return chars(); }
-  const ch = CR.changed[c.id] || {}, fresh = (f) => (ch[f] || 0) > crSnap && crSnap > 0;
-  const field = (f, label) => {
-    const items = crList(c[f]);
-    const many = Array.isArray(c[f]) || ['personality', 'speech', 'behavior', 'comedy', 'catchphrases', 'writing_rules', 'dont', 'themes', 'aka'].includes(f);
-    const body = !items.length ? `<div class="ch-r"><div class="v ch-miss">חסר</div></div>`
-      : many ? items.map((x, i) => `<div class="ch-r ${fresh(f) ? 'new' : ''}"><div class="v">${esc(x)}</div>${crNb(c, f + ':' + i, x)}</div>${crNotesHtml(c, f + ':' + i)}`).join('')
-      : `<div class="ch-r ${fresh(f) ? 'new' : ''}"><div class="v">${esc(items[0])}</div></div>`;
-    return `<div class="ch-f"><div class="ch-fl">${label}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}${crNb(c, f, label)}</div>${crNotesHtml(c, f)}${body}</div>`;
-  };
-  const sites = (CR.sites || []).filter((s) => (s.whose || []).includes(c.id) && s.url !== c.site);
-  const site = `<div class="ch-f"><div class="ch-fl">האתר שלו/ה${fresh('site') ? ' <span class="tag ok">עודכן</span>' : ''}${crNb(c, 'site', 'האתר')}</div>${crNotesHtml(c, 'site')}
-    <div class="ch-r ${fresh('site') ? 'new' : ''}"><div class="v">${c.site ? `<a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a>` : '<span class="ch-miss">אין אתר</span>'}</div></div>
-    ${sites.map((s) => `<div class="ch-r"><div class="v"><a href="${esc(s.url)}" target="_blank">${esc(s.title)}</a><small>${esc(s.about)}</small></div></div>`).join('')}</div>`;
-  const rel = (c.relations || []).map((r) => { const o = CR.chars.find((x) => x.id === r.id); const a = 'rel:' + r.id;
-    return `<div class="ch-r ${fresh('relations') ? 'new' : ''}"><div class="v"><b>${esc(o?.name || r.id)}</b><small>${esc(r.relation || '')}</small></div>${crNb(c, a, o?.name || r.id)}</div>${crNotesHtml(c, a)}`; }).join('');
-  const vids = [...c.videos].map((id) => ({ id, ...(CR.videos[id] || {}) })).filter((v) => v.title).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-  const world = CR.worlds[c.world];
+  const ch = CR.changed[c.id] || {}, fresh = (f) => (ch[f] || 0) > crSnap && crSnap > 0, s = c.sheet || {};
+  const life = c.life || [];
+  const lifeRows = life.map((x, i) => { const a = 'life:' + x.v, k = crNotesOf(c.id).filter((n) => n.anchor === a && n.by === 'shlomi' && !n.done).length, v = CR.videos[x.v];
+    return `<div class="ch-f"><div class="ch-r ${fresh('life') ? 'new' : ''}"><div class="v ch-v"><span class="d"><b>${i + 1}</b><br>${esc(x.d ? dm(x.d) : '')}</span><span>${esc(x.e)}${v ? `<small>${esc(v.title)}</small>` : ''}</span></div>
+      <button class="ch-nb ${k ? 'has' : ''}" data-crrow="${esc(a)}">${IC.comment}${k || 'הערה'}</button></div>${crNotesHtml(c, a, crOpenRows.has(a))}</div>`; }).join('');
   $('#pane').innerHTML = `<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
-    <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small></div></div>
-    <div class="ch-sec"><div class="ch-f"><div class="ch-fl">הערה על ${esc(c.name)} באופן כללי${crNb(c, '', c.name)}</div>${crNotesHtml(c, '')}</div></div>
-    ${world ? `<div class="ch-sec"><h3>העולם - ${esc(c.world)}</h3><div class="ch-r"><div class="v">${esc(world)}</div></div></div>` : ''}
-    ${CR_SECS.map(([t, fs]) => `<div class="ch-sec"><h3>${t}</h3>${fs.map(([f, l]) => field(f, l)).join('')}</div>`).join('')}
-    <div class="ch-sec"><h3>אתר</h3>${site}</div>
-    <div class="ch-sec"><h3>אנשים</h3><div class="ch-f"><div class="ch-fl">הקשרים${fresh('relations') ? ' <span class="tag ok">עודכן</span>' : ''}${crNb(c, 'relations', 'אנשים')}</div>${crNotesHtml(c, 'relations')}${rel || '<div class="ch-r"><div class="v ch-miss">אין קשרים רשומים</div></div>'}</div></div>
-    <div class="ch-sec"><h3>היסטוריה · ${vids.length} סרטונים</h3>${vids.map((v) => `<div class="ch-f"><div class="ch-r"><div class="v ch-v"><span class="d">${esc(v.date)}</span><span><b>${esc(v.title)}</b>${v.tr ? '' : ' <span class="tag">בלי תסריט</span>'}<small>${esc(v.card)}</small></span></div>${crNb(c, 'video:' + v.id, v.title)}</div>${crNotesHtml(c, 'video:' + v.id)}</div>`).join('') || '<div class="ch-r"><div class="v ch-miss">עוד אין סרטונים בשלומיוורס</div></div>'}</div>`;
-  const ta = $('[data-ctext]'); if (ta) ta.focus();
+    <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}</div></div>
+    <div class="ch-love"><b>כמה אהוב${fresh('love') ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crlove="${i + 1}" class="${i + 1 <= (c.love || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>
+    <div class="ch-sec"><h3>ההערות שלך על ${esc(c.name)}</h3>${crNotesHtml(c, '', true)}</div>
+    ${crHasSheet(c) ? `<div class="ch-sec ${fresh('sheet') ? 'fresh' : ''}">${fresh('sheet') ? '<span class="tag ok">הדף עודכן מאז שראית</span>' : ''}
+      ${CR_TEXT.filter(([k]) => s[k]).map(([k, l]) => `<h3>${l}</h3><p class="ch-p">${esc(s[k])}</p>`).join('')}
+      ${CR_LISTS.map(([k, l]) => `<h3>${l}</h3>${(s[k] || []).length ? `<ul class="ch-ul">${s[k].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="ch-p dim">אין עדיין</p>'}`).join('')}</div>`
+      : '<div class="ch-sec"><p class="ch-p ch-miss">עוד אין דף לדמות הזאת. אפשר לכתוב עליה הערה, וסשן יכתוב לה דף.</p></div>'}
+    <div class="ch-sec"><h3>החיים - אירוע לכל סרטון${fresh('life') ? ' <span class="tag ok">עודכן</span>' : ''}</h3>${lifeRows || '<p class="ch-p dim">עוד אין סרטונים איתו בשלומיוורס.</p>'}</div>`;
+  // every keystroke is kept (his note: the text vanished when he tapped something else before sending)
+  document.querySelectorAll('[data-ctext]').forEach((ta) => { ta.oninput = () => crKeep(c.id, ta.dataset.ctext, ta.value); });
 }
 function crOpenChar(id) {
-  crId = id; crComp = null; crSnap = crSeen(id);
+  crId = id; crOpenRows.clear(); crSnap = crSeen(id);
   chars(); scrollTo(0, 0);
-  const now = Date.now(); L.seen = { ...(L.seen || {}), ['char:' + id]: now };   // green stays for this visit (crSnap), gone next time
+  L.seen = { ...(L.seen || {}), ['char:' + id]: Date.now() };   // green stays for this visit (crSnap), gone next time
   api('seen', { k: 'char:' + id }).catch(() => {});
   reBadge();
 }
+const crRedraw = () => { const y = scrollY; crView(); scrollTo(0, y); };
 async function crSend(b) {
-  const ta = $('[data-ctext]'), text = ta ? ta.value.trim() : '';
+  const anchor = b.dataset.csend, ta = document.querySelector(`[data-ctext="${CSS.escape(anchor)}"]`), text = ta ? ta.value.trim() : '';
   if (!text) return;
-  const anchor = b.dataset.csend, label = document.querySelector(`[data-cnote="${CSS.escape(anchor)}"]`)?.dataset.clabel || '';
+  const c = CR.chars.find((x) => x.id === crId), x = anchor.startsWith('life:') ? (c.life || []).find((e) => 'life:' + e.v === anchor) : null;
   b.disabled = true;
   try {
-    const r = await api('charNote', { char: crId, anchor, label, text });
-    CR.notes.push({ id: r.id, char: crId, anchor, label, text, by: 'shlomi', done: false, t: Date.now() });
-    crComp = null; const y = scrollY; crView(); scrollTo(0, y);
-  } catch (e) { b.disabled = false; }
+    const r = await api('charNote', { char: crId, anchor, label: x ? x.e : c.name, text });
+    CR.notes.push({ id: r.id, char: crId, anchor, label: x ? x.e : c.name, text, by: 'shlomi', done: false, t: Date.now() });
+    crKeep(crId, anchor, ''); crOpenRows.delete(anchor); crRedraw();
+  } catch (e) { b.disabled = false; b.textContent = 'לא נשלח - לנסות שוב'; }
+}
+async function crLove(b) {
+  const c = CR.chars.find((x) => x.id === crId), love = +b.dataset.crlove, was = c.love;
+  c.love = love; crRedraw();
+  try { await api('charLove', { id: crId, love }); } catch (e) { c.love = was; crRedraw(); }
 }
 
 // ---------- ציפציפ + ח24 (2026-11-08, his idea: the residents' own X and the verse's news channel - techietech-api/tz.js) ----------
@@ -2436,12 +2441,13 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.ideaStep) await ideaStep(b);
   else if (b.dataset.vcHide) await vcHide(b);
   else if (b.dataset.cropen) crOpenChar(b.dataset.cropen);
-  else if (b.dataset.crback !== undefined) { crId = null; crComp = null; chars(); scrollTo(0, 0); }
+  else if (b.dataset.crback !== undefined) { crId = null; chars(); scrollTo(0, 0); }
   else if (b.dataset.crseg) { crSeg = b.dataset.crseg; chars(); }
-  else if (b.dataset.cnote !== undefined) { crComp = crComp === b.dataset.cnote ? null : b.dataset.cnote; const y = scrollY; crView(); scrollTo(0, y); }
-  else if (b.dataset.ccancel !== undefined) { crComp = null; const y = scrollY; crView(); scrollTo(0, y); }
+  else if (b.dataset.crrow) { const a = b.dataset.crrow; crOpenRows.has(a) && !crDraft(crId, a) ? crOpenRows.delete(a) : crOpenRows.add(a); crRedraw(); }
+  else if (b.dataset.cclose) { crOpenRows.delete(b.dataset.cclose); crRedraw(); }   // the draft stays for next time
+  else if (b.dataset.crlove) await crLove(b);
   else if (b.dataset.csend !== undefined) await crSend(b);
-  else if (b.dataset.cdone) { b.disabled = true; const done = b.dataset.v === '1'; await api('charNoteDone', { id: b.dataset.cdone, done }).catch(() => {}); const n = CR.notes.find((x) => x.id === b.dataset.cdone); if (n) n.done = done; const y = scrollY; crView(); scrollTo(0, y); }
+  else if (b.dataset.cdone) { b.disabled = true; const done = b.dataset.v === '1'; await api('charNoteDone', { id: b.dataset.cdone, done }).catch(() => {}); const n = CR.notes.find((x) => x.id === b.dataset.cdone); if (n) n.done = done; crRedraw(); }
   else if (b.dataset.wsOpen) await wishOpen(b);
   else if (b.dataset.ideaReply) {
     const id = b.dataset.ideaReply, text = document.querySelector(`[data-idea-reply-text="${id}"]`).value.trim();

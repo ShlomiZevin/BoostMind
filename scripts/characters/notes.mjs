@@ -23,10 +23,11 @@ const write = (text) => { const f = opt('out'); if (f) { fs.writeFileSync(f, tex
 
 // the line a note is on, as it is live now ('field:3' = the 4th item of the field)
 function lineOf(c, anchor) {
-  if (!anchor) return '(the character as a whole)';
+  if (!anchor) return '(the character as a whole - his general note: put it into the sheet, scripts/characters/sheet.mjs fields)';
   const [f, i] = anchor.split(':');
   if (f === 'rel') return `relation to ${i}: ${(c.relations || []).find((r) => r.id === i)?.relation || '(gone)'}`;
   if (f === 'video') return `video ${i}`;
+  if (f === 'life') { const n = (c.life || []).findIndex((x) => x.v === i); return n < 0 ? `life event of video ${i} (gone)` : `life event ${n + 1} (video ${i}): ${c.life[n].e}`; }
   const v = c[f];
   if (i != null && Array.isArray(v)) return `${f}[${i}]: ${v[+i] ?? '(gone)'}`;
   return `${f}: ${Array.isArray(v) ? v.join(' | ') : v ?? '(empty)'}`;

@@ -4,7 +4,7 @@
 // notes; a session reads the open ones (scripts/characters/notes.mjs), puts them in order into the record (content.mjs
 // put) and answers under the note. What changed in a character since he last opened it is marked (catalogLog).
 // Private: Firestore `charNotes` (no client rule = nobody reads it). Called only from verseOwner (his key): ops
-// charList, charNotes, charNote, charNoteDone.
+// charList, charNotes, charNote, charNoteDone, charLove.
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 
@@ -15,7 +15,7 @@ const ms = (t) => (t && t.toMillis ? t.toMillis() : null);
 const pub = (u) => String(u || '').replace('https://boostmind-b052c.web.app', 'https://shlomiverse.com');
 // the parts of a record shown and noted on (the rest - colour, order, questions, sources - isn't about who they are)
 const FIELDS = ['name', 'name_en', 'aka', 'world', 'role', 'tagline', 'brief', 'bio', 'personality', 'speech', 'behavior', 'themes', 'look',
-  'comedy', 'catchphrases', 'writing_rules', 'dont', 'relations', 'site', 'hidden'];
+  'comedy', 'catchphrases', 'writing_rules', 'dont', 'relations', 'site', 'hidden', 'sheet', 'love', 'life'];
 
 const note = (d) => ({ id: d.id, ...d.data(), t: ms(d.data().t) });
 
@@ -73,6 +73,14 @@ async function owner(op, b) {
       t: FieldValue.serverTimestamp(), done: by === 'claude' });
     if (by === 'claude' && b.reply && idOk(String(b.reply).toLowerCase())) await notes.doc(b.reply).update({ done: true }).catch(() => {});
     return { ok: true, id: ref.id };
+  }
+  // how loveable a character is, 1-10 (his click; a first guess came from how many videos they have) - into the record,
+  // through the content door so it is logged like any change
+  if (op === 'charLove') {
+    const love = Math.round(Number(b.love));
+    if (!idOk(b.id) || !(love >= 1 && love <= 10)) return { error: 'love' };
+    const r = await require('./content').put({ kind: 'character', id: b.id, love }, 'backstage');
+    return r.error ? r : { ok: true, love };
   }
   if (op === 'charNoteDone') {   // handled, or open again (his "not yet")
     if (!idOk(String(b.id || '').toLowerCase())) return { error: 'id' };

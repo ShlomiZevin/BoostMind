@@ -19,13 +19,17 @@ const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 const crypto = require('crypto');
 
-const LISTS = ['aka', 'ask', 'catchphrases', 'relations', 'personality', 'behavior', 'themes', 'dont', 'writing_rules', 'chars', 'whose', 'mainOf', 'links', 'videos', 'sources'];
+const LISTS = ['aka', 'ask', 'life', 'catchphrases', 'relations', 'personality', 'behavior', 'themes', 'dont', 'writing_rules', 'chars', 'whose', 'mainOf', 'links', 'videos', 'sources'];
 const KINDS = {
   character: { col: 'catalogCharacters', need: ['name'], fields: ['order', 'name', 'name_en', 'aka', 'world', 'series', 'role', 'tagline', 'bio', 'ask',
     'catchphrases', 'color', 'site', 'relations', 'brief', 'personality', 'speech', 'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules',
     // the studio's own (since 2026-11-06 the record is the ONLY copy - no character.json in git): the voice preset, the
     // Reader's pace, links, the projects it's in, sources, and paths to its pictures / sounds on the computers
-    'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes'] },   // site_notes: the studio's site.notes (site = its url)
+    'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes',   // site_notes: the studio's site.notes (site = its url)
+    // the character sheet (Backstage → דמויות, 2026-11-11, his ask: "people, not replicas"): who they are, how they talk, what is
+    // funny, the parody, the nuance, the dissonance, a few catchphrases (sheet); how loveable 1-10 (love); their life, one event
+    // per video (life: [{v, d, e}]) - what the chat's chain answers from
+    'sheet', 'love', 'life'] },
   // world = the studio's name for it (character.world), name = its full name there (was characters/index.json)
   series: { col: 'catalogSeries', need: ['title'], fields: ['order', 'title', 'blurb', 'site', 'brief', 'world', 'name'] },
   game: { col: 'catalogGames', need: ['url', 'title'], fields: ['url', 'title', 'tagline', 'img', 'chars', 'site', 'date', 'record'] },
