@@ -107,12 +107,26 @@ function characterText(b, c) {
     c.aka?.length ? `Also called: ${c.aka.join(', ')}` : '', `World / series: ${w ? `${w.title} (series id ${w.id})` : c.world || '-'}`,
     c.role ? `Role: ${c.role}` : '', c.tagline ? `Tagline: ${c.tagline}` : '', c.site ? `Their own site: ${pub(c.site)}` : ''];
   const sec = (title, body) => { if (body && String(body).trim()) parts.push(`\n## ${title}\n${body}`); };
-  sec('Bio', c.bio); sec('Brief (the writer\'s full picture)', c.brief); sec('Look', c.look);
-  sec('Personality', list(c.personality)); sec('How they speak', list(c.speech)); sec('Catchphrases', list(c.catchphrases));
-  sec('Behavior', list(c.behavior)); sec('Where the comedy is', list(c.comedy)); sec('Themes', list(c.themes));
-  sec('Writing rules', list(c.writing_rules)); sec('Never', list(c.dont));
+  // the character sheet (Backstage → דמויות, shaped by him - his ask 2026-11-11: "the most important thing for the MCP: GPT
+  // reads about this character and we draft a script"). When there is one it IS the character: the older long profile is left
+  // out - it still holds things he took out (only facts stay: look, relations, site, their life)
+  const sh = c.sheet && c.sheet.person ? c.sheet : null;
+  if (sh) {
+    parts.push('\nThis is the character sheet Shlomi approved - write from it. The Shlomiverse is real: they are real people; their videos are moments of their life.');
+    if (c.love || c.viral) parts.push(`How loveable: ${c.love || '-'}/10 · How viral right now: ${c.viral || '-'}/10`);
+    sec('מי זה (who they are)', sh.person); sec('איך מדבר (how they talk)', sh.speech); sec('מה מצחיק (what is funny about them)', sh.funny);
+    sec('הפרודיה (what it mirrors)', sh.parody); sec('הדיסוננס (the core contradiction)', sh.dissonance);
+    sec('ניואנסים (nuances)', list(sh.nuances)); sec('קאצ\'פרייז / רפליקות (catchphrases - only these)', list(sh.catchphrases) || '(none - their whole way of talking is the signature)');
+    sec('Look', c.look);
+    sec('Their life - one event per video, in order (get_video for the full transcript)', (c.life || []).map((x, i) => `${i + 1}. ${x.d || ''} | ${x.v} | ${x.e}`).join('\n'));
+  } else {
+    sec('Bio', c.bio); sec('Brief (the writer\'s full picture)', c.brief); sec('Look', c.look);
+    sec('Personality', list(c.personality)); sec('How they speak', list(c.speech)); sec('Catchphrases', list(c.catchphrases));
+    sec('Behavior', list(c.behavior)); sec('Where the comedy is', list(c.comedy)); sec('Themes', list(c.themes));
+    sec('Writing rules', list(c.writing_rules)); sec('Never', list(c.dont));
+  }
   sec('Relations', (Array.isArray(c.relations) ? c.relations : []).map((r) => `- ${nameOf(b, r.id)} (id ${r.id}): ${r.relation || ''}`).join('\n'));
-  sec('Videos (newest first - get_video for the full transcript)', vids.map((v) => `- ${v.id} | ${v.date || ''} | ${v.title}${v.card ? ` - ${v.card}` : ''}`).join('\n'));
+  if (!sh) sec('Videos (newest first - get_video for the full transcript)', vids.map((v) => `- ${v.id} | ${v.date || ''} | ${v.title}${v.card ? ` - ${v.card}` : ''}`).join('\n'));
   return parts.filter(Boolean).join('\n');
 }
 function videoText(b, v) {
@@ -134,8 +148,8 @@ The characters are written as real people - each with a job, a family, a way of 
 and they live on: their own sites (shops, companies, services), games, stories, and a chat where visitors talk to each of them.
 Everything is in Hebrew. ${b.characters.length} characters, ${b.worlds.length} series, ${b.videos.length} videos, ${(b.sites || []).length} sites, ${(b.games || []).length} games.
 
-How to use this server for writing: get_character gives a character's full writer's profile (voice, catchphrases, comedy, writing
-rules, the things they never do, family and relations, their videos); get_video gives a video's full transcript; list_series /
+How to use this server for writing: get_character gives a character's sheet - who they are, how they talk, what is funny about
+them, the parody, the dissonance, nuances, catchphrases, and their life (one event per video) - plus family and relations; get_video gives a video's full transcript; list_series /
 list_characters / list_videos give the map; search finds anything by words (Hebrew or English).
 
 ## Series
@@ -154,7 +168,7 @@ const TOOLS = [
   { name: 'about', title: 'About the Shlomiverse', description: 'What the Shlomiverse is, its series and how to use these tools. Start here.', inputSchema: S({}) },
   { name: 'list_characters', title: 'List characters', description: 'Every character (id, name, world, role, tagline), optionally only one series.',
     inputSchema: S({ series: str('Optional: a series id or name, e.g. "techytech" or "טקי-טק"') }) },
-  { name: 'get_character', title: 'Character profile', description: 'A character\'s full writer\'s profile: bio, brief, personality, how they speak, catchphrases, comedy, writing rules, what they never do, relations, look, and their videos.',
+  { name: 'get_character', title: 'Character profile', description: 'A character\'s sheet - who they are, how they talk, what is funny about them, the parody, the dissonance, nuances, catchphrases, how loveable / how viral now, and their life one event per video - plus relations and look. Read it before writing a script for them.',
     inputSchema: S({ character: str('The character id, name or nickname (Hebrew or English), e.g. "hani", "חני", "Avram"') }, ['character']) },
   { name: 'list_series', title: 'List series', description: 'Every series / world with its blurb and number of characters.', inputSchema: S({}) },
   { name: 'get_series', title: 'Series in full', description: 'A series: its brief, its characters and its videos.', inputSchema: S({ series: str('Series id or name') }, ['series']) },
@@ -208,7 +222,7 @@ function run(b, name, a = {}) {
 
 // ---- MCP over HTTP (stateless JSON-RPC) ----
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Read-only. Before writing for a character, read their full profile with get_character (voice, catchphrases, writing rules, what they never do) and, when useful, the transcripts of their videos with get_video. Content is in Hebrew.';
+const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Read-only. Before writing for a character, read their sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and, when useful, the transcripts of their videos with get_video. Content is in Hebrew.';
 async function answer(msg) {
   const { id, method, params = {} } = msg || {};
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
