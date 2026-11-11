@@ -13,8 +13,8 @@ W, H, FPS = 1080, 1920, 30
 # (recording, from s, to s, label index or None, centre start, centre end, zoom start, zoom end)
 SHOTS = [('frames-box', 6.7, 10.0, 0, (.5, .47), (.5, .5), 1.1, 1.22),
          ('frames-sort', 8.9, 11.3, 1, (.62, .66), (.7, .68), 1.3, 1.55),
-         ('frames-tray', 0.9, 3.7, 2, (.5, .6), (.5, .6), 1.04, 1.14),
-         ('frames-tray', 12.5, 14.4, None, (.5, .42), (.5, .4), 1.0, 1.12)]
+         ('frames-tray', 1.0, 4.0, 2, (.5, .6), (.5, .6), 1.04, 1.14),
+         ('frames-tray', 11.6, 13.6, None, (.5, .42), (.5, .4), 1.0, 1.12)]
 TITLE_N = 39
 
 def read_clip(path):
