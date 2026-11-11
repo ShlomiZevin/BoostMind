@@ -1,0 +1,6 @@
+Design a finished, polished, premium mobile game screen in portrait orientation (a phone screenshot, 1024x1536) - the kind of screen a top casual-game studio would ship: pixel-perfect, clean, very easy to understand for anyone (also for people who never play games), big clear buttons, few words, a clear hierarchy. All writing is Hebrew, right to left, spelled exactly as given. Keep the same art style, world and characters as the first reference (the approved concept): a cosy grandmother living room, warm wood, cream and soft pink/purple accents. The grandmother (Savta) and the young caregiver (Lola) look exactly like the reference portraits. Pills look exactly like the pills reference (real medicines).
+This screen: the START screen of the game "התרופות של שמונה" (title as big painted lettering). A hero picture of Lola and Savta at the table with the pills. Under it ONE line: "סבתא בטוחה שלולה מחליפה לה את התרופות". Then three big game cards to choose from, each with a small picture and one short line:
+1) "קופסת השבוע" - "גררו כדורים לקופסה"  (picture: the weekly pill organizer)
+2) "הבקבוקים" - "כל תרופה לבקבוק שלה" (picture: orange pill bottles)
+3) "המגש של סבתא" - "שלושה זהים – מנה" (picture: a tray of pills)
+Each card has a small round "?" button. A small sound button at the bottom.

@@ -1,0 +1,5 @@
+A sprite sheet for a mobile puzzle game: 10 real medicine pills, painted, seen straight from above, on a fully transparent background. 5 columns x 2 rows, each pill alone in the middle of its cell with lots of empty space around it, no labels, no text, no shadows on the ground, no packaging.
+Each pill looks like the real medicine, true to its real shape, colour and relative size (big pills look big, small pills small):
+Row 1: 1) aspirin 100 mg - small white round tablet with a score line; 2) bisoprolol - small yellow heart-shaped tablet; 3) warfarin 5 mg - peach round tablet with a score line; 4) omeprazole - a capsule, half purple half pink, lying horizontally; 5) metformin 850 - a big white oblong tablet with a score line, lying horizontally.
+Row 2: 6) atorvastatin - a white oval film-coated tablet; 7) calcium with vitamin D - a huge chalky off-white oblong tablet, lying horizontally; 8) vitamin D - a small clear golden-yellow round softgel; 9) omega-3 fish oil - a large amber translucent oval softgel, lying horizontally; 10) iron - a round glossy reddish-brown coated tablet.
+Glossy, tactile, satisfying casual-game look, crisp edges.

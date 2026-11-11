@@ -1,0 +1,5 @@
+Four small game UI pieces for a cosy mobile game, painted glossy casual-game style, side by side in one row on a fully transparent background, each alone with lots of empty space around it, no text:
+1) a friendly cartoon hand with the index finger pointing up-left, for showing the player where to tap (white glove-free, natural light skin, simple and clean, with a thin dark outline);
+2) a white child-proof pill bottle cap seen from the front-side;
+3) a shiny golden star;
+4) a glowing yellow light bulb icon inside a purple circle.

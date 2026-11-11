@@ -1,0 +1,13 @@
+{
+  "slug": "pills",
+  "title": "התרופות של שמונה",
+  "tagline": "לולה מסדרת לסבתא את התרופות של שמונה בערב – וסבתא בודקת כל כדור, כי היא בטוחה שלולה מחליפה לה אותם. שלושה משחקים על אותם כדורים: קופסת השבוע, הבקבוקים והמגש של סבתא.",
+  "character": "lola",
+  "chars": ["lola", "savta"],
+  "world": "המשפחה של אברם",
+  "status": "draft",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:pills:best", "label": "נקודות" },
+  "record": { "unit": "נקודות", "better": "high" },
+  "date": "2026-11-11"
+}

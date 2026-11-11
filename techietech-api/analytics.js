@@ -80,7 +80,7 @@ const EVENTS = new Set([
   'vote',          // +1 on someone's idea                         x = 'on' | 'off'
   'chat_new',      // "new conversation" in the chat               x = character id or 'guide'
 ]);
-const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'yaniv-games', 'sagi-games', 'asaf-games', 'yotam-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'tziftzif', 'charadot', 'osnat-games', 'rosenblum-games', 'other']);
+const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'yaniv-games', 'sagi-games', 'asaf-games', 'yotam-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'tziftzif', 'charadot', 'osnat-games', 'rosenblum-games', 'lola-games', 'other']);
 const SOURCES = new Set(['mail', 'tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
 const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
 

@@ -96,3 +96,8 @@ principles - apply them to whatever the game is.
 - **Restart is one tap away during play**, and when the round can no longer be won the game stops and asks "להתחיל מחדש?" with restart as the main button.
 - **Hebrew menus read right to left**: the main action is the first (rightmost/top) button; times as 0:26 (a number + "שנ׳" flips in RTL); "עצרנו", not "הפסקה" (a break); a level card shows the goal and the tools you get.
 - **Nothing drawn on top of anything** (הקטר המאסף, 10 Nov 2026): a level is checked by a script at the narrowest screen for doors / props / characters that overlap (classroom door over the yard door looked like a broken double door). Run it whenever levels change.
+
+- **"Use designer" = GPT Image designs every screen first** (Lola pills, 11 Nov 2026: "pixel perfect, easy for dummies"): one mockup per screen (start, each mode, end) from the approved concept + the real art as references, then build to match it - its buttons, panels and badges in CSS, its painted pieces (title sign, hero, mode icons, hand, caps) cut from new GPT pictures. Compare screenshots with the mockups side by side.
+- **Show a move, don't only tell it**: an animated hand plays a real valid move after a few seconds of no input, and at once in every "try it" tutorial step. Early levels use clearly different pieces; look-alikes come later.
+
+- **Name what the player handles** (Lola pills, 11 Nov 2026 - "so so so great"): when the pieces are real things with names, show the name on the piece the player drags or lifts and pop it with the points on every match / drop. Draw numbers apart from Hebrew text so RTL never scrambles them.

@@ -100,7 +100,7 @@ Read before any idea - the game must be something THIS character would be in:
   **Before suggesting, list what is already taken** - every `public/*-games/*/game.json` (and Hani's playhouse), plus
   the Plaxzy games in the memory notes - and offer none of those mechanics. Taken so far: snake (Sagi), whack-a-mole
   (Asaf), Pac-Man (Yotam), Rush Hour (Yotam), Diner Dash (Osnat), runner (Hani gan-run), story-chain cards (Hani),
-  drag-in-millimeters (Yaniv), Lemmings (Rosenblum); on Plaxzy: Breakout, Volfied, Missile Command, bubble shooter,
+  drag-in-millimeters (Yaniv), Lemmings (Rosenblum), Block Blast + Ball Sort + match-3 (Lola pills); on Plaxzy: Breakout, Volfied, Missile Command, bubble shooter,
   Space Invaders, pinball, Keen platformer, Frogger-style traffic, gold miner, chain reaction. Add each new game's
   mechanic to this line.
 - **About who the character IS, not one video**: their running traits across all their videos (Asaf is always on the
