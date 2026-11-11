@@ -169,6 +169,11 @@ on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <pro
 - **Cutting a silence in a dialogue project**: cut every row, the strip, the captions and his notes together (split
   clips that cross the cut, `in` moved); measure the WORD edges first - three cuts clipped a word ("לך" -> "לה",
   "בפוניבז'", the "ה" of "הסתכלתי"); a few frames given back fixes it. Moving something later = shift everything after.
+- **A cut-away over a line about the other one** (savta-1, 2026-11-11: "show her for a split second on top of Savta
+  talking about her speaking with her sister"): the other character's clip (her own group, her own set) laid over the
+  speaker's line, the strip switching to it for ~2 s and back; its voice clip at `gain` ~0.35 under the speaker's (heard,
+  not competing); a full-voice beat of hers right after the line is a punchline. Starts on the speaker, no opening shot
+  unless he asks; the silent head of a clip = a split second, then the words.
 - **No fades anywhere** (his rule) - 0.01 s click guard only.
 - A text / card meant on top (over a poster) must be the TOP layer - index 0 is the bottom.
 - The studio holds the old format checker until it restarts once after a format merge (he restarts it, or allows you).
