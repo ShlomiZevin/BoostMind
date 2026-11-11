@@ -37,12 +37,12 @@ His rules:
 - A child or a minor family member who isn't meant to be funny: "funny" says what makes them real and lovable in the story instead; parody may be "".
 
 Sections (Hebrew strings):
-- person: 4-7 sentences - who this person is.
+- person: 3-5 short sentences - who this person is (his note: "too long").
 - speech: 2-4 sentences - how they talk: register, rhythm, sentence length, the kind of words (not a list of their phrases).
 - funny: 3-6 sentences - the comic mechanism.
 - parody: 1-3 sentences - what in real life this mirrors and pokes at.
 - dissonance: 1-3 sentences - the core gap/contradiction the comedy lives on.
-- nuances: a list of 3-6 short items - the subtle details that make them real (a habit, a sensitivity, a small rule they live by), one line each, about who they are, not scenes.
+- nuances: 0-2 short items, only if there really are such (his rule: "1-2, only if there truly is one") - a signature habit or detail that makes them real, one line each, not scenes.
 - catchphrases: 0-5 catchphrases or signature lines (רפליקות). A catchphrase is what they say again and again: pick ONLY from REPEATING PHRASES below (said in several of their videos), written exactly as there, and only ones this character says (not someone else in the scene). None fits - return fewer, even none. Never invent, never take a line said once.
 - life: their life, one event per video in VIDEOS (same order, every video, keep the id): what happened to them, one sentence, as an event in their life - never "in the video". If they only appear briefly, say what their part was.
 
@@ -86,7 +86,7 @@ async function draft(c, brain, key) {
   const dates = Object.fromEntries(vids.map((v) => [v.id, v.date || '']));
   const life = (a.life || []).filter((x) => dates[x.v] !== undefined && x.e).map((x) => ({ v: x.v, d: dates[x.v], e: x.e }));
   const u = j.usage || {};
-  return { id: c.id, sheet: { person: a.person || '', speech: a.speech || '', funny: a.funny || '', parody: a.parody || '', dissonance: a.dissonance || '', nuances: (a.nuances || []).slice(0, 6), catchphrases: (a.catchphrases || []).filter((x) => !vids.some((v) => v.transcript) || vids.some((v) => norm(v.transcript).includes(norm(x)))).slice(0, 5) },   // only what is really in their scripts
+  return { id: c.id, sheet: { person: a.person || '', speech: a.speech || '', funny: a.funny || '', parody: a.parody || '', dissonance: a.dissonance || '', nuances: (a.nuances || []).slice(0, 2), catchphrases: (a.catchphrases || []).filter((x) => !vids.some((v) => v.transcript) || vids.some((v) => norm(v.transcript).includes(norm(x)))).slice(0, 5) },   // only what is really in their scripts
     love: c.love || loveGuess(vids.length), life, usage: { in: u.input_tokens || 0, out: u.output_tokens || 0 } };
 }
 
