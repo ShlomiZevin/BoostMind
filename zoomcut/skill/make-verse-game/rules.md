@@ -52,6 +52,10 @@ principles - apply them to whatever the game is.
 - The character's real voice where it exists; otherwise ElevenLabs sound effects; music only when it earns it.
 - Audio starts from a tap (browsers block it before); a sound button that is remembered; everything pauses on pause
   and stops on pagehide / leaving the page.
+- **Sound must come back after the player returns** (iPhone - Safari AND Chrome are WebKit): a suspended or
+  'interrupted' AudioContext resumes only from inside a tap. Wake it on EVERY tap (not a `once` listener), check
+  `state !== 'running'` (not only 'suspended'), play a 1-sample silent buffer in the tap, and if it still won't run,
+  close it and build a new one (reload the buffers). Pills game, 11 Nov 2026: silent forever after leaving the page.
 
 ## Tutorial
 - One step at a time with the game frozen, a spotlight on the real thing, the card away from the spotlight.
