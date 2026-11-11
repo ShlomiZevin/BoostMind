@@ -654,7 +654,8 @@
 .ch-love{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}.ch-love b{font-size:.9rem}.ch-love div{display:flex;gap:4px;flex-wrap:wrap}
 .ch-love button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line2);background:var(--card2);color:var(--dim);font-weight:800;font-size:.85rem}.ch-love button.on{background:rgba(255,106,31,.22);border-color:var(--accent);color:#fff}
 .ch-p{font-size:.98rem;line-height:1.75;margin:2px 0 6px}.ch-ul{margin:2px 0 8px;padding-inline-start:20px;line-height:1.7}.ch-ul li{margin:3px 0}
-.ch-sec.fresh{box-shadow:inset 3px 0 0 #6bd68a}.ch-saved{color:var(--faint);font-size:.75rem;align-self:center}
+.ch-sec.fresh{box-shadow:inset 3px 0 0 #6bd68a}
+.ch-done{height:40px;margin:6px 0 2px}.ch-done.on{border-color:rgba(107,214,138,.6);color:#8ee6a6}.ch-bar .seg+.seg{margin-inline-start:0}.ch-saved{color:var(--faint);font-size:.75rem;align-self:center}
 @media (max-width:700px){.ch-love button{width:28px;height:28px}}
 @media (max-width:700px){.ch-sec{padding:4px 10px 8px}.ch-v .d{width:64px}.ch-head .ch-av{width:70px;height:88px}.ch-head b{font-size:1.25rem}}
 </style>
@@ -865,7 +866,7 @@ function more() {
 // kept as a draft until he sends it (it used to vanish when he tapped something else). A session puts the notes into the
 // sheet and answers under them (scripts/characters/notes.mjs); what changed since he last opened a character is green, and
 // the tab's number = the characters with something new for him.
-let CR = null, crId = null, crQ = '', crSeg = 'all', crSnap = 0;
+let CR = null, crId = null, crQ = '', crSeg = 'all', crSort = 'love', crSnap = 0;   // the list: by how loveable first (his ask)
 const crOpenRows = new Set();   // the life events whose note box is open - stays open until sent or closed
 const CR_TREE = new Set(['hani', 'avraham-moshe', 'shterni', 'brachi', 'chaimi', 'sruli', 'feigy', 'yanky', 'ruchami', 'malki', 'shloimi']);   // the family-tree pictures (public/friedman/img)
 const CR_TEXT = [['person', 'מי זה'], ['speech', 'איך מדבר'], ['funny', 'מה מצחיק'], ['parody', 'הפרודיה'], ['dissonance', 'הדיסוננס']];
@@ -876,9 +877,13 @@ const crHasSheet = (c) => !!(c.sheet && c.sheet.person);
 const crNotesOf = (id) => (CR?.notes || []).filter((n) => n.char === id);
 const crOpen = (id) => crNotesOf(id).filter((n) => n.by === 'shlomi' && !n.done).length;
 // the last time something in the character changed for him: the sheet / life / love, or a session's answer to his note
-const crLast = (c) => Math.max(0, ...['sheet', 'life', 'love'].map((f) => CR?.changed?.[c.id]?.[f] || 0), ...crNotesOf(c.id).filter((n) => n.by === 'claude').map((n) => n.t || 0));
-const crNew = (c) => crSeen(c.id) > 0 ? crLast(c) > crSeen(c.id) : crNotesOf(c.id).some((n) => n.by === 'claude');
+const crLast = (c) => Math.max(0, ...['sheet', 'life', 'love', 'viral'].map((f) => CR?.changed?.[c.id]?.[f] || 0), ...crNotesOf(c.id).filter((n) => n.by === 'claude').map((n) => n.t || 0));
+// the starting line (his note 2026-11-11: "all are new" - the 85 sheets and first scores went in at once): what changed before
+// it is nobody's news; after it, a change counts once he has seen the character, a session's answer to his note always
+const CR_SINCE = 1794409057234;   // 2026-11-11, the deploy that wrote the 85 sheets + first scores
+const crNew = (c) => { const seen = Math.max(crSeen(c.id), CR_SINCE); return seen > 0 ? crLast(c) > seen : crNotesOf(c.id).some((n) => n.by === 'claude'); };
 const crBadge = () => CR ? CR.chars.filter((c) => !c.hidden && crNew(c)).length : 0;
+const crDone = (id) => !!(CR?.done || {})[id];   // he marked he's done going over this one
 // drafts: what he typed and didn't send yet, per box, kept on this device (his note: the text vanished on another tap)
 const crDraftKey = (id, anchor) => `cr-draft:${id}:${anchor}`;
 const crDraft = (id, anchor) => { try { return localStorage.getItem(crDraftKey(id, anchor)) || ''; } catch (e) { return ''; } };
@@ -890,16 +895,18 @@ function chars() {
   const words = crQ.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const all = CR.chars.filter((c) => !c.hidden);
   const hay = (c) => [c.name, c.name_en, c.world, c.role, c.tagline, ...Object.values(c.sheet || {}).flat(), ...(c.life || []).map((x) => x.e)].join(' ').toLowerCase();
-  const seg = { all: () => true, news: crNew, open: (c) => crOpen(c.id), none: (c) => !crHasSheet(c) }[crSeg] || (() => true);
-  const list = all.filter((c) => seg(c) && words.every((w) => hay(c).includes(w)));
+  const seg = { all: () => true, todo: (c) => !crDone(c.id), done: (c) => crDone(c.id), news: crNew, open: (c) => crOpen(c.id) }[crSeg] || (() => true);
+  const by = { love: (a, b) => (b.love || 0) - (a.love || 0), viral: (a, b) => (b.viral || 0) - (a.viral || 0), name: (a, b) => String(a.name).localeCompare(String(b.name), 'he') }[crSort];
+  const list = all.filter((c) => seg(c) && words.every((w) => hay(c).includes(w))).sort(by);
   const n = (f) => all.filter(f).length;
   $('#pane').innerHTML = `<div class="top"><div><h1>דמויות</h1><p>כל דמות כבן אדם: מי זה, איך מדבר, מה מצחיק, והחיים שלו. כותבים הערה אחת על הדמות, בבלגן - סשן מסדר אותה לדף ועונה מתחת, והשינוי מסומן בירוק בפעם הבאה שפותחים.</p></div></div>
     <div class="ch-bar"><input class="vc-q" placeholder="חיפוש - שם, עולם, כל מילה" value="${esc(crQ)}" data-cr-q>
-      <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'חדש בשבילך', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))], ['none', 'בלי דף', n((c) => !crHasSheet(c))]].map(([k, l, c]) =>
-        `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div></div>
+      <div class="seg sm">${[['all', 'הכול', all.length], ['todo', 'עוד לא עברתי', n((c) => !crDone(c.id))], ['done', 'סיימתי', n((c) => crDone(c.id))], ['news', 'עודכן מאז שראית', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))]].map(([k, l, c]) =>
+        `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div>
+      <div class="seg sm">${[['love', 'לפי אהוב'], ['viral', 'לפי ויראלי'], ['name', 'לפי שם']].map(([k, l]) => `<button data-crsort="${k}" class="${crSort === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>
     <div class="ch-list">${list.map((c) => { const open = crOpen(c.id);
       return `<button class="item" data-cropen="${c.id}">${crFace(c)}<div class="body"><b>${esc(c.name)}</b><p>${esc(c.world || '')}${c.tagline ? ' · ' + esc(c.tagline) : ''}</p>
-        <div class="ch-tags">${c.love ? `<span class="tag">אהוב ${c.love}/10</span>` : ''}${crNew(c) ? '<span class="tag ok">חדש בשבילך</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${crHasSheet(c) ? '' : '<span class="tag red">בלי דף</span>'}</div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
+        <div class="ch-tags">${crDone(c.id) ? `<span class="tag ok">${IC.check.replace('<svg', '<svg width="13" height="13"')} סיימתי</span>` : ''}${c.love ? `<span class="tag">אהוב ${c.love}</span>` : ''}${c.viral ? `<span class="tag">ויראלי ${c.viral}</span>` : ''}${crNew(c) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${crHasSheet(c) ? '' : '<span class="tag red">בלי דף</span>'}</div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
   const inp = $('[data-cr-q]'); if (inp) inp.oninput = (e) => { crQ = e.target.value; const pos = e.target.selectionStart; chars(); const x = $('[data-cr-q]'); x.focus(); x.setSelectionRange(pos, pos); };
 }
 // the notes on one box (his, with their answers under them) + the box to write one; the text is a draft until sent
@@ -921,7 +928,8 @@ function crView() {
       <button class="ch-nb ${k ? 'has' : ''}" data-crrow="${esc(a)}">${IC.comment}${k || 'הערה'}</button></div>${crNotesHtml(c, a, crOpenRows.has(a))}</div>`; }).join('');
   $('#pane').innerHTML = `<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
     <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}</div></div>
-    <div class="ch-love"><b>כמה אהוב${fresh('love') ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crlove="${i + 1}" class="${i + 1 <= (c.love || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>
+    ${[['love', 'כמה אהוב'], ['viral', 'כמה ויראלי כרגע']].map(([f, l]) => `<div class="ch-love"><b>${l}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crscore="${f}" data-v="${i + 1}" class="${i + 1 <= (c[f] || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>`).join('')}
+    <button class="btn ch-done ${crDone(c.id) ? 'on' : ''}" data-crdone="${crDone(c.id) ? 0 : 1}">${IC.check}${crDone(c.id) ? 'סיימתי עם הדמות - לבטל' : 'סיימתי עם הדמות'}</button>
     <div class="ch-sec"><h3>ההערות שלך על ${esc(c.name)}</h3>${crNotesHtml(c, '', true)}</div>
     ${crHasSheet(c) ? `<div class="ch-sec ${fresh('sheet') ? 'fresh' : ''}">${fresh('sheet') ? '<span class="tag ok">הדף עודכן מאז שראית</span>' : ''}
       ${CR_TEXT.filter(([k]) => s[k]).map(([k, l]) => `<h3>${l}</h3><p class="ch-p">${esc(s[k])}</p>`).join('')}
@@ -950,10 +958,16 @@ async function crSend(b) {
     crKeep(crId, anchor, ''); crOpenRows.delete(anchor); crRedraw();
   } catch (e) { b.disabled = false; b.textContent = 'לא נשלח - לנסות שוב'; }
 }
-async function crLove(b) {
-  const c = CR.chars.find((x) => x.id === crId), love = +b.dataset.crlove, was = c.love;
-  c.love = love; crRedraw();
-  try { await api('charLove', { id: crId, love }); } catch (e) { c.love = was; crRedraw(); }
+async function crScore(b) {   // how loveable / how viral right now - a tap, into the record
+  const c = CR.chars.find((x) => x.id === crId), field = b.dataset.crscore, v = +b.dataset.v, was = c[field];
+  c[field] = v; crRedraw();
+  try { await api('charScore', { id: crId, field, value: v }); } catch (e) { c[field] = was; crRedraw(); }
+}
+async function crMarkDone(b) {
+  const on = b.dataset.crdone === '1';
+  CR.done = { ...(CR.done || {}) }; if (on) CR.done[crId] = Date.now(); else delete CR.done[crId];
+  crRedraw(); reBadge();
+  await api('charDone', { id: crId, on }).catch(() => {});
 }
 
 // ---------- ציפציפ + ח24 (2026-11-08, his idea: the residents' own X and the verse's news channel - techietech-api/tz.js) ----------
@@ -2447,7 +2461,9 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.crseg) { crSeg = b.dataset.crseg; chars(); }
   else if (b.dataset.crrow) { const a = b.dataset.crrow; crOpenRows.has(a) && !crDraft(crId, a) ? crOpenRows.delete(a) : crOpenRows.add(a); crRedraw(); }
   else if (b.dataset.cclose) { crOpenRows.delete(b.dataset.cclose); crRedraw(); }   // the draft stays for next time
-  else if (b.dataset.crlove) await crLove(b);
+  else if (b.dataset.crscore) await crScore(b);
+  else if (b.dataset.crdone) await crMarkDone(b);
+  else if (b.dataset.crsort) { crSort = b.dataset.crsort; chars(); }
   else if (b.dataset.csend !== undefined) await crSend(b);
   else if (b.dataset.cdone) { b.disabled = true; const done = b.dataset.v === '1'; await api('charNoteDone', { id: b.dataset.cdone, done }).catch(() => {}); const n = CR.notes.find((x) => x.id === b.dataset.cdone); if (n) n.done = done; crRedraw(); }
   else if (b.dataset.wsOpen) await wishOpen(b);

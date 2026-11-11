@@ -31,7 +31,7 @@ function siteVideo(v) {
 
 const ascii = (a) => /^[\x00-\x7f]*$/.test(a);
 const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o[k] !== undefined).map((k) => [k, o[k]]));
-const BRAIN = ['id', 'name', 'name_en', 'aka', 'world', 'role', 'brief', 'personality', 'catchphrases', 'speech', 'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules', 'relations', 'sheet', 'love', 'life'];
+const BRAIN = ['id', 'name', 'name_en', 'aka', 'world', 'role', 'brief', 'personality', 'catchphrases', 'speech', 'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules', 'relations', 'sheet', 'love', 'viral', 'life'];
 
 // one from each series in turn, so no single series fills the top of the page (build.py's interleave)
 function interleave(chars) {

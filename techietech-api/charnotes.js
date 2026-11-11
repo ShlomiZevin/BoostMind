@@ -4,7 +4,7 @@
 // notes; a session reads the open ones (scripts/characters/notes.mjs), puts them in order into the record (content.mjs
 // put) and answers under the note. What changed in a character since he last opened it is marked (catalogLog).
 // Private: Firestore `charNotes` (no client rule = nobody reads it). Called only from verseOwner (his key): ops
-// charList, charNotes, charNote, charNoteDone, charLove.
+// charList, charNotes, charNote, charNoteDone, charLove / charScore, charDone.
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 
@@ -15,7 +15,7 @@ const ms = (t) => (t && t.toMillis ? t.toMillis() : null);
 const pub = (u) => String(u || '').replace('https://boostmind-b052c.web.app', 'https://shlomiverse.com');
 // the parts of a record shown and noted on (the rest - colour, order, questions, sources - isn't about who they are)
 const FIELDS = ['name', 'name_en', 'aka', 'world', 'role', 'tagline', 'brief', 'bio', 'personality', 'speech', 'behavior', 'themes', 'look',
-  'comedy', 'catchphrases', 'writing_rules', 'dont', 'relations', 'site', 'hidden', 'sheet', 'love', 'life'];
+  'comedy', 'catchphrases', 'writing_rules', 'dont', 'relations', 'site', 'hidden', 'sheet', 'love', 'viral', 'life'];
 
 const note = (d) => ({ id: d.id, ...d.data(), t: ms(d.data().t) });
 
@@ -49,8 +49,9 @@ async function owner(op, b) {
       return c;
     }).sort((a, b) => ((order.indexOf(a.id) + 1) || 999) - ((order.indexOf(b.id) + 1) || 999));
     const videos = Object.fromEntries(brain.videos.map((v) => [v.id, { title: v.title, date: v.date || '', card: (v.card || v.teaser || '').replace(/\s+/g, ' '), tr: !!v.transcript }]));
+    const done = ((await db().collection('owner').doc('charsDone').get()).data() || {}).ids || {};
     return {
-      chars: list, videos, changed,
+      chars: list, videos, changed, done,
       worlds: Object.fromEntries((brain.worlds || []).map((w) => [w.title, w.brief || w.blurb || ''])),
       sites: sites.docs.map((d) => d.data()).filter((s) => !s.hidden).map((s) => ({ title: s.title, url: pub(s.url), about: s.about || '', whose: s.whose || [] })),
       notes: ns.docs.map(note),
@@ -76,11 +77,19 @@ async function owner(op, b) {
   }
   // how loveable a character is, 1-10 (his click; a first guess came from how many videos they have) - into the record,
   // through the content door so it is logged like any change
-  if (op === 'charLove') {
-    const love = Math.round(Number(b.love));
-    if (!idOk(b.id) || !(love >= 1 && love <= 10)) return { error: 'love' };
-    const r = await require('./content').put({ kind: 'character', id: b.id, love }, 'backstage');
-    return r.error ? r : { ok: true, love };
+  // and how viral right now (viral), the same way - two scores: a character can be much loved and not taking off now
+  if (op === 'charLove' || op === 'charScore') {
+    const field = op === 'charLove' ? 'love' : b.field, v = Math.round(Number(op === 'charLove' ? b.love : b.value));
+    if (!idOk(b.id) || !['love', 'viral'].includes(field) || !(v >= 1 && v <= 10)) return { error: 'score' };
+    const r = await require('./content').put({ kind: 'character', id: b.id, [field]: v }, 'backstage');
+    return r.error ? r : { ok: true, [field]: v };
+  }
+  // "I'm done with this character" (his ask 2026-11-11: to see which ones he already went over) - {id: when}, kept in
+  // owner/charsDone; on: false takes the mark off
+  if (op === 'charDone') {
+    if (!idOk(b.id)) return { error: 'id' };
+    await db().collection('owner').doc('charsDone').set({ ids: { [b.id]: b.on === false ? FieldValue.delete() : Date.now() } }, { merge: true });
+    return { ok: true };
   }
   if (op === 'charNoteDone') {   // handled, or open again (his "not yet")
     if (!idOk(String(b.id || '').toLowerCase())) return { error: 'id' };

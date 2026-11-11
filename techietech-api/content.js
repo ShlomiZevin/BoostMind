@@ -28,8 +28,9 @@ const KINDS = {
     'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes',   // site_notes: the studio's site.notes (site = its url)
     // the character sheet (Backstage → דמויות, 2026-11-11, his ask: "people, not replicas"): who they are, how they talk, what is
     // funny, the parody, the nuance, the dissonance, a few catchphrases (sheet); how loveable 1-10 (love); their life, one event
-    // per video (life: [{v, d, e}]) - what the chat's chain answers from
-    'sheet', 'love', 'life'] },
+    // per video (life: [{v, d, e}]) - what the chat's chain answers from; how viral right now 1-10 (viral - a much-loved
+    // character isn't always the one taking off now, his note)
+    'sheet', 'love', 'viral', 'life'] },
   // world = the studio's name for it (character.world), name = its full name there (was characters/index.json)
   series: { col: 'catalogSeries', need: ['title'], fields: ['order', 'title', 'blurb', 'site', 'brief', 'world', 'name'] },
   game: { col: 'catalogGames', need: ['url', 'title'], fields: ['url', 'title', 'tagline', 'img', 'chars', 'site', 'date', 'record'] },
