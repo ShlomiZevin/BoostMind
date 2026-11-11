@@ -1,0 +1,30 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;box-sizing:border-box}
+body{width:1080px;height:1920px;overflow:hidden;font-family:Rubik,sans-serif;background:#5a3418;position:relative}
+.art{position:absolute;left:0;top:0;width:1080px;height:1920px;object-fit:cover}
+.title{position:absolute;top:30px;left:50%;transform:translateX(-50%);width:560px;filter:drop-shadow(0 10px 18px #0006)}
+/* Savta's line: a speech bubble over the wall, its tail toward her */
+.bub{position:absolute;top:418px;right:28px;width:400px;background:#fffaf0;border:5px solid #5b2d82;border-radius:34px;padding:18px 24px;
+  font-size:40px;font-weight:900;color:#3b1d55;line-height:1.15;text-align:center;box-shadow:0 8px 0 #5b2d8255}
+.bub:after{content:"";position:absolute;bottom:-34px;right:150px;border:18px solid transparent;border-top:20px solid #5b2d82;border-right:22px solid #5b2d82}
+.sub{position:absolute;top:1600px;left:0;right:0;text-align:center}
+.sub span{display:inline-block;background:#5b2d82;color:#fff;font-size:44px;font-weight:900;padding:14px 34px;border-radius:999px;box-shadow:0 6px 0 #3b1d55}
+.link{position:absolute;top:1428px;left:50%;transform:translateX(-50%);width:600px;height:104px;border:4px dashed #ffffffaa;border-radius:28px}
+.brand{position:absolute;top:1712px;left:0;right:0;z-index:1;isolation:isolate;display:flex;flex-direction:column;align-items:center;gap:8px}
+.brand:before{content:"";position:absolute;inset:-30px 0 -300px;background:linear-gradient(#0000,#2a160acc 30%);z-index:-1}
+.kick{color:#fde9c8;font-size:32px;font-weight:700}
+.row{display:flex;align-items:center;gap:16px}
+.row img{width:96px;height:auto;filter:drop-shadow(0 0 14px #ff6a1f66)}
+.t{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
+.wm{font-weight:900;color:#fff;letter-spacing:-.02em;font-size:48px}.wm b{color:#ff6a1f;font-weight:900}
+.t small{color:#fde9c8;font-size:24px;font-weight:700;margin-top:7px;direction:ltr;letter-spacing:.5px}
+</style></head><body>
+<img class="art" src="out/poster-a.png">
+<img class="title" src="title.png">
+<div class="bub">אני סופרת אחריה.<br>תדעו לכם.</div>
+<div class="link"></div>
+<div class="sub"><span>ממיינים תרופות בשלושה משחקים</span></div>
+<div class="brand"><div class="kick">משחק חדש ב-</div><div class="row"><img src="logo.png" alt=""><div class="t"><span class="wm">שלומי<b>וורס</b></span><small>shlomiverse.com</small></div></div></div>
+</body></html>

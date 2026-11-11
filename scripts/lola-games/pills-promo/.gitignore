@@ -1,0 +1,6 @@
+ref/
+*.png
+*.jpg
+out/
+frames*/
+!logo.png
