@@ -1,0 +1,4 @@
+{ "char": "rosenblum", "file": "out/quake-story.jpg",
+  "text": "רוזנבלום: מה עושים ברעידת אדמה בבית הספר. עיניים אליי.",
+  "link": "/rosenblum-games/drill/", "label": "לתרגל במשחק", "everyone": true,
+  "keepClear": [[3, 1, 97, 33], [45, 33, 85, 55]], "boxes": [] }
