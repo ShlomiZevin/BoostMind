@@ -67,7 +67,7 @@ Real problems: never advice that could hurt (health, medication, money, law, saf
 
 // one answer. cur = wiki.js canonNow() (the brain: byId has each character's sheet and life, videos their transcripts);
 // convo = the conversation's brain from the previous answer ({} for a new one) - returned updated
-async function reply({ key, cur, mode, turns, convo = {}, onText = () => {} }) {
+async function reply({ key, cur, mode, turns, convo = {}, onText = () => {}, extra = '' }) {   // extra: the chat's own rules for this message (the limit, the request card, who the visitor is - wiki.js)
   const c = cur.byId[mode];
   if (!c) throw new Error('not a character: ' + mode);
   const steps = [];
@@ -122,7 +122,7 @@ Be brief - a writer's note, not an essay: each field at most 15 words. Answer JS
   // 4 · talk - the person answers, the whole conversation in front of them
   const notes = [`What the visitor wants: ${JSON.stringify(U)}`, H ? `What really happened (from your memory): ${JSON.stringify(H)}` : '', F ? `The writers' notes (a direction, the voice is yours): ${JSON.stringify(F)}` : ''].filter(Boolean).join('\n');
   const t = await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ['person', 'speech', 'funny', 'parody', 'dissonance', 'nuances', 'catchphrases'])}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
-    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${notes}\n\nNow write your answer to the visitor's last message - only the answer.${U.length === 'short' ? ' Keep it short.' : ''}` }],
+    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${notes}${extra ? '\n\n' + extra : ''}\n\nNow write your answer to the visitor's last message - only the answer.${U.length === 'short' ? ' Keep it short.' : ''}` }],
     { json: false, onText, max: 900 });
   const talkAt = Date.now() - t0 - t.ms;   // when talk started, from the visitor's message
   steps.push({ step: 'talk', ...t, out: t.out });

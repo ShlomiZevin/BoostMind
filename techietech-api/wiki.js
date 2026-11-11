@@ -79,6 +79,8 @@ const canon = (brain) => {
 // short map of everything (wiki-chain.js); the full canon() is no longer sent - kept for reference / a fallback
 const chain = require('./wiki-chain');
 const { search } = require('./wiki-search');   // the videos by meaning (look_up's search)
+const deep = require('./wiki-deep');            // the characters' chain - understand > history > funny > talk (his plan "המוח המצחיק")
+const DEEP_CHAT = true;                         // false = every character back on the one call below
 const fromBrain = (brain, md5) => ({ map: RULES + '\n\n' + chain.mapText(brain), byId: Object.fromEntries(brain.characters.map((c) => [c.id, c])),
   videos: Object.fromEntries(brain.videos.map((v) => [v.id, v])), games: Object.fromEntries((brain.games || []).map((g) => [g.id, g])), md5 });
 let current = fromBrain(bundled, 'bundled');
@@ -451,10 +453,32 @@ exports.wikiChat = onRequest({
     'X-Left': ok === true ? 'owner' : String(ok.left ?? 0), ...(invite ? { 'X-Invite': invite } : {}), 'Access-Control-Expose-Headers': 'X-Left, X-Invite' });
   try {
     let reply = '';
-    const u = await stream(process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value(), mode, turns, (t) => { reply += t; res.write(t); },
-      { contact: req.body.contact === true, limit: ok.grace, cont: req.body.cont === true && !!who.uid, visitor });
+    const key = process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : OPENAI_API_KEY.value();
+    const opts = { contact: req.body.contact === true, limit: ok.grace, cont: req.body.cont === true && !!who.uid, visitor };
+    // a character with a sheet answers through the chain (wiki-deep.js, his plan "המוח המצחיק", released 2026-11-11); the
+    // guide, and any character without a sheet, through the one call below. If the chain fails before it wrote a word, the
+    // one call answers instead. DEEP_CHAT = false puts every character back on the one call.
+    let u = null, extra = {};
+    const cur = DEEP_CHAT ? await canonNow() : null;
+    if (cur && cur.byId[mode]?.sheet?.person) {
+      const cid = String(req.body.c || '').replace(/[^a-z0-9]/gi, '').slice(0, 12);
+      const ref = cid ? admin.firestore().collection('chatBrains').doc(`${cid}_${mode}`) : null;   // the conversation's own brain
+      const convo = ref ? ((await ref.get().catch(() => null))?.data()?.convo || {}) : {};
+      const rules = [opts.visitor || (opts.contact ? CONTACT_TOURIST : ''), opts.contact ? CONTACT_CHAR : '', opts.limit ? LIMIT[opts.limit] : '', opts.cont ? CONT : ''].filter(Boolean).join('\n\n');
+      let wrote = false;
+      try {
+        const r = await deep.reply({ key, cur, mode, turns, convo, extra: rules, onText: (t) => { wrote = true; reply += t; res.write(t); } });
+        u = r.usage; extra = r.log;
+        if (ref) await ref.set({ convo: r.convo, t: Timestamp.now(), exp: Timestamp.fromMillis(Date.now() + KEEP_DAYS * 864e5) }).catch(() => {});
+        console.log('wikiChat deep', mode, (r.first / 1000).toFixed(1) + 's', '$' + r.cost.toFixed(4), r.steps.map((s) => s.step).join('>'));
+      } catch (e) {
+        if (wrote) throw e;
+        console.error('wikiChat deep failed - the one call answers', mode, e.message);
+      }
+    }
+    if (!u) u = await stream(key, mode, turns, (t) => { reply += t; res.write(t); }, opts);
     if (ok.grace === 'soft' && !reply.includes('[[signin]]')) await putOff(req, who);
-    await keep(req.body, mode, turns, reply, u, who).catch((e) => console.error('keep failed', e.message));
+    await keep(req.body, mode, turns, reply, u, who, extra).catch((e) => console.error('keep failed', e.message));
     console.log('wikiChat', mode, turns.length, 'in', u.input_tokens, 'cached', u.input_tokens_details?.cached_tokens, 'out', u.output_tokens);
   } catch (e) {
     console.error('wikiChat failed', e.status, e.message);
