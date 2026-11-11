@@ -154,6 +154,8 @@ character alone has no converter yet - say so, that is tool work) before he sees
 Format: `layers.md` -> "Dialogue". A row group per character: **video** (cut-out clips) / **רקע** (one background per
 clip, linked, moves with it; may be a video) / **voice** (the character's sound). One **"What we see"** strip picks who is
 on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <project> <new-id>` (every frame checked).
+**From his raw takes (characters filmed apart): `recipes/dialogue-from-takes.md`** - the whole method + the checks
+after every build (no strip frame without a clip, no overlap on a row, ≥1 s shots, no selfie start/stop shown).
 - **Once he edits it, it is HIS - be gentle** ("the version is almost perfect, don't ruin it"): never re-convert or
   rebuild it; only small targeted ops on exactly what his note names; say which clip / row changes. No backups needed.
 - **What you see is what you get** (his rule): every change must be visible on a layer and undoable there. A fix for
@@ -184,8 +186,9 @@ on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <pro
 - **≥ 1 s per shot; few cuts inside one person** ("cut cut cut drives the brain crazy"): cut only real silences (≥ 0.4
   s), and put the strip on the other character over each such cut so it isn't seen.
 - **The sound follows who is seen** (savta-1, 2026-11-11): someone heard in the background = quiet (gain ~0.3); the
-  moment the strip shows them = their clip loud (gain 1) and the other dipped a little (`duck: -6`, `duck_layers`
-  [their row]) - split a clip where it changes. **Shots filmed apart never cut one into the other**: show such a clip
+  moment the strip shows them = their clip loud (gain 1) and the other dipped a LITTLE (`duck: -2`, `duck_layers`
+  [their row]; -6 was "too much, Savta must stay loud") - split a clip where it changes; a phrase cut by the picture
+  going away goes on as sound (its own quieter clip) - never cut a word with the shot. **Shots filmed apart never cut one into the other**: show such a clip
   whole, and go back to the other character between two of them ("always cut to Savta and come back to Lola").
   At the end of a back-and-forth, a "gentle tango": each goes on ~1.3 s under the other, no pauses.
 - **A cut-away over a line about the other one** (savta-1, 2026-11-11: "show her for a split second on top of Savta
@@ -912,6 +915,7 @@ separately filmed characters). Pick by the footage; never name things after a se
 | What he recorded | Recipe | Engine |
 |---|---|---|
 | **"quick edit" / עריכה מהירה** - one person in short phone takes (TikTok app, face filter), joined tight + POV + the character's music, minutes, ONE round (Asaf) | `recipes/quick-edit.md` | lesson.py |
+| **a sketch of characters filmed apart, one at a time (selfie), talking to each other** (+ voices heard only) - the method he called "amazing": takes -> grouped clips, overlaps, cut-aways, the strip, the checks, his rounds (savta-1) | `recipes/dialogue-from-takes.md` (+ its `.example.py`) | layers (analysis on a hidden copy) |
 | several characters, one file each, a meeting / call grid | `recipes/zoom-call.md` | zoomcut.py |
 | one person talking to camera - rabbi lesson, guru podcast (tadar), news anchor, keynote | `recipes/monologue.md` | lesson.py |
 | one person reacting to a voice we don't see - a Zoom at his desk, a phone call on speaker, an office day (Hani) | `recipes/offscreen-voice.md` | lesson.py |
