@@ -174,6 +174,11 @@ on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <pro
   show with the What we see"): the next line starts ~0.7 s before the other ends (own voice rows, full volume); never
   back-to-back turns. The strip's first pick = whoever starts a sentence (≥0.7 s a shot); he changes it. Two talking in
   parallel = a second subtitles row for the other one (higher, another colour) so both read.
+- **The sound follows who is seen** (savta-1, 2026-11-11): someone heard in the background = quiet (gain ~0.3); the
+  moment the strip shows them = their clip loud (gain 1) and the other dipped a little (`duck: -6`, `duck_layers`
+  [their row]) - split a clip where it changes. **Shots filmed apart never cut one into the other**: show such a clip
+  whole, and go back to the other character between two of them ("always cut to Savta and come back to Lola").
+  At the end of a back-and-forth, a "gentle tango": each goes on ~1.3 s under the other, no pauses.
 - **A cut-away over a line about the other one** (savta-1, 2026-11-11: "show her for a split second on top of Savta
   talking about her speaking with her sister"): the other character's clip (her own group, her own set) laid over the
   speaker's line, the strip switching to it for ~2 s and back; its voice clip at `gain` ~0.35 under the speaker's (heard,
