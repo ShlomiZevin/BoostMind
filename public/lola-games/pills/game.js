@@ -74,8 +74,23 @@ function flash(t) { const f = $('#flash'); f.textContent = t; f.classList.remove
 // ---------- sound ----------
 const SND = { place: 3, rattle: 3, clear: 3, pop: 3, error: 1, win: 1, lose: 1, shake: 1, combo: 1, swap: 1, stamp: 2, print: 1, vanish: 4, cascade: 1 };
 const audio = { ctx: null, buf: {}, last: {}, on: store.get('sound') !== '0' };
+// iPhone (Safari and Chrome are both WebKit): leaving the page leaves the context 'suspended' or 'interrupted', and it
+// only comes back from inside a tap - so every tap wakes it, plays one silent sample (WebKit's unlock), and if the
+// context still will not run it is thrown away and built again (his bug, 11 Nov: no sound after returning to the page)
+function audioWake() {
+  const c = audio.ctx; if (!c) return audioInit();
+  if (c.state === 'running') return;
+  try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {}
+  const p = c.resume(); const check = () => setTimeout(() => { if (audio.ctx === c && c.state !== 'running') audioRebuild(); }, 400);
+  p && p.then ? p.then(check, check) : check();
+}
+function audioRebuild() {
+  const old = audio.ctx; audio.ctx = null; audio.buf = {}; hold.src = null; hold.gain = null; hold.vo = null;
+  try { old && old.close(); } catch (e) {}
+  audioInit();
+}
 function audioInit() {
-  if (audio.ctx) { if (audio.ctx.state === 'suspended') audio.ctx.resume(); return; }
+  if (audio.ctx) { if (audio.ctx.state !== 'running') audioWake(); return; }
   try { audio.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
   for (const [n, k] of Object.entries(SND)) for (let i = 1; i <= k; i++) {
     const f = k > 1 ? n + i : n;
@@ -86,8 +101,7 @@ function audioInit() {
   for (const id of VO) get('vo-' + id).then((d) => { audio.buf['vo-' + id] = [d]; if (id === 'hello' && !hold.said) { hold.said = 1; vo('hello'); } }).catch(() => {});
 }
 // the first touch anywhere opens the line: music + "שלום, הגעתם לקופת החולים"
-addEventListener('pointerdown', () => audioInit(), { once: true, capture: true });
-addEventListener('keydown', () => audioInit(), { once: true, capture: true });
+for (const ev of ['pointerdown', 'touchend', 'click', 'keydown']) addEventListener(ev, () => audioWake(), { capture: true, passive: true });
 // hold music = the whole game is "on hold with the kupa"; the menu voice ducks it
 const VO = ['hello', 'wait', 'queue7', 'queue42', 'time', 'rec', 'star', 'menu', 'busy', 'bye'];
 const hold = { src: null, gain: null, buf: null, vo: null, last: '', t: 0, said: 0, track: 0 };
@@ -139,8 +153,9 @@ function sfx(n, vol = .8, rate = 1) {
   audio.last[n] = i;
   const s = audio.ctx.createBufferSource(), g = audio.ctx.createGain(); g.gain.value = vol; s.buffer = list[i]; s.playbackRate.value = rate; s.connect(g).connect(audio.ctx.destination); s.start();
 }
-addEventListener('pagehide', () => audio.ctx && audio.ctx.suspend());
-document.addEventListener('visibilitychange', () => { if (!audio.ctx) return; document.hidden ? audio.ctx.suspend() : audio.ctx.resume(); });
+addEventListener('pagehide', () => { voStop(); audio.ctx && audio.ctx.suspend(); });
+addEventListener('pageshow', (e) => { if (e.persisted && audio.ctx) audio.ctx.resume().catch(() => {}); });
+document.addEventListener('visibilitychange', () => { if (!audio.ctx) return; if (document.hidden) { voStop(); audio.ctx.suspend(); } else audio.ctx.resume().catch(() => {}); });
 function soundBtn() { $('#bSound').classList.toggle('off', !audio.on); }
 $('#bMusic').onclick = nextTrack;
 $('#bSound').onclick = () => { audio.on = !audio.on; store.set('sound', audio.on ? 1 : 0); soundBtn(); audioInit(); if (!audio.on) voStop(); holdLevel(); };
