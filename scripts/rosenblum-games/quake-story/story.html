@@ -4,39 +4,36 @@
 *{margin:0;box-sizing:border-box}
 body{width:1080px;height:1920px;overflow:hidden;font-family:Rubik,sans-serif;background:#4a90e2;position:relative}
 .art{position:absolute;left:0;top:0;width:1080px;height:1920px;object-fit:cover}
-/* the rules: a notice card in the sky, his finger points at it */
-.card{position:absolute;top:84px;left:44px;right:44px;background:#fffdf5;border:7px solid #1b2a4a;border-radius:40px;box-shadow:10px 14px 0 #1b2a4a55;overflow:hidden}
-.head{background:#1b2a4a;color:#fff;padding:22px 34px 24px;text-align:center}
-.head small{display:block;font-size:31px;font-weight:700;color:#cfe0ff}
-.head b{display:block;font-size:66px;font-weight:900;color:#ffd23f;line-height:1.1;margin-top:4px}
-ol{list-style:none;padding:20px 30px 22px}
-li{display:flex;gap:18px;align-items:flex-start;font-size:33px;font-weight:600;color:#1b2a4a;line-height:1.25;padding:12px 0;border-bottom:3px dashed #1b2a4a22}
+/* the orders: a notice card in the sky, his finger points at it */
+.card{position:absolute;top:40px;left:40px;right:40px;background:#fffdf5;border:7px solid #1b2a4a;border-radius:40px;box-shadow:10px 14px 0 #1b2a4a55;overflow:hidden}
+.head{background:#1b2a4a;padding:12px 30px 14px;text-align:center}
+.head small{display:block;font-size:30px;font-weight:700;color:#cfe0ff}
+.head b{display:block;font-size:58px;font-weight:900;color:#ffd23f;line-height:1.1}
+ol{list-style:none;padding:10px 28px 6px}
+li{display:flex;gap:16px;align-items:center;padding:8px 0;border-bottom:3px dashed #1b2a4a22}
 li:last-child{border:0}
-li i{flex:none;width:52px;height:52px;border-radius:50%;background:#e8452c;color:#fff;font-style:normal;font-weight:900;font-size:32px;display:flex;align-items:center;justify-content:center;margin-top:-4px}
-li strong{font-weight:900;color:#c2321c}
-.tag{position:absolute;top:925px;left:34px;width:380px;transform:rotate(-3deg);background:#ffd23f;border:5px solid #1b2a4a;border-radius:22px;padding:14px 18px;text-align:center;
-  font-size:32px;font-weight:900;color:#1b2a4a;line-height:1.15;box-shadow:6px 8px 0 #1b2a4a55}
-.src{position:absolute;top:0;margin-top:0}
-.brand{position:absolute;bottom:0;left:0;right:0;height:170px;display:flex;align-items:center;justify-content:center;gap:16px;background:linear-gradient(#0000,#0b1428dd 45%)}
-.brand img{width:84px;filter:drop-shadow(0 0 14px #ff6a1f66)}
-.t{display:flex;flex-direction:column;line-height:1;margin-top:40px}
-.wm{font-weight:900;color:#fff;font-size:44px}.wm b{color:#ff6a1f}
-.t small{color:#e2e8f0;font-size:22px;font-weight:700;margin-top:6px;direction:ltr}
-.oref{position:absolute;bottom:22px;right:36px;color:#cbd5e1;font-size:21px;font-weight:600}
+li i{flex:none;width:50px;height:50px;border-radius:50%;background:#e8452c;color:#fff;font-style:normal;font-weight:900;font-size:30px;display:flex;align-items:center;justify-content:center}
+li span{font-size:28px;font-weight:600;color:#33415c;line-height:1.2}
+li strong{display:block;font-size:37px;font-weight:900;color:#1b2a4a;line-height:1.15}
+.foot{background:#ffd23f;border-top:5px solid #1b2a4a;text-align:center;font-size:31px;font-weight:900;color:#1b2a4a;padding:9px 20px}
+.brand{position:absolute;bottom:0;left:0;right:0;height:150px;display:flex;align-items:center;justify-content:center;gap:16px;background:linear-gradient(#0000,#0b1428dd 50%)}
+.brand img{width:80px;filter:drop-shadow(0 0 14px #ff6a1f66);margin-top:36px}
+.t{display:flex;flex-direction:column;line-height:1;margin-top:36px}
+.wm{font-weight:900;color:#fff;font-size:42px}.wm b{color:#ff6a1f}
+.t small{color:#e2e8f0;font-size:21px;font-weight:700;margin-top:6px;direction:ltr}
+.oref{position:absolute;bottom:20px;right:30px;color:#cbd5e1;font-size:20px;font-weight:600}
 </style></head><body>
-<img class="art" src="out/art-a.png">
+<img class="art" src="out/art-b.png">
 <div class="card">
-  <div class="head"><small>רבותיי וגבירותיי. עיניים אליי.</small><b>זה לא תרגיל, זו רעידה</b></div>
+  <div class="head"><small>רבותיי וגבירותיי. עיניים אליי.</small><b>רעידת אדמה בבית הספר</b></div>
   <ol>
-    <li><i>1</i><span><strong>יוצאים מיד לשטח פתוח.</strong> רחוק מבניינים, גשרים וקווי חשמל.</span></li>
-    <li><i>2</i><span>אי אפשר לצאת מהר? <strong>לממ״ד, והדלת נשארת פתוחה!</strong> אין ממ״ד? לחדר המדרגות.</span></li>
-    <li><i>3</i><span>אין לאן? <strong>פינה פנימית או מתחת לשולחן כבד.</strong> מגינים על הראש בידיים. רחוק מחלונות.</span></li>
-    <li><i>4</i><span><strong>במעלית לא נוסעים.</strong> במדרגות לא רצים! יורדים בצורה מסודרת ומאורגנת.</span></li>
-    <li><i>5</i><span>כבר בחוץ? <strong>נשארים בשטח הפתוח,</strong> רחוק ממבנים ועמודי חשמל.</span></li>
-    <li><i>6</i><span><strong>חוזרים פנימה רק כשמודיעים שהאירוע הסתיים.</strong> ובינתיים - אני מתחיל בספירה!</span></li>
+    <li><i>1</i><span><strong>רועד? מתחת לשולחן. מיד.</strong>ידיים על הראש. רחוק מהחלונות.</span></li>
+    <li><i>2</i><span><strong>נגמר? לחצר, במסלול המתורגל.</strong>שניים שניים. במדרגות לא רצים! במעלית לא נוסעים.</span></li>
+    <li><i>3</i><span><strong>בחצר: רחוק מהבניין ומהעצים.</strong>מחכים להוראות.</span></li>
+    <li><i>4</i><span><strong>בהפסקה בחוץ? נשארים בחוץ.</strong></span></li>
   </ol>
+  <div class="foot">אני מתחיל בספירה! שחר, אתה הקטר המאסף.</div>
 </div>
-<div class="tag">שחר, אתה הקטר המאסף. אתה איתי!</div>
 <div class="brand"><img src="logo.png" alt=""><div class="t"><span class="wm">שלומי<b>וורס</b></span><small>shlomiverse.com</small></div></div>
-<div class="oref">לפי הנחיות פיקוד העורף</div>
+<div class="oref">לפי הנחיות פיקוד העורף ומשרד החינוך</div>
 </body></html>
