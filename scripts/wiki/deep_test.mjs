@@ -21,6 +21,13 @@ const TALKS = {
   vova: ['וובה, מה קורה?', 'אוסנת מארגנת האקתון, אתה בא?', 'מה קרה עם שירלי בסוף?', 'תמליץ לי על סדרה טובה', 'למה אתה תמיד כזה עצבני?'],
   rosenblum: ['שלום המורה', 'המורה, אפשר לצאת להפסקה?', 'מה אתה חושב על הדור של היום?', 'היה לך פעם תלמיד שבאמת הוציא אותך מדעתך?', 'למה אתה תמיד כותב שמות על הלוח?'],
 };
+// --quick: five messages, the chain only (a re-check after a change - ~6c)
+if (args.includes('--quick')) {
+  for (const k of Object.keys(TALKS)) delete TALKS[k];
+  Object.assign(TALKS, { hani: ['שמעתי שאברהם משה עשה תאונה, מה קרה?', 'רגע, והילדים היו איתו באוטו?', 'יצא לך פעם לעלות על רכבת לכיוון ההפוך?'],
+    vova: ['אוסנת מארגנת האקתון, אתה בא?'], rosenblum: ['מה אתה חושב על הדור של היום?'] });
+  args.push('--only', 'deep');
+}
 const TERRA = deep.PRICE;
 const costOf = (u) => ((u.input_tokens - (u.input_tokens_details?.cached_tokens || 0)) * TERRA.in + (u.input_tokens_details?.cached_tokens || 0) * TERRA.cached + u.output_tokens * TERRA.out) / 1e6;
 
