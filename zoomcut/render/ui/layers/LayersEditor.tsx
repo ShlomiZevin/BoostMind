@@ -549,7 +549,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} onOpen={openClip} playing={playing} notes={notes} onNote={openNote} noteView={noteView} onNoteView={setNoteView}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} onOpen={openClip} playing={playing} notes={notes} onNote={openNote} noteDraft={noteOpen?.isNew ? noteOpen.note : null} noteView={noteView} onNoteView={setNoteView}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
       {openedView()}
       {noteOpen && <NoteWindow note={noteOpen.note} isNew={noteOpen.isNew} fps={fps} speed={speed} onSave={saveNote} onSeek={seek}

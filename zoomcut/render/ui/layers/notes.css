@@ -18,7 +18,7 @@
 .ltl-nband:hover i::after { opacity: 1; }
 /* the quick buttons step aside for range work (his note, 2026-11-10): over a range bar, Shift held (about to mark),
    while marking / dragging a note */
-.ltl-track:has(.ltl-nband:hover) :is(.ltl-qn, .ltl-qp), .ltl-track.shift :is(.ltl-qn, .ltl-qp), .ltl-track.ranging :is(.ltl-qn, .ltl-qp) { display: none !important; }
+.ltl-track:has(.ltl-nband:hover) :is(.ltl-qn, .ltl-qp), .ltl-track:has(.ltl-nband.draft) :is(.ltl-qn, .ltl-qp), .ltl-track.shift :is(.ltl-qn, .ltl-qp), .ltl-track.ranging :is(.ltl-qn, .ltl-qp) { display: none !important; }
 /* marking a range (Shift+drag on the ruler / dragging from its note button): the stretch while the mouse moves */
 .ltl-nband.draft { pointer-events: none; z-index: 7; background: repeating-linear-gradient(90deg, #f0b44c 0 6px, transparent 6px 10px); }
 .ltl-nband.draft span { position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px;

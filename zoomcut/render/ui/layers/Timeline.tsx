@@ -26,7 +26,7 @@ type Props = {
   onSolo?: (s: Sel) => void; soloKey?: string | null;  // play one clip alone in the video (Shift+Space, the edge card)
   playing?: boolean;  // (stopped: the quick notes wait, faint, beside the playhead on the ruler)
   onOpen?: (s: Sel) => void;  // open the clip's own file in a window (▶ above the block, on hover)
-  notes?: Note[]; onNote?: (n: Note | null, at?: number, end?: number) => void; noteView?: NoteView; onNoteView?: (v: NoteView) => void;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
+  notes?: Note[]; onNote?: (n: Note | null, at?: number, end?: number) => void; noteView?: NoteView; onNoteView?: (v: NoteView) => void; noteDraft?: Note | null;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
 };
 
 const TH = 30;  // lane height
@@ -87,7 +87,7 @@ const blockText = (l: any, it: any, project: any) => {
   return a ? a.label || String(a.src).split('/').pop() : '';
 };
 
-export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, playing, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, noteView = 'active', onNoteView }: Props) {
+export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, playing, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, noteView = 'active', onNoteView, noteDraft }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
@@ -778,8 +778,11 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
                   onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}<span>{QN_WORD[pr.kind]}</span></button>)}
               </div>}
-              {rangeDraft && <div className="ltl-nband draft" style={{ left: px(Math.min(rangeDraft.a, rangeDraft.b)), width: Math.max(2, Math.abs(px(rangeDraft.b) - px(rangeDraft.a))) }}>
-                <span>{fmtT(Math.min(rangeDraft.a, rangeDraft.b) / fps / (+project.speed || 1))} – {fmtT(Math.max(rangeDraft.a, rangeDraft.b) / fps / (+project.speed || 1))}</span></div>}
+              {(() => {  // (and it stays while he writes the new note - his ask, 2026-11-11: "see the chosen area ... during I'm writing"; Cancel drops it)
+                const r = rangeDraft || (noteDraft?.end != null ? { a: noteDraft.at, b: noteDraft.end } : null);
+                return r && <div className="ltl-nband draft" style={{ left: px(Math.min(r.a, r.b)), width: Math.max(2, Math.abs(px(r.b) - px(r.a))) }}>
+                  <span>{fmtT(Math.min(r.a, r.b) / fps / (+project.speed || 1))} – {fmtT(Math.max(r.a, r.b) / fps / (+project.speed || 1))}</span></div>;
+              })()}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>
