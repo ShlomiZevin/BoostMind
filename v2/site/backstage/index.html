@@ -538,6 +538,11 @@
   .mtop .rf { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line2); background: var(--card2); flex: none; }
   .mtop .rf svg { width: 20px; height: 20px; }
   [data-refresh].spin svg { animation: rfspin .8s linear infinite; }
+  .top-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .rf-d { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+  .rf-d svg { width: 17px; height: 17px; }
+  .rf-d:hover { border-color: #ff9a5c; }
+  @media (max-width: 900px) { .rf-d { display: none; } }
   @keyframes rfspin { to { transform: rotate(-360deg); } }
   .menu-list { display: flex; flex-direction: column; gap: 8px; }
   .menu-list button { display: flex; align-items: center; gap: 12px; height: 58px; padding: 0 16px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); font-weight: 800; font-size: 1.02rem; text-align: start; }
@@ -782,7 +787,7 @@ const LOADERS = {
   CR: () => api('charList', {}).then((r) => { CR = r; }),
 };
 const NEED = {
-  overview: ['W', 'L', 'S', 'CH'], chats: ['W', 'S', 'CH'], data: ['W', 'S'], people: ['W', 'S', 'L'],
+  overview: ['W', 'L', 'S', 'CH'], chats: ['W', 'S', 'CH'], people: ['W', 'S', 'L'],
   requests: ['W', 'L'], ideas: ['W', 'L'], content: ['W', 'L'], videos: ['W', 'L'], publish: ['W', 'L', 'S'],
   plans: ['PL', 'SEEN'], chars: ['W', 'SEEN', 'CR'], tz: ['W'], mail: ['W'], costs: [], more: [],
 };
@@ -813,7 +818,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chars', 'דמויות', 'cast'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['tz', 'ציפציפ', 'spark'], ['costs', 'הוצאות', 'dollar']];
+const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chars', 'דמויות', 'cast'], ['chats', 'שיחות', 'comment'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['tz', 'ציפציפ', 'spark'], ['costs', 'הוצאות', 'dollar']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -841,18 +846,18 @@ const badges = () => !L ? { plans: (PL.plans || []).filter((p) => !planOld(p)).l
 function draw() {
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
   if (['comments', 'stickers'].includes(tab)) contentSeg = tab;
-  if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
+  if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'overview', data: 'overview' }[tab] || 'overview';
   const miss = (NEED[tab] || []).filter((k) => !HAVE.has(k));
   if (!miss.length && (tab === 'requests' || tab === 'content' || tab === 'ideas')) markSeen(tab);
   const badge = badges();
-  const phoneTab = ['plans', 'chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
-  const moreBadge = badge.requests + badge.ideas + badge.content + badge.plans + badge.chars;
+  const phoneTab = ['chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
+  const moreBadge = badge.requests + badge.ideas + badge.content + badge.chars;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
       <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
       <nav class="nav foot"><button data-refresh>${IC.refresh}<span>רענון</span></button><a href="/wiki/" target="_blank">${IC.out}<span>לאתר</span></a><a href="/all/" target="_blank">${IC.globe}<span>כל הדפים שלי</span></a></nav></aside>
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
-    <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
+    <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['plans', 'תוכניות', 'plan'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
   history.replaceState(null, '', '#' + tab);
   if (miss.length) {
@@ -861,14 +866,14 @@ function draw() {
     need(miss).then(() => { if (tab === t) draw(); }).catch((e) => { if (tab === t && e.message !== 'key') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; });
     return;
   }
-  ({ overview, plans, chars, chats, data, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
+  ({ overview, plans, chars, chats, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
   // the tab is on screen: now the menu's numbers (what's new in each part), quietly
   if (MENU.some((k) => !HAVE.has(k))) need(MENU).then(reBadge).catch(() => {});
 }
 const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
 // the tab marks again without drawing the page (a plan he just opened stops counting)
 function reBadge() {
-  const b = badges(), more = b.requests + b.ideas + b.content + b.plans + b.chars;
+  const b = badges(), more = b.requests + b.ideas + b.content + b.chars;
   const set = (btn, n) => { if (!btn) return; let em = btn.querySelector('em'); if (!n) { if (em) em.remove(); return; } if (!em) { em = document.createElement('em'); btn.append(em); } em.textContent = n; };
   document.querySelectorAll('.nav button[data-tab]').forEach((btn) => set(btn, b[btn.dataset.tab]));
   set(document.querySelector('.tabbar button[data-tab="more"]'), more);
@@ -877,7 +882,7 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['chars', 'דמויות: פרופיל, מה מצחיק, משפטי מחץ', 'cast'], ['tz', 'ציפציפ · ח24: הציוצים, הדיווחים, המתגים', 'spark'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['chars', 'דמויות: פרופיל, מה מצחיק, משפטי מחץ', 'cast'], ['tz', 'ציפציפ · ח24: הציוצים, הדיווחים, המתגים', 'spark'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
 }
@@ -1492,9 +1497,12 @@ function overview() {
     ...L.comments.filter((c) => !c.hidden && !c.char).slice(0, 4).map((c) => ({ t: c.t, face: fanFace(c), h: `תגובה · ${esc(c.nick)}`, p: `"${esc(c.text)}"`, go: 'content' })),
   ].filter((x) => x.t).sort((a, b) => b.t - a.t).slice(0, 6);
   const row = (x) => `<button class="row" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
+  const n = range, chartList = days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
+  const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'game_start', 'sign_in', 'tz_view', 'ch_view'];
   $('#pane').innerHTML = `
-    <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}</p></div>${rangeSeg()}</div>
-    <div class="kgrid">${kpi('visitors')}${timeKpi()}${kpi('joined')}${kpi('cz_start')}${kpi('cz_done')}${kpi('chat_message')}${kpi('video')}${kpi('game_start')}${kpi('tz_view')}${kpi('ch_view')}
+    <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}</p></div>
+      <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
+    <div class="kgrid">${kpi('visitors')}${timeKpi()}${ALL.slice(1).map((m) => kpi(m)).join('')}
       <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer).toFixed(2)}</b>
         <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה${FC('chat_message') ? ` · צפי $${(FC('chat_message').proj * avgAnswer).toFixed(2)}` : ''}</small>${spark('chat_message')}</span></button></div>
     <div class="cols">
@@ -1503,11 +1511,22 @@ function overview() {
       <div class="card live"><div class="card-h"><h2><span class="dot"></span> מה קורה עכשיו</h2><button data-tab="chats">לכל השיחות ${IC.back}</button></div>
         <div class="rows">${live.map(row).join('') || '<div class="empty">עוד שקט היום.</div>'}</div></div>
     </div>
-    ${todayCard('visitors', 'ov-fc')}
-    <div class="card" style="margin-top:16px"><div class="card-h"><h2>מבקרים ביום</h2><button data-metric="visitors">לנתונים ${IC.back}</button></div><div class="chart" id="ov-ch"></div></div>
+    <div id="ov-metric" class="tool" style="margin-top:16px"><select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    ${todayCard(metric, 'ov-fc').replace('margin-top:16px', 'margin:0 0 14px')}
+    <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="ov-ch"></div></div>
+    ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
+      <div class="kgrid" style="margin:4px 0 0">${ALL.map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
+    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
+    <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>
+    <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>
+    <div class="card sim-st ab-st" id="ab-st" style="margin-top:14px"></div>
     <div class="acts" style="margin-top:16px"><button class="btn" data-pub="video">${IC.video}להודיע על סרטון</button><button class="btn main" data-pub="story">${IC.plus}סטורי חדש</button></div>`;
-  bars($('#ov-ch'), days(14).map((d) => [d.d, d.visitors || 0]), 'מבקרים', (d) => { metric = 'visitors'; drillDay = d; go('data'); }, null, ghostOf('visitors'));
-  hourChart($('#ov-fc'), FC('visitors'));
+  bars($('#ov-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; overview(); }, drillDay, ghostOf(metric));
+  hourChart($('#ov-fc'), FC(metric));
+  $('#metric').onchange = (e) => { metric = e.target.value; overview(); };
+  simCard();
+  czCard();
+  learnedCard();
 }
 
 // ---------- שיחות: every conversation, as it happened ----------
@@ -1601,7 +1620,7 @@ function closeSheet() { document.querySelectorAll('.sheet, .sheet-back').forEach
 addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
 // ---------- נתונים: every number, a day's drill-down, and asking the data ----------
-let metric = 'visitors', drillDay = null, lastAsk = null;
+let metric = 'visitors', drillDay = null;
 const SRC = { mail: 'מייל', tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
 const SITE = { links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'yaniv-games': 'המשחקים של יניב', 'asaf-games': 'המשחקים של אסף', 'sagi-games': 'המשחקים של שגיא', 'yotam-games': 'המשחקים של יותם', 'osnat-games': 'המשחקים של אסנת', 'rosenblum-games': 'המשחקים של רוזנבלום', 'lola-games': 'המשחקים של לולה', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', other: 'אחר' };
 const GAME = { millimeters: 'מילימטרים (יניב)', sofa: 'מה אני אגיד לך? (אסף)', 'scooter-snake': 'שמעת על הקורקינט שלי? (שגיא)', pacman: 'פקי-טק (יותם)', deadlock: 'דדלוק (יותם)', 'not-a-cog': 'אתה לא בורג (אסנת)', drill: 'הקטר המאסף (רוזנבלום)', pills: 'התרופות של שמונה (לולה)', ketoret: 'מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20 רצים לגן', 'shekel-tov': 'שקל טוב', yosef: 'יוסף מוקיר שבת', pilai: 'פילאי פלואים', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };
@@ -1628,33 +1647,6 @@ function breakdown(list, label) {
     <div class="card"><div class="card-h"><h2>נרשמו ${label}</h2><small class="hint">${ppl.length}</small></div>
       <div class="rows">${ppl.sort((a, b) => b.created - a.created).slice(0, 12).map((p) => `<button class="row" data-person="${p.uid}" style="width:100%;text-align:start">${personFace(p)}<div class="body"><div class="l1"><b>${esc(personName(p))}</b></div><div class="l2"><bdi dir="ltr">${esc(p.email || '')}</bdi></div></div><time>${stamp(p.created)}</time></button>`).join('') || '<div class="empty">אף אחד</div>'}</div></div>
   </div>`;
-}
-function data() {
-  // today's numbers by default; the chart always shows at least a week, so today has days to compare with
-  const n = range, list = period(), chartList = days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
-  $('#pane').innerHTML = `
-    <div class="ask"><h2>${IC.spark}שאלו את הנתונים</h2><p class="hint">כל שאלה על המבקרים, ההרשמות, השיחות והתוכן - בעברית רגילה.</p>
-      <form id="ask-f"><input id="ask-q" placeholder="למשל: כמה נרשמו השבוע ומאיפה הם הגיעו?" maxlength="600" value="${esc(lastAsk?.q || '')}"><button aria-label="לשאול">${IC.send}</button></form>
-      <div class="ex">${['כמה נרשמו השבוע לעומת השבוע שעבר?', 'איזו דמות הכי מדברים איתה ומה שואלים אותה?', 'מאיפה מגיעים המבקרים, ומה עושים הכי הרבה?', 'באיזו שעה הכי פעילים היום?', 'אילו משחקים הכי משחקים?'].map((x) => `<button type="button" data-ex>${x}</button>`).join('')}</div>
-      ${lastAsk ? `<div class="ans ${lastAsk.wait ? 'wait' : ''}">${lastAsk.wait ? 'בודק את הנתונים…' : md(lastAsk.answer)}${lastAsk.cost ? `<span class="cost">עלות השאלה: $${lastAsk.cost.toFixed(3)}</span>` : ''}</div>` : ''}</div>
-    <div class="tool">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}
-      <select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-    <div class="kgrid">${['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'game_start', 'sign_in', 'tz_view', 'ch_view'].map((m) => kpi(m)).join('')}</div>
-    ${todayCard(metric, 'd-fc').replace('margin-top:16px', 'margin:0 0 14px')}
-    <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="d-ch"></div></div>
-    ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
-      <div class="kgrid" style="margin:4px 0 0">${['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'game_start', 'sign_in', 'tz_view', 'ch_view'].map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
-    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
-    <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>
-    <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>
-    <div class="card sim-st ab-st" id="ab-st" style="margin-top:14px"></div>`;
-  bars($('#d-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; data(); }, drillDay, ghostOf(metric));
-  hourChart($('#d-fc'), FC(metric));
-  $('#metric').onchange = (e) => { metric = e.target.value; data(); };
-  $('#ask-f').onsubmit = (e) => { e.preventDefault(); ask($('#ask-q').value); };
-  simCard();
-  czCard();
-  learnedCard();
 }
 // "מה למדנו" (plan cz-sim-r3, mockup r3-learned-1): what the residents told Miriam, Demokratovich and Yotam - one profile each
 // (about.js aboutStats). Real counts only; the faces from the wiki's data.
@@ -1746,15 +1738,6 @@ async function simCard(force) {
   if (!SIMST) draw();
   try { SIMST = await api('simStats', { days: simDays }); simAt = Date.now(); } catch (e) { SIMST = { error: true }; }
   if ($('#sim-st')) draw();
-}
-async function ask(q) {
-  q = String(q || '').trim();
-  if (!q) return;
-  lastAsk = { q, wait: true };
-  if (tab === 'data') data();
-  try { const r = await api('ask', { q }); lastAsk = { q, answer: r.answer, cost: r.cost }; }
-  catch (e) { lastAsk = { q, answer: 'לא הצלחתי לענות עכשיו (' + e.message + '). נסו שוב.' }; }
-  if (tab === 'data') data();
 }
 // a small markdown: **bold**, - bullets, | tables |
 function md(t) {
@@ -2444,10 +2427,9 @@ document.addEventListener('click', async (e) => {
   if (b.dataset.pchat) { openThread(b.dataset.pchat, window._personChats); return; }
   if (b.dataset.chat) { openThread(b.dataset.chat); return; }
   if (b.dataset.tab) { closeSheet(); go(b.dataset.tab); }
-  else if (b.dataset.range) { range = +b.dataset.range; drillDay = null; tab === 'data' ? data() : overview(); }
-  else if (b.dataset.metric) { metric = b.dataset.metric; drillDay = null; go('data'); }
-  else if (b.dataset.undrill !== undefined) { drillDay = null; data(); }
-  else if (b.dataset.ex !== undefined) { $('#ask-q').value = b.textContent; ask(b.textContent); }
+  else if (b.dataset.range) { range = +b.dataset.range; drillDay = null; overview(); }
+  else if (b.dataset.metric) { metric = b.dataset.metric; drillDay = null; if (tab !== 'overview') go('overview'); else overview(); $('#ov-metric')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  else if (b.dataset.undrill !== undefined) { drillDay = null; overview(); }
   else if (b.dataset.chrange) { b.disabled = true; chShown = 60; await loadChats(b.dataset.chrange).catch(() => {}); chats(); }
   else if (b.dataset.chf) { chFilter = b.dataset.chf; chShown = 60; chats(); }
   else if (b.dataset.chchar !== undefined) { chChar = b.dataset.chchar; chShown = 60; chats(); }
