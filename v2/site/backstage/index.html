@@ -1412,6 +1412,8 @@ function hourChart(el, f) {
 const rangeSeg = (opts = RANGES) => `<div class="rng">${opts.map(([v, l]) => `<button data-range="${v}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 // what one chat answer cost on average (from the tokens wiki.js keeps on each answer) - the cost of a period is estimated from it
 const PRICE = (u) => (((u[0] || 0) - (u[1] || 0)) * 2 + (u[1] || 0) * 0.2 + (u[2] || 0) * 12) / 1e6;
+// one answer's cost: the chain (wiki-deep.js) logs its exact cost (usd, every step on its own model); older answers - tokens at Terra's price
+const ANSWER = (c) => (typeof c.usd === 'number' ? c.usd : Array.isArray(c.u) ? PRICE(c.u) : 0);
 let avgAnswer = 0.024;
 
 // ---------- סקירה: status at a glance ----------
@@ -1484,8 +1486,8 @@ async function loadChats(r) {
   chRange = r;
   const to = r === 'yesterday' ? dayStart(dayIL()) : Date.now() + 6e4;
   CH = (await api(`chats&from=${chFrom[r]()}&to=${to}`)).chats;
-  const priced = CH.filter((c) => Array.isArray(c.u) && c.u[0]);
-  if (priced.length) avgAnswer = priced.reduce((a, c) => a + PRICE(c.u), 0) / priced.length;
+  const priced = CH.filter((c) => typeof c.usd === 'number' || (Array.isArray(c.u) && c.u[0]));
+  if (priced.length) avgAnswer = priced.reduce((a, c) => a + ANSWER(c), 0) / priced.length;
 }
 const peopleBy = () => Object.fromEntries(S.people.map((p) => [p.uid, p]));
 // a conversation = the chat's thread with one character, by its own id
@@ -1499,7 +1501,7 @@ function threads(list = CH) {
     const u = th.items.find((c) => c.uid)?.uid;
     th.person = u ? pb[u] : null;
     th.signed = th.items.some((c) => c.in);
-    th.cost = th.items.reduce((a, c) => a + (Array.isArray(c.u) ? PRICE(c.u) : 0), 0);
+    th.cost = th.items.reduce((a, c) => a + ANSWER(c), 0);
     return th;
   }).sort((a, b) => b.last - a.last);
 }

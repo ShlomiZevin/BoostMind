@@ -17,7 +17,7 @@ if (!admin.apps.length) admin.initializeApp();
 // id, the conversation's own id (c - one thread in Backstage), 90 days (Firestore TTL on `exp`, same as analytics_events). The wiki tells visitors under the chat box.
 // His own devices (marked in the analytics) send own: true and are not kept.
 const KEEP_DAYS = 90;
-async function keep(b, mode, turns, reply, u = {}, who = {}) {
+async function keep(b, mode, turns, reply, u = {}, who = {}, extra = {}) {   // extra: the chain's {usd, steps} (wiki-deep.js reply().log)
   if (b.own || !reply) return;
   const clean = (v, n) => String(v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, n);
   const now = new Date();
@@ -26,6 +26,7 @@ async function keep(b, mode, turns, reply, u = {}, who = {}) {
     q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length, in: !!who.uid, uid: who.uid || null,   // uid: the admin page shows a person's conversations
     // the tokens it took (input / of them cached / output) - the dashboard turns them into dollars
     u: [u.input_tokens || 0, u.input_tokens_details?.cached_tokens || 0, u.output_tokens || 0],
+    ...(extra.usd != null ? { usd: extra.usd, steps: extra.steps || [] } : {}),   // the chain: the exact cost + each step's model / time / cost
     exp: Timestamp.fromMillis(now.getTime() + KEEP_DAYS * 864e5),
   });
 }

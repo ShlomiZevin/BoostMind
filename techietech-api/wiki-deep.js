@@ -132,7 +132,13 @@ Be brief - a writer's note, not an essay: each field at most 15 words. Answer JS
   convo = { ...convo, topic: U.wants || convo.topic, said: [...(convo.said || []), String(t.out).slice(0, 120)].slice(-6),
     ...(F?.callback ? { callbacks: [...(convo.callbacks || []), F.callback].slice(-6) } : {}) };   // a callback is used once (Rosenblum's came back in every answer)
   const total = steps.reduce((a, s) => a + (s.cost || 0), 0);
-  return { text: t.out, steps, convo, cost: total, ms: Date.now() - t0, first: talkAt + (t.first || 0) };
+  // the analytics count every chat message's cost (his note 2026-11-11): usage = all the steps' tokens summed, in the shape
+  // wiki.js keep() stores (chat_logs.u - Backstage turns it into dollars at Terra's price); usd = the exact cost per each step's
+  // own model, and steps = the breakdown, for when a step runs on another model (both go on the log as well)
+  const sum = (f) => steps.reduce((a, s) => a + (f(s.usage || {}) || 0), 0);
+  const usage = { input_tokens: sum((u) => u.input_tokens), input_tokens_details: { cached_tokens: sum((u) => u.input_tokens_details?.cached_tokens) }, output_tokens: sum((u) => u.output_tokens) };
+  return { text: t.out, steps, convo, usage, cost: total, ms: Date.now() - t0, first: talkAt + (t.first || 0),
+    log: { usd: Math.round(total * 1e6) / 1e6, steps: steps.map((s) => ({ step: s.step, model: STEPS[s.step.split(' ')[0]]?.model || 'gpt-5.6-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) } };
 }
 
 module.exports = { reply, STEPS, PRICE };
