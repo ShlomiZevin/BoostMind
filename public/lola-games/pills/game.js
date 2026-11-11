@@ -72,7 +72,7 @@ ui.bubble.addEventListener('click', (e) => { if (ui.bubble.classList.contains('t
 function flash(t) { const f = $('#flash'); f.textContent = t; f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
 
 // ---------- sound ----------
-const SND = { place: 3, rattle: 3, clear: 3, pop: 3, error: 1, win: 1, lose: 1, shake: 1, combo: 1, swap: 1, stamp: 2, print: 1 };
+const SND = { place: 3, rattle: 3, clear: 3, pop: 3, error: 1, win: 1, lose: 1, shake: 1, combo: 1, swap: 1, stamp: 2, print: 1, vanish: 4, cascade: 1 };
 const audio = { ctx: null, buf: {}, last: {}, on: store.get('sound') !== '0' };
 function audioInit() {
   if (audio.ctx) { if (audio.ctx.state === 'suspended') audio.ctx.resume(); return; }
@@ -132,12 +132,12 @@ function voTick(now) {  // while playing: a menu announcement every 45-75 s
   if (!hold.t) hold.t = now + 25000 + Math.random() * 15000;
   if (now > hold.t) { hold.t = now + 45000 + Math.random() * 30000; vo(['wait', 'queue7', 'queue42', 'time', 'rec', 'star']); }
 }
-function sfx(n, vol = .8) {
+function sfx(n, vol = .8, rate = 1) {
   if (!audio.on || !audio.ctx || !audio.buf[n]) return;
   const list = audio.buf[n]; let i = Math.floor(Math.random() * list.length);
   if (list.length > 1 && i === audio.last[n]) i = (i + 1) % list.length;
   audio.last[n] = i;
-  const s = audio.ctx.createBufferSource(), g = audio.ctx.createGain(); g.gain.value = vol; s.buffer = list[i]; s.connect(g).connect(audio.ctx.destination); s.start();
+  const s = audio.ctx.createBufferSource(), g = audio.ctx.createGain(); g.gain.value = vol; s.buffer = list[i]; s.playbackRate.value = rate; s.connect(g).connect(audio.ctx.destination); s.start();
 }
 addEventListener('pagehide', () => audio.ctx && audio.ctx.suspend());
 document.addEventListener('visibilitychange', () => { if (!audio.ctx) return; document.hidden ? audio.ctx.suspend() : audio.ctx.resume(); });
@@ -732,7 +732,9 @@ const tray = {
       }
       for (const s of spawn) { const k = this.g[s.at[1]][s.at[0]]; k.sp = s.sp; k.m = s.m; const o = this.order.find((o) => o.id === s.m); if (o && o.n > 0) o.n--; }
       addScore(pts);
-      sfx(chain > 1 ? 'combo' : 'pop', .8); if (chain === 3) { flash('שרשרת!'); say('lola', 'water', L.lolaWater); }
+      sfx('vanish', 1, Math.min(1.5, 1 + (chain - 1) * .12)); if (chain > 1) setTimeout(() => sfx('cascade', .55, Math.min(1.3, .9 + chain * .08)), 90);
+      if (kill.size >= 4) setTimeout(() => sfx('pop', .9, 1.15), 140);
+      if (chain === 3) { flash('שרשרת!'); say('lola', 'water', L.lolaWater); }
       this.hudUpd();
       await wait(230);
       for (const [x, y] of kill.values()) this.g[y][x] = { m: null };

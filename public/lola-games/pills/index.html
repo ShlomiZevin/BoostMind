@@ -117,6 +117,7 @@ button{font-family:inherit;border:0;cursor:pointer;color:inherit;padding:0}
 #bMusic:active{transform:translateY(2px)}
 #bSound{width:54px;height:54px;border-radius:50%;flex:none}
 #bSound.off{filter:grayscale(.85) brightness(.9)}
+.lnk a{color:#fff;text-decoration:none}
 .lnk{color:#fff;font-size:13px;text-decoration:none;font-weight:700;text-shadow:0 1px 3px #000;margin-top:.8vh;flex:none}
 @media (max-height:600px){.mode .txt span{display:none}.tag{padding:5px 12px}.mode{min-height:52px}}
 n:0 auto 6px;font-size:24px;font-weight:900;background:var(--cream2);border-radius:99px;padding:6px 16px;box-shadow:inset 0 0 0 2px var(--rim);display:inline-block}
@@ -181,7 +182,7 @@ n:0 auto 6px;font-size:24px;font-weight:900;background:var(--cream2);border-radi
     <button id="bMusic" aria-label="מוזיקת המתנה"><span class="mi">🎵</span><span class="ml"><small>מוזיקת המתנה</small><b></b></span><span class="next">החלפה ›</span></button>
     <button id="bSound" class="pb" aria-label="צליל"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button>
   </div>
-  <a class="verse-hide lnk" href="/c/lola" target="_top">לולה בשלומיוורס ←</a>
+  <div class="verse-hide lnk"><a href="/c/lola" target="_top">לולה ←</a> · <a href="/c/savta" target="_top">סבתא ←</a> <span>בשלומיוורס</span></div>
 </div>
 
 <div id="end" class="screen" hidden>
@@ -203,6 +204,6 @@ n:0 auto 6px;font-size:24px;font-weight:900;background:var(--cream2);border-radi
 <span aria-hidden="true" style="position:fixed;left:0;top:0;pointer-events:none;font:700 12px 'Miriam Libre';opacity:0">מרשם</span><span aria-hidden="true" style="position:fixed;left:0;top:0;pointer-events:none;font:400 12px 'Miriam Libre';opacity:0">מרשם</span>
 <div id="rotate"><img src="assets/lola-please.webp" alt="">סובבו את הטלפון לעמידה 📱</div>
 
-<script src="game.js?v=20"></script>
+<script src="game.js?v=21"></script>
 </body>
 </html>
