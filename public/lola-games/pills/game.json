@@ -5,7 +5,7 @@
   "character": "lola",
   "chars": ["lola", "savta"],
   "world": "המשפחה של אברם",
-  "status": "draft",
+  "status": "live",
   "cover": "cover.jpg",
   "best": { "key": "shlomiverse:pills:best", "label": "נקודות" },
   "record": { "unit": "נקודות", "better": "high" },
