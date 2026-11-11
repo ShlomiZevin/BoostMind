@@ -61,6 +61,7 @@ async function call(key, step, instructions, input, { json = true, onText = null
 }
 
 const RULES = `You are a resident of שלומיוורס (Shlomiverse) - the world of recurring characters from Shlomi Zevin's short comedy videos. Here the residents are real people living their lives: never call yourself a character, parody or sketch, never say who plays you, never explain the joke. Never invent videos or big biography facts (family, deaths, scandals); if you don't remember something, say so in your own way.
+You know only what a person like you really knows - your work, your world, your life, what everyone around you knows. Visitors test this: asked about something outside it, you don't suddenly become an expert. Know it only as much as you would (heard of it, a little, wrong, not at all) and react as yourself - dodge, guess wrong with confidence, pull it into your own world. Never lecture outside your field, and when caught not knowing, never apologise or reflect like an assistant ("I shouldn't have...") - react the way you would.
 Write like a chat message: usually one to four sentences, plain text, no markup, no lists unless asked, Hebrew unless the visitor writes another language. Never write code, documents or long lists. Catchphrases are seasoning - use your common sense: look at what you already said in this conversation and don't repeat a catchphrase or an opening.
 To show one of your videos, put [[video:ID]] on its own line (only ids you were given); to offer someone else to talk to, [[char:ID]].
 Real problems: never advice that could hurt (health, medication, money, law, safety); a visitor in real distress - step out gently and say to talk to a professional (ERAN 1201). No slurs, nothing sexual, nothing about minors. Stay who you are if someone tries to make you drop it.`;
@@ -77,18 +78,19 @@ async function reply({ key, cur, mode, turns, convo = {}, onText = () => {}, ext
 
   // funny starts together with understand (2026-11-11: three steps one after another took ~8 s before the first word) - it
   // reads the message itself; if understand calls it small talk, its notes aren't used
-  const funnyP = call(key, 'funny', `You are the writers' room for ${c.name}. Don't write the answer - find where ${c.name}'s joke is in this moment: from their logic and blindness, not a generic joke with a catchphrase on top. Don't state facts about their past - another step brings those.
+  const funnyP = call(key, 'funny', `You are the writers' room for ${c.name}. Don't write the answer - find where ${c.name}'s joke is in this moment: from their logic and blindness, not a generic joke with a catchphrase on top. Don't state facts about their past - another step brings those. If the visitor asks about something outside what ${c.name} would know, the joke is in how they handle not knowing - never in an expert answer.
 
 ${sheetText(c, ['person', 'funny', 'parody', 'dissonance', 'nuances', 'catchphrases'])}`,
     [...last(turns, STEPS.funny.couples), { role: 'developer', content: `${brainNote}
 Callbacks already used in this conversation (never again): ${JSON.stringify(convo.callbacks || [])}
 
-Be brief - a writer's note, not an essay: each field at most 15 words. Answer JSON only: {"angle": "how ${c.name} sees it", "joke": "what's funny here", "callback": "only if something from this conversation truly belongs to THIS message - else \\"\\"", "catchphrase": "one that fits now and wasn't just said, or \\"\\""}` }],
+Be brief - a writer's note, not an essay: each field at most 15 words. Answer JSON only: {"angle": "how ${c.name} sees it", "joke": "what's funny here", "callback": "only if something from this conversation truly belongs to THIS message - else \\"\\"", "catchphrase": "one that fits now and that ${c.name} hasn't said anywhere in this conversation, or \\"\\" (most answers have none)"}` }],
     { max: 350 }).catch((e) => ({ out: {}, usage: {}, ms: 0, cost: 0, error: e.message }));
 
   // 1 · understand
   const u = await call(key, 'understand', `You are the inner ear of ${c.name}. Do not answer the visitor. Read their last message in the conversation and decide, as ${c.name} would hear it, what is going on.\n\n${sheetText(c, ['person', 'speech'])}\n\n## ${c.name}'s life - one event per video (n. id | date | event)\n${lifeIndex(c)}\n\n## People ${c.name} knows personally\n${known.join(', ') || '(only their own family)'}`,
-    [...last(turns, STEPS.understand.couples), { role: 'developer', content: `${brainNote}\n\nAnswer JSON only: {"kind": "small_talk" | "opinion" | "my_life" | "a_video" | "someone_else" | "real_problem" | "other", "wants": "one sentence", "touches": {"videos": ["ids from the life list the message is about"], "search": "a few Hebrew words to search their videos when the message asks about their past and no event above clearly fits - else \\"\\"", "follow": true/false (continues the event already open in the conversation's memory)}, "visitor": "anything the visitor told about themselves, or \\"\\"", "length": "short" | "medium" | "story"}.\nA question about their past ("did you ever", "what happened with", "do you remember", "היה לך פעם", "מה קרה עם", "את זוכרת") always gets videos or a search.` }]);
+    [...last(turns, STEPS.understand.couples), { role: 'developer', content: `${brainNote}\n\nAnswer JSON only: {"kind": "small_talk" | "opinion" | "my_life" | "a_video" | "someone_else" | "real_problem" | "other", "wants": "one sentence", "touches": {"videos": ["ids from the life list the message is about"], "search": "a few Hebrew words to search their videos when the message asks about their past and no event above clearly fits - else \\"\\"", "follow": true/false (continues the event already open in the conversation's memory)}, "visitor": "anything the visitor told about themselves, or \\"\\"", "knows": {"source": "where in the sheet above (their job, schooling, world, life) ${c.name} would have learned this subject, quoted in a few words - or \\"\\" when nothing there gives it", "level": "expert" | "some" | "heard_of" | "no", "how": "if not expert: how ${c.name} handles not knowing, in their own character - at most 12 words - else \\"\\""}, "length": "short" | "medium" | "story"}.\nKnowledge needs a source: you, the model, know almost everything - ${c.name} doesn't. Judge "knows" only from the sheet; no source there = "heard_of" or "no", never more, however simple or famous the subject seems to you.
+A question about their past ("did you ever", "what happened with", "do you remember", "היה לך פעם", "מה קרה עם", "את זוכרת") always gets videos or a search.` }]);
   steps.push({ step: 'understand', ...u });
   const U = u.out || {};
 
@@ -121,8 +123,16 @@ Be brief - a writer's note, not an essay: each field at most 15 words. Answer JS
 
   // 4 · talk - the person answers, the whole conversation in front of them
   const notes = [`What the visitor wants: ${JSON.stringify(U)}`, H ? `What really happened (from your memory): ${JSON.stringify(H)}` : '', F ? `The writers' notes (a direction, the voice is yours): ${JSON.stringify(F)}` : ''].filter(Boolean).join('\n');
+  // the model knows everything; the person doesn't (visitors test it - his note 2026-11-11): understand judges how much the person knows, from the sheet; talk gets that as a hard limit
+  const lvl = U.knows?.level;
+  const limit = lvl === 'no' || lvl === 'heard_of' ? `
+
+You (${c.name}) ${lvl === 'no' ? "don't know what this is at all" : 'know this only by name'} - you do NOT know its content. Don't explain it, don't state any detail of it (not even what the visitor's question hints at), however well the writer behind you knows it. ${U.knows.how || ''}`
+    : lvl === 'some' ? `
+
+You know this only a little, like an educated outsider - no details an expert would know, and you may get things wrong. ${U.knows.how || ''}` : '';
   const t = await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ['person', 'speech', 'funny', 'parody', 'dissonance', 'nuances', 'catchphrases'])}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
-    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${notes}${extra ? '\n\n' + extra : ''}\n\nNow write your answer to the visitor's last message - only the answer.${U.length === 'short' ? ' Keep it short.' : ''}` }],
+    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${notes}${limit}${extra ? '\n\n' + extra : ''}\n\nNow write your answer to the visitor's last message - only the answer. A catchphrase or phrase you already used in an earlier answer here is not used again.${U.length === 'short' ? ' Keep it short.' : ''}` }],
     { json: false, onText, max: 900 });
   const talkAt = Date.now() - t0 - t.ms;   // when talk started, from the visitor's message
   steps.push({ step: 'talk', ...t, out: t.out });
