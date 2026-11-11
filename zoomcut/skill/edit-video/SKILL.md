@@ -174,6 +174,15 @@ on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <pro
   show with the What we see"): the next line starts ~0.7 s before the other ends (own voice rows, full volume); never
   back-to-back turns. The strip's first pick = whoever starts a sentence (≥0.7 s a shot); he changes it. Two talking in
   parallel = a second subtitles row for the other one (higher, another colour) so both read.
+- **Real life, not a play** (his words, savta-1, 2026-11-11 - "a recurring theme ... don't be afraid of talking over
+  each other, it makes a good rhythm. We're not in a play or a soap opera where one talks only after the other finishes
+  and everything is programmed. We're in real-life scenes"): lines land ON each other; an off-screen voice with no room
+  = speed it up (its row's `tempo` ~1.2, pitch kept) or lay it right over the other - never open a pause for it.
+- **Never show him starting / stopping the recording** (his words: "every clip has a start and an end of filming - I
+  film myself, selfie, so you always see me starting and stopping"): a clip starts ≤ 0.3 s before its first word and ends
+  ≤ 0.2 s after its last - measure the word edges; a gap that needs more picture = cover it with the other character.
+- **≥ 1 s per shot; few cuts inside one person** ("cut cut cut drives the brain crazy"): cut only real silences (≥ 0.4
+  s), and put the strip on the other character over each such cut so it isn't seen.
 - **The sound follows who is seen** (savta-1, 2026-11-11): someone heard in the background = quiet (gain ~0.3); the
   moment the strip shows them = their clip loud (gain 1) and the other dipped a little (`duck: -6`, `duck_layers`
   [their row]) - split a clip where it changes. **Shots filmed apart never cut one into the other**: show such a clip
