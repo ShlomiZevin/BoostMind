@@ -9,6 +9,7 @@ import { newId } from '../../src/layers/ops.js';
 import { TEXT_STYLES, SUB_STYLES } from '../../src/layers/styles';
 import { FILTERS } from '../../src/layers/effect_curve.js';
 import { Sec, Row } from './inspect/controls';
+import { projectSpeedOps } from './group';  // (a group with its own speed keeps it when the project's changes)
 import './tokens.css';
 
 const mmss = (s: number) => { const r = Math.round(s); return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`; };  // (the length in minutes, 2:55 - his ask)
@@ -92,7 +93,7 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
       <Sec title="Video">
         <Row label="Title"><input className="field he" defaultValue={project.title} key={project.title} placeholder="A name for this video"
           onBlur={(e) => e.target.value !== project.title && send([{ op: 'project', set: { title: e.target.value } }])} /></Row>
-        <Row label="Speed" wide><SpeedPick speed={project.speed || 1} onSpeed={(v) => send([{ op: 'project', set: { speed: v } }], { label: 'speed' })} /></Row>
+        <Row label="Speed" wide><SpeedPick speed={project.speed || 1} onSpeed={(v) => send(projectSpeedOps(project, v), { label: 'speed' })} /></Row>
         <Row label="Length"><span className="ins-val">{mmss(project.duration / fps / (project.speed || 1))}{project.speed && project.speed !== 1 ? ` · ${mmss(project.duration / fps)} at 1×` : ''}</span></Row>
         <Row label="Background"><input type="color" className="ins-color" value={project.canvas.color || '#000000'}
           onChange={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }], { commit: false })}

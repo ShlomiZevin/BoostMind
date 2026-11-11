@@ -255,6 +255,15 @@ hear the last one after the picture moved on). Live like everything else - his d
   - **Alt + drag** = that clip alone (a voice moved alone still takes its subtitles) - for a sound heard before / after
     its picture;
   - copy / paste (right-click, Ctrl+C / Ctrl+V) = the whole group, pasted as a new group;
+  - **Ctrl+K** = the clip under the mouse cut there (no clip under it: the picked one at the playhead);
+  - **its own speed** (the panel's top: Speed - Project 1.25× / Its own): `pace` on every clip of the group = its real
+    speed whatever the project's (project 1.4×, this group 1.2×; null / absent = the project's). A video clip plays it
+    by its `rate` (= pace / project speed), a sound clip from its own pitch-kept copy (AudioTrack `tightOf` /
+    layers_audio `track` - `clock.js paceK`), so the group gets longer / shorter on the timeline: it stretches from its
+    start and everything after it moves by the difference (another group as a whole; a stretch across it - music, a
+    strip block - grows; a cut inside it keeps its place in the line; notes move with it). The clips show "1.2×". The
+    project's speed changed later = such a group keeps its own (`projectSpeedOps`). Set it through the panel, or ops
+    from `group.ts speedOps` - never `pace` by hand without the lengths;
   - one Ctrl+Z undoes any of these.
 - **Preparing a project for him to edit himself** (his workflow from 2026-11-11: he drops videos, a session prepares the
   raw project - backgrounds, cut-outs, crops, voices - and HE does the cutting): make every piece he will cut a group.

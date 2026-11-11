@@ -88,6 +88,7 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
       bar={kind !== 'music' && <SetupLine setups={setups} cur={cur} rowCur={rowCur} changed={changed} by={tag?.by} own={own} onClip={onClip}
         onPick={(x: any) => apply(x)} onReset={() => apply(cur)} onSave={saveNew} onUpdate={update}
         onRow={() => S.item(Object.fromEntries(OWN_KEYS.map((k) => [k, null])))} />} />
+    <ClipTiming P={P} source speedCtl fades={false} />
 
 
     <div className="ins-vol"><Sec title="Volume">
@@ -142,7 +143,7 @@ export const AudioInspector: React.FC<InspectorProps> = (P) => {
       </div>
     </Sec>
 
-    <PanelEnd P={P} timing={<ClipTiming P={P} source speedCtl fades={false} />}
+    <PanelEnd P={P}
       lane={<LayerState P={P} sound>
         <ToggleRow label="Keep its own pace (not sped up with the video)" on={!!props.own_pace} onChange={(on) => S.layer({ own_pace: on || null })} />
         {/* the row's own speed, pitch kept (props.tempo - src/layers/clock.js tempoOf): set when the slider is let go -

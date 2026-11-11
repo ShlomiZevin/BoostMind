@@ -8,7 +8,8 @@ Layer props (skill/edit-video/layers.md):
   level   "speech" = even out each source by its speech level, measured on the pieces used (voices)
   tempo   0.5..2 - the row's own speed, pitch kept, on top of the project's (alone with own_pace): its sources are
           stretched (atempo) and each item's `in` read in the stretched source (in / tempo) - `tempo_of`, `stretched`
-Item: asset, in (s), from / dur (frames), gain, fade_in / fade_out (s), soften (a shouted line made easier).
+Item: asset, in (s), from / dur (frames), gain, fade_in / fade_out (s), soften (a shouted line made easier), pace (a
+group's own speed, pitch kept - played pace x real time whatever the project's speed).
 
 The editor plays the stems (work/public/layers/stems/<layer>.wav, after the shared gain, before the layer's volume)
 and applies the volume live; the export mixes the same tracks here."""
@@ -151,12 +152,19 @@ def track(ep, project, layer, n, sources=None):
                 z = a + int(round(it["dur"] / fps * SR))
                 sources[f"{aid}@{it['id']}"] = audio.soften(cache[aid][a:z].copy() * level.get(aid, 1.0))
     t = tempo_of(layer)
+    raw = cache
     if abs(t - 1) > 1e-4:  # the row's own speed: its pieces come from the source sped up, pitch kept (in / tempo there)
         cache = {aid: stretched(ep, x, t) for aid, x in cache.items()}
+    speed = float(project.get("speed") or 1)
     for it in items:
         aid = it.get("asset") or props.get("asset")
-        x = cache[aid]
-        a = int(it.get("in", 0) / t * SR)
+        x, tt = cache[aid], t
+        pace = float(it.get("pace") or 0)
+        if pace > 0:  # a group's own speed (ui/layers/group.ts, 2026-11-11): its own pitch-kept copy, so that after the
+            # mix is sped up by the project's speed it plays at exactly `pace` (the editor: AudioTrack tightOf / perSec)
+            tt = t * pace / speed
+            x = stretched(ep, raw[aid], tt)
+        a = int(it.get("in", 0) / tt * SR)
         n_out = int(round(it["dur"] / fps * SR))
         rate = float(it.get("rate", 1) if it.get("rate") is not None else 1)
         if rate <= 1e-6:  # a held frame: no sound

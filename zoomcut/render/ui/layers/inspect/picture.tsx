@@ -39,6 +39,7 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
   };
   return <div className="ins">
     <Head icon={ICON.image} title={layer.name || 'Picture'} sub={item ? `Picture ${item.id}` : `Image layer · ${layer.items?.length || 0} items`} />
+    <ClipTiming P={P} />
     <Sec title="Picture">
       <Thumb P={P} asset={assetId} onReplace={() => P.pickAsset('image', (id) => (P.item?.asset != null ? S.item({ asset: id }) : S.layer({ asset: id })))} />
     </Sec>
@@ -59,7 +60,7 @@ export const ImageInspector: React.FC<InspectorProps> = (P) => {
       <Note>A set behind him: a little blur and a touch darker sits him in the room. Drag the picture on the video to move it; its corner zooms.</Note>
     </Sec>
     {item && <Sec title="On screen"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
-    <PanelEnd P={P} timing={<ClipTiming P={P} />} lane={<LayerState P={P} />} />
+    <PanelEnd P={P} lane={<LayerState P={P} />} />
   </div>;
 };
 
@@ -93,6 +94,7 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
   const { box, setBox } = usePlace(P, { x: 0, y: 0, w: W, h: H });
   return <div className="ins">
     <Head icon={ICON.shape} title={layer.name || 'Shape'} sub={item ? `Shape ${item.id}` : 'Shape layer'} />
+    <ClipTiming P={P} />
     <Sec title="Look">
       <Row label={<>Fill <Ovr S={S} k="fill" /></>}><Swatches value={S.get('fill', '')} colors={['#ffffff', '#000000', '#ff6b57', '#ffd23f']} onPick={(c) => S.set('fill', c)} /></Row>
       <Row label={<>Border <Ovr S={S} k="stroke" /></>}><Swatches value={S.get('stroke', '')} colors={['#ffffff', '#000000', '#ff6b57', '#4cc38a']} onPick={(c) => S.set('stroke', c)} /></Row>
@@ -104,7 +106,7 @@ export const ShapeInspector: React.FC<InspectorProps> = (P) => {
       {(['x', 'y', 'w', 'h'] as const).map((k) => <Slider key={k} label={{ x: 'Left / right', y: 'Up / down', w: 'Width', h: 'Height' }[k]} v={box[k] ?? 0} min={0} max={k === 'x' || k === 'w' ? W : H} step={1} fmt={fmt.px} onChange={(v, c) => setBox({ [k]: Math.round(v) }, c)} />)}
     </Sec>
     {item && <Sec title="On screen"><WholeVideo P={P} /><Entrance P={P} /></Sec>}
-    <PanelEnd P={P} timing={<ClipTiming P={P} />} lane={<LayerState P={P} />} />
+    <PanelEnd P={P} lane={<LayerState P={P} />} />
   </div>;
 };
 
@@ -118,6 +120,7 @@ export const EffectInspector: React.FC<InspectorProps> = (P) => {
   const strength = kind !== 'hits' && kind !== 'black';
   return <div className="ins">
     <Head icon={ICON.effect} title={layer.name || F.label} sub={item ? `${F.label} · clip ${item.id}` : `Effect layer · ${layer.items?.length || 0} clips`} />
+    <ClipTiming P={P} fades={false} />
     <Sec title="Effect">
       <Row label="Filter"><select className="ins-select" value={kind} onChange={(e) => S.layer({ filter: e.target.value, amount: null })}>
         {Object.entries(FILTERS as Record<string, any>).map(([k, f]) => <option key={k} value={k}>{f.label}</option>)}</select></Row>
@@ -139,6 +142,6 @@ export const EffectInspector: React.FC<InspectorProps> = (P) => {
       <Slider label="Fade in" v={item.fade_in ?? 1.5} min={0} max={4} step={0.05} def={1.5} fmt={fmt.s} onChange={(v, c) => S.item({ fade_in: v }, c)} />
       <Slider label="Fade out" v={item.fade_out ?? 0.6} min={0} max={4} step={0.05} def={0.6} fmt={fmt.s} onChange={(v, c) => S.item({ fade_out: v }, c)} />
     </Sec>}
-    <PanelEnd P={P} timing={<ClipTiming P={P} fades={false} />} lane={<LayerState P={P} />} />
+    <PanelEnd P={P} lane={<LayerState P={P} />} />
   </div>;
 };

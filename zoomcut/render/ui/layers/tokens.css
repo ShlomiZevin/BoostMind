@@ -203,3 +203,8 @@
 .ctx { background: var(--panel-2); border-bottom: 1px solid var(--edge-2); box-shadow: inset 3px 0 0 var(--mode), 0 4px 10px -6px rgba(0, 0, 0, 0.5); }
 .ctx-setup { border-top-color: var(--edge-2); }
 .ctx-seg { grid-template-columns: 1fr 1fr; }
+
+/* the panel's group line (ClipTiming): what moves / cuts with this clip */
+.ins-group { font-size: 12px; font-weight: 600; margin: -2px 0 8px; color: var(--text); }
+.ins-group span { font-weight: 400; color: var(--faint); }
+span.ins-q { cursor: help; }

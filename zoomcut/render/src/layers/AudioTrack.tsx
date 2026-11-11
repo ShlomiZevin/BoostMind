@@ -123,17 +123,20 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
   // pitch-kept copy at the two together (a project at 1.15 with a bed at 1.2 = one copy at 1.38)
   const tempo = tempoOf(layer);
   const tight = (own ? 1 : speed) * tempo;
-  const bufUrl = (asset: string, c = clean) => {  // the file this layer plays an asset from: sped up, pitch kept, when a speed applies
-    const u = srcOf(asset, c).url;
-    return !u || Math.abs(tight - 1) < 1e-4 || !u.includes('/pm/') ? u : `${u.replace('/pm/', '/pm-tempo/')}&s=${+tight.toFixed(4)}`;
+  // a clip of a group with its own speed (item.pace - ui/layers/group.ts): its own pitch-kept copy at that speed, the
+  // project's speed left out (x the row's tempo)
+  const tightOf = (P?: any) => (P?.pace > 0 ? P.pace * tempo : tight);
+  const bufUrl = (asset: string, c = clean, P?: any) => {  // the file this layer plays an asset from: sped up, pitch kept, when a speed applies
+    const u = srcOf(asset, c).url, t = tightOf(P);
+    return !u || Math.abs(t - 1) < 1e-4 || !u.includes('/pm/') ? u : `${u.replace('/pm/', '/pm-tempo/')}&s=${+t.toFixed(4)}`;
   };
-  const stretch = (asset: string, c = clean) => (bufUrl(asset, c) !== srcOf(asset, c).url ? tight : 1);  // the buffer's own speed
+  const stretch = (asset: string, c = clean, P?: any) => (bufUrl(asset, c, P) !== srcOf(asset, c).url ? tightOf(P) : 1);  // the buffer's own speed
   // seconds of the source per second of the timeline: the clip's tape speed x the row's tempo (/ the project's speed
   // when the row keeps its own pace - the timeline runs `speed` x faster than real time)
-  const perSec = (P: any) => (P.rate ?? 1) * tempo / (own ? speed : 1);
+  const perSec = (P: any) => (P.rate ?? 1) * tempo * (P.pace > 0 ? P.pace / speed : 1 / (own ? speed : 1));
   const srcOfAt = (P: any, f: number) => (P.in ?? 0) + ((f - P.from) / fps) * perSec(P);
   const [bufs, setBufs] = useState<Record<string, AudioBuffer | null>>({});
-  const want: string[] = useMemo(() => [...new Set<string>(parts.map((P: any) => bufUrl(P.asset, cOf(P))).filter(Boolean))], [parts, p.urls, clean, speed, own, tempo]);
+  const want: string[] = useMemo(() => [...new Set<string>(parts.map((P: any) => bufUrl(P.asset, cOf(P), P)).filter(Boolean))], [parts, p.urls, clean, speed, own, tempo]);
   useEffect(() => {
     let alive = true;
     for (const u of want) if (!bufs[u]) loadBuffer(u).then((b) => alive && setBufs((o) => ({ ...o, [u]: b })));
@@ -153,7 +156,7 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
   const levels = (p as any).levels || {};
   const auto = useMemo(() => prepare(p.project, layer), [p.project.layers, layer]);  // ducks / lift, live from the other layers
   // what the schedule depends on: a change of any of it while playing re-schedules from where it is
-  const sig = useMemo(() => JSON.stringify([parts.map((x: any) => [x.copy, x.from, x.dur, x.in, x.rate, x.asset, x.clean]), want.map((u) => !!bufs[u]), speed, own, tempo]), [parts, want, bufs, speed, own, tempo]);
+  const sig = useMemo(() => JSON.stringify([parts.map((x: any) => [x.copy, x.from, x.dur, x.in, x.rate, x.pace, x.asset, x.clean]), want.map((u) => !!bufs[u]), speed, own, tempo]), [parts, want, bufs, speed, own, tempo]);
   live.current = { parts, f, playing: !!(p as any).playing, rate: speed, volume: on ? Math.max(0, layer.props?.volume ?? 1) : 0,
     props: layer.props || {}, g: Math.pow(10, ((p as any).gainDb ?? 0) / 20), sig };
 
@@ -200,9 +203,9 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
     for (const P of parts as any[]) {
       const end = P.from + P.dur, pr = P.rate ?? 1, n = nodes.current[P.copy];
       if (end <= f || pr <= 1e-6 || !n?.clip) continue;
-      const pc = cOf(P), lk = `${P.asset}|${pc}`;
-      const sb = stretch(P.asset, pc), was = lastBuf.current[lk] || lastBuf.current[P.asset];
-      const b = bufs[bufUrl(P.asset, pc)] || (was && was.sb === sb ? was.b : null);
+      const pc = cOf(P), lk = `${P.asset}|${pc}|${P.pace || ''}`;
+      const sb = stretch(P.asset, pc, P), was = lastBuf.current[lk] || lastBuf.current[P.asset];
+      const b = bufs[bufUrl(P.asset, pc, P)] || (was && was.sb === sb ? was.b : null);
       if (!b) continue;  // (still loading: it joins when it lands - the sig changes)
       lastBuf.current[lk] = lastBuf.current[P.asset] = { b, sb };
       const sf = Math.max(P.from, f);
@@ -272,7 +275,7 @@ export const AudioTrack: React.FC<{ p: LayersProps; layer: any }> = ({ p, layer 
     }
     const dbg = (window as any).__atDebug;  // (the test bench: is each item at this frame heard?)
     if (dbg) dbg[layer.id] = Object.entries(act).map(([copy, A]: any) => { const n = nodes.current[copy];
-      return { copy, item: A.id, want: +srcOfAt(A, f).toFixed(3), playing: !!(playing && sched.current), ready: bufs[bufUrl(A.asset, cOf(A))] ? 4 : 0,
+      return { copy, item: A.id, want: +srcOfAt(A, f).toFixed(3), playing: !!(playing && sched.current), ready: bufs[bufUrl(A.asset, cOf(A), A)] ? 4 : 0,
         gain: n?.clip ? +n.clip.gain.gain.value.toFixed(3) : -1 }; });
   };
   useEffect(sync);

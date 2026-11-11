@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { newId } from '../../../src/layers/ops.js';
 import { tempoOf } from '../../../src/layers/clock.js';
 import { helpFor, labelText } from './help';
+import { groupOf, splitOps as groupSplitOps, removeOps, isTakeItem, speedOps, paceOf } from '../group';
 
 export type InspectorProps = {
   project: any; layer: any; item: any | null; urls: Record<string, string>;
@@ -70,8 +71,8 @@ function Top({ end, extra }: { end?: React.ReactNode; extra?: React.ReactNode })
     </div>
     <div className="ctx-scope">
       <div className={`ins-seg ctx-seg ${item ? '' : 'one'}`}>
-        <button className={!onClip ? 'on row' : ''} onClick={() => setScope('row')} title="Every clip in this row changes (a clip with its own setting keeps it)">
-          Whole row<small>{n === 1 ? '1 clip' : `${n} clips`}</small></button>
+        <button className={!onClip ? 'on row' : ''} onClick={() => setScope('row')} title="Every clip in this layer changes (a clip with its own setting keeps it)">
+          Whole layer<small>{n === 1 ? '1 clip' : `${n} clips`}</small></button>
         {item && <button className={onClip ? 'on clip' : ''} onClick={() => setScope('clip')} title="Only this clip changes - its own settings replace the row's">
           This clip</button>}
       </div>
@@ -149,10 +150,10 @@ export function Head({ icon, title, sub, end, bar }: { icon: React.ReactNode; ti
 function useQ(label: any) {
   const tip = helpFor(label);
   const [open, setOpen] = useState(false);
-  const q = tip ? <button type="button" className="ins-q" title="What is this?" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}>?</button> : null;
-  // (a click opens a window with the explanation - his ask: a modal, never text pushed into the panel)
-  const note = tip && open ? <Win title={labelText(label).trim()} onClose={() => setOpen(false)}><div className="ins-help-win">{tip}</div></Win> : null;
-  return { q, note };
+  // (the explanation shows on hover - no window inside the panel, his rule 2026-11-11)
+  const q = tip ? <span className="ins-q" title={tip} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>?</span> : null;
+  void open; void setOpen;
+  return { q, note: null as React.ReactNode };
 }
 
 /** A group - always open (his note, 2026-11-02: no folding inside folding; the one hidden level is a group's "More"). */
@@ -178,18 +179,10 @@ export function Win({ title, onClose, children, cls }: { title: string; onClose:
     </div></div>;
 }
 
-/** The bottom of every panel: Timing… (a clip picked) and Lane… - each opens its window. */
-export function PanelEnd({ P, timing, lane }: { P: InspectorProps; timing?: React.ReactNode; lane: React.ReactNode }) {
-  const [open, setOpen] = useState<'' | 'timing' | 'lane'>('');
-  const { layer, item, fps } = P;
-  return <div className="ins-end">
-    {item && timing && <button className="btn" onClick={() => setOpen('timing')} title="Start, length, speed, split, delete">
-      Timing <span className="ins-end-sub">{tc(item.from, fps)} · {(item.dur / fps).toFixed(1)} s</span></button>}
-    <button className="btn" onClick={() => setOpen('lane')} title="This row of the timeline: its name, shown / heard, locked, delete">
-      Row <span className="ins-end-sub">{layer.name || layer.id}{layer.hidden ? ' · hidden' : layer.muted ? ' · muted' : ''}</span></button>
-    {open === 'timing' && <Win title={`Timing · clip ${item.id}`} onClose={() => setOpen('')}>{timing}</Win>}
-    {open === 'lane' && <Win title={`Row · ${layer.name || layer.id}`} onClose={() => setOpen('')}>{lane}</Win>}
-  </div>;
+/** The bottom of every panel: the layer itself (name, shown / heard, locked, delete) - on the panel, no window (his
+ *  rule, 2026-11-11). A clip's group / speed / timing is the panel's TOP (ClipTiming, right under the head). */
+export function PanelEnd({ lane }: { P: InspectorProps; lane: React.ReactNode }) {
+  return <>{lane}</>;
 }
 
 /** A small labelled part inside a group - shown, never folded (his note, 2026-11-02: no "more" levels, everything in
@@ -342,23 +335,40 @@ export function splitOps(layer: any, it: any, frame: number, fps: number) {
     { op: 'item.add', layer: layer.id, item: right, index: (layer.items || []).indexOf(it) + 1 }];
 }
 
-/** When the clip plays: start, length, (source in, speed), fades, and Split / Delete. */
-/** The clip in time - everything about WHEN: start, length, where in the source, its speed, fades, and (children) the
- *  rest of its timing (the whole video, how it comes in); then split / delete. One place for time, in every panel. */
+/** The top of a clip's panel (his order, 2026-11-11): its GROUP (the clips that move / cut / delete with it - group.ts),
+ *  its SPEED (the project's, or the group's own - pace), when it plays (start, length, where in the source), fades, and
+ *  Cut at the playhead / Delete. A builder's take keeps its own clip speed and split (its builder re-plans it). */
 export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P: InspectorProps; source?: boolean; speedCtl?: boolean; fades?: boolean; children?: React.ReactNode }) {
-  const { layer, item: it, fps, frame, send } = P;
+  const { layer, item: it, fps, frame, send, project } = P;
   const S = useSettings(P);
   if (!it) return null;
-  const split = splitOps(layer, it, frame, fps);
+  const take = isTakeItem(layer, it), subs = layer.kind === 'subtitles';
+  const members = groupOf(project, layer, it);
+  const grouped = members.length > 0;
+  const cut = take ? splitOps(layer, it, frame, fps) : !subs && !layer.locked ? groupSplitOps(project, layer, it, Math.round(frame))?.ops || null : null;
   const dur = it.dur / fps;
-  return <Sec title="Clip" end={<span>{tc(it.from, fps)} – {tc(it.from + it.dur, fps)}</span>}>
+  const P0 = project.speed || 1, pace = paceOf(it);
+  // what the group is made of, in words: "video + background + sound + 2 subtitles"
+  const word = (l: any) => (l.kind === 'audio' ? 'sound' : l.kind === 'subtitles' ? 'subtitle'
+    : l.kind === 'image' || (l.kind === 'video' && l.id.endsWith('.bg')) ? (/\.bg$|רקע/.test(`${l.id} ${l.name || ''}`) ? 'background' : 'picture') : l.kind);
+  const kinds: Record<string, number> = {};
+  for (const l of [layer, ...members.map((m) => m.layer)]) kinds[word(l)] = (kinds[word(l)] || 0) + 1;
+  const groupWords = Object.entries(kinds).map(([w, n]) => (n > 1 ? `${n} ${w}s` : w)).join(' + ');
+  const setPace = (v: number | null) => { const ops = speedOps(project, layer, it, v); if (ops.length) send(ops, { label: 'speed' }); };
+  return <Sec title={grouped ? 'Group' : 'Clip'} end={<span>{tc(it.from, fps)} – {tc(it.from + it.dur, fps)}</span>}>
+    {grouped && <div className="ins-group">{groupWords}<span> · move, cut, delete together · Alt = this clip alone</span></div>}
+    {!take && !subs && <Row label="Speed">
+      <Seg options={[['p', `Project ${+P0.toFixed(2)}×`], ['o', 'Its own']]} value={pace ? 'o' : 'p'} onPick={(v) => setPace(v === 'p' ? null : pace || P0)} />
+      {pace != null && <div style={{ marginTop: 6 }}><Num value={pace} step={0.05} min={0.25} max={4} unit="×" onCommit={(v) => setPace(+v.toFixed(2))} />
+        <div className="ins-cap">{grouped ? 'The whole group' : 'This clip'} plays at this speed, whatever the project's - voices keep their pitch</div></div>}
+    </Row>}
     <div className="ins-pair">
       <div><Time frames={it.from} fps={fps} onCommit={(f) => S.item({ from: f })} /><div className="ins-cap">Starts</div></div>
       <div><Time frames={it.dur} fps={fps} min={1} onCommit={(f) => S.item({ dur: f })} /><div className="ins-cap">Length</div></div>
     </div>
     {source && <div className="ins-pair">
       <div><Num value={it.in ?? 0} step={1 / fps} digits={3} min={0} unit="s" nudges={[['‹', -1 / fps], ['›', 1 / fps]]} onCommit={(v) => S.item({ in: v })} /><div className="ins-cap">From the source at</div></div>
-      {speedCtl ? <div><Num value={it.rate ?? 1} step={0.05} min={0.25} max={4} unit="×" onCommit={(v) => S.item({ rate: v === 1 ? null : v })} /><div className="ins-cap">Clip speed</div></div> : <div />}
+      {speedCtl && take ? <div><Num value={it.rate ?? 1} step={0.05} min={0.25} max={4} unit="×" onCommit={(v) => S.item({ rate: v === 1 ? null : v })} /><div className="ins-cap">Clip speed</div></div> : <div />}
     </div>}
     {fades && <>
       <Slider label="Fade in" v={it.fade_in ?? 0} min={0} max={Math.min(3, dur)} step={0.01} def={0} fmt={fmt.s} onChange={(v, c) => S.item({ fade_in: v || null }, c)} />
@@ -366,8 +376,10 @@ export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P:
     </>}
     {children}
     <div className="ins-acts">
-      <button className="btn" disabled={!split} title={split ? 'Cut this clip in two at the playhead' : 'Put the playhead inside the clip'} onClick={() => split && send(split)}>Split at playhead</button>
-      <button className="btn danger" onClick={() => send([{ op: 'item.remove', layer: layer.id, id: it.id }])}>Delete clip</button>
+      <button className="btn" disabled={!cut} title={cut ? `Cut ${grouped ? 'the group' : 'this clip'} in two at the playhead (S, Ctrl+K, or Ctrl + click on the timeline)` : 'Put the playhead inside the clip'}
+        onClick={() => cut && send(cut, { label: 'cut clip' })}>Cut at playhead</button>
+      {grouped && <button className="btn danger" onClick={() => send(removeOps(project, layer, it), { label: 'delete' })}>Delete group</button>}
+      <button className="btn danger" onClick={() => send([{ op: 'item.remove', layer: layer.id, id: it.id }], { label: 'delete' })}>{grouped ? 'Delete this clip only' : 'Delete clip'}</button>
     </div>
   </Sec>;
 }
@@ -376,14 +388,14 @@ export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P:
 export function LayerState({ P, sound, children }: { P: InspectorProps; sound?: boolean; children?: React.ReactNode }) {
   const { layer, send } = P;
   const S = useSettings(P);
-  return <Sec title="Row" end={<span>{layer.items?.length || 0} clips</span>}>
+  return <Sec title="Layer" end={<span>{layer.items?.length || 0} clips</span>}>
     <Row label="Name"><input className="ins-select" defaultValue={layer.name || ''} key={layer.id}
       onBlur={(e) => e.target.value !== (layer.name || '') && S.layerSet({ name: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} /></Row>
     <ToggleRow label="Shown" on={!layer.hidden} onChange={(v) => S.layerSet({ hidden: !v })} />
     {sound && <ToggleRow label="Heard" on={!layer.muted} onChange={(v) => S.layerSet({ muted: !v })} />}
     <ToggleRow label="Locked" on={!!layer.locked} onChange={(v) => S.layerSet({ locked: v })} />
     {children}
-    <button className="btn danger" onClick={async () => { if (await ask({ title: `Delete the layer "${layer.name || layer.id}"?`, text: `${layer.items?.length ? `${layer.items.length} clip${layer.items.length === 1 ? '' : 's'} go${layer.items.length === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })) send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); }}>Delete this row</button>
+    <button className="btn danger" onClick={async () => { if (await ask({ title: `Delete the layer "${layer.name || layer.id}"?`, text: `${layer.items?.length ? `${layer.items.length} clip${layer.items.length === 1 ? '' : 's'} go${layer.items.length === 1 ? 'es' : ''} with it. ` : ''}Ctrl+Z brings it back.`, ok: 'Delete' })) send([{ op: 'layer.remove', id: layer.id }], { label: 'delete layer' }); }}>Delete this layer</button>
   </Sec>;
 }
 

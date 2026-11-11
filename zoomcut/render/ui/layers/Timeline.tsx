@@ -9,7 +9,7 @@ import './timeline.css';
 import { ask } from './ask';
 import { Note, NotePins, PRESETS, saveNotes, newNote, NoteView, NOTE_VIEWS, inView, noteState } from './Notes';
 import { Find } from './Find';
-import { tempoOf } from '../../src/layers/clock.js';
+import { tempoOf, paceK } from '../../src/layers/clock.js';
 import { tabProject } from '../common';
 import { viewLayer, characters, rowColors, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 import { groupOf, edgeOps, splitOps, removeOps, isTakeItem } from './group';
@@ -63,11 +63,14 @@ const dbOf = (g: number) => (g <= 0.0005 ? -Infinity : 20 * Math.log10(g));
 const dbTxt = (g: number) => { const d = dbOf(g); return d === -Infinity ? 'silent' : Math.abs(d) < 0.05 ? '0 dB' : `${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} dB`; };
 const lineAt = (g: number) => { const d = Math.max(-18, Math.min(6, dbOf(g))); return d >= 0 ? 0.58 - (d / 6) * 0.28 : 0.58 + (-d / 18) * 0.28; };  // 0 = the block's top: +6 dB 30%, 0 dB 58%, -18 dB 86%
 /** the ready-made notes' icons, for the quick buttons on the ruler (tighten = two clips pushed together; silence = scissors) */
+// the ruler's note buttons - each an icon AND its word (his note, 2026-11-11: tighten and silence looked alike): arrows
+// closing on a cut, a muted speaker, a speech bubble
 const QN_IC: Record<string, React.ReactNode> = {
-  tighten: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h7M6 8.5 9.5 12 6 15.5M22 12h-7M18 8.5 14.5 12l3.5 3.5M12 4v16" /></svg>,
-  note: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4z" /><path d="M12 8.5v4M10 10.5h4" /></svg>,
-  silence: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M8.2 8.2 20 20M8.2 15.8 20 4" /></svg>,
+  tighten: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h7M6 8.5 9.5 12 6 15.5M22 12h-7M18 8.5 14.5 12l3.5 3.5M12 4v16" /></svg>,
+  note: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4z" /><path d="M12 8.5v4M10 10.5h4" /></svg>,
+  silence: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9v6h4l5 4V5L7 9z" /><path d="M16 9l6 6M22 9l-6 6" /></svg>,
 };
+const QN_WORD: Record<string, string> = { note: 'Note', tighten: 'Tighten', silence: 'Cut silence' };
 const OPEN_WORD: Record<string, string> = { video: 'video', image: 'picture', audio: 'sound', text: 'text', subtitle: 'line' };
 
 // what a block says: its words (a text, a subtitle, a voice's line), else its file's name
@@ -167,7 +170,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const trimmer = (l: any, it: any, side: 'l' | 'r' | 'm', chain = false, alone = false) => {
     if (l.kind === 'view') return cutTrimmer(l, it, side);
     const asset = project.assets?.[it.asset];
-    const rate = (it.rate || 1) * tempoOf(l);  // (seconds of the source per second here - a sound row's tempo too)
+    const rate = (it.rate || 1) * tempoOf(l) * paceK(project, l, it);  // (seconds of the source per second here - a sound row's tempo, a group's own speed too)
     // never past the video's end: moved there it ends at the end, stretched there it stops at it (his takes excepted -
     // pulling back footage at the end makes the video longer, their builder re-plans the length)
     const take = it.ref?.take != null || it.ref?.line != null;
@@ -333,6 +336,15 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const c = canCut(l, it) && splitOps(project, l, it, f);
     if (c) { send(c.ops, { label: 'cut clip' }); onSel({ layer: l.id, item: it.id }); }
   };
+  // where the mouse is over the layers (his asks, 2026-11-11): + = a note right there, Ctrl+K = the clip under it cut
+  // there (with its group)
+  const hov = useRef<{ f: number; layer?: string; item?: string } | null>(null);
+  const hoverMove = (e: React.MouseEvent) => {
+    const tr = lanes.current?.querySelector('.ltl-track') as HTMLElement | null;
+    if (!tr) return;
+    const b = (e.target as HTMLElement).closest('[data-item]') as HTMLElement | null;
+    hov.current = { f: Math.max(0, Math.min(total - 1, Math.round(((e.clientX - tr.getBoundingClientRect().left) / pps) * fps))), layer: b?.dataset.layer, item: b?.dataset.item };
+  };
   const splitHere = () => {
     const sl = sel?.item && project.layers.find((x: any) => x.id === sel.layer), si = sl && (sl.items || []).find((i: any) => i.id === sel!.item);
     if (sl && si && canCut(sl, si)) {
@@ -409,7 +421,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const tr = e.currentTarget as HTMLElement, x = e.clientX - tr.getBoundingClientRect().left, st = qn.current;
     tr.classList.toggle('shift', e.shiftKey);  // (Shift held = about to mark a stretch: the quick buttons step aside)
     if ((e.target as HTMLElement).closest('.ltl-qn, .ltl-qp')) return;  // (on the buttons: the line stays - never stopPropagation here, it would cut a playhead drag)
-    if (st.lock != null && x >= st.lock - 10 && x <= st.lock + 90) return;  // (the three buttons right of the line)
+    if (st.lock != null && x >= st.lock - 10 && x <= st.lock + 250) return;  // (the three buttons right of the line)
     if (st.lock != null) { st.lock = null; tr.classList.remove('qn-lock'); }
     qnAt.current = Math.max(0, Math.min(total - 1, Math.round((x / pps) * fps)));
     tr.style.setProperty('--qx', `${px(qnAt.current)}px`);
@@ -551,6 +563,16 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       // (an undo / redo: the card's count starts again from where the edge is now)
       if (edge && (e.ctrlKey || e.metaKey) && /^[zy]$/i.test(e.key)) { flushNudge(); setEdge({ ...edge, total: 0, f0: undefined }); return; }
       const tag0 = (e.target as HTMLElement).tagName;
+      const typingBox = tag0 === 'INPUT' || tag0 === 'TEXTAREA' || tag0 === 'SELECT';
+      if (!typingBox && (e.ctrlKey || e.metaKey) && !e.altKey && e.code === 'KeyK') {  // the clip under the mouse cut there; else the picked one at the playhead
+        e.preventDefault();
+        const h = hov.current, hl = h?.layer && project.layers.find((x: any) => x.id === h.layer), hi = hl && (hl.items || []).find((i: any) => i.id === h!.item);
+        if (hl && hi && hl.kind !== 'view') cutAt(hl, hi, h!.f); else splitHere();
+        return;
+      }
+      if (!typingBox && hov.current && onNote && !edge && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === '+' || e.code === 'NumpadAdd')) {
+        e.preventDefault(); onNote(null, hov.current.f); return;
+      }
       if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyC' || e.code === 'KeyV') && tag0 !== 'INPUT' && tag0 !== 'TEXTAREA' && tag0 !== 'SELECT' && !window.getSelection()?.toString()) {
         const sl = sel && project.layers.find((x: any) => x.id === sel.layer), si = sl && sel!.item && (sl.items || []).find((i: any) => i.id === sel!.item);
         if (e.code === 'KeyC' && sl && si && sl.kind !== 'view') { e.preventDefault(); copyClip(sl, si); return; }
@@ -735,7 +757,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
         <input type="range" min={8} max={400} value={pps} onChange={(e) => setPps(+e.target.value)} />
       </div>
       <div className="ltl" ref={lanes} style={{ ['--th' as any]: `${TH}px`, ['--nw' as any]: `${NW}px` }}
->
+        onMouseMove={hoverMove} onMouseLeave={() => { hov.current = null; }}>
         <div className="ltl-in" style={{ width: NW + width }}>
           <div className="ltl-row ltl-ruler">
             <div className="ltl-name" />
@@ -745,15 +767,15 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
               {onNote && <NotePins notes={notes} view={noteView} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} onSeek={onSeek} />}
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
                 <button title="A note for Claude right here (at the line) - write what to fix. Press and drag along the ruler = a note on that stretch"
-                  onMouseDown={(e) => markRange(e, qnAt.current)} onClick={() => { if (!rangeDragged.current) onNote(null, qnAt.current); rangeDragged.current = false; }}>{QN_IC.note}</button>
+                  onMouseDown={(e) => markRange(e, qnAt.current)} onClick={() => { if (!rangeDragged.current) onNote(null, qnAt.current); rangeDragged.current = false; }}>{QN_IC.note}<span>{QN_WORD.note}</span></button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
-                  onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}</button>)}
+                  onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}<span>{QN_WORD[pr.kind]}</span></button>)}
               </div>}
               {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()}>
                 <button title="A note for Claude here, at the playhead - write what to fix. Press and drag along the ruler = a note on that stretch"
-                  onMouseDown={(e) => markRange(e, frame)} onClick={() => { if (!rangeDragged.current) onNote(null); rangeDragged.current = false; }}>{QN_IC.note}</button>
+                  onMouseDown={(e) => markRange(e, frame)} onClick={() => { if (!rangeDragged.current) onNote(null); rangeDragged.current = false; }}>{QN_IC.note}<span>{QN_WORD.note}</span></button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
-                  onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}</button>)}
+                  onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}<span>{QN_WORD[pr.kind]}</span></button>)}
               </div>}
               {rangeDraft && <div className="ltl-nband draft" style={{ left: px(Math.min(rangeDraft.a, rangeDraft.b)), width: Math.max(2, Math.abs(px(rangeDraft.b) - px(rangeDraft.a))) }}>
                 <span>{fmtT(Math.min(rangeDraft.a, rangeDraft.b) / fps / (+project.speed || 1))} – {fmtT(Math.max(rangeDraft.a, rangeDraft.b) / fps / (+project.speed || 1))}</span></div>}
@@ -868,6 +890,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                           {w > 24 && <span className="he" style={{ overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{blockText(l, it, project)}</span>}
                           {isSel && <><div className="hd l" title="Drag: where it starts · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'l')} /><div className="hd r" title="Drag: where it ends · click: pick it, then , . or type ±ms" onMouseDown={(e) => startDrag(e, l, it, 'r')} /></>}
                           {l.kind === 'audio' && w > 90 && (it.gain ?? 1) !== 1 && <span className="blk-db">{dbTxt(it.gain)}</span>}
+                          {it.pace > 0 && w > 34 && <span className="blk-pace" title={`Its own speed: ${+it.pace}× (the project: ${+(project.speed || 1)}×)`}>{+it.pace}×</span>}
                           {off != null && w > 60 && <span className="blk-off" title="This voice is moved from its own picture - heard before (−) / after (+) we see it">sound {off < 0 ? '−' : '+'}{Math.abs(off).toFixed(2)} s</span>}
                           {l.kind === 'audio' && !drag && w > 10 && (
                             <div className={`blk-vol ${vtip?.k === `${l.id}|${it.id}` ? 'on' : ''}`} style={{ top: `${lineAt(it.gain ?? 1) * 100}%` }}

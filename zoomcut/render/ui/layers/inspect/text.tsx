@@ -76,6 +76,7 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
   const size = (d: number, max = 160) =><Slider label={<>Size <Ovr S={S} k="size" /></>} v={S.get('size', d)} min={12} max={max} step={1} def={d} fmt={fmt.px} onChange={(v, c) => S.set('size', v, c)} />;
   return <div className="ins">
     <Head icon={ICON.text} title={layer.name || 'Text'} sub={item ? `Text ${item.id}` : `Text layer · ${layer.items?.length || 0} items`} />
+    <ClipTiming P={P} />
     {item && <Sec title="Text"><Words P={P} />
       <Note>{'{clock}'} = a running mm:ss timer.</Note></Sec>}
     <Sec title="Style" end={<Ovr S={S} k="style" />}>
@@ -173,7 +174,7 @@ export const TextInspector: React.FC<InspectorProps> = (P) => {
     </Sec>
     <Place P={P} />
     {item && <Sec title="On screen"><WholeVideo P={P} /><Entrance P={P} /><More label="Older moves"><OldEntrances P={P} /></More></Sec>}
-    <PanelEnd P={P} timing={<ClipTiming P={P} />} lane={<LayerState P={P} />} />
+    <PanelEnd P={P} lane={<LayerState P={P} />} />
   </div>;
 };
 
@@ -185,6 +186,7 @@ export const SubtitlesInspector: React.FC<InspectorProps> = (P) => {
   const box = layer.props?.box || { x: project.canvas.w / 2, y: H - 300, anchor: 'b' };
   return <div className="ins">
     <Head icon={ICON.subtitles} title={layer.name || 'Subtitles'} sub={item ? `Line ${item.id}${item.who ? ' · ' + item.who : ''}` : `Subtitles · ${layer.items?.length || 0} lines`} />
+    <ClipTiming P={P} fades={false} />
     {item && <Sec title="Line">
       <Words P={P} rows={2} />
       <WhoBox key={item.id} P={P} />
@@ -207,6 +209,6 @@ export const SubtitlesInspector: React.FC<InspectorProps> = (P) => {
         </div>
       </div>
     </Sec>
-    <PanelEnd P={P} timing={<ClipTiming P={P} fades={false} />} lane={<LayerState P={P} />} />
+    <PanelEnd P={P} lane={<LayerState P={P} />} />
   </div>;
 };

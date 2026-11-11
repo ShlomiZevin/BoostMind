@@ -34,6 +34,13 @@ export function tempoOf(layer) {
   return t > 0 ? Math.min(2, Math.max(0.5, t)) : 1;
 }
 
+/** A sound clip of a group with its own speed (item.pace, 2026-11-11 - ui/layers/group.ts): it plays `pace` x real time
+ *  whatever the project's speed is, pitch kept - so per second of the timeline (which runs at the project's speed) it
+ *  takes pace / speed of its source. 1 for everything else (a video clip's pace is already in its rate). */
+export function paceK(project, layer, item) {
+  return layer?.kind === 'audio' && item?.pace > 0 ? item.pace / (project?.speed || 1) : 1;
+}
+
 /** Seconds into the asset that part `p` shows at frame f. */
 export function srcAt(p, f, fps) {
   return (p.in ?? 0) + ((f - p.from) / fps) * (p.rate ?? 1);

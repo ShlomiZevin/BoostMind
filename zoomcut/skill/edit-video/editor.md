@@ -65,7 +65,16 @@ One format, one composition, one editor, one export. The format and the API: `la
   order with `rev`).
 - **Groups (2026-11-11, his ask):** clips sharing a `link` are one group - moved, stretched, cut (S / Ctrl-click
   scissors), copied and deleted together, Alt = one clip alone; `ui/layers/group.ts` (the ops), wired in Timeline.tsx
-  (trimmer, splitHere / cutAt, copy / paste, toRow) and LayersEditor.tsx (Delete). layers.md -> "Clips, layers, groups".
+  (trimmer, splitHere / cutAt, copy / paste, toRow, Ctrl+K / + under the mouse) and LayersEditor.tsx (Delete). A
+  group's own speed: `pace` (group.ts speedOps / projectSpeedOps; clock.js paceK; AudioTrack tightOf; layers_audio
+  track). layers.md -> "Clips, layers, groups".
+- **The properties panel - no windows inside it (his rule, 2026-11-11):** a clip's panel starts with its Group (what
+  moves with it), Speed (project / its own), Starts / Length / From the source at, fades, Cut at playhead / Delete
+  group / Delete this clip only (inspect/controls.tsx `ClipTiming`, right under the head of every kind's panel); then
+  the look / sound settings; the Layer section (name, shown, heard, locked, delete) at the bottom (`PanelEnd` ->
+  `LayerState`). A "?" explains on hover. Tool windows that run a job (Keep things, eye contact) stay windows.
+- **Notes from the keyboard:** with the mouse over the layers, **+** opens a note right there; the ruler's buttons say
+  what they are (Note / Tighten / Cut silence).
 - **Dialogue rows + "What we see" (2026-11-09, plans/dialogue-editing.md):** a project with a `view` layer is a
   dialogue - `ui/layers/dialogue.ts` (the strip's ops, who moves with what, the character colours), the strip row and
   the linked moves in Timeline.tsx, `render/src/layers/view.js` `flatten()` in Layers.tsx (and the export) cuts each

@@ -137,7 +137,8 @@ The rules:
 clips that belong together and are edited as one (a character talking: his cut-out clip + his background clip + his
 voice clip, maybe a sticker; one layer holds clips of many groups). Use these words with him. He works this way now:
 he drops footage, a session PREPARES the raw project (backgrounds, cut-outs, crops, voices), and he cuts it himself -
-moving, stretching, cutting (S, or Ctrl = scissors) and deleting whole groups. So every piece you prepare is a group:
+moving, stretching, cutting (S, Ctrl+K, or Ctrl = scissors) and deleting whole groups, giving a group its own speed (the
+panel's top - project 1.4×, this group 1.2×). So every piece you prepare is a group:
 one `link` on its video, background, voice and subtitles, video / background / voice with the same `from` / `dur`.
 Details and the check: `layers.md` -> "Clips, layers, groups".
 
@@ -168,7 +169,7 @@ on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <pro
   workaround in the project.
 
 ## "fix notes" - his notes on the timeline (2026-10-28)
-He leaves notes for you IN the editor: "+ Note" on the timeline bar (or N) puts a yellow flag on the ruler at the
+He leaves notes for you IN the editor: "+ Note" on the timeline bar (or N, or + with the mouse over the layers - at the mouse) puts a yellow flag on the ruler at the
 playhead, his words in a window right above it, optionally a spot he clicked on the picture. They live in project.json
 `notes: [{id, at (frame), end? (frame - a note on a STRETCH: fix the whole of it, at..end), text, x?, y? (canvas px), done?, reply?}]` - saved, Ctrl+Z, kept through rebuilds, and they
 move with what plays under them when a take is made longer / shorter. When he says **"fix notes"** (or "תתקן את

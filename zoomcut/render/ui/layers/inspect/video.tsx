@@ -83,6 +83,7 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
   };
   return <div className="ins">
     <Head icon={ICON.video} title={<>{layer.group ? `${layer.group} · ` : ''}{layer.name || 'Video'}</>} sub={item ? `Clip ${item.id} · video` : `Video layer · ${layer.items?.length || 0} clips`} />
+    <ClipTiming P={P} source speedCtl />
     <Sec title="Framing">
       <Row label={<>Fit <Ovr S={S} k="fit" /></>}><Seg options={[['cover', 'Fill'], ['face', 'Face'], ['contain', 'Whole']]} value={fit} onPick={(v) => S.set('fit', v)} /></Row>
       <Slider label={<>Zoom <Ovr S={S} k="zoom" /></>} v={S.get('zoom', 1)} min={fit === 'contain' ? 0.3 : 1} max={3} step={0.01} def={1} fmt={fmt.x} onChange={(v, c) => S.set('zoom', v, c)} />
@@ -127,6 +128,6 @@ export const VideoInspector: React.FC<InspectorProps> = (P) => {
       <Slider label="Brightness" v={look.brightness ?? 1} min={0.5} max={1.5} step={0.01} def={1} fmt={fmt.pct} onChange={(v, c) => setLook({ brightness: v }, c)} />
       <Opacity P={P} />
     </Sec>
-    <PanelEnd P={P} timing={<ClipTiming P={P} source speedCtl />} lane={<LayerState P={P} />} />
+    <PanelEnd P={P} lane={<LayerState P={P} />} />
   </div>;
 };

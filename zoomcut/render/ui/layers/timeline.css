@@ -173,6 +173,7 @@
 .vpick button:hover { background: var(--panel-3); }
 .vpick button.on { box-shadow: inset 2px 0 0 var(--accent); }
 .vpick button i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.ltl .blk .blk-pace { margin-left: auto; padding: 0 5px; flex: none; font-size: 10.5px; font-weight: 700; border-radius: 4px; background: rgba(0,0,0,.35); color: #9fe6ff; pointer-events: none; font-variant-numeric: tabular-nums; }  /* a group's own speed (group.ts) */
 .ltl .blk .blk-off { margin-left: auto; padding-left: 8px; flex: none; font-size: 10.5px; font-weight: 600; color: #ffe08a; pointer-events: none; font-variant-numeric: tabular-nums; }
 /* (from three GPT Image concepts, 2026-11-09: a character's colour down its rows' names and on its group, the strip's
    names bold in the middle of their blocks) */
