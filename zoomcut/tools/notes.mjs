@@ -30,11 +30,20 @@ if (cmd === 'done' || cmd === 'reply') {
   const n = notes.find((x) => x.id === id);
   if (!n) { console.log(`no note "${id}" - ids: ${notes.map((x) => x.id).join(', ')}`); process.exit(1); }
   // done = fixed on this run: green on his timeline until he checks it (Notes.tsx noteState; `seen` cleared - a new fix)
-  const next = notes.map((x) => { if (x.id !== id) return x; const { seen, ...y } = x; return { ...y, reply: rest.join(' ').trim() || x.reply, ...(cmd === 'done' ? { done: true, fixed: Date.now() } : { seen }) }; });
+  // a new fix run clears the last run's greens (his ask, 2026-11-11: "green only for the last new one ... the green turns
+  // to nothing if I didn't do it myself"): a green fixed before his newest note (written, or sent back with Not yet) is
+  // from an earlier round - checked for him, as if he pressed Looks good (kept in project.json, hidden)
+  const round = Math.max(0, ...notes.map((x) => Math.max(x.t || 0, x.back || 0)));
+  const old = cmd === 'done' ? notes.filter((x) => x.id !== id && x.done && x.fixed && !x.seen && x.fixed < round).map((x) => x.id) : [];
+  const next = notes.map((x) => {
+    if (old.includes(x.id)) return { ...x, seen: true };
+    if (x.id !== id) return x;
+    const { seen, ...y } = x; return { ...y, reply: rest.join(' ').trim() || x.reply, ...(cmd === 'done' ? { done: true, fixed: Date.now() } : { seen }) };
+  });
   const r = await fetch(`${base}/api/p/${encodeURIComponent(ep)}/ops`, { method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ rev: p.rev, ops: [{ op: 'project', set: { notes: next } }] }) });
   const j = await r.json().catch(() => ({}));
-  console.log(r.ok ? `✓ note ${id} ${cmd === 'done' ? 'done' : 'answered'} - tell him F5` : `✗ ${j.error || r.status}${j.problems ? ': ' + j.problems.join('; ') : ''}`);
+  console.log(r.ok ? `✓ note ${id} ${cmd === 'done' ? 'done' : 'answered'}${old.length ? ` (the last run's ${old.length} green note${old.length > 1 ? 's' : ''} checked: ${old.join(', ')})` : ''} - tell him F5` : `✗ ${j.error || r.status}${j.problems ? ': ' + j.problems.join('; ') : ''}`);
   process.exit(r.ok ? 0 : 1);
 }
 

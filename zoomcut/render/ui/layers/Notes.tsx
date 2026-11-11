@@ -10,7 +10,7 @@ import './notes.css';
 // end (2026-11-10, his ask: "mark a range ... start and end"): a note about a stretch - at = its start, end = its end
 // (frames); none = a moment. Made by Shift+drag on the ruler (or dragging from the ruler's note button).
 export type Note = { id: string; at: number; end?: number; text: string; kind?: string; x?: number; y?: number; done?: boolean; reply?: string; t?: number;
-  fixed?: number; seen?: boolean };
+  fixed?: number; seen?: boolean; back?: number };  // back: when he sent it back (Not yet) - a new round, tools/notes.mjs
 
 // a note's life (his ask, 2026-11-09 - "know what was fixed on the last run, go to those places, then make them
 // disappear"): open (yellow, for Claude) -> fixed (green: Claude fixed it - tools/notes.mjs done sets `fixed`; he hasn't
@@ -139,7 +139,7 @@ export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose,
       {note.reply && <div className="note-reply"><b>Claude:</b> <span dir="auto">{note.reply}</span></div>}
       {noteState(note) === 'fixed' && <div className="note-check">
         <span className="grow">Claude fixed this - is it right?</span>
-        <button className="btn ghost" onClick={() => { onSave({ ...note, done: false, fixed: undefined, seen: undefined }); }} title="Not fixed: it goes back to Claude (open)">Not yet</button>
+        <button className="btn ghost" onClick={() => { onSave({ ...note, done: false, fixed: undefined, seen: undefined, back: Date.now() }); }} title="Not fixed: it goes back to Claude (open)">Not yet</button>
         <button className="btn ok" onClick={() => { onSave({ ...note, seen: true }); onNext ? onNext() : onClose(); }} title="Checked - it hides; the next fixed note opens">Looks good ✓</button>
       </div>}
       <div className="note-acts">

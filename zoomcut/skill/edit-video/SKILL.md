@@ -225,7 +225,8 @@ move with what plays under them when a take is made longer / shorter. When he sa
    you can't do or that needs his call: `... reply <id> "the question"` (stays open). Never delete his notes.
 4. Tell him: F5, then a short list - note by note, what changed - and that they are green on the timeline: "Check fixed ›"
    on the bar takes him to each one (Looks good hides it, Not yet reopens it for you). Never mark a note done that you
-   didn't fix (use reply) - green means "fixed, go look". A note he sent back (open again, your reply on it) = fix it again.
+   didn't fix (use reply) - green means "fixed, go look"; the last run's greens he never checked turn checked by themselves
+   on your first `done` of a new round (notes.mjs). A note he sent back (open again, your reply on it) = fix it again.
 
 **A piece you change by hand (box, in, dur via ops) becomes `user: true` - a later rebuild never re-cuts it**
 (haredit-2, 2026-10-28: I enlarged one Lego piece, then cut a silence inside that take; my piece kept its old length

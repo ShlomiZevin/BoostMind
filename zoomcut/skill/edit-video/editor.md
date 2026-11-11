@@ -186,7 +186,9 @@ One format, one composition, one editor, one export. The format and the API: `la
   checked (grey, hidden: he pressed Looks good = `seen`, or ticked Handled himself). The bar: a small menu of what shows
   (Open + fixed - the default / Open / Fixed - to check / All, with counts; localStorage zc-notes-view), "Check fixed (n) ›"
   opens the first fixed note at its place - Looks good ✓ hides it and opens the next, Not yet sends it back open - and
-  "All look good ✓" checks every fixed one at once. Notes from before 2026-11-09 that were handled = checked. stored as project.json `notes` through the
+  "All look good ✓" checks every fixed one at once. **Green = the last run only (2026-11-11, his ask)**: `notes.mjs done` on a
+  new round (a note he wrote - `t` - or sent back - `back` - after a green was fixed) checks the earlier greens for him
+  (`seen`, kept in project.json), so greens never pile up across rounds. Notes from before 2026-11-09 that were handled = checked. stored as project.json `notes` through the
   'project' op; `pipeline/project.py` merge moves them by timemap; sessions: `tools/notes.mjs` (SKILL.md "fix notes").
 - **Range notes (2026-11-10, his ask: "mark a range ... start and end"):** Shift+drag on the ruler (a plain drag still
   moves the playhead) or press the ruler's note button and drag along it = a note on that stretch (`end` frame; the viewer follows the mouse the whole way - he sees the frame he starts and ends on - and the quick buttons hide while Shift is held, while marking and over a range bar; a dashed
