@@ -630,6 +630,27 @@
 .ab-b em{font-style:normal;font-weight:800;text-align:left;font-size:.9rem}
 .ab-bd{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}.ab-bd span{font-weight:700;direction:ltr}
 .ab-q{display:grid;gap:8px}.ab-q p{margin:0;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);font-size:.92rem}.ab-q small{display:block;color:var(--dim);font-size:.72rem;margin-top:2px}
+/* דמויות - every character and his notes on any part of them */
+.ch-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}.ch-bar .vc-q{margin:0;flex:1 1 240px}.ch-bar .seg{margin:0;flex-wrap:wrap}
+.ch-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.ch-list .item{cursor:pointer;text-align:start;width:100%;min-width:0;overflow:hidden}.ch-list .item .body{min-width:0;flex:1}
+.ch-list .item p{color:var(--dim);font-size:.88rem;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.ch-av{width:56px;height:70px;border-radius:12px;object-fit:cover;flex:none;background:var(--card2);display:grid;place-items:center;font-weight:900;color:var(--dim)}
+.ch-head{display:flex;gap:14px;align-items:center;margin:12px 0 6px}.ch-head .ch-av{width:84px;height:105px}.ch-head b{font-size:1.5rem;font-weight:900;display:block;line-height:1.2}.ch-head small{display:block;color:var(--dim)}
+.ch-sec{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 14px 10px;margin:12px 0}.ch-sec h3{font-size:1rem;font-weight:900;color:var(--accent);margin:8px 0 2px}
+.ch-f{border-top:1px solid var(--line);padding:8px 0}.ch-f:first-of-type{border-top:0}
+.ch-fl{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:800;color:var(--dim)}
+.ch-r{display:flex;gap:8px;align-items:flex-start;padding:4px 0}.ch-r .v{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.95rem;line-height:1.55}.ch-r .v small{display:block;color:var(--dim);font-size:.84rem}
+.ch-r.new .v{background:rgba(107,214,138,.08);border-radius:8px;padding:2px 6px;margin-inline-start:-6px;box-shadow:inset 3px 0 0 #6bd68a}
+.ch-miss{color:#ff8a8a;font-weight:700}
+.ch-nb{flex:none;display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 8px;border-radius:8px;border:1px solid var(--line2);color:var(--dim);font-size:.75rem;font-weight:800}.ch-nb svg{width:14px;height:14px}.ch-nb.has{border-color:#ff6a1f;color:#ff8c4d}
+.ch-fl .ch-nb{margin-inline-start:auto}
+.ch-notes{margin:4px 0 6px;display:grid;gap:6px}
+.ch-n{border-radius:12px;padding:8px 10px;font-size:.9rem;background:rgba(255,106,31,.09);border:1px solid rgba(255,106,31,.25);white-space:pre-wrap}.ch-n.cl{background:rgba(107,214,138,.07);border-color:rgba(107,214,138,.25);margin-inline-start:18px}.ch-n.done{opacity:.6}
+.ch-n .h{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.74rem;color:var(--dim);margin-bottom:3px;white-space:normal}.ch-n .h button{margin-inline-start:auto;font-size:.74rem;font-weight:800;color:var(--dim);text-decoration:underline}
+.ch-comp{display:grid;gap:6px;margin:6px 0}.ch-comp textarea{width:100%;min-height:90px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--text);font:inherit;padding:10px}.ch-comp div{display:flex;gap:8px}.ch-comp .btn{height:40px}
+.ch-v{display:flex;gap:8px;align-items:flex-start}.ch-v .d{flex:none;width:76px;color:var(--dim);font-size:.8rem;padding-top:3px}
+@media (max-width:700px){.ch-sec{padding:4px 10px 8px}.ch-v .d{width:64px}.ch-head .ch-av{width:70px;height:88px}.ch-head b{font-size:1.25rem}}
 </style>
 </head>
 <body>
@@ -683,6 +704,7 @@ const IC = {
   live: s('<circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4"/>'),
   game: s('<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/>'),
   refresh: s('<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4.5v4h-4"/>'),
+  cast: s('<circle cx="10" cy="8.5" r="3.8"/><path d="M3 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/><path d="m18.5 3 .9 1.9 2.1.3-1.5 1.5.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.5 2.1-.3z"/>'),
   globe: s('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>'),
 };
 const LOGO_LIKE = '<img src="/verse/logo-160.png" alt="">';
@@ -745,6 +767,7 @@ async function load() {
   await loadChats('today');
   api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {});
   draw();
+  crLoad(() => { if (tab === 'chars') chars(); });   // in the background: the tab's number (what's new for him) + the tab itself
 }
 async function refresh() { [L, S] = await Promise.all([api('list'), api('stats&days=45')]); draw(); }
 // the refresh button (top of the phone, the side menu on a computer): everything again - numbers, conversations, stars
@@ -759,6 +782,7 @@ async function refreshAll() {
     [L, S] = await Promise.all([api('list'), api('stats&days=45'), loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]);
     PL = await api('plans').catch(() => PL);
     if (planId) PLAN = await api('plan', { id: planId }).catch(() => PLAN);
+    await crLoad();
   } catch (e) {}
   refreshing = false;
   const y = scrollY;
@@ -767,7 +791,7 @@ async function refreshAll() {
 }
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
-const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['tz', 'ציפציפ', 'spark'], ['costs', 'הוצאות', 'dollar']];
+const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chars', 'דמויות', 'cast'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['tz', 'ציפציפ', 'spark'], ['costs', 'הוצאות', 'dollar']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
 const openReq = () => L.requests.filter((r) => !r.done).length;
 const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
@@ -789,6 +813,7 @@ const badges = () => ({
   // plans waiting for his OK that he hasn't opened in their latest version - reading one clears it (his ask, 2026-11-07)
   // = exactly the "מחכה לך" list (his note 2026-11-08: the tab said 3, the list 2 - a replaced plan he never opened was counted)
   plans: (PL.plans || []).filter((p) => !planOld(p)).length,
+  chars: crBadge(),   // characters with something new for him since he last opened them (a session's answer, a changed field)
 });
 function draw() {
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
@@ -796,8 +821,8 @@ function draw() {
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
   if (tab === 'requests' || tab === 'content' || tab === 'ideas') markSeen(tab);
   const badge = badges();
-  const phoneTab = ['plans', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
-  const moreBadge = badge.requests + badge.ideas + badge.content + badge.plans;
+  const phoneTab = ['plans', 'chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
+  const moreBadge = badge.requests + badge.ideas + badge.content + badge.plans + badge.chars;
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
       <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
@@ -805,13 +830,13 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, plans, chats, data, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
+  ({ overview, plans, chars, chats, data, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
   history.replaceState(null, '', '#' + tab);
 }
-const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
+const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; crComp = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
 // the tab marks again without drawing the page (a plan he just opened stops counting)
 function reBadge() {
-  const b = badges(), more = b.requests + b.ideas + b.content + b.plans;
+  const b = badges(), more = b.requests + b.ideas + b.content + b.plans + b.chars;
   const set = (btn, n) => { if (!btn) return; let em = btn.querySelector('em'); if (!n) { if (em) em.remove(); return; } if (!em) { em = document.createElement('em'); btn.append(em); } em.textContent = n; };
   document.querySelectorAll('.nav button[data-tab]').forEach((btn) => set(btn, b[btn.dataset.tab]));
   set(document.querySelector('.tabbar button[data-tab="more"]'), more);
@@ -820,11 +845,111 @@ const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['tz', 'ציפציפ · ח24: הציוצים, הדיווחים, המתגים', 'spark'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
+  $('#pane').innerHTML = `<div class="menu-list">${[['plans', 'תוכניות: לאשר ולהעיר', 'plan'], ['chars', 'דמויות: פרופיל, מה מצחיק, משפטי מחץ', 'cast'], ['tz', 'ציפציפ · ח24: הציוצים, הדיווחים, המתגים', 'spark'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
     <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
 }
 
+
+// ---------- דמויות (2026-11-11, his ask: an ongoing place to shape the characters - "today 10, tomorrow 3 more, then back
+// to some of the 10") - techietech-api/charnotes.js ----------
+// Every character as it is live. He writes a note on any part (a line of the profile, a catchphrase, the site, a person, a
+// video, or the character as a whole) - messy is fine; a session puts it in order into the record and answers under it
+// (scripts/characters/notes.mjs). What changed since he last opened a character is marked green, and the tab's number = the
+// characters with something new for him.
+let CR = null, crId = null, crQ = '', crSeg = 'all', crComp = null, crSnap = 0;
+const CR_TREE = new Set(['hani', 'avraham-moshe', 'shterni', 'brachi', 'chaimi', 'sruli', 'feigy', 'yanky', 'ruchami', 'malki', 'shloimi']);   // the family-tree pictures (public/friedman/img)
+const CR_KEY = [['personality', 'אישיות'], ['speech', 'דיבור'], ['behavior', 'התנהגות'], ['comedy', 'מה מצחיק'], ['catchphrases', 'משפטי מחץ']];
+const CR_SECS = [['פרופיל', [['brief', 'תקציר'], ['bio', 'ביוגרפיה'], ['role', 'תפקיד'], ['aka', 'שמות נוספים'], ['personality', 'אישיות'], ['speech', 'איך מדבר/ת'], ['behavior', 'התנהגות'], ['themes', 'נושאים'], ['look', 'מראה']]],
+  ['מה מצחיק', [['comedy', 'מה מצחיק'], ['catchphrases', 'משפטי מחץ'], ['writing_rules', 'כללי כתיבה'], ['dont', 'אף פעם לא']]]];
+const crList = (v) => (Array.isArray(v) ? v : v ? [v] : []).map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).filter((x) => x.trim());
+const crFace = (c, cls = 'ch-av') => CR_TREE.has(c.id) ? `<img class="${cls}" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="${cls}" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="${cls}">${esc((c.name || '?')[0])}</span>`;
+const crSeen = (id) => (L && L.seen && L.seen['char:' + id]) || 0;
+const crMiss = (c) => CR_KEY.filter(([k]) => !crList(c[k]).length).map(([, l]) => l);
+const crNotesOf = (id) => (CR?.notes || []).filter((n) => n.char === id);
+const crOpen = (id) => crNotesOf(id).filter((n) => n.by === 'shlomi' && !n.done).length;
+// the last time something in the character changed for him: a field of the record, or a session's answer to his note
+const crLast = (c) => Math.max(0, ...Object.values(CR?.changed?.[c.id] || {}), ...crNotesOf(c.id).filter((n) => n.by === 'claude').map((n) => n.t || 0));
+const crNew = (c) => crLast(c) > crSeen(c.id) && crSeen(c.id) > 0 || (!crSeen(c.id) && crNotesOf(c.id).some((n) => n.by === 'claude'));
+const crBadge = () => CR ? CR.chars.filter((c) => !c.hidden && crNew(c)).length : 0;
+function crLoad(then) { return api('charList', {}).then((r) => { CR = r; reBadge(); if (then) then(); }).catch((e) => { if (e.message !== 'key' && tab === 'chars') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; }); }
+function chars() {
+  if (!CR) { $('#pane').innerHTML = '<div class="empty">טוען את הדמויות…</div>'; crLoad(() => { if (tab === 'chars') chars(); }); return; }
+  if (crId) return crView();
+  const words = crQ.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const all = CR.chars.filter((c) => !c.hidden);
+  const hay = (c) => [c.name, c.name_en, c.world, c.role, c.tagline, c.brief, c.bio, ...crList(c.aka), ...crList(c.personality), ...crList(c.speech), ...crList(c.behavior), ...crList(c.comedy), ...crList(c.catchphrases),
+    ...c.videos.map((v) => CR.videos[v]?.title || '')].join(' ').toLowerCase();
+  const seg = { all: () => true, miss: (c) => crMiss(c).length, open: (c) => crOpen(c.id), news: crNew }[crSeg] || (() => true);
+  const list = all.filter((c) => seg(c) && words.every((w) => hay(c).includes(w)));
+  const n = (f) => all.filter(f).length;
+  $('#pane').innerHTML = `<div class="top"><div><h1>דמויות</h1><p>כל הדמויות כמו שהן באתר ובצ'אט. פותחים דמות וכותבים הערה על כל שורה - בבלגן, איך שבא. סשן מסדר את זה לפרופיל ועונה מתחת להערה, והשינוי מסומן בירוק בפעם הבאה שפותחים.</p></div></div>
+    <div class="ch-bar"><input class="vc-q" placeholder="חיפוש - שם, עולם, מילה מהפרופיל או מסרטון" value="${esc(crQ)}" data-cr-q>
+      <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'חדש בשבילך', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))], ['miss', 'חסר משהו', n((c) => crMiss(c).length)]].map(([k, l, c]) =>
+        `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div></div>
+    <div class="ch-list">${list.map((c) => { const miss = crMiss(c), open = crOpen(c.id);
+      return `<button class="item" data-cropen="${c.id}">${crFace(c)}<div class="body"><b>${esc(c.name)}</b><p>${esc(c.world || '')}${c.tagline ? ' · ' + esc(c.tagline) : ''}</p>
+        <div class="ch-tags">${crNew(c) ? '<span class="tag ok">חדש בשבילך</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${miss.length ? `<span class="tag red">חסר: ${miss.join(', ')}</span>` : ''}<span class="tag">${c.videos.length} סרטונים</span></div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
+  const inp = $('[data-cr-q]'); if (inp) inp.oninput = (e) => { crQ = e.target.value; const pos = e.target.selectionStart; chars(); const x = $('[data-cr-q]'); x.focus(); x.setSelectionRange(pos, pos); };
+}
+// one part of the character: its rows, the notes on it, and (when open) the box to write one
+function crNotesHtml(c, anchor) {
+  const ns = crNotesOf(c.id).filter((n) => n.anchor === anchor), mine = ns.filter((n) => n.by !== 'claude');
+  const rows = mine.map((n) => `<div class="ch-n ${n.done ? 'done' : ''}"><div class="h"><span>${ago(n.t)}</span><span class="tag ${n.done ? 'ok' : 'or'}">${n.done ? 'טופלה' : 'פתוחה'}</span><button data-cdone="${n.id}" data-v="${n.done ? 0 : 1}">${n.done ? 'לפתוח שוב' : 'סמן כטופלה'}</button></div>${esc(n.text)}</div>`
+    + ns.filter((r) => r.by === 'claude' && r.reply === n.id).map((r) => `<div class="ch-n cl"><div class="h"><span>Claude · ${ago(r.t)}</span></div>${esc(r.text)}</div>`).join('')).join('');
+  const comp = crComp === anchor ? `<div class="ch-comp"><textarea data-ctext placeholder="מה לשנות, להוסיף או למחוק - בבלגן, איך שבא"></textarea><div><button class="btn main" data-csend="${esc(anchor)}">שליחה</button><button class="btn" data-ccancel>ביטול</button></div></div>` : '';
+  return rows || comp ? `<div class="ch-notes">${rows}${comp}</div>` : '';
+}
+const crNb = (c, anchor, label) => { const k = crNotesOf(c.id).filter((n) => n.anchor === anchor && n.by === 'shlomi' && !n.done).length;
+  return `<button class="ch-nb ${k ? 'has' : ''}" data-cnote="${esc(anchor)}" data-clabel="${esc(String(label).slice(0, 200))}">${IC.comment}${k ? k : 'הערה'}</button>`; };
+function crView() {
+  const c = CR.chars.find((x) => x.id === crId);
+  if (!c) { crId = null; return chars(); }
+  const ch = CR.changed[c.id] || {}, fresh = (f) => (ch[f] || 0) > crSnap && crSnap > 0;
+  const field = (f, label) => {
+    const items = crList(c[f]);
+    const many = Array.isArray(c[f]) || ['personality', 'speech', 'behavior', 'comedy', 'catchphrases', 'writing_rules', 'dont', 'themes', 'aka'].includes(f);
+    const body = !items.length ? `<div class="ch-r"><div class="v ch-miss">חסר</div></div>`
+      : many ? items.map((x, i) => `<div class="ch-r ${fresh(f) ? 'new' : ''}"><div class="v">${esc(x)}</div>${crNb(c, f + ':' + i, x)}</div>${crNotesHtml(c, f + ':' + i)}`).join('')
+      : `<div class="ch-r ${fresh(f) ? 'new' : ''}"><div class="v">${esc(items[0])}</div></div>`;
+    return `<div class="ch-f"><div class="ch-fl">${label}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}${crNb(c, f, label)}</div>${crNotesHtml(c, f)}${body}</div>`;
+  };
+  const sites = (CR.sites || []).filter((s) => (s.whose || []).includes(c.id) && s.url !== c.site);
+  const site = `<div class="ch-f"><div class="ch-fl">האתר שלו/ה${fresh('site') ? ' <span class="tag ok">עודכן</span>' : ''}${crNb(c, 'site', 'האתר')}</div>${crNotesHtml(c, 'site')}
+    <div class="ch-r ${fresh('site') ? 'new' : ''}"><div class="v">${c.site ? `<a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a>` : '<span class="ch-miss">אין אתר</span>'}</div></div>
+    ${sites.map((s) => `<div class="ch-r"><div class="v"><a href="${esc(s.url)}" target="_blank">${esc(s.title)}</a><small>${esc(s.about)}</small></div></div>`).join('')}</div>`;
+  const rel = (c.relations || []).map((r) => { const o = CR.chars.find((x) => x.id === r.id); const a = 'rel:' + r.id;
+    return `<div class="ch-r ${fresh('relations') ? 'new' : ''}"><div class="v"><b>${esc(o?.name || r.id)}</b><small>${esc(r.relation || '')}</small></div>${crNb(c, a, o?.name || r.id)}</div>${crNotesHtml(c, a)}`; }).join('');
+  const vids = [...c.videos].map((id) => ({ id, ...(CR.videos[id] || {}) })).filter((v) => v.title).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const world = CR.worlds[c.world];
+  $('#pane').innerHTML = `<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
+    <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small></div></div>
+    <div class="ch-sec"><div class="ch-f"><div class="ch-fl">הערה על ${esc(c.name)} באופן כללי${crNb(c, '', c.name)}</div>${crNotesHtml(c, '')}</div></div>
+    ${world ? `<div class="ch-sec"><h3>העולם - ${esc(c.world)}</h3><div class="ch-r"><div class="v">${esc(world)}</div></div></div>` : ''}
+    ${CR_SECS.map(([t, fs]) => `<div class="ch-sec"><h3>${t}</h3>${fs.map(([f, l]) => field(f, l)).join('')}</div>`).join('')}
+    <div class="ch-sec"><h3>אתר</h3>${site}</div>
+    <div class="ch-sec"><h3>אנשים</h3><div class="ch-f"><div class="ch-fl">הקשרים${fresh('relations') ? ' <span class="tag ok">עודכן</span>' : ''}${crNb(c, 'relations', 'אנשים')}</div>${crNotesHtml(c, 'relations')}${rel || '<div class="ch-r"><div class="v ch-miss">אין קשרים רשומים</div></div>'}</div></div>
+    <div class="ch-sec"><h3>היסטוריה · ${vids.length} סרטונים</h3>${vids.map((v) => `<div class="ch-f"><div class="ch-r"><div class="v ch-v"><span class="d">${esc(v.date)}</span><span><b>${esc(v.title)}</b>${v.tr ? '' : ' <span class="tag">בלי תסריט</span>'}<small>${esc(v.card)}</small></span></div>${crNb(c, 'video:' + v.id, v.title)}</div>${crNotesHtml(c, 'video:' + v.id)}</div>`).join('') || '<div class="ch-r"><div class="v ch-miss">עוד אין סרטונים בשלומיוורס</div></div>'}</div>`;
+  const ta = $('[data-ctext]'); if (ta) ta.focus();
+}
+function crOpenChar(id) {
+  crId = id; crComp = null; crSnap = crSeen(id);
+  chars(); scrollTo(0, 0);
+  const now = Date.now(); L.seen = { ...(L.seen || {}), ['char:' + id]: now };   // green stays for this visit (crSnap), gone next time
+  api('seen', { k: 'char:' + id }).catch(() => {});
+  reBadge();
+}
+async function crSend(b) {
+  const ta = $('[data-ctext]'), text = ta ? ta.value.trim() : '';
+  if (!text) return;
+  const anchor = b.dataset.csend, label = document.querySelector(`[data-cnote="${CSS.escape(anchor)}"]`)?.dataset.clabel || '';
+  b.disabled = true;
+  try {
+    const r = await api('charNote', { char: crId, anchor, label, text });
+    CR.notes.push({ id: r.id, char: crId, anchor, label, text, by: 'shlomi', done: false, t: Date.now() });
+    crComp = null; const y = scrollY; crView(); scrollTo(0, y);
+  } catch (e) { b.disabled = false; }
+}
 
 // ---------- ציפציפ + ח24 (2026-11-08, his idea: the residents' own X and the verse's news channel - techietech-api/tz.js) ----------
 // The engine posts by itself 3 times a day (his call: no approval); here he sees what went up, takes down what he doesn't like,
@@ -2310,6 +2435,13 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.hide) { if (b.closest('.sheet')) closeSheet(); b.disabled = true; await api('hide', { kind: b.dataset.hide, id: b.dataset.id, hidden: b.dataset.on === '1' }).catch(() => {}); refresh(); }
   else if (b.dataset.ideaStep) await ideaStep(b);
   else if (b.dataset.vcHide) await vcHide(b);
+  else if (b.dataset.cropen) crOpenChar(b.dataset.cropen);
+  else if (b.dataset.crback !== undefined) { crId = null; crComp = null; chars(); scrollTo(0, 0); }
+  else if (b.dataset.crseg) { crSeg = b.dataset.crseg; chars(); }
+  else if (b.dataset.cnote !== undefined) { crComp = crComp === b.dataset.cnote ? null : b.dataset.cnote; const y = scrollY; crView(); scrollTo(0, y); }
+  else if (b.dataset.ccancel !== undefined) { crComp = null; const y = scrollY; crView(); scrollTo(0, y); }
+  else if (b.dataset.csend !== undefined) await crSend(b);
+  else if (b.dataset.cdone) { b.disabled = true; const done = b.dataset.v === '1'; await api('charNoteDone', { id: b.dataset.cdone, done }).catch(() => {}); const n = CR.notes.find((x) => x.id === b.dataset.cdone); if (n) n.done = done; const y = scrollY; crView(); scrollTo(0, y); }
   else if (b.dataset.wsOpen) await wishOpen(b);
   else if (b.dataset.ideaReply) {
     const id = b.dataset.ideaReply, text = document.querySelector(`[data-idea-reply-text="${id}"]`).value.trim();

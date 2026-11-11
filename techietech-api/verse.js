@@ -1195,6 +1195,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       const k = String(b.k || '');
       // a plan counts as read once he opened its latest version: 'plan:<id>' keeps the version he saw (his ask, 2026-11-07)
       if (/^plan:[\w-]{1,80}$/.test(k)) { await db.collection('owner').doc('seen').set({ [k]: Math.max(1, Math.floor(Number(b.v) || 1)) }, { merge: true }); return res.json({ ok: true }); }
+      // a character he opened in דמויות: what changed in it after this stops being marked new (charnotes.js)
+      if (/^char:[a-z0-9-]{1,60}$/.test(k)) { await db.collection('owner').doc('seen').set({ [k]: Date.now() }, { merge: true }); return res.json({ ok: true }); }
       if (!['requests', 'ideas', 'content', 'plans'].includes(k)) return res.status(400).json({ error: 'k' });
       await db.collection('owner').doc('seen').set({ [k]: Date.now() }, { merge: true });
       return res.json({ ok: true });
@@ -1207,6 +1209,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (String(op).startsWith('tz')) return res.json(await require('./tz').owner(op, b));   // Backstage → ציפציפ: the drafts, reports, cast, switches (tz.js)
     if (op === 'aboutStats') return res.status(200).json(await require('./about').stats());   // "מה למדנו" - the residents' profiles (about.js)
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
+    // דמויות: every character + his notes on any part of them, an ongoing tool (charnotes.js)
+    if (String(op).startsWith('char')) { const r = await require('./charnotes').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);
       const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto, seen] = await Promise.all([
