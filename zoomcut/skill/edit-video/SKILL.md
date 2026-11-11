@@ -675,6 +675,15 @@ one other voice), `voices`, `balance`. Key: `ELEVENLABS_API_KEY` in `zoomcut/.en
   credit line in the caption, see LICENSE.md there; Sneaky Snitch, Fluffing a Duck, Monkeys Spinning Monkeys
   approved). Offer those (in Media, on a pick page) before generating anything; generate only for a character-specific
   bed (a niggun, a song). Of the generated ones only `_assets/music/quirky/awk-boombap.mp3` was "not that bad".
+- **A bed = a loop of 40 s at most, no silence at the joins** (his words, savta-1, 2026-11-11: "don't create more than
+  40 sec then loop it, make sure no silence between connections"): `tools/music_loop.py <track> <out.wav>` finds the
+  stretch whose end sounds like its start (match 0.8 = clean; Sneaky Snitch 33.1 s), WAV not mp3 (an mp3 starts with
+  silence); its clips back to back on the music row, `fade_in` / `fade_out` 0. A background bed you mix yourself (a TV)
+  the same: trim its tail silence before looping.
+- **A TV on in the room** (savta-1): Hebrew lines on Leonardo `dialogue-v3` (a news anchor, a field report, an expert,
+  an ad over a jingle - content tied to the sketch), a news sting + ad jingle from `sfx --leonardo`, mixed into one bed,
+  played on its own row with `fx {filter: muffled, room 0.35}` at volume ~0.2 - heard, not understood. Leonardo's
+  moderation refused an ad line saying "בלי איראנים" - reword, don't retry.
 - **A character's OWN bed = Leonardo Music v1, 1 minute, looped** (asaf-1, 2026-11-03: ElevenLabs at 80% of the
   month, "use the Leonardo budget - the last time"): `node tools/leonardo.mjs music <prompt.txt> <out.mp3> 1 --about ...
   --tags ...` (Eleven Music resold, whole minutes, instrumental; ~$1.05 a minute, ~700 of the Leonardo tokens; 22k left
