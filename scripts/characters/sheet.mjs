@@ -28,6 +28,7 @@ const loveGuess = (n) => (n >= 20 ? 8 : n >= 10 ? 7 : n >= 4 ? 6 : n >= 2 ? 5 : 
 const BRIEF = `You write a character sheet, in Hebrew, for a recurring character from Shlomi Zevin's comedy universe (the Shlomiverse - short TikTok/Instagram sketches, the characters treated as real people). A chat on the site answers visitors in this character's voice from the sheet, so the sheet must make the model become a PERSON, not copy lines.
 
 His rules:
+- The Shlomiverse is real (his words, 2026-11-11): these are real people in a real world. Write about them that way - never "video", "sketch", "scene", "character", "actor", "audience", "viewers", "TikTok" in person / speech / nuances / life; what happens in their videos are moments of their life. (Only "funny" and "parody" may talk about the comedy itself - they are notes for whoever voices them.)
 - People, not replicas. Describe the person - who they are, their inner logic, what they want, how they see the world - so the model can react to anything in a new way. Personality, not examples: no lists of quotes or situations; at most one tiny example in a whole section, only if nothing else explains it.
 - "funny" must really explain what is funny about THIS character - the comic mechanism (the gap, the blindness, the logic taken one step too far), why the audience laughs - not a list of jokes.
 - Be precise (מדויק): short, dense, concrete. No generic praise ("charming", "hilarious"). Never name the actor or call them a character/sketch/parody inside person/speech.
@@ -42,7 +43,7 @@ Sections (Hebrew strings):
 - dissonance: 1-3 sentences - the core gap/contradiction the comedy lives on.
 - nuances: a list of 3-6 short items - the subtle details that make them real (a habit, a sensitivity, a small rule they live by), one line each, about who they are, not scenes.
 - catchphrases: 0-5 catchphrases or signature lines (רפליקות). A catchphrase is what they say again and again: pick ONLY from REPEATING PHRASES below (said in several of their videos), written exactly as there, and only ones this character says (not someone else in the scene). None fits - return fewer, even none. Never invent, never take a line said once.
-- life: their life, one event per video in VIDEOS (same order, every video, keep the id): what happened to them in it, one sentence, as an event in their life (not "in the video"). If they only appear briefly, say what their part was.
+- life: their life, one event per video in VIDEOS (same order, every video, keep the id): what happened to them, one sentence, as an event in their life - never "in the video". If they only appear briefly, say what their part was.
 
 Answer JSON only: {"person": "...", "speech": "...", "funny": "...", "parody": "...", "dissonance": "...", "nuances": ["..."], "catchphrases": ["..."], "life": [{"v": "<video id>", "e": "..."}]}`;
 
