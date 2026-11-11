@@ -65,4 +65,9 @@ is HOW to get there. A worked builder: `dialogue-from-takes.example.py` (savta-1
 - When he says he's testing ("don't export, don't test yourself") - no stills, no exports; build, check by numbers, hand over.
 - Late rounds ("almost perfect, don't ruin it"): targeted ops on exactly the clips his note names (strip items, one
   group's from/in/dur, one clip's gain) - no rebuild; re-run the checks; a strip change must not expose a cut or a hole.
+- A gap in one person's picture is never closed with more of the take's head / tail (he saw himself starting the
+  recording - "just continue the video, don't add things; at most one finishes after the other"): move the next clip
+  up, or let the other character cover it.
+- A cut inside one person that can't be hidden feels like a jump - if he says so, put that silence back (cut fewer).
+  Moving one line = move everything after it by the same frames (not the loops - they just end earlier).
 - Every rule he states "in general" goes into SKILL.md the same turn, committed.
