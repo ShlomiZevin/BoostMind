@@ -109,11 +109,9 @@ Upload each file (`/assets?name=`), then audio layers with ops:
   (item gains 0.6-0.9 within the lane). Only the desk ring is in the room.
 - Nobody else speaks - no office mumbles, no colleagues' voices.
 
-## 4. Before the footage: build it on a stand-in
-So he sees every layer before he films: edge-tts `he-IL-HilaNeural` reads the script over his reference photo,
-"STAND-IN" burnt in, `episodes/haredit-3/stand-in/` (git-ignored, like haredit-2's), `input_dir` there,
-Analyze through the studio (`POST /api/p/haredit-3/build {action: "analyze"}`). Then lay the call lanes on it. Hand
-items made for the stand-in must be trimmed to the real length later.
+## 4. Before the footage
+(haredit-3 was built on an edge-tts stand-in take. That is no longer done - his words, 2026-11-11: "I don't need it".
+Before his takes, put only the sets, sounds and texts on the timeline; see SKILL.md step 3b.)
 
 ## 5. His real takes
 He uploads through the Drop (iPhone; random file names). Several takes of a passage, sometimes a line shot later.

@@ -565,7 +565,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   **"Ready" means he opens the editor and sees every layer on the timeline** - set, wall pictures, stickers, texts,
   subtitles, music, end card - NOT a plan in episode.json that only Analyze turns into layers (2026-10-25, dorit-1:
   "why I can't see the Dorit project on the layers... I want you to create it already"). Never hand over a
-  before-footage project with an empty timeline: build it on a stand-in take (step 3b). So, in this order:
+  before-footage project with an empty timeline - but never with a computer voice either (step 3b). So, in this order:
   1. **Script** - `POST /api/scripts {name: "<id>"}` then `PUT /api/scripts/<id> {text}` (first line `# <title>`, a
      `# על המסך – ...` note above each line that gets a sticker / card). **The Reader text = only what the character
      SAYS** (2026-10-25, haredit-1: he had me strip the `**(stage directions)**` and the `**` marks - "רק את הטקסט
@@ -583,15 +583,16 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      card, the mid-video polaroid, the blinking CTA, the end card (`poster`, `fade_in` 1.5, from her last line, no
      `to_words` = to the end), `music.lift`; the files in `media/` + episode.json `media`. What needs the takes
      (re-take overlaps, the end-card hold, the fade to black) goes in `_todo` for right after Analyze.
-  3b. **Then BUILD it on a stand-in take, so he SEES every layer in the editor before he films** (his words, 2026-10-25:
+  3b. **Then put what you made on the timeline, so he SEES it in the editor before he films** (his words, 2026-10-25:
      "when I say to create everything before the actual video, I want you to create it already. So why it's not
-     there?" - dorit-1 had 32 overlays in episode.json and an EMPTY timeline). A stand-in = edge-tts `he-IL-HilaNeural`
-     (or AvriNeural for a man) reading the script's spoken lines over his reference photo, "STAND-IN" burnt in, in
-     `episodes/<id>/stand-in/` (git-ignored); `input_dir` there, eye contact off, Analyze through the studio. Check
-     every overlay landed (count = episode.json overlays) and do the `_todo` on it, so he can move things now.
-  4. Footage arrives -> `input_dir` to his folder, eye contact on -> Analyze (replaces the stand-in) -> redo the
-     take-bound `_todo` (end-card hold, fade) -> review -> hand over.
-     **Trap (dorit-1, 2026-10-25 - "you didn't run the fix eyes to look to the camera"):** the stand-in build saved the
+     there?" - dorit-1 had 32 overlays in episode.json and an EMPTY timeline): the sets, the opening shot, the
+     music / TV loops, the hook, the end card, each as a layer by ops, over a rough length from the script.
+     **No text-to-speech stand-in - no edge-tts voice, no stand-in portrait, no voice / subtitle groups before his
+     takes** (his words, 2026-11-11: "every editor session starts with it ... I don't need it ... if it's wasting time,
+     I don't want it"). The groups (video + background + voice + subtitles per line) are made from his real takes.
+  4. Footage arrives -> `input_dir` to his folder, eye contact on -> Analyze (for the mattes / transcripts) -> the
+     grouped clips -> redo the take-bound `_todo` (end-card hold, fade) -> review -> hand over.
+     **Trap (dorit-1, 2026-10-25, from the old stand-in builds - "you didn't run the fix eyes to look to the camera"):** a build saved the
      Person layer's `eyes: false`, and layer props are never overwritten by a rebuild - the NVIDIA copies were made but
      the editor kept showing the original eyes. After the real Analyze: `layer.update person props {eyes: true}` by op,
      and check `GET /api/p/<id>` → the takes' `eyes_engine` is set AND the Person layer's `eyes` is true.
