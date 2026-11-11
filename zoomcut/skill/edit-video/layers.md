@@ -266,7 +266,8 @@ hear the last one after the picture moved on). Live like everything else - his d
     from `group.ts speedOps` - never `pace` by hand without the lengths;
   - one Ctrl+Z undoes any of these.
 - **Preparing a project for him to edit himself** (his workflow from 2026-11-11: he drops videos, a session prepares the
-  raw project - backgrounds, cut-outs, crops, voices - and HE does the cutting): make every piece he will cut a group.
+  raw project - backgrounds, cut-outs, crops, voices - and HE does the cutting; the first setup is always a session's,
+  never an Analyze-made project of builder takes): make every piece he will cut a group.
   For each take / line: its video clip, its background clip (on the character's background layer), its voice clip
   (the take's own sound, same `in`), its subtitles - all with ONE `link`, and the video, background and voice with the
   SAME `from` / `dur` (and the voice from the same moment of the take), so the group stretches and cuts as one block.
