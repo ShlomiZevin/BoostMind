@@ -516,10 +516,11 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      change:** effect layers over the picture and under the texts - `grade` 0.6, `vignette` 0.4, `drift` 0.3; **no
      grain, no blur** ("dont do blur or dots"); close / wide alternating on the cuts (close = `zoom` 1.2, `y` 0.1 - top
      anchored, his head stays in); **the background goes close with him** - in the dialogue format each clip has its
-     own background clip (same `link`): scale that clip 1.2 about the same point (top centre) and a little softer; never
-     pieces cut out of one long background (v3 wasn't in that format, so I cut 35 by hand) - now one control does both:
-     the panel's **Shot: Wide / Close** (sessions: `group.ts shotOps`; Wide puts back what was there) (a close-up's shallow focus), so the angle changes with
-     the shot ("when you change between close and far, also change the background"); backgrounds that move faster
+     own background clip (same `link`): scale that clip 1.2 about the same point (top centre) and a little softer (a
+     close-up's shallow focus), so the angle changes with the shot ("when you change between close and far, also change
+     the background") - one control does both: the panel's **Shot: Wide / Close** (sessions: `group.ts shotOps`; Wide
+     puts back what was there). Never pieces cut out of one long background (v3 wasn't in that format, so I cut 35 by
+     hand). Backgrounds that move faster
      ("תזזיתי") = their `anim`.
 - **The set must be where the camera really is** (adam-1, 2026-11-08 - "it's not realistic, he is sitting in front of
   the table so you can't see the table behind him... it happens a lot"): a person sitting at a desk / meeting table is
