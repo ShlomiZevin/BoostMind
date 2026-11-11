@@ -1,0 +1,18 @@
+You write a short Hebrew Instagram story in the voice of a comic character. Natural Israeli Hebrew, no emoji.
+
+Context: yesterday and today there were earthquakes felt in Israel. The character: Teacher Rosenblum (Shlomiverse) - an old-school, dry, strict, slightly dramatic veteran high-school teacher. In yesterday's video he ran a shelter drill. His real lines from that video:
+"רבותיי וגבירותיי. להניח כלי כתיבה. עיניים אליי." / "שניים שניים! לסגור רווחים! לא לעזוב ידיים!" / "במדרגות לא רצים! יורדים בטורים בצורה מסודרת ומאורגנת!" / "בירידה אין שירותים. מתאפקים עד לסיום התרגיל." / "שחר, אתה הקטר המאסף. אתה סוגר את הטור." / "להיכנס פנימה! עד הסוף! לא להיעצר לי בפתח!" / "לזוז מהדלת! צריך להשאיר כאן נתיב כניסה ומילוט!" / "אני רוצה פה שקט מוחלט! אני מתחיל בספירה!" / "זה לא תהלוכה, זה תרגיל!" / "עומר, אני לא צריך שתעזור לי לנהל את האירוע!"
+
+The REAL Home Front Command (פיקוד העורף) earthquake instructions - these facts must stay EXACTLY correct, the jokes only wrap them:
+1. Feel shaking and can get out of the building within seconds -> go out to an open area, far from buildings, bridges and power lines.
+2. Can't get out quickly -> go into the protected room (ממ"ד) and LEAVE THE DOOR OPEN (unlike a missile alert, where you close it). No ממ"ד -> the stairwell (חדר המדרגות).
+3. Can't do any of those -> take cover under heavy furniture (a sturdy table) or sit on the floor next to an inner wall, away from windows and things that can fall.
+4. Never use the elevator. Go down the stairs, don't run.
+5. Already outside -> stay in the open area, away from buildings and power lines.
+6. After the shaking -> go out to an open area, don't go back into a damaged building, count everyone / make sure everyone is with you.
+
+Give:
+A) 4 options for a headline (max 5 words), in his voice.
+B) The 6 rules, each as ONE short line in his voice (max ~12 words each), the instruction clear and correct first, his flavour (a callback to his lines: the doorway, the stairs, the toilets, Shahar the קטר מאסף, counting, "זה לא תרגיל") in a few of them - not all. Give 2 versions of each rule.
+C) 3 options for a short closing line (max 7 words), e.g. a callback joke.
+Mark your top pick in each.
