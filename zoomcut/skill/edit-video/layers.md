@@ -273,7 +273,13 @@ hear the last one after the picture moved on). Live like everything else - his d
   (the take's own sound, same `in`), its subtitles - all with ONE `link`, and the video, background and voice with the
   SAME `from` / `dur` (and the voice from the same moment of the take), so the group stretches and cuts as one block.
   A character's layers share a `group` (the character's name), so a group moved to another character lands on that
-  character's layers. A dialogue: `tools/to_dialogue.py` makes all of it (its voices are trimmed to the words - the
+  character's layers. **A clip in a group is never pinned** (`pin` is for whole-video items only: a music bed, an end
+  card). ops.js `repin` stretches a `span` clip to the new end whenever the length changes. On rosenblum-1-v3 a pinned
+  corridor background ran over the shelter after a length change, and he was angry (2026-11-11). A close / wide shot
+  in the dialogue format: each clip has its own background clip, so zoom the person clip (`zoom` / `y`) and set ITS
+  background clip's `box` (scaled about the top centre) and blur to match. Never cut one long background into pieces.
+  The background doesn't follow the person's zoom by itself (2026-11-11). A dialogue: `tools/to_dialogue.py` makes
+  all of it (its voices are trimmed to the words - the
   edge rule above keeps them right). Check before handing over: every clip of a
   character has its background and voice with its link (`node -e` over project.json, or pick a clip in the editor - its
   group is outlined).
