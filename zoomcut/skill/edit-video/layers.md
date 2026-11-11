@@ -221,18 +221,54 @@ hear the last one after the picture moved on). Live like everything else - his d
 - In the editor (dialogue.ts + Timeline.tsx): the strip on top (coloured per character, the rows carry the same
   colour); drag the line between two blocks = who is seen changes there (snaps to a voice's start / end, a clip's edge,
   the playhead within 6 px; `,` `.` nudge it a frame once picked); click a block = pick who is seen; **S** = a new cut
-  at the playhead; Delete = the block goes, its neighbour takes the time. Move a clip = everything linked moves with it
-  (its background, its voice, the line's subtitles); trim a clip = the background that ended with it trims too; move / trim a voice = only that voice + the subtitles over it (the block then says "sound
-  −0.30 s" - heard before / after its own picture). Trim a clip = more / less of the take.
+  at the playhead (a clip picked: its group is cut - "Clips, layers, groups" below); Delete = the block goes, its
+  neighbour takes the time. A clip, its background, its voice and the line's subtitles are a GROUP: moved, stretched,
+  cut and deleted together; Alt + drag moves one alone (a voice moved alone says "sound −0.30 s" - heard before /
+  after its own picture). Trim a clip = more / less of the take.
 - **An older one-row cut -> a dialogue COPY** (the original untouched): `python tools/to_dialogue.py <project> <new id>
   [--picture person] [--set set] [--handles 1.5]` - who is who from the voice rows (a take nobody hears: the character
   whose clips share its background), a background row per character from the set row, the character's other sounds
   onto its voice row, the strip from the shots, handles (never past what the strip shows - a poster tail stays), links; every frame checked against the
   original before it writes (same take, moment, box, background); files hard-linked, project.json new.
 
+### Clips, layers, groups - his words (2026-11-11)
+- **Clip** = one piece on a layer: a video clip, a background clip, a sound / music clip, a text, a sticker. **Layer** =
+  a row of clips. **Group** = clips that belong together, edited as one - e.g. a character talking: the clip of him cut
+  out, the clip of his background, the clip of his voice (and his sticker / name tag, the line's subtitles). A group ties
+  CLIPS, not layers: one layer holds many clips of different groups (Yotam's line and Osnat's line can sit on the same
+  kinds of layers - two groups). Use these three words with him and in the editor.
+- In project.json a group = the clips that share a `link` (any string, one per group: `"link": "yotam.3"`).
+- In the editor (`ui/layers/group.ts`, wired in Timeline.tsx / LayersEditor.tsx), on any project (not a builder's take -
+  its builder edits it - and a caption never leads; it only follows its line):
+  - pick any clip of a group = the rest of it is outlined;
+  - **move** any clip of it (video, background, voice, text, sticker) = the whole group moves; dragged onto another
+    character's row, each clip goes to that character's row of its kind (background -> its background row, voice -> its
+    voice row);
+  - **stretch / shorten an edge** = every clip of the group that reaches that edge moves with it (a voice that starts
+    4 frames before its picture keeps those 4 frames); shortening cuts whatever would play past the new edge (a voice
+    ending earlier stays as it is until the edge passes it); subtitles are never stretched, only cut; each clip stops at
+    its own footage's ends;
+  - **cut**: **S** = the picked clip's group at the playhead; or hold **Ctrl** - the pointer is scissors - and click a
+    clip = its group cut right there. The second half is a new group (a new link); a subtitle goes to the half its
+    middle is in. A clip that is in no group is cut alone;
+  - **Delete** = the whole group; **Alt+Delete** (or right-click -> "Delete this piece only") = that clip alone;
+  - **Alt + drag** = that clip alone (a voice moved alone still takes its subtitles) - for a sound heard before / after
+    its picture;
+  - copy / paste (right-click, Ctrl+C / Ctrl+V) = the whole group, pasted as a new group;
+  - one Ctrl+Z undoes any of these.
+- **Preparing a project for him to edit himself** (his workflow from 2026-11-11: he drops videos, a session prepares the
+  raw project - backgrounds, cut-outs, crops, voices - and HE does the cutting): make every piece he will cut a group.
+  For each take / line: its video clip, its background clip (on the character's background layer), its voice clip
+  (the take's own sound, same `in`), its subtitles - all with ONE `link`, and the video, background and voice with the
+  SAME `from` / `dur` (and the voice from the same moment of the take), so the group stretches and cuts as one block.
+  A character's layers share a `group` (the character's name), so a group moved to another character lands on that
+  character's layers. A dialogue: `tools/to_dialogue.py` makes all of it (its voices are trimmed to the words - the
+  edge rule above keeps them right). Check before handing over: every clip of a
+  character has its background and voice with its link (`node -e` over project.json, or pick a clip in the editor - its
+  group is outlined).
+
 ### link and ripple - editing like one piece
-- `link` (item): items with the same link change together when one is dragged - a line's voice, its subtitles and the
-  speaker's picture; a cut piece's picture, voice and subtitles.
+- `link` (item): the clips of one group (above) - a line's picture, its background, its voice and its subtitles.
 - `edit` (project): `{"ripple": true}` = a continuous timeline - dragging an edge closes up / makes room after it;
   `"ripple_move": true` = moving a piece moves everything after it too (lines that follow each other).
 - An item a builder made (`ref` on a builder layer): the drag shows at once; the builder hears about it in the
@@ -264,10 +300,10 @@ Ctrl+Z brings it back. Move a layer: drag its name in the timeline up / down (a 
 list = drawn on top) - `layer.move`.
 Move a clip to another row (2026-11-09, his ask): drag it up / down onto a row of its kind (video -> video, picture ->
 picture, sound -> sound; the row lights up) - it lands where it is dropped, nothing else moves (`item.remove` + `item.add`,
-one Ctrl+Z); a dialogue clip takes its background to the background row of the character it is dropped on.
+one Ctrl+Z); its group comes along - each clip to that character's row of its kind (background, voice).
 Copy / paste a clip: right-click a clip -> Copy (Ctrl+C = the picked clip); right-click a row -> Paste here (where it was
 clicked), Ctrl+V = at the playhead on the picked row (a row of another kind: the row it came from). It lands where it is
-put (nothing moves, his choice); a dialogue clip comes with its background, a new `link` for the copy.
+put (nothing moves, his choice); a clip comes with its whole group, a new `link` for the copy.
 End here ⇥ (the layered timeline's bar): the video ends at the playhead - every item past it goes, one across it is
 cut there, `pin: "end"` items move to the new end; one undoable change (`project.duration` + item ops).
 The end's handle on the ruler drags the length left / right (nothing deleted; past the end is dimmed). Dragging a

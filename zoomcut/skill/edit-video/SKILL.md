@@ -132,6 +132,15 @@ The rules:
 5. **Show before applying** a look or sound change: stills of the tiles (big AND small), short before / after mp3s.
 6. **Time-box debugging:** two or three attempts, then the simplest route that works.
 
+## Clips, layers, groups - preparing a project he edits himself (his words, 2026-11-11)
+**Clip** = one piece on a layer (video, background, sound, music, text, sticker); **layer** = a row of clips; **group** =
+clips that belong together and are edited as one (a character talking: his cut-out clip + his background clip + his
+voice clip, maybe a sticker; one layer holds clips of many groups). Use these words with him. He works this way now:
+he drops footage, a session PREPARES the raw project (backgrounds, cut-outs, crops, voices), and he cuts it himself -
+moving, stretching, cutting (S, or Ctrl = scissors) and deleting whole groups. So every piece you prepare is a group:
+one `link` on its video, background, voice and subtitles, video / background / voice with the same `from` / `dur`.
+Details and the check: `layers.md` -> "Clips, layers, groups".
+
 ## Dialogue projects - working in the new format (learned on haredit-5-dialogue, 2026-11-09)
 Format: `layers.md` -> "Dialogue". A row group per character: **video** (cut-out clips) / **רקע** (one background per
 clip, linked, moves with it; may be a video) / **voice** (the character's sound). One **"What we see"** strip picks who is

@@ -22,6 +22,7 @@ import { VideoPeek } from './VideoPeek';
 import { FaceSwap } from './FaceSwap';
 import { Note, notesOf, saveNotes, newNote, NoteWindow, NoteSpots, NoteView, inView, noteState } from './Notes';
 import { removeBlock } from './dialogue';
+import { removeOps } from './group';
 
 // a crash anywhere in the layered editor never blanks his screen: a note and a way back
 export class LayersBoundary extends React.Component<{ children: React.ReactNode }, { err: string | null }> {
@@ -251,7 +252,9 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         e.preventDefault();
         // (a block of the What-we-see strip: its neighbour takes its time - the strip has no gaps; dialogue.ts)
         const strip = project?.layers.find((x: any) => x.id === sel.layer)?.kind === 'view';
-        L.send(strip ? removeBlock(project, sel.item) : [{ op: 'item.remove', layer: sel.layer, id: sel.item }], { label: strip ? 'delete cut' : 'delete' });
+        // (a clip: with its group - its background, voice, subtitles; group.ts. Alt+Delete: that piece alone)
+        const sl = project?.layers.find((x: any) => x.id === sel.layer), si = sl?.items?.find((i: any) => i.id === sel.item);
+        L.send(strip ? removeBlock(project, sel.item) : si ? removeOps(project, sl, si, e.altKey) : [], { label: strip ? 'delete cut' : 'delete' });
         setSel({ layer: sel.layer });
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && sel?.layer && !sel.item) {  // the whole layer (asked once)
         e.preventDefault();

@@ -63,6 +63,9 @@ One format, one composition, one editor, one export. The format and the API: `la
   changes layout, more options go in that window), Inspector
   (project panel, `inspect/*` per kind by boostmind-31, a plain fallback for the rest), api.ts (ops, undo, saves in
   order with `rev`).
+- **Groups (2026-11-11, his ask):** clips sharing a `link` are one group - moved, stretched, cut (S / Ctrl-click
+  scissors), copied and deleted together, Alt = one clip alone; `ui/layers/group.ts` (the ops), wired in Timeline.tsx
+  (trimmer, splitHere / cutAt, copy / paste, toRow) and LayersEditor.tsx (Delete). layers.md -> "Clips, layers, groups".
 - **Dialogue rows + "What we see" (2026-11-09, plans/dialogue-editing.md):** a project with a `view` layer is a
   dialogue - `ui/layers/dialogue.ts` (the strip's ops, who moves with what, the character colours), the strip row and
   the linked moves in Timeline.tsx, `render/src/layers/view.js` `flatten()` in Layers.tsx (and the export) cuts each

@@ -30,6 +30,7 @@
 /* blocks: a click picks one; ONLY the picked block drags (body = move, its two grips = start / end) - so the edge
    between two clips always belongs to the one he picked */
 .ltl .blk { cursor: pointer; }
+.ltl.cutting .blk, .ltl.cutting .blk .hd { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Cpath d='M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12'/%3E%3C/svg%3E") 11 11, crosshair; }  /* Ctrl held: the scissors (Timeline cutAt) */
 .ltl .blk:not(.sel):hover { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55); }
 .ltl .blk.sel { z-index: 2; cursor: grab; box-shadow: 0 0 0 2px #fff; }
 .ltl .blk.sel.dragging { cursor: grabbing; }
