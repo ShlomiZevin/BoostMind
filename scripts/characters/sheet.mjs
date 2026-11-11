@@ -5,7 +5,8 @@
 //   node scripts/characters/sheet.mjs hani yotam            drafts into scripts/characters/work/<id>.json (read them)
 //   node scripts/characters/sheet.mjs --all [--missing] [--skip=a,b] [--budget=2]   every visible character (--missing: only
 //                                                            those without a sheet; --budget: no new call once the drafts cost $2)
-//   node scripts/characters/sheet.mjs --put hani yotam       the drafts in work/ -> the records (--put --all: every draft there)
+//   node scripts/characters/sheet.mjs --put hani yotam       the drafts in work/ -> the records, only fields still empty there
+//                                                            (--put --all: every draft; --put --force <id>: replace what is there)
 // The design key (scripts/design.env), so Backstage → הוצאות counts it as the verse's. Terra: ~3-5K tokens in, ~2K out a character.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -91,14 +92,22 @@ async function draft(c, brain, key) {
 
 if (has('--put')) {
   const files = (has('--all') ? fs.readdirSync(WORK).filter((f) => f.endsWith('.json')) : ids.map((i) => i + '.json'));
-  for (const f of files) {
+  // never over what he already shaped (a sheet fixed from his notes, the love he tapped): only fields still empty in the
+  // record, unless --force (then only for the ids named - never --all)
+  const force = has('--force') && !has('--all');
+  for (const f of files.filter((x) => !x.startsWith('_'))) {
     const d = JSON.parse(fs.readFileSync(path.join(WORK, f), 'utf8'));
+    content(['get', 'character', d.id, '--out', tmp('_live.json')]);
+    const live = JSON.parse(fs.readFileSync(tmp('_live.json'), 'utf8'));
+    const set = Object.fromEntries([['sheet', d.sheet], ['love', d.love], ['life', d.life]].filter(([k]) => force || live[k] == null || (Array.isArray(live[k]) && !live[k].length) || (k === 'sheet' && !live.sheet?.person)));
+    if (!Object.keys(set).length) { console.log('kept', d.id, '(already in the record - --force <id> to replace)'); continue; }
     const patch = tmp(`_patch-${d.id}.json`);
-    fs.writeFileSync(patch, JSON.stringify({ sheet: d.sheet, love: d.love, life: d.life }), 'utf8');
+    fs.writeFileSync(patch, JSON.stringify(set), 'utf8');
     content(['put', 'character', d.id, '--file', patch]);
     fs.unlinkSync(patch);
-    console.log('put', d.id);
+    console.log('put', d.id, Object.keys(set).join(','));
   }
+  fs.rmSync(tmp('_live.json'), { force: true });
 } else {
   const key = env(path.join(ROOT, 'scripts', 'design.env'), 'OPENAI_API_KEY');
   if (!key) { console.error('no design key - node scripts/design-env.mjs'); process.exit(1); }
