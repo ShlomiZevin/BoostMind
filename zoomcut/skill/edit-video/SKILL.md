@@ -142,8 +142,10 @@ panel's top - project 1.4×, this group 1.2×). So every piece you prepare is a 
 one `link` on its video, background, voice and subtitles, video / background / voice with the same `from` / `dur`.
 Details and the check: `layers.md` -> "Clips, layers, groups".
 **The first setup is always a session's - never an Analyze-made project** (his words, 2026-11-11: "I don't need the
-analyze video at all. The first setup will always be of the Claude session"). What he opens is plain clips in groups that
-he cuts himself - not the builder's takes (`owner: builder` + `ref.take`, the old "one camera" path, where dragging an
+analyze video at all. The first setup will always be of the Claude session"). The session still makes the edit as good
+as it can - he doesn't plan to cut it himself ("hopefully it would do it good enough and if not, I need to be able to
+adjust easily"; the day before, fixing a cut by hand was a very bad experience). So what he opens is plain clips in
+groups, easy to adjust - not the builder's takes (`owner: builder` + `ref.take`, the old "one camera" path, where dragging an
 edge re-plans the take). The analysis may still run underneath for what only it makes (cut-out mattes, transcripts,
 eye contact), but its layout is not what he gets: turn it into grouped clips (a dialogue: `tools/to_dialogue.py`; one
 character alone has no converter yet - say so, that is tool work) before he sees it. Old Analyze projects stay as they are.
