@@ -149,3 +149,4 @@ scripts/design.env
 
 # script backups a session keeps while editing (haredit-5.txt.bak2 ...) - the script itself is in git
 zoomcut/scripts/*.bak*
+public/neve-tidhar/img/quake.jpg
