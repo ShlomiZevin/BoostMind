@@ -333,7 +333,9 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   .cx-head .av img, .cx-head .av .ph { width: 100%; height: 100%; object-fit: cover; }
   .cx-head b { display: block; font-weight: 900; font-size: 1.2rem; line-height: 1.15; }
   .cx-head small { color: var(--dim); font-size: .86rem; display: block; }
-  .cx-head a.pg { color: var(--c); font-size: .82rem; font-weight: 700; }
+  /* her face and name are the way to her page (his note 2026-11-11: no separate link) */
+  .cx-head a.nm { color: inherit; text-decoration: none; display: block; }
+  .cx-head a.av { display: block; }
   .cx-head .x { margin-inline-start: auto; }
   .msgs { flex: 1; overflow-y: auto; padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
   .m { max-width: 86%; padding: 11px 15px; border-radius: 18px; font-size: 1rem; line-height: 1.5; }
@@ -1047,8 +1049,8 @@ function drawChat() {
   const strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
   const ask = cxMode === 'guide' ? ['תכירו לי מישהו', 'יש סרטון על בחירות?', 'מי הכי מצחיק פה?'] : (w.ask || []);
   cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}</button>`).join('')}</div>
-    <div class="cx-head"><span class="av">${face(w)}</span><span><b>${esc(w.name)}</b><small>${esc(w.tagline || w.role || '')}</small>
-      ${cxMode === 'guide' ? '' : `<a class="pg" href="/c/${w.id}">לעמוד של ${esc(w.name)} ←</a>`}</span>
+    <div class="cx-head">${cxMode === 'guide' ? `<span class="av">${face(w)}</span><span><b>${esc(w.name)}</b>`
+      : `<a class="av" href="/c/${w.id}" aria-label="לעמוד של ${esc(w.name)}">${face(w)}</a><span><a class="nm" href="/c/${w.id}"><b>${esc(w.name)}</b></a>`}<small>${esc(w.tagline || w.role || '')}</small></span>
       <button class="icon-btn nc" data-new-chat title="שיחה חדשה" aria-label="שיחה חדשה">${ICON.newChat}</button>
       <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
     <div class="msgs"></div>
@@ -1268,7 +1270,7 @@ document.addEventListener('click', (e) => {
   if (out) t('site', out.dataset.siteOut);   // a visit to a character's site (/stats/ 'מעברים לאתרי הדמויות')
   const talk = e.target.closest('[data-talk]');
   if (talk) { e.preventDefault(); closeVideo(); openChat(talk.dataset.talk); return; }
-  if (e.target.closest('[data-close-chat]') || e.target.closest('.cx-head a.pg')) closeChat();
+  if (e.target.closest('[data-close-chat]') || e.target.closest('.cx-head a.av, .cx-head a.nm')) closeChat();
   // start over: say first that this conversation goes away (only when there is one), then clear just this character's
   if (e.target.closest('[data-new-chat]') && !busy) {
     if (!(threads[cxMode] || []).some((m) => m.role === 'user')) return;
