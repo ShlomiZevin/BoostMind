@@ -169,6 +169,11 @@ on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <pro
 - **Cutting a silence in a dialogue project**: cut every row, the strip, the captions and his notes together (split
   clips that cross the cut, `in` moved); measure the WORD edges first - three cuts clipped a word ("לך" -> "לה",
   "בפוניבז'", the "ה" of "הסתכלתי"); a few frames given back fixes it. Moving something later = shift everything after.
+- **EVERY turn between two characters overlaps - both heard** (his words, savta-1, 2026-11-11: "an editing technique I
+  demand in every video ... when someone starts talking you always still hear the previous one ... I'll choose who to
+  show with the What we see"): the next line starts ~0.7 s before the other ends (own voice rows, full volume); never
+  back-to-back turns. The strip's first pick = whoever starts a sentence (≥0.7 s a shot); he changes it. Two talking in
+  parallel = a second subtitles row for the other one (higher, another colour) so both read.
 - **A cut-away over a line about the other one** (savta-1, 2026-11-11: "show her for a split second on top of Savta
   talking about her speaking with her sister"): the other character's clip (her own group, her own set) laid over the
   speaker's line, the strip switching to it for ~2 s and back; its voice clip at `gain` ~0.35 under the speaker's (heard,
