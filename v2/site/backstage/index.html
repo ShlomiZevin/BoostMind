@@ -682,6 +682,7 @@ const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const abs = (p) => (!p ? '' : /^(https?:|\/)/.test(p) ? p : '/wiki/' + p);
 const s = (d, w = 1.8) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const IC = {
+  download: s('<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/>'),
   plan: s('<path d="M7 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 7 20z"/><path d="M15 3.5V8h4M9.5 12.5l1.8 1.8 3.4-3.6M9.5 17h5"/>'),
   home: s('<path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1H15v-6h-6v6H4.5a1 1 0 0 1-1-1z"/>'),
   inbox: s('<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke-width="2.6"/>'),
@@ -1380,6 +1381,7 @@ const METRICS = {
   chat_message: ['הודעות לדמויות', 'comment', (d) => d.n?.chat_message || 0],
   chat_open: ['שיחות שנפתחו', 'inbox', (d) => d.n?.chat_open || 0],
   video: ['צפיות בסרטונים', 'play', (d) => d.n?.video || 0],
+  download: ['הורדות סרטונים', 'download', (d) => d.n?.download || 0],   // the rail's "הורדה" (since 2026-11-09, player.js)
   view: ['צפיות בדפים', 'stats', (d) => d.n?.view || 0],
   game_start: ['סיבובי משחק', 'game', (d) => d.n?.game_start || 0],
   sign_in: ['כניסות לחשבון', 'join', (d) => d.n?.sign_in || 0],
@@ -1498,7 +1500,7 @@ function overview() {
   ].filter((x) => x.t).sort((a, b) => b.t - a.t).slice(0, 6);
   const row = (x) => `<button class="row" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
   const n = range, chartList = days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
-  const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'game_start', 'sign_in', 'tz_view', 'ch_view'];
+  const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'download', 'game_start', 'sign_in', 'tz_view', 'ch_view'];
   $('#pane').innerHTML = `
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}</p></div>
       <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
@@ -1640,6 +1642,7 @@ function breakdown(list, label) {
     ${barList('מאיפה הגיעו', merge(list, 'src'), 'מבקרים', { label: (k) => SRC[k] || k })}
     ${barList('עם מי דיברו', byPrefix(list, 'chat_message'), 'הודעות', { face: true, label: cname })}
     ${barList('סרטונים', byPrefix(list, 'video'), 'צפיות', { label: vName })}
+    ${barList('הורדות', byPrefix(list, 'download'), 'הורדות', { label: vName })}
     ${barList('אתרים', merge(list, 'site'), 'כניסות', { label: (k) => SITE[k] || k })}
     ${barList('משחקים', byPrefix(list, 'game_start'), 'סיבובים', { label: (k) => GAME[k] || k })}
     ${barList('מכשיר', merge(list, 'dev'), 'מבקרים', { label: (k) => ({ phone: 'טלפון', desktop: 'מחשב' }[k] || k) })}
