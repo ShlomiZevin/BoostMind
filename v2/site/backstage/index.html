@@ -764,19 +764,35 @@ const personName = (p) => p.official ? 'שלומיוורס' : p.nick || p.name |
 const OFC = `<span class="ofc">${IC.check}</span>`;
 
 if (!key) gate(); else load().catch((e) => { if (e.message !== 'key') $('#app').innerHTML = `<div class="gate"><div><h1>משהו נתקע</h1><p>${esc(e.message)}</p><button class="btn" onclick="location.reload()">לנסות שוב</button></div></div>`; });
-async function load() {
-  $('#app').innerHTML = `<div class="gate"><div><img src="/verse/logo-512.png" alt="" style="width:150px;opacity:.9"><p>טוען את מאחורי הקלעים…</p></div></div>`;
-  W = await fetch(DATA, { cache: 'no-cache' }).then((r) => r.json());
-  W.characters.forEach((c) => (C[c.id] = c));
-  C.verse = { id: 'verse', name: 'שלומיוורס', img: '/verse/icon-192.png', color: '#ff6a1f' };   // a story from the Shlomiverse itself
-  W.videos.forEach((v) => (V[v.id] = v));
-  [L, S, PL] = await Promise.all([api('list'), api('stats&days=45'), api('plans').catch(() => ({ plans: [] }))]);
-  await loadChats('today');
-  api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {});
-  draw();
-  crLoad(() => { if (tab === 'chars') chars(); });   // in the background: the tab's number (what's new for him) + the tab itself
-}
-async function refresh() { [L, S] = await Promise.all([api('list'), api('stats&days=45')]); draw(); }
+// every tab loads only its own data (his note 2026-11-11: "now I'm working on characters and I'm fetching all data"): NEED says what
+// each one reads, need() fetches what's missing - in parallel, each piece once - and the tab draws when its own data is here.
+// The menu's numbers are the frame's own data: fetched after the tab is on screen, never holding it up.
+const LOADERS = {
+  W: () => fetch(DATA, { cache: 'no-cache' }).then((r) => r.json()).then((w) => {
+    W = w;
+    W.characters.forEach((c) => (C[c.id] = c));
+    C.verse = { id: 'verse', name: 'שלומיוורס', img: '/verse/icon-192.png', color: '#ff6a1f' };   // a story from the Shlomiverse itself
+    W.videos.forEach((v) => (V[v.id] = v));
+  }),
+  L: () => api('list').then((r) => { L = r; SEEN = { ...r.seen, ...SEEN }; }),
+  S: () => api('stats&days=45').then((r) => { S = r; }),
+  PL: () => api('plans').then((r) => { PL = r; }),
+  CH: () => Promise.all([loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]),
+  SEEN: () => api('seenMap').then((r) => { SEEN = { ...r.seen, ...SEEN }; }),
+  CR: () => api('charList', {}).then((r) => { CR = r; }),
+};
+const NEED = {
+  overview: ['W', 'L', 'S', 'CH'], chats: ['W', 'S', 'CH'], data: ['W', 'S'], people: ['W', 'S', 'L'],
+  requests: ['W', 'L'], ideas: ['W', 'L'], content: ['W', 'L'], videos: ['W', 'L'], publish: ['W', 'L', 'S'],
+  plans: ['PL', 'SEEN'], chars: ['W', 'SEEN', 'CR'], tz: ['W'], mail: ['W'], costs: [], more: [],
+};
+const MENU = ['SEEN', 'PL', 'CR', 'L'];   // what the menu's numbers count (badges)
+const HAVE = new Set(), LOADING = {};
+const need = (keys) => Promise.all(keys.filter((k) => !HAVE.has(k)).map((k) => (LOADING[k] ||= LOADERS[k]().then(() => { HAVE.add(k); }).finally(() => { delete LOADING[k]; }))));
+// again from the server: only what was already loaded (a refresh never fetches what no tab asked for)
+const reload = (keys) => { keys.forEach((k) => HAVE.delete(k)); return need(keys); };
+async function load() { await null; draw(); }   // after the whole script ran (load() is called above TABS / TITLE)
+async function refresh() { await reload(['L', 'S'].filter((k) => HAVE.has(k))); draw(); }
 // the refresh button (top of the phone, the side menu on a computer): everything again - numbers, conversations, stars
 let refreshing = false;
 async function refreshAll() {
@@ -786,10 +802,9 @@ async function refreshAll() {
   if (tab === 'costs') loadCosts(false);
   document.querySelectorAll('[data-refresh]').forEach((x) => x.classList.add('spin'));
   try {
-    [L, S] = await Promise.all([api('list'), api('stats&days=45'), loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]);
-    PL = await api('plans').catch(() => PL);
+    await reload([...HAVE]);
     if (planId) PLAN = await api('plan', { id: planId }).catch(() => PLAN);
-    await crLoad();
+    draw();
   } catch (e) {}
   refreshing = false;
   const y = scrollY;
@@ -807,13 +822,14 @@ const unchecked = () => L.comments.filter((c) => c.unchecked && !c.hidden).lengt
 // opening פניות / תוכן clears it; something new brings it back. Kept on this device.
 // since 2026-11-06 also on the server (owner/seen): one look clears the mark on the phone, the computer and the home-screen app
 const seenHere = (k) => { try { return +localStorage.getItem('bs-seen-' + k) || 0; } catch (e) { return 0; } };
-const seen = (k) => Math.max(seenHere(k), (L && L.seen && L.seen[k]) || 0);
+let SEEN = {};   // owner/seen - what he already looked at, on every device
+const seen = (k) => Math.max(seenHere(k), SEEN[k] || 0);
 const markSeen = (k) => {
   const now = Date.now();
   try { localStorage.setItem('bs-seen-' + k, String(now)); } catch (e) {}
-  if (L && (!L.seen || !L.seen[k] || now - L.seen[k] > 60e3)) { L.seen = { ...(L.seen || {}), [k]: now }; api('seen', { k }).catch(() => {}); }
+  if ((HAVE.has('SEEN') || HAVE.has('L')) && (!SEEN[k] || now - SEEN[k] > 60e3)) { SEEN = { ...SEEN, [k]: now }; api('seen', { k }).catch(() => {}); }
 };
-const badges = () => ({
+const badges = () => !L ? { plans: (PL.plans || []).filter((p) => !planOld(p)).length, chars: crBadge() } : ({
   requests: L.requests.filter((r) => !r.done && (r.t || 0) > seen('requests')).length,
   content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length,
   ideas: (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('ideas'), Date.now() - 7 * 864e5)).length,
@@ -826,7 +842,8 @@ function draw() {
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
   if (['comments', 'stickers'].includes(tab)) contentSeg = tab;
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'data' }[tab] || 'overview';
-  if (tab === 'requests' || tab === 'content' || tab === 'ideas') markSeen(tab);
+  const miss = (NEED[tab] || []).filter((k) => !HAVE.has(k));
+  if (!miss.length && (tab === 'requests' || tab === 'content' || tab === 'ideas')) markSeen(tab);
   const badge = badges();
   const phoneTab = ['plans', 'chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
   const moreBadge = badge.requests + badge.ideas + badge.content + badge.plans + badge.chars;
@@ -837,8 +854,16 @@ function draw() {
     <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
     <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['data', 'נתונים', 'stats'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
       `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
-  ({ overview, plans, chars, chats, data, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
   history.replaceState(null, '', '#' + tab);
+  if (miss.length) {
+    $('#pane').innerHTML = '<div class="empty">טוען…</div>';
+    const t = tab;
+    need(miss).then(() => { if (tab === t) draw(); }).catch((e) => { if (tab === t && e.message !== 'key') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; });
+    return;
+  }
+  ({ overview, plans, chars, chats, data, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
+  // the tab is on screen: now the menu's numbers (what's new in each part), quietly
+  if (MENU.some((k) => !HAVE.has(k))) need(MENU).then(reBadge).catch(() => {});
 }
 const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
 // the tab marks again without drawing the page (a plan he just opened stops counting)
@@ -872,7 +897,7 @@ const CR_TREE = new Set(['hani', 'avraham-moshe', 'shterni', 'brachi', 'chaimi',
 const CR_TEXT = [['person', 'מי זה'], ['speech', 'איך מדבר'], ['funny', 'מה מצחיק'], ['parody', 'הפרודיה'], ['dissonance', 'הדיסוננס']];
 const CR_LISTS = [['nuances', 'ניואנסים'], ['catchphrases', 'קאצ\'פרייז / רפליקות']];
 const crFace = (c) => CR_TREE.has(c.id) ? `<img class="ch-av" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="ch-av" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="ch-av">${esc((c.name || '?')[0])}</span>`;
-const crSeen = (id) => (L && L.seen && L.seen['char:' + id]) || 0;
+const crSeen = (id) => SEEN['char:' + id] || 0;
 const crHasSheet = (c) => !!(c.sheet && c.sheet.person);
 const crNotesOf = (id) => (CR?.notes || []).filter((n) => n.char === id);
 const crOpen = (id) => crNotesOf(id).filter((n) => n.by === 'shlomi' && !n.done).length;
@@ -942,7 +967,7 @@ function crView() {
 function crOpenChar(id) {
   crId = id; crOpenRows.clear(); crSnap = crSeen(id);
   chars(); scrollTo(0, 0);
-  L.seen = { ...(L.seen || {}), ['char:' + id]: Date.now() };   // green stays for this visit (crSnap), gone next time
+  SEEN = { ...SEEN, ['char:' + id]: Date.now() };   // green stays for this visit (crSnap), gone next time
   api('seen', { k: 'char:' + id }).catch(() => {});
   reBadge();
 }
@@ -1190,13 +1215,13 @@ imgs.forEach(function(i,n){i.onclick=function(e){e.preventDefault();e.stopPropag
 function h(){parent.postMessage({t:'h',h:document.documentElement.scrollHeight},'*')}new ResizeObserver(h).observe(document.body);addEventListener('load',h);h();parent.postMessage({t:'ready'},'*')})();<\/script>`;
 // "קראתי" (his ask, 2026-11-07): a plan stops counting when he marks its version as read - a new version counts again and
 // shows "חדש" in the list. Saying מאשר / צריך שינויים marks it too.
-const planRead = (p) => ((L && L.seen && L.seen['plan:' + p.id]) || 0) >= (p.version || 1);
+const planRead = (p) => (SEEN['plan:' + p.id] || 0) >= (p.version || 1);
 // out of "מחכה לך": replaced by a newer plan, or read / decided (the list and the tab's number). His open notes don't keep it
 // there - they are the session's to handle, not his (2026-11-08: he pressed קראתי, had left a note, and the tab still said 2)
 function planOld(p) { return !!p.replacedBy || p.status !== 'waiting' || planRead(p); }
 function markPlanRead(p) {
-  if (!L || planRead(p)) return;
-  L.seen = { ...(L.seen || {}), ['plan:' + p.id]: p.version || 1 };
+  if (planRead(p)) return;
+  SEEN = { ...SEEN, ['plan:' + p.id]: p.version || 1 };
   api('seen', { k: 'plan:' + p.id, v: p.version || 1 }).catch(() => {});
   reBadge();
 }
@@ -1808,6 +1833,7 @@ function people() {
 }
 // one person: who, since when, and everything they did here (conversations, comments, ideas, requests)
 async function openPerson(uid) {
+  await need(['S', 'L']).catch(() => {});
   const p = S.people.find((x) => x.uid === uid);
   if (!p) return;
   const head = `<div class="sh-h">${personFace(p)}<div class="t"><b>${esc(personName(p))}${p.official ? OFC : ''}</b><small><a href="mailto:${esc(p.email || '')}" dir="ltr" style="color:#ff9a5c">${esc(p.email || '')}</a></small></div><button class="x" data-close>${IC.x}</button></div>`;

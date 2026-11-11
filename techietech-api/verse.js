@@ -1211,6 +1211,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     // דמויות: every character + his notes on any part of them, an ongoing tool (charnotes.js)
     if (String(op).startsWith('char')) { const r = await require('./charnotes').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
+    // only the marks of what he already saw (owner/seen) - the tabs that need nothing else from 'list' (דמויות, תוכניות)
+    if (op === 'seenMap') { const d = await db.collection('owner').doc('seen').get(); return res.json({ seen: d.exists ? d.data() : {} }); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);
       const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto, seen] = await Promise.all([
