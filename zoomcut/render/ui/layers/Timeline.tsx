@@ -13,6 +13,7 @@ import { tempoOf, paceK } from '../../src/layers/clock.js';
 import { tabProject } from '../common';
 import { viewLayer, characters, rowColors, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 import { groupOf, edgeOps, splitOps, removeOps, isTakeItem } from './group';
+import { pinned } from '../../src/layers/ops.js';
 
 export type Sel = { layer: string; item?: string } | null;
 
@@ -611,7 +612,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     if (f < 1 || f >= total) return;
     const ops: any[] = [{ op: 'project', set: { duration: f } }];
     for (const l of project.layers) for (const it of l.items || []) {
-      if (it.pin === 'end' || (it.pin === 'span' && it.from < f)) continue;
+      if (it.pin === 'end' || (pinned(it, total) && it.from < f)) continue;
       if (it.from >= f) ops.push({ op: 'item.remove', layer: l.id, id: it.id });
       else if (it.from + it.dur > f) ops.push({ op: 'item.update', layer: l.id, id: it.id, set: { dur: f - it.from } });
     }

@@ -67,10 +67,14 @@ One format, one composition, one editor, one export. The format and the API: `la
   scissors), copied and deleted together, Alt = one clip alone; `ui/layers/group.ts` (the ops), wired in Timeline.tsx
   (trimmer, splitHere / cutAt, copy / paste, toRow, Ctrl+K / + under the mouse) and LayersEditor.tsx (Delete). A
   group's own speed: `pace` (group.ts speedOps / projectSpeedOps; clock.js paceK; AudioTrack tightOf; layers_audio
-  track). layers.md -> "Clips, layers, groups".
+  track); a section at once: group.ts rangeSpeedOps (ONE stretch over the range - a dialogue's handles overlap the next
+  group, so group-by-group over-counted), used by the panel's "Same for every group after it" and `tools/pace.mjs`
+  (sessions; bundles group.ts with esbuild - node 18 has no TypeScript). A group's shot: group.ts shotOf / shotOps
+  (the panel's "Shot: Wide / Close"). layers.md -> "Clips, layers, groups".
 - **The properties panel - no windows inside it (his rule, 2026-11-11):** a clip's panel starts with its Group (what
   moves with it), Speed (project / its own), Starts / Length / From the source at, fades, Cut at playhead / Delete
-  group / Delete this clip only (inspect/controls.tsx `ClipTiming`, right under the head of every kind's panel); then
+  group / Delete this clip only (inspect/controls.tsx `ClipTiming`, right under the head of every kind's panel; a
+  group with a cut-out person and its background also gets Shot: Wide / Close); then
   the look / sound settings; the Layer section (name, shown, heard, locked, delete) at the bottom (`PanelEnd` ->
   `LayerState`). A "?" explains on hover. Tool windows that run a job (Keep things, eye contact) stay windows.
 - **Notes from the keyboard:** with the mouse over the layers, **+** opens a note right there; the ruler's buttons say

@@ -107,6 +107,7 @@ export function apply(project, ops) {
         if (!it.id) it.id = newId('i');
         if (itemOf(l, it.id)) throw new Error(`item "${it.id}" exists on "${l.id}"`);
         if (l.owner === 'builder' && op.user !== false) it.user = true;
+        if (it.link && it.pin) delete it.pin;  // (a clip of a group is never pinned - it moves with its group)
         const at = isNum(op.index) ? Math.max(0, Math.min(l.items.length, op.index)) : l.items.length;
         l.items.splice(at, 0, it);
         break;
@@ -127,6 +128,7 @@ export function apply(project, ops) {
         if (!it) throw new Error(`no item "${op.id}" on "${op.layer}"`);
         merge(it, op.set, ['box', 'anim', 'look']);
         if (l.owner === 'builder' && op.user !== false) it.user = true;
+        if (it.link && it.pin) delete it.pin;  // (a clip of a group is never pinned - it moves with its group)
         break;
       }
       case 'item.replace': { const l = need(op.layer); const i = l.items.findIndex((x) => x.id === op.item.id); if (i >= 0) l.items[i] = clone(op.item); break; }
@@ -138,12 +140,17 @@ export function apply(project, ops) {
   return p;
 }
 
-/** The length changed: "pin": "end" items keep their distance to the end, "span" ones still run to it
- * (the same rule as pipeline/project.py repin). */
+/** Does the video's length place this item? "end" = keeps its distance to the end; "span" = runs to the end - only
+ * while it still DOES reach it (a span clip shortened by hand keeps its own end: rosenblum-1-v3, 2026-11-11, a
+ * corridor background cut to 319 frames still had "span", and the next length change ran it over the shelter). */
+export const pinned = (it, duration) => it.pin === 'end' || (it.pin === 'span' && it.from + it.dur >= duration - 1);
+
+/** The length changed: the pinned items follow it (the same rule as pipeline/project.py repin). */
 function repin(p, before, after) {
   for (const l of p.layers || []) for (const it of l.items || []) {
+    if (!pinned(it, before)) continue;
     if (it.pin === 'end') { it.from = Math.max(0, it.from + after - before); it.dur = Math.max(1, Math.min(it.dur, after - it.from)); }
-    else if (it.pin === 'span') it.dur = Math.max(1, after - it.from);
+    else it.dur = Math.max(1, after - it.from);
   }
 }
 

@@ -7,7 +7,7 @@ import { Player, PlayerRef } from '@remotion/player';
 import { Layers } from '../../src/Layers';
 import { clockFrame, soundDiag, soundClock, soundJump } from '../../src/layers/AudioTrack';
 import { useLayered, build, fmtT } from './api';
-import { apply } from '../../src/layers/ops.js';
+import { apply, pinned } from '../../src/layers/ops.js';
 import { tempoOf } from '../../src/layers/clock.js';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
@@ -314,7 +314,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
       for (const ly of project.layers) for (const x of ly.items || []) {
         if (seen.has(ly.id + '|' + x.id)) continue;
         if (hidden(ly, x)) { ops.push({ op: 'item.remove', layer: ly.id, id: x.id }); continue; }
-        if (x.pin && side !== 'm') continue;  // (pinned to the end / spanning to it: the new length moves it - ops.js repin)
+        if (pinned(x, project.duration) && side !== 'm') continue;  // (pinned to the end / spanning to it: the new length moves it - ops.js repin)
         const after = side === 'r' ? x.from >= edge - 0.5 : x.from > edge;
         if (after) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { from: Math.max(0, x.from + shift) }, user: false });
         else if (x.from + x.dur > edge + 0.5) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { dur: Math.max(1, x.dur + shift) }, user: false });

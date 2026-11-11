@@ -45,6 +45,8 @@ def repin(items, old_dur, new_dur):
     """The length changed: items pinned to the end keep their distance to it, items that ran to the end still do."""
     d = new_dur - old_dur
     for it in items:
+        if it.get("pin") == "span" and it["from"] + it["dur"] < old_dur - 1:
+            continue  # (a span item shortened by hand keeps its own end - render/src/layers/ops.js pinned)
         if it.get("pin") == "end":
             it["from"] = max(0, it["from"] + d)
             it["dur"] = max(1, min(it["dur"], new_dur - it["from"]))

@@ -264,6 +264,17 @@ hear the last one after the picture moved on). Live like everything else - his d
     strip block - grows; a cut inside it keeps its place in the line; notes move with it). The clips show "1.2×". The
     project's speed changed later = such a group keeps its own (`projectSpeedOps`). Set it through the panel, or ops
     from `group.ts speedOps` - never `pace` by hand without the lengths;
+  - **a section at one speed** (his note "from X to the end at 1.25"): the panel's "Same for every group after it"
+    (under its own speed), or for a session `node tools/pace.mjs <ep> --from <s> --to <s|end> --pace <1.25|project>`
+    (`--dry` says what it would do, `--undo` takes the last one back; ZC_PORT for a test studio). Every group that
+    starts in the range gets the speed and the range stretches as ONE block (group.ts `rangeSpeedOps`) - music and
+    sounds of no group stretch / move, nothing before it moves. Tested on a copy of haredit-5-dialogue: 48 groups
+    1.25 -> 1.1, 3:45.57 -> 3:59.97 (the exact ratio), the strip still back to back, undo exact;
+  - **a group's shot - Wide / Close** (the panel, a group with a cut-out person and its background clip): Close =
+    the person clip `zoom` x1.2 and `y` +0.1, and ITS background clip's `box` x1.2 about the top centre with `blur`
+    +4 (the room comes closer with the person - the look he loved on rosenblum-1-v3-drama); the clips get `shot:
+    "close"` / `shot_wide` (the wide values, so Wide puts back exactly what was). Ops: group.ts `shotOps`. For film
+    cutting of a dialogue (close / wide alternating) set it per group - never pieces cut from one long background;
   - one Ctrl+Z undoes any of these.
 - **Preparing a project for him to edit himself** (his workflow from 2026-11-11: he drops videos, a session prepares the
   project - backgrounds, cut-outs, crops, voices, and the edit itself as good as it can - and he adjusts what isn't right;
@@ -274,12 +285,13 @@ hear the last one after the picture moved on). Live like everything else - his d
   SAME `from` / `dur` (and the voice from the same moment of the take), so the group stretches and cuts as one block.
   A character's layers share a `group` (the character's name), so a group moved to another character lands on that
   character's layers. **A clip in a group is never pinned** (`pin` is for whole-video items only: a music bed, an end
-  card). ops.js `repin` stretches a `span` clip to the new end whenever the length changes. On rosenblum-1-v3 a pinned
-  corridor background ran over the shelter after a length change, and he was angry (2026-11-11). A close / wide shot
-  in the dialogue format: each clip has its own background clip, so zoom the person clip (`zoom` / `y`) and set ITS
-  background clip's `box` (scaled about the top centre) and blur to match. Never cut one long background into pieces.
-  The background doesn't follow the person's zoom by itself (2026-11-11). A dialogue: `tools/to_dialogue.py` makes
-  all of it (its voices are trimmed to the words - the
+  card) - ops.js drops `pin` from any clip with a `link`. And a `span` clip follows the length only while it still
+  reaches the end (ops.js `pinned`; project.py repin the same): on rosenblum-1-v3 a corridor background cut to 319
+  frames kept `span` and the next length change ran it over the shelter - he was angry (fixed 2026-11-11). A close /
+  wide shot: the panel's Shot (above). A recording with sound in ONE ear (a phone that records its left channel only
+  - Omer's takes) is found by itself and played from that channel in both ears, full level, in the editor and the
+  export (`layers_audio.live_channel`, remembered in work/layers/audio/channels.json) - no copies needed. A dialogue:
+  `tools/to_dialogue.py` makes all of it (its voices are trimmed to the words - the
   edge rule above keeps them right). Check before handing over: every clip of a
   character has its background and voice with its link (`node -e` over project.json, or pick a clip in the editor - its
   group is outlined).
@@ -294,7 +306,8 @@ hear the last one after the picture moved on). Live like everything else - his d
 
 ### pin - when the video's length changes
 `"pin": "end"` - keeps its distance to the end (an end card). `"pin": "span"` - its end stays at the video's end
-(a hook shown the whole video).
+(a hook shown the whole video) - only while it still reaches the end: a `span` clip shortened by hand keeps its own end
+(ops.js `pinned`, 2026-11-11). A clip in a group (`link`) never keeps a pin - its group moves it.
 
 ## Changing a project: ops
 

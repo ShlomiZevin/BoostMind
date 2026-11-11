@@ -7,7 +7,7 @@
 // Pure helpers: the ops. Timeline.tsx / LayersEditor.tsx wire them to the mouse and the keys. Documented in
 // skill/edit-video/layers.md -> "Groups".
 import { tempoOf, paceK } from '../../src/layers/clock.js';
-import { apply } from '../../src/layers/ops.js';
+import { apply, pinned } from '../../src/layers/ops.js';
 
 export type Member = { layer: any; it: any };
 
@@ -98,12 +98,14 @@ export function removeOps(p: any, l: any, it: any, alone = false) {
 const membersOf = (p: any, l: any, it: any): Member[] => [{ layer: l, it }, ...groupOf(p, l, it)];
 export const paceOf = (it: any) => (it?.pace ? +it.pace : null);
 
-/** Time warped around one stretch [g0, E): before it the same, inside it scaled by k, after it moved by the difference. */
-function warpOps(p: any, members: Member[], k: number, rateK: number, pace: number | null) {
-  const g0 = Math.min(...members.map((m) => m.it.from)), E = Math.max(...members.map((m) => m.it.from + m.it.dur));
+/** Time warped around one stretch [g0, E): before it the same, inside it scaled by k, after it moved by the difference.
+ *  span: the stretch (default: from the members' first start to their last end); rateK: per member when the members
+ *  played at different speeds before. */
+function warpOps(p: any, members: Member[], k: number, rateK: number | ((m: Member) => number), pace: number | null, span?: [number, number]) {
+  const g0 = span ? span[0] : Math.min(...members.map((m) => m.it.from)), E = span ? span[1] : Math.max(...members.map((m) => m.it.from + m.it.dur));
   const d = Math.round((E - g0) * k) - (E - g0);
   const map = (b: number) => (b <= g0 ? b : b >= E ? b + d : Math.round(g0 + (b - g0) * k));
-  const mine = new Set(members.map((m) => `${m.layer.id}|${m.it.id}`));
+  const mine = new Map(members.map((m) => [`${m.layer.id}|${m.it.id}`, m]));
   // another group moves as a whole (by where it starts - its first clip that isn't a subtitle)
   const starts: Record<string, number> = {};
   for (const ly of p.layers || []) for (const x of ly.items || []) if (x.link && ly.kind !== 'subtitles' && ly.kind !== 'view')
@@ -111,13 +113,16 @@ function warpOps(p: any, members: Member[], k: number, rateK: number, pace: numb
   const ops: any[] = [];
   for (const ly of p.layers || []) for (const x of ly.items || []) {
     const a = x.from, b = x.from + x.dur;
-    if (mine.has(`${ly.id}|${x.id}`)) {
-      const set: any = { from: map(a), dur: Math.max(1, map(b) - map(a)), pace: pace ?? null };
-      if (ly.kind !== 'audio' && x.in != null && x.rate !== 0) { const r = +((x.rate ?? 1) * rateK).toFixed(5); set.rate = Math.abs(r - 1) < 1e-4 ? null : r; }
+    const m = mine.get(`${ly.id}|${x.id}`);
+    if (m) {
+      const rk = typeof rateK === 'function' ? rateK(m) : rateK;
+      // (a clip running past the stretch keeps its own content: its length x its own change)
+      const set: any = { from: map(a), dur: Math.max(1, b <= E ? map(b) - map(a) : Math.round((b - a) / rk)), pace: pace ?? null };
+      if (ly.kind !== 'audio' && x.in != null && x.rate !== 0) { const r = +((x.rate ?? 1) * rk).toFixed(5); set.rate = Math.abs(r - 1) < 1e-4 ? null : r; }
       ops.push({ op: 'item.update', layer: ly.id, id: x.id, set });
       continue;
     }
-    if (x.pin) continue;  // (an end card / a whole-video item: the new length places it - ops.js repin)
+    if (pinned(x, p.duration)) continue;  // (an end card / a whole-video item: the new length places it - ops.js repin)
     if (x.link && ly.kind !== 'view' && starts[x.link] != null && Number.isFinite(starts[x.link])) {
       const s = map(starts[x.link]) - starts[x.link];
       if (s) ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { from: Math.max(0, a + s) } });
@@ -137,6 +142,46 @@ export function speedOps(p: any, l: any, it: any, pace: number | null) {
   const cur = paceOf(it) ?? P, next = pace ?? P;
   if (Math.abs(cur - next) < 1e-4 && paceOf(it) === pace) return [];
   return warpOps(p, members, cur / next, next / cur, pace);
+}
+
+/** One speed for a whole section (his note on rosenblum-1-v3: "from 'שני טורים' to the end at 1.25 instead of the
+ *  project's 1.4"): every group that STARTS in [from, to) - and every lone video clip there - gets its own speed
+ *  (null = the project's again), and the section is stretched as ONE block: inside it everything scales, after it
+ *  everything moves by the difference. (Not group by group: a dialogue's clips have handles that overlap the next
+ *  group's, and each group stretching its own span counted the overlaps again - 48 groups of haredit-5 at 1.25 -> 1.1
+ *  came out 7.5 s too long.) Music, sounds and pictures of no group only move / stretch. {ops, groups, skipped}:
+ *  skipped = a builder's takes there (their builder re-plans them - no own speed). */
+export function rangeSpeedOps(p: any, from: number, to: number, pace: number | null) {
+  const seen = new Set<string>(), members: Member[] = [];
+  let skipped = 0, groups = 0;
+  const P = p.speed || 1, next = pace ?? P, was: Record<string, number> = {};
+  for (const ly of p.layers || []) {
+    if (ly.kind === 'view' || ly.kind === 'subtitles') continue;
+    for (const x of ly.items || []) {
+      if (!x.link && !(ly.kind === 'video' && x.in != null)) continue;  // (a lone clip: only footage - never a music bed)
+      if (!LEADS.has(ly.kind)) continue;
+      const key = x.link || `${ly.id}|${x.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (isTakeItem(ly, x)) { skipped++; continue; }
+      const ms = membersOf(p, ly, x);
+      const at = Math.min(...ms.filter((m) => m.layer.kind !== 'subtitles').map((m) => m.it.from));
+      if (at < from || at >= to) continue;
+      const cur = paceOf(x) ?? P;
+      if (Math.abs(cur - next) < 1e-4 && paceOf(x) === pace) continue;
+      groups++; members.push(...ms);
+      for (const m of ms) was[`${m.layer.id}|${m.it.id}`] = cur;
+      was[key] = cur;
+    }
+  }
+  if (!members.length) return { ops: [] as any[], groups: 0, skipped };
+  // the section's speed now: what most of its groups play at (the project's, unless they have their own)
+  const n: Record<string, number> = {};
+  for (const v of Object.values(was)) n[v] = (n[v] || 0) + 1;
+  const cur = +Object.entries(n).sort((a, b) => b[1] - a[1])[0][0];
+  const end = Math.min(to, p.duration);
+  const ops = warpOps(p, members, cur / next, (m) => next / (was[`${m.layer.id}|${m.it.id}`] ?? cur), pace, [from, Math.max(from + 1, end)]);
+  return { ops, groups, skipped };
 }
 
 /** The project's speed changed: every group with its own speed keeps it (its clips get longer / shorter on the
@@ -161,5 +206,47 @@ export function projectSpeedOps(p: any, speed: number) {
     }
   }
   ops.push({ op: 'project', set: { speed } });
+  return ops;
+}
+
+// ---- a group's shot: wide / close (film editing of a dialogue - his drama copy of rosenblum-1-v3, 2026-11-10, which
+// he loved: alternating close and wide cuts). Close = the person clip pushed in (zoom 1.2, head kept: y +0.1) and ITS
+// background clip pushed in with it (its box x1.2 about the top centre) and a bit softer (blur +4), so the room comes
+// closer with the person. Wide = both back exactly as they were (the background keeps its wide box in `shot_wide`).
+export const CLOSE = { zoom: 1.2, y: 0.1, blur: 4 };
+const isCutout = (ly: any, x: any) => ly.kind === 'video' && !!(x.cutout ?? ly.props?.cutout);
+const isBg = (ly: any, x: any) => (ly.kind === 'image' || (ly.kind === 'video' && !(x.cutout ?? ly.props?.cutout)))
+  && /\.bg$|(^|\W)bg(\W|$)|רקע/.test(`${ly.id} ${ly.name || ''}`) && !!(x.box || ly.props?.box);
+
+/** 'close' | 'wide' for a group with a person clip and its background, else null (no such control). */
+export function shotOf(p: any, l: any, it: any): 'close' | 'wide' | null {
+  const ms = membersOf(p, l, it);
+  const person = ms.find((m) => isCutout(m.layer, m.it));
+  if (!person || !ms.some((m) => isBg(m.layer, m.it)) || isTakeItem(person.layer, person.it)) return null;
+  return person.it.shot === 'close' ? 'close' : 'wide';
+}
+
+/** The ops that make a group's shot close / wide. [] when it already is. */
+export function shotOps(p: any, l: any, it: any, shot: 'close' | 'wide') {
+  if (!shotOf(p, l, it) || shotOf(p, l, it) === shot) return [];
+  const cx = (p.canvas?.w || 1080) / 2, Z = CLOSE.zoom, ops: any[] = [];
+  for (const { layer: ly, it: x } of membersOf(p, l, it)) {
+    if (isCutout(ly, x)) {
+      ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: shot === 'close'
+        ? { zoom: +((x.zoom ?? ly.props?.zoom ?? 1) * Z).toFixed(4), y: +((x.y ?? ly.props?.y ?? 0) + CLOSE.y).toFixed(4), shot: 'close', shot_wide: { zoom: x.zoom ?? null, y: x.y ?? null } }
+        : { zoom: x.shot_wide?.zoom ?? null, y: x.shot_wide?.y ?? null, shot: null, shot_wide: null } });
+    } else if (isBg(ly, x)) {
+      const b = x.box || ly.props.box;
+      if (shot === 'close') {
+        const box = { ...b, x: Math.round(cx + ((b.x ?? 0) - cx) * Z), y: Math.round((b.y ?? 0) * Z), w: Math.round(b.w * Z), ...(b.h != null ? { h: Math.round(b.h * Z) } : {}) };
+        ops.push({ op: 'item.update', layer: ly.id, id: x.id, set: { box, blur: +((x.blur ?? ly.props?.blur ?? 0) + CLOSE.blur).toFixed(2), shot_wide: { box: x.box ?? null, blur: x.blur ?? null } } });
+      } else {
+        const w = x.shot_wide;
+        const box = w ? w.box : { ...b, x: Math.round(cx + ((b.x ?? 0) - cx) / Z), y: Math.round((b.y ?? 0) / Z), w: Math.round(b.w / Z), ...(b.h != null ? { h: Math.round(b.h / Z) } : {}) };
+        ops.push({ op: 'item.replace', layer: ly.id, item: (() => { const n = { ...x, box }; if (box == null) delete n.box;
+          if (w ? w.blur == null : true) delete n.blur; else n.blur = w.blur; delete n.shot_wide; return n; })() });
+      }
+    }
+  }
   return ops;
 }

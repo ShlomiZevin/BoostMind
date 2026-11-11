@@ -34,15 +34,46 @@ def _write_float(path, x):
                  + b"data" + struct.pack("<I", len(b)) + b)
 
 
+def live_channel(ep, src):
+    """A recording heard in ONE ear only - a phone that records just its left channel (Omer's takes on rosenblum-1-v3,
+    2026-11-11: weak, and in one ear): the channel that has the sound (0 / 1), else None (mono, or both have it).
+    Measured once per file (its first minute) and remembered with its date in work/layers/audio/channels.json."""
+    import re
+    import subprocess
+    try:
+        st = os.stat(src)
+    except OSError:
+        return None
+    memo_p = ep.work("layers", "audio", "channels.json")
+    memo = load_json(memo_p, {}) if os.path.exists(memo_p) else {}
+    key = f"{os.path.normpath(src)}|{int(st.st_mtime)}|{st.st_size}"
+    if key in memo:
+        return memo[key]
+    r = subprocess.run([FFMPEG, "-v", "info", "-t", "60", "-i", src, "-vn", "-af", "astats=measure_overall=none:measure_perchannel=RMS_level",
+                        "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    rms = [float(x) if x not in ("-inf", "inf", "nan") else -200.0 for x in re.findall(r"RMS level dB: (\S+)", r.stderr)]
+    ch = None
+    if len(rms) == 2 and max(rms) > -60 and abs(rms[0] - rms[1]) > 30:  # (one side 30 dB+ under the other: not a mix)
+        ch = 0 if rms[0] > rms[1] else 1
+        log(f"  · {os.path.basename(src)}: sound in the {'left' if ch == 0 else 'right'} ear only - played from that channel in both ears")
+    memo[key] = ch
+    save_json(memo_p, memo)
+    return ch
+
+
 def _src(ep, project, aid):
-    """The asset's sound as 48 kHz mono wav (a take's own audio, or the file decoded once)."""
+    """The asset's sound as 48 kHz mono wav (a take's own audio, or the file decoded once). A recording with sound in one
+    ear only (live_channel) is read from that channel - not the two averaged, which halved it (-6 dB)."""
     a = project["assets"][aid]
-    if a.get("audio") and os.path.exists(ep.p(a["audio"])):
+    src = os.path.normpath(ep.p(a["src"])) if a.get("src") else None
+    ch = live_channel(ep, src) if src and os.path.exists(src) else None
+    if ch is None and a.get("audio") and os.path.exists(ep.p(a["audio"])):
         return ep.p(a["audio"])
-    src = os.path.normpath(ep.p(a["src"]))
-    out = ep.work("layers", "audio", f"{aid.replace('/', '_')}.{hashlib.sha1(src.encode()).hexdigest()[:8]}.wav")
+    tag = src if ch is None else f"{src}|c{ch}"
+    out = ep.work("layers", "audio", f"{aid.replace('/', '_')}.{hashlib.sha1(tag.encode()).hexdigest()[:8]}.wav")
     if not os.path.exists(out) or os.path.getmtime(out) < os.path.getmtime(src):
-        run([FFMPEG, "-y", "-v", "error", "-i", src, "-vn", "-ac", "1", "-ar", str(SR), out])
+        mono = ["-ac", "1"] if ch is None else ["-af", f"pan=mono|c0=c{ch}"]
+        run([FFMPEG, "-y", "-v", "error", "-i", src, "-vn", *mono, "-ar", str(SR), out])
     return out
 
 

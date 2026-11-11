@@ -486,14 +486,15 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   2. **"רק תענה" / "only answer" / "before you do" = answer in a line or two, change nothing.** "stop" = stop at once.
      Short answers when he asks short ("2/ simple?").
   3. **Change only what the note names.** A length change (a cut, a pace) re-stretched a `pin: "span"` corridor
-     background over the shelter background - "why did you change the shelter background?". After any length change:
-     every pinned clip checked (background clips: `pin: null`, explicit lengths ending where the next set starts), and
-     a still at every set boundary.
+     background over the shelter background - "why did you change the shelter background?". (Tool fixed 2026-11-11:
+     a `span` clip follows the length only while it still reaches the end, and a clip in a group never keeps a pin -
+     layers.md -> "pin".) Still: after any length change, a still at every set boundary.
   4. **Someone else's recordings (Omer's lines from his phone) - check the CHANNELS first** (`ffmpeg -af
      "astats=metadata=1"` per channel, or `channelsplit`): his were LEFT ONLY - half as loud and in one ear, which no
-     gain fixed (the editor plays it in one ear; the export averages to mono = 6 dB weaker; nothing detects it yet -
-     tool work). Copy the left channel to both sides (a new `.both.wav` in media; the original stays in
-     `Downloads\drop\<folder>` - tell him the folder when he asks where the files are). "Natural / as they came" =
+     gain fixed. **The studio detects it now (2026-11-11):** a recording with sound in one ear is played from that
+     channel in both ears, at full level, in the editor and the export (`pipeline/layers_audio.py live_channel` - no
+     `.both.wav` copies any more). The original stays in `Downloads\drop\<folder>` - tell him the folder when he asks
+     where the files are. "Natural / as they came" =
      `voice: false, clean: "off", level: "off"`, no tempo, no filters - cut at the words, in the right places. **Never
      time-stretch another person's voice to the project's pace** (`own_pace` / move it) - it smeared Omer. **Equal to
      Rosenblum = per-clip loudness** (EBU R128 of the clip's span vs the main voice's clips around it -> item `gain`),
@@ -504,8 +505,8 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      is heard ON the picture's hit (never before it), and the last frame = the ball full on his face. If a sound must be
      made: ElevenLabs (the studio key), several to pick from, and say which file you use before putting it in.
   6. **Another pace for a section** ("from 'שני טורים' to the end at 1.25"): a group's own speed (the panel's Speed -
-     layers.md -> "Clips, layers, groups"), one group at a time - no range select yet (`tools/pace.mjs --from --to
-     --pace` is offered as tool work, on his word). Never by hand (rates + the voice on its own row with `tempo`, as I
+     layers.md -> "Clips, layers, groups"): for a section, `node tools/pace.mjs <ep> --from <s> --to <s|end> --pace 1.25`
+     (one change, `--undo`; `--dry` first), or on the panel "Same for every group after it". Never by hand (rates + the voice on its own row with `tempo`, as I
      did): it leaves no `pace`, so the editor shows no speed there and a later project speed doesn't keep it.
   7. **His approved version is the copy's starting point:** "duplicate as it is now - it's very good - and do the magic
      on the copy". There is no Duplicate in the studio yet (tool work - a copy needs its own cloud identity); until then copy

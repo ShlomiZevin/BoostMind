@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { newId } from '../../../src/layers/ops.js';
 import { tempoOf } from '../../../src/layers/clock.js';
 import { helpFor, labelText } from './help';
-import { groupOf, splitOps as groupSplitOps, removeOps, isTakeItem, speedOps, paceOf } from '../group';
+import { groupOf, splitOps as groupSplitOps, removeOps, isTakeItem, speedOps, rangeSpeedOps, paceOf, shotOf, shotOps } from '../group';
 
 export type InspectorProps = {
   project: any; layer: any; item: any | null; urls: Record<string, string>;
@@ -347,7 +347,7 @@ export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P:
   const grouped = members.length > 0;
   const cut = take ? splitOps(layer, it, frame, fps) : !subs && !layer.locked ? groupSplitOps(project, layer, it, Math.round(frame))?.ops || null : null;
   const dur = it.dur / fps;
-  const P0 = project.speed || 1, pace = paceOf(it);
+  const P0 = project.speed || 1, pace = paceOf(it), shot = shotOf(project, layer, it);
   // what the group is made of, in words: "video + background + sound + 2 subtitles"
   const word = (l: any) => (l.kind === 'audio' ? 'sound' : l.kind === 'subtitles' ? 'subtitle'
     : l.kind === 'image' || (l.kind === 'video' && l.id.endsWith('.bg')) ? (/\.bg$|רקע/.test(`${l.id} ${l.name || ''}`) ? 'background' : 'picture') : l.kind);
@@ -360,7 +360,14 @@ export function ClipTiming({ P, source, speedCtl, fades = true, children }: { P:
     {!take && !subs && <Row label="Speed">
       <Seg options={[['p', `Project ${+P0.toFixed(2)}×`], ['o', 'Its own']]} value={pace ? 'o' : 'p'} onPick={(v) => setPace(v === 'p' ? null : pace || P0)} />
       {pace != null && <div style={{ marginTop: 6 }}><Num value={pace} step={0.05} min={0.25} max={4} unit="×" onCommit={(v) => setPace(+v.toFixed(2))} />
-        <div className="ins-cap">{grouped ? 'The whole group' : 'This clip'} plays at this speed, whatever the project's - voices keep their pitch</div></div>}
+        <div className="ins-cap">{grouped ? 'The whole group' : 'This clip'} plays at this speed, whatever the project's - voices keep their pitch</div>
+        <button className="btn" style={{ marginTop: 6 }} title="Every group from this one to the end of the video gets this speed (one change - Ctrl+Z takes it back)"
+          onClick={() => { const at = Math.min(it.from, ...members.filter((m) => m.layer.kind !== 'subtitles').map((m) => m.it.from));
+            const r = rangeSpeedOps(project, at, Infinity, pace); if (r.ops.length) send(r.ops, { label: 'speed' }); }}>Same for every group after it</button></div>}
+    </Row>}
+    {shot && <Row label="Shot">
+      <Seg options={[['wide', 'Wide'], ['close', 'Close']]} value={shot} onPick={(v) => { const ops = shotOps(project, layer, it, v as any); if (ops.length) send(ops, { label: 'shot' }); }} />
+      <div className="ins-cap">Close = the person and the background behind them come closer together</div>
     </Row>}
     <div className="ins-pair">
       <div><Time frames={it.from} fps={fps} onCommit={(f) => S.item({ from: f })} /><div className="ins-cap">Starts</div></div>
