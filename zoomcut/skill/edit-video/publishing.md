@@ -38,6 +38,12 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
    project.json `characters` (ops `{"op": "project", "set": {"characters": [...]}}`); check the chips in the window.
 3. Tell him the caption in the hand-over. He presses **Send**: an up-to-date full export goes out as is, otherwise
    the button exports first (a Quick / Test export is never published). A stale export can't be published.
+   **"Publish it" after he approved a file he already got (email / Telegram) = publish THAT file:**
+   `POST /api/ep/<id>/publish {platforms, caption, title, options, useLast: true}` - never export again first
+   (rosenblum-1-v3-drama, 2026-11-11: I started a full export before publishing - "Why did you export again? We had
+   the good version already, which was sent to my email"). `useLast` also passes when the project changed after it.
+   Then **send him the TikTok caption on Telegram** (two messages: a one-line header, then the caption alone so a
+   long-press copies exactly it) - the TikTok upload doesn't carry it.
 4. After it runs: the window and the Jobs history show each platform's result and link. Tell him what to do by hand:
    **Instagram → "Share to Facebook"** on the Reel, **TikTok → the video arrives as a notification in the app's Inbox
    ("ready to edit", not in Drafts) - tap it, paste the caption from Telegram, add a sound, post**.

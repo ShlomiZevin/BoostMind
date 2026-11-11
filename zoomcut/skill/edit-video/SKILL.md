@@ -478,6 +478,47 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   standing man, looking up: ceiling lights and the top of the walls fill most of the frame"), then place and zoom it so
   the horizon and the scale match his body. Check a still of EVERY set with him on it (big and phone-size) before
   handing over; a frame where he looks pasted on = not done.
+- **Finishing rosenblum-1-v3 - a full day of notes (2026-11-10/11; "It's already full day I'm wasting on it").** What
+  cost the rounds, so the next video doesn't:
+  1. **Which project.** He had v3, a thriller copy and a drama copy open; "you are working on a copy of 3, not the final
+     version". Work on the project he names; read the notes of EVERY project he mentions ("look at the note on the
+     previous video"); a copy only when he asks for one.
+  2. **"רק תענה" / "only answer" / "before you do" = answer in a line or two, change nothing.** "stop" = stop at once.
+     Short answers when he asks short ("2/ simple?").
+  3. **Change only what the note names.** A length change (a cut, a pace) re-stretched a `pin: "span"` corridor
+     background over the shelter background - "why did you change the shelter background?". After any length change:
+     every pinned clip checked (background clips: `pin: null`, explicit lengths ending where the next set starts), and
+     a still at every set boundary.
+  4. **Someone else's recordings (Omer's lines from his phone) - check the CHANNELS first** (`ffmpeg -af
+     "astats=metadata=1"` per channel, or `channelsplit`): his were LEFT ONLY - half as loud and in one ear, which no
+     gain fixed (the editor plays it in one ear; the export averages to mono = 6 dB weaker; nothing detects it yet -
+     tool work). Copy the left channel to both sides (a new `.both.wav` in media; the original stays in
+     `Downloads\drop\<folder>` - tell him the folder when he asks where the files are). "Natural / as they came" =
+     `voice: false, clean: "off", level: "off"`, no tempo, no filters - cut at the words, in the right places. **Never
+     time-stretch another person's voice to the project's pace** (`own_pace` / move it) - it smeared Omer. **Equal to
+     Rosenblum = per-clip loudness** (EBU R128 of the clip's span vs the main voice's clips around it -> item `gain`),
+     never by ear. He then approved Omer at Rosenblum's level with Rosenblum's own voice chain: "do the same for all".
+  5. **The ending he made with AI (the ball to the face)** = his file from Downloads, byte for byte: its picture and
+     its OWN sound, untouched, on its own sound row so he slides it himself ("dont do anything to this video sound").
+     No ball PNG over it, no generated cartoon hits (all rejected - "terrible"), no kids laughing over the end. The hit
+     is heard ON the picture's hit (never before it), and the last frame = the ball full on his face. If a sound must be
+     made: ElevenLabs (the studio key), several to pick from, and say which file you use before putting it in.
+  6. **Another pace for a section** ("from 'שני טורים' to the end at 1.25"): a group's own speed (the panel's Speed -
+     layers.md -> "Clips, layers, groups"), one group at a time - no range select yet (`tools/pace.mjs --from --to
+     --pace` is offered as tool work, on his word). Never by hand (rates + the voice on its own row with `tempo`, as I
+     did): it leaves no `pace`, so the editor shows no speed there and a later project speed doesn't keep it.
+  7. **His approved version is the copy's starting point:** "duplicate as it is now - it's very good - and do the magic
+     on the copy". There is no Duplicate in the studio yet (tool work - a copy needs its own cloud identity); until then copy
+     project.json + episode.json and hard-link only `public/` and the takes' audio / mattes, as `tools/to_dialogue.py`
+     does - never `work/layers`, `work/notes`, `work/history`, `out` (hard-linking thousands of layer PNGs hangs).
+  8. **The "Netflix thriller" pass (he loved it and published it as rosenblum-1-v3-drama), all as layers he can
+     change:** effect layers over the picture and under the texts - `grade` 0.6, `vignette` 0.4, `drift` 0.3; **no
+     grain, no blur** ("dont do blur or dots"); close / wide alternating on the cuts (close = `zoom` 1.2, `y` 0.1 - top
+     anchored, his head stays in); **the background goes close with him** - in the dialogue format each clip has its
+     own background clip (same `link`): scale that clip 1.2 about the same point (top centre) and a little softer; never
+     pieces cut out of one long background (v3 wasn't in that format, so I cut 35 by hand) (a close-up's shallow focus), so the angle changes with
+     the shot ("when you change between close and far, also change the background"); backgrounds that move faster
+     ("תזזיתי") = their `anim`.
 - **The set must be where the camera really is** (adam-1, 2026-11-08 - "it's not realistic, he is sitting in front of
   the table so you can't see the table behind him... it happens a lot"): a person sitting at a desk / meeting table is
   filmed from ACROSS the table, so behind him there is only what is behind his seat - a wall, a window, his chair's
