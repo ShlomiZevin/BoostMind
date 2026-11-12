@@ -118,8 +118,13 @@ Firebase console -> Realtime Database -> Usage. First games: the meetings hub's 
 bash scripts/deploy.sh
 ```
 
-One step, about 20 seconds: it pulls Hani's games from live first (they are released from another machine -
-`scripts/hani_games_pull.py`, downloads only what changed), deploys hosting, and checks the games' no-cache header.
-Never run a bare `firebase deploy --only hosting` here - it can put old game files back.
+One step. Before every hosting deploy - this script or a bare `firebase deploy --only hosting`, either computer -
+`firebase.json` "predeploy" runs two guards: `scripts/hani_games_pull.py` (Hani's games are released from another
+machine straight onto live) and `scripts/site_files_guard.py`. **The site files git never holds** (the repo is public:
+his face as the characters, their videos, game sounds) are backed up to `gs://shlomiverse-private/site-files/`, any the
+deploying computer lacks are brought from live / the backup, and the deploy STOPS if it would still take more than 15
+files off the live site (2026-11-12: a deploy from the other computer dropped ~850 files - אופנת חני, the links page,
+every site's portraits). A clean-up on purpose: `SITE_DELETE_OK=1`. A git-ignored file deleted for real = delete it here
+AND in the backup bucket.
 
 Other sessions deploy this same folder, so a draft waiting for Shlomi's approval stays out of `public/`.

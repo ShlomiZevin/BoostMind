@@ -4,7 +4,12 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "wiki/v/**"
+    ],
+    "predeploy": [
+      "python scripts/hani_games_pull.py",
+      "python scripts/site_files_guard.py"
     ],
     "redirects": [
       { "source": "/c/neve-dugi{,/**}", "destination": "/c/neve-tzafoni", "type": 301 },
