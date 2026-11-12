@@ -48,8 +48,9 @@ export const I = {
 // the page loader (round 4, his note 2026-11-07): the official logo still, a breathing glow, a line drawing itself - all CSS
 // (verse.css .vx-loader); the wiki router shows the same one while this layer is still on its way
 export const loader = () => `<div class="vx-loader" role="status" aria-label="${T.loading}" data-say="${T.loading}"></div>`;
-// the like / stamp: the real logo, grey until it's theirs, lit up orange when it is (verse.css .lk)
-export const LIKE = '<img class="lk" src="/verse/logo-160.png" alt="" draggable="false">';
+// the like / stamp: the Shlomiverse's planet (the one the guide thinks with) - plain until it's theirs, lit up orange
+// with its glow when it is (his ask 2026-11-12; verse.css .lk)
+export const LIKE = `<span class="lk" aria-hidden="true">${I.planet}</span>`;
 export const $ = (q, el = document) => el.querySelector(q);
 export const $$ = (q, el = document) => [...el.querySelectorAll(q)];
 // links inside text someone wrote (already escaped): http(s)://..., www...., or one of his own addresses without the
@@ -77,7 +78,7 @@ export const abs = (p) => (!p ? '' : /^(https?:|\/)/.test(p) ? p : '/wiki/' + p)
 
 // a face: a character's portrait, a fan's Google photo or their initial, or the planet for the Shlomiverse itself
 export function av({ char, fan, planet, ring, cls = '' } = {}) {
-  if (planet) return `<span class="vx-av planet ${cls}">${I.planet}</span>`;
+  if (planet || (fan && fan.official)) return `<span class="vx-av planet ${cls}">${I.planet}</span>`;   // the Shlomiverse answering = its planet
   if (char) {
     const c = C[char];
     const img = c && c.img ? `<img src="${abs(c.img)}" alt="${esc(c.name)}" loading="lazy">` : `<span style="color:${charColor(char)}">${esc((c?.name || '?')[0])}</span>`;

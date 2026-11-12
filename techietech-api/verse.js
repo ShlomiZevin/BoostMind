@@ -655,7 +655,7 @@ const ops = {
 async function request(d, auth, ip) {
   if (!auth?.token?.email) fail('unauthenticated', 'sign_in');
   if (burst('r' + ip, 4, 3600e3)) fail('resource-exhausted', 'slow_down');
-  const kind = ['video', 'business', 'bug'].includes(d.kind) ? d.kind : 'contact';
+  const kind = ['video', 'business', 'bug', 'personal'].includes(d.kind) ? d.kind : 'contact';
   const text = clip(String(d.text || '').trim(), 3000);
   if (text.length < 3) fail('invalid-argument', 'empty');
   const contact = oneLine(d.contact, 160) || auth.token.email;
@@ -666,6 +666,10 @@ async function request(d, auth, ip) {
   if (kind === 'bug') Object.assign(doc, { page: oneLine(d.page, 300), ua: oneLine(d.ua, 300), screen: oneLine(d.screen, 20),
     errors: (Array.isArray(d.errors) ? d.errors : []).slice(0, 5).map((x) => oneLine(x, 200)) });
   if (['video', 'contact'].includes(kind)) doc.from = d.from === 'community' ? 'community' : 'chat';
+  // a personal video (his ask 2026-11-12, the community page): which character, for whom, what event, when - the text is
+  // everything they told about that person. The Shlomiverse makes an effort, no promise.
+  if (kind === 'personal') Object.assign(doc, { from: 'community', char: oneLine(d.char, 40), forWho: oneLine(d.forWho, 80), event: oneLine(d.event, 80),
+    date: /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || '')) ? String(d.date) : null });
   if (auth?.uid) doc.nick = ((await db.collection('fans').doc(auth.uid).get()).data() || {}).nick || null;
   const ref = await db.collection('requests').add(doc);
   // the person hears back right away (mailer.js), from the Shlomiverse
@@ -673,10 +677,12 @@ async function request(d, auth, ip) {
   require('./mailer').reply('verse-' + kind, { email: back, name: doc.name || auth.token.name || doc.nick || '', uid: auth.uid }).catch(() => {});
   const subject = kind === 'bug' ? `שלומיוורס | משהו לא עובד${doc.nick ? ' · ' + doc.nick : ''}`
     : kind === 'business' ? `שלומיוורס | שיתוף פעולה · ${doc.company || doc.name || 'עסק'}${doc.topic ? ' · ' + doc.topic : ''}`
-    : kind === 'video' ? `שלומיוורס | מחפשים סרטון${doc.nick ? ' · ' + doc.nick : ''}` : `שלומיוורס | פנייה${doc.nick ? ' · ' + doc.nick : ''}`;
-  const where = kind === 'bug' ? 'דיווח תקלה' : kind === 'business' ? 'מטופס העסקים' : d.from === 'community' ? 'מעמוד הקהילה' : 'דרך המדריך בצ׳אט';
+    : kind === 'video' ? `שלומיוורס | מחפשים סרטון${doc.nick ? ' · ' + doc.nick : ''}`
+    : kind === 'personal' ? `שלומיוורס | סרטון אישי · ${doc.event || 'אירוע'}${doc.forWho ? ' ל' + doc.forWho : ''}${doc.date ? ' · ' + doc.date : ''}` : `שלומיוורס | פנייה${doc.nick ? ' · ' + doc.nick : ''}`;
+  const where = kind === 'bug' ? 'דיווח תקלה' : kind === 'business' ? 'מטופס העסקים' : kind === 'personal' ? 'סרטון אישי, מעמוד הקהילה' : d.from === 'community' ? 'מעמוד הקהילה' : 'דרך המדריך בצ׳אט';
   const body = [...(kind === 'bug' ? [`${doc.page}`, `${doc.ua} · ${doc.screen}`, ...(doc.errors.length ? ['שגיאות: ' + doc.errors.join(' | ')] : []), ''] : []),
-    ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
+    ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, ''] : []),
+    ...(kind === 'personal' ? [`דמות: ${doc.char || '-'} · עבור: ${doc.forWho || '-'} · אירוע: ${doc.event || '-'} · תאריך: ${doc.date || '-'}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
     `חשבון Google: ${doc.email}${doc.nick ? ` · בשלומיוורס: ${doc.nick}` : ''}`, '', `${where} · ${new Date().toISOString()} · ${ref.id}`].join('\n');
   // a business inquiry also reaches him as a Mind task, waiting for him (his ask 2026-11-10: "a form I get a notification on")
   if (kind === 'business' && !LOCAL) {
@@ -685,6 +691,14 @@ async function request(d, auth, ip) {
       const it = await addItem({ text: `פנייה עסקית: ${doc.company || doc.name || contact}${doc.topic ? ' · ' + doc.topic : ''}`, body, type: 'task', project: 'BoostMind', tags: ['business'] }, 'פנייה עסקית');
       await updateItem(it.id, { status: 'waiting', note: `${doc.name || ''} ${doc.company ? '(' + doc.company + ')' : ''} - ${contact}`.trim() }, 'פנייה עסקית');
     } catch (e) { console.error('business -> mind', e.message); }
+  }
+  // a personal video too: it has a date, so it reaches him as a Mind task with the date in its name
+  if (kind === 'personal' && !LOCAL) {
+    try {
+      const { addItem, updateItem } = require('./mind')._mind;
+      const it = await addItem({ text: `סרטון אישי: ${doc.event || 'אירוע'}${doc.forWho ? ' ל' + doc.forWho : ''}${doc.char ? ' · ' + doc.char : ''}${doc.date ? ' · ' + doc.date : ''}`, body, type: 'task', project: 'BoostMind', tags: ['personal-video'] }, 'סרטון אישי');
+      await updateItem(it.id, { status: 'waiting', note: `${doc.nick || ''} - ${contact}`.trim() }, 'סרטון אישי');
+    } catch (e) { console.error('personal -> mind', e.message); }
   }
   if (LOCAL) console.log('[local] request mail not sent:', subject, '\n' + body);
   else {

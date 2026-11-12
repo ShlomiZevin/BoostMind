@@ -1518,7 +1518,7 @@ const ANSWER = (c) => (typeof c.usd === 'number' ? c.usd : Array.isArray(c.u) ? 
 let avgAnswer = 0.024;
 
 // ---------- סקירה: status at a glance ----------
-const RQ = { site: ['מהאתרים', 'wh', '#7fb4ff'], business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
+const RQ = { site: ['מהאתרים', 'wh', '#7fb4ff'], business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], personal: ['סרטון אישי', 'or', '#ffb36b'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
 const SITES = { archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
 const whoOf = (r) => r.name || r.nick || (r.contact && !/\d{6}/.test(r.contact) ? r.contact.split('@')[0] : '') || 'צופה';
 // time on the site: each visit's length in buckets (the track function's TIME_EDGES), the seconds and the visits per day
@@ -2172,7 +2172,7 @@ function requests() {
   const all = L.requests.slice().sort((a, b) => (a.done - b.done) || ((b.t || 0) - (a.t || 0)));
   const count = (k) => all.filter((r) => !r.done && (k === 'all' || r.kind === k)).length;
   const q = rqQuery.trim().toLowerCase();
-  const list = all.filter((r) => (rqKind === 'all' || r.kind === rqKind) && (!q || [r.text, r.name, r.company, r.contact, r.nick, r.siteName, r.choice, r.email].join(' ').toLowerCase().includes(q)));
+  const list = all.filter((r) => (rqKind === 'all' || r.kind === rqKind) && (!q || [r.text, r.name, r.company, r.contact, r.nick, r.siteName, r.choice, r.email, r.forWho, r.event, r.char].join(' ').toLowerCase().includes(q)));
   $('#pane').innerHTML = `
     <div class="top"><div><h1>פניות</h1><p>כל מה שהגיע אליך, לפי סוג. הפתוחות קודם.</p></div>
       <label class="search">${IC.search}<input id="rq-q" placeholder="חיפוש בפניות" value="${esc(rqQuery)}"></label></div>
@@ -2180,6 +2180,7 @@ function requests() {
     <div class="msgs">${list.map((r) => { const [l, cls, color] = RQ[r.kind] || RQ.contact; return `<div class="msg ${r.done ? 'done' : ''}" style="--k:${color}">${ini(whoOf(r))}
       <div class="body"><div class="l1"><div class="who"><b>${esc(whoOf(r))}</b><small>${ago(r.t)}${r.kind === 'site' ? ` · ${esc(r.siteName || SITES[r.site] || r.site)}` : r.from === 'community' ? ' · מעמוד הקהילה' : r.from === 'chat' ? ' · מהצ׳אט' : r.kind === 'business' ? ' · מעמוד העסקים' : ''}</small></div><span class="tag ${cls}">${l}</span></div>
         ${r.kind === 'business' && (r.company || r.topic) ? `<div class="co">${esc(r.company || '')}${r.topic ? ` · ${esc(r.topic)}` : ''}</div>` : ''}
+        ${r.kind === 'personal' ? `<div class="co">${esc(r.event || 'אירוע')}${r.forWho ? ` ל${esc(r.forWho)}` : ''}${r.char ? ` · ${esc(r.char)}` : ''}${r.date ? ` · ${esc(r.date.split('-').reverse().join('.'))}` : ''}</div>` : ''}
         ${r.kind === 'site' && (r.choice || r.when) ? `<div class="co">${esc(r.choice || '')}${r.when ? ` · ${esc(r.when)}` : ''}</div>` : ''}
         ${r.text ? `<p class="txt">${esc(r.text)}</p>` : ''}${r.phone ? `<div class="pills">${contactPills(r.phone)}</div>` : ''}${r.email && r.email !== r.contact ? `<div class="pills">${contactPills(r.email)}</div>` : ''}
         ${r.kind === 'bug' ? `<div class="tech">${r.page ? `<a href="${esc(r.page)}" target="_blank">${esc(r.page)}</a><br>` : ''}${esc(r.screen || '')} · ${esc(r.ua || '')}${(r.errors || []).length ? `<br>${r.errors.map(esc).join(' | ')}` : ''}</div>` : ''}

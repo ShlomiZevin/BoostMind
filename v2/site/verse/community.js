@@ -37,7 +37,7 @@ function ideaCard(x) {
     <div class="idea-body"><div class="idea-by">${av({ fan: x })}<span>${esc(x.nick || '')}</span>${ofc(x)}${x.t ? `<small>${ago(x.t)}</small>` : ''}</div>
       <p>${esc(x.text)}</p>
       ${stepBadge(x)}
-      ${x.reply?.text ? `<div class="idea-reply"><img src="/verse/logo-160.png" alt=""><span><b>${esc(T.ideaReplyBy)}</b>${esc(x.reply.text)}</span></div>` : ''}
+      ${x.reply?.text ? `<div class="idea-reply">${av({ planet: true })}<span><b>${esc(T.ideaReplyBy)}</b>${esc(x.reply.text)}</span></div>` : ''}
       <div class="idea-foot">${T.ideaKinds[x.kind] && x.kind !== 'other' ? `<span class="idea-kind">${esc(T.ideaKinds[x.kind])}</span>` : '<span></span>'}
         <span class="idea-acts"><button class="vote ${on ? 'on' : ''}" data-vote="${x.id}" aria-label="+1">${LIKE}<b dir="ltr">${x.votes ? x.votes : '+1'}</b></button>
         <button class="icon-btn" data-share-idea="${x.id}" aria-label="${esc(T.ideaShare)}">${I.share}</button></span></div></div></div>`;
@@ -61,14 +61,16 @@ export function communityPage(q = {}) {
   return `<div class="cmy">
     <section class="cmy-hero"><div class="cmy-faces">${top.map((c) => `<img src="${esc(c.img)}" alt="${esc(c.name)}">`).join('')}</div>
       <h1>${esc(T.cmTitle)}</h1><p>${esc(T.cmSub)}</p></section>
+    <section class="cmy-band cx-band">
+      <div class="cmy-ideas-h"><div><h2>${esc(T.cmDo)}</h2><p>${esc(T.cmDoSub)}</p></div></div>
+      <div class="cxg">${['personal', 'sticker', 'pack', 'chat', 'request', 'bug'].map((k) => cxCard(k, cxArt())).join('')}</div>
+    </section>
     <section class="cmy-ideas">
-      <div class="cmy-ideas-h"><div><h2>${esc(T.ideasTitle)}</h2><p>${esc(T.ideasSub)}</p></div><button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
+      <div class="cmy-ideas-h"><div><h2>${brand(T.ideasTitle)}</h2><p>${esc(T.ideasSub)}</p></div><button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
       <div class="chips nt-chips"><button class="chip ${sort === 'top' ? 'on' : ''}" data-idea-sort="top">${esc(T.ideasTop)}</button><button class="chip ${sort === 'new' ? 'on' : ''}" data-idea-sort="new">${esc(T.ideasNew)}</button></div>
       <div class="ideas">${list.length ? list.map(ideaCard).join('') : `<div class="empty">${esc(T.ideasEmpty)}</div>`}</div>
     </section>
-    <div class="cando cmy-st">${stickerTiles()}</div>
-    ${tiles()}
-    <a class="cmy-biz" href="/business"><div><h3>${esc(T.bizCard)}</h3><p>${esc(T.bizCardSub)}</p><span class="vx-pill">${esc(T.bizCta)}</span></div><img src="/verse/logo-512.png" alt=""></a>
+    ${bizStrip()}
   </div>`;
 }
 const tiles = () => `<div class="cmy-tiles">
@@ -100,8 +102,8 @@ function stickerTiles() {
 // B1 desktop, B3 / B4 phone). ONE card for all seven - its icon, title, line and picture always in the same places: a computer =
 // 4 columns (the sticker card wide), a phone = the sticker card full width + 2 columns. Then the ideas row, then a real strip
 // that sells advertising (-> /business, its form reaches him).
-export function homeBand() {
-  const top = ideas[0];
+// the cards' pictures - one place for the home band and the community page
+function cxArt() {
   const faces = storyFaces();
   const withImg = W.characters.filter((c) => c.img && !['savta'].includes(c.id));
   const face = (c) => (c ? `<img class="cx-round" src="${esc(abs(c.img))}" alt="" loading="lazy">` : '');
@@ -116,23 +118,34 @@ export function homeBand() {
     stories: faces.length === 1 ? `<img class="cx-round" src="${esc(faces[0].img)}" alt="">` : faces.length ? `<span class="cx-rings">${faces.slice(0, 3).map((f) => `<img src="${esc(f.img)}" alt="">`).join('')}</span>` : face(withImg[2]),
     games: game ? `<img class="cx-cover" src="${esc(abs(game.img))}" alt="" loading="lazy">` : '',
     sites: site ? `<img class="cx-cover" src="${esc(abs(site.img))}" alt="" loading="lazy">` : '',
+    // a personal video: three faces of who could send it; a video request: the newest video's poster
+    personal: `<span class="cx-rings">${withImg.slice(0, 3).map((c) => `<img src="${esc(abs(c.img))}" alt="">`).join('')}</span>`,
+    request: (() => { const v = (W.videos || []).find((x) => x.poster && !x.url); return v ? `<img class="cx-cover" src="${esc(abs(v.poster))}" alt="" loading="lazy">` : ''; })(),
+    bug: '',
   };
-  const ICON = { sticker: I.sticker, pack: I.sticker, chat: I.comment, follow: I.bell, stories: I.play, games: I.game, sites: I.bag };
-  const card = (key) => `<button class="cx-t${key === 'sticker' ? ' big' : ''}" data-do="${key}"><span class="cx-ic">${ICON[key]}</span>
+  return art;
+}
+const CX_ICON = { sticker: I.sticker, pack: I.sticker, chat: I.comment, follow: I.bell, stories: I.play, games: I.game, sites: I.bag, personal: I.camera, request: I.play, bug: I.bug };
+const cxCard = (key, art) => `<button class="cx-t${key === 'sticker' || key === 'personal' ? ' big' : ''}" data-do="${key}"><span class="cx-ic">${CX_ICON[key]}</span>
       <span class="cx-txt"><b>${esc(T.can[key][0])}</b><small>${esc(T.can[key][1])}</small></span><span class="cx-art">${art[key]}</span></button>`;
-  return `<section class="cmy-band cx-band">
-    <div class="cmy-ideas-h"><div><h2>${brand(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
-    <div class="cxg">${['sticker', 'pack', 'chat', 'follow', 'stories', 'games', 'sites'].map(card).join('')}</div>
-    <div class="cx-idea${top ? '' : ' solo'}"><div class="cx-idea-h"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div>
-      <button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
-      ${top ? ideaLine(top) : ''}</div>
-    <button class="cx-biz" data-biz>
+// the business strip (his asks 2026-11-10) - the home band's and the community page's
+const bizStrip = () => `<button class="cx-biz" data-biz>
       <span class="cx-biz-art" aria-hidden="true"><span class="cx-slides">
         <img class="sl on" src="/verse/art/biz-media-a.jpg?v=4" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-fan.jpg?v=1" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-hand.jpg?v=1" alt="" loading="lazy"><img class="sl" src="/verse/art/biz-media.jpg?v=3" alt="" loading="lazy">
       </span><span class="cx-dots"><i class="on"></i><i></i><i></i><i></i></span></span>
       <span class="cx-biz-txt"><em>${esc(T.biz2.tag)}</em><b>${brand(T.biz2.title)}</b><small>${esc(T.biz2.line)}</small>
         <span class="cx-biz-row"><span class="vx-btn main">${esc(T.biz2.cta)}</span>
-          <span class="cx-chips">${T.biz2.chips.map((c, i) => `<span>${[I.planet, I.play, I.people][i]}${esc(c)}</span>`).join('')}</span></span></span></button>
+          <span class="cx-chips">${T.biz2.chips.map((c, i) => `<span>${[I.planet, I.play, I.people][i]}${esc(c)}</span>`).join('')}</span></span></span></button>`;
+export function homeBand() {
+  const top = ideas[0];
+  const art = cxArt();
+  return `<section class="cmy-band cx-band">
+    <div class="cmy-ideas-h"><div><h2>${brand(T.ideasTitle)}</h2><p>${esc(T.canSub)}</p></div></div>
+    <div class="cxg">${['sticker', 'pack', 'chat', 'follow', 'stories', 'games', 'sites'].map((k) => cxCard(k, art)).join('')}</div>
+    <div class="cx-idea${top ? '' : ' solo'}"><div class="cx-idea-h"><div><b>${esc(T.canIdea)}</b><small>${esc(T.canIdeaSub)}</small></div>
+      <button class="vx-btn main" data-idea-new>${I.plus}${esc(T.ideaCta)}</button></div>
+      ${top ? ideaLine(top) : ''}</div>
+    ${bizStrip()}
   </section>`;
 }
 // a tile: straight to the thing (the sticker one opens a video with the sticker button pointed out)
@@ -148,6 +161,9 @@ function canDo(key, faces) {
   else if (key === 'stories') nav(faces.length ? '/story/' + faces[0].id : '/characters');
   else if (key === 'games') nav('/games');   // every character's games (Hani's playhouse is one of them)
   else if (key === 'sites') nav('/sites');
+  else if (key === 'personal') personalSheet();
+  else if (key === 'request') formSheet('video');
+  else if (key === 'bug') formSheet('bug');
 }
 
 // ---------- the ready sticker pack: a grid; a tap -> (an account) -> the "add to WhatsApp" window ----------
@@ -302,6 +318,45 @@ async function vote(b) {
   emit();
   track('vote', on ? 'on' : 'off');
   call('vote', { ideaId: id, on }).catch(() => toast(T.errGeneric));
+}
+
+// ---------- a personal video (his ask 2026-11-12): a character, for whom, what event, when, and everything about that person ----------
+function personalSheet() {
+  const chars = W.characters.filter((c) => c.img).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0));
+  let pick = '';
+  const today = new Date().toISOString().slice(0, 10);
+  const h = sheet(`<form class="rqs pv"><h2 class="vx-h">${esc(T.pv.title)}</h2><p class="vx-sub">${esc(T.pv.sub)}</p>
+      <b class="pv-l">${esc(T.pv.who)}</b>
+      <div class="pv-chars">${chars.map((c) => `<button type="button" data-pv="${esc(c.id)}"><img src="${esc(abs(c.img))}" alt="" loading="lazy"><span>${esc(c.name)}</span></button>`).join('')}</div>
+      <b class="pv-l">${esc(T.pv.forWho)}</b><input name="forWho" maxlength="80" required>
+      <b class="pv-l">${esc(T.pv.event)}</b>
+      <div class="pv-ev">${T.pv.events.map((e) => `<button type="button" class="chip" data-pv-ev="${esc(e)}">${esc(e)}</button>`).join('')}</div>
+      <input name="event" maxlength="80" required>
+      <b class="pv-l">${esc(T.pv.date)}</b><input name="date" type="date" min="${today}" required>
+      <textarea name="text" maxlength="3000" required placeholder="${esc(T.pv.ph)}"></textarea>
+      <input name="contact" maxlength="160" placeholder="${esc(T.reqContact)}">
+      <p class="rqs-note">${esc(T.pv.note)}</p>
+      <button class="vx-btn main block" type="submit">${esc(T.pv.send)}</button></form>`, { cls: 'rqs-sheet' });
+  const f = h.el.querySelector('form');
+  f.onclick = (e) => {
+    const c = e.target.closest('[data-pv]'), ev = e.target.closest('[data-pv-ev]');
+    if (c) { pick = c.dataset.pv; f.querySelectorAll('[data-pv]').forEach((b) => b.classList.toggle('on', b === c)); }
+    if (ev) { f.event.value = ev.dataset.pvEv; f.querySelectorAll('[data-pv-ev]').forEach((b) => b.classList.toggle('on', b === ev)); }
+  };
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    if (!pick) { toast(T.pv.needChar); f.querySelector('.pv-chars').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    const text = f.text.value.trim();
+    if (text.length < 3) return;
+    if (!(await needFan('contact'))) return;   // sending anything needs an account (his rule, 2026-11-01)
+    const btn = f.querySelector('button[type=submit]');
+    btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
+    try {
+      await call('request', { kind: 'personal', text, char: C[pick]?.name || pick, forWho: f.forWho.value.trim(), event: f.event.value.trim(), date: f.date.value, contact: f.contact.value.trim() });
+      track('request', 'personal');
+      f.innerHTML = `<div class="rqs-done">${I.check}<h2 class="vx-h">${esc(T.pv.done)}</h2><p class="vx-sub">${esc(T.pv.doneSub)}</p></div>`;
+    } catch (err) { btn.disabled = false; btn.textContent = T.pv.send; toast(err.code === 'slow_down' ? T.cmSlow : T.errGeneric); }
+  };
 }
 
 // ---------- the small forms: ask for a video, something isn't working ----------
