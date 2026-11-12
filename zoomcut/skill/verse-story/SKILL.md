@@ -124,6 +124,12 @@ they tap it).
 For a story that is up, `"media": {"url": "...", "kind": "image"}` instead of `file` (the preview needs the picture).
 `char` = a character id (zoomcut/characters) or `verse` (the Shlomiverse's own account). `link`: https://..., a page of
 the site (`/hani-games/...`, `/story/hani` = another character's stories, `/c/hani` = her page).
+**A button to a GAME = the game's own page** (`/techytech-games/meetings/`, `/lola-games/pills/`) - **never `/play/<id>`**
+(nor `#/play/<id>`): from inside a story the play address loaded the game BEHIND the story, which stayed open - the button
+looked dead (Techy-Tech meetings stories, 12 Nov 2026: "this is important, make sure it won't happen again"). The verse
+opens a game page in its own play view by itself. `story.mjs` turns any `/play/<id>` into the game's page (from the live
+wiki data) and stops if the game isn't live. **After posting, tap the button once** (Playwright, a phone viewport, the
+cookie note closed) and check the story closed and the game shows.
 
 A box (all in % of the 9:16 picture; v2/site/verse/story-art.js draws it, techietech-api/verse.js keeps the same limits):
 | key | | |

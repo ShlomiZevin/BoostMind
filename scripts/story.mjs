@@ -27,6 +27,22 @@ const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner'
 const TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4', '.mov': 'video/quicktime' };
 const test = flag === '--test', edit = flag === '--edit';
 
+// A button to a game ALWAYS opens the game's own page (/<folder>/<slug>/) - never the verse's play address
+// (/play/<id>, #/play/<id>): from inside a story that address loaded the game BEHIND the story, which stayed open, so
+// the button looked dead (Techy-Tech meetings stories, 12 Nov 2026 - his "this is important, make sure it won't happen
+// again"). The verse opens a game page in its own play view by itself.
+if (s.link) {
+  const m = String(s.link).match(/^(?:https?:\/\/(?:www\.)?shlomiverse\.com)?\/?#?\/?play\/([^/?#]+)/i);
+  if (m) {
+    const wiki = await (await fetch('https://storage.googleapis.com/shlomiverse-media/wiki/data/wiki.json?cb=' + Date.now())).json();
+    const g = (wiki.games || []).find((x) => x.id === m[1]);
+    if (!g || !g.url) { console.error(`link ${s.link}: no live game "${m[1]}" in the verse - give the game page (/<folder>/<slug>/)`); process.exit(1); }
+    const to = new URL(g.url).pathname;
+    console.log(`link ${s.link} -> ${to} (a game button opens the game page, never /play/)`);
+    s.link = to;
+  }
+}
+
 const fd = new FormData();
 const blob = (p) => new Blob([fs.readFileSync(p)], { type: TYPES[path.extname(p).toLowerCase()] });
 if (s.file && /\.(mp4|mov|m4v|webm)$/i.test(s.file)) {

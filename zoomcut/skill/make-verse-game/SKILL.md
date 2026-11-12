@@ -296,6 +296,9 @@ spot / try).
   `marketing-stories` skill's way; the game's title art may be in it), its words as boxes that never cover a face or
   the picture's own words, checked with `scripts/stories/preview.mjs`, posted with `scripts/story.mjs --test` first.
   `"everyone": true` only when he says so. Never on Shabbat.
+  **Its button opens the GAME PAGE** (`/<character>-games/<slug>/`), never `/play/<id>` - a play address inside a story
+  left the story open over the game, so the button looked dead (12 Nov 2026). Tap it once after posting to check
+  (verse-story skill, "A button to a GAME").
 - If he wants it on Instagram too, a version with the button lifted out of Instagram's bottom zone.
 - An Instagram story poster he posts with a link sticker: follow `marketing-stories` "A story he posts with a link
   sticker" - GPT image paints the poster with its words, the empty link box's centre ~25% from the bottom (never lower),
