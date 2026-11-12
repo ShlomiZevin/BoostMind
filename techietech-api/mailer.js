@@ -130,12 +130,18 @@ async function scanBounces() {
 }
 
 // ---------- sending + the log ----------
+// addresses that can't receive mail are never mailed - every bounce lands in his inbox as a "delivery failure" and costs
+// the sender's name at Gmail. Test accounts: reserved names (.invalid / .test / example.com) and anything @shlomiverse.com
+// or under it (no mail servers there: the online-play tests sign in as nettest-...@test.shlomiverse.com - 2026-11-12, six
+// welcome mails bounced in one day). One check for every kind of mail, in deliver().
+const realMail = (e) => !/\.(invalid|test|example|localhost)$|@example\.(com|org|net)$|@([\w-]+\.)*shlomiverse\.com$/i.test(String(e || '').trim());
 let transport;
 // one pooled connection: logging in for every mail made Gmail answer "too many login attempts" (launch night)
 const gmail = () => (transport ||= nodemailer.createTransport({ service: 'gmail', pool: true, maxConnections: 1, maxMessages: 200,
   auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } }));
 // one mail out, and its line in mailLog (the backstage's "what we sent"), the HTML kept so it can be opened there
 async function deliver({ to, uid = null, kind, m, fromName = 'השלומיוורס', replyTo = OWNER, meta = {} }) {   // answers to any mail reach Shlomi
+  if (!realMail(to)) { console.log('mail skipped (test address)', kind, to); return false; }
   const log = { to, uid, kind, subject: m.subject, fromName, meta, t: FieldValue.serverTimestamp(), ok: false };
   try {
     if (LOCAL) console.log('[local] mail not sent:', kind, to, m.subject);
@@ -352,8 +358,6 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
   const tz = await tzOpen();
   const users = [];
   let next;
-  // addresses that can't receive mail (test accounts: @x.invalid, @example.com) are skipped - a bounce costs the sender's name at Gmail
-  const realMail = (e) => !/\.(invalid|test|example|localhost)$|@example\.(com|org|net)$/i.test(e);
   do { const r = await admin.auth().listUsers(1000, next); users.push(...r.users.filter((u) => u.email && !u.disabled && realMail(u.email)).map((u) => ({ uid: u.uid, email: u.email, name: u.displayName || '' }))); next = r.pageToken; } while (next);
   const [st, fans, evs, cz] = await Promise.all([db.collection('mailUsers').get(), db.collection('fans').select('follows', 'nick').get(),
     db.collection('mailEvents').where('t', '>', Timestamp.fromMillis(now - MAX_AGE)).get(), cfg.cz || cfg.czFrom ? db.collection('citizens').select('n').get() : null]);
