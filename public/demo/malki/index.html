@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>מלכי – הדמיה ראשונית</title>
+<meta property="og:title" content="מלכי – התלמידה הווירטואלית">
+<meta property="og:description" content="טיוטה ראשונה: תלמידה וירטואלית מדברת בעברית, לתרגול שיחה לבנות הסמינר.">
+<meta property="og:image" content="https://shlomiverse.com/demo/malki/media/og.jpg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=Assistant:wght@400;600;700&family=Amatic+SC:wght@700&display=swap">
+<style>
+  /* layout (from the sunburst design): sticky top bar, hero = text + painted Malki, then full-width soft bands per section */
+  :root {
+    --cream: #fbf8f2; --band: #eaf1fb; --band2: #f3efe6; --green: #edf5ee; --card: #ffffff;
+    --navy: #1e2b58; --ink: #232a3d; --soft: #5d6478; --line: #dfe5ef; --blue: #3a6bd6; --stamp: #c0392f; --gold: #b5842a;
+    --head: "Rubik", "Arial Hebrew", Arial, sans-serif; --body: "Assistant", "Segoe UI", Arial, sans-serif; --hand: "Amatic SC", "Segoe Print", cursive;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --cream: #141829; --band: #1a2140; --band2: #1d2033; --green: #182a22; --card: #20253b;
+    --navy: #b9c8f5; --ink: #e9eaf0; --soft: #a7adc2; --line: #2f3654; --blue: #86a8f5; --stamp: #f07b6c; --gold: #e3b45a; color-scheme: dark } }
+  :root[data-theme="dark"] { --cream: #141829; --band: #1a2140; --band2: #1d2033; --green: #182a22; --card: #20253b;
+    --navy: #b9c8f5; --ink: #e9eaf0; --soft: #a7adc2; --line: #2f3654; --blue: #86a8f5; --stamp: #f07b6c; --gold: #e3b45a; color-scheme: dark }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.6; }
+  .in { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1, h2, h3 { font-family: var(--head); color: var(--navy); margin: 0; line-height: 1.2; text-wrap: balance; }
+  h2 { font-size: clamp(26px, 4vw, 34px); font-weight: 800; text-align: center; }
+  .lead { text-align: center; color: var(--soft); margin: 6px auto 0; max-width: 680px; }
+  p { margin: 0; }
+  section { padding-block: 52px; }
+  .band { background: var(--band); } .band2 { background: var(--band2); } .greenband { background: var(--green); }
+
+  .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--cream); border-bottom: 1px solid var(--line); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--cream); }
+  .bar .in { display: flex; align-items: center; gap: 20px; padding-block: 10px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand b { font-family: var(--head); font-weight: 800; font-size: 28px; color: var(--navy); }
+  .brand small { color: var(--soft); font-size: 13px; line-height: 1.2; }
+  .bar nav { margin-inline-start: auto; display: flex; gap: 18px; flex-wrap: wrap; }
+  .bar nav a { color: var(--ink); text-decoration: none; font-size: 15px; font-weight: 600; }
+  .bar nav a:hover, .bar nav a:focus-visible { color: var(--blue); }
+  .bsd { font-family: var(--head); color: var(--soft); font-size: 14px; margin-inline-start: auto; }
+  .bar nav + .bsd { margin-inline-start: 0; }
+
+  .hero { padding-block: 36px 28px; }
+  .hero .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; }
+  .hero-text { display: grid; gap: 14px; min-width: 0; }
+  .stamp { justify-self: start; border: 3px solid var(--stamp); color: var(--stamp); font-family: var(--head); font-weight: 800; font-size: 22px; padding: 2px 16px; border-radius: 8px; transform: rotate(-4deg); }
+  .hero h1 { font-size: clamp(40px, 7vw, 68px); font-weight: 800; }
+  .hero h1 span { display: block; font-size: .62em; }
+  .tag { font-family: var(--head); font-weight: 700; font-size: 21px; color: var(--navy); }
+  .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 6px; }
+  .chip { display: flex; gap: 10px; align-items: center; font-size: 15px; line-height: 1.3; font-weight: 600; }
+  .chip img { width: 42px; height: 42px; object-fit: contain; flex: none; }
+  .hero-pic { position: relative; min-width: 0; }
+  .hero-pic img.main { width: 100%; max-height: 560px; object-fit: cover; object-position: top; border-radius: 22px; display: block; }
+  .note { position: absolute; top: 18px; right: 14px; font-family: var(--hand); font-size: 30px; line-height: 1.05; color: #1e2b58; background: rgba(255,253,246,.92); padding: 8px 14px; border-radius: 12px; transform: rotate(-5deg); max-width: 190px; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  .draft { margin-top: 26px; background: var(--card); border: 1px solid var(--line); border-inline-start: 5px solid var(--gold); border-radius: 12px; padding: 14px 18px; display: grid; gap: 4px; }
+  .draft b { color: var(--gold); font-family: var(--head); }
+
+  .vids { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 26px; }
+  .vid { margin: 0; background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); display: grid; align-content: start; min-width: 0; }
+  .vid video { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: #0d1020; }
+  .vid figcaption { padding: 12px 14px; display: grid; gap: 2px; }
+  .vid b { font-family: var(--head); color: var(--navy); font-size: 16px; }
+  .vid span { color: var(--soft); font-size: 15px; }
+
+  .opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 26px; }
+  .opt { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+  .opt .top { display: grid; grid-template-columns: 1fr 120px; gap: 12px; align-items: start; }
+  .opt .top img { width: 120px; height: 140px; object-fit: cover; object-position: top; border-radius: 10px; }
+  .opt .ltr { font-family: var(--head); color: var(--gold); font-weight: 800; font-size: 28px; line-height: 1; }
+  .opt h3 { font-size: 20px; margin-top: 4px; }
+  .opt p { color: var(--soft); font-size: 16px; }
+  .opt video { width: 100%; border-radius: 10px; background: #0d1020; display: block; }
+  .badge { justify-self: start; background: var(--band); color: var(--navy); font-size: 13px; font-weight: 700; border-radius: 999px; padding: 2px 10px; }
+
+  .how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 30px 0 0; list-style: none; padding: 0; }
+  .how li { display: grid; justify-items: center; text-align: center; gap: 8px; position: relative; align-content: start; }
+  .how .ic { width: 96px; height: 96px; border-radius: 50%; background: var(--card); display: grid; place-items: center; box-shadow: 0 6px 18px rgba(30,43,88,.10); }
+  .how .ic img { width: 60px; height: 60px; object-fit: contain; }
+  .how li:not(:last-child)::after { content: "←"; position: absolute; top: 32px; left: -14px; font-size: 26px; color: var(--blue); }
+  .how h3 { font-size: 19px; }
+  .how p { color: var(--soft); font-size: 15px; max-width: 230px; }
+
+  .costwrap { margin-top: 26px; display: grid; gap: 16px; }
+  .tablebox { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  table { width: 100%; border-collapse: collapse; min-width: 600px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 12px 16px; text-align: right; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--band2); font-family: var(--head); color: var(--navy); font-size: 16px; }
+  td small { display: block; color: var(--soft); font-size: 14px; }
+  td.n { font-family: var(--head); font-weight: 700; color: var(--navy); white-space: nowrap; }
+  tr.total td { background: var(--band); font-weight: 700; }
+  tr.total td.n { font-size: 20px; color: var(--stamp); }
+  tr.usual td { color: var(--soft); border-bottom: 0; }
+  .costnote { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: start; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .costnote > img { width: 64px; }
+  .costnote ul { margin: 8px 0 0; padding-inline-start: 20px; color: var(--soft); font-size: 15px; display: grid; gap: 4px; }
+  .src { color: var(--soft); font-size: 13px; margin-top: 8px; }
+  .src a { color: var(--blue); }
+
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 26px 0 0; background: var(--card); border-radius: 16px; border: 1px solid var(--line); padding: 18px; list-style: none; }
+  .steps li { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; }
+  .steps img { width: 52px; height: 52px; object-fit: contain; }
+  .steps b { font-family: var(--head); color: var(--navy); display: block; font-size: 16px; }
+  .steps span { color: var(--soft); font-size: 14px; }
+  footer { text-align: center; padding-block: 30px 46px; color: var(--soft); }
+  footer b { font-family: var(--head); color: var(--navy); display: block; font-size: 20px; margin-bottom: 4px; }
+
+  @media (max-width: 860px) {
+    .hero .grid { grid-template-columns: 1fr; }
+    .hero-pic { order: -1; }
+    .chips, .vids, .opts { grid-template-columns: 1fr; }
+    .how { grid-template-columns: 1fr 1fr; row-gap: 26px; }
+    .how li::after { display: none; }
+    .steps { grid-template-columns: 1fr; }
+    .bar nav { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="in">
+    <div class="brand"><b>מלכי</b><small>שיחה קטנה.<br>השפעה גדולה.</small></div>
+    <nav aria-label="ניווט בעמוד">
+      <a href="#samples">דוגמאות</a><a href="#directions">כיווני עיצוב</a><a href="#how">איך זה עובד</a><a href="#costs">עלויות</a><a href="#next">השלבים הבאים</a>
+    </nav>
+    <span class="bsd">בס״ד</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="in grid">
+    <div class="hero-text">
+      <span class="stamp">טיוטה ראשונה</span>
+      <h1>מלכי,<span>התלמידה הווירטואלית</span></h1>
+      <p class="tag">תרגול שיחה עם תלמידה, לפני הכיתה האמיתית</p>
+      <p>מלכי היא תלמידה בת 12. היא מדברת בעברית, בקול, ומגיבה כמו תלמידה בכיתה: מתביישת, נעלבת, שמחה. בנות הסמינר יכולות להתאמן איתה על שיחות אמיתיות, לפני ההתנסות המעשית בכיתה.</p>
+      <div class="chips">
+        <div class="chip"><img src="media/ic/book.png" alt="">מתרגלות מצבים מהחיים בכיתה</div>
+        <div class="chip"><img src="media/ic/bulb.png" alt="">בונות ביטחון וכישורי שיחה</div>
+        <div class="chip"><img src="media/ic/heart.png" alt="">לומדות להיות מורות מיטיבות</div>
+      </div>
+    </div>
+    <div class="hero-pic">
+      <img class="main" src="media/hero.jpg" alt="מלכי, תלמידה בת 12, יושבת ליד שולחן בכיתה">
+      <span class="note">כאן עוד הרבה יותר תנועה והבעות פנים בהמשך!</span>
+    </div>
+  </div>
+  <div class="in">
+    <div class="draft">
+      <b>חשוב לדעת: זוהי טיוטה ראשונה</b>
+      <p>היא נועדה להראות את כיוון העבודה. כרגע מלכי מדברת, מזיזה את הפה לפי הקול, מביעה רגשות וזזה מעט. בהמשך הדמויות יזוזו הרבה יותר: תנועות ראש, ידיים וגוף, הצבעה, ישיבה ליד שולחן. ההבעות ישתפרו, והמראה יותאם לפי בחירתכם ולפי הצורך.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="samples">
+  <div class="in">
+    <h2>דוגמאות לשיחה עם מלכי</h2>
+    <p class="lead">שלוש תשובות קצרות של מלכי. הפה, העיניים והרגש משתנים לפי הקול שלה.</p>
+    <div class="vids">
+      <figure class="vid"><video src="media/painted-hello.mp4" poster="media/poster-hello.jpg" controls preload="none" playsinline></video><figcaption><b>״אה... שלום המורה. לא הספקתי להכין את שיעורי הבית...״</b><span>מלכי אומרת זאת במבוכה</span></figcaption></figure>
+      <figure class="vid"><video src="media/painted-why.mp4" poster="media/poster-why.jpg" controls preload="none" playsinline></video><figcaption><b>״למה תמיד אני? גם אחרים מדברים בשיעור...״</b><span>מלכי נפגעת וכועסת</span></figcaption></figure>
+      <figure class="vid"><video src="media/painted-happy.mp4" poster="media/poster-happy.jpg" controls preload="none" playsinline></video><figcaption><b>״באמת? קיבלתי תשעים וחמש?״</b><span>מלכי שמחה ומופתעת</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="band2" id="directions">
+  <div class="in">
+    <h2>שלושה כיווני עיצוב לבחירה</h2>
+    <p class="lead">אותה מלכי, אותו קול ואותה תנועת פה. ההבדל הוא רק במראה.</p>
+    <div class="opts">
+      <article class="opt">
+        <div class="top"><div><span class="ltr">א</span><h3>איור עם תנועה</h3></div><img src="media/opt-painted.jpg" alt="מלכי בסגנון איור"></div>
+        <p>ציור בסגנון איור. הפה, העיניים והרגש משתנים לפי הקול, והציור זז בעדינות: ראש, שיער ונשימה.</p>
+        <span class="badge">בסרטונים למעלה</span>
+      </article>
+      <article class="opt">
+        <div class="top"><div><span class="ltr">ב</span><h3>תלת־ממד מציאותי</h3></div><img src="media/opt-real.jpg" alt="מלכי בתלת־ממד מציאותי"></div>
+        <p>דמות תלת־ממדית שנראית כמו ילדה אמיתית. בבדיקה הראשונה הזו היא מצולמת מקדימה.</p>
+        <video src="media/real-hello.mp4" poster="media/poster-real.jpg" controls preload="none" playsinline></video>
+      </article>
+      <article class="opt">
+        <div class="top"><div><span class="ltr">ג</span><h3>תלת־ממד מצויר</h3></div><img src="media/opt-cartoon.jpg" alt="רישום רעיון: מלכי בתלת־ממד מצויר"></div>
+        <p>דמות תלת־ממדית בסגנון סרט מצויר. הבעות ברורות ותנועה נעימה.</p>
+        <span class="badge">רישום רעיון, לפני בנייה</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="in">
+    <h2>איך זה עובד?</h2>
+    <p class="lead">מה קורה מהרגע שהמורה מדברת ועד שמלכי עונה. הכול בזמן אמת.</p>
+    <ol class="how">
+      <li><span class="ic"><img src="media/ic/listen.png" alt=""></span><h3>שמיעה</h3><p>המערכת שומעת את המורה והופכת את הדיבור לטקסט.</p></li>
+      <li><span class="ic"><img src="media/ic/think.png" alt=""></span><h3>חשיבה</h3><p>שרשרת של כמה מודלים: אחד מבין, אחד חושב איך מלכי תגיב, ואחד מנסח את התשובה.</p></li>
+      <li><span class="ic"><img src="media/ic/voice.png" alt=""></span><h3>הקול של מלכי</h3><p>התשובה נאמרת בקול עברי טבעי של ילדה.</p></li>
+      <li><span class="ic"><img src="media/ic/face.png" alt=""></span><h3>הפנים והרגש</h3><p>הפה זז לפי הצלילים, כ־60 פעמים בשנייה, גם בלי ניקוד. הפנים מביעות את הרגש.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="band2" id="costs">
+  <div class="in">
+    <h2>כמה עולה שיעור של שעה?</h2>
+    <p class="lead">חישוב למקרה הגרוע: הדמיה של שיעור שלם, שעה אחת, עם תלמידה אחת, בזמן אמת.</p>
+    <div class="costwrap">
+      <div class="tablebox">
+        <table>
+          <thead><tr><th>שלב</th><th>מה נכלל</th><th>עם Claude Sonnet 5.5</th><th>עם GPT-5.6 Terra</th></tr></thead>
+          <tbody>
+            <tr><td>שמיעה</td><td>דיבור לטקסט, כל השעה<small>ElevenLabs Scribe בזמן אמת, או OpenAI</small></td><td class="n">$1</td><td class="n">$1</td></tr>
+            <tr><td>חשיבה</td><td>שרשרת של 3 מודלים לכל תשובה, עד 180 תשובות בשעה<small>Sonnet: ‏2$ למיליון טוקנים* שנקראים, 10$ לכתובים. Terra: ‏2$ / 12$</small></td><td class="n">$20.5</td><td class="n">$21.4</td></tr>
+            <tr><td>הקול של מלכי</td><td>עד חצי שעה דיבור (כ־25,000 תווים)<small>ElevenLabs v3: ‏0.08$ לכל 1,000 תווים</small></td><td class="n">$2</td><td class="n">$2</td></tr>
+            <tr class="total"><td>סה״כ לשעה (בערך)</td><td>המקרה הגרוע</td><td class="n">$24</td><td class="n">$24</td></tr>
+            <tr class="usual"><td>בפועל (בערך)</td><td>כשהמודל זוכר את תחילת השיחה (מוזיל את הקריאה בכ־90%)</td><td class="n">$9</td><td class="n">$11</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="costnote">
+        <img src="media/ic/cost.png" alt="">
+        <div>
+          <p><b>העלות תלויה בעומק החשיבה.</b> ככל שנשתמש במודלים חכמים יותר, או בשרשרת חשיבה ארוכה יותר, העלות תעלה. למשימות פשוטות אפשר להשתמש במודלים קטנים וזולים, והעלות תרד.</p>
+          <ul>
+            <li>הנחות החישוב: עד 180 תשובות בשעה. בכל שלב בשרשרת המודל קורא עד 15,000 טוקנים (ההוראות וכל השיחה עד כה) וכותב עד 800.</li>
+            <li>המחירים לפי מחירוני הספקים, נובמבר 2026, בדולרים, ועשויים להשתנות.</li>
+            <li>* טוקן = יחידת החיוב של המודלים, בערך חצי מילה.</li>
+          </ul>
+          <p class="src">מקורות: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">Anthropic</a> · <a href="https://openrouter.ai/openai/gpt-5.6-terra" target="_blank" rel="noopener">GPT-5.6 Terra</a> · <a href="https://elevenlabs.io/pricing/api" target="_blank" rel="noopener">ElevenLabs</a> · <a href="https://openai.com/api/pricing/" target="_blank" rel="noopener">OpenAI</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="greenband" id="next">
+  <div class="in">
+    <h2>השלבים הבאים</h2>
+    <p class="lead">זה שלב ראשון. נשמח לשמוע מה דעתכם, כדי להתקדם יחד.</p>
+    <ol class="steps">
+      <li><img src="media/ic/clip.png" alt=""><div><b>1. משוב מהסמינר</b><span>בחירת כיוון עיצוב והערות</span></div></li>
+      <li><img src="media/ic/gear.png" alt=""><div><b>2. שיפור ופיתוח</b><span>תנועות גוף, הבעות, שיחה חיה במיקרופון</span></div></li>
+      <li><img src="media/ic/group.png" alt=""><div><b>3. ניסוי עם קבוצת בנות</b><span>תרגול אמיתי ואיסוף הערות</span></div></li>
+      <li><img src="media/ic/plant.png" alt=""><div><b>4. הרחבה</b><span>כיתה שלמה עם כמה תלמידות ותרחישים מוכנים</span></div></li>
+    </ol>
+  </div>
+</section>
+
+<footer><div class="in"><b>ביחד נכין את המורות הטובות של הדור הבא</b>טיוטה ראשונה, להתרשמות בלבד.</div></footer>
+</body>
+</html>
