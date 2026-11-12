@@ -1,0 +1,8 @@
+A UI/UX mockup board: three iPhone screens side by side of the same admin app as the reference picture (same dark style, same orange accent, Hebrew, right-to-left). The app owner reviews conversations that visitors had with comedy characters in a chat, and comments on them from his phone, with one thumb.
+
+Concept B - "Review queue, one conversation at a time":
+Screen 1: a review mode. One conversation shown as a full card (character face and name at top, "3 מתוך 14 שלא נבדקו" progress line, the chat bubbles inside). A fixed bottom action bar above the home indicator with four big buttons: thumbs-down (גרועה) in red, speech bubble (הערה), thumbs-up (טובה) in green, and an arrow "הבאה" (next). Marking good or bad moves straight to the next conversation.
+Screen 2: the owner tapped "הערה" - a bottom sheet with the text box, keyboard up, a row of quick reason chips he can tap before typing ("לא מצחיק", "לא בקול שלה", "ארוך מדי", "המציאה", "שאלה"), and a big orange "שמירה" button.
+Screen 3: tapping on one character answer selects it (orange outline) and shows a small floating menu above it: "הערה על התשובה" and "חשיבה" - the thinking card opens under that answer in soft blue with short labelled lines ("מה הבינה", "זיכרון", "חדר הכותבים").
+
+Each screen has a short caption under it in Hebrew explaining the flow. Clean, realistic, readable text, product-design presentation quality.

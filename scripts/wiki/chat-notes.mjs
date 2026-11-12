@@ -6,6 +6,7 @@
 // from a comment before you discussed it with him.
 //   OWNER_KEY=<his key> node scripts/wiki/chat-notes.mjs open --out c.md       every open comment + its whole conversation + what the chain's steps decided (read with the Read tool - Hebrew)
 //   OWNER_KEY=... node scripts/wiki/chat-notes.mjs all --out c.md              handled ones too
+//   OWNER_KEY=... node scripts/wiki/chat-notes.mjs marks [good|bad] --out m.md  the conversations he marked 👍 / 👎 (with or without a comment)
 //   OWNER_KEY=... node scripts/wiki/chat-notes.mjs reply <id> --file r.txt     answer under his comment - closes it
 //   OWNER_KEY=... node scripts/wiki/chat-notes.mjs done <id> [--open]          handled without an answer (or open again)
 import fs from 'node:fs';
@@ -26,7 +27,7 @@ const when = (t) => (t ? new Date(t).toISOString().slice(0, 16).replace('T', ' '
 const [cmd, id] = argv;
 
 if (cmd === 'open' || cmd === 'all') {
-  const { notes } = await api('chatNotes');
+  const { notes, marks = {} } = await api('chatNotes');
   const pick = notes.filter((n) => n.by !== 'claude' && (cmd === 'all' || !n.done)).sort((a, b) => (a.t || 0) - (b.t || 0));
   const out = [`# ${cmd === 'open' ? 'Open' : 'All'} comments on conversations: ${pick.length}`, ''];
   const threads = {};
@@ -34,7 +35,7 @@ if (cmd === 'open' || cmd === 'all') {
     if (!threads[n.key]) threads[n.key] = (await api('chatThread', { c: n.c, ids: n.ids }).catch(() => ({ chats: [] }))).chats.sort((a, b) => a.t - b.t);
     const th = threads[n.key];
     out.push(`## Comment ${n.id} - ${n.mode} - ${when(n.t)}${n.done ? ' (handled)' : ''}`, '',
-      `On: ${n.msg ? 'one answer (marked >>> below)' : 'the whole conversation'}`, '', `HIS COMMENT: ${n.text}`, '');
+      `On: ${n.msg ? 'one answer (marked >>> below)' : 'the whole conversation'}${marks[n.key] ? ` · he marked the conversation ${marks[n.key].toUpperCase()}` : ''}`, '', `HIS COMMENT: ${n.text}`, '');
     for (const r of notes.filter((x) => x.by === 'claude' && x.reply === n.id)) out.push(`Answered (${when(r.t)}): ${r.text}`, '');
     out.push('### The conversation', '');
     if (!th.length) out.push(`(no longer kept - the message: Q: ${n.q} / A: ${n.a})`, '');
@@ -44,6 +45,19 @@ if (cmd === 'open' || cmd === 'all') {
       if (c.think) out.push(`   (the chain's steps decided: ${JSON.stringify(c.think)})`);
       out.push('');
     }
+  }
+  write(out.join('\n'));
+} else if (cmd === 'marks') {
+  const { marks = {}, notes } = await api('chatNotes');
+  const keys = Object.keys(marks).filter((k) => !id || marks[k] === id);
+  const out = [`# Marked conversations: ${keys.length}`, ''];
+  for (const k of keys) {
+    const c = k.startsWith('c:') ? k.slice(2) : '';
+    const n = notes.find((x) => x.key === k);
+    const th = (await api('chatThread', { c, ids: n?.ids || [] }).catch(() => ({ chats: [] }))).chats.sort((a, b) => a.t - b.t);
+    out.push(`## ${marks[k].toUpperCase()} - ${th[0]?.mode || n?.mode || '?'} - ${when(th[0]?.t)} - ${k}${notes.some((x) => x.key === k && x.by !== 'claude') ? ' (has comments)' : ''}`, '');
+    if (!th.length) out.push('(no longer kept)', '');
+    for (const m of th) out.push(`VISITOR: ${m.q}`, `${String(m.mode).toUpperCase()}: ${m.a}`, ...(m.think ? [`   (the chain's steps decided: ${JSON.stringify(m.think)})`] : []), '');
   }
   write(out.join('\n'));
 } else if (cmd === 'reply') {

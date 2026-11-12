@@ -1,0 +1,8 @@
+A UI/UX mockup board: three iPhone screens side by side of the same admin app as the reference picture (same dark style, same orange accent, Hebrew, right-to-left). The app owner reviews conversations that visitors had with comedy characters in a chat, and comments on them from his phone, with one thumb.
+
+Concept C - "Mark from the list, comment from a floating button":
+Screen 1: the conversations list. Each row: character face, the first question, a short preview of the answer, time, and on the row two small round buttons thumbs-up / thumbs-down that can be tapped right in the list without opening it (one row shows green thumbs-up selected, one red thumbs-down selected). Filter chips at the top: "הכול", "לא נבדקו", "טובות", "גרועות", "עם הערות".
+Screen 2: a conversation opened as a tall bottom sheet. A big round floating orange button with a speech bubble at the bottom corner (above the home indicator) - "הערה". At the top of the sheet the thumbs-up / thumbs-down and a small "חשיבה" eye toggle. Each character answer has a tiny speech-bubble icon next to it to comment on that answer.
+Screen 3: the floating button opened a full-screen comment window (like writing a message): at the top a "ביטול" and "שמירה", the quoted conversation snippet, the text box with keyboard up, and the owner's earlier comments on this conversation below in a thread with replies from "Claude" in green.
+
+Each screen has a short caption under it in Hebrew explaining the flow. Clean, realistic, readable text, product-design presentation quality.

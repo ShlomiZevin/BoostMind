@@ -3,7 +3,7 @@
 // opens a session ("read my comments, let's discuss"), they discuss, then handle (scripts/wiki/chat-notes.mjs).
 // The comment keeps a copy of what it is on (the message + the thread's log ids), so it outlives the chat log's 90 days.
 // Private: Firestore `chatNotes` (no client rule = nobody reads it). Called only from verseOwner (his key):
-// ops chatNotes, chatNote, chatNoteDone, chatNoteEdit, chatNoteDel, chatThread.
+// ops chatNotes, chatMark, chatNote, chatNoteDone, chatNoteEdit, chatNoteDel, chatThread.
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 
@@ -16,9 +16,16 @@ const row = (d) => ({ id: d.id, ...d.data(), t: ms(d.data().t), edited: ms(d.dat
 
 async function owner(op, b) {
   const notes = db().collection('chatNotes');
-  if (op === 'chatNotes') {   // every comment (the tab's one call)
-    const n = await notes.orderBy('t', 'desc').limit(1500).get();
-    return { notes: n.docs.map(row) };
+  if (op === 'chatNotes') {   // every comment + the good / bad marks (the tab's one call)
+    const [n, m] = await Promise.all([notes.orderBy('t', 'desc').limit(1500).get(), db().collection('owner').doc('chatMarks').get()]);
+    return { notes: n.docs.map(row), marks: (m.data() || {}).m || {} };
+  }
+  // a quick mark on a conversation (his ask 2026-11-12): v 'good' | 'bad', '' takes it off. owner/chatMarks {m: {threadKey: v}}
+  if (op === 'chatMark') {
+    const k = clip(b.key, 90);
+    if (!k || !['good', 'bad', ''].includes(b.v)) return { error: 'mark' };
+    await db().collection('owner').doc('chatMarks').set({ m: { [k]: b.v ? b.v : FieldValue.delete() } }, { merge: true });
+    return { ok: true };
   }
   // a comment. key = the thread's key in Backstage; c = the conversation's id; msg = the answer's log id ('' = the whole
   // conversation); q / a = a copy of that message; ids = the thread's log ids. by 'claude' = a session's answer (reply = the

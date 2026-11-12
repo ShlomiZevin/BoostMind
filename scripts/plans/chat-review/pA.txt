@@ -1,0 +1,8 @@
+A UI/UX mockup board: three iPhone screens side by side of the same admin app as the reference picture (same dark style, same orange accent, Hebrew, right-to-left). The app owner reviews conversations that visitors had with comedy characters in a chat, and comments on them from his phone, with one thumb.
+
+Concept A - "Conversation full screen + comment sheet":
+Screen 1: one conversation opened full screen. A fixed top bar with the character's round face and name, the visitor's first question, and three big thumb buttons: thumbs-up (שיחה טובה), thumbs-down (שיחה גרועה), and a speech-bubble button "הערה" with a counter. Below: the chat bubbles (visitor in orange on the left side, character in dark grey on the right with a small face). A small switch in the top bar "הצג חשיבה" (show thinking).
+Screen 2: the owner tapped "הערה" - a bottom sheet slides up over the conversation covering about 60%: a big text box with the keyboard up, a quoted line at the top showing what the comment is on ("על כל השיחה" or the quoted answer), and a big orange "שמירה" button. Earlier comments listed above the box with a green "טופלה" / orange "פתוחה" tag.
+Screen 3: the "show thinking" switch is on - under one character answer a soft blue card opens with short labelled lines: "מה הבינה", "זיכרון", "חדר הכותבים", "כמה יודעת". One answer has a small orange comment marker on its corner (a comment on that answer), made by long-pressing the bubble.
+
+Each screen has a short caption under it in Hebrew explaining the flow. Clean, realistic, readable text, product-design presentation quality.
