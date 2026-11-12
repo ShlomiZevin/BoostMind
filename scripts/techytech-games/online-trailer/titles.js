@@ -1,30 +1,56 @@
-// the trailer's words as transparent 1080x1920 PNGs (Chrome lays out the Hebrew): the logo's lettering (Heebo 900, warm white
-// #fdf6ef + orange #fc7211 glow) for the big lines, app-coloured pills for the gameplay labels, a subtitle for Yaniv.
+// the trailer's words as transparent 1080x1920 PNGs (Chrome lays out the Hebrew), in the GAME LOGO's own look (his note:
+// "texts are too simple and ugly"): Rubik 900, a glossy gradient fill, a thick coloured outline, a white outer outline and a
+// solid 3D edge under it; the gameplay labels = an incoming notification of that call app (its real icon); the last joke =
+// a red stamp; Yaniv's words = clean subtitles.
 const { chromium } = require(process.env.HOME + '/plaxzy-creator/node_modules/playwright-core');
 const path = require('path');
-const W = 'color:#fdf6ef;text-shadow:0 0 30px rgba(252,114,17,.55),0 0 80px rgba(252,114,17,.35),0 6px 18px rgba(0,0,0,.7)';
-const O = 'color:#fc7211;text-shadow:0 0 30px rgba(252,114,17,.8),0 0 90px rgba(252,114,17,.5),0 6px 18px rgba(0,0,0,.7)';
-const big = (html, top, size) => `<div style="position:absolute;left:40px;right:40px;top:${top}px;text-align:center;font:900 ${size}px/1.15 Heebo">${html}</div>`;
-const pill = (t, bg) => `<div style="position:absolute;left:0;right:0;top:150px;display:flex;justify-content:center"><div style="background:${bg};color:#fff;font:900 70px Heebo;padding:22px 54px;border-radius:999px;border:6px solid #fff;box-shadow:0 12px 40px rgba(0,0,0,.5)">${t}</div></div>`;
+const A = 'C:/workspace/BoostMind-meetings/public/techytech-games/meetings/assets/';
+const img = (f) => 'data:image/png;base64,' + require('fs').readFileSync(A + f).toString('base64');
+// a word art line set like the game's title: fill gradient g, outline c, 3D edge d
+function logo(html, { size, top, g, c, d, rot = 0 }) {
+  const lay = (st) => `<span style="position:absolute;left:0;right:0;top:0;${st}">${html}</span>`;
+  return `<div style="position:absolute;left:0;right:0;top:${top}px;text-align:center;transform:rotate(${rot}deg)">
+  <div style="position:relative;display:inline-block;font:900 ${size}px/1.08 Rubik;white-space:nowrap">
+    ${lay(`-webkit-text-stroke:${size * 0.26}px #fff;color:#fff;filter:drop-shadow(0 ${size * 0.09}px 0 ${d}) drop-shadow(0 18px 30px rgba(0,0,0,.55))`)}
+    ${lay(`-webkit-text-stroke:${size * 0.14}px ${c};color:${c}`)}
+    <span style="position:relative;background:${g};-webkit-background-clip:text;background-clip:text;color:transparent">${html}</span>
+  </div></div>`;
+}
+const BLUE = { g: 'linear-gradient(180deg,#ffffff 0%,#e3f0ff 48%,#a9cfff 52%,#d8ebff 100%)', c: '#1f4fd8', d: '#0d2a80' };
+const GOLD = { g: 'linear-gradient(180deg,#fff7b0 0%,#ffd23f 48%,#ffa51f 52%,#ffcf4a 100%)', c: '#7a2fd0', d: '#3d1170' };
+const GREEN = { g: 'linear-gradient(180deg,#f4ffe0 0%,#b9f55a 48%,#5fd43a 52%,#a6ee61 100%)', c: '#0f7a3a', d: '#064020' };
+// an incoming call-app notification: the app's icon, its name in its colour, the line
+const toast = (icon, name, col, line) => `<div style="position:absolute;left:0;right:0;top:120px;display:flex;justify-content:center">
+  <div style="display:flex;align-items:center;gap:26px;background:rgba(255,255,255,.96);border-radius:46px;padding:22px 40px 22px 30px;
+    box-shadow:0 18px 50px rgba(0,0,0,.45),inset 0 -6px 0 rgba(0,0,0,.08);border:4px solid ${col}">
+    <img src="${img(icon)}" style="width:146px;height:146px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.3))">
+    <div style="text-align:right"><div style="font:900 68px/1.05 Rubik;color:${col}">${name}</div>
+      <div style="font:800 60px/1.15 Rubik;color:#1b1b2e;margin-top:6px">${line}</div></div></div></div>`;
+const sub = (t) => `<div style="position:absolute;left:40px;right:40px;top:1450px;text-align:center;font:900 76px/1.2 Rubik;color:#fff;
+  -webkit-text-stroke:10px #000;paint-order:stroke fill;text-shadow:0 8px 18px rgba(0,0,0,.8)">${t}</div>`;
 const T = {
-  alone: big(`<span style="${W}">בטקי-טק יש דבר אחד<br>שלא נגמר.</span>`, 800, 90),
-  online: big(`<span style="${O};font-size:200px">פגישות<br>בזום.</span>`, 640, 200),
-  friends: big(`<span style="${W}">עם חברים.</span>`, 1080, 130),
-  l0: pill('Zoomba — ממזגים עד החלטה.', '#2f6bff'), l1: pill('Meetly — מי הרים יד?', '#16a34a'), l2: pill('Teamz — מיישרים קו עם כולם.', '#7c3aed'),
-  l3: pill('Callio — זיכרון מול חבר.', '#f05a28'), l4: pill('מזמינים חבר עם קוד.', '#fc7211'),
-  team: big(`<span style="${W}">תזמינו את<br>כל הצוות לשיחה.</span>`, 780, 112),
-  ysub: `<div style="position:absolute;left:40px;right:40px;top:1450px;text-align:center;font:900 78px/1.2 Heebo;color:#fff;-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:0 6px 16px rgba(0,0,0,.8)">אני גם בכלל לא מבין<br>למה אתה מעלה אותי לשיחה!</div>`,
-  ysub2: `<div style="position:absolute;left:40px;right:40px;top:1450px;text-align:center;font:900 78px/1.2 Heebo;color:#fff;-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:0 6px 16px rgba(0,0,0,.8)">מה זה קשור אליי?</div>`,
-  ysub3: `<div style="position:absolute;left:40px;right:40px;top:1450px;text-align:center;font:900 78px/1.2 Heebo;color:#fff;-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:0 6px 16px rgba(0,0,0,.8)">בגלל הזומים שלך<br>אני נראה ככה.</div>`,
-  invite: big(`<span style="${O};font-size:150px">תזמינו חבר.</span>`, 1290, 150),
-  noyaniv: big(`<span style="${W};font-size:76px">(רק לא את יניב.)</span>`, 1480, 76),
+  alone: logo('בטקי-טק יש דבר אחד', { size: 96, top: 690, ...BLUE }) + logo('שלא נגמר.', { size: 150, top: 840, ...BLUE }),
+  online: logo('פגישות', { size: 210, top: 560, rot: -4, ...GOLD }) + logo('בזום.', { size: 250, top: 800, rot: -4, ...GOLD }),
+  l0: toast('app-zoomba.png', 'Zoomba', '#2f6bff', 'ממזגים עד החלטה.'),
+  l1: toast('app-meetly.png', 'Meetly', '#16a34a', 'מי הרים יד?'),
+  l2: toast('app-teamz.png', 'Teamz', '#7c3aed', 'מיישרים קו עם כולם.'),
+  l3: toast('app-callio.png', 'Callio', '#f05a28', 'זיכרון מול חבר.'),
+  l4: toast('app-meetly.png', 'הזמנה לשיחה', '#fc7211', 'מזמינים חבר עם קוד.'),
+  team: logo('תזמינו את', { size: 96, top: 700, ...BLUE }) + logo('כל הצוות לשיחה.', { size: 118, top: 840, ...BLUE }),
+  invite: logo('תזמינו חבר.', { size: 170, top: 1180, rot: -3, ...GREEN }),
+  noyaniv: `<div style="position:absolute;left:0;right:0;top:1470px;display:flex;justify-content:center"><div style="transform:rotate(-7deg);
+    font:900 78px/1 Rubik;color:#e0202f;border:10px solid #e0202f;border-radius:22px;padding:18px 40px;background:rgba(255,245,245,.92);
+    box-shadow:0 14px 34px rgba(0,0,0,.45);letter-spacing:1px">רק לא את יניב.</div></div>`,
+  ysub: sub('אני גם בכלל לא מבין<br>למה אתה מעלה אותי לשיחה!'),
+  ysub2: sub('מה זה קשור אליי?'),
 };
 (async () => {
-  const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
+  const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--allow-file-access-from-files'] });
   const p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   for (const [k, h] of Object.entries(T)) {
-    await p.setContent(`<html dir="rtl"><head><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@900&display=swap" rel="stylesheet"><style>html,body{margin:0;background:transparent}</style></head><body>${h}</body></html>`);
-    await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(150);
+    await p.setContent(`<html dir="rtl"><head><link href="https://fonts.googleapis.com/css2?family=Rubik:wght@800;900&display=swap" rel="stylesheet"><style>html,body{margin:0;background:transparent}</style></head><body>${h}</body></html>`);
+    await p.evaluate(() => document.fonts.ready); await p.evaluate(() => Promise.all([...document.images].map((i) => i.complete || new Promise((r) => { i.onload = i.onerror = r; }))));
+    await p.waitForTimeout(150);
     await p.screenshot({ path: path.join(__dirname, 't', k + '.png'), omitBackground: true });
   }
   await b.close();

@@ -28,15 +28,15 @@ Y2_SHOW = 0.8                        # seconds of his face before only his voice
 CLIPS = json.load(open(P('clips.json'), encoding='utf-8'))
 SFX_AT = [0.5, 0.35, 0.8, 0.15, 0.4]   # each clip's own moment (the merge, the find, the last line, the pair, the friend joining)
 CLIP_LEN = 1.3
-T_INTRO = Y1[1] - Y1[0]
+T_INTRO = 0.0                        # (his note: no hook at the start - Yaniv only at the end, in the silence)
 T_ALONE = T_INTRO + 1.8
 T_BOOM = T_ALONE + 2.4
 T_CLIPS = T_BOOM + 1.3
 T_TEAM = T_CLIPS + CLIP_LEN * len(CLIPS)
-T_YANIV = T_TEAM + 0.8
-T_HIT = T_YANIV + (Y2[1] - Y2[0])
-T_NOY = T_HIT + 0.8
-T_OUT = T_HIT + 2.8
+T_HIT = T_TEAM + 0.9                 # "תזמינו חבר." with the music's hit
+T_YANIV = T_HIT + 2.5                # the music has died away: Yaniv, heard (his picture faint over the screen)
+T_NOY = T_YANIV + (Y1[1] - Y1[0]) + 0.15
+T_OUT = T_NOY + 1.7
 M_START, M_HIT, M_END = 2.75, 14.25, 18.5     # in music.wav: where it is full, its hit, its end
 
 def read_clip(path, ss=0, t=None, w=W, h=H):
@@ -47,7 +47,6 @@ def read_clip(path, ss=0, t=None, w=W, h=H):
 
 intro, outro = read_clip(f'{SV}/verse-presents.mp4'), read_clip(f'{SV}/verse-only.mp4')
 yan1 = read_clip(YV, Y1[0], Y1[1] - Y1[0], 720, 1280)
-yan2 = read_clip(YV, Y2[0], Y2_SHOW + 0.1, 720, 1280)
 ttl = {k[:-4]: np.asarray(Image.open(P('t', k)).convert('RGBA'), np.float32) / 255 for k in os.listdir(P('t'))}
 clips = [(lab, [Image.fromarray(f) for f in read_clip(P(src), ss, CLIP_LEN + 0.1, 780, 1688)[:int(CLIP_LEN * FPS)]]) for lab, src, ss, _ in CLIPS]
 
@@ -84,43 +83,48 @@ def push(im, u, z0, z1, cx=.5, cy=.5, as_img=False):   # a slow eased push-in on
     x = min(max(cx * W, cw / 2), W - cw / 2); y = min(max(cy * H, ch / 2), H - ch / 2)
     r = im.resize((W, H), Image.BILINEAR, box=(x - cw / 2, y - ch / 2, x + cw / 2, y + ch / 2))
     return r if as_img else np.asarray(r, np.float32) / 255
-def over(fr, k, t0, t, dur=0.35, rise=40, t1=None):   # a title rises in softly (never pops); t1 = it leaves there
+BBOX = {}
+def over(fr, k, t0, t, dur=0.35, rise=40, t1=None):   # a title grows in softly from 86% (never pops); t1 = it leaves there
     a = min(1, max(0, (t - t0) / dur))
     if t1 is not None: a = min(a, max(0, 1 - (t - t1) / 0.12))
     if a <= 0: return fr
-    lay = ttl[k]; dy = int(rise * (1 - ease(a)))
-    if dy: lay = np.concatenate([np.zeros((dy, W, 4), np.float32), lay[:-dy]])
-    al = lay[..., 3:4] * ease(a); return fr * (1 - al) + lay[..., :3] * al
+    lay = ttl[k]; e = ease(a)
+    if e < 1:
+        if k not in BBOX: ys, xs = np.where(lay[..., 3] > 0.01); BBOX[k] = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
+        x0, y0, x1, y1 = BBOX[k]; sc = 0.86 + 0.14 * e; dy = int(rise * (1 - e))
+        im = Image.fromarray((lay[y0:y1, x0:x1] * 255).astype(np.uint8), 'RGBA')
+        nw, nh = max(1, int((x1 - x0) * sc)), max(1, int((y1 - y0) * sc)); im = im.resize((nw, nh), Image.BILINEAR)
+        L = Image.new('RGBA', (W, H)); L.paste(im, ((x0 + x1 - nw) // 2, (y0 + y1 - nh) // 2 + dy)); lay = np.asarray(L, np.float32) / 255
+    al = lay[..., 3:4] * e; return fr * (1 - al) + lay[..., :3] * al
 
 N = int(round(T_OUT * FPS)) + len(outro)
-FLASH = [T_INTRO, T_ALONE, T_BOOM, T_CLIPS, T_TEAM, T_YANIV, T_HIT, T_OUT]
+FLASH = [T_ALONE, T_BOOM, T_CLIPS, T_TEAM, T_HIT, T_OUT]
 out = P('out', 'video-only.mp4'); os.makedirs(P('out'), exist_ok=True)
 pr = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                        '-c:v', 'libx264', '-crf', '17', '-preset', 'slow', '-pix_fmt', 'yuv420p', out], stdin=subprocess.PIPE)
 for i in range(N):
     t = i / FPS
-    if t < T_INTRO:   # the hook: Yaniv, angry, close
-        fr = push(blurred(yface(yan1[min(i, len(yan1) - 1)]), 0.4), t / T_INTRO, 1.05, 1.2, .5, .45)
-        sp = Y1_SPLIT - Y1[0]; fr = over(fr, 'ysub', 0, t, 0.08, 0, sp); fr = over(fr, 'ysub2', sp, t, 0.08, 0)
-    elif t < T_ALONE: fr = intro[min(i - int(round(T_INTRO * FPS)), len(intro) - 1)].astype(np.float32) / 255
-    elif t < T_BOOM:
-        fr = push(BG_ALONE, (t - T_ALONE) / (T_BOOM - T_ALONE), 1.0, 1.12); fr = over(fr, 'alone', T_ALONE + 0.25, t, 0.6)
+    if t < T_ALONE: fr = intro[min(i, len(intro) - 1)].astype(np.float32) / 255
+    elif t < T_BOOM:   # the game on the phone (never full screen), dimmed under the words
+        fr = on_phone(HUB, BG_SOFT, (t - T_ALONE) / (T_BOOM - T_ALONE)) * 0.42; fr = over(fr, 'alone', T_ALONE + 0.25, t, 0.6)
     elif t < T_CLIPS:
         fr = push(BG_HERO, (t - T_BOOM) / (T_CLIPS - T_BOOM), 1.18, 1.05, .5, .55) * 0.5; fr = over(fr, 'online', T_BOOM, t, 0.12, 0)
     elif t < T_TEAM:
         j = int((t - T_CLIPS) / CLIP_LEN); lab, frs = clips[j]; u = (t - T_CLIPS - j * CLIP_LEN) / CLIP_LEN
         fr = on_phone(frs[min(len(frs) - 1, int(u * CLIP_LEN * FPS))], BG_SOFT, (t - T_CLIPS) / (T_TEAM - T_CLIPS))
         fr = over(fr, lab, T_CLIPS + j * CLIP_LEN, t, 0.12, 20)
-    elif t < T_YANIV:
-        fr = push(BG_HERO, (t - T_TEAM) / 0.8, 1.0, 1.08) * 0.5; fr = over(fr, 'team', T_TEAM, t, 0.2)
-    elif t < T_HIT:   # Yaniv mostly heard: a glimpse of him, then his voice over the call grid
-        k = i - int(round(T_YANIV * FPS))
-        if t - T_YANIV < Y2_SHOW: fr = push(blurred(yface(yan2[min(k, len(yan2) - 1)]), 0.4), (t - T_YANIV) / Y2_SHOW, 1.1, 1.18, .5, .45)
-        else: fr = push(BG_HERO, (t - T_YANIV) / (T_HIT - T_YANIV), 1.25, 1.12, .5, .55) * 0.55
-        fr = over(fr, 'ysub3', T_YANIV, t, 0.08, 0)
-    elif t < T_OUT:
+    elif t < T_HIT:
+        fr = push(BG_HERO, (t - T_TEAM) / (T_HIT - T_TEAM), 1.0, 1.08) * 0.5; fr = over(fr, 'team', T_TEAM, t, 0.2)
+    elif t < T_OUT:   # the hit, the music dies away, then Yaniv in the silence - heard, his picture faint over it
         fr = push(BG_HERO, (t - T_HIT) / (T_OUT - T_HIT), 1.1, 1.0, .5, .4) * 0.55
-        fr = over(fr, 'invite', T_HIT, t, 0.1, 0); fr = over(fr, 'noyaniv', T_NOY, t, 0.3)
+        ty = t - T_YANIV; yl = Y1[1] - Y1[0]
+        if 0 <= ty < yl + 0.25:
+            k = min(len(yan1) - 1, int(ty * FPS)); g = min(1, ty / 0.25, max(0, (yl + 0.25 - ty) / 0.25)) * 0.38
+            fr = fr * (1 - g) + push(blurred(yface(yan1[k]), 0.4), ty / yl, 1.05, 1.12, .5, .45) * g
+        fr = over(fr, 'invite', T_HIT, t, 0.1, 0)
+        sp = Y1_SPLIT - Y1[0]
+        if 0 <= ty < yl + 0.2: fr = over(fr, 'ysub', T_YANIV, t, 0.08, 0, T_YANIV + sp); fr = over(fr, 'ysub2', T_YANIV + sp, t, 0.08, 0, T_YANIV + yl + 0.1)
+        fr = over(fr, 'noyaniv', T_NOY, t, 0.3)
     else: fr = outro[min(len(outro) - 1, i - int(round(T_OUT * FPS)))].astype(np.float32) / 255
     for c in FLASH:
         d = abs(t - c) * FPS
@@ -129,9 +133,9 @@ for i in range(N):
 pr.stdin.close(); pr.wait()
 DUR = N / FPS
 
-# sound: Yaniv dry on the hook; the music JUST STARTS in full on the logo (with the intro's own blink + a deep hit), slowed
+# sound: the music JUST STARTS in full on the logo (with the intro's own blink + a deep hit), slowed
 # so its hit lands on "תזמינו חבר", then its own tail; a deep hit on "פגישות בזום", each clip's own game sound, the join
-# chime, Yaniv's second line over the music, the produced cinematic boom on the hit, the outro's whoosh
+# chime, the produced cinematic boom on the hit, Yaniv alone in the silence after it, the outro's whoosh
 tempo = (M_HIT - M_START) / (T_HIT - T_INTRO)
 music = P('out', 'music.wav')
 subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', P('src', 'music.wav'), '-filter_complex',
@@ -145,10 +149,10 @@ sw = [f'{GAME}/assets/sfx/{s}' for s in ('big-1.mp3', 'found-1.mp3', 'line-2.mp3
 for s in sw: inputs += ['-i', s]
 flt = [f'[1:a]volume=0.8,{dl(T_INTRO)}[m]', f'[2:a]volume=0.9,{dl(T_INTRO)}[ai]', f'[3:a]volume=0.9,{dl(T_OUT)}[ao]',
        f'[4:a]volume=1.0,{dl(T_BOOM)}[b1]', f'[5:a]volume=1.0,{dl(T_HIT)}[b2]',
-       f'[6:a]asplit=2[ya][yb]', f'[ya]atrim={Y1[0]}:{Y1[1]},asetpts=PTS-STARTPTS,volume=1.5[y1]',
-       f'[yb]atrim={Y2[0]}:{Y2[1]},asetpts=PTS-STARTPTS,volume=1.7,{dl(T_YANIV)}[y2]',
+       f'[6:a]asplit=2[ya][yb]', f'[ya]atrim={Y1[0]}:{Y1[1]},asetpts=PTS-STARTPTS,volume=1.5,{dl(T_YANIV)}[y1]',
+       f'[yb]anullsink',
        f'[7:a]volume=0.7,{dl(T_TEAM + 0.1)}[jn]']
-labs = ['[m]', '[ai]', '[ao]', '[b1]', '[b2]', '[y1]', '[y2]', '[jn]']
+labs = ['[m]', '[ai]', '[ao]', '[b1]', '[b2]', '[y1]', '[jn]']
 for j in range(min(len(sw), len(CLIPS))):
     flt.append(f'[{8 + j}:a]volume=0.6,{dl(T_CLIPS + j * CLIP_LEN + SFX_AT[j])}[g{j}]'); labs.append(f'[g{j}]')
 flt.append(''.join(labs) + f'amix=inputs={len(labs)}:normalize=0,alimiter=limit=0.92,atrim=0:{DUR}[a]')
