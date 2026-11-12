@@ -43,7 +43,7 @@ async function playMatch(A, B, maxTurns = 60, stopAfter = 0) {
   const pa = await makePlayer('דנה בדיקה'), pb = await makePlayer('יוסי בדיקה');
   try {
     // ================= 1. friend code =================
-    const A = await phone(pa, `${BASE}/play/${GAME}?online=1`);
+    const A = await phone(pa, `${BASE}/play/${GAME}`);
     await openCallio(A);
     await A.fr.tap('#clFriend', { force: true });
     const code = await until(() => A.p.evaluate(() => { const b = [...document.querySelectorAll('.vn-code b')]; return b.length === 4 ? b.map((x) => x.textContent).join('') : null; }), 15000);
@@ -83,7 +83,7 @@ async function playMatch(A, B, maxTurns = 60, stopAfter = 0) {
     await A.ctx.close();
 
     // ================= 2. quick match =================
-    const A2 = await phone(pa, `${BASE}/play/${GAME}?online=1`, { width: 360, height: 640 });
+    const A2 = await phone(pa, `${BASE}/play/${GAME}`, { width: 360, height: 640 });
     await openCallio(A2);
     await A2.fr.tap('#clQuick', { force: true });
     const waiting = await until(() => A2.p.evaluate(() => !!document.querySelector('.vn-sheet') && /מחפשים יריב/.test(document.querySelector('.vn-sheet').textContent)), 10000);
@@ -97,7 +97,7 @@ async function playMatch(A, B, maxTurns = 60, stopAfter = 0) {
     const q = await (await fetch(`${RTDB}/queue/${GAME}.json${NS}${NS ? '&' : '?'}${LIVE ? 'access_token=' + gtoken() : ''}`, { headers: LIVE ? {} : { authorization: 'Bearer owner' } })).json();
     ok('quick: cancel frees the slot + back to the menu', q === null && (await state(A2)).phase === 'menu' ? true : { ok: false, q, phase: (await state(A2)).phase });
     await A2.fr.tap('#clQuick', { force: true }); await W(1500);
-    const B2 = await phone(pb, `${BASE}/play/${GAME}?online=1`, { width: 412, height: 915 });
+    const B2 = await phone(pb, `${BASE}/play/${GAME}`, { width: 412, height: 915 });
     await openCallio(B2);
     await B2.fr.tap('#clQuick', { force: true });
     const met = await until(async () => { const a = await state(A2), b = await state(B2); return a.phase === 'play' && b.phase === 'play' ? { a, b } : null; }, 25000);

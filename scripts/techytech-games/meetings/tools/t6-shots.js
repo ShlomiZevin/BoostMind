@@ -19,7 +19,7 @@ const measure = (ph, id) => F(ph, (id) => {
   try {
     for (const vp of SIZES) {
       const tag = vp.width + 'x' + vp.height, shot = (ph, n) => ph.p.screenshot({ path: OUT + 'os-' + tag + '-' + n + '.png' });
-      const A = await phone(pa, `${BASE}/play/${GAME}?online=1`, vp), B = await phone(pb, `${BASE}/play/${GAME}?online=1`);
+      const A = await phone(pa, `${BASE}/play/${GAME}`, vp), B = await phone(pb, `${BASE}/play/${GAME}`);
       await W(800); await shot(A, 'hub');
       // lobby chooser (Meetly's "אונליין")
       await A.fr.tap('[data-onl="meetly"]', { force: true }); await until(() => A.p.evaluate(() => !!document.querySelector('.vn-sheet.open')), 8000); await W(500);

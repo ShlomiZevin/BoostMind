@@ -14,7 +14,7 @@ const same = (x, y) => JSON.stringify(Object.entries(x).sort()) === JSON.stringi
 const vs = (ph) => F(ph, () => ({ active: VS.active, over: VS.over, wins: VS.wins, me: VS.me, round: VerseNet.round, endShown: !document.getElementById('end').hidden, endTitle: document.getElementById('endTitle').textContent, hud: document.getElementById('clHud').textContent }));
 
 async function pair(pa, pb, key, vpB) {
-  const A = await phone(pa, `${BASE}/play/${GAME}?online=1`);
+  const A = await phone(pa, `${BASE}/play/${GAME}`);
   await until(() => F(A, (k) => !document.querySelector(`[data-onl="${k}"]`).hidden, key), 10000);
   await A.fr.tap(`[data-onl="${key}"]`, { force: true });
   await until(() => A.p.evaluate(() => !!document.querySelector('.vn-sheet [data-vn-friend]')), 10000);

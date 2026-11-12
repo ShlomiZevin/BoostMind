@@ -20,6 +20,9 @@ const CL = {
   win: 'מצוין. נתת לנו הרבה חומר למחשבה.', lose: 'לא. אנחנו לא מסונכרנים.', tie: 'אז אנחנו מסונכרנים. נקבע פגישת המשך.',
 };
 const NET = window.VerseNet;
+// the verse answers the game's hello a moment after load (it loads its net module first): a tap that comes sooner waits
+// for the answer instead of saying "online works only in the verse" (12 Nov 2026, after the release showed the buttons at once)
+const NET_READY = NET ? NET.ready() : Promise.resolve({ available: false });
 const cl = {
   phase: 'menu', online: false, solo: false, tut: false, deck: null, pub: null, me: null, players: [], m: null, busy: false,
   resolving: false, flips: 0, timer: 0, left: null, wantAgain: false,
@@ -46,6 +49,7 @@ const cl = {
   },
   async go(kind) {
     sfx('tap', .5);
+    if (NET && !NET.available) await NET_READY;
     if (!NET || !NET.available) return this.notInVerse();
     this.phase = 'lobby';
     verb(kind === 'friend' ? 'שלחו לחבר את הקוד' : 'מחפשים יריב…', 'amir');
@@ -330,7 +334,7 @@ if (NET) {
   // sees it), an invite link (?room=), or a local test
   const local = /^(localhost|127\.)/.test(location.hostname), own = /[?&]online=1/.test(location.search);
   $('#appCallio').hidden = false;  // released to everyone 12 Nov 2026
-  NET.ready().then((r) => { if (r && r.flags && r.flags.online) $('#appCallio').hidden = false; });
+  NET_READY.then((r) => { if (r && r.flags && r.flags.online) $('#appCallio').hidden = false; });
 }
 
 // the tutorial (practice board 3x2, its own fixed deck)

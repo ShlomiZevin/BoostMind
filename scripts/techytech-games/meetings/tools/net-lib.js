@@ -58,8 +58,8 @@ async function removePlayer(pl) {
 
 // ---------- phones ----------
 const L = { browser: null };
-async function phone(pl, url, vp = { width: 390, height: 844 }) {
-  const ctx = await L.browser.newContext({ viewport: vp, deviceScaleFactor: 2, hasTouch: true, isMobile: true, userAgent: UA });
+async function phone(pl, url, vp = { width: 390, height: 844 }, extra = {}) {   // extra: more context options (recordVideo for the trailer)
+  const ctx = await L.browser.newContext({ viewport: vp, deviceScaleFactor: 2, hasTouch: true, isMobile: true, userAgent: UA, ...extra });
   if (!LIVE) {   // the local wiki data has no games: add this one (on the local origin)
     await ctx.route('**/wiki/data/wiki.json*', async (route) => {
       const r = await route.fetch(); const d = await r.json();
@@ -67,7 +67,7 @@ async function phone(pl, url, vp = { width: 390, height: 844 }) {
       route.fulfill({ response: r, json: d });
     });
   }
-  const p = await ctx.newPage();
+  const p = await ctx.newPage(); const t0 = Date.now();   // t0 = the start of this page's video
   p.on('pageerror', (e) => errs.push(pl.nick + ': ' + e.message));
   if (process.env.DEBUG) p.on('console', (m) => { if (!/track|React|\[verse\]/.test(m.text())) console.log('  [' + pl.nick + ' ' + m.type() + '] ' + m.text().slice(0, 300)); });
   await p.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
@@ -83,7 +83,7 @@ async function phone(pl, url, vp = { width: 390, height: 844 }) {
   if (!fr) throw new Error(pl.nick + ': no game frame');
   await until(() => fr.evaluate(() => !!window.CALLIO), 20000);
   await fr.evaluate(() => localStorage.setItem('shlomiverse:meetings:tut-callio', '1'));
-  return { ctx, p, fr, pl };
+  return { ctx, p, fr, pl, t0 };
 }
 const C = (ph, fn, arg) => ph.fr.evaluate(fn, arg);
 const state = (ph) => C(ph, () => ({ phase: CALLIO.phase, online: CALLIO.online, me: CALLIO.me, turn: VerseNet.turn, round: VerseNet.round, host: CALLIO.m && CALLIO.m.host,

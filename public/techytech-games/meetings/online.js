@@ -192,13 +192,14 @@ if (window.VerseNet) {
   $('#bHome').onclick = () => { if (VS.active) { VS.leave(); return showStart(); } home(); };
 
   // "אונליין ←" on each app card (hidden until his ?online=1 preview, like Callio)
-  document.querySelectorAll('[data-onl]').forEach((el) => el.addEventListener('click', (e) => {
+  document.querySelectorAll('[data-onl]').forEach((el) => el.addEventListener('click', async (e) => {
     e.stopPropagation(); e.preventDefault();
     sfx('tap', .5);
+    if (!N.available) await NET_READY;   // tapped before the verse answered: wait for it (callio.js)
     if (!N.available) { $('#tagline').textContent = 'משחק אונליין עובד בתוך שלומיוורס – shlomiverse.com'; return; }
     N.lobby(el.dataset.onl, vsLabel(el.dataset.onl)).catch(() => {});
   }));
   const showOnl = () => { document.querySelectorAll('[data-onl]').forEach((el) => { el.hidden = false; }); $('#appCallio').hidden = false; fitHub(); };
   showOnl();  // released to everyone 12 Nov 2026
-  N.ready().then((r) => { if (r && r.flags && r.flags.online) showOnl(); });
+  NET_READY.then((r) => { if (r && r.flags && r.flags.online) showOnl(); });
 }
