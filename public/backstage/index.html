@@ -1710,7 +1710,7 @@ function openThread(k, list, focus) {
       ${anyThink ? '' : '<p class="hint cv-nothink">החשיבה נשמרת מ-12.11 (תשובות של דמויות עם דף).</p>'}</div>`, 'sh-conv');
   if (focus != null) requestAnimationFrame(() => {
     const el = focus && document.querySelector(`.sheet [data-msg="${CSS.escape(focus)}"]`);
-    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800); }
+    if (el) { msgCenter(el); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800); }
     cpOpen(focus || '');
   });
 }
@@ -1746,7 +1746,7 @@ function cpOpen(msg) {
   const cp = document.querySelector('.cp'), ta = cp.querySelector('textarea');
   grow(ta); cpFit();
   requestAnimationFrame(() => { document.querySelector('.cp-back').classList.add('on'); cp.classList.add('on'); });
-  if (!cp.querySelector('.tn-n')) setTimeout(() => ta.focus(), 260);   // nothing written yet: straight to typing
+  if (!cp.querySelector('.tn-n')) setTimeout(() => ta.focus({ preventScroll: true }), 260);   // nothing written yet: straight to typing
 }
 function cpClose() { document.querySelectorAll('.cp, .cp-back').forEach((x) => x.remove()); CP = null; }
 // keep the window above the keyboard (iPhone: the keyboard covers fixed things at the bottom)
@@ -1885,7 +1885,7 @@ document.addEventListener('click', async (e) => {
   else if (d.cnf) { cnFilter = d.cnf; cnView(); }
   else if (d.cvnote != null) cpOpen(d.cvnote);
   else if (d.mark) await markSet(d.mark);
-  else if (d.cpjump) { const m = d.cpjump; cpClose(); const el = document.querySelector(`.sheet [data-msg="${CSS.escape(m)}"]`); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800); } }
+  else if (d.cpjump) { const m = d.cpjump; cpClose(); const el = document.querySelector(`.sheet [data-msg="${CSS.escape(m)}"]`); if (el) { msgCenter(el, true); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800); } }
   else if (d.tnsend != null) await tnSend(b);
   else if (d.tndone) await tnDone(b);
   else if (d.tnedit) { const n = CN.notes.find((x) => x.id === d.tnedit); tnEdit.add(d.tnedit); if (n) { cnPaintNote(n); const ta = document.querySelector(`[data-tnedittext="${CSS.escape(n.id)}"]`); if (ta) { grow(ta); ta.focus({ preventScroll: true }); } } }
@@ -1899,10 +1899,31 @@ document.addEventListener('click', async (e) => {
 
 // ---------- the sheet (a conversation, a person) ----------
 function sheet(html, cls = '') {
-  closeSheet();
+  document.querySelectorAll('.sheet, .sheet-back, .cp, .cp-back').forEach((x) => x.remove()); CP = null;
   document.body.insertAdjacentHTML('beforeend', `<div class="sheet-back" data-close></div><div class="sheet ${cls}" role="dialog"><div class="grab"></div>${html}</div>`);
   requestAnimationFrame(() => { $('.sheet-back').classList.add('on'); $('.sheet').classList.add('on'); });
-  document.body.style.overflow = 'hidden';
+  pageLock();
+}
+// the page behind a sheet stays exactly where it was (his note 2026-11-12: commenting in a conversation made the list
+// behind jump - on the iPhone, typing in a box scrolls the page under it; overflow hidden doesn't stop it there)
+let lockY = null;
+function pageLock() {
+  if (lockY != null) return;
+  lockY = scrollY;
+  Object.assign(document.body.style, { overflow: 'hidden', position: 'fixed', top: -lockY + 'px', left: '0', right: '0', width: '100%' });
+}
+function pageUnlock() {
+  if (lockY == null) return;
+  const y = lockY; lockY = null;
+  Object.assign(document.body.style, { overflow: '', position: '', top: '', left: '', right: '', width: '' });
+  scrollTo(0, y);
+}
+// scroll a message to the middle of its conversation - only the conversation moves, never the page
+function msgCenter(el, smooth) {
+  const box = el && el.closest('.sh-b');
+  if (!box) return;
+  const top = box.scrollTop + el.getBoundingClientRect().top - box.getBoundingClientRect().top - (box.clientHeight - el.offsetHeight) / 2;
+  box.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
 }
 // a question in the page's own look, instead of the browser's "shlomiverse.com says" box (his ask, 2026-11-05).
 // await askBox('...') -> true / false; Enter = yes, Escape or a tap outside = no
@@ -1919,7 +1940,7 @@ function askBox(msg, { ok = 'כן', no = 'ביטול' } = {}) {
     requestAnimationFrame(() => { back.classList.add('on'); back.querySelector('[data-ask="1"]').focus(); });
   });
 }
-function closeSheet() { document.querySelectorAll('.sheet, .sheet-back, .cp, .cp-back').forEach((x) => x.remove()); CP = null; document.body.style.overflow = ''; }
+function closeSheet() { document.querySelectorAll('.sheet, .sheet-back, .cp, .cp-back').forEach((x) => x.remove()); CP = null; pageUnlock(); }
 addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
 // ---------- נתונים: every number, a day's drill-down, and asking the data ----------
