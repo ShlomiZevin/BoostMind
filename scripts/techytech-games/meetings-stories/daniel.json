@@ -1,0 +1,8 @@
+{ "char": "daniel", "file": "daniel.jpg",
+  "text": "דניאל: ב-Zoomba אונליין, מיזוג גדול שולח את דניאל או איתי ללוח של היריב.",
+  "link": "/play/techytech-games-meetings", "label": "שולחים אותי", "everyone": false,
+  "keepClear": [[55,7,95,30],[12,23,88,94]],
+  "boxes": [
+    { "t": "סוף סוף\nהגעתי למקום\nשמקשיבים לי בו.", "x": 28, "y": 11.5, "w": 52, "s": 4.4, "st": "bubble", "tail": "tr", "f": "rubik", "bg": "#ffffff", "c": "#14142b", "al": "right" },
+    { "t": "דו-קרב אונליין בזמן אמת", "x": 28, "y": 20.3, "w": 50, "s": 3.8, "st": "tag", "f": "rubik", "bg": "#ec4899", "c": "#ffffff", "al": "center" }
+  ] }

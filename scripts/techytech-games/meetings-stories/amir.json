@@ -1,0 +1,8 @@
+{ "char": "amir", "file": "amir.jpg",
+  "text": "אמיר: סנכרון אסטרטגי, גם במשחק. אז אנחנו מסונכרנים - עכשיו אונליין.",
+  "link": "/play/techytech-games-meetings", "label": "פותחים חדר", "everyone": false,
+  "keepClear": [[18,9,82,31],[0,31,100,80]],
+  "boxes": [
+    { "t": "סנכרון אסטרטגי, גם במשחק.", "x": 50, "y": 84.5, "w": 92, "s": 6, "st": "line", "f": "secular", "bg": "#ffd23f", "c": "#14142b", "al": "center" },
+    { "t": "חדש: משחקים אונליין מול חבר או יריב אקראי", "x": 50, "y": 92, "w": 92, "s": 4, "st": "tag", "f": "rubik", "bg": "#2f6bff", "c": "#ffffff", "al": "center" }
+  ] }
