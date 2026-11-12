@@ -253,18 +253,14 @@ const cl = {
       $('#endScore').textContent = this.flips + ' הפיכות'; $('#endNew').hidden = !nb || !b;
       $('#endBest').textContent = nb ? '' : 'השיא שלכם: ' + b + ' הפיכות';
       $('#endFace').src = img('amir-talk');
-      $('#bAgain').textContent = 'עוד אימון';
+      $('#bAgain').textContent = 'עוד אימון'; $('#bNew').className = 'quiet';
       window.track && window.track('game_over', SLUG);
     } else {
       const sc = p.scores || {}, op = this.players.find((x) => x.id !== this.me);
       const mine = sc[this.me] || 0, theirs = op ? sc[op.id] || 0 : 0;
       const won = why === 'left' || p.winner === this.me, tie = !why && p.winner === 'tie';
-      $('#endTitle').innerHTML = (why === 'left' ? esc(this.left || 'היריב') + ' כבר לא בפגישה' : tie ? 'תיקו' : won ? 'ניצחתם!' : 'הפסדתם') + '<small>' + (why === 'left' ? 'ניצחתם!' : 'Callio · מול ' + esc(this.opName())) + '</small>';
-      $('#endLine').textContent = '"' + (tie ? CL.tie : won ? CL.win : CL.lose) + '"';
-      $('#endScore').textContent = mine + ' : ' + theirs;
-      $('#endBest').textContent = why === 'left' ? '' : 'הזוגות שלכם : של ' + this.opName();
-      $('#endFace').src = img(tie ? 'amir' : won ? 'amir-talk' : 'ronit');
-      $('#bAgain').textContent = 'משחק חוזר'; $('#bAgain').hidden = why === 'left';
+      onlineEnd({ head: tie ? 'תיקו' : won ? 'ניצחתם!' : 'הפסדתם', sub: why === 'left' ? (this.left || 'היריב') + ' כבר לא בפגישה' : 'Callio · זוגות מול ' + this.opName(),
+        line: tie ? CL.tie : won ? CL.win : CL.lose, mine, theirs, op: this.opName(), unit: 'זוגות', left: why === 'left', face: tie ? 'amir' : won ? 'amir-talk' : 'ronit' });
       sfx(won ? 'win' : 'over', .8);
       window.track && window.track('game_over', SLUG + '-online');
     }
@@ -280,6 +276,19 @@ const cl = {
   newOpponent() { $('#end').hidden = true; NET.leave().catch(() => {}).finally(() => { this.online = false; this.m = null; this.menu(); this.go('quick'); }); },
   leave() { if (this.online) { NET.leave().catch(() => {}); this.online = false; this.m = null; } this.stopTimer(); this.phase = 'menu'; },
 };
+// the online end card (Callio and the races): the result is the headline, the reason the small line; both scores with
+// their names; "משחק חוזר" is the main button - or, when the other player left, "יריב חדש" is
+function onlineEnd({ head, sub, line, mine, theirs, op, unit, left, face }) {
+  $('#endTitle').innerHTML = esc(head) + '<small>' + esc(sub) + '</small>';
+  $('#endLine').textContent = line ? '"' + line + '"' : '';
+  const side = (nm, n) => '<span class="es"><b>' + n + '</b><small>' + esc(nm) + '</small></span>';
+  $('#endScore').innerHTML = side('אתם', mine) + '<i>:</i>' + side(String(op || 'היריב').split(' ')[0], theirs);
+  $('#endBest').textContent = unit || '';
+  $('#endNew').hidden = true;
+  $('#bAgain').hidden = !!left; $('#bAgain').textContent = 'משחק חוזר';
+  $('#bNew').hidden = false; $('#bNew').className = left ? 'big' : 'quiet';
+  $('#endFace').src = img(face);
+}
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
 MODES.callio = cl; APP.callio = 'Callio';
 

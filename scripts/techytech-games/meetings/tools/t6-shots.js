@@ -45,7 +45,7 @@ const measure = (ph, id) => F(ph, (id) => {
       await F(A, () => document.getElementById('bHome').click()); await W(500);
       // the races
       for (const [key, id] of [['meetly', 'mgrid'], ['teamz', 'cv'], ['zoomba', 'zb']]) {
-        const r = await F(A, (k) => VerseNet.host(k), key);
+        const r = await F(A, (k) => VerseNet.host(k, vsLabel(k)), key);
         await W(600);
         if (key === 'meetly') await shot(A, 'race-code');
         await F(B, (c) => VerseNet.join(c), r.code);
@@ -57,8 +57,12 @@ const measure = (ph, id) => F(ph, (id) => {
         await W(900);
         await shot(A, 'race-' + key);
         console.log(tag, key, ok ? 'started' : 'NO START', JSON.stringify(await measure(A, id === 'cv' ? 'cv' : id)));
-        await F(A, () => document.getElementById('bHome').click()); await W(1200);
-        if (key === 'zoomba') { await W(400); await shot(B, 'race-left-b'); }
+        if (key === 'zoomba') {   // B's board locks: both end cards
+          await F(B, () => VS.zLost()); await until(() => F(A, () => !document.getElementById('end').hidden), 8000); await W(900);
+          await shot(A, 'race-end-win'); await shot(B, 'race-end-lose');
+        }
+        await F(A, () => { document.getElementById('end').hidden = true; document.getElementById('bHome').click(); }); await W(1200);
+        if (key !== 'zoomba') { await until(() => F(B, () => !document.getElementById('end').hidden), 8000); await W(700); await shot(B, 'race-left-' + key); }
         await F(B, () => { document.getElementById('end').hidden = true; document.getElementById('bHome').click(); }); await W(500);
       }
       // full screen (the verse's own): Callio's board under the pill

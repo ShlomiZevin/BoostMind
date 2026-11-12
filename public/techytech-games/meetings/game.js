@@ -434,7 +434,8 @@ const tz = {
   },
   layout() {
     const { W, H } = stage();
-    this.cell = Math.floor(Math.min((W - 10) / this.C, (H - 10) / this.R));
+    const pad = Math.max(12, Math.round(W * .035));   // an even margin on every side (the white frame sits 5px outside)
+    this.cell = Math.floor(Math.min((W - 2 * pad) / this.C, (H - 2 * pad) / this.R));
     this.ox = (W - this.cell * this.C) / 2; this.oy = (H - this.cell * this.R) / 2;
   },
   endAt(x, y) { return this.pairs.findIndex((p) => (p.a[0] === x && p.a[1] === y) || (p.b[0] === x && p.b[1] === y)); },
@@ -561,7 +562,7 @@ function startMode(mode, tutorial) {
   $('#start').hidden = true; $('#end').hidden = true; $('#play').hidden = false; $('#play').dataset.mode = mode;
   $('#appIcon').src = 'assets/app-' + mode + '.png'; $('#appTitle').textContent = APP[mode];
   $('#zb').hidden = $('#mgrid').hidden = $('#cv').hidden = true;
-  $('#cl').hidden = $('#clHud').hidden = true; $('#play').classList.remove('narrow', 'vs'); $('#score').hidden = false; $('#bRestart').style.visibility = ''; $('#bAgain').textContent = 'עוד פגישה'; $('#bAgain').hidden = false; $('#bNew').hidden = true;
+  $('#cl').hidden = $('#clHud').hidden = true; $('#play').classList.remove('narrow', 'vs'); $('#score').hidden = false; $('#bRestart').style.visibility = ''; $('#bAgain').textContent = 'עוד פגישה'; $('#bAgain').hidden = false; $('#bNew').hidden = true; $('#bNew').className = 'quiet';
   $('#timer').hidden = !CLOCK[mode] || vsOn(mode); G.time = G.timeMax = CLOCK[mode] || 0; if (CLOCK[mode]) timerShow();
   $('#flash').classList.remove('on');
   MODES[mode].start(tutorial); musicLevel();

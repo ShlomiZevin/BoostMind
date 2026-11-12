@@ -11,6 +11,7 @@
 // Loaded after game.js + callio.js (shares $, G, startMode, showStart, sfx, say, verb, flash, img, NAME, ZL, mt, tz, zb).
 'use strict';
 const VS_APPS = { meetly: { to: 4, of: 7 }, teamz: { to: 3, of: 5 }, zoomba: { to: 1, of: 1 } };
+const vsLabel = (k) => ({ title: APP[k] + ' אונליין', sub: { meetly: 'מירוץ על אותה שיחה: מי שמוצא ראשון לוקח את הסיבוב. הראשון ל-4.', teamz: 'מירוץ על אותו לוח: מי שמיישר קו ראשון לוקח. הראשון ל-3.', zoomba: 'דו־קרב: כל מיזוג גדול שולח ליריב את דניאל או את איתי. מי שננעל ראשון – מפסיד.' }[k] });
 const VS = window.VS = {
   active: null, m: null, me: null, wins: {}, over: false, wantAgain: false, lock: 0, roundDone: -1, op: {}, sentAt: 0, last: '',
   opName() { const o = this.m && this.m.players.find((p) => p.id !== this.me); return o ? o.nick : 'היריב'; },
@@ -22,24 +23,34 @@ const VS = window.VS = {
     m.players.forEach((p) => { this.wins[p.id] = 0; });
     startMode(m.key);   // the app builds its board from m.seed (game.js vsOn)
     $('#bRestart').style.visibility = 'hidden'; $('#play').classList.add('vs');
-    sfx('join', .7); flash('מול ' + this.opName());
+    sfx('join', .7);
     const intro = { meetly: 'מי שמוצא ראשון לוקח. טעות = נעילה', teamz: 'מי שמיישר קו ראשון לוקח', zoomba: 'מיזוג גדול שולח ליריב את דניאל' }[m.key];
-    verb(intro, 'amir');
+    this.task();
     this.hud();
+    flash('מול ' + this.opName() + ' · ' + intro);   // the rule once, over the board's start; the strip keeps the task
     window.track && window.track('game_start', SLUG + '-' + m.key + '-online');
+  },
+  // the strip always says what to do now (solo Meetly's task with its face), with the round
+  round() { return Math.min(VS_APPS[this.active].of, Object.values(this.wins).reduce((p, q) => p + q, 0) + 1); },
+  task() {
+    const a = this.active;
+    if (a === 'meetly') { const T = TASKS[mt.task]; verb('סיבוב ' + this.round() + '/7 · ' + T.t, T.face); }
+    else if (a === 'teamz') verb('לוח ' + this.round() + '/5 · חברו כל זוג ומלאו את הלוח – ראשון לוקח', 'ronit');
+    else if (a === 'zoomba') verb('החליקו. מיזוג לרמה 6 שולח ליריב את דניאל, 8 – את איתי', 'amir');
   },
   hud() {
     const h = $('#clHud'); h.hidden = false; $('#play').classList.toggle('narrow', $('#hud').clientWidth < 360);
     const op = this.opName(), o = this.op, a = this.active;
-    const chip = (nm, val, cls) => '<div class="pc ' + cls + '"><em>' + esc((nm || '?')[0]) + '</em><span class="nm">' + esc(String(nm || '').split(' ')[0]) + '</span><b>' + val + '</b></div>';
+    const chip = (nm, val, cls, extra) => '<div class="pc ' + cls + '"><em>' + esc((nm || '?')[0]) + '</em><span class="nm">' + esc(String(nm || '').split(' ')[0]) + '</span><b>' + val + '</b>' + (extra || '') + '</div>';
+    const narrow = $('#play').classList.contains('narrow');
+    $('#score').hidden = true;
     if (a === 'zoomba') {
-      $('#score').hidden = false;
-      const narrow = $('#play').classList.contains('narrow');
-      h.innerHTML = chip(op, (o.score || 0), 'op') + '<span class="vsTop">' + esc(!o.top ? '…' : narrow ? 'רמה ' + o.top : ZL[o.top].he) + '</span>';
+      h.innerHTML = chip('אתם', G.score, 'me') + chip(op, (o.score || 0), 'op') + '<span class="vsTop" title="הפגישה הגדולה של ' + esc(op) + '">' + esc(!o.top ? '…' : narrow ? 'רמה ' + o.top : ZL[o.top].he) + '</span>';
     } else {
-      $('#score').hidden = true;
-      const extra = a === 'teamz' && o.tp != null && o.lv === tz.level ? '<span class="vsTop" title="מחוברים אצל ' + esc(op) + '">🔗 ' + o.tp + '/' + o.of + '</span>' : '';
-      h.innerHTML = chip('אתם', this.wins[this.me] || 0, 'me') + chip(op, this.wins[this.opId()] || 0, 'op') + extra;
+      // Teamz: the opponent's progress lives in the opponent's own chip; Meetly: the round
+      const prog = a === 'teamz' && o.tp != null && o.lv === tz.level ? '<span class="pg">🔗 ' + o.tp + '/' + o.of + '</span>' : '';
+      const rd = a === 'meetly' ? '<span class="vsTop">' + (narrow ? '' : 'סיבוב ') + this.round() + '/7</span>' : '';
+      h.innerHTML = chip('אתם', this.wins[this.me] || 0, 'me') + chip(op, this.wins[this.opId()] || 0, 'op', prog) + rd;
     }
   },
 
@@ -72,6 +83,7 @@ const VS = window.VS = {
       VerseNet.send({ atk: who, lv: top }).catch(() => {});
       flash((who === 'itay' ? 'איתי' : 'דניאל') + ' נשלח ל' + this.opName() + '!');
     }
+    this.hud();
     if (Date.now() - this.sentAt > 250 || top) { this.sentAt = Date.now(); VerseNet.send({ top: zb.best, score: G.score }).catch(() => {}); }
   },
   zAttacked(who) {
@@ -99,14 +111,14 @@ const VS = window.VS = {
       sfx(mine ? 'found' : 'wrong', .7); flash(mine ? 'ראשונים! +1' : this.opName() + ' מצא ראשון');
       const s = TASKS[mt.task].said; if (mine) say(s[0], s[1], 1600);
       this.hud();
-      setTimeout(() => { if (this.active !== 'meetly' || this.over) return; if (!this.check()) { mt.round++; mt.next(); this.lock = 0; } }, 1300);
+      setTimeout(() => { if (this.active !== 'meetly' || this.over) return; if (!this.check()) { mt.round++; mt.next(); this.lock = 0; this.task(); this.hud(); } }, 1300);
     }
     if (a === 'teamz' && key[0] === 't' && n === tz.level && this.roundDone !== n) {
       this.roundDone = n; this.wins[by] = (this.wins[by] || 0) + 1;
       sfx(mine ? 'level' : 'wrong', .7); flash(mine ? 'מסונכרנים ראשונים! +1' : this.opName() + ' יישר קו ראשון');
       say(mine ? 'amir' : 'ronit', mine ? 'מצוין. אז אנחנו מסונכרנים.' : 'לא. אנחנו לא מסונכרנים.', 1600);
       this.op.tp = null; this.hud();
-      setTimeout(() => { if (this.active !== 'teamz' || this.over) return; if (!this.check()) { tz.level++; tz.load(); this.last = ''; } }, 1500);
+      setTimeout(() => { if (this.active !== 'teamz' || this.over) return; if (!this.check()) { tz.level++; tz.load(); this.last = ''; this.task(); this.hud(); } }, 1500);
     }
   },
   check() {   // best of N: the first to `to` wins
@@ -129,12 +141,10 @@ const VS = window.VS = {
     if (this.m.host) VerseNet.end().catch(() => {});
     const a = this.active, me = this.wins[this.me] || 0, op = this.wins[this.opId()] || 0;
     const E = $('#end'); E.dataset.mode = a;
-    $('#endNew').hidden = true; $('#bNew').hidden = false; $('#bAgain').hidden = why === 'left'; $('#bAgain').textContent = 'משחק חוזר';
-    $('#endTitle').innerHTML = (why === 'left' ? esc(this.opName()) + ' כבר לא בפגישה' : won ? 'ניצחתם!' : 'הפסדתם') + '<small>' + APP[a] + ' · מול ' + esc(this.opName()) + '</small>';
-    $('#endLine').textContent = '"' + (won ? 'מצוין. נתת לנו הרבה חומר למחשבה.' : 'לא. אנחנו לא מסונכרנים.') + '"';
-    $('#endScore').textContent = a === 'zoomba' ? G.score + ' : ' + (this.op.score || 0) : me + ' : ' + op;
-    $('#endBest').textContent = why === 'left' ? '' : a === 'zoomba' ? (won ? 'הלוח של ' + this.opName() + ' ננעל' : 'הלוח שלכם ננעל') : 'הסיבובים שלכם : של ' + this.opName();
-    $('#endFace').src = img(won ? 'amir-talk' : 'ronit');
+    const sub = why === 'left' ? this.opName() + ' כבר לא בפגישה' : a === 'zoomba' ? (won ? 'הלוח של ' + this.opName() + ' ננעל' : 'הלוח שלכם ננעל') : APP[a] + ' · מול ' + this.opName();
+    onlineEnd({ head: won ? 'ניצחתם!' : 'הפסדתם', sub, line: won ? 'מצוין. נתת לנו הרבה חומר למחשבה.' : 'לא. אנחנו לא מסונכרנים.',
+      mine: a === 'zoomba' ? G.score : me, theirs: a === 'zoomba' ? (this.op.score || 0) : op, op: this.opName(), unit: a === 'zoomba' ? 'נקודות' : a === 'meetly' ? 'סיבובים' : 'לוחות',
+      left: why === 'left', face: won ? 'amir-talk' : 'ronit' });
     sfx(won ? 'win' : 'over', .8);
     window.track && window.track('game_over', SLUG + '-' + a + '-online');
     setTimeout(() => { E.hidden = false; }, 400);
@@ -177,7 +187,7 @@ if (window.VerseNet) {
   // the end screen and HUD buttons, while a versus match runs
   const again = $('#bAgain').onclick, menu = $('#bMenu').onclick, home = $('#bHome').onclick, nw = $('#bNew').onclick;
   $('#bAgain').onclick = () => (VS.active ? VS.again() : again());
-  $('#bNew').onclick = () => { if (!VS.active) return nw(); const k = VS.active; $('#end').hidden = true; VS.leave(); showStart(); N.quick(k).catch(() => {}); };
+  $('#bNew').onclick = () => { if (!VS.active) return nw(); const k = VS.active; $('#end').hidden = true; VS.leave(); showStart(); N.quick(k, vsLabel(k)).catch(() => {}); };
   $('#bMenu').onclick = () => { if (VS.active) { VS.leave(); return showStart(); } menu(); };
   $('#bHome').onclick = () => { if (VS.active) { VS.leave(); return showStart(); } home(); };
 
@@ -186,8 +196,7 @@ if (window.VerseNet) {
     e.stopPropagation(); e.preventDefault();
     sfx('tap', .5);
     if (!N.available) { $('#tagline').textContent = 'משחק אונליין עובד בתוך שלומיוורס – shlomiverse.com'; return; }
-    const k = el.dataset.onl;
-    N.lobby(k, { title: APP[k] + ' אונליין', sub: { meetly: 'מירוץ על אותה שיחה: מי שמוצא ראשון לוקח את הסיבוב. הראשון ל-4.', teamz: 'מירוץ על אותו לוח: מי שמיישר קו ראשון לוקח. הראשון ל-3.', zoomba: 'דו־קרב: כל מיזוג גדול שולח ליריב את דניאל או את איתי. מי שננעל ראשון – מפסיד.' }[k] }).catch(() => {});
+    N.lobby(el.dataset.onl, vsLabel(el.dataset.onl)).catch(() => {});
   }));
   const showOnl = () => { document.querySelectorAll('[data-onl]').forEach((el) => { el.hidden = false; }); $('#appCallio').hidden = false; fitHub(); };
   if (/^(localhost|127\.)/.test(location.hostname) || /[?&]online=1/.test(location.search)) showOnl();

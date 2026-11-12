@@ -161,6 +161,7 @@ a{color:inherit}
 .pc i{position:absolute;inset:auto 0 0 0;height:3px;background:var(--orangeD);transform-origin:right;transform:scaleX(0)}
 .pc.on i{transform:scaleX(var(--tl,1))}
 .pc.low.on{background:#ffe1e1}
+.pc .pg{font-size:11.5px;font-weight:700;background:#0002;border-radius:8px;padding:2px 6px;margin-inline-start:4px;white-space:nowrap}
 .vsTop{font-size:11.5px;font-weight:700;background:#0003;border-radius:9px;padding:3px 7px;max-width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #mgrid.locked{filter:grayscale(.7) brightness(.65);pointer-events:none}
 #play[data-mode=callio] #appTitle,#play.vs #appTitle{display:none}
@@ -199,6 +200,9 @@ a{color:inherit}
 #endLine{font-size:15px;color:#334;margin:8px 0}
 #endScore{font-size:46px;font-weight:900;color:var(--appD);line-height:1}
 #endNew{color:#e0344a;font-weight:900}
+#endScore .es{display:inline-flex;flex-direction:column;align-items:center;min-width:70px}
+#endScore .es small{font-size:13px;font-weight:700;color:#556;margin-top:2px}
+#endScore i{font-style:normal;margin:0 6px;vertical-align:top}
 #endBest{color:#556;font-size:14px}
 .big{display:block;width:100%;background:var(--app);color:#fff;font-weight:900;font-size:20px;border-radius:16px;padding:14px;margin-top:14px;box-shadow:0 4px 0 var(--appD)}
 .big:active{transform:translateY(3px);box-shadow:0 1px 0 var(--appD)}
@@ -271,7 +275,7 @@ a{color:inherit}
   <div id="apps">
     <button class="app" data-mode="zoomba"><img src="assets/app-zoomba.png" alt=""><div class="t"><b>Zoomba</b><span class="d">ממזגים פגישות עד שמגיעים להחלטה</span><i data-rec="zoomba"></i><span class="how" data-how>איך משחקים?</span><span class="onl" data-onl="zoomba" hidden>אונליין<span class="ar"> ←</span></span></div><div class="go">←</div></button>
     <button class="app" data-mode="meetly"><img src="assets/app-meetly.png" alt=""><div class="t"><b>Meetly</b><span class="d">מוצאים את מי שצריך במשבצות</span><i data-rec="meetly"></i><span class="how" data-how>איך משחקים?</span><span class="onl" data-onl="meetly" hidden>אונליין<span class="ar"> ←</span></span></div><div class="go">←</div></button>
-    <button class="app" data-mode="callio" id="appCallio" hidden><img src="assets/app-callio.png" alt=""><div class="t"><b>Callio</b><span class="d">משחק זיכרון מול חבר, בשיחה חיה</span><i data-rec="callio"></i><span class="how" data-how>איך משחקים?</span><span class="onl two">2 שחקנים</span></div><div class="go">←</div></button>
+    <button class="app" data-mode="callio" id="appCallio" hidden><img src="assets/app-callio.png" alt=""><div class="t"><b>Callio</b><span class="d">משחק זיכרון מול חבר, בשיחה חיה</span><i data-rec="callio"></i><span class="how" data-how>איך משחקים?</span><span class="onl two">לשניים</span></div><div class="go">←</div></button>
     <button class="app" data-mode="teamz"><img src="assets/app-teamz.png" alt=""><div class="t"><b>Teamz</b><span class="d">מיישרים קו בין כל בעלי העניין</span><i data-rec="teamz"></i><span class="how" data-how>איך משחקים?</span><span class="onl" data-onl="teamz" hidden>אונליין<span class="ar"> ←</span></span></div><div class="go">←</div></button>
   </div>
   <div id="foot">
@@ -339,8 +343,8 @@ a{color:inherit}
 </section>
 <div id="rot">סובבו את הטלפון לאורך 📱</div>
 
-<script src="game.js?v=5"></script>
-<script src="callio.js?v=1"></script>
-<script src="online.js?v=1"></script>
+<script src="game.js?v=6"></script>
+<script src="callio.js?v=2"></script>
+<script src="online.js?v=2"></script>
 </body>
 </html>

@@ -77,7 +77,7 @@
     myTurn() { return !!N.me && N.turn === N.me; },
     now() { return Date.now() + offset; },
     ready() { return ask('hello').then((r) => { N.available = !!(r && r.available); N.me = r && r.me; return r; }, () => ({ available: false })); },
-    host: (key) => ask('host', { key }), join: (code) => ask('join', { code }), quick: (key) => ask('quick', { key }), lobby: (key, label) => ask('lobby', { key, label }),
+    host: (key, label) => ask('host', { key, label }), join: (code) => ask('join', { code }), quick: (key, label) => ask('quick', { key, label }), lobby: (key, label) => ask('lobby', { key, label }),
     claim: (key) => ask('claim', { key }), cancel: () => ask('cancel'),
     leave: () => { N.room = null; return ask('leave'); },
     send: (data, to) => ask('send', { data, to }), move: (m) => ask('move', { m }), state: (state) => ask('state', { state }),

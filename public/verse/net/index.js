@@ -48,6 +48,7 @@ const post = (m) => { try { S && S.frame.contentWindow && S.frame.contentWindow.
 const emit = (ev, data) => post({ ev, data });
 const me = () => ({ nick: String(st.fan?.nick || 'שחקן').slice(0, 24), ...(st.fan?.photo && String(st.fan.photo).length <= 600 ? { photo: st.fan.photo } : {}) });
 const key = (k) => (typeof k === 'string' && /^[a-z0-9-]{1,20}$/.test(k) ? k : '');   // a game with several online modes (apps): rooms + the quick slot per key
+const labelOf = (l) => (l && typeof l === 'object' ? { title: String(l.title || '').slice(0, 40), sub: String(l.sub || '').slice(0, 140) } : null);   // a mode's name on the lobby sheets
 const gameKey = () => S.g.id + (S.key ? ':' + S.key : '');
 const err = (code) => Object.assign(new Error(code), { code });
 
@@ -68,9 +69,9 @@ async function op(d) {
       if (q.room && !S.inviteDone) { S.inviteDone = true; setTimeout(() => join(q.room).catch(() => {}), 300); }
       return { available: true, signedIn: signedIn(), me: st.user ? st.user.uid : null, invite: q.room ? String(q.room).toUpperCase() : null, flags: { online: q.online === '1' || !!q.room } };
     }
-    case 'host': S.key = key(d.key); return host();
+    case 'host': S.key = key(d.key); S.label = labelOf(d.label); return host();
     case 'join': return join(d.code);
-    case 'quick': S.key = key(d.key); return quick();
+    case 'quick': S.key = key(d.key); S.label = labelOf(d.label); return quick();
     case 'lobby': S.key = key(d.key); return lobby(d.label);
     case 'claim': return claim(d.key);
     case 'cancel': return cancel();
@@ -103,6 +104,7 @@ function css() {
 .vn h2{font-size:1.45rem;margin:4px 0 6px;font-weight:800}.vn p{margin:0 0 12px;opacity:.82;line-height:1.45;font-size:.98rem}
 .vn-code{display:flex;justify-content:center;gap:10px;margin:14px 0 6px;direction:ltr;cursor:pointer}
 .vn-code b{width:58px;height:70px;border-radius:16px;background:#fff;color:#17161a;font-size:2.4rem;font-weight:900;display:grid;place-items:center;box-shadow:0 6px 18px #0006}
+.vn-mode{display:inline-block;font-size:.85rem;font-weight:800;background:rgba(255,106,31,.18);color:#ffb38a;border-radius:99px;padding:3px 12px;margin-top:2px}
 .vn-hint{font-size:.82rem;opacity:.6;margin-bottom:14px}
 .vn .vx-btn{margin-top:10px}
 .vn-wait{display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 0 4px;font-weight:700}
@@ -148,7 +150,8 @@ function fail(code) {
 }
 
 async function lobby(label) {
-  const L = label && typeof label === 'object' ? { title: String(label.title || '').slice(0, 40), sub: String(label.sub || '').slice(0, 140) } : null;
+  const L = labelOf(label);
+  S.label = L;   // the friend / quick screens opened from here keep the mode's name
   if (!(await needFan('play'))) throw err('signin');
   presence().catch(() => {});
   const h = openSheet(`<h2>${esc((L && L.title) || S.g.title || '')}</h2>${L && L.sub ? `<p>${esc(L.sub)}</p>` : ''}${countRow()}
@@ -170,7 +173,7 @@ async function host() {
   Object.assign(S, { rid, code, host: true, mode: 'friend' });
   watch();
   const url = `${location.origin}/play/${S.g.id}?room=${code}`;
-  const h = openSheet(`<h2>${esc(W.friendT)}</h2><p>${esc(W.friendSub)}</p>
+  const h = openSheet(`${S.label && S.label.title ? `<div class="vn-mode">${esc(S.label.title)}</div>` : ''}<h2>${esc(W.friendT)}</h2><p>${esc(W.friendSub)}</p>
     <div class="vn-code" data-vn-copy title="${esc(W.copy)}">${[...code].map((c) => `<b>${c}</b>`).join('')}</div>
     <div class="vn-hint">${esc(W.copy)} ↑</div>
     <button class="vx-btn main block" data-vn-share>${esc(W.invite)}</button>
@@ -215,7 +218,7 @@ async function quick() {
   await leaveRoom();
   presence().catch(() => {});
   const s = S;
-  openSheet(`<h2>${esc(W.quickT)}</h2><p>${esc(W.quickSub)}</p><div class="vn-wait"><span class="vn-dot"></span></div>${countRow()}
+  openSheet(`${S.label && S.label.title ? `<div class="vn-mode">${esc(S.label.title)}</div>` : ''}<h2>${esc(W.quickT)}</h2><p>${esc(W.quickSub)}</p><div class="vn-wait"><span class="vn-dot"></span></div>${countRow()}
     <button class="vx-btn glass block" data-vn-x>${esc(W.cancel)}</button>`, () => cancel());
   try {
     const q = await t.quick(gameKey(), me());
