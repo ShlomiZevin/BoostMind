@@ -59,6 +59,24 @@ is HOW to get there. A worked builder: `dialogue-from-takes.example.py` (savta-1
 - no shot < 1 s, no subtitle < 0.4 s; no clip starts > 0.3 s before its first word / ends > 0.2 s after its last;
 - the one-line report: length, lines, cut-aways, what you couldn't do.
 
+## What cost extra rounds on savta-1 (13 rounds of notes) - get these right in the FIRST cut
+- **Turns back to back** -> he asked for overlap; then "more tango"; then "real life, not a play". Start at 0.7 s turns,
+  ~1.3 s in a back-and-forth, an off-screen voice laid over (tempo 1.2) - never a pause opened for anyone.
+- **His selfie start / stop showed 4 times** (a head padded to fit a voice, a tail extended to close a gap, a take's
+  first second, a pre-roll added to close a gap). Look at the frames of every head and tail you use; ≤ 0.3 s / ≤ 0.2 s.
+- **The strip broke 3 times** (a frame pointing at a row with no clip = "stuck"; a 0.1 s flash; two of Lola's pieces in
+  a row). Run the §4 checks after EVERY change, a one-op tweak too.
+- **Background talk took 4 rounds** (all the way through -> start later -> no repeats -> spread evenly, some only heard).
+  Do all of that the first time.
+- **Joins he tightened again and again**: cut each clip to the measured word edge (dB, 25 ms steps), not whisper's times.
+- **Mix**: the seen character's dip on the other was too strong (-6 -> -2); Avraham needed his own colour of subtitles.
+- **A set's framing took 3 rounds** ("closer to the fridge") until he set one clip himself - offer that early: "set one,
+  I'll copy it to all".
+- **Subtitles**: mishears in the script's names ("לולה" heard as "לא לה" / "לא, לא") and words ("שתאכל היא") - compare the
+  heard words to the script line and fix what differs; no 1-word flashes.
+- **"A nostalgic filter"** meant only a light yellow wash (old TV), not grain / vignette: a full-frame shape row, warm
+  yellow, opacity ~0.06. When a look is vague, start with the lightest, simplest version.
+
 ## 5. His rounds of notes
 - `node tools/notes.mjs <id>` → fix every note → `... done <id> "<Hebrew: what changed>"` (earlier rounds' greens clear
   themselves). Reply to him in English, note by note, "F5".
