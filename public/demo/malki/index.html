@@ -215,9 +215,9 @@
         <video src="media/real-hello.mp4" poster="media/poster-real-hello.jpg" controls preload="none" playsinline></video>
       </article>
       <article class="opt">
-        <div class="top"><div><span class="ltr">ג</span><h3>תלת־ממד מצויר</h3></div><img src="media/opt-cartoon.jpg" alt="רישום רעיון: מלכי בתלת־ממד מצויר"></div>
-        <p>דמות תלת־ממדית בסגנון סרט מצויר. הבעות ברורות ותנועה נעימה.</p>
-        <span class="badge">רישום רעיון, לפני בנייה</span>
+        <div class="top"><div><span class="ltr">ג</span><h3>מראה תלת־ממד מצויר</h3></div><img src="media/opt-cartoon.jpg" alt="מלכי בסגנון סרט מצויר"></div>
+        <p>מלכי בסגנון סרט אנימציה. הבעות ברורות ותנועה נעימה. זו הדגמת מראה, ובתוצר הסופי הדמות תיבנה בתלת־ממד מלא.</p>
+        <video src="media/cartoon-hello.mp4" poster="media/poster-cartoon-hello.jpg" controls preload="none" playsinline></video>
       </article>
     </div>
   </div>
@@ -277,7 +277,7 @@
 const DIRS = [
   { id: 'painted', name: 'א. איור עם תנועה', sub: 'ציור שזז' },
   { id: 'real', name: 'ב. תלת־ממד מציאותי', sub: 'כמו ילדה אמיתית' },
-  { id: 'cartoon', name: 'ג. תלת־ממד מצויר', sub: 'סגנון סרט מצויר' },
+  { id: 'cartoon', name: 'ג. מראה תלת־ממד מצויר', sub: 'הדגמת מראה' },
 ];
 const LINES = [
   { id: 'hello', text: '״אה... שלום המורה. לא הספקתי להכין את שיעורי הבית...״', emo: 'במבוכה' },
@@ -286,9 +286,9 @@ const LINES = [
   { id: 'shy', text: '״אני... לא כל כך אוהבת לדבר מול כל הכיתה.״', emo: 'בביישנות' },
 ];
 const VIDEOS = {
-  painted: { hello: 'painted-hello', why: 'painted-why', happy: 'painted-happy' },
+  painted: { hello: 'painted-hello', why: 'painted-why', happy: 'painted-happy', shy: 'painted-shy' },
   real: { hello: 'real-hello', why: 'real-why', happy: 'real-happy', shy: 'real-shy' },
-  cartoon: {},
+  cartoon: { hello: 'cartoon-hello', why: 'cartoon-why', happy: 'cartoon-happy', shy: 'cartoon-shy' },
 };
 const POSTERS = { 'painted-hello': 'poster-hello', 'painted-why': 'poster-why', 'painted-happy': 'poster-happy', 'painted-shy': 'poster-shy' };
 let dir = 'painted', line = 'hello';
