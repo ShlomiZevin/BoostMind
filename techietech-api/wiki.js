@@ -33,10 +33,10 @@ async function keep(b, mode, turns, reply, u = {}, who = {}, extra = {}) {   // 
 }
 
 const OPENAI_API_KEY = defineSecret('WIKI_OPENAI_KEY');
-// the chain's director on Sonnet (2026-11-12): set DIRECTOR_SONNET = true once the secret WIKI_ANTHROPIC_KEY exists
-// (firebase functions:secrets:set WIKI_ANTHROPIC_KEY) - binding a secret that doesn't exist fails the deploy. Off = Terra directs.
-const DIRECTOR_SONNET = false;
-const ANTHROPIC_KEY = DIRECTOR_SONNET ? defineSecret('WIKI_ANTHROPIC_KEY') : null;
+// the chain's director on Sonnet (2026-11-12): on since 2026-11-12 - the secret VERSE_ANTHROPIC_KEY (the Console key "Shlomiverse")
+// false = Terra directs (also what happens by itself if Sonnet refuses or fails).
+const DIRECTOR_SONNET = true;
+const ANTHROPIC_KEY = DIRECTOR_SONNET ? defineSecret('VERSE_ANTHROPIC_KEY') : null;
 const MODEL = 'gpt-5.6-terra';
 const MAX_TURNS = 16;
 const MAX_CHARS = 1200;
