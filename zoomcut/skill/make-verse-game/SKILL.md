@@ -100,7 +100,7 @@ Read before any idea - the game must be something THIS character would be in:
   **Before suggesting, list what is already taken** - every `public/*-games/*/game.json` (and Hani's playhouse), plus
   the Plaxzy games in the memory notes - and offer none of those mechanics. Taken so far: snake (Sagi), whack-a-mole
   (Asaf), Pac-Man (Yotam), Rush Hour (Yotam), Diner Dash (Osnat), runner (Hani gan-run), story-chain cards (Hani),
-  drag-in-millimeters (Yaniv), Lemmings (Rosenblum), Block Blast + Ball Sort + match-3 (Lola pills); on Plaxzy: Breakout, Volfied, Missile Command, bubble shooter,
+  drag-in-millimeters (Yaniv), Lemmings (Rosenblum), Block Blast + Ball Sort + match-3 (Lola pills); 2048 + Where's Waldo + Flow Free (Techy-Tech meetings); on Plaxzy: Breakout, Volfied, Missile Command, bubble shooter,
   Space Invaders, pinball, Keen platformer, Frogger-style traffic, gold miner, chain reaction. Add each new game's
   mechanic to this line.
 - **About who the character IS, not one video**: their running traits across all their videos (Asaf is always on the
@@ -156,7 +156,7 @@ Read before any idea - the game must be something THIS character would be in:
     "https://firestore.googleapis.com/v1/projects/boostmind-b052c/databases/(default)/documents/analytics_days/<YYYY-MM-DD>"`
     and find `site.<site>`, `view|_<site>_<slug>_`, `game_start|<slug>` and `game|<site>-<slug>` (the verse's open). All
     four there = counted; tell him which Backstage list shows each (games = "משחקים" by rounds, sites = by site). A
-    missing key = fix it before you say "released". His own phone is marked notrack - his plays never count.
+    missing key = fix it before you say "released". His own phone is marked notrack - his plays never count. A headless Playwright browser is not counted either (its user agent says HeadlessChrome) - prove it with a normal phone `userAgent` in the context.
 - One folder per game: `index.html`, `game.js` (or `src/` + a small build), `game.json`, `cover.jpg`, `assets/`
   (pictures, sounds, models). Ordinary web files - as many and as big as the game needs; only keep phone loading
   sensible (jpg/webp at the size shown, mp3 sounds trimmed, models compressed).
