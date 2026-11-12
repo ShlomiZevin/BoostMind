@@ -26,7 +26,8 @@ async function keep(b, mode, turns, reply, u = {}, who = {}, extra = {}) {   // 
     q: turns[turns.length - 1].content, a: reply.slice(0, 4000), n: turns.length, in: !!who.uid, uid: who.uid || null,   // uid: the admin page shows a person's conversations
     // the tokens it took (input / of them cached / output) - the dashboard turns them into dollars
     u: [u.input_tokens || 0, u.input_tokens_details?.cached_tokens || 0, u.output_tokens || 0],
-    ...(extra.usd != null ? { usd: extra.usd, steps: extra.steps || [] } : {}),   // the chain: the exact cost + each step's model / time / cost
+    ...(extra.usd != null ? { usd: extra.usd, steps: extra.steps || [] } : {}),
+    ...(extra.think ? { think: extra.think } : {}),   // what the chain's steps decided (scripts/wiki/chat-notes.mjs shows it with his comments)   // the chain: the exact cost + each step's model / time / cost
     exp: Timestamp.fromMillis(now.getTime() + KEEP_DAYS * 864e5),
   });
 }

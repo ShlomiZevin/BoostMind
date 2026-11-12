@@ -148,7 +148,18 @@ You know this only a little, like an educated outsider - no details an expert wo
   const sum = (f) => steps.reduce((a, s) => a + (f(s.usage || {}) || 0), 0);
   const usage = { input_tokens: sum((u) => u.input_tokens), input_tokens_details: { cached_tokens: sum((u) => u.input_tokens_details?.cached_tokens) }, output_tokens: sum((u) => u.output_tokens) };
   return { text: t.out, steps, convo, usage, cost: total, ms: Date.now() - t0, first: talkAt + (t.first || 0),
-    log: { usd: Math.round(total * 1e6) / 1e6, steps: steps.map((s) => ({ step: s.step, model: STEPS[s.step.split(' ')[0]]?.model || 'gpt-5.6-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) } };
+    // think: what each step decided - kept on the log so a session discussing his comments sees why an answer came out so
+    log: { think: thinkOf(U, H, F, U.kind === 'small_talk'), usd: Math.round(total * 1e6) / 1e6, steps: steps.map((s) => ({ step: s.step, model: STEPS[s.step.split(' ')[0]]?.model || 'gpt-5.6-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) } };
+}
+
+// a short copy of the steps' notes for the log (a Firestore doc stays small)
+function thinkOf(U, H, F, small) {
+  const c = (v, n = 300) => (typeof v === 'string' ? v.slice(0, n) : v == null ? undefined : JSON.stringify(v).slice(0, n));
+  const o = { understand: { kind: c(U.kind, 40), wants: c(U.wants), knows: U.knows ? { level: c(U.knows.level, 20), how: c(U.knows.how) } : undefined,
+    videos: (U.touches?.videos || []).slice(0, 5), search: c(U.touches?.search, 80), follow: U.touches?.follow ? true : undefined, length: c(U.length, 20), visitor: c(U.visitor, 200) } };
+  if (H) o.history = { found: !!H.found, what: c(H.what), lines: (H.lines || []).slice(0, 3).map((x) => c(x, 200)), video: c(H.video, 60) };
+  if (F && !small) o.funny = { angle: c(F.angle, 200), joke: c(F.joke, 200), callback: c(F.callback, 200), catchphrase: c(F.catchphrase, 120) };
+  return JSON.parse(JSON.stringify(o));   // drops the undefined
 }
 
 module.exports = { reply, STEPS, PRICE };

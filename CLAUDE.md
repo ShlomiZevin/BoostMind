@@ -76,6 +76,14 @@ A plan = a folder with `index.html` (mockups as `<img src="img/NAME">`) + `img/`
 Re-publishing the same id = a new version, back to "waiting for him". Private: Firestore `plans` + the private bucket
 `shlomiverse-studio/plans/` (techietech-api/plans.js). Build only what he approved.
 
+## His comments on the chat - Backstage → שיחות → הערות (since 2026-11-12)
+
+He reviews the characters' conversations from time to time and comments (what he didn't like, a question) on a whole
+conversation or one answer. When he says "read my comments": `OWNER_KEY=<his key> node scripts/wiki/chat-notes.mjs open --out c.md`
+(each comment + its whole conversation + what the chain's steps decided), then **discuss with him first** - what each
+needs (an engine / architecture change in the chain `techietech-api/wiki-deep.js`, a prompt, or character-specific only
+when nothing else works) - handle what you agreed, and answer under the comment (`reply <id> --file r.txt`).
+
 ## Content - the database, never git (his rule, 2026-11-05)
 
 He works from two computers; **nothing either one has or lacks may break the site.** Everything the Shlomiverse shows -

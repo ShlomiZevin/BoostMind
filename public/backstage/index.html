@@ -663,6 +663,27 @@
 .ch-done{height:40px;margin:6px 0 2px}.ch-done.on{border-color:rgba(107,214,138,.6);color:#8ee6a6}.ch-bar .seg+.seg{margin-inline-start:0}.ch-saved{color:var(--faint);font-size:.75rem;align-self:center}
 @media (max-width:700px){.ch-love button{width:28px;height:28px}}
 @media (max-width:700px){.ch-sec{padding:4px 10px 8px}.ch-v .d{width:64px}.ch-head .ch-av{width:70px;height:88px}.ch-head b{font-size:1.25rem}}
+/* שיחות → הערות (2026-11-12, chatnotes.js) */
+.cn-seg{display:flex;width:max-content;max-width:100%;overflow-x:auto;scrollbar-width:none}.cn-seg button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.cn-seg em{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--accent);color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center}
+.cn-pill{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border-radius:99px;background:rgba(255,106,31,.16);color:#ff9a5c;font-size:.72rem;font-weight:800;margin-inline-start:6px;vertical-align:2px}.cn-pill svg{width:12px;height:12px}.cn-pill.done{background:rgba(107,214,138,.12);color:#8fe3ad}
+.msg{scroll-margin-top:20px;border-radius:14px;transition:background .6s}.msg.hl{background:rgba(255,106,31,.08)}
+.bact{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px;padding-inline-start:40px}
+.bact button{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:9px;border:1px solid var(--line2);color:var(--dim);font-size:.76rem;font-weight:800}.bact svg{width:14px;height:14px}
+.bact button.has{border-color:#ff6a1f;color:#ff8c4d}.bact button.on{background:var(--card2);color:var(--text)}
+.tn{display:grid;gap:6px;margin-top:6px;padding-inline-start:40px}.tn:empty{display:none}
+.tn-n{border-radius:12px;padding:8px 10px;font-size:.92rem;background:rgba(255,106,31,.09);border:1px solid rgba(255,106,31,.25)}.tn-n.done{opacity:.62}
+.tn-n.cl{background:rgba(107,214,138,.07);border-color:rgba(107,214,138,.25);margin-inline-start:18px}
+.tn-n .tx{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}
+.tn-n .h{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.74rem;color:var(--dim);margin-bottom:4px}
+.tn-n .acts{margin-inline-start:auto;display:flex;gap:10px;flex-wrap:wrap}.tn-n .acts button{font-size:.75rem;font-weight:800;color:var(--dim);text-decoration:underline;padding:4px 0}.tn-n .acts button:hover{color:var(--text)}
+.tn .ch-comp textarea,.tn-all .ch-comp textarea{min-height:80px;resize:vertical}
+.tn-all{margin-top:24px;padding-top:12px;border-top:1px solid var(--line)}.tn-all h4{display:flex;align-items:center;gap:6px;font-size:.95rem;font-weight:900;margin-bottom:6px}.tn-all h4 svg{width:17px;height:17px;color:var(--accent)}.tn-all .tn{padding-inline-start:0}
+.cn-list{display:grid;gap:10px}
+.cn-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.cn-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}.cn-h .vx-av{width:40px;height:40px}.cn-h div{flex:1;min-width:0}.cn-h b{display:block;font-weight:900}.cn-h small{color:var(--dim);font-size:.78rem}.cn-h .pill{height:34px;flex:none}
+.cn-q{margin-bottom:8px}.cn-q .bub p{font-size:.9rem;max-height:9.5em;overflow:hidden}
+@media (max-width:700px){.bact,.tn{padding-inline-start:0}.cn-h .pill span{display:none}}
 </style>
 </head>
 <body>
@@ -786,9 +807,10 @@ const LOADERS = {
   CH: () => Promise.all([loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]),
   SEEN: () => api('seenMap').then((r) => { SEEN = { ...r.seen, ...SEEN }; }),
   CR: () => api('charList', {}).then((r) => { CR = r; }),
+  CN: () => api('chatNotes', {}).then((r) => { CN = r; }),
 };
 const NEED = {
-  overview: ['W', 'L', 'S', 'CH'], chats: ['W', 'S', 'CH'], people: ['W', 'S', 'L'],
+  overview: ['W', 'L', 'S', 'CH'], chats: ['W', 'S', 'CH', 'CN'], people: ['W', 'S', 'L'],
   requests: ['W', 'L'], ideas: ['W', 'L'], content: ['W', 'L'], videos: ['W', 'L'], publish: ['W', 'L', 'S'],
   plans: ['PL', 'SEEN'], chars: ['W', 'SEEN', 'CR'], tz: ['W'], mail: ['W'], costs: [], more: [],
 };
@@ -1563,38 +1585,192 @@ const cardsIn = (a) => esc(a).replace(/\[\[video:([\w-]+)\]\]/g, (_, id) => `<sp
   .replace(/\[\[request:(\w+)(?:\|([^\]]*))?\]\]/g, (_, k, t) => `<span class="card-pill">פנייה לשלומי${t ? ': ' + t : ''}</span>`)
   .replace(/\[\[signin\]\]/g, '<span class="card-pill">הזמנה להתחבר</span>');
 function chats() {
+  if (chSeg === 'notes') return cnView();
   const all = threads(), q = chQuery.trim().toLowerCase();
   const counts = {};
   for (const th of all) counts[th.mode] = (counts[th.mode] || 0) + 1;
   const list = all.filter((th) => (!chChar || th.mode === chChar)
-    && (chFilter === 'all' || (chFilter === 'star' && stars.has(th.key)) || (chFilter === 'long' && th.items.length >= 4) || (chFilter === 'signed' && th.signed))
+    && (chFilter === 'all' || (chFilter === 'star' && stars.has(th.key)) || (chFilter === 'long' && th.items.length >= 4) || (chFilter === 'signed' && th.signed) || (chFilter === 'notes' && cnAllOf(th.key)))
     && (!q || th.items.some((c) => (c.q + ' ' + c.a).toLowerCase().includes(q))));
   const msgs = all.reduce((a, th) => a + th.items.length, 0);
-  $('#pane').innerHTML = `
+  $('#pane').innerHTML = `${chSegBar()}
     <div class="top"><div><h1>שיחות</h1><p>${fmt(all.length)} שיחות · ${fmt(msgs)} הודעות · עלות $${all.reduce((a, th) => a + th.cost, 0).toFixed(2)}</p></div>
       <div class="rng">${[['today', 'היום'], ['yesterday', 'אתמול'], ['week', '7 ימים'], ['month', '30 ימים']].map(([k, l]) => `<button data-chrange="${k}" class="${k === chRange ? 'on' : ''}">${l}</button>`).join('')}</div></div>
     <label class="search" style="margin-bottom:12px">${IC.search}<input id="ch-q" placeholder="חיפוש בשיחות - מילה מהשאלה או מהתשובה" value="${esc(chQuery)}"></label>
-    <div class="chips">${[['all', 'הכול'], ['star', 'מסומנות בכוכב'], ['long', 'ארוכות'], ['signed', 'של רשומים']].map(([k, l]) => `<button data-chf="${k}" class="${k === chFilter ? 'on' : ''}">${l}${k === 'star' && stars.size ? `<small>${all.filter((th) => stars.has(th.key)).length}</small>` : ''}</button>`).join('')}</div>
+    <div class="chips">${[['all', 'הכול'], ['star', 'מסומנות בכוכב'], ['long', 'ארוכות'], ['signed', 'של רשומים'], ['notes', 'עם הערות']].map(([k, l]) => `<button data-chf="${k}" class="${k === chFilter ? 'on' : ''}">${l}${k === 'star' && stars.size ? `<small>${all.filter((th) => stars.has(th.key)).length}</small>` : ''}</button>`).join('')}</div>
     <div class="faces-row"><button data-chchar="" class="${chChar ? '' : 'on'}"><span class="all">${IC.people}</span>הכול<b>${all.length}</b></button>
       ${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([id, n]) => `<button data-chchar="${esc(id)}" class="${chChar === id ? 'on' : ''}">${face(id)}${esc(cname(id))}<b>${n}</b></button>`).join('')}</div>
     <div>${list.slice(0, chShown).map((th) => `<button class="th" data-chat="${esc(th.key)}">${face(th.mode)}
       <div class="body"><div class="q">${esc(th.items[0].q)}</div><div class="a">${esc(cname(th.mode))}: ${esc(th.items[0].a.replace(/\[\[[^\]]*\]\]/g, '').slice(0, 120))}</div></div>
-      <div class="meta"><span>${hhmm(th.last)}${chRange !== 'today' ? ` · ${dm(dayIL(th.last))}` : ''}</span><span>${th.items.length} הודעות${th.person ? `<span class="who-pill">${esc(personName(th.person))}</span>` : th.signed ? '<span class="who-pill">רשום/ה</span>' : ''}</span></div>
+      <div class="meta"><span>${hhmm(th.last)}${chRange !== 'today' ? ` · ${dm(dayIL(th.last))}` : ''}</span><span><span data-thn="${esc(th.key)}">${cnBadge(th.key)}</span>${th.items.length} הודעות${th.person ? `<span class="who-pill">${esc(personName(th.person))}</span>` : th.signed ? '<span class="who-pill">רשום/ה</span>' : ''}</span></div>
       <span class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" role="button" aria-label="כוכב">${IC.star}</span></button>`).join('') || '<div class="empty">אין שיחות כאלה.</div>'}</div>
     ${list.length > chShown ? `<button class="btn more" data-chmore>עוד ${fmt(list.length - chShown)} שיחות</button>` : ''}`;
   const inp = $('#ch-q');
   inp.oninput = () => { chQuery = inp.value; chShown = 60; const pos = inp.selectionStart; chats(); const n = $('#ch-q'); n.focus(); n.setSelectionRange(pos, pos); };
 }
-function openThread(k, list) {
+function openThread(k, list, focus) {
   const th = threads(list || CH).find((x) => x.key === k);
   if (!th) return;
+  TH = th; tnOpen.clear(); tnEdit.clear();
   const c0 = th.items[0];
   let lastDay = '';
   sheet(`<div class="sh-h">${face(th.mode)}<div class="t"><b>${esc(cname(th.mode))}</b><small>${th.person ? `<button data-person="${th.person.uid}" style="color:#ff9a5c;font-weight:700">${esc(personName(th.person))}</button> · ` : th.signed ? 'רשום/ה · ' : 'אורח/ת · '}${c0.m ? 'טלפון' : 'מחשב'}${c0.r ? ` · הגיע/ה מ-${esc(SRC[c0.r] || c0.r)}` : ''} · ${th.items.length} הודעות${th.cost ? ` · $${th.cost.toFixed(3)}` : ''}</small></div>
       <button class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" title="סמנו כמצחיק">${IC.star}</button><button class="x" data-close>${IC.x}</button></div>
     <div class="sh-b">${th.items.map((c) => { const d = dayIL(c.t), sep = d !== lastDay ? `<div class="day-sep">${dayName(d)}</div>` : ''; lastDay = d;
-      return `${sep}<div class="bub me"><p>${esc(c.q)}</p><time>${hhmm(c.t)}</time></div><div class="bub them">${face(th.mode)}<p>${cardsIn(c.a)}</p></div>`; }).join('')}</div>`);
+      return `${sep}<div class="msg" data-msg="${esc(c.id)}"><div class="bub me"><p>${esc(c.q)}</p><time>${hhmm(c.t)}</time></div><div class="bub them">${face(th.mode)}<p>${cardsIn(c.a)}</p></div>
+        <div class="bact">${tnBtn(th, c.id)}</div>
+        <div class="tn" data-tn="${esc(c.id)}">${tnHtml(th, c.id)}</div></div>`; }).join('')}
+      <div class="tn-all"><h4>${IC.comment}הערה על כל השיחה</h4><div class="tn" data-tn="">${tnHtml(th, '')}</div></div></div>`);
+  document.querySelectorAll('.sheet textarea').forEach(grow);
+  if (focus != null) requestAnimationFrame(() => {
+    const el = focus ? document.querySelector(`.sheet [data-msg="${CSS.escape(focus)}"]`) : document.querySelector('.sheet .tn-all');
+    if (!el) return;
+    el.scrollIntoView({ block: 'center' });
+    el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800);
+  });
 }
+
+// ---------- שיחות → הערות (2026-11-12, his ask; techietech-api/chatnotes.js) ----------
+// his comments on a conversation or one answer, when he reviews them from time to time - what he didn't like, or a question.
+// Nothing acts on them by itself: he and a session read them, discuss, then handle (scripts/wiki/chat-notes.mjs).
+// Every save changes only its own piece on screen - nothing redraws, nothing jumps.
+let CN = { notes: [] }, chSeg = 'list', cnFilter = 'open', TH = null;
+const tnOpen = new Set(), tnEdit = new Set();
+const cnMine = () => CN.notes.filter((n) => n.by !== 'claude');
+const cnOf = (k, msg) => cnMine().filter((n) => n.key === k && (msg == null || (n.msg || '') === msg));
+const cnAllOf = (k) => cnOf(k).length;
+const cnBadge = (k) => { const a = cnOf(k), o = a.filter((n) => !n.done).length; return a.length ? `<span class="cn-pill ${o ? '' : 'done'}">${IC.comment}${o || '✓'}</span>` : ''; };
+const cnDK = (k, m) => `bs-cn-${k}|${m}`;
+const cnDraft = (k, m) => { try { return localStorage.getItem(cnDK(k, m)) || ''; } catch (e) { return ''; } };
+const cnKeep = (k, m, v) => { try { v ? localStorage.setItem(cnDK(k, m), v) : localStorage.removeItem(cnDK(k, m)); } catch (e) {} };
+const grow = (ta) => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, 520) + 'px'; };
+const say = (t) => { const d = document.createElement('div'); d.className = 'bs-toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 2600); };
+
+function chSegBar() {
+  const open = cnMine().filter((n) => !n.done).length;
+  return `<div class="seg cn-seg">${[['list', 'שיחות', 0], ['notes', 'הערות', open]].map(([k, l, n]) => `<button data-chseg="${k}" class="${chSeg === k ? 'on' : ''}">${l}${n ? `<em>${n}</em>` : ''}</button>`).join('')}</div>`;
+}
+const tnBtn = (th, msg) => { const n = cnOf(th.key, msg).length; return `<button data-tnopen="${esc(msg)}" class="${n ? 'has' : ''}">${IC.comment}<span>${n ? `${n} ${n === 1 ? 'הערה' : 'הערות'}` : 'הערה'}</span></button>`; };
+function tnNote(n) {
+  const ans = CN.notes.filter((r) => r.by === 'claude' && r.reply === n.id).sort((a, b) => (a.t || 0) - (b.t || 0));
+  const body = tnEdit.has(n.id)
+    ? `<div class="ch-comp"><textarea data-tnedittext="${n.id}">${esc(n.text)}</textarea><div><button class="btn main" data-tnsave="${n.id}">שמירה</button><button class="btn" data-tncancel="${n.id}">ביטול</button></div></div>`
+    : `<div class="tx">${esc(n.text)}</div>`;
+  return `<div class="tn-n ${n.done ? 'done' : ''}" data-tnnote="${n.id}"><div class="h"><span>${n.t ? ago(n.t) : 'עכשיו'}${n.edited ? ' · נערכה' : ''}</span><span class="tag ${n.done ? 'ok' : 'or'}">${n.done ? 'טופלה' : 'פתוחה'}</span>
+    <span class="acts"><button data-tndone="${n.id}" data-v="${n.done ? 0 : 1}">${n.done ? 'לפתוח שוב' : 'טופלה'}</button><button data-tnedit="${n.id}">עריכה</button><button data-tndel="${n.id}">מחיקה</button></span></div>${body}</div>`
+    + ans.map((r) => `<div class="tn-n cl"><div class="h"><span>Claude · ${ago(r.t)}</span></div><div class="tx">${esc(r.text)}</div></div>`).join('');
+}
+function tnHtml(th, msg) {
+  const rows = cnOf(th.key, msg).sort((a, b) => (a.t || 0) - (b.t || 0)).map(tnNote).join('');
+  const open = msg === '' || tnOpen.has(msg);
+  return rows + (open ? `<div class="ch-comp"><textarea data-tntext="${esc(msg)}" placeholder="${msg ? 'מה מוזר בתשובה הזאת? מה היה צריך לקרות?' : 'מה מוזר בשיחה הזאת - בבלגן, איך שבא'}">${esc(cnDraft(th.key, msg))}</textarea>
+    <div><button class="btn main" data-tnsend="${esc(msg)}">שמירה</button>${msg ? `<button class="btn" data-tnopen="${esc(msg)}">סגירה</button>` : ''}<small class="ch-saved">הטיוטה נשמרת עד שתשמור</small></div></div>` : '');
+}
+// a comment changed: redraw only its box in the open conversation, its card in הערות, its mark in the list, the counts
+function cnPaint(key, msg, focusNew) {
+  if (TH && TH.key === key && document.querySelector('.sheet')) {
+    const box = document.querySelector(`.sheet [data-tn="${CSS.escape(msg)}"]`);
+    if (box) { box.innerHTML = tnHtml(TH, msg); box.querySelectorAll('textarea').forEach(grow); if (focusNew) box.querySelector('[data-tntext]')?.focus({ preventScroll: true }); }
+    const btn = msg && document.querySelector(`.sheet .bact [data-tnopen="${CSS.escape(msg)}"]`);
+    if (btn) { btn.outerHTML = tnBtn(TH, msg); document.querySelector(`.sheet .bact [data-tnopen="${CSS.escape(msg)}"]`)?.classList.toggle('on', tnOpen.has(msg)); }
+  }
+  const mark = document.querySelector(`[data-thn="${CSS.escape(key)}"]`);
+  if (mark) mark.innerHTML = cnBadge(key);
+  const seg = document.querySelector('.cn-seg');
+  if (seg) seg.outerHTML = chSegBar();
+}
+function cnPaintCard(id) {
+  const el = document.querySelector(`[data-cncard="${CSS.escape(id)}"]`), n = CN.notes.find((x) => x.id === id);
+  if (el && n) { el.outerHTML = cnCard(n); document.querySelectorAll(`[data-cncard="${CSS.escape(id)}"] textarea`).forEach(grow); }
+  else if (el) el.remove();
+}
+const cnPaintNote = (n) => { cnPaint(n.key, n.msg || ''); cnPaintCard(n.id); };
+
+async function tnSend(b) {
+  const msg = b.dataset.tnsend, th = TH, ta = b.closest('.ch-comp')?.querySelector('textarea'), text = ta ? ta.value.trim() : '';
+  if (!th || !text) { ta?.focus(); return; }
+  const c = msg ? th.items.find((x) => x.id === msg) : null;
+  const body = { key: th.key, c: th.items.find((x) => x.c)?.c || '', mode: th.mode, msg, q: c ? c.q : th.items[0].q, a: c ? c.a : th.items[0].a, at: c ? c.t : th.items[0].t, ids: th.items.map((x) => x.id).filter(Boolean), text };
+  b.disabled = true; b.textContent = 'שומר…';
+  try {
+    const r = await api('chatNote', body);
+    CN.notes.unshift({ id: r.id, ...body, by: 'shlomi', done: false, t: Date.now() });
+    cnKeep(th.key, msg, ''); tnOpen.delete(msg);
+    cnPaint(th.key, msg); say('ההערה נשמרה');
+  } catch (e) { b.disabled = false; b.textContent = 'לא נשמר - לנסות שוב'; }
+}
+async function tnDone(b) {
+  const n = CN.notes.find((x) => x.id === b.dataset.tndone); if (!n) return;
+  const done = b.dataset.v === '1', was = n.done;
+  n.done = done; cnPaintNote(n);
+  try { await api('chatNoteDone', { id: n.id, done }); } catch (e) { n.done = was; cnPaintNote(n); say('לא נשמר'); }
+}
+async function tnSave(b) {
+  const n = CN.notes.find((x) => x.id === b.dataset.tnsave); if (!n) return;
+  const ta = document.querySelector(`[data-tnedittext="${CSS.escape(n.id)}"]`), text = ta ? ta.value.trim() : '';
+  if (!text) return;
+  b.disabled = true; b.textContent = 'שומר…';
+  try { await api('chatNoteEdit', { id: n.id, text }); n.text = text; n.edited = Date.now(); tnEdit.delete(n.id); cnPaintNote(n); say('נשמר'); }
+  catch (e) { b.disabled = false; b.textContent = 'לא נשמר - שוב'; }
+}
+async function tnDel(b) {
+  const n = CN.notes.find((x) => x.id === b.dataset.tndel); if (!n) return;
+  if (!await askBox('למחוק את ההערה?', { ok: 'מחיקה' })) return;
+  try {
+    await api('chatNoteDel', { id: n.id });
+    CN.notes = CN.notes.filter((x) => x.id !== n.id && x.reply !== n.id);
+    cnPaint(n.key, n.msg || ''); cnPaintCard(n.id);
+  } catch (e) { say('לא נמחק'); }
+}
+// a comment's conversation, wherever it is in time
+async function tnThread(id) {
+  const n = CN.notes.find((x) => x.id === id); if (!n) return;
+  if (threads().some((t) => t.key === n.key)) return openThread(n.key, null, n.msg || '');
+  try {
+    const r = await api('chatThread', { c: n.c, ids: n.ids });
+    if (!r.chats.length) return say('השיחה כבר לא שמורה (90 יום) - ההודעה שמורה בהערה');
+    openThread(n.key, r.chats, n.msg || '');
+  } catch (e) { say('לא נטען'); }
+}
+function cnCard(n) {
+  return `<div class="cn-card" data-cncard="${n.id}"><div class="cn-h">${face(n.mode)}<div><b>${esc(cname(n.mode))}</b><small>${n.msg ? 'על תשובה' : 'על כל השיחה'} · ${stamp(n.at || n.t)}</small></div><button class="pill" data-tnthread="${n.id}"><span>לשיחה</span>${IC.back}</button></div>
+    <div class="cn-q"><div class="bub me"><p>${esc(n.q || '')}</p></div>${n.a ? `<div class="bub them">${face(n.mode)}<p>${cardsIn(n.a)}</p></div>` : ''}</div>${tnNote(n)}</div>`;
+}
+function cnView() {
+  const mine = cnMine(), list = mine.filter((n) => cnFilter === 'all' || (cnFilter === 'open' ? !n.done : n.done)).sort((a, b) => (b.t || 0) - (a.t || 0));
+  $('#pane').innerHTML = `${chSegBar()}<div class="top"><div><h1>הערות על שיחות</h1><p>${fmt(mine.filter((n) => !n.done).length)} פתוחות · ${fmt(mine.length)} בסך הכול. סשן קורא אותן, מחליט איתך מה כל אחת צריכה - ועונה מתחתיה.</p></div></div>
+    <div class="chips">${[['open', 'פתוחות'], ['done', 'טופלו'], ['all', 'הכול']].map(([k, l]) => `<button data-cnf="${k}" class="${k === cnFilter ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div class="cn-list">${list.map(cnCard).join('') || `<div class="empty">${cnFilter === 'open' ? 'אין הערות פתוחות. פותחים שיחה ולוחצים "הערה" מתחת לתשובה.' : 'אין.'}</div>`}</div>`;
+}
+// typing: drafts kept on every keystroke, boxes grow
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.matches?.('.sheet textarea, .cn-card textarea')) grow(t);
+  if (t.dataset?.tntext != null && TH) cnKeep(TH.key, t.dataset.tntext, t.value);
+});
+// clicks of this part (before the page's own handler sees them)
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const d = b.dataset;
+  let hit = true;
+  if (d.chseg) { chSeg = d.chseg; chats(); scrollTo(0, 0); }
+  else if (d.cnf) { cnFilter = d.cnf; cnView(); }
+  else if (d.tnopen != null) {
+    const m = d.tnopen;
+    tnOpen.has(m) ? tnOpen.delete(m) : tnOpen.add(m);
+    cnPaint(TH.key, m, tnOpen.has(m));
+  }
+  else if (d.tnsend != null) await tnSend(b);
+  else if (d.tndone) await tnDone(b);
+  else if (d.tnedit) { const n = CN.notes.find((x) => x.id === d.tnedit); tnEdit.add(d.tnedit); if (n) { cnPaintNote(n); const ta = document.querySelector(`[data-tnedittext="${CSS.escape(n.id)}"]`); if (ta) { grow(ta); ta.focus({ preventScroll: true }); } } }
+  else if (d.tncancel) { const n = CN.notes.find((x) => x.id === d.tncancel); tnEdit.delete(d.tncancel); if (n) cnPaintNote(n); }
+  else if (d.tnsave) await tnSave(b);
+  else if (d.tndel) await tnDel(b);
+  else if (d.tnthread) await tnThread(d.tnthread);
+  else hit = false;
+  if (hit) e.stopImmediatePropagation();
+}, true);
 
 // ---------- the sheet (a conversation, a person) ----------
 function sheet(html, cls = '') {
