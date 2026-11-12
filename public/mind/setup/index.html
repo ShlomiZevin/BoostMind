@@ -23,16 +23,16 @@
 <pre>curl -fsSL https://shlomiverse.com/mind/setup/install.mjs -o mind-install.mjs
 node mind-install.mjs --key &lt;HIS KEY&gt; --machine "&lt;a short name for this computer, e.g. Laptop&gt;"</pre>
 <p>In Windows PowerShell 5 write <code>curl.exe</code>, not <code>curl</code>. Then delete <code>mind-install.mjs</code>.
-Tell him it's done and that sessions already open on this computer report after they restart.</p>
+Tell him it's done (sessions already open pick it up after a restart). Already set up? Run it without --key: it keeps the key it has.</p>
 
 <h2>What it sets up</h2>
+<p>Mind is Shlomi's own notebook. Since 2026-11-12 a session writes there <b>only when he tells it to</b> - no session
+tracking, no reports.</p>
 <ul>
-  <li><code>~/.mind/</code> - the key, this computer's name, the hook script (<a href="hook.mjs">hook.mjs</a>) and the CLI (<a href="mind.mjs">mind.mjs</a>) for sessions without MCP.</li>
-  <li>Hooks in <code>~/.claude/settings.json</code> (a backup is kept next to it): every session reports by itself when
-    it starts, is asked something, answers, waits for a permission, and ends.</li>
-  <li>The <code>mind</code> skill in <code>~/.claude/skills/mind/</code> (<a href="SKILL.md">SKILL.md</a>) - how sessions
-    report and read.</li>
-  <li>A short block in <code>~/.claude/CLAUDE.md</code> so every session knows about Mind.</li>
+  <li><code>~/.mind/</code> - the key, this computer's name and the CLI (<a href="mind.mjs">mind.mjs</a>) for sessions without MCP.</li>
+  <li>Removes the old session-tracking hooks from <code>~/.claude/settings.json</code> if they are there.</li>
+  <li>The <code>mind</code> skill in <code>~/.claude/skills/mind/</code> (<a href="SKILL.md">SKILL.md</a>) - write only when he asks.</li>
+  <li>A short block in <code>~/.claude/CLAUDE.md</code> with the same rule.</li>
   <li>The <code>mind</code> MCP server for all projects: <code>https://shlomiverse.com/mind/mcp</code> (HTTP, header
     <code>Authorization: Bearer &lt;key&gt;</code>).</li>
 </ul>

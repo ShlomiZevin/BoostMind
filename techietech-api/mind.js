@@ -1,10 +1,11 @@
 // "המוח השני" - Shlomi's second brain (shlomiverse.com/mind/, his ask 2026-11-04): everything running through his head
-// (ideas, to-dos, running jobs, thoughts - types he controls) and every Claude Code session working for him, on any
-// project and either computer, in one place. One function, three doors:
+// (ideas, to-dos, notes, reminders - types he controls). HIS notebook (his rule, 2026-11-12: the sessions writing there
+// "doing a mess"; Claude already tells him when a session waits for him): what he writes himself, and what a Claude
+// session puts there ONLY when he tells it to. No session tracking, no session reports. Doors:
 //   /mind/api   - his page. `Key <owner key>` (the same private code as /backstage/ and /all/) or the mind key.
-//   /mind/hook  - the Claude Code hooks on his computers (setup/hook.mjs): a session started / was asked / answered /
-//                 needs a permission / ended. `Bearer <mind key>`. This is what makes every session show up by itself.
-//   /mind/mcp   - an MCP server (streamable HTTP, stateless JSON) so any session can read and report. `Bearer <mind key>`.
+//   /mind/mcp   - an MCP server (streamable HTTP, stateless JSON): a session reads, and writes when he asks. `Bearer <mind key>`.
+//   /mind/hook  - closed (old hooks on a computer that wasn't set up again still call it; it answers ok and keeps nothing).
+// Site forms (business inquiry, personal video, archive request - verse.js) still open a waiting task: his ask, 2026-11-10.
 // The mind key is made on first use and kept in mind_meta/secret (clients can't read mind_* - no rule matches); his
 // page shows it in "חיבור מחשב" for the setup line of another computer.
 // Deploy from this folder: firebase deploy --only functions:mind
@@ -28,11 +29,11 @@ const VAPID_PRIVATE = defineSecret('VERSE_VAPID_PRIVATE');
 const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';
 const PUSH = db.collection('mind_push');
 // what buzzes his phone - he turns each on / off in the page's settings (config.push)
-const PUSH_KINDS = { ask: true, done: true, remind: true, reply: false };
+// ask = a site form opened a task waiting for him; remind = 9 am reminders. (Session pings are gone, 2026-11-12.)
+const PUSH_KINDS = { ask: true, remind: true };
 
 const STATUSES = ['open', 'active', 'waiting', 'done', 'parked'];
 const STATUS_HE = { open: 'פתוח', active: 'בטיפול', waiting: 'מחכה לך', done: 'בוצע', parked: 'בהקפאה' };
-const SESSION_STATES = ['new', 'working', 'waiting', 'needs', 'stuck', 'done', 'ended'];
 const DEFAULT_TYPES = [
   { id: 'idea', name: 'רעיון', color: '#f5a524', icon: 'bulb' },
   { id: 'task', name: 'משימה', color: '#3b82f6', icon: 'check' },
@@ -107,7 +108,7 @@ async function addItem(f, by) {
   return { id, ...item };
 }
 
-async function updateItem(id, f, by) {
+async function updateItem(id, f, by, quiet) {
   const ref = ITEMS.doc(oneLine(id, 20).replace(/^#/, ''));
   const types = await typeIds();
   return db.runTransaction(async (tx) => {
@@ -133,8 +134,7 @@ async function updateItem(id, f, by) {
     return { id: ref.id, ...it, ...ch, _linked: f.session && ch.sessions ? oneLine(f.session, 80) : null, _st: ch.status || null };
   }).then(async (r) => {
     if (r._linked) await linkSession(r._linked, r.id); delete r._linked;
-    if (by !== 'שלומי' && r._st === 'done') await pushMe('done', { title: 'בוצע: ' + r.text, body: f.note || '', url: '/mind/#' + r.id, tag: 'i:' + r.id });
-    else if (by !== 'שלומי' && r._st === 'waiting') await pushMe('ask', { title: 'מחכה לך: ' + r.text, body: f.note || '', url: '/mind/#' + r.id, tag: 'i:' + r.id });
+    if (!quiet && by !== 'שלומי' && r._st === 'waiting') await pushMe('ask', { title: 'מחכה לך: ' + r.text, body: f.note || '', url: '/mind/#' + r.id, tag: 'i:' + r.id });
     delete r._st; return r;
   });
 }
@@ -155,8 +155,6 @@ async function listItems({ status, type, project, query, limit = 200, includeDon
   return items.slice(0, Math.min(+limit || 200, 1500));
 }
 
-// ---------- sessions (from the hooks, and what a session says about itself) ----------
-
 // ---------- notifications ----------
 // one notification to every device he turned them on (dead ones are dropped). kind = one of PUSH_KINDS.
 async function pushMe(kind, { title, body, url, tag }, why) {
@@ -175,118 +173,39 @@ async function pushMe(kind, { title, body, url, tag }, why) {
     return sent;
   } catch (e) { if (why) why.push(e.message); console.error('mind push', e.message); return 0; }
 }
-const sessTitle = (s) => oneLine(s.name || s.first || s.project || 'סשן', 60);
-const sessUrl = (id) => '/mind/#s=' + encodeURIComponent(id);
-async function hook(b) {
-  const id = sessionDocId(b.session_id);
-  if (id === 'unknown') return;
-  const ref = SESSIONS.doc(id), now = Date.now();
-  const base = { id, u: now, machine: oneLine(b.machine, 60), cwd: oneLine(b.cwd, 300), project: oneLine(b.project, 60) };
-  for (const k of Object.keys(base)) if (!base[k]) delete base[k];
-  const ev = b.event;
-  const r = await db.runTransaction(async (tx) => {
-    const snap = await tx.get(ref), s = snap.data() || {};
-    const ch = { ...base };
-    if (!snap.exists) { ch.c = now; ch.state = 'new'; ch.prompts = 0; ch.items = []; }
-    if (ev === 'SessionStart') { if (s.state === 'ended') ch.state = 'waiting'; ch.source = oneLine(b.source, 20); }
-    else if (ev === 'UserPromptSubmit') {
-      const p = clip(untag(b.prompt), 600);
-      ch.state = 'working'; ch.ask = p; ch.askAt = now; ch.prompts = (s.prompts || 0) + 1; ch.mstate = ''; ch.note = '';
-      if (!s.first) ch.first = p;
-    } else if (ev === 'Stop') { ch.state = 'waiting'; ch.reply = clip(b.reply, 900); ch.replyAt = now; ch.note = ''; }
-    else if (ev === 'Notification') { ch.state = 'needs'; ch.note = oneLine(b.message, 200); }
-    else if (ev === 'Resumed') { if (s.state === 'needs') { ch.state = 'working'; ch.note = ''; } }
-    else if (ev === 'SessionEnd') { ch.state = 'ended'; ch.endReason = oneLine(b.reason, 40); }
-    else return null;
-    tx.set(ref, ch, { merge: true });
-    return { s: { ...s, ...ch }, was: s.state };
-  });
-  if (!r) return;
-  // a session stopped for his permission -> his phone; a finished answer -> only if he turned "every answer" on
-  if (ev === 'Notification' && r.was !== 'needs') await pushMe('ask', { title: sessTitle(r.s) + ' צריך אישור', body: r.s.note || 'מחכה שתאשר במחשב', url: sessUrl(id), tag: 's:' + id });
-  else if (ev === 'Stop') await pushMe('reply', { title: sessTitle(r.s) + ' ענה', body: r.s.reply || '', url: sessUrl(id), tag: 's:' + id });
-}
-
-async function reportSession(f, by) {
-  const id = sessionDocId(f.session_id || f.id);
-  if (id === 'unknown') throw new Error('session_id is needed (the SessionStart hook tells you yours)');
-  const ch = { id, u: Date.now() };
-  if (f.name != null) ch.name = oneLine(f.name, 80);
-  if (f.summary != null) ch.summary = clip(f.summary, 2000);
-  if (f.state != null) {
-    if (!['working', 'waiting', 'stuck', 'done', ''].includes(f.state)) throw new Error('state: working | waiting | stuck | done');
-    ch.mstate = f.state; ch.mstateAt = Date.now();
-  }
-  if (f.question != null) ch.question = clip(f.question, 600);
-  if (f.project) ch.project = oneLine(f.project, 60);
-  if (f.cwd) ch.cwd = oneLine(f.cwd, 300);
-  if (f.machine) ch.machine = oneLine(f.machine, 60);
-  if (f.hidden != null) ch.hidden = !!f.hidden;
-  if (Array.isArray(f.items) && f.items.length) ch.items = admin.firestore.FieldValue.arrayUnion(...f.items.map((x) => oneLine(x, 20).replace(/^#/, '')));
-  const before = (await SESSIONS.doc(id).get()).data() || {};
-  await SESSIONS.doc(id).set(ch, { merge: true });
-  if (by !== 'שלומי') {
-    const now = { ...before, ...ch };
-    if (ch.question && ch.question !== before.question && ['waiting', 'stuck'].includes(now.mstate)) await pushMe('ask', { title: sessTitle(now) + ' שואל', body: ch.question, url: sessUrl(id), tag: 's:' + id });
-    else if (ch.mstate === 'done' && before.mstate !== 'done') await pushMe('done', { title: sessTitle(now) + ' סיים', body: now.summary || '', url: sessUrl(id), tag: 's:' + id });
-  }
-  return { ok: true, id };
-}
-
-async function listSessions({ days = 14, project, state } = {}) {
-  const since = Date.now() - Math.min(+days || 14, 120) * 864e5;
-  const snap = await SESSIONS.where('u', '>=', since).orderBy('u', 'desc').limit(400).get();
-  let s = snap.docs.map((d) => d.data()).filter((x) => x.prompts > 0 || x.name || x.summary);
-  if (project) { const p = project.toLowerCase(); s = s.filter((x) => (x.project || '').toLowerCase().includes(p)); }
-  if (state) s = s.filter((x) => shownState(x) === state);
-  return s;
-}
-// the state a person should see: what the session said about itself wins while it's newer than his last message
-const shownState = (s) => (s.mstate && (s.mstateAt || 0) >= (s.askAt || 0) && s.state !== 'needs' && s.state !== 'ended' ? s.mstate : s.state);
-
 // ---------- the MCP door ----------
-const STATE_HE = { new: 'חדש', working: 'עובד', waiting: 'תורך', needs: 'צריך אישור', stuck: 'תקוע', done: 'סיים', ended: 'נסגר' };
+// A session writes here ONLY when Shlomi tells it to ("למוח", "רשום במוח", "add to mind", "send this to mind").
+const ASKED = ' Only when Shlomi explicitly asks you to put something in Mind - never on your own initiative, never to report your work.';
 const ago = (t) => { const m = Math.round((Date.now() - t) / 6e4); return m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
-const itemLine = (i, types) => `#${i.id} [${types[i.type] || i.type}] [${i.status}]${i.pin ? ' [pinned]' : ''}${i.project ? ' {' + i.project + '}' : ''} ${i.text}${i.sessions?.length ? '  (sessions: ' + i.sessions.join(', ') + ')' : ''}  - updated ${ago(i.u)}`;
-const sessionLine = (s, machines) => `${s.id} [${shownState(s)}] {${s.project || '?'}} @${machines[s.machine] || s.machine || '?'} "${s.name || oneLine(s.first, 80)}" - ${ago(s.u)}${s.items?.length ? '  items: ' + s.items.map((x) => '#' + x).join(' ') : ''}`;
+const itemLine = (i, types) => `#${i.id} [${types[i.type] || i.type}] [${i.status}]${i.pin ? ' [pinned]' : ''}${i.project ? ' {' + i.project + '}' : ''} ${i.text}${i.due ? ' (due ' + i.due + ')' : ''}  - by ${i.by || '?'}, updated ${ago(i.u)}`;
 
 const TOOLS = [
-  { name: 'mind_overview', description: "Shlomi's whole picture in one read: what is waiting for HIM, what sessions are doing, open items by project. Read this first when he asks what's going on / what's open / what's on his plate.",
+  { name: 'mind_overview', description: "Shlomi's notebook in one read: what waits for him, reminders, open ideas / tasks / notes by project. Read it when he asks what's open / what's in Mind / what's on his plate.",
     inputSchema: { type: 'object', properties: { project: { type: 'string', description: 'only this project (optional)' } } } },
-  { name: 'mind_list_items', description: 'List items (ideas, tasks, running jobs, thoughts...). Default: not done and not parked. Use before adding, to avoid a duplicate, and to find the item a request belongs to.',
+  { name: 'mind_list_items', description: 'List his items (ideas, tasks, notes, reminders...). Default: not done and not parked. Use when he asks about something in Mind, and before adding (no duplicates).',
     inputSchema: { type: 'object', properties: { status: { type: 'string', enum: STATUSES }, type: { type: 'string' }, project: { type: 'string' }, query: { type: 'string', description: 'words to search in title/body/tags' }, include_done: { type: 'boolean' }, limit: { type: 'number' } } } },
-  { name: 'mind_get_item', description: 'One item with its body and full timeline.', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
-  { name: 'mind_add_item', description: "Capture something for Shlomi: an idea he mentioned, a to-do for him, a job you started that keeps running, a follow-up he must not forget. Title short (Hebrew if he wrote Hebrew). Pass your session_id when you're the one handling it.",
-    inputSchema: { type: 'object', properties: { text: { type: 'string', description: 'short title' }, body: { type: 'string', description: 'details: what, where (paths/urls), why' }, type: { type: 'string', description: 'type id: idea | task | reminder | job | thought | wait, or one of his own (see mind_overview)' }, status: { type: 'string', enum: STATUSES }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string', description: 'YYYY-MM-DD' }, tags: { type: 'array', items: { type: 'string' } }, session_id: { type: 'string' }, note: { type: 'string', description: 'first timeline line' } }, required: ['text'] } },
-  { name: 'mind_update_item', description: 'Change an item and/or add a timeline note: take it (status active + your session_id), report progress (note), ask him (status waiting + the question in note), finish (status done + what was done and where to see it).',
-    inputSchema: { type: 'object', properties: { id: { type: 'string' }, status: { type: 'string', enum: STATUSES }, note: { type: 'string' }, session_id: { type: 'string' }, text: { type: 'string' }, body: { type: 'string' }, type: { type: 'string' }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string' }, tags: { type: 'array', items: { type: 'string' } } }, required: ['id'] } },
-  { name: 'mind_report_session', description: "Tell Shlomi's page about THIS session: a clear name, a summary of what you did / are doing (where the results are), and your state. The hooks already track working / waiting by themselves - report the meaning: done (the job is finished), stuck (blocked, say why in question), waiting (you need his decision - put it in question).",
-    inputSchema: { type: 'object', properties: { session_id: { type: 'string' }, name: { type: 'string', description: 'short name of the work, e.g. "Mind app build"' }, summary: { type: 'string' }, state: { type: 'string', enum: ['working', 'waiting', 'stuck', 'done'] }, question: { type: 'string', description: 'what you need from him' }, project: { type: 'string' }, cwd: { type: 'string', description: 'the folder you work in (so he can resume you)' }, machine: { type: 'string' }, items: { type: 'array', items: { type: 'string' }, description: 'item ids this session handles' } }, required: ['session_id'] } },
-  { name: 'mind_list_sessions', description: 'Claude Code sessions on all his computers (last N days): state, project, computer, what each was asked and said. Use to find who did something for him.',
-    inputSchema: { type: 'object', properties: { days: { type: 'number' }, project: { type: 'string' }, state: { type: 'string', enum: SESSION_STATES } } } },
-  { name: 'mind_get_session', description: "One session: its first and last ask, last reply, summary, items, and how to resume it.", inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+  { name: 'mind_get_item', description: 'One item with its body and full timeline (his notes on it included).', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+  { name: 'mind_add_item', description: "Put something in Shlomi's notebook: an idea, a to-do, a note, a reminder, or something from this session he wants to keep." + ASKED + ' Title short, in his words (Hebrew if he wrote Hebrew); details, paths and links in body.',
+    inputSchema: { type: 'object', properties: { text: { type: 'string', description: 'short title' }, body: { type: 'string', description: 'details: what, where (paths/urls), why' }, type: { type: 'string', description: 'type id: idea | task | reminder | thought | wait, or one of his own (see mind_overview)' }, status: { type: 'string', enum: STATUSES }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string', description: 'YYYY-MM-DD' }, tags: { type: 'array', items: { type: 'string' } }, note: { type: 'string', description: 'first timeline line' } }, required: ['text'] } },
+  { name: 'mind_update_item', description: 'Change one of his items or add a note to its timeline (mark it done, add what you found).' + ASKED,
+    inputSchema: { type: 'object', properties: { id: { type: 'string' }, status: { type: 'string', enum: STATUSES }, note: { type: 'string' }, text: { type: 'string' }, body: { type: 'string' }, type: { type: 'string' }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string' }, tags: { type: 'array', items: { type: 'string' } } }, required: ['id'] } },
 ];
 
 async function callTool(name, a = {}) {
   const cfg = await config();
   const types = Object.fromEntries(cfg.types.map((t) => [t.id, t.name]));
-  const by = a.session_id ? 'session ' + oneLine(a.session_id, 12) : 'Claude';
-  const byName = async () => { if (!a.session_id) return by; const s = (await SESSIONS.doc(sessionDocId(a.session_id)).get()).data(); return s?.name || (s?.project ? s.project + ' session' : by); };
+  const by = 'Claude';
   switch (name) {
     case 'mind_overview': {
-      const [items, sessions] = await Promise.all([listItems({ project: a.project, limit: 600 }), listSessions({ days: 7, project: a.project })]);
-      const forMe = (i) => i.status === 'waiting' || ((i.type === 'task' || i.type === 'reminder') && i.status === 'open');   // his to-dos wait for him too
+      const items = await listItems({ project: a.project, limit: 600 });
+      const forMe = (i) => i.status === 'waiting' || ((i.type === 'task' || i.type === 'reminder') && i.status === 'open');
       const waiting = items.filter(forMe);
-      const needs = sessions.filter((s) => ['needs', 'stuck'].includes(shownState(s)) || (shownState(s) === 'waiting' && s.question));
-      const working = sessions.filter((s) => shownState(s) === 'working');
       const byProject = {};
       for (const i of items.filter((x) => !forMe(x))) (byProject[i.project || '(no project)'] ||= []).push(i);
       return [
         `Types: ${cfg.types.map((t) => t.id + '=' + t.name).join(', ')}`, '',
-        `## Waiting for Shlomi (${waiting.length + needs.length})`, ...waiting.map((i) => itemLine(i, types)),
-        ...needs.map((s) => sessionLine(s, cfg.machines) + (s.question ? `\n   question: ${oneLine(s.question, 300)}` : '') + (s.note ? `\n   ${s.note}` : '')), '',
-        `## Sessions working now (${working.length})`, ...working.map((s) => sessionLine(s, cfg.machines)), '',
-        `## Open items by project`, ...Object.entries(byProject).flatMap(([p, l]) => [`### ${p} (${l.length})`, ...l.slice(0, 40).map((i) => itemLine(i, types))]),
+        `## Waiting for Shlomi / his to-dos (${waiting.length})`, ...waiting.map((i) => itemLine(i, types)), '',
+        '## Open items by project', ...Object.entries(byProject).flatMap(([p, l]) => [`### ${p} (${l.length})`, ...l.slice(0, 40).map((i) => itemLine(i, types))]),
       ].join('\n');
     }
     case 'mind_list_items': {
@@ -297,27 +216,16 @@ async function callTool(name, a = {}) {
       const d = await ITEMS.doc(oneLine(a.id, 20).replace(/^#/, '')).get();
       if (!d.exists) throw new Error('no item ' + a.id);
       const i = shapeItem(d);
-      return [itemLine(i, types), i.body ? '\n' + i.body : '', i.due ? 'due ' + i.due : '', i.tags?.length ? 'tags: ' + i.tags.join(', ') : '', '\nTimeline:',
+      return [itemLine(i, types), i.body ? '\n' + i.body : '', i.tags?.length ? 'tags: ' + i.tags.join(', ') : '', '\nTimeline:',
         ...(i.log || []).map((l) => `- ${new Date(l.t).toISOString().slice(0, 16).replace('T', ' ')} ${l.by}${l.st ? ' [' + l.st + ']' : ''}: ${l.text}`)].filter(Boolean).join('\n');
     }
     case 'mind_add_item': {
-      const it = await addItem({ ...a, session: a.session_id }, await byName());
+      const it = await addItem({ ...a, session: '' }, by);
       return `Added #${it.id}: ${it.text} [${it.type}/${it.status}]. Shlomi sees it at https://shlomiverse.com/mind/#${it.id}`;
     }
     case 'mind_update_item': {
-      const it = await updateItem(a.id, { ...a, session: a.session_id }, await byName());
+      const it = await updateItem(a.id, { ...a, session: '' }, by, true);
       return `Updated #${it.id}: ${it.text} [${it.status}]`;
-    }
-    case 'mind_report_session': { await reportSession(a); return 'Reported. Shlomi sees this session on https://shlomiverse.com/mind/#sessions'; }
-    case 'mind_list_sessions': {
-      const s = await listSessions(a);
-      return s.length ? s.map((x) => sessionLine(x, cfg.machines) + (x.summary ? '\n   ' + oneLine(x.summary, 200) : x.ask ? '\n   last ask: ' + oneLine(x.ask, 160) : '')).join('\n') : 'No sessions.';
-    }
-    case 'mind_get_session': {
-      const s = (await SESSIONS.doc(sessionDocId(a.id)).get()).data();
-      if (!s) throw new Error('no session ' + a.id);
-      return [sessionLine(s, cfg.machines), s.summary && 'summary: ' + s.summary, s.question && 'question: ' + s.question, s.first && 'first ask: ' + s.first,
-        s.ask && 'last ask: ' + s.ask, s.reply && 'last reply: ' + s.reply, s.cwd && `resume: cd "${s.cwd}" && claude --resume ${s.id}`].filter(Boolean).join('\n');
     }
   }
   throw new Error('unknown tool ' + name);
@@ -330,7 +238,7 @@ async function mcp(msg) {
   if (method === 'initialize') {
     const v = ['2025-06-18', '2025-03-26', '2024-11-05'].includes(params.protocolVersion) ? params.protocolVersion : '2025-06-18';
     return reply({ protocolVersion: v, capabilities: { tools: {} }, serverInfo: { name: 'mind', title: "Shlomi's second brain", version: '1.0.0' },
-      instructions: "Shlomi's one place for everything in his head and every Claude session working for him (all projects, all his computers). Report here: capture ideas/to-dos he mentions, take an item when you work on it, finish it with where the result is, and report your session's meaning (done / stuck / waiting + question). Page: https://shlomiverse.com/mind/" });
+      instructions: "Shlomi's own notebook: his ideas, to-dos, notes and reminders, across all his projects. Write here ONLY when he explicitly tells you to (למוח / רשום במוח / add to mind / send this to mind) - never on your own initiative, never to report a session's work. Reading is fine whenever he asks about it. Page: https://shlomiverse.com/mind/" });
   }
   if (method === 'ping') return reply({});
   if (method === 'tools/list') return reply({ tools: TOOLS });
@@ -347,8 +255,8 @@ async function mcp(msg) {
 async function pageOp(b) {
   switch (b.op) {
     case 'all': {
-      const [items, sessions, cfg] = await Promise.all([listItems({ includeDone: true, limit: 1500 }), listSessions({ days: b.days || 30 }), config()]);
-      return { items, sessions, config: cfg, now: Date.now() };
+      const [items, cfg] = await Promise.all([listItems({ includeDone: true, limit: 1500 }), config()]);
+      return { items, sessions: [], config: cfg, now: Date.now() };
     }
     case 'add': return { item: await addItem(b.item || {}, 'שלומי') };
     case 'update': return { item: await updateItem(b.id, b.item || {}, 'שלומי') };
@@ -362,12 +270,9 @@ async function pageOp(b) {
       await META.doc('config').set(c, { merge: true });
       return { config: await config() };
     }
-    case 'session': return reportSession(b.session || {}, 'שלומי');
-    case 'session_delete': await SESSIONS.doc(sessionDocId(b.id)).delete(); return { ok: true };
     case 'seen': {   // he opened / cleared these - they stop counting as new (until something new happens on them)
       const now = Date.now(), batch = db.batch();
       for (const id of (b.items || []).slice(0, 200)) batch.set(ITEMS.doc(oneLine(id, 20)), { seen: now }, { merge: true });
-      for (const id of (b.sessions || []).slice(0, 200)) batch.set(SESSIONS.doc(sessionDocId(id)), { seen: now }, { merge: true });
       await batch.commit();
       return { ok: true, seen: now };
     }
@@ -482,7 +387,7 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
   if (role === 'blocked') return res.status(429).json({ error: 'too_many' });
   if (!role) return res.status(401).json({ error: 'key' });
   try {
-    if (door === 'hook') { await hook(req.body || {}); return res.json({ ok: true }); }
+    if (door === 'hook') return res.json({ ok: true, off: 'session tracking is off since 2026-11-12' });
     if (door === 'mcp') {
       const body = req.body;
       if (Array.isArray(body)) { const out = (await Promise.all(body.map(mcp))).filter(Boolean); return out.length ? res.json(out) : res.status(202).end(); }

@@ -1,23 +1,25 @@
 // Mind setup - connects THIS computer's Claude Code to Shlomi's second brain (https://shlomiverse.com/mind/).
 //   curl -fsSL https://shlomiverse.com/mind/setup/install.mjs -o mind-install.mjs && node mind-install.mjs --key <key> --machine "<name>"
-// Safe to run again (it replaces its own parts, keeps everything else). What it does:
-//   1. ~/.mind/config.json (url, key, computer name) + ~/.mind/hook.mjs + ~/.mind/mind.mjs (the CLI)
-//   2. hooks in ~/.claude/settings.json (backup next to it) - every session reports itself
-//   3. the "mind" skill in ~/.claude/skills/mind/ - how sessions report and read
-//   4. a short block in ~/.claude/CLAUDE.md - every session knows Mind exists
+// Mind = Shlomi's own notebook; a session writes there ONLY when he tells it to (his rule, 2026-11-12 - no session
+// tracking any more). Safe to run again (it replaces its own parts, keeps everything else). What it does:
+//   1. ~/.mind/config.json (url, key, computer name) + ~/.mind/mind.mjs (the CLI)
+//   2. removes the old session-tracking hooks from ~/.claude/settings.json (and ~/.mind/hook.mjs)
+//   3. the "mind" skill in ~/.claude/skills/mind/ - write only when he asks, read when he asks
+//   4. a short block in ~/.claude/CLAUDE.md - the same rule, for every session
 //   5. the "mind" MCP server for all projects (claude mcp add --scope user)
-// Options: --key (required), --machine (default: this computer's name), --base (default https://shlomiverse.com/mind),
-//          --from <folder> (take hook.mjs / SKILL.md from a folder instead of downloading), --uninstall
+// Options: --key (default: the key this computer already has), --machine (default: this computer's name),
+//          --base (default https://shlomiverse.com/mind), --from <folder> (take files from a folder), --uninstall
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
+function readJsonEarly(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; } }
 const arg = (n, d) => { const i = process.argv.indexOf('--' + n); return i > 0 ? process.argv[i + 1] : d; };
 const has = (n) => process.argv.includes('--' + n);
 const BASE = (arg('base', 'https://shlomiverse.com/mind')).replace(/\/+$/, '');
-const KEY = arg('key');
-const MACHINE = arg('machine', os.hostname());
+const KEY = arg('key') || readJsonEarly(path.join(os.homedir(), '.mind', 'config.json'))?.key;
+const MACHINE = arg('machine', readJsonEarly(path.join(os.homedir(), '.mind', 'config.json'))?.machine || os.hostname());
 const FROM = arg('from');
 const HOME = os.homedir();
 const MIND = path.join(HOME, '.mind');
@@ -68,16 +70,12 @@ function setHooks(on) {
 
 // ---------- the CLAUDE.md block ----------
 const BLOCK = `<!-- mind:start -->
-## Mind - Shlomi's second brain (every session, every project, every computer)
-Everything Shlomi has going is tracked at https://shlomiverse.com/mind/ - every idea, to-do, running job and every
-Claude session on his computers. Hooks report this session's activity by themselves; you add the meaning with the
-\`mind\` MCP tools, as the \`mind\` skill says (load it when you start real work):
-- name this session and link it to its item (take it: status active + your session_id) when you start real work;
-- any idea / to-do / "later" / "remind me" he mentions -> mind_add_item (search first, tell him in one line);
-- a job that keeps running after your turn -> an item of type job; need his decision -> state waiting + question;
-- finished -> the item done + a session summary saying where the result is;
-- "what's open / what's waiting for me / which session did X" -> mind_overview / mind_list_sessions.
-Your session id is in the SessionStart context ("this session's id is ...") and in $MIND_SESSION.
+## Mind - Shlomi's notebook (https://shlomiverse.com/mind/)
+His own ideas, to-dos, notes and reminders. **Write there ONLY when he tells you to** ("למוח", "רשום במוח", "תוסיף
+לרעיונות", "תזכיר לי", "add to mind", "send this to mind") - never on your own, never to report your session's work,
+progress, questions or summary (his rule, 2026-11-12: session tracking was removed, it made a mess). When he asks:
+the \`mind\` MCP tools as the \`mind\` skill says (search first, one item per thing, tell him the #id in one line).
+Reading it when he asks ("what's open", "תקרא מהמוח") is fine: mind_overview / mind_list_items / mind_get_item.
 <!-- mind:end -->`;
 function setBlock(on) {
   const p = path.join(CLAUDE, 'CLAUDE.md');
@@ -127,14 +125,14 @@ say('key ok');
 
 fs.mkdirSync(MIND, { recursive: true });
 fs.writeFileSync(path.join(MIND, 'config.json'), JSON.stringify({ url: BASE, key: KEY, machine: MACHINE }, null, 2));
-fs.writeFileSync(HOOK, await file('hook.mjs'));
+fs.rmSync(HOOK, { force: true });
 fs.writeFileSync(path.join(MIND, 'mind.mjs'), await file('mind.mjs'));
-say(`config + hook + CLI in ${MIND}`);
-setHooks(true);
+say(`config + CLI in ${MIND}`);
+setHooks(false);   // the old session-tracking hooks go (2026-11-12)
 fs.mkdirSync(path.join(CLAUDE, 'skills', 'mind'), { recursive: true });
 fs.writeFileSync(path.join(CLAUDE, 'skills', 'mind', 'SKILL.md'), await file('SKILL.md'));
 say('skill "mind" installed');
 setBlock(true);
 setMcp(true);
-console.log('\nDone. New Claude Code sessions on this computer report to Mind (running ones: after a restart).');
+console.log('\nDone. Sessions on this computer write to Mind only when Shlomi tells them to (running ones: after a restart).');
 console.log(`Page: ${BASE}/`);
