@@ -1,0 +1,126 @@
+{
+ "size": [
+  1024,
+  1536
+ ],
+ "faces": {
+  "neutral": "face-neutral.webp"
+ },
+ "patches": {
+  "blink": {
+   "src": "blink.webp",
+   "x": 315,
+   "y": 410
+  },
+  "face-emb": {
+   "src": "face-emb.webp",
+   "x": 300,
+   "y": 350
+  },
+  "face-happy": {
+   "src": "face-happy.webp",
+   "x": 300,
+   "y": 350
+  },
+  "face-shy": {
+   "src": "face-shy.webp",
+   "x": 300,
+   "y": 350
+  },
+  "face-upset": {
+   "src": "face-upset.webp",
+   "x": 300,
+   "y": 350
+  },
+  "mouth-A": {
+   "src": "mouth-A.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-Asm": {
+   "src": "mouth-Asm.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-E": {
+   "src": "mouth-E.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-F": {
+   "src": "mouth-F.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-I": {
+   "src": "mouth-I.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-M": {
+   "src": "mouth-M.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-O": {
+   "src": "mouth-O.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-S": {
+   "src": "mouth-S.webp",
+   "x": 420,
+   "y": 555
+  },
+  "mouth-U": {
+   "src": "mouth-U.webp",
+   "x": 420,
+   "y": 555
+  },
+  "hmouth-A": {
+   "src": "hmouth-A.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-Asm": {
+   "src": "hmouth-Asm.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-E": {
+   "src": "hmouth-E.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-F": {
+   "src": "hmouth-F.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-I": {
+   "src": "hmouth-I.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-M": {
+   "src": "hmouth-M.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-O": {
+   "src": "hmouth-O.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-S": {
+   "src": "hmouth-S.webp",
+   "x": 395,
+   "y": 545
+  },
+  "hmouth-U": {
+   "src": "hmouth-U.webp",
+   "x": 395,
+   "y": 545
+  }
+ }
+}

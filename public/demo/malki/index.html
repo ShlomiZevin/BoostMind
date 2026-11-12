@@ -54,8 +54,9 @@
   .chip { display: flex; gap: 10px; align-items: center; font-size: 15px; line-height: 1.3; font-weight: 600; }
   .chip img { width: 42px; height: 42px; object-fit: contain; flex: none; }
   .hero-pic { position: relative; min-width: 0; }
-  .hero-pic img.main { width: 100%; max-height: 560px; object-fit: cover; object-position: top; border-radius: 22px; display: block; }
-  .note { position: absolute; top: 18px; right: 14px; font-family: var(--hand); font-size: 30px; line-height: 1.05; color: #1e2b58; background: rgba(255,253,246,.92); padding: 8px 14px; border-radius: 12px; transform: rotate(-5deg); max-width: 190px; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  .hero-pic iframe.live { width: 100%; aspect-ratio: 2/3; max-height: 640px; border: 0; border-radius: 22px; display: block; background: var(--card); box-shadow: 0 14px 40px rgba(30,43,88,.16); }
+  .livecap { margin-top: 8px; color: var(--soft); font-size: 15px; text-align: center; }
+  .note { position: absolute; top: 18px; right: -10px; pointer-events: none; font-family: var(--hand); font-size: 30px; line-height: 1.05; color: #1e2b58; background: rgba(255,253,246,.92); padding: 8px 14px; border-radius: 12px; transform: rotate(-5deg); max-width: 190px; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
   .draft { margin-top: 26px; background: var(--card); border: 1px solid var(--line); border-inline-start: 5px solid var(--gold); border-radius: 12px; padding: 14px 18px; display: grid; gap: 4px; }
   .draft b { color: var(--gold); font-family: var(--head); }
 
@@ -108,6 +109,24 @@
   footer { text-align: center; padding-block: 30px 46px; color: var(--soft); }
   footer b { font-family: var(--head); color: var(--navy); display: block; font-size: 20px; margin-bottom: 4px; }
 
+
+  .viewer { display: grid; grid-template-columns: 1fr minmax(0, 420px); gap: 28px; margin-top: 26px; align-items: start; }
+  .vctl { display: grid; gap: 16px; min-width: 0; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .seg button, .lines button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 12px; text-align: right; }
+  .seg button { padding: 10px 12px; font-weight: 700; font-family: var(--head); font-size: 15px; display: grid; gap: 2px; }
+  .seg button small { font-family: var(--body); font-weight: 600; color: var(--soft); font-size: 13px; }
+  .lines { display: grid; gap: 8px; }
+  .lines button { padding: 12px 14px; display: grid; gap: 2px; }
+  .lines button b { font-family: var(--head); color: var(--navy); font-size: 16px; }
+  .lines button span { color: var(--soft); font-size: 14px; }
+  .seg button[aria-pressed="true"], .lines button[aria-pressed="true"] { border: 2px solid var(--blue); background: color-mix(in srgb, var(--blue) 8%, var(--card)); }
+  .seg button:disabled, .lines button:disabled { opacity: .45; cursor: default; }
+  .seg button:focus-visible, .lines button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .vscreen { margin: 0; display: grid; gap: 8px; min-width: 0; }
+  .vscreen video { width: 100%; aspect-ratio: 2/3; object-fit: contain; background: #0d1020; border-radius: 16px; display: block; box-shadow: 0 14px 40px rgba(30,43,88,.18); }
+  .vscreen figcaption { color: var(--soft); font-size: 15px; text-align: center; }
+  @media (max-width: 860px) { .viewer { grid-template-columns: 1fr; } .vscreen { order: -1; } }
   @media (max-width: 860px) {
     .hero .grid { grid-template-columns: 1fr; }
     .hero-pic { order: -1; }
@@ -145,8 +164,9 @@
       </div>
     </div>
     <div class="hero-pic">
-      <img class="main" src="media/hero.jpg" alt="מלכי, תלמידה בסמינר, יושבת ליד שולחן בכיתה">
+      <iframe class="live" src="live/" title="מלכי – הדגמה חיה" allow="autoplay" loading="eager"></iframe>
       <span class="note">כאן עוד הרבה יותר תנועה והבעות פנים בהמשך!</span>
+      <p class="livecap">הדגמה חיה: לחצו על משפט, ומלכי תאמר אותו. הפה זז בזמן אמת לפי הקול.</p>
     </div>
   </div>
   <div class="in">
@@ -161,11 +181,13 @@
 <section class="band" id="samples">
   <div class="in">
     <h2>דוגמאות לשיחה עם מלכי</h2>
-    <p class="lead">שלוש תשובות קצרות של מלכי. הפה, העיניים והרגש משתנים לפי הקול שלה.</p>
-    <div class="vids">
-      <figure class="vid"><video src="media/painted-hello.mp4" poster="media/poster-hello.jpg" controls preload="none" playsinline></video><figcaption><b>״אה... שלום המורה. לא הספקתי להכין את שיעורי הבית...״</b><span>מלכי אומרת זאת במבוכה</span></figcaption></figure>
-      <figure class="vid"><video src="media/painted-why.mp4" poster="media/poster-why.jpg" controls preload="none" playsinline></video><figcaption><b>״למה תמיד אני? גם אחרים מדברים בשיעור...״</b><span>מלכי נפגעת וכועסת</span></figcaption></figure>
-      <figure class="vid"><video src="media/painted-happy.mp4" poster="media/poster-happy.jpg" controls preload="none" playsinline></video><figcaption><b>״באמת? קיבלתי תשעים וחמש?״</b><span>מלכי שמחה ומופתעת</span></figcaption></figure>
+    <p class="lead">בחרו כיוון עיצוב ומשפט. אותה מלכי, אותו קול ואותה תנועת פה.</p>
+    <div class="viewer">
+      <div class="vctl">
+        <div class="seg" id="segDir" role="group" aria-label="כיוון עיצוב"></div>
+        <div class="lines" id="segLine" role="group" aria-label="משפט"></div>
+      </div>
+      <figure class="vscreen"><video id="vid" controls playsinline preload="metadata"></video><figcaption id="vcap"></figcaption></figure>
     </div>
   </div>
 </section>
@@ -254,5 +276,49 @@
 </section>
 
 
+
+<script>
+// the examples viewer: direction x line -> video (only the ones that exist are enabled)
+const DIRS = [
+  { id: 'painted', name: 'א. איור עם תנועה', sub: 'ציור שזז' },
+  { id: 'real', name: 'ב. תלת־ממד מציאותי', sub: 'כמו ילדה אמיתית' },
+  { id: 'cartoon', name: 'ג. תלת־ממד מצויר', sub: 'סגנון סרט מצויר' },
+];
+const LINES = [
+  { id: 'hello', text: '״אה... שלום המורה. לא הספקתי להכין את שיעורי הבית...״', emo: 'במבוכה' },
+  { id: 'why', text: '״למה תמיד אני? גם אחרים מדברים בשיעור...״', emo: 'נפגעת וכועסת' },
+  { id: 'happy', text: '״באמת? קיבלתי תשעים וחמש?״', emo: 'שמחה ומופתעת' },
+  { id: 'shy', text: '״אני... לא כל כך אוהבת לדבר מול כל הכיתה.״', emo: 'בביישנות' },
+];
+const VIDEOS = {
+  painted: { hello: 'painted-hello', why: 'painted-why', happy: 'painted-happy' },
+  real: { hello: 'real-hello' },
+  cartoon: {},
+};
+const POSTERS = { 'painted-hello': 'poster-hello', 'painted-why': 'poster-why', 'painted-happy': 'poster-happy', 'real-hello': 'poster-real' };
+let dir = 'painted', line = 'hello';
+const segDir = document.getElementById('segDir'), segLine = document.getElementById('segLine'), vid = document.getElementById('vid'), cap = document.getElementById('vcap');
+function render(play) {
+  segDir.innerHTML = ''; segLine.innerHTML = '';
+  for (const d of DIRS) {
+    const b = document.createElement('button'); const has = Object.keys(VIDEOS[d.id]).length > 0;
+    b.innerHTML = `${d.name}<small>${has ? d.sub : 'בקרוב'}</small>`; b.disabled = !has; b.setAttribute('aria-pressed', d.id === dir);
+    b.onclick = () => { dir = d.id; if (!VIDEOS[dir][line]) line = Object.keys(VIDEOS[dir])[0]; render(true); };
+    segDir.appendChild(b);
+  }
+  for (const l of LINES) {
+    const b = document.createElement('button'); const has = !!VIDEOS[dir][l.id];
+    b.innerHTML = `<b>${l.text}</b><span>מלכי ${l.emo}${has ? '' : ' · בקרוב'}</span>`; b.disabled = !has; b.setAttribute('aria-pressed', l.id === line);
+    b.onclick = () => { line = l.id; render(true); };
+    segLine.appendChild(b);
+  }
+  const f = VIDEOS[dir][line];
+  vid.src = `media/${f}.mp4`; vid.poster = `media/${POSTERS[f] || 'poster-' + f}.jpg`;
+  const L = LINES.find(x => x.id === line), D = DIRS.find(x => x.id === dir);
+  cap.textContent = `${D.name} · מלכי ${L.emo}`;
+  if (play) vid.play().catch(() => {});
+}
+render(false);
+</script>
 </body>
 </html>

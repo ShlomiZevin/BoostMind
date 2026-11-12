@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מלכי – הדגמה חיה</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@600;700&display=swap">
+<style>
+  :root { --bg:#fbf8f2; --ink:#1e2b58; --btn:#ffffff; --acc:#3a6bd6; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:"Assistant","Segoe UI",Arial,sans-serif; overflow:hidden; }
+  canvas { display:block; width:100vw; height:100vh; }
+  #ui { position:fixed; inset:auto 0 0 0; padding:10px 10px 12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; background:linear-gradient(transparent, rgba(251,248,242,.9) 35%); }
+  button { font:inherit; font-weight:700; font-size:15px; padding:9px 10px; border-radius:12px; border:1px solid #d9dfeb; background:rgba(255,255,255,.95); color:var(--ink); cursor:pointer; box-shadow:0 2px 8px rgba(30,43,88,.08); }
+  button:hover, button:focus-visible { border-color:var(--acc); outline:none; }
+  button.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+  #load { position:fixed; inset:0; display:grid; place-items:center; font-size:20px; color:#1e2b58; }
+</style>
+<script src="lipsync.js"></script>
+</head>
+<body>
+<div id="load">טוען את מלכי...</div>
+<canvas id="c"></canvas>
+<div id="ui">
+  <button data-line="hello">״לא הכנתי שיעורים...״</button>
+  <button data-line="why">״למה תמיד אני?״</button>
+  <button data-line="happy">״קיבלתי 95?״</button>
+  <button data-line="shy">״לא אוהבת לדבר...״</button>
+</div>
+<script type="module">
+// Painted Noa v2: the painting warped like a Live2D rig. The face (base + mouth/eye/emotion patches) is composited
+// first, then the whole girl is bent by one smooth weight field (head, front hair, back hair, body, irises) -> no seams.
+const EMO = { hello: 'emb', why: 'upset', happy: 'happy', shy: 'shy' };
+const img = (src) => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+const rig = await fetch('painted2/rig.json').then(r => r.json());
+const man = await fetch('painted/frames.json').then(r => r.json());
+const [girl, plate, wimg] = await Promise.all([img('painted2/girl.webp'), img('painted2/plate.webp'), img('painted2/weights.png')]);
+const P = {};
+for (const [n, p] of Object.entries(man.patches)) P[n] = { im: await img('painted/' + p.src), x: p.x, y: p.y };
+const profile = await fetch('profile.json').then(r => r.json());
+const ls = NoaLipSync.create(profile, { smooth: 0.55 });
+const [IW, IH] = rig.size;
+
+// ---------- face composite (2D canvas, image space)
+const comp = document.createElement('canvas'); comp.width = IW; comp.height = IH;
+const cg = comp.getContext('2d');
+let compKey = '';
+function drawComp(emo, emoK, mouth, blink) {
+  const key = [emo, emoK.toFixed(2), mouth, blink].join('|');
+  if (key === compKey) return false;
+  compKey = key;
+  cg.globalCompositeOperation = 'copy'; cg.drawImage(girl, 0, 0);
+  cg.globalCompositeOperation = 'source-atop'; // patches only where the girl is
+  if (emo && emoK > 0.01) { const p = P['face-' + emo]; cg.globalAlpha = Math.min(1, emoK); cg.drawImage(p.im, p.x, p.y); cg.globalAlpha = 1; }
+  if (mouth) { const p = (emo === 'happy' && emoK > 0.5 && P['hmouth-' + mouth]) || P['mouth-' + mouth]; cg.drawImage(p.im, p.x, p.y); }
+  if (blink) cg.drawImage(P.blink.im, P.blink.x, P.blink.y);
+  cg.globalCompositeOperation = 'source-over';
+  return true;
+}
+
+// ---------- WebGL
+const cv = document.getElementById('c');
+const gl = cv.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: true });
+const VS = `attribute vec2 p; attribute vec2 uv; uniform vec4 xf; varying vec2 v;
+  void main(){ v = uv; gl_Position = vec4(p.x * xf.x + xf.z, p.y * xf.y + xf.w, 0., 1.); }`;
+const FS = `precision mediump float; varying vec2 v; uniform sampler2D t; void main(){ gl_FragColor = texture2D(t, v); }`;
+const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+const prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog); gl.useProgram(prog);
+const aP = gl.getAttribLocation(prog, 'p'), aUV = gl.getAttribLocation(prog, 'uv'), uXF = gl.getUniformLocation(prog, 'xf');
+gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+function tex(src) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); return t;
+}
+const tPlate = tex(plate), tGirl = tex(comp);
+// plate quad
+const quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 0, 0, IW, 0, 1, 0, 0, IH, 0, 1, IW, IH, 1, 1]), gl.STATIC_DRAW);
+// girl mesh: grid every STEP px
+const STEP = 8, NX = Math.ceil(IW / STEP) + 1, NY = Math.ceil(IH / STEP) + 1, NV = NX * NY;
+const base = new Float32Array(NV * 2), pos = new Float32Array(NV * 2), uvs = new Float32Array(NV * 2);
+const WH = new Float32Array(NV), WF = new Float32Array(NV), WB = new Float32Array(NV), WD = new Float32Array(NV), WI = new Float32Array(NV), YN = new Float32Array(NV);
+{
+  const wc = document.createElement('canvas'); wc.width = IW; wc.height = IH; const wg = wc.getContext('2d'); wg.drawImage(wimg, 0, 0);
+  const wd = wg.getImageData(0, 0, IW, IH).data;
+  const iris = (x, y, c) => { const d = Math.hypot(x - c[0], y - c[1]); return d < 20 ? 1 : d > 32 ? 0 : 1 - (d - 20) / 12; };
+  for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+    const k = j * NX + i, x = Math.min(IW, i * STEP), y = Math.min(IH, j * STEP);
+    base[k * 2] = x; base[k * 2 + 1] = y; uvs[k * 2] = x / IW; uvs[k * 2 + 1] = y / IH;
+    const o = (Math.min(IH - 1, y) * IW + Math.min(IW - 1, x)) * 4;
+    WH[k] = wd[o] / 255; WF[k] = wd[o + 1] / 255; WB[k] = wd[o + 2] / 255; WD[k] = wd[o + 3] / 255;
+    WI[k] = Math.max(iris(x, y, rig.irisL), iris(x, y, rig.irisR)); YN[k] = y;
+  }
+}
+const idx = new Uint32Array((NX - 1) * (NY - 1) * 6); let n = 0;
+for (let j = 0; j < NY - 1; j++) for (let i = 0; i < NX - 1; i++) { const a = j * NX + i, b = a + 1, c = a + NX, d = c + 1; idx.set([a, b, c, b, d, c], n); n += 6; }
+gl.getExtension('OES_element_index_uint');
+const bPos = gl.createBuffer(), bUV = gl.createBuffer(), bIdx = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, bUV); gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.STATIC_DRAW);
+gl.bindBuffer(gl.ARRAY_BUFFER, bPos); gl.bufferData(gl.ARRAY_BUFFER, base, gl.DYNAMIC_DRAW);
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bIdx); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+document.getElementById('load').remove();
+
+function fit() { const d = Math.min(devicePixelRatio, 2); cv.width = innerWidth * d; cv.height = innerHeight * d; }
+fit(); addEventListener('resize', fit);
+
+// ---------- audio + lip sync
+const ctx = new AudioContext();
+const an = ctx.createAnalyser(); an.fftSize = 4096; an.connect(ctx.destination);
+const tbuf = new Float32Array(an.fftSize);
+let src = null, emo = null, emoK = 0, talking = false, lineT = 0;
+async function play(name) {
+  await ctx.resume();
+  if (src) src.stop();
+  const buf = await ctx.decodeAudioData(await fetch(`lines/${name}.mp3`).then(r => r.arrayBuffer()));
+  src = ctx.createBufferSource(); src.buffer = buf; src.connect(an); src.start();
+  emo = EMO[name]; talking = true; lineT = 0;
+  document.querySelectorAll('[data-line]').forEach(b => b.classList.toggle('on', b.dataset.line === name));
+  src.onended = () => { talking = false; document.querySelectorAll('[data-line]').forEach(b => b.classList.remove('on')); };
+}
+document.querySelectorAll('[data-line]').forEach(b => b.onclick = () => play(b.dataset.line));
+let mouth = null, mouthT = 0, cand = null, candN = 0;
+function pickMouth(r) {
+  if (r.vol < 0.1) return null;
+  let best = 'A', bw = -1;
+  for (const nm of ls.names) if (r.w[nm] > bw) { bw = r.w[nm]; best = nm; }
+  if (best === 'A') return r.vol > 0.55 ? 'A' : 'Asm';
+  if ((best === 'O' || best === 'E') && r.vol < 0.25) return 'Asm';
+  return best;
+}
+
+// ---------- motion state (smoothed toward per-emotion targets)
+const S = { th: 0, tx: 0, ty: 0, yaw: 0, shrink: 0, bounce: 0, gx: 0, gy: 0, hair: 0, hairV: 0, prevHead: 0 };
+let gazeT = 3, gazeX = 0, gazeY = 0, blinkT = 2.5, blinkLeft = 0, t0 = 0, rec = null, rnd = 1;
+const rand = () => (rnd = (rnd * 16807) % 2147483647) / 2147483647; // repeatable for recordings
+function frame(now, manual) {
+  if (rec && !manual) return;
+  const dt = Math.min(0.05, Math.max(0, (now - t0) / 1000)); t0 = now; lineT += dt;
+  const t = now / 1000;
+  let r;
+  if (rec) {
+    const end = Math.floor(t * NoaLipSync.SR), pad = new Float32Array(NoaLipSync.N);
+    const st = end - NoaLipSync.N; for (let i = 0; i < NoaLipSync.N; i++) pad[i] = rec.pcm[st + i] || 0;
+    r = ls.update(pad); talking = t < rec.dur;
+  } else {
+    an.getFloatTimeDomainData(tbuf);
+    const need = Math.ceil(NoaLipSync.N * ctx.sampleRate / NoaLipSync.SR);
+    r = ls.update(NoaLipSync.to16k(tbuf.subarray(tbuf.length - need), ctx.sampleRate).subarray(0, NoaLipSync.N));
+  }
+  const want = pickMouth(r);
+  mouthT += dt;
+  if (want !== mouth) {
+    if (want === cand) candN++; else { cand = want; candN = 1; }
+    if (candN >= 2 || mouthT > 0.09 || want === null && mouthT > 0.06) { mouth = want; mouthT = 0; candN = 0; }
+  } else candN = 0;
+  emoK += ((talking ? 1 : emo ? 0.6 : 0) - emoK) * Math.min(1, dt * 4);
+  blinkT -= dt; if (blinkT < 0) { blinkLeft = 0.12; blinkT = 2 + rand() * 3.5; }
+  blinkLeft -= dt;
+
+  // targets: idle life + emotion attitude + speech bob
+  const e = emoK, act = talking ? 1 : 0.5;
+  let th = Math.sin(t * 0.6) * 0.012, tx = Math.sin(t * 0.37) * 3, ty = Math.sin(t * 0.8) * 1.5, yaw = Math.sin(t * 0.29) * 5, shrink = 0, bounce = 0;
+  if (emo === 'emb') { shrink = e * 1; ty += e * (lineT < 1.2 ? 12 : 5); th += e * 0.015; yaw += e * 3; }
+  if (emo === 'upset') { th += e * -0.045; yaw += e * -10; tx += e * -4; }
+  if (emo === 'happy') { bounce = e * act * Math.abs(Math.sin(t * 4.2)) * 5; th += e * 0.02; ty -= e * 3; }
+  if (emo === 'shy') { shrink = e * 0.6; ty += e * 7; yaw += e * 4; th += e * 0.01; }
+  ty += r.vol * 2.2 * Math.sin(t * 7.3); th += r.vol * 0.006 * Math.sin(t * 5.1);
+  const k = Math.min(1, dt * 3.5);
+  S.th += (th - S.th) * k; S.tx += (tx - S.tx) * k; S.ty += (ty - S.ty) * k; S.yaw += (yaw - S.yaw) * k;
+  S.shrink += (shrink - S.shrink) * Math.min(1, dt * 2.5); S.bounce += (bounce - S.bounce) * Math.min(1, dt * 12);
+  // eyes: glance away for a moment, then back to the camera (the teacher)
+  gazeT -= dt;
+  if (gazeT < 0) { if (gazeX || gazeY) { gazeX = gazeY = 0; gazeT = 2 + rand() * 3; } else { gazeX = (rand() - 0.5) * 7; gazeY = (rand() - 0.5) * 3; gazeT = 0.5 + rand() * 0.9; } }
+  S.gx += (gazeX - S.gx) * Math.min(1, dt * 14); S.gy += (gazeY - S.gy) * Math.min(1, dt * 14);
+  // hair: a spring that lags behind the head and swings back
+  const headX = S.tx + S.yaw + S.th * 260, vel = (headX - S.prevHead) / Math.max(dt, 1e-3); S.prevHead = headX;
+  S.hairV += (-S.hair * 60 - S.hairV * 7 - vel * 0.9) * dt; S.hair += S.hairV * dt; S.hair = Math.max(-10, Math.min(10, S.hair));
+
+  // deform the mesh
+  const [px, py] = rig.pivot, c = Math.cos(S.th), s = Math.sin(S.th);
+  const breath = Math.sin(t * 1.55) * 0.5 + 0.5;
+  const hty = S.ty + S.shrink * 6 - S.bounce, hx = S.tx + S.yaw;
+  for (let v = 0; v < NV; v++) {
+    const x = base[v * 2], y = base[v * 2 + 1];
+    let dx = 0, dy = 0;
+    const h = WH[v];
+    if (h > 0) { dx += h * (c * (x - px) - s * (y - py) + px - x + hx); dy += h * (s * (x - px) + c * (y - py) + py - y + hty); }
+    const f = WF[v]; if (f > 0) dx += f * (S.yaw * 0.45 + S.hair * 0.5);
+    const b = WB[v]; if (b > 0) { const low = Math.min(1, Math.max(0.15, (y - 250) / 520)); dx += b * (-S.yaw * 0.3 + S.hair * 1.5 * low); dy += b * Math.abs(S.hair) * 0.15 * low; }
+    const d = WD[v];
+    if (d > 0) { const up = 1 - Math.min(1, Math.max(0, (y - 700) / 420)); dy += d * (-(breath * 2.6 + S.shrink * 7) * up - S.bounce * up); dx += d * (x - 512) * (breath * 0.003 - S.shrink * 0.012) * up; }
+    const wi = WI[v]; if (wi > 0) { dx += wi * S.gx; dy += wi * S.gy; }
+    pos[v * 2] = x + dx; pos[v * 2 + 1] = y + dy;
+  }
+
+  // draw: letterboxed, the whole painting visible
+  const W = cv.width, H = cv.height, sc = Math.min(W / IW, H / IH), ox = (W - IW * sc) / 2, oy = (H - IH * sc) / 2;
+  gl.viewport(0, 0, W, H); gl.clearColor(0.984, 0.973, 0.949, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.uniform4f(uXF, 2 * sc / W, -2 * sc / H, 2 * ox / W - 1, 1 - 2 * oy / H);
+  gl.bindTexture(gl.TEXTURE_2D, tPlate);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+  gl.enableVertexAttribArray(aP); gl.vertexAttribPointer(aP, 2, gl.FLOAT, false, 16, 0);
+  gl.enableVertexAttribArray(aUV); gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 16, 8);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  if (drawComp(emo, emoK, mouth, blinkLeft > 0)) { gl.bindTexture(gl.TEXTURE_2D, tGirl); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, comp); }
+  gl.bindTexture(gl.TEXTURE_2D, tGirl);
+  gl.bindBuffer(gl.ARRAY_BUFFER, bPos); gl.bufferSubData(gl.ARRAY_BUFFER, 0, pos);
+  gl.vertexAttribPointer(aP, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, bUV); gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bIdx); gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
+  if (!rec) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+async function record(name, lead = 0.5) {
+  const buf = await ctx.decodeAudioData(await fetch(`lines/${name}.mp3`).then(r => r.arrayBuffer()));
+  const pcm = NoaLipSync.to16k(buf.getChannelData(0), buf.sampleRate), padded = new Float32Array(pcm.length + lead * NoaLipSync.SR);
+  padded.set(pcm, lead * NoaLipSync.SR);
+  rec = { pcm: padded, dur: padded.length / NoaLipSync.SR }; emo = EMO[name]; t0 = 0; lineT = -lead; blinkT = 1.2; rnd = 7;
+  document.getElementById('ui').style.display = 'none';
+  return Math.ceil((rec.dur + 0.8) * 30);
+}
+function step(i) { frame((i - 0.5) * 1000 / 30, true); frame(i * 1000 / 30, true); }
+window.__noa = { play, record, step, names: () => Object.keys(P) };
+</script>
+</body>
+</html>
