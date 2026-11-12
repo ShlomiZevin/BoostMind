@@ -139,7 +139,19 @@ const zb = {
     for (const t of this.tiles) { this.size(t); this.place(t); }
   },
   xy(r, c) { return [this.pad + c * (this.cw + this.gap), this.pad + r * (this.ch + this.gap)]; },
-  size(t) { Object.assign(t.el.style, { width: this.cw + 'px', height: this.ch + 'px', '--fs': Math.max(9, Math.min(14, this.cw / 7.2)) + 'px' }); },
+  size(t) { Object.assign(t.el.style, { width: this.cw + 'px', height: this.ch + 'px', '--fs': Math.max(9, Math.min(14, this.cw / 7.2)) + 'px' }); this.fit(t); },
+  // the meeting's name always fits its tile: shrink the font until it does (long names on narrow tiles: "דמו ליום ראשון")
+  fit(t) {
+    const nm = t.el.querySelector('.nm'); if (!nm) return;
+    nm.style.fontSize = ''; nm.style.whiteSpace = ''; if (!t.el.isConnected) return;
+    const max = parseFloat(getComputedStyle(nm).fontSize) || 13;
+    let fs = max;
+    while (nm.scrollWidth > nm.clientWidth + 1 && fs > 9) { fs -= .5; nm.style.fontSize = fs + 'px'; }
+    if (nm.scrollWidth <= nm.clientWidth + 1) return;
+    // still too long at 9px (the verse's frame on a small phone): two lines, as big as two lines allow
+    nm.style.whiteSpace = 'normal'; fs = Math.min(max, 11); nm.style.fontSize = fs + 'px';   // <= 11px: the faces keep their room
+    while ((nm.scrollWidth > nm.clientWidth + 1 || nm.scrollHeight > fs * 2.6 + 8) && fs > 7) { fs -= .5; nm.style.fontSize = fs + 'px'; }
+  },
   place(t) { const [x, y] = this.xy(t.r, t.c); const tr = 'translate(' + x + 'px,' + y + 'px)'; t.el.style.transform = tr; t.el.style.setProperty('--tr', tr); },
   render(t) {
     const el = t.el; el.className = 'zt ' + (t.kind !== 'm' ? t.kind : ''); el.innerHTML = '';
@@ -160,7 +172,7 @@ const zb = {
   add(r, c, lv, kind = 'm', cd = 0) {
     const t = { id: this.nextId++, r, c, lv, kind, cd, el: document.createElement('div') };
     this.render(t); this.size(t); this.place(t); t.el.classList.add('new');
-    $('#zb').appendChild(t.el); this.tiles.push(t); this.grid[r][c] = t; return t;
+    $('#zb').appendChild(t.el); this.fit(t); this.tiles.push(t); this.grid[r][c] = t; return t;
   },
   empties() { const e = []; for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (!this.grid[r][c]) e.push([r, c]); return e; },
   has(kind) { return this.tiles.some((t) => t.kind === kind); },
@@ -565,6 +577,7 @@ function startMode(mode, tutorial) {
   $('#cl').hidden = $('#clHud').hidden = true; $('#play').classList.remove('narrow', 'vs'); $('#score').hidden = false; $('#bRestart').style.visibility = ''; $('#bAgain').textContent = 'עוד פגישה'; $('#bAgain').hidden = false; $('#bNew').hidden = true; $('#bNew').className = 'quiet';
   $('#timer').hidden = !CLOCK[mode] || vsOn(mode); G.time = G.timeMax = CLOCK[mode] || 0; if (CLOCK[mode]) timerShow();
   $('#flash').classList.remove('on');
+  $('#play').classList.toggle('narrow', $('#hud').clientWidth < 300);   // a very narrow frame: no app name in the HUD
   MODES[mode].start(tutorial); musicLevel();
   if (!tutorial) { window.track && window.track('game_start', SLUG); sfx('join', .6); }
 }
