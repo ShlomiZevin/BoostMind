@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-# Deploy the Shlomiverse hosting (boostmind-b052c) in one step:
-#   1. deploy hosting - firebase.json's "predeploy" runs first, on EVERY hosting deploy (this script, a bare
-#      `firebase deploy --only hosting`, either computer, any session):
-#        scripts/hani_games_pull.py  - Hani's games, released from another machine straight onto live
-#        scripts/site_files_guard.py - the site files git never holds (his face, videos, sounds): backed up to
-#          gs://shlomiverse-private/site-files/, the missing ones brought here, and a stop if the deploy would still take
-#          files off the live site (a deploy from the other computer dropped ~850 of them on 2026-11-12)
-#   2. check the games still get Cache-Control: no-cache
+# Deploy the Shlomiverse hosting (boostmind-b052c). The live site = exactly what is pushed to git (his rule, 2026-11-12):
+# firebase.json's "predeploy" runs scripts/deploy_check.py on EVERY hosting deploy and stops it when this computer is
+# behind / ahead of git or public/ has anything not committed. So: commit, git pull --rebase, git push, then this.
 # Usage: bash scripts/deploy.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."

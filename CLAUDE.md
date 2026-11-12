@@ -123,13 +123,11 @@ Firebase console -> Realtime Database -> Usage. First games: the meetings hub's 
 bash scripts/deploy.sh
 ```
 
-One step. Before every hosting deploy - this script or a bare `firebase deploy --only hosting`, either computer -
-`firebase.json` "predeploy" runs two guards: `scripts/hani_games_pull.py` (Hani's games are released from another
-machine straight onto live) and `scripts/site_files_guard.py`. **The site files git never holds** (the repo is public:
-his face as the characters, their videos, game sounds) are backed up to `gs://shlomiverse-private/site-files/`, any the
-deploying computer lacks are brought from live / the backup, and the deploy STOPS if it would still take more than 15
-files off the live site (2026-11-12: a deploy from the other computer dropped ~850 files - אופנת חני, the links page,
-every site's portraits). A clean-up on purpose: `SITE_DELETE_OK=1`. A git-ignored file deleted for real = delete it here
-AND in the backup bucket.
+**The live site is exactly what is pushed to git** (his rule, 2026-11-12, after a deploy from the other computer took ~850
+files off the site). Everything the site serves is in git - pictures, videos, sounds, every game (Hani's too: no more
+releasing onto live from outside git). Before every hosting deploy (this script, a bare `firebase deploy`, either
+computer) `firebase.json` "predeploy" runs `scripts/deploy_check.py`: it stops the deploy when this computer is behind or
+ahead of `origin/main`, or when `public/` has anything not committed. So: commit -> `git pull --rebase` -> `git push` ->
+`bash scripts/deploy.sh`. A draft on a preview channel: `SITE_PREVIEW=1 firebase hosting:channel:deploy <name>`.
 
-Other sessions deploy this same folder, so a draft waiting for Shlomi's approval stays out of `public/`.
+Other sessions deploy this same folder, so a draft waiting for Shlomi's approval stays out of `public/` (an uncommitted file there stops every deploy).

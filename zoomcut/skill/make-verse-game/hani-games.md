@@ -6,25 +6,24 @@ this page adds what is special here.
 ## Where things are
 - Live: `https://shlomiverse.com/hani-games/<slug>/` (same site as boostmind-b052c.web.app).
 - Code in git: `public/hani-games/<slug>/`; source tools, prompts and promo sources: `scripts/hani-games/`.
-- The working copy on the second PC: `C:/workspace/hani-games/<slug>/` (local server
-  `python -m http.server 5301` there; tests `node <slug>/tools/t1-play.js`).
+- Work on a game right in `public/hani-games/<slug>/` of an up-to-date BoostMind clone (`git pull` first; local server
+  `python -m http.server 5301` from `public/hani-games/`; tests `node <slug>/tools/t1-play.js`). The old working copy
+  `C:/workspace/hani-games` is retired (2026-11-12): copy anything newer from it into the clone once, then work only there.
 - The hub page (`public/hani-games/index.html`: its `GAMES` list, the "בקרוב" cards) and `/stats/` belong to the
   BoostMind session that owns the site - ask it (or Shlomi) to add the card; don't overwrite the hub.
 
 ## Releasing a game
-- **Only with the playhouse's release tool**, from the working copy: `MSYS_NO_PATHCONV=1 node tools/deploy-onto-live.js
-  <slug>` (`--dry` first). It clones the LIVE hosting version, adds only that game's folder, keeps
-  `/hani-games/** no-cache`, and releases. `--soon` puts only the card (game.json status "soon" + cover) for "בקרוב".
-- Never a bare `firebase deploy` for a game. `bash scripts/deploy.sh` on the main PC first pulls every game from live
-  (`scripts/hani_games_pull.py`) - so a game edited only in `public/hani-games/` and not released would be overwritten
-  by the live copy. Release with the tool, then copy the code into git.
-- After a release: `git` - copy `index.html`, `game.js`, `game.json` (and any data json) into
-  `public/hani-games/<slug>/` in a BoostMind worktree, commit, rebase on `origin/main`, push.
+- **The live site is exactly what is pushed to git** (his rule, 2026-11-12 - releasing onto live from outside git is
+  gone: `deploy-onto-live.js` was deleted after a deploy from the other computer took files off the site). A release =
+  the game's whole folder (pictures, sounds, Hani's poses - everything, it is all in git now) committed, `git pull
+  --rebase`, `git push`, then `bash scripts/deploy.sh`. The deploy stops by itself if this computer is behind / ahead of
+  git or anything under `public/` is not committed (`scripts/deploy_check.py`).
+- "בקרוב" (a card before the game is ready) = its `game.json` with `"status": "soon"` + `cover.jpg`, committed and deployed
+  the same way.
 
 ## Hani herself
 - Painted poses from her portrait (calm, talk, surprised, joy...), normalised; the joy pose on a wide canvas so her
   raised hands are never cut. Her figure has to be perfect.
-- **Pictures made from her face never go into git** (each game folder's `.gitignore`).
 - Her speech goes in a bottom strip with her pose, never over the game.
 - Her family must match the tree (read the profiles): Avraham Moshe (אברך), the kids by age (Shterni, Brachi, Sruli,
   Yanky, Ruchami, Malki, Shloimi - each with their look), the גיסה Shindy, Erez her team lead at Techy-Tech. Use only

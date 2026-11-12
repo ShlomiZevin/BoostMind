@@ -23,7 +23,6 @@ firebase-debug.*.log*
 .firebase/
 
 # Build outputs - storyboard (built from storyboard/src via vite)
-public/storyboard/
 
 # Runtime data
 pids
@@ -81,23 +80,8 @@ sent-projects.json
 .dataconnect
 
 # Characters' sites: his recordings and face stay out of git (deployed from this machine)
-public/ayelet/v/
-public/ayelet/img/me.jpg
-public/ayelet/img/studio-shot.jpg
-public/hindsight/v/
-public/hindsight/img/naor-suit.jpg
-public/hindsight/img/naor-office.jpg
-public/hindsight/img/avatar.jpg
-public/hindsight/img/og.jpg
-public/demokratovich/v/
-public/demokratovich/img/rabbi.jpg
-public/demokratovich/img/event.jpg
-public/demokratovich/img/og.jpg
-public/dorit/img/
-public/dorit/v/
 
 # TechieTech site: the characters are his face (deployed from this machine)
-public/techietech/team/
 # (Sketch Studio projects and their pictures: never in git at all - zoomcut/.gitignore, episodes/)
 
 # the characters page: their pictures are his face (public repo) - only character.json goes in git
@@ -108,31 +92,19 @@ zoomcut/characters/**/*.webp
 zoomcut/characters/_paces.json
 
 # characters wiki: his face and the video copies (deployed, not in git), Leonardo/Terra work files
+# old video copies, not deployed (firebase.json ignores them; the videos live in gs://shlomiverse-media)
 public/wiki/v/
-public/wiki/img/c/
 scripts/wiki/portraits/
 scripts/wiki/work/
 
 # Ofnat Hani: his face as Hani (deployed from this machine, never in the public repo)
-public/ofnat-hani/src/
-public/ofnat-hani/img/hani-*.jpg
-public/ofnat-hani/img/og.jpg
-public/ofnat-hani/src2/
-public/ofnat-hani/img/p/
 
 # Python caches
 __pycache__/
 *.pyc
 # Avi Balloons (the gym guy's site): his face and the og card (deployed from this machine, never in the public repo)
-public/avi-balloons/img/avi.jpg
-public/avi-balloons/img/og.jpg
 drafts/avi-balloons/
 # המקיף נווה תדהר (Rosenblum's and Esther's school): their portraits, the og card and the drill video = his face (deployed from this machine, never in the public repo)
-public/neve-tidhar/img/esther.jpg
-public/neve-tidhar/img/rosenblum.jpg
-public/neve-tidhar/img/reut.jpg
-public/neve-tidhar/img/og.jpg
-public/neve-tidhar/v/
 # Remotion's downloaded headless Chrome (a binary, re-downloads itself)
 zoomcut/.remotion/
 scripts/wiki/catalog-local.json
@@ -149,4 +121,3 @@ scripts/design.env
 
 # script backups a session keeps while editing (haredit-5.txt.bak2 ...) - the script itself is in git
 zoomcut/scripts/*.bak*
-public/neve-tidhar/img/quake.jpg

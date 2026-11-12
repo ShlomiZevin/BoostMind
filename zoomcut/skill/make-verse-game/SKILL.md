@@ -150,7 +150,7 @@ Read before any idea - the game must be something THIS character would be in:
     `gcf-v2-sources-...`, `gcloud storage cp` it and unzip `owner.json`. Diff the zip's `analytics.js` / `index.js`
     against git first - deploy only when the one difference is yours. A build failing on `npm ci` ("lock file not in
     sync") = this PC's untracked `package-lock.json` is stale: `npm install --package-lock-only`, deploy again.
-  - Backstage: `deploy-onto-live.js --page=/backstage/index.html=public/backstage/index.html`.
+  - Backstage: commit `public/backstage/index.html`, push, `bash scripts/deploy.sh`.
   - Check: `curl -s https://shlomiverse.com/backstage/ | grep <site>`.
   - **Then prove it with real numbers, on release day** (Rosenblum drill, 10 Nov 2026 - he asked "is it in the analytics? I
     don't see it"): open the game once from the verse (#/play/<id>, a browser without `?notrack`), start a round, then
@@ -276,16 +276,16 @@ spot / try).
   "release it" / "put it on the verse" makes it `live` - and "silently" means live in the verse without a story.
 - **Hani's games**: follow `hani-games.md` in this folder (the playhouse's release tool; the hub page has its owner).
 - **Every other game**: commit its folder (`public/<character>-games/<slug>/`) and its workshop
-  (`scripts/<character>-games/<slug>/`), rebase on `origin/main`, push, then `bash scripts/deploy.sh` (the one deploy -
-  never a bare `firebase deploy` - or, when this PC's `public/` may be behind the live site, add only the game's files
-  onto the live version with `scripts/hani-games/tools/deploy-onto-live.js --page=/<path>=<file> ...`), then the wiki
+  (`scripts/<character>-games/<slug>/`), rebase on `origin/main`, push, then `bash scripts/deploy.sh` (the one deploy;
+  it stops by itself when this PC is behind / ahead of git or `public/` has anything uncommitted - the live site is
+  exactly what is pushed to git, everything in it: pictures, sounds, all), then the wiki
   build + push so it shows on the character's page. Bump `game.js?v=N`
   on every change (the site caches files).
 - **A new page is not done until it is listed** (BoostMind CLAUDE.md): `/all/` (`python scripts/all/catalog.py`), the
   character's studio profile (`links` / `site`), their world's `site` (`content.mjs put series <id> --set site=<url>`) if it gets a site, the
   links page's sites strip, and the sites table in `zoomcut/skill/edit-video/wiki.md`.
 - **Release checklist** (all in the same turn - "released" means every line is done): game.json `status: "live"` in
-  git AND on the live site (deploy-onto-live the game.json too - other sessions read the live one), wiki build + push,
+  committed and deployed (other sessions read the live one), wiki build + push,
   stats deployed (above), git pushed, the story posted (or handed to the session that posts it).
 - Verify live: open the real URL (without `?solo=1`) on a phone size with Playwright and play a round.
 

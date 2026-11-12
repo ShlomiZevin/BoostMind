@@ -5,11 +5,11 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "wiki/v/**"
+      "wiki/v/**",
+      "**/*.log"
     ],
     "predeploy": [
-      "python scripts/hani_games_pull.py",
-      "python scripts/site_files_guard.py"
+      "python scripts/deploy_check.py"
     ],
     "redirects": [
       { "source": "/c/neve-dugi{,/**}", "destination": "/c/neve-tzafoni", "type": 301 },

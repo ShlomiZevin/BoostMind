@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@500;700;800&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #faf6ee; font-family: 'Heebo', sans-serif; color: #1c2a4a; position: relative; }
+  .band { position: absolute; left: 0; right: 0; background: #1c2a4a; color: #e9d7a6; }
+  .band.top { top: 0; height: 236px; } .band.bot { bottom: 0; height: 280px; display: grid; place-items: center; font-size: 30px; font-weight: 700; padding-bottom: 40px; }
+  .bsd { position: absolute; top: 250px; right: 56px; font-size: 26px; font-weight: 700; }
+  /* his link sticker goes in this box */
+  .link { position: absolute; top: 262px; left: 50%; transform: translateX(-50%); width: 660px; height: 120px; border: 5px dashed #b8902f; border-radius: 22px;
+    display: grid; place-items: center; font-size: 36px; font-weight: 800; color: #b8902f; background: #fff; }
+  .t { position: absolute; top: 400px; left: 0; right: 0; text-align: center; }
+  h1 { font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 150px; line-height: 1; }
+  .sub { font-size: 46px; font-weight: 800; color: #b8902f; margin-top: 6px; }
+  .pic { position: absolute; top: 640px; left: 90px; width: 900px; height: 640px; border-radius: 22px; overflow: hidden; border: 10px solid #fff; box-shadow: 0 8px 26px rgba(28,42,74,.2); }
+  .pic img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 8%; }
+  .q { position: absolute; top: 1210px; right: 120px; background: #1c2a4a; color: #fff; font-size: 30px; font-weight: 700; padding: 12px 22px; border-radius: 14px; max-width: 640px; }
+  .row { position: absolute; top: 1318px; left: 90px; right: 90px; display: flex; justify-content: space-between; }
+  .row div { width: 205px; text-align: center; font-size: 24px; font-weight: 800; }
+  .row img { width: 205px; height: 205px; border-radius: 14px; border: 4px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.12); object-fit: cover; }
+  .row span { display: block; margin-top: 4px; }
+  .info { position: absolute; top: 1572px; left: 0; right: 0; text-align: center; font-size: 30px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="band top"></div>
+<div class="bsd">בס״ד</div>
+<div class="link">הזמנה לאיסוף · הקישור כאן</div>
+<div class="t"><h1>אופנת חני</h1><div class="sub">הקולקציה החדשה · בהצגת חני פרידמן</div></div>
+<div class="pic"><img src="../img/hani-cover.jpg" alt=""></div>
+<div class="q">מטפחות · כיסויי ראש · יום-יום · שבת</div>
+<div class="row">
+  <div><img src="../img/p/t3.jpg" alt=""><span>מטפחות · מ-₪49</span></div>
+  <div><img src="../img/p/c3.jpg" alt=""><span>כיסויי ראש</span></div>
+  <div><img src="../img/p/d1.jpg" alt="" style="object-position:50% 15%"><span>יום-יום</span></div>
+  <div><img src="../img/p/s2.jpg" alt="" style="object-position:50% 15%"><span>שבת</span></div>
+</div>
+<div class="info">רחוב רבי עקיבא, בני ברק · איסוף עצמי מהחנות</div>
+<div class="band bot">החנות סגורה בשבתות ובחגים</div>
+</body>
+</html>
