@@ -51,7 +51,7 @@ for (const T of TALKS) {
     out.push(`**VISITOR:** ${q}`, '', `**${c.name}:** ${r.text}`, '');
     if (his) out.push(`> his comment on the old answer: ${his}`, '');
     out.push(`plan: kind=${r.plan.kind} · stance: ${r.plan.stance} · joke: ${r.plan.joke || "-"} · move: ${r.plan.move || "-"} · avoid: ${r.plan.avoid || '-'} · knows: ${r.plan.knows?.level || '-'}`,
-      `steps: ${r.steps.map((s) => `${s.step} ${s.model} ${(s.ms / 1000).toFixed(1)}s`).join(' · ')} · first word ${(r.first / 1000).toFixed(1)}s · $${r.cost.toFixed(4)}`, '');
+      `length=${r.plan.length} · talk cut=${r.steps.find((s) => s.step === "talk")?.cut || "no"} · steps: ${r.steps.map((s) => `${s.step} ${s.model} ${(s.ms / 1000).toFixed(1)}s`).join(' · ')} · first word ${(r.first / 1000).toFixed(1)}s · $${r.cost.toFixed(4)}`, '');
     console.log(T.mode, (r.first / 1000).toFixed(1) + 's', '$' + r.cost.toFixed(4));
   }
 }

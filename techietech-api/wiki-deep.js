@@ -40,7 +40,7 @@ async function call(key, step, instructions, input, { json = true, onText = null
       ...(json ? { text: { format: { type: 'json_object' } } } : {}), ...(onText ? { stream: true } : {}) }),
   });
   if (!res.ok) throw new Error(`${step} ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  let text = '', usage = {}, first = null;
+  let text = '', usage = {}, first = null, cut = null;
   if (onText) {
     const dec = new TextDecoder(); let buf = '';
     for await (const chunk of res.body) {
@@ -52,14 +52,17 @@ async function call(key, step, instructions, input, { json = true, onText = null
         const ev = JSON.parse(line.slice(6));
         if (ev.type === 'response.output_text.delta') { if (first == null) first = Date.now() - t0; text += ev.delta; onText(ev.delta); }
         else if (ev.type === 'response.completed') usage = ev.response.usage || {};
+        else if (ev.type === 'response.incomplete') { usage = ev.response.usage || {}; cut = ev.response.incomplete_details?.reason || 'incomplete'; }   // ran out of room mid-answer (2026-11-12: the daily lesson stopped after one line)
       }
     }
   } else {
     const j = await res.json();
     text = (j.output || []).filter((o) => o.type === 'message').flatMap((o) => o.content).find((c) => c.type === 'output_text')?.text || '';
     usage = j.usage || {};
+    if (j.status === 'incomplete') cut = j.incomplete_details?.reason || 'incomplete';
   }
-  return { out: json ? parseJson(text) : text, usage, ms: Date.now() - t0, first, model: STEPS[step].model, cost: cost({ input_tokens: 0, output_tokens: 0, ...usage }) };
+  if (cut) console.error('chain step cut off', step, cut, 'out', usage.output_tokens, 'reasoning', usage.output_tokens_details?.reasoning_tokens);
+  return { out: json ? parseJson(text) : text, usage, cut, ms: Date.now() - t0, first, model: STEPS[step].model, cost: cost({ input_tokens: 0, output_tokens: 0, ...usage }) };
 }
 
 // the director on Sonnet (the Anthropic SDK). A refusal or an error -> the caller falls back to Terra.
