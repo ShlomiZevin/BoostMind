@@ -1,0 +1,12 @@
+src/
+out/
+vid/
+solo/
+t/
+*.png
+*.jpg
+*.wav
+*.mp3
+*.mp4
+*.webm
+*.log
