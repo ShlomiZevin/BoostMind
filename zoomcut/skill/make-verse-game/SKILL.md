@@ -158,7 +158,7 @@ Read before any idea - the game must be something THIS character would be in:
     "https://firestore.googleapis.com/v1/projects/boostmind-b052c/databases/(default)/documents/analytics_days/<YYYY-MM-DD>"`
     and find `site.<site>`, `view|_<site>_<slug>_`, `game_start|<slug>` and `game|<site>-<slug>` (the verse's open). All
     four there = counted; tell him which Backstage list shows each (games = "משחקים" by rounds, sites = by site). A
-    missing key = fix it before you say "released". His own phone is marked notrack - his plays never count. A headless Playwright browser is not counted either (its user agent says HeadlessChrome) - prove it with a normal phone `userAgent` in the context.
+    missing key = fix it before you say "released". His own phone is marked notrack - his plays never count. A headless Playwright browser is not counted either (its user agent says HeadlessChrome) - prove it with a normal phone `userAgent` in the context. **Every other test on the live site must NOT count** (meetings, 12 Nov 2026: ~40 test browsers filled the game's stats and he asked "is this real users?"): add `ctx.addInitScript(() => localStorage.setItem('t-ignore','1'))` to every live test context except the one proof round. **One game = one stats name**: modes, online play, duels all call `track(..., '<slug>')` - never `<slug>-online` / `<slug>-<mode>` (he wants one row per game in Backstage).
 - One folder per game: `index.html`, `game.js` (or `src/` + a small build), `game.json`, `cover.jpg`, `assets/`
   (pictures, sounds, models). Ordinary web files - as many and as big as the game needs; only keep phone loading
   sensible (jpg/webp at the size shown, mp3 sounds trimmed, models compressed).

@@ -60,6 +60,7 @@ async function removePlayer(pl) {
 const L = { browser: null };
 async function phone(pl, url, vp = { width: 390, height: 844 }, extra = {}) {   // extra: more context options (recordVideo for the trailer)
   const ctx = await L.browser.newContext({ viewport: vp, deviceScaleFactor: 2, hasTouch: true, isMobile: true, userAgent: UA, ...extra });
+  await ctx.addInitScript(() => { try { localStorage.setItem('t-ignore', '1'); } catch (e) {} });  // tests never count in the stats (t.js notrack)
   if (!LIVE) {   // the local wiki data has no games: add this one (on the local origin)
     await ctx.route('**/wiki/data/wiki.json*', async (route) => {
       const r = await route.fetch(); const d = await r.json();

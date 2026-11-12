@@ -189,7 +189,7 @@ const cl = {
     sfx('join', .7); flash('מול ' + this.opName());
     this.turnLine();
     this.startTimer();
-    window.track && window.track('game_start', SLUG + '-online');
+    window.track && window.track('game_start', SLUG);
   },
   show() { $('#clMenu').hidden = true; $('#clBoard').hidden = false; this.layout(); this.render(); },
   onMove({ m, by }) {   // only the host referees; everyone else waits for the state
@@ -266,7 +266,7 @@ const cl = {
       onlineEnd({ head: tie ? 'תיקו' : won ? 'ניצחתם!' : 'הפסדתם', sub: why === 'left' ? (this.left || 'היריב') + ' כבר לא בפגישה' : 'Callio · זוגות מול ' + this.opName(),
         line: tie ? CL.tie : won ? CL.win : CL.lose, mine, theirs, op: this.opName(), unit: 'זוגות', left: why === 'left', face: tie ? 'amir' : won ? 'amir-talk' : 'ronit' });
       sfx(won ? 'win' : 'over', .8);
-      window.track && window.track('game_over', SLUG + '-online');
+      window.track && window.track('game_over', SLUG);
     }
     setTimeout(() => { E.hidden = false; }, 300);
   },

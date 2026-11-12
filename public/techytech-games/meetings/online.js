@@ -28,7 +28,7 @@ const VS = window.VS = {
     this.task();
     this.hud();
     flash('מול ' + this.opName() + ' · ' + intro);   // the rule once, over the board's start; the strip keeps the task
-    window.track && window.track('game_start', SLUG + '-' + m.key + '-online');
+    window.track && window.track('game_start', SLUG);
   },
   // the strip always says what to do now (solo Meetly's task with its face), with the round
   round() { return Math.min(VS_APPS[this.active].of, Object.values(this.wins).reduce((p, q) => p + q, 0) + 1); },
@@ -146,7 +146,7 @@ const VS = window.VS = {
       mine: a === 'zoomba' ? G.score : me, theirs: a === 'zoomba' ? (this.op.score || 0) : op, op: this.opName(), unit: a === 'zoomba' ? 'נקודות' : a === 'meetly' ? 'סיבובים' : 'לוחות',
       left: why === 'left', face: won ? 'amir-talk' : 'ronit' });
     sfx(won ? 'win' : 'over', .8);
-    window.track && window.track('game_over', SLUG + '-' + a + '-online');
+    window.track && window.track('game_over', SLUG);
     setTimeout(() => { E.hidden = false; }, 400);
   },
   again() {

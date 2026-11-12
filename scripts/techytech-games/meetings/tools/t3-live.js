@@ -3,6 +3,7 @@ const { chromium } = require(process.env.HOME + '/plaxzy-creator/node_modules/pl
 (async () => {
   const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--use-angle=swiftshader'] });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36' });
+  await ctx.addInitScript(() => { try { localStorage.setItem('t-ignore', '1'); } catch (e) {} });  // tests never count in the stats (t.js notrack)
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   await p.goto('https://shlomiverse.com/play/techytech-games-meetings'); await p.waitForTimeout(6000);
   await p.screenshot({ path: __dirname + '/../shots/live-verse.png' });
