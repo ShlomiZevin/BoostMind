@@ -1684,7 +1684,7 @@ function thinkHtml(c) {
     + line('כמה יודע/ת', u.knows?.level ? `${esc(KNOW_L[u.knows.level] || u.knows.level)}${u.knows.how ? ' - ' + esc(u.knows.how) : ''}` : '')
     + line('חיפש/ה בסרטונים', [...(u.videos || []).map((v) => esc(V[v]?.title || v)), u.search ? `"${esc(u.search)}"` : '', u.follow ? 'המשך של מה שכבר דיברו' : ''].filter(Boolean).join(' · '))
     + (h ? line('זיכרון', h.found ? `${esc(h.what || '')}${(h.lines || []).map((x) => `<q>${esc(x)}</q>`).join('')}` : 'לא נמצא בסרטונים') : '')
-    + (pl ? line('העמדה שלו/ה', esc(pl.stance || '')) + line('הבדיחה', esc(pl.joke || '') || 'בלי בדיחה') + line('להימנע מ', esc(pl.avoid || '')) + line('ביטוי', esc(pl.phrase || '')) : '')
+    + (pl ? line('העמדה שלו/ה', esc(pl.stance || '')) + line('הבדיחה', esc(pl.joke || '') || 'בלי בדיחה') + line('תנועה', esc(pl.move || '')) + line('להימנע מ', esc(pl.avoid || '')) + line('ביטוי', esc(pl.phrase || '')) : '')
     + (f ? line('חדר הכותבים', [f.angle && `זווית: ${esc(f.angle)}`, f.joke && `הבדיחה: ${esc(f.joke)}`, f.callback && `קולבק: ${esc(f.callback)}`, f.catchphrase && `קאצ׳פרייז: ${esc(f.catchphrase)}`].filter(Boolean).join('<br>')) : '')
     + line('סיפרו על עצמם', esc(u.visitor || ''))
     + line('שלבים', (c.steps || []).map((s) => `${esc(s.step)} (${esc(String(s.model || '').replace('gpt-5.6-', '').replace('claude-', ''))}) ${((s.ms || 0) / 1000).toFixed(1)}ש׳`).join(' · ') + (typeof c.usd === 'number' ? ` · $${c.usd.toFixed(4)}` : ''));

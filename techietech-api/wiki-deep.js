@@ -95,6 +95,7 @@ How a good plan works:
 - A catchphrase or a signature opening is something from their life, not a template: most answers have none, never as a fixed opening.
 - Knowledge as ${c.name} has it, judged from the page (their job, world, life, how they talk about things). Someone the page describes as explaining everything with total confidence answers everything with total confidence - right or invented - and never says they don't know. Anyone else: no source on the page = they only heard of it or don't know it, however famous the subject is.
 - A visitor who quotes or echoes a line or a moment of ${c.name}'s own is playing with them: kind "quote" - react to it in character; no video hunt.
+- Movement (his ask 2026-11-12): a conversation should want to go on. Decide how THIS answer keeps the visitor in it, the way ${c.name} would - a question back that only they would ask, a provocation, a hook left open ("ואז קרה משהו, אבל עזוב"), a small reveal from their life, pulling the visitor into their world or their cause, a challenge. Vary it: not every answer ends in a question, and a short message can simply land. Never an assistant's question ("how can I help?", "anything else?"), never a menu of options, never begging to keep talking.
 - "find_video" only when the visitor asks to see or find a video. A question about their past ("did you ever", "what happened with", "היה לך פעם", "מה קרה עם") gets videos from the life list or search words.
 
 ${sheetText(c, ALL)}
@@ -113,6 +114,7 @@ const PLAN_FORMAT = (c) => `Answer JSON only:
  "avoid": "what would be wrong or forced here - at most 15 words",
  "phrase": "a catchphrase that truly belongs in this answer and wasn't used in this conversation - usually \\"\\"",
  "callback": "only if something said earlier in this conversation truly belongs to THIS message - else \\"\\"",
+ "move": "how this answer keeps the conversation going, in ${c.name}'s way - at most 15 words, or \\"\\" when it should just land",
  "touches": {"videos": ["ids from the life list the message is about"], "search": "a few Hebrew words to search their videos when the message asks about their past and nothing in the list clearly fits - else \\"\\"", "follow": true/false (continues the event already open in the conversation's memory)},
  "visitor": "anything the visitor told about themselves, or \\"\\"",
  "knows": {"level": "expert" | "some" | "heard_of" | "no", "how": "if not expert: how ${c.name} handles it, in character - at most 12 words - else \\"\\""},
@@ -165,7 +167,7 @@ async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = 
   } else if (!D.touches?.follow && convo.event && D.kind !== 'my_life') convo = { ...convo, event: null };   // the topic moved on
 
   // 4 · talk - the person answers from the director's plan, the whole conversation in front of them
-  const plan = { stance: D.stance, joke: D.joke, avoid: D.avoid, phrase: D.phrase, callback: D.callback, wants: D.wants };
+  const plan = { stance: D.stance, joke: D.joke, move: D.move, avoid: D.avoid, phrase: D.phrase, callback: D.callback, wants: D.wants };
   const notes = [`The director's plan for this answer - its stance is what you think and say, its joke is your angle; don't drift back to a neutral, factual or balanced answer. The words and the voice are yours: ${JSON.stringify(plan)}`,
     H ? `What really happened (from your memory): ${JSON.stringify(H)}` : ''].filter(Boolean).join('\n');
   const lvl = D.knows?.level;
@@ -200,7 +202,7 @@ function thinkOf(D, H) {
   const c = (v, n = 300) => (typeof v === 'string' ? v.slice(0, n) : v == null ? undefined : JSON.stringify(v).slice(0, n));
   const o = { understand: { kind: c(D.kind, 40), wants: c(D.wants), knows: D.knows ? { level: c(D.knows.level, 20), how: c(D.knows.how) } : undefined,
     videos: (D.touches?.videos || []).slice(0, 5), search: c(D.touches?.search, 80), follow: D.touches?.follow ? true : undefined, length: c(D.length, 20), visitor: c(D.visitor, 200) },
-    plan: { stance: c(D.stance), joke: c(D.joke), avoid: c(D.avoid, 200), phrase: c(D.phrase, 120), callback: c(D.callback, 200) } };
+    plan: { stance: c(D.stance), joke: c(D.joke), move: c(D.move, 200), avoid: c(D.avoid, 200), phrase: c(D.phrase, 120), callback: c(D.callback, 200) } };
   if (H) o.history = { found: !!H.found, what: c(H.what), lines: (H.lines || []).slice(0, 3).map((x) => c(x, 200)), video: c(H.video, 60) };
   return JSON.parse(JSON.stringify(o));   // drops the undefined
 }

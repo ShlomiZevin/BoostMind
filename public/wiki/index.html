@@ -389,9 +389,6 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   .mfaces b { font-size: .78rem; font-weight: 600; line-height: 1.2; text-align: center; }
   .mc b { display: block; font-size: 1rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mc small { color: var(--dim); font-size: .8rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .sugg { display: flex; gap: 7px; padding: 0 16px 10px; overflow-x: auto; scrollbar-width: none; flex: none; }
-  .sugg button { flex: none; font-size: .87rem; padding: 7px 13px; border-radius: 99px; border: 1px solid var(--line2); color: var(--text); background: var(--card); transition: border-color .15s; }
-  .sugg button:hover { border-color: var(--c); }
   .composer { display: flex; gap: 8px; padding: 10px 14px 6px; border-top: 1px solid var(--line); flex: none; }
   .cx-note { color: var(--faint); font-size: .72rem; text-align: center; padding: 0 14px 4px; flex: none; }
   /* how many questions are left, counting down (3 without an account, then 10) */
@@ -1047,14 +1044,13 @@ function drawChat() {
   threads[cxMode] ||= load(cxMode);
   cx.style.setProperty('--c', color(w)); cx.style.setProperty('--c-ink', ink(color(w)));
   const strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
-  const ask = cxMode === 'guide' ? ['תכירו לי מישהו', 'יש סרטון על בחירות?', 'מי הכי מצחיק פה?'] : (w.ask || []);
+  // no suggested questions (his call 2026-11-12: "let the people talk whatever they want") - every message is the visitor's own
   cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}</button>`).join('')}</div>
     <div class="cx-head">${cxMode === 'guide' ? `<span class="av">${face(w)}</span><span><b>${esc(w.name)}</b>`
       : `<a class="av" href="/c/${w.id}" aria-label="לעמוד של ${esc(w.name)}">${face(w)}</a><span><a class="nm" href="/c/${w.id}"><b>${esc(w.name)}</b></a>`}<small>${esc(w.tagline || w.role || '')}</small></span>
       <button class="icon-btn nc" data-new-chat title="שיחה חדשה" aria-label="שיחה חדשה">${ICON.newChat}</button>
       <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
     <div class="msgs"></div>
-    <div class="sugg">${ask.map((a) => `<button>${esc(a)}</button>`).join('')}</div>
     <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
     <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
   $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
@@ -1063,14 +1059,12 @@ function drawChat() {
   $('.composer', cx).onsubmit = (e) => { e.preventDefault(); send(ta.value); };
   ta.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(ta.value); } };
   ta.oninput = () => { ta.style.height = '48px'; ta.style.height = Math.min(ta.scrollHeight + 2, 130) + 'px'; ta.style.overflow = ta.scrollHeight > 128 ? 'auto' : 'hidden'; };
-  $('.sugg', cx).onclick = (e) => { if (e.target.tagName === 'BUTTON') send(e.target.textContent); };
   attachAt(ta);
 }
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
   msgs.innerHTML = (cxMode === 'guide' ? `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` : '') +
     t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(atTags(esc(m.content), true))}</p>` : renderText(m.content)}</div>`).join('');
-  $('.sugg', cx).style.display = t.some((m) => m.role === 'user') ? 'none' : '';
   msgs.scrollTop = msgs.scrollHeight;
 }
 // the anonymous ids the analytics already use, so the dashboard can show a conversation as one thread;
