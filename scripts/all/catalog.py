@@ -78,6 +78,8 @@ EXTRA = [
     ('other_sites', 'Trip Planner - דף משקיעים', 'https://boostart-trips.web.app/invest', 'אתר'),
     ('other_sites', 'Plaxzy (של נועם)', 'https://plaxzy.com', 'אתר'),
     ('other_sites', 'wholos.com', 'https://wholos.com', 'אתר'),
+    ('personal', 'קילו בשבוע - האפליקציה (משקל בוקר/ערב, לפני/אחרי, אוכל, מאמנת)', 'https://kiloaweek-app.web.app', 'אפליקציה'),
+    ('other_sites', 'קילו בשבוע - Firebase console (kiloaweek-app, c:\\workspace\\kiloaweek)', 'https://console.firebase.google.com/project/kiloaweek-app/overview', 'קונסול'),
     ('other_sites', 'Wholos - Firebase console (wholos-app, c:\\workspace\\wholos)', 'https://console.firebase.google.com/project/wholos-app/overview', 'קונסול'),
     # servers (Cloud Run / functions on boostmind-b052c)
     ('servers', 'wikiChat - הצ\'אט של הדמויות', 'https://console.cloud.google.com/run/detail/europe-west1/wikichat/metrics?project=boostmind-b052c', 'פונקציה'),
@@ -95,6 +97,7 @@ EXTRA = [
     ('servers', 'trip-chat (boostart-trips)', 'https://console.cloud.google.com/run/detail/me-west1/trip-chat/metrics?project=boostart-trips', 'שרת'),
     ('servers', 'trip-chat הישן - רק לקישורי שיתוף שכבר נשלחו', 'https://console.cloud.google.com/run/detail/me-west1/trip-chat/metrics?project=boostmind-b052c', 'שרת'),
     ('servers', 'workout-ai - שרת Wholos (wholos-app)', 'https://console.cloud.google.com/run/detail/me-west1/workout-ai/metrics?project=wholos-app', 'שרת'),
+    ('servers', 'kawApi + kawReminders - שרת קילו בשבוע (רץ ב-boostmind-b052c, codebase kiloaweek)', 'https://console.cloud.google.com/functions/details/me-west1/kawApi?project=boostmind-b052c&env=gen2', 'שרת'),
     ('servers', 'כל השירותים ב-Cloud Run', 'https://console.cloud.google.com/run?project=boostmind-b052c', 'קונסול'),
 ]
 

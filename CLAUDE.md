@@ -14,6 +14,11 @@ Shlomiverse deploy never touches it:
 | The Vault, the Chavushim book, Fleet's data | `c:\workspace\shlomi-tools` | `shlomi-tools` |
 | Veyra (was `findom/`) | `c:\workspace\veyra` | `veyra-queens` |
 | The trip planner and its chat server | `c:\workspace\trip-planner` | `boostart-trips` |
+| KiloAWeek (קילו בשבוע - the weight app) | `c:\workspace\kiloaweek` | `kiloaweek-app` → https://kiloaweek-app.web.app |
+
+**One exception (his call, 2026-11-12):** KiloAWeek's server runs in THIS project - functions `kawApi` + `kawReminders`
+(me-west1, functions codebase `kiloaweek`, deployed only from `c:\workspace\kiloaweek`; they read/write `kiloaweek-app`'s
+Firestore). A `techietech-api` deploy never touches them (other codebase) - never delete them as strays.
 
 Old links to any of them redirect from here (`firebase.json`). Work on one of them happens in its repo - read its
 CLAUDE.md. Don't add anything that isn't the Shlomiverse to this repo or project.
