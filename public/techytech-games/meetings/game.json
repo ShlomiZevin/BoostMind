@@ -1,0 +1,13 @@
+{
+  "slug": "meetings",
+  "title": "אז אנחנו מסונכרנים",
+  "tagline": "ההנהלה של טקי-טק תקועה בשיחות. שלוש אפליקציות, שלושה משחקים: Zoomba – ממזגים פגישות עד שמגיעים להחלטה, Meetly – מוצאים את דניאל מרים יד בשיחה ענקית, Teamz – מיישרים קו בין כל בעלי העניין.",
+  "character": "amir",
+  "chars": ["amir", "ofer", "ronit", "gilad", "daniel", "itay", "yaniv"],
+  "world": "טקי-טק",
+  "status": "live",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:meetings:best", "label": "נקודות" },
+  "record": { "unit": "נקודות", "better": "high" },
+  "date": "2026-11-12"
+}

@@ -18,6 +18,13 @@ principles - apply them to whatever the game is.
   a quieter "איך משחקים", the record, and a small footer (back to the hub, sound). Not a stack of equal buttons.
   He called a plain menu "terrible" - the start screen is the game's shop window.
 - Phone upright is the main layout; the computer layout is the same game with more room, not a different design.
+- **The game area IS the screen** (his rule, 12 Nov 2026: "don't waste place on areas which are not the game - I saw
+  it in games made for the verse"): the board / play field takes almost the whole phone; HUD, speech and controls are
+  thin strips or sit over empty edges. No big headers, decorative frames, empty bands or a big title above the board
+  during play. Measure it in the phone screenshots: the play field is the biggest thing on screen, at least ~75% of it.
+- **100% fun on a phone first; desktop may simply look like the phone** (his rule, 12 Nov 2026): design, tune and
+  test every touch and swipe on a phone; on a computer the same phone-shaped game in the middle of the screen is
+  fine - never trade phone feel for a desktop layout.
 - Measure the layout from the real viewport (CSS variables set from `innerWidth` / `innerHeight`), with a smaller
   mode for very small phones. Nothing may need scrolling.
 - When an action is finished (a round done), hide what can no longer be used and show the next button where the

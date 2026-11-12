@@ -1,0 +1,1 @@
+a tiny soft tick, drawing a line on a puzzle grid

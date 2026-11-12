@@ -1,0 +1,31 @@
+join-1|sfx|1.2|a pleasant soft two-note digital chime of someone joining a video call
+join-2|sfx|1.2|a friendly bright rising digital ding, a participant joined the online meeting
+leave-1|sfx|1.2|a soft descending two-note digital chime of someone leaving a video call
+slide-1|sfx|0.5|a very short soft whoosh of a game tile sliding across a board
+slide-2|sfx|0.5|a quick light swish of a card sliding on glass, short
+slide-3|sfx|0.5|a tiny soft air whoosh, a puzzle tile sliding, short
+merge-1|sfx|0.6|a satisfying short pop with a soft bell, two game tiles merging
+merge-2|sfx|0.6|a bright bubbly pop chime, puzzle pieces combining, cheerful
+merge-3|sfx|0.6|a crisp glassy pop and sparkle, game reward, short
+merge-4|sfx|0.6|a round warm plop with a little chime, mobile puzzle merge
+big-1|sfx|1.5|a celebratory sparkling chime flourish, big achievement in a mobile puzzle game
+big-2|sfx|1.5|a short triumphant bright arpeggio with sparkles, level up
+removed-1|sfx|0.8|a short comic negative digital bloop, someone kicked out of a video call
+removed-2|sfx|0.8|a funny descending error boop, user removed from an online meeting
+itay-1|sfx|1.2|a hurried laptop lid slammed shut and a chair rolling back quickly
+tap-1|sfx|0.3|a soft clean UI button tap click
+tap-2|sfx|0.3|a light bubbly UI tap
+wrong-1|sfx|0.6|a soft gentle buzzer, wrong answer in a casual game, not harsh
+wrong-2|sfx|0.6|a short low wobbly error tone, friendly
+found-1|sfx|0.8|a bright happy got-it chime, found the hidden item
+found-2|sfx|0.8|a sparkling magical success ding, short
+found-3|sfx|0.8|a cheerful two-note success chime with shimmer
+line-1|sfx|0.25|a tiny soft tick, drawing a line on a puzzle grid
+line-2|sfx|0.25|a very short soft pluck tick, puzzle line step
+line-3|sfx|0.25|a tiny wooden tick click, short
+connect-1|sfx|0.8|a satisfying click-and-chime, a puzzle pair connected
+connect-2|sfx|0.8|a smooth bright connection chime, two dots linked
+level-1|sfx|2|a short cheerful level complete fanfare for a mobile puzzle game
+level-2|sfx|2|a quick happy jingle with chimes, puzzle solved
+over-1|sfx|2|a gentle comic game over jingle, soft descending notes, not sad
+music-loop|loop|30|light corporate on-hold elevator music, soft marimba and electric piano, cheerful and a little cheesy, office meeting waiting music, loops seamlessly

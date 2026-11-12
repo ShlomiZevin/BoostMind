@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1b3b8a">
+<title>אז אנחנו מסונכרנים – טקי-טק</title>
+<meta name="description" content="ההנהלה של טקי-טק תקועה בשיחות. שלוש אפליקציות, שלושה משחקים: Zoomba – ממזגים פגישות עד החלטה; Meetly – מוצאים את דניאל מרים יד; Teamz – מיישרים קו בין בעלי העניין.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="אז אנחנו מסונכרנים – טקי-טק">
+<meta property="og:description" content="שלוש אפליקציות שיחה, שלושה משחקים, הנהלה אחת שלא מגיעה להחלטה.">
+<meta property="og:url" content="https://shlomiverse.com/techytech-games/meetings/">
+<meta property="og:image" content="https://shlomiverse.com/techytech-games/meetings/assets/share.jpg?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="techytech-games" defer></script>
+<script src="/verse/game-frame.js"></script>
+<style>
+:root{
+  --ink:#16213e; --blue:#2d6cf0; --blueD:#1b46b0; --green:#16a873; --greenD:#0d7a52; --purple:#7a4ce0; --purpleD:#5530aa;
+  --app:var(--blue); --appD:var(--blueD);
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
+  --hudH:44px; --stripH:58px; --sw:100vw;
+}
+@media (max-height:600px){:root{--hudH:40px;--stripH:50px}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
+body{background:#123 url(assets/hub.jpg) center/cover no-repeat}
+@media (min-aspect-ratio:4/5){
+  :root{--sw:calc(100vh * .5625)}
+  html{background:radial-gradient(circle at 50% 40%,#2a4a8a,#0b1530)}
+  body{width:var(--sw);margin:0 auto;transform:translateZ(0);box-shadow:0 0 0 1px #ffffff22,0 20px 60px #0009}
+}
+[hidden]{display:none!important}
+button{font-family:inherit;border:0;cursor:pointer;color:inherit;padding:0;background:none}
+a{color:inherit}
+
+/* ---------- hub (the laptop desktop) ---------- */
+#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(var(--safe-t) + 10px) 16px calc(var(--safe-b) + 10px);gap:8px}
+#start::before{content:"";position:absolute;inset:0;background:linear-gradient(#0b1a3a55,#0000 30%,#0000 60%,#0b1a3a88);pointer-events:none}
+#start > *{position:relative}
+#logoT{width:min(94%,520px);max-height:22vh;object-fit:contain;filter:drop-shadow(0 4px 10px #0007);margin-top:1vh}
+#tagline{color:#fff;text-align:center;font-weight:500;font-size:clamp(13px,3.6vw,16px);text-shadow:0 1px 4px #000a;max-width:30em;margin:0}
+#apps{flex:1;display:flex;flex-direction:column;justify-content:center;gap:clamp(10px,2.4vh,20px);width:100%;max-width:440px}
+.app{display:flex;align-items:center;gap:14px;background:#ffffffe8;border-radius:22px;padding:10px 14px 10px 10px;box-shadow:0 6px 18px #0005;text-align:right;width:100%;position:relative}
+.app:active{transform:scale(.98)}
+.app img{width:clamp(58px,17vw,78px);height:clamp(58px,17vw,78px);flex:none;filter:drop-shadow(0 3px 4px #0003)}
+.app .t{flex:1;min-width:0}
+.app b{display:block;font-size:clamp(20px,5.6vw,26px);font-weight:900;direction:ltr;text-align:right}
+.app span{display:block;font-size:clamp(12.5px,3.4vw,15px);color:#445;line-height:1.3}
+.app i{display:block;font-style:normal;font-size:12.5px;font-weight:700;color:var(--greenD);margin-top:2px;min-height:1em}
+.app .how{display:inline-block;font-size:12.5px;font-weight:700;color:#2d6cf0;padding:4px 0 0;text-decoration:underline}
+.app .go{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:22px;font-weight:900}
+.app[data-mode=zoomba] .go{background:var(--blue)} .app[data-mode=meetly] .go{background:var(--green)} .app[data-mode=teamz] .go{background:var(--purple)}
+#foot{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.chip{background:#ffffffd8;border-radius:99px;padding:9px 14px;font-weight:700;font-size:13.5px;text-decoration:none;box-shadow:0 2px 8px #0004;display:inline-flex;gap:6px;align-items:center}
+.snd.off{opacity:.55;text-decoration:line-through}
+
+/* ---------- play ---------- */
+#play{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--safe-t);padding-bottom:var(--safe-b);background:#e9eef8}
+#play[data-mode=zoomba]{--app:var(--blue);--appD:var(--blueD)} #play[data-mode=meetly]{--app:var(--green);--appD:var(--greenD)} #play[data-mode=teamz]{--app:var(--purple);--appD:var(--purpleD)}
+#hud{height:var(--hudH);flex:none;display:flex;align-items:center;gap:6px;padding:0 6px;background:var(--app);color:#fff}
+.hb{width:36px;height:34px;border-radius:10px;background:#ffffff26;display:grid;place-items:center;font-size:18px;font-weight:900;flex:none}
+.hb:active{background:#ffffff44}
+#appName{display:flex;align-items:center;gap:6px;font-weight:900;font-size:17px;direction:ltr;flex:none}
+#appName img{width:26px;height:26px}
+#hudMid{flex:1;display:flex;justify-content:center;gap:6px;min-width:0}
+.stat{background:#0003;border-radius:10px;padding:3px 10px;font-weight:900;font-size:16px;display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.stat small{font-size:11px;font-weight:500;opacity:.85}
+#timer{position:relative;overflow:hidden;min-width:74px;justify-content:center}
+#timer i{position:absolute;inset:auto 0 0 0;height:3px;background:#fff;transform-origin:right;}
+#timer.low{background:#e0344a;animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.07)}}
+#stage{flex:1;position:relative;min-height:0}
+#strip{height:var(--stripH);flex:none;display:flex;align-items:center;gap:8px;padding:4px 8px;background:#fff;border-top:1px solid #0001}
+#sFace{width:calc(var(--stripH) - 12px);height:calc(var(--stripH) - 12px);border-radius:12px;object-fit:cover;flex:none;background:#ccd;transition:transform .2s}
+#sFace.talk{transform:scale(1.08);box-shadow:0 0 0 3px var(--app)}
+#sText{flex:1;min-width:0;font-size:clamp(13px,3.7vw,15.5px);line-height:1.25;font-weight:500}
+#sText b{display:block;font-size:11.5px;color:var(--appD);font-weight:900}
+#sText.verb{font-weight:900;color:var(--appD)}
+#flash{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.6);background:var(--appD);color:#fff;font-weight:900;font-size:clamp(20px,6vw,28px);padding:10px 20px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px #0005;z-index:20}
+#flash.on{animation:flash 1.3s ease-out}
+@keyframes flash{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+
+/* zoomba: 2048 of meetings */
+#zb{position:absolute;border-radius:14px;background:#1d2b4f;box-shadow:inset 0 2px 8px #0006}
+.zc{position:absolute;border-radius:10px;background:#ffffff12}
+.zt{position:absolute;left:0;top:0;border-radius:10px;overflow:hidden;transition:transform .12s ease-out;will-change:transform;box-shadow:0 2px 6px #0005;display:flex;flex-direction:column;border:3px solid var(--c)}
+.zt .faces{flex:1;display:grid;gap:2px;background:var(--c);min-height:0}
+.zt .faces img{width:100%;height:100%;object-fit:cover;display:block;min-height:0}
+.zt .nm{background:var(--c);color:#fff;font-weight:900;text-align:center;font-size:var(--fs,13px);line-height:1.1;padding:3px 2px 4px;text-shadow:0 1px 2px #0006;white-space:nowrap;overflow:hidden}
+.zt .lv{position:absolute;top:4px;right:4px;background:#000a;color:#fff;font-weight:900;font-size:11px;border-radius:7px;padding:1px 5px;direction:ltr}
+.zt.new{animation:znew .18s ease-out}
+.zt.merged{animation:zmerge .22s ease-out}
+@keyframes znew{from{transform:var(--tr) scale(.2);opacity:0}}
+@keyframes zmerge{50%{transform:var(--tr) scale(1.14)}}
+.zt.daniel{--c:#e0344a}
+.zt.itay{--c:#555}
+.zt .cd{position:absolute;top:4px;left:4px;background:#fff;color:#222;font-weight:900;font-size:12px;border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;direction:ltr}
+.zt.removed{animation:zrem .55s ease-in forwards}
+@keyframes zrem{0%,40%{filter:none}20%,60%{filter:brightness(1.6) sepia(1) hue-rotate(-50deg) saturate(5)}100%{transform:var(--tr) scale(.1);opacity:0}}
+.zt .tag{position:absolute;inset:auto 0 30% 0;background:#e0344aee;color:#fff;font-weight:900;font-size:11px;text-align:center;padding:2px}
+
+/* meetly: where's daniel */
+#mgrid{position:absolute;inset:4px;display:grid;gap:3px}
+.mt{position:relative;border-radius:6px;overflow:hidden;background:#223;cursor:pointer}
+.mt img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.mt .nmm{position:absolute;right:2px;bottom:2px;background:#000a;color:#fff;font-size:var(--mfs,10px);border-radius:4px;padding:0 4px;white-space:nowrap;max-width:92%;overflow:hidden;pointer-events:none;display:flex;gap:2px;align-items:center}
+.mt .mic{width:1.15em;height:1.15em;flex:none}
+.mt.speak{box-shadow:inset 0 0 0 3px #3ddc84}
+.mt.wrong{animation:shake .35s}
+.mt.found{box-shadow:inset 0 0 0 4px #ffd23b;z-index:2;transform:scale(1.15);transition:transform .2s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+#task{position:absolute;inset:auto 8px 8px 8px}
+
+/* teamz: flow */
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#play[data-mode=teamz] #stage{background:linear-gradient(#ece7fb,#dcd3f6)}
+#play[data-mode=zoomba] #stage{background:linear-gradient(#e6edfb,#d5e0f6)}
+#play[data-mode=meetly] #stage{background:#1b2030}
+
+/* ---------- end ---------- */
+#end{position:fixed;inset:0;display:grid;place-items:center;background:#0b1a3acc;padding:20px;z-index:30}
+#endCard{background:#fff;border-radius:24px;padding:20px 18px;width:min(100%,380px);text-align:center;box-shadow:0 10px 40px #0007}
+#endFace{width:96px;height:96px;border-radius:20px;object-fit:cover;margin-top:-64px;border:4px solid #fff;box-shadow:0 4px 12px #0004}
+#endTitle{font-size:24px;font-weight:900;margin:8px 0 2px}
+#endTitle small{display:block;font-size:14px;font-weight:500;color:#556}
+#endLine{font-size:15px;color:#334;margin:8px 0}
+#endScore{font-size:46px;font-weight:900;color:var(--appD);line-height:1}
+#endNew{color:#e0344a;font-weight:900}
+#endBest{color:#556;font-size:14px}
+.big{display:block;width:100%;background:var(--app);color:#fff;font-weight:900;font-size:20px;border-radius:16px;padding:14px;margin-top:14px;box-shadow:0 4px 0 var(--appD)}
+.big:active{transform:translateY(3px);box-shadow:0 1px 0 var(--appD)}
+.quiet{display:block;width:100%;font-weight:700;font-size:15px;padding:12px;color:#2d4a8a}
+#end{--app:var(--blue);--appD:var(--blueD)}
+#end[data-mode=meetly]{--app:var(--green);--appD:var(--greenD)} #end[data-mode=teamz]{--app:var(--purple);--appD:var(--purpleD)}
+
+/* ---------- tutorial ---------- */
+#tut{position:fixed;inset:0;z-index:40}
+#spot{position:fixed;border-radius:14px;box-shadow:0 0 0 4000px #0009,0 0 0 3px #ffd76a inset;transition:all .25s;pointer-events:none}
+#tut.try{pointer-events:none}
+#tut.try #tutCard{pointer-events:auto}
+#tutCard{position:fixed;left:10px;right:10px;background:#fff;border-radius:18px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;box-shadow:0 6px 24px #0007;max-width:520px;margin:0 auto}
+#tutFace{width:52px;height:52px;border-radius:12px;object-fit:cover;flex:none}
+#tutBody{flex:1;min-width:0}
+#tutT{font-size:clamp(14px,3.9vw,16px);line-height:1.35;font-weight:500}
+#tutT .try{color:#e0344a;font-weight:900}
+#tutRow{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
+#tutN{direction:ltr;font-size:12px;color:#667;font-weight:700}
+#tutNext{background:var(--blue);color:#fff;font-weight:900;font-size:16px;border-radius:12px;padding:9px 22px}
+#tutSkip{font-size:13px;color:#667;font-weight:700;padding:8px}
+#rot{display:none}
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
+  #rot{display:grid;position:fixed;inset:0;z-index:99;background:#0b1a3a;color:#fff;place-items:center;text-align:center;font-weight:900;font-size:20px;padding:20px}
+}
+@media (max-height:600px){.app .how{padding-top:0}#logoT{max-height:15vh;margin-top:0}#tagline{font-size:12px}.app{padding:6px 10px 6px 6px;border-radius:16px}.app img{width:48px;height:48px}.app span{font-size:12px}.app b{font-size:19px}#apps{gap:8px}.chip{padding:7px 12px}}
+</style>
+</head>
+<body>
+
+<section id="start">
+  <img id="logoT" src="assets/title.png" alt="אז אנחנו מסונכרנים">
+  <p id="tagline">ההנהלה של טקי-טק תקועה בשיחות. בחרו אפליקציה והצטרפו לפגישה.</p>
+  <div id="apps">
+    <button class="app" data-mode="zoomba"><img src="assets/app-zoomba.png" alt=""><div class="t"><b>Zoomba</b><span>ממזגים פגישות עד שמגיעים להחלטה</span><i data-rec="zoomba"></i><span class="how" data-how>איך משחקים?</span></div><div class="go">←</div></button>
+    <button class="app" data-mode="meetly"><img src="assets/app-meetly.png" alt=""><div class="t"><b>Meetly</b><span>מוצאים את מי שצריך במשבצות</span><i data-rec="meetly"></i><span class="how" data-how>איך משחקים?</span></div><div class="go">←</div></button>
+    <button class="app" data-mode="teamz"><img src="assets/app-teamz.png" alt=""><div class="t"><b>Teamz</b><span>מיישרים קו בין כל בעלי העניין</span><i data-rec="teamz"></i><span class="how" data-how>איך משחקים?</span></div><div class="go">←</div></button>
+  </div>
+  <div id="foot">
+    <button class="chip snd" id="bSound">🔊 צליל</button>
+    <a class="chip" href="https://shlomiverse.com/c/techytech" target="_top">טקי-טק בשלומיוורס ←</a>
+  </div>
+</section>
+
+<section id="play" hidden>
+  <div id="hud">
+    <button class="hb" id="bHome" aria-label="תפריט">⌂</button>
+    <div id="appName"><img id="appIcon" src="assets/app-zoomba.png" alt=""><span id="appTitle">Zoomba</span></div>
+    <div id="hudMid">
+      <div class="stat" id="score"><small>ניקוד</small><span>0</span></div>
+      <div class="stat" id="timer" hidden><span>0:45</span><i></i></div>
+    </div>
+    <button class="hb" id="bRestart" aria-label="מחדש">↻</button>
+  </div>
+  <div id="stage">
+    <div id="zb" hidden></div>
+    <div id="mgrid" hidden></div>
+    <canvas id="cv" hidden></canvas>
+    <div id="flash"></div>
+  </div>
+  <div id="strip"><img id="sFace" src="assets/amir.webp" alt=""><div id="sText"></div></div>
+</section>
+
+<section id="end" hidden>
+  <div id="endCard">
+    <img id="endFace" src="assets/amir.webp" alt="">
+    <div id="endTitle"></div>
+    <div id="endLine"></div>
+    <div id="endScore">0</div>
+    <div id="endNew" hidden>שיא חדש!</div>
+    <div id="endBest"></div>
+    <button class="big" id="bAgain">עוד פגישה</button>
+    <button class="quiet" id="bMenu">לאפליקציות</button>
+  </div>
+</section>
+
+<section id="tut" hidden>
+  <div id="spot"></div>
+  <div id="tutCard">
+    <img id="tutFace" src="assets/amir.webp" alt="">
+    <div id="tutBody">
+      <div id="tutT"></div>
+      <div id="tutRow"><span id="tutN"></span><span><button id="tutSkip">דלגו</button> <button id="tutNext">הבא</button></span></div>
+    </div>
+  </div>
+</section>
+<div id="rot">סובבו את הטלפון לאורך 📱</div>
+
+<script src="game.js?v=3"></script>
+</body>
+</html>
