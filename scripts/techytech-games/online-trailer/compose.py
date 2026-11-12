@@ -20,7 +20,7 @@ SHOTS = 'C:/workspace/BoostMind-meetings/scripts/techytech-games/meetings/shots'
 W, H, FPS = 1080, 1920, 30
 P = lambda *a: os.path.join(HERE, *a)
 YV = P('src', 'security-1.mp4')
-Y1 = (109.85, 112.45)                # "אני גם בכלל לא מבין למה אתה מעלה אותי לשיחה! מה זה קשור אליי?"
+Y1 = (110.56, 111.95)                # only "למה אתה מעלה אותי לשיחה" - from its first sound to its end (his note)
 Y1_SPLIT = 111.92                    # where "מה זה קשור אליי?" starts
 Y2 = (116.62, 119.28)                # "בגלל הזומים שלך אני נראה ככה."
 Y2_SHOW = 0.8                        # seconds of his face before only his voice
@@ -28,14 +28,16 @@ Y2_SHOW = 0.8                        # seconds of his face before only his voice
 CLIPS = json.load(open(P('clips.json'), encoding='utf-8'))
 SFX_AT = [0.5, 0.35, 0.8, 0.15, 0.4]   # each clip's own moment (the merge, the find, the last line, the pair, the friend joining)
 CLIP_LEN = 1.3
-T_INTRO = 0.0                        # (his note: no hook at the start - Yaniv only at the end, in the silence)
-T_ALONE = T_INTRO + 1.8
-T_BOOM = T_ALONE + 2.4
-T_CLIPS = T_BOOM + 1.3
+T_INTRO = 0.0
+T_PRES = 1.8                         # "טקי-טק מציגה - משחק אונליין חדש" + the 4 app icons: what this is, before anything
+T_ALONE = T_PRES + 2.0
+T_BOOM = T_ALONE + 2.0
+T_FOUR = T_BOOM + 0.8                # "אז הפכנו אותן ל־4 משחקים."
+T_CLIPS = T_BOOM + 2.1
 T_TEAM = T_CLIPS + CLIP_LEN * len(CLIPS)
 T_HIT = T_TEAM + 0.9                 # "תזמינו חבר." with the music's hit
-T_YANIV = T_HIT + 2.5                # the music has died away: Yaniv, heard (his picture faint over the screen)
-T_NOY = T_YANIV + (Y1[1] - Y1[0]) + 0.15
+T_YANIV = T_HIT + 2.0                # just before the music ends: Yaniv, heard (echo), his picture faint
+T_NOY = T_YANIV + (Y1[1] - Y1[0]) + 0.45
 T_OUT = T_NOY + 1.7
 M_START, M_HIT, M_END = 2.75, 14.25, 18.5     # in music.wav: where it is full, its hit, its end
 
@@ -59,13 +61,22 @@ HERO = Image.open(f'{GAME}/assets/hero.jpg').convert('RGB')
 hb = HERO.resize((1536, 1920)).crop((228, 0, 1308, 1920)).filter(ImageFilter.GaussianBlur(28))
 BG_HERO = ImageEnhance.Brightness(hb).enhance(0.45); BG_HERO.paste(HERO, (0, 170))
 BG_SOFT = ImageEnhance.Brightness(hb).enhance(0.55)          # behind the phone: the cast, blurred
+BG_DARK = ImageEnhance.Brightness(hb).enhance(0.3)
+def framed_poster():   # the game's poster SMALL with a clear frame (his note: not full width), on the blurred cast
+    pw = 700; ph = int(pw * HERO.height / HERO.width); b = 14
+    card = Image.new('RGBA', (pw + 2 * b, ph + 2 * b), (0, 0, 0, 0)); ImageDraw.Draw(card).rounded_rectangle((0, 0, pw + 2 * b - 1, ph + 2 * b - 1), 46, fill=(255, 255, 255, 255))
+    m = Image.new('L', (pw, ph), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, pw - 1, ph - 1), 34, fill=255); card.paste(HERO.resize((pw, ph), Image.LANCZOS), (b, b), m)
+    bg = ImageEnhance.Brightness(hb).enhance(0.4).convert('RGBA'); x, y = (W - card.width) // 2, 200
+    sh = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((x + 8, y + 26, x + card.width + 8, y + card.height + 26), 46, fill=(0, 0, 0, 180))
+    bg.alpha_composite(sh.filter(ImageFilter.GaussianBlur(26))); bg.alpha_composite(card, (x, y)); return bg.convert('RGB')
+POSTER = framed_poster()
 HUB = Image.open(f'{SHOTS}/hub.png').convert('RGB')
 BG_ALONE = ImageEnhance.Color(ImageEnhance.Brightness(blurred(HUB, 0.5).filter(ImageFilter.GaussianBlur(6))).enhance(0.26)).enhance(0.25)
 
 # the phone the game plays on: a dark body with rounded corners and a soft shadow, the screen 640 wide
-SW, SH, BZ, R = 640, 1336, 18, 78
+SW, SH, BZ, R = 600, 1252, 18, 74
 PW, PH = SW + 2 * BZ, SH + 2 * BZ
-PX, PY = (W - PW) // 2, 300
+PX, PY = (W - PW) // 2, 380
 body = Image.new('RGBA', (PW, PH), (0, 0, 0, 0)); ImageDraw.Draw(body).rounded_rectangle((0, 0, PW - 1, PH - 1), R, fill=(18, 18, 24, 255), outline=(70, 70, 82, 255), width=3)
 smask = Image.new('L', (SW, SH), 0); ImageDraw.Draw(smask).rounded_rectangle((0, 0, SW - 1, SH - 1), R - BZ, fill=255)
 shadow = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(shadow).rounded_rectangle((PX + 10, PY + 30, PX + PW + 10, PY + PH + 30), R, fill=(0, 0, 0, 170))
@@ -98,32 +109,33 @@ def over(fr, k, t0, t, dur=0.35, rise=40, t1=None):   # a title grows in softly 
     al = lay[..., 3:4] * e; return fr * (1 - al) + lay[..., :3] * al
 
 N = int(round(T_OUT * FPS)) + len(outro)
-FLASH = [T_ALONE, T_BOOM, T_CLIPS, T_TEAM, T_HIT, T_OUT]
+FLASH = [T_PRES, T_BOOM, T_CLIPS, T_TEAM, T_HIT, T_OUT]
 out = P('out', 'video-only.mp4'); os.makedirs(P('out'), exist_ok=True)
 pr = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                        '-c:v', 'libx264', '-crf', '17', '-preset', 'slow', '-pix_fmt', 'yuv420p', out], stdin=subprocess.PIPE)
 for i in range(N):
     t = i / FPS
-    if t < T_ALONE: fr = intro[min(i, len(intro) - 1)].astype(np.float32) / 255
-    elif t < T_BOOM:   # the game on the phone (never full screen), dimmed under the words
-        fr = on_phone(HUB, BG_SOFT, (t - T_ALONE) / (T_BOOM - T_ALONE)) * 0.42; fr = over(fr, 'alone', T_ALONE + 0.25, t, 0.6)
+    if t < T_PRES: fr = intro[min(i, len(intro) - 1)].astype(np.float32) / 255
+    elif t < T_ALONE:   # what this is: Techy-Tech presents an online game (text only, the app icons)
+        fr = push(BG_DARK, (t - T_PRES) / 2, 1.0, 1.06); fr = over(fr, 'present', T_PRES + 0.1, t, 0.35)
+    elif t < T_BOOM:
+        fr = push(BG_DARK, (t - T_ALONE) / 2, 1.06, 1.12); fr = over(fr, 'alone', T_ALONE + 0.15, t, 0.5)
     elif t < T_CLIPS:
-        fr = push(BG_HERO, (t - T_BOOM) / (T_CLIPS - T_BOOM), 1.18, 1.05, .5, .55) * 0.5; fr = over(fr, 'online', T_BOOM, t, 0.12, 0)
+        fr = push(BG_DARK, (t - T_BOOM) / (T_CLIPS - T_BOOM), 1.12, 1.18); fr = over(fr, 'online', T_BOOM, t, 0.12, 0); fr = over(fr, 'four', T_FOUR, t, 0.3)
     elif t < T_TEAM:
         j = int((t - T_CLIPS) / CLIP_LEN); lab, frs = clips[j]; u = (t - T_CLIPS - j * CLIP_LEN) / CLIP_LEN
         fr = on_phone(frs[min(len(frs) - 1, int(u * CLIP_LEN * FPS))], BG_SOFT, (t - T_CLIPS) / (T_TEAM - T_CLIPS))
         fr = over(fr, lab, T_CLIPS + j * CLIP_LEN, t, 0.12, 20)
     elif t < T_HIT:
-        fr = push(BG_HERO, (t - T_TEAM) / (T_HIT - T_TEAM), 1.0, 1.08) * 0.5; fr = over(fr, 'team', T_TEAM, t, 0.2)
+        fr = push(POSTER, (t - T_TEAM) / (T_HIT - T_TEAM), 1.0, 1.03); fr = over(fr, 'team', T_TEAM, t, 0.2)
     elif t < T_OUT:   # the hit, the music dies away, then Yaniv in the silence - heard, his picture faint over it
-        fr = push(BG_HERO, (t - T_HIT) / (T_OUT - T_HIT), 1.1, 1.0, .5, .4) * 0.55
+        fr = push(POSTER, (t - T_HIT) / (T_OUT - T_HIT), 1.03, 1.0)
         ty = t - T_YANIV; yl = Y1[1] - Y1[0]
         if 0 <= ty < yl + 0.25:
             k = min(len(yan1) - 1, int(ty * FPS)); g = min(1, ty / 0.25, max(0, (yl + 0.25 - ty) / 0.25)) * 0.38
             fr = fr * (1 - g) + push(blurred(yface(yan1[k]), 0.4), ty / yl, 1.05, 1.12, .5, .45) * g
         fr = over(fr, 'invite', T_HIT, t, 0.1, 0)
-        sp = Y1_SPLIT - Y1[0]
-        if 0 <= ty < yl + 0.2: fr = over(fr, 'ysub', T_YANIV, t, 0.08, 0, T_YANIV + sp); fr = over(fr, 'ysub2', T_YANIV + sp, t, 0.08, 0, T_YANIV + yl + 0.1)
+        if 0 <= ty < yl + 0.3: fr = over(fr, 'ysub', T_YANIV, t, 0.08, 0, T_YANIV + yl + 0.25)
         fr = over(fr, 'noyaniv', T_NOY, t, 0.3)
     else: fr = outro[min(len(outro) - 1, i - int(round(T_OUT * FPS)))].astype(np.float32) / 255
     for c in FLASH:
@@ -149,7 +161,7 @@ sw = [f'{GAME}/assets/sfx/{s}' for s in ('big-1.mp3', 'found-1.mp3', 'line-2.mp3
 for s in sw: inputs += ['-i', s]
 flt = [f'[1:a]volume=0.8,{dl(T_INTRO)}[m]', f'[2:a]volume=0.9,{dl(T_INTRO)}[ai]', f'[3:a]volume=0.9,{dl(T_OUT)}[ao]',
        f'[4:a]volume=1.0,{dl(T_BOOM)}[b1]', f'[5:a]volume=1.0,{dl(T_HIT)}[b2]',
-       f'[6:a]asplit=2[ya][yb]', f'[ya]atrim={Y1[0]}:{Y1[1]},asetpts=PTS-STARTPTS,volume=1.5,{dl(T_YANIV)}[y1]',
+       f'[6:a]asplit=2[ya][yb]', f'[ya]atrim={Y1[0]}:{Y1[1]},asetpts=PTS-STARTPTS,afade=t=in:d=0.03,afade=t=out:st={Y1[1]-Y1[0]-0.05}:d=0.05,apad=pad_dur=1,aecho=0.85:0.75:140|280:0.32|0.16,volume=1.7,{dl(T_YANIV)}[y1]',
        f'[yb]anullsink',
        f'[7:a]volume=0.7,{dl(T_TEAM + 0.1)}[jn]']
 labs = ['[m]', '[ai]', '[ao]', '[b1]', '[b2]', '[y1]', '[jn]']
