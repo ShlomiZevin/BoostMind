@@ -373,7 +373,7 @@
   @media (max-width: 900px) {
     .app { grid-template-columns: minmax(0, 1fr); }
     .side { display: none; }
-    main.main { padding: 14px 14px calc(96px + env(safe-area-inset-bottom)); }
+    main.main { padding: calc(14px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom)); }   /* the home-screen app draws under the clock line (black-translucent) - start below it */
     /* the top bar already says which page this is */
     main.main:not(.ov) .top h1 { display: none; }
     .mtop { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
@@ -667,7 +667,7 @@
 .cn-seg{display:flex;width:max-content;max-width:100%;overflow-x:auto;scrollbar-width:none}.cn-seg button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .cn-seg em{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--accent);color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center}
 .cn-pill{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border-radius:99px;background:rgba(255,106,31,.16);color:#ff9a5c;font-size:.72rem;font-weight:800;margin-inline-start:6px;vertical-align:2px}.cn-pill svg{width:12px;height:12px}.cn-pill.done{background:rgba(107,214,138,.12);color:#8fe3ad}
-.msg{scroll-margin-top:20px;border-radius:14px;transition:background .6s}.msg.hl{background:rgba(255,106,31,.08)}
+.cmsg{scroll-margin-top:20px;border-radius:14px;transition:background .6s}.cmsg.hl{background:rgba(255,106,31,.08)}
 .bact{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px;padding-inline-start:40px}
 .bact button{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:9px;border:1px solid var(--line2);color:var(--dim);font-size:.76rem;font-weight:800}.bact svg{width:14px;height:14px}
 .bact button.has{border-color:#ff6a1f;color:#ff8c4d}.bact button.on{background:var(--card2);color:var(--text)}
@@ -1617,7 +1617,7 @@ function openThread(k, list, focus) {
   sheet(`<div class="sh-h">${face(th.mode)}<div class="t"><b>${esc(cname(th.mode))}</b><small>${th.person ? `<button data-person="${th.person.uid}" style="color:#ff9a5c;font-weight:700">${esc(personName(th.person))}</button> · ` : th.signed ? 'רשום/ה · ' : 'אורח/ת · '}${c0.m ? 'טלפון' : 'מחשב'}${c0.r ? ` · הגיע/ה מ-${esc(SRC[c0.r] || c0.r)}` : ''} · ${th.items.length} הודעות${th.cost ? ` · $${th.cost.toFixed(3)}` : ''}</small></div>
       <button class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" title="סמנו כמצחיק">${IC.star}</button><button class="x" data-close>${IC.x}</button></div>
     <div class="sh-b">${th.items.map((c) => { const d = dayIL(c.t), sep = d !== lastDay ? `<div class="day-sep">${dayName(d)}</div>` : ''; lastDay = d;
-      return `${sep}<div class="msg" data-msg="${esc(c.id)}"><div class="bub me"><p>${esc(c.q)}</p><time>${hhmm(c.t)}</time></div><div class="bub them">${face(th.mode)}<p>${cardsIn(c.a)}</p></div>
+      return `${sep}<div class="cmsg" data-msg="${esc(c.id)}"><div class="bub me"><p>${esc(c.q)}</p><time>${hhmm(c.t)}</time></div><div class="bub them">${face(th.mode)}<p>${cardsIn(c.a)}</p></div>
         <div class="bact">${tnBtn(th, c.id)}</div>
         <div class="tn" data-tn="${esc(c.id)}">${tnHtml(th, c.id)}</div></div>`; }).join('')}
       <div class="tn-all"><h4>${IC.comment}הערה על כל השיחה</h4><div class="tn" data-tn="">${tnHtml(th, '')}</div></div></div>`);
