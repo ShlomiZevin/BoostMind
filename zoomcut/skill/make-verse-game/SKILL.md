@@ -110,6 +110,8 @@ Read before any idea - the game must be something THIS character would be in:
   rejected - "the glasses don't do anything but turn it to good; we need to SEE the miracle". What worked (a story
   chain: order the cards between the mishap and the miracle) made the player DO the idea. Ask: does playing it feel
   like the character's world, and does the player's action carry the meaning?
+- **Two-player ideas are welcome** (12 Nov 2026): online play is part of the verse now ("Online play" in step 5) - a
+  game that is fun only with two (memory where you watch the other's flips, a race on the same board) is a good idea.
 - **A game must need thinking** (Plaxzy, 28 Oct): if one button answers everything there is no game. Give the player
   something to READ before acting.
 - "A game like X" = it looks AND plays like X (its real numbers, screens and feel, from videos and its wiki, not from
@@ -161,7 +163,9 @@ Read before any idea - the game must be something THIS character would be in:
   (pictures, sounds, models). Ordinary web files - as many and as big as the game needs; only keep phone loading
   sensible (jpg/webp at the size shown, mp3 sounds trimmed, models compressed).
 - `game.json`: `slug`, `title`, `tagline`, `character` (studio id), `world`, `status` (`soon` / `live`), `cover`,
-  `best` ({`key`, `label`}), `date` - the verse reads it (contract above).
+  `best` ({`key`, `label`}), `date` - the verse reads it (contract above). An online game adds
+  `"online": { "players": 2, "modes": ["friend", "quick"], "keys": ["<mode>", ...], "turns": true|false }` (documents the
+  game's online modes; the platform itself switches on when the game calls `VerseNet` - nothing else to register).
 - Workshop files (prompts, raw paintings, guides, Blender scripts, tests) live beside it in
   `scripts/<character>-games/<slug>/` (Hani's: `scripts/hani-games/`), never under `public/`.
 - **No Hani-face pictures in git** - the paintings made from her portrait stay out (the playhouse already follows this).
@@ -229,6 +233,19 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
 10. **Stats**: load `/t.js` and send `track('game_start', '<slug>')` / `track('game_over', '<slug>')`; add the
     game's Hebrew name to the `GAME` table of `public/stats/index.html` (and `public/backstage/` if it lists games).
 11. **A test hook**: `window.<SLUG> = { state, ... }` so tests can read the game without guessing from pixels.
+12. **Online play - the verse's platform, never your own sockets** (12 Nov 2026; `v2/site/verse/net/README.md`): load
+    nothing but `/verse/game-frame.js` and use `window.VerseNet` - `ready()` (available only inside the verse; keep the
+    online buttons hidden until he releases them: show them when `flags.online` = `?online=1` / an invite link),
+    `host(key)` / `quick(key)` / `lobby(key)` (the VERSE draws the lobby: a 4-letter code + "הזמינו" link, or a waiting
+    screen that keeps waiting with a cancel), `on('start')` (seed, players, host, turn), `send` / `on('msg')`, `move` /
+    `state` / `setTurn` / `pass` for turn games (the HOST is the referee and keeps anything hidden), `claim(key)` for races
+    (the server decides who was first), `on('left')` -> "X left - you win", `rematch()`, `leave()`. Never open a socket,
+    never load Firebase in a game, never put hidden info (a deck) in the room. Signed-in only (the platform asks). Online
+    matches never call `VerseFrame.score`. Every online game also has a solo / practice way to learn it, and its
+    tutorial says how the invite works. Worked examples: `public/techytech-games/meetings/callio.js` (turns + hidden
+    deck) and `online.js` (races and a duel on the same seed). Test with two browser contexts
+    (`scripts/techytech-games/meetings/tools/t4-online.js`, `t5-races.js`): friend code, invite link, quick match +
+    cancel, a whole match, rematch, a dropped phone, the rules.
 
 ## 6. The tutorial - every game, no exceptions
 Step by step, the game stopped between steps, **Space / Enter = next** (a big "הבא" button on a phone), **Esc = skip**,
@@ -242,7 +259,10 @@ spot / try).
 - **Play it as a player** with Playwright: the tutorial (every step, every "try it" with real taps), a whole round, a
   loss and a win; screenshots you READ.
 - **As phones, by touch**: 320x568, 360x640, 390x844, 412x915 upright (and landscape): nothing overflows, nothing hides
-  under the strip or the thumbs, every button reachable. Fix, run again.
+  under the strip or the thumbs, every button reachable. Fix, run again. **Also inside the verse's frame** (/play/<id>):
+  the frame is much shorter than the phone (~380 px tall on a 320x568 phone) - a start screen that fits the phone can
+  be cut there (the meetings hub was); fit it to `innerHeight` (fitHub in meetings/online.js).
+- **An online game: two phones** (two browser contexts, two players): friend link + quick match + one leaving.
 - **For fun, not only bugs**: pacing, difficulty, feedback, the character's lines firing at the right moments.
 - Keep the tests in `scripts/<character>-games/<slug>/tools/` (t1-play.js, t2-phones.js - start from
   `scripts/hani-games/pilai/tools/`, which play the tutorial, every round and five phone sizes).

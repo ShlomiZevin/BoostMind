@@ -302,6 +302,8 @@ export function openGame(id, q = {}) {
     if (!P || !frame || e.source !== frame.contentWindow || !e.data) return;
     if (e.data.verse === 'hello') tell();
     else if (e.data.verse === 'score') { P.liked = true; if (g.record) onScore(g, Number(e.data.value), { reopen: again }); }
+    // Shlomiverse Online (net/index.js - loaded only when a game asks): rooms, the lobby, the game's moves
+    else if (e.data.verse === 'net') { const ctx = { frame, g, q, el }; import('./net/index.js').then((m) => { if (P && P.el === el) { P.net = m; m.netMessage(e, ctx); } }); }
   };
   addEventListener('message', P.onMsg);
   el.addEventListener('click', async (e) => {
@@ -433,6 +435,7 @@ function destroy() {
   document.removeEventListener('keydown', P.key);
   if (P.onFs) document.removeEventListener('fullscreenchange', P.onFs);
   if (P.onMsg) removeEventListener('message', P.onMsg);
+  if (P.net) P.net.close();   // an online match: leave the room (the other player sees "left")
   if (P.video) { P.video.pause(); P.video.removeAttribute('src'); P.video.load(); }
   if (document.fullscreenElement === P.el) document.exitFullscreen?.().catch(() => {});
   P.el.querySelector('iframe')?.remove();   // the game stops (its sound too)

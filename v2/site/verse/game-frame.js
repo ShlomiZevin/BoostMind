@@ -53,3 +53,55 @@
     window.open(url.origin === location.origin && url.pathname === hub ? '/games' : url.href, '_top');
   }, true);
 })();
+
+// Shlomiverse Online - window.VerseNet, the game's side of the verse's multiplayer platform (verse/net/, README.md there).
+// The game never opens a socket or loads Firebase: every op is a postMessage to the verse page, which holds the
+// connection, the sign-in and the shared lobby (play with a friend = a code + an invite link; find an opponent).
+//   const r = await VerseNet.ready();   // { available, signedIn, me, invite, flags } - available only inside the verse
+//   VerseNet.host() / join(code) / quick() / lobby()   -> the verse draws the lobby; on('start') when the match begins
+//   on('start', m)  m = { room, mode, host, me, players:[{id,nick,photo,seat}], seed, round, turn, turnAt }
+//   send(data[, to]) + on('msg', ({data, from}))      free messages (JSON, <= 2 KB, <= 20/s)
+//   move(m) + on('move', ({m, by}))                    turn games: only on your turn, echoed to everyone in order
+//   state(obj) + on('state', obj)                      host only: the shared state (<= 8 KB) - the host is the referee
+//   VerseNet.turn = whose turn; setTurn(id) / pass([id]) + on('turn', {turn, turnAt}): host sets it, a guest passes via the host
+//   claim(key) -> the uid of whoever claimed it FIRST (a server transaction) + on('claim', {key, by}) to all: races
+//   host/quick/lobby(key): a game with several online modes keeps rooms + quick match per key (start event has .key)
+//   on('players'|'away'|'back'|'left'|'rematch'|'end'|'closed'|'count'), end(), rematch(), leave(), myTurn(), now()
+(() => {
+  const inFrame = window.top !== window;
+  const subs = {}, wait = {};
+  let n = 0, offset = 0;
+  const N = window.VerseNet = {
+    available: false, me: null, room: null, isHost: false, mode: null, players: [], turn: null, turnAt: 0, seed: 0, round: 0, count: 0,
+    on(ev, fn) { (subs[ev] = subs[ev] || []).push(fn); return () => { subs[ev] = (subs[ev] || []).filter((f) => f !== fn); }; },
+    myTurn() { return !!N.me && N.turn === N.me; },
+    now() { return Date.now() + offset; },
+    ready() { return ask('hello').then((r) => { N.available = !!(r && r.available); N.me = r && r.me; return r; }, () => ({ available: false })); },
+    host: (key) => ask('host', { key }), join: (code) => ask('join', { code }), quick: (key) => ask('quick', { key }), lobby: (key, label) => ask('lobby', { key, label }),
+    claim: (key) => ask('claim', { key }), cancel: () => ask('cancel'),
+    leave: () => { N.room = null; return ask('leave'); },
+    send: (data, to) => ask('send', { data, to }), move: (m) => ask('move', { m }), state: (state) => ask('state', { state }),
+    setTurn: (to) => ask('turn', { to }), pass: (to) => ask('pass', { to }), end: (result) => ask('end', { result }), rematch: () => ask('rematch'),
+  };
+  function ask(op, args = {}) {
+    if (!inFrame) return Promise.reject(Object.assign(new Error('not_in_verse'), { code: 'not_in_verse' }));
+    const id = ++n;
+    return new Promise((ok, no) => {
+      wait[id] = { ok, no };
+      parent.postMessage({ verse: 'net', op, id, ...args }, '*');
+      if (op === 'hello') setTimeout(() => { if (wait[id]) { delete wait[id]; no(Object.assign(new Error('no_answer'), { code: 'no_answer' })); } }, 8000);
+    });
+  }
+  const clock = (d) => { if (d && d.now) offset = d.now - Date.now(); };
+  addEventListener('message', (e) => {
+    const d = e.data;
+    if (!inFrame || e.source !== parent || !d || d.verse !== 'net') return;
+    if (d.re) { const w = wait[d.re]; if (!w) return; delete wait[d.re]; return d.ok ? w.ok(d.val) : w.no(Object.assign(new Error(String(d.val)), { code: d.val })); }
+    const x = d.data;
+    if (d.ev === 'start') { clock(x); Object.assign(N, { room: x.room, isHost: x.host, mode: x.mode, me: x.me, players: x.players, turn: x.turn, turnAt: x.turnAt, seed: x.seed, round: x.round }); }
+    else if (d.ev === 'turn') { clock(x); N.turn = x.turn; N.turnAt = x.turnAt; }
+    else if (d.ev === 'players') N.players = x;
+    else if (d.ev === 'count') N.count = x;
+    (subs[d.ev] || []).slice().forEach((fn) => { try { fn(x); } catch (err) { console.error('VerseNet', d.ev, err); } });
+  });
+})();

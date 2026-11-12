@@ -100,6 +100,18 @@ stops when behind git) or `node scripts/verse/content.mjs put | portrait | hide 
 `shlomiverse-content` skill** (zoomcut/skill/shlomiverse-content) before adding or changing any content;
 `content.mjs log` answers "who changed what".
 
+## Online play (Shlomiverse Online, since 2026-11-12)
+
+Two-player games in the verse talk through ONE platform, never their own sockets: the game calls `window.VerseNet`
+(`/verse/game-frame.js`), the verse page holds the connection + the shared lobby (`v2/site/verse/net/` - README there).
+Transport now = Firebase **Realtime Database** `boostmind-b052c-default-rtdb` (europe-west1) behind a seam (`net/rtdb.js`;
+`net/ws.js` = a Cloud Run relay later, if a game is a hit). No function per move - the regular `verse` server sees
+nothing. Locks: `database.rules.json` (signed-in, own slot, turns, size caps, one open room per user) - deploy with
+`firebase deploy --only database --project boostmind-b052c`. Kill switch: `/net/open` (false = no new rooms). Cleaner:
+`verseNetSweep` (`techietech-api/net.js`, every 15 min). Cost: per GB downloaded (10 GB/month free; a match is ~30-150 KB) -
+Firebase console -> Realtime Database -> Usage. First games: the meetings hub's Callio + online Meetly / Teamz / Zoomba
+(`public/techytech-games/meetings/`, tests `scripts/techytech-games/meetings/tools/t4-online.js`, `t5-races.js`).
+
 ## Deploy
 
 ```bash

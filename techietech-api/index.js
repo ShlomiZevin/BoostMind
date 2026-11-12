@@ -239,3 +239,5 @@ exports.pikoSweep = piko.pikoSweep;
 // the daily AI-cost alert: every hour, today's total (the "סה"כ AI" of Backstage → הוצאות); at $10 a mail to
 // him, at $30 a big warning - one mail per level a day (owner/costAlert) - see costs.js
 exports.costAlert = require('./costs').costAlert;
+// Shlomiverse Online: the scheduled cleaner of stale rooms (net.js) - the moves themselves never pass through a function
+exports.verseNetSweep = require('./net').verseNetSweep;

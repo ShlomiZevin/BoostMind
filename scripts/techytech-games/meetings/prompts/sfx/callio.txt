@@ -1,0 +1,8 @@
+flip-1|0.5|a short crisp card flip, a playing card turned over on a table, light snap
+flip-2|0.5|a quick soft paper card flick and flip, short and clean
+flip-3|0.5|a light glossy card turning over with a tiny whoosh, mobile game
+pair-1|1.0|a bright happy two-note chime with a sparkle, matching pair found in a memory game
+pair-2|1.0|a cheerful glassy ding-ding success sound, cards matched, mobile puzzle game
+turn-1|0.8|a soft friendly notification ping, your turn now, video call app
+turn-2|0.8|a gentle rising two-tone digital blip, it is your turn, clean UI sound
+win-1|2.5|a short triumphant celebratory fanfare with sparkles and light applause, winning a mobile game match

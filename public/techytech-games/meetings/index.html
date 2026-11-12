@@ -22,7 +22,7 @@
 <script src="/verse/game-frame.js"></script>
 <style>
 :root{
-  --ink:#16213e; --blue:#2d6cf0; --blueD:#1b46b0; --green:#16a873; --greenD:#0d7a52; --purple:#7a4ce0; --purpleD:#5530aa;
+  --ink:#16213e; --blue:#2d6cf0; --blueD:#1b46b0; --green:#16a873; --greenD:#0d7a52; --purple:#7a4ce0; --purpleD:#5530aa; --orange:#f2622e; --orangeD:#c2410c;
   --app:var(--blue); --appD:var(--blueD);
   --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
   --hudH:44px; --stripH:58px; --sw:100vw;
@@ -55,15 +55,20 @@ a{color:inherit}
 .app span{display:block;font-size:clamp(12.5px,3.4vw,15px);color:#445;line-height:1.3}
 .app i{display:block;font-style:normal;font-size:12.5px;font-weight:700;color:var(--greenD);margin-top:2px;min-height:1em}
 .app .how{display:inline-block;font-size:12.5px;font-weight:700;color:#2d6cf0;padding:4px 0 0;text-decoration:underline}
+.app .onl{display:inline-block;font-size:12px;font-weight:900;color:#fff;background:var(--orange);border-radius:99px;padding:3px 9px;margin-inline-start:8px;box-shadow:0 2px 5px #0003;white-space:nowrap;vertical-align:middle}
+.app .onl span{display:inline}
+.app .onl.two{background:#fde3d6;color:var(--orangeD);box-shadow:none}
+.app .how{white-space:nowrap;vertical-align:middle}
 .app .go{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:22px;font-weight:900}
-.app[data-mode=zoomba] .go{background:var(--blue)} .app[data-mode=meetly] .go{background:var(--green)} .app[data-mode=teamz] .go{background:var(--purple)}
+.app[data-mode=zoomba] .go{background:var(--blue)} .app[data-mode=meetly] .go{background:var(--green)} .app[data-mode=teamz] .go{background:var(--purple)} .app[data-mode=callio] .go{background:var(--orange)}
+.app .new{position:absolute;top:-7px;left:14px;background:var(--orange);color:#fff;font-size:11px;font-weight:900;border-radius:99px;padding:2px 9px;box-shadow:0 2px 6px #0004}
 #foot{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
 .chip{background:#ffffffd8;border-radius:99px;padding:9px 14px;font-weight:700;font-size:13.5px;text-decoration:none;box-shadow:0 2px 8px #0004;display:inline-flex;gap:6px;align-items:center}
 .snd.off{opacity:.55;text-decoration:line-through}
 
 /* ---------- play ---------- */
 #play{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--safe-t);padding-bottom:var(--safe-b);background:#e9eef8}
-#play[data-mode=zoomba]{--app:var(--blue);--appD:var(--blueD)} #play[data-mode=meetly]{--app:var(--green);--appD:var(--greenD)} #play[data-mode=teamz]{--app:var(--purple);--appD:var(--purpleD)}
+#play[data-mode=zoomba]{--app:var(--blue);--appD:var(--blueD)} #play[data-mode=meetly]{--app:var(--green);--appD:var(--greenD)} #play[data-mode=teamz]{--app:var(--purple);--appD:var(--purpleD)} #play[data-mode=callio]{--app:var(--orange);--appD:var(--orangeD)}
 #hud{height:var(--hudH);flex:none;display:flex;align-items:center;gap:6px;padding:0 6px;background:var(--app);color:#fff}
 .hb{width:36px;height:34px;border-radius:10px;background:#ffffff26;display:grid;place-items:center;font-size:18px;font-weight:900;flex:none}
 .hb:active{background:#ffffff44}
@@ -83,7 +88,7 @@ a{color:inherit}
 #sText{flex:1;min-width:0;font-size:clamp(13px,3.7vw,15.5px);line-height:1.25;font-weight:500}
 #sText b{display:block;font-size:11.5px;color:var(--appD);font-weight:900}
 #sText.verb{font-weight:900;color:var(--appD)}
-#flash{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.6);background:var(--appD);color:#fff;font-weight:900;font-size:clamp(20px,6vw,28px);padding:10px 20px;border-radius:16px;opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px #0005;z-index:20}
+#flash{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.6);max-width:92%;width:max-content;text-align:center;line-height:1.25;background:var(--appD);color:#fff;font-weight:900;font-size:clamp(20px,6vw,28px);padding:10px 20px;border-radius:16px;opacity:0;pointer-events:none;white-space:normal;box-shadow:0 8px 24px #0005;z-index:20}
 #flash.on{animation:flash 1.3s ease-out}
 @keyframes flash{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
 
@@ -124,6 +129,67 @@ a{color:inherit}
 #play[data-mode=zoomba] #stage{background:linear-gradient(#e6edfb,#d5e0f6)}
 #play[data-mode=meetly] #stage{background:#1b2030}
 
+/* callio: 2-player memory of video tiles */
+#play[data-mode=callio] #stage{background:linear-gradient(#1c2340,#121731)}
+#cl{position:absolute;inset:0}
+#clBoard{position:absolute;display:grid;gap:var(--cg,6px)}
+.cc{position:relative;border-radius:10px;perspective:700px;cursor:pointer;touch-action:manipulation}
+.cc .in{position:absolute;inset:0;transition:transform .32s ease;transform-style:preserve-3d}
+.cc.up .in{transform:rotateY(180deg)}
+.cc .bk,.cc .fr{position:absolute;inset:0;border-radius:10px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 3px 8px #0006}
+.cc .bk{background:#14204a url(assets/camoff.webp) center/cover;border:2px solid #ffffff1c}
+.cc .bk b{position:absolute;right:5px;bottom:4px;color:#ffffffa0;font-size:var(--cfs,11px);font-weight:700}
+.cc .fr{transform:rotateY(180deg);background:#223}
+.cc .fr img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.cc .fr span{position:absolute;right:3px;bottom:3px;background:#000b;color:#fff;font-size:var(--cfs,11px);font-weight:700;border-radius:5px;padding:1px 6px;max-width:94%;white-space:nowrap;overflow:hidden}
+.cc.mine .fr{box-shadow:0 0 0 3px var(--c1,#f2622e),0 3px 8px #0006}
+.cc.theirs .fr{box-shadow:0 0 0 3px var(--c2,#3f8cff),0 3px 8px #0006}
+.cc.done{opacity:.55;cursor:default}
+.cc.done .fr::after{content:"";position:absolute;inset:0;background:#0000}
+.cc.pair .in{animation:ccpair .5s ease}
+@keyframes ccpair{50%{transform:rotateY(180deg) scale(1.1)}}
+.cc.hint .bk{box-shadow:0 0 0 4px #ffd76a,0 0 18px #ffd76a;animation:pulse .6s infinite alternate}
+.cc.press .bk{filter:brightness(1.4)}
+#clHud{display:flex;gap:6px;align-items:center;min-width:0;flex:1;justify-content:center}
+.pc{display:flex;align-items:center;gap:5px;background:#0003;border-radius:12px;padding:2px 8px 2px 3px;min-width:0;position:relative;overflow:hidden;transition:background .2s}
+.pc img,.pc em{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none;background:#fff3;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:14px}
+.pc .nm{font-size:12px;font-weight:700;max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc b{font-size:17px;font-weight:900;min-width:14px;text-align:center}
+.pc.on{background:#fff;color:var(--ink)}
+#clHud .pc.me,#clHud .vsTop,#clT{flex:none}
+.pc.me:not(.on){box-shadow:inset 0 0 0 1.5px #ffffff90}
+.pc i{position:absolute;inset:auto 0 0 0;height:3px;background:var(--orangeD);transform-origin:right;transform:scaleX(0)}
+.pc.on i{transform:scaleX(var(--tl,1))}
+.pc.low.on{background:#ffe1e1}
+.vsTop{font-size:11.5px;font-weight:700;background:#0003;border-radius:9px;padding:3px 7px;max-width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mgrid.locked{filter:grayscale(.7) brightness(.65);pointer-events:none}
+#play[data-mode=callio] #appTitle,#play.vs #appTitle{display:none}
+/* a narrow frame (the verse's frame on a small phone): chips = face + number, no app name */
+#play.narrow #appName{display:none}
+#play.narrow .pc em,#play.narrow .pc img{display:none}
+#play.narrow .pc .nm{max-width:44px;font-size:11.5px}
+#play.narrow #clHud .pc{flex:none}
+#play.narrow #clHud{gap:4px}
+#play.narrow .pc{padding:4px 8px}
+#play.narrow .vsTop{max-width:70px}
+#play.narrow .stat small{display:none}
+.pc em{background:var(--appD);color:#fff}
+.pc.on em{box-shadow:0 0 0 2px var(--app)}
+#clT{font-weight:900;font-size:14px;min-width:30px;text-align:center;direction:ltr}
+#clMenu{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;color:#fff;text-align:center}
+#clMenu img.ic{width:clamp(84px,24vw,120px);height:auto;filter:drop-shadow(0 6px 14px #0008)}
+#clMenu h3{margin:0;font-size:clamp(26px,7vw,34px);font-weight:900;direction:ltr}
+#clMenu p{margin:0 0 6px;font-size:clamp(14px,3.9vw,16px);opacity:.88;max-width:22em;line-height:1.4}
+#clMenu .big{max-width:340px;margin-top:4px}
+#clMenu .alt{display:block;width:100%;max-width:340px;background:#ffffff1f;color:#fff;font-weight:900;font-size:18px;border-radius:16px;padding:13px;border:1px solid #ffffff33}
+#clMenu .alt:active{transform:translateY(2px)}
+#clMenu .quiet{color:#ffffffcc;max-width:340px;text-decoration:underline}
+#clCount{font-size:13px;opacity:.85;display:flex;gap:6px;align-items:center;min-height:1em}
+#clCount i{width:8px;height:8px;border-radius:50%;background:#3ddc84;box-shadow:0 0 0 3px #3ddc8433}
+#clNote{font-size:13px;opacity:.9;background:#0005;border-radius:12px;padding:8px 12px;max-width:340px}
+#clNote a{color:#ffd76a;font-weight:900}
+@media (max-height:600px){#clMenu{gap:7px}#clMenu img.ic{width:70px}#clMenu .big,#clMenu .alt{padding:10px;font-size:17px}}
+
 /* ---------- end ---------- */
 #end{position:fixed;inset:0;display:grid;place-items:center;background:#0b1a3acc;padding:20px;z-index:30}
 #endCard{background:#fff;border-radius:24px;padding:20px 18px;width:min(100%,380px);text-align:center;box-shadow:0 10px 40px #0007}
@@ -138,7 +204,7 @@ a{color:inherit}
 .big:active{transform:translateY(3px);box-shadow:0 1px 0 var(--appD)}
 .quiet{display:block;width:100%;font-weight:700;font-size:15px;padding:12px;color:#2d4a8a}
 #end{--app:var(--blue);--appD:var(--blueD)}
-#end[data-mode=meetly]{--app:var(--green);--appD:var(--greenD)} #end[data-mode=teamz]{--app:var(--purple);--appD:var(--purpleD)}
+#end[data-mode=callio]{--app:var(--orange);--appD:var(--orangeD)} #end[data-mode=meetly]{--app:var(--green);--appD:var(--greenD)} #end[data-mode=teamz]{--app:var(--purple);--appD:var(--purpleD)}
 
 /* ---------- tutorial ---------- */
 #tut{position:fixed;inset:0;z-index:40}
@@ -151,9 +217,45 @@ a{color:inherit}
 #tutT{font-size:clamp(14px,3.9vw,16px);line-height:1.35;font-weight:500}
 #tutT .try{color:#e0344a;font-weight:900}
 #tutRow{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
-#tutN{direction:ltr;font-size:12px;color:#667;font-weight:700}
+#tutN{white-space:nowrap;direction:ltr;font-size:12px;color:#667;font-weight:700}
 #tutNext{background:var(--blue);color:#fff;font-weight:900;font-size:16px;border-radius:12px;padding:9px 22px}
 #tutSkip{font-size:13px;color:#667;font-weight:700;padding:8px}
+/* the hub fits whatever height it gets (the verse's frame is shorter than the phone): fitHub() in online.js steps t1 -> t5 */
+#start.t1 #tagline{display:none}
+#start.t1 .app i:empty{display:none}
+#start.t1 .app .how{font-size:12px}
+#start.t1 .app .onl{font-size:11.5px;padding:3px 8px;margin-inline-start:6px}
+#start.t1 .app .onl .ar,#start.t1 .app .onl .lg{display:none}
+#start.t1 #logoT{max-height:14vh;margin-top:0}
+#start.t2{gap:5px}
+#start.t2 #apps{gap:8px}
+#start.t2 .app{padding:7px 10px 7px 7px;border-radius:16px;gap:10px}
+#start.t2 .app img{width:52px;height:52px}
+#start.t2 #logoT{max-height:10vh}
+#start.t3 .app .t > span.d{display:none}
+#start.t2 .app b{font-size:20px}
+#start.t2 .app .go{width:38px;height:38px;font-size:19px}
+#start.t4 #logoT{max-height:7vh}
+#start.t4 .app i{display:none}
+#start.t4 .app img{width:44px;height:44px}
+#start.t4 #apps{gap:6px}
+#start.t4 #foot .chip{padding:5px 10px;font-size:12.5px}
+#start.t4 .app .how{font-size:0}
+#start.t4 .app .how::after{content:"איך משחקים?";font-size:11.5px}
+#start.t4 .app{padding:5px 8px 5px 5px}
+#start.t5 #logoT{display:none}
+#start.t5{padding-top:calc(var(--safe-t) + 6px);padding-bottom:6px}
+@media (max-height:520px){
+  #end{padding:10px}
+  #endCard{padding:12px 14px}
+  #endFace{width:64px;height:64px;margin-top:0;border-radius:14px}
+  #endTitle{font-size:19px;margin-top:4px}
+  #endTitle small{font-size:12.5px}
+  #endLine{font-size:13px;margin:4px 0}
+  #endScore{font-size:32px}
+  .big{font-size:17px;padding:10px;margin-top:8px}
+  .quiet{padding:8px;font-size:14px}
+}
 #rot{display:none}
 @media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
   #rot{display:grid;position:fixed;inset:0;z-index:99;background:#0b1a3a;color:#fff;place-items:center;text-align:center;font-weight:900;font-size:20px;padding:20px}
@@ -167,9 +269,10 @@ a{color:inherit}
   <img id="logoT" src="assets/title.png" alt="אז אנחנו מסונכרנים">
   <p id="tagline">ההנהלה של טקי-טק תקועה בשיחות. בחרו אפליקציה והצטרפו לפגישה.</p>
   <div id="apps">
-    <button class="app" data-mode="zoomba"><img src="assets/app-zoomba.png" alt=""><div class="t"><b>Zoomba</b><span>ממזגים פגישות עד שמגיעים להחלטה</span><i data-rec="zoomba"></i><span class="how" data-how>איך משחקים?</span></div><div class="go">←</div></button>
-    <button class="app" data-mode="meetly"><img src="assets/app-meetly.png" alt=""><div class="t"><b>Meetly</b><span>מוצאים את מי שצריך במשבצות</span><i data-rec="meetly"></i><span class="how" data-how>איך משחקים?</span></div><div class="go">←</div></button>
-    <button class="app" data-mode="teamz"><img src="assets/app-teamz.png" alt=""><div class="t"><b>Teamz</b><span>מיישרים קו בין כל בעלי העניין</span><i data-rec="teamz"></i><span class="how" data-how>איך משחקים?</span></div><div class="go">←</div></button>
+    <button class="app" data-mode="zoomba"><img src="assets/app-zoomba.png" alt=""><div class="t"><b>Zoomba</b><span class="d">ממזגים פגישות עד שמגיעים להחלטה</span><i data-rec="zoomba"></i><span class="how" data-how>איך משחקים?</span><span class="onl" data-onl="zoomba" hidden>אונליין<span class="ar"> ←</span></span></div><div class="go">←</div></button>
+    <button class="app" data-mode="meetly"><img src="assets/app-meetly.png" alt=""><div class="t"><b>Meetly</b><span class="d">מוצאים את מי שצריך במשבצות</span><i data-rec="meetly"></i><span class="how" data-how>איך משחקים?</span><span class="onl" data-onl="meetly" hidden>אונליין<span class="ar"> ←</span></span></div><div class="go">←</div></button>
+    <button class="app" data-mode="callio" id="appCallio" hidden><img src="assets/app-callio.png" alt=""><div class="t"><b>Callio</b><span class="d">משחק זיכרון מול חבר, בשיחה חיה</span><i data-rec="callio"></i><span class="how" data-how>איך משחקים?</span><span class="onl two">2 שחקנים</span></div><div class="go">←</div></button>
+    <button class="app" data-mode="teamz"><img src="assets/app-teamz.png" alt=""><div class="t"><b>Teamz</b><span class="d">מיישרים קו בין כל בעלי העניין</span><i data-rec="teamz"></i><span class="how" data-how>איך משחקים?</span><span class="onl" data-onl="teamz" hidden>אונליין<span class="ar"> ←</span></span></div><div class="go">←</div></button>
   </div>
   <div id="foot">
     <button class="chip snd" id="bSound">🔊 צליל</button>
@@ -184,6 +287,7 @@ a{color:inherit}
     <div id="hudMid">
       <div class="stat" id="score"><small>ניקוד</small><span>0</span></div>
       <div class="stat" id="timer" hidden><span>0:45</span><i></i></div>
+      <div id="clHud" hidden></div>
     </div>
     <button class="hb" id="bRestart" aria-label="מחדש">↻</button>
   </div>
@@ -191,6 +295,19 @@ a{color:inherit}
     <div id="zb" hidden></div>
     <div id="mgrid" hidden></div>
     <canvas id="cv" hidden></canvas>
+    <div id="cl" hidden>
+      <div id="clBoard"></div>
+      <div id="clMenu">
+        <img class="ic" src="assets/app-callio.png" alt="">
+        <h3>Callio</h3>
+        <p>משחק זיכרון מול עמית אמיתי. מוצאים זוג – משחקים שוב. פספסתם – היריב ראה הכול.</p>
+        <div id="clCount"></div>
+        <button class="big" id="clFriend">שחקו עם חבר</button>
+        <button class="alt" id="clQuick">מצאו יריב</button>
+        <div id="clNote" hidden></div>
+        <button class="quiet" id="clSolo">אימון לבד</button>
+      </div>
+    </div>
     <div id="flash"></div>
   </div>
   <div id="strip"><img id="sFace" src="assets/amir.webp" alt=""><div id="sText"></div></div>
@@ -205,6 +322,7 @@ a{color:inherit}
     <div id="endNew" hidden>שיא חדש!</div>
     <div id="endBest"></div>
     <button class="big" id="bAgain">עוד פגישה</button>
+    <button class="quiet" id="bNew" hidden>יריב חדש</button>
     <button class="quiet" id="bMenu">לאפליקציות</button>
   </div>
 </section>
@@ -221,6 +339,8 @@ a{color:inherit}
 </section>
 <div id="rot">סובבו את הטלפון לאורך 📱</div>
 
-<script src="game.js?v=3"></script>
+<script src="game.js?v=5"></script>
+<script src="callio.js?v=1"></script>
+<script src="online.js?v=1"></script>
 </body>
 </html>

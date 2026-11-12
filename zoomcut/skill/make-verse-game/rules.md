@@ -64,6 +64,21 @@ principles - apply them to whatever the game is.
   `state !== 'running'` (not only 'suspended'), play a 1-sample silent buffer in the tap, and if it still won't run,
   close it and build a new one (reload the buffers). Pills game, 11 Nov 2026: silent forever after leaving the page.
 
+## Online (Shlomiverse Online - the verse's platform, `v2/site/verse/net/README.md`)
+- **Pick the net model**: turn game with a referee (Callio: the host keeps the deck, the guest sends moves, the host
+  reveals through `state`), a race on the same seed (Meetly / Teamz online: both build the same board from the start
+  event's seed, `claim()` decides who was first - fair, not the host's), a duel on own boards (Zoomba online: attacks
+  and progress as small messages, `claim('lost')` = the first board that locks). Plaxzy's ghost race / host duel are
+  the same ideas (`plaxzy-studio/PROTOCOL.md`).
+- **Send little**: moments, inputs and progress - never the whole board each frame; <= 20 messages/s, <= 2 KB each.
+  A race shows the opponent's progress as a small chip ("3/7 מחוברים"), not a mirror of every move.
+- **Hidden information stays with the host** (a private seed, never the room's seed); the guest sees only what is face up.
+- **Never stuck**: the waiting screen keeps waiting (his rule - no bot, no automatic switch) with a cancel; "X כבר לא
+  בפגישה - ניצחתם" ends a match with a result; rematch is one tap (both press); "new opponent" on the end screen.
+- **The same board on both phones** means nothing in its generation may depend on the screen size (Teamz took its
+  rows from the phone's shape - online it uses fixed rows).
+- A new online mode stays hidden behind `?online=1` until he says it shows.
+
 ## Tutorial
 - One step at a time with the game frozen, a spotlight on the real thing, the card away from the spotlight.
 - "Try it now" steps wait for the real action and say "nice!" before going on.
@@ -75,6 +90,7 @@ principles - apply them to whatever the game is.
 - `track('game_start')` when a real round starts (not the tutorial), `track('game_over')` at its end.
 
 ## Testing
+- **Look at every screen before calling it done, and send back what is not clean** (his rule, 12 Nov 2026): panels and layout well spread, even gaps, nothing hidden or covered, text clear - screenshots at 320x568, 390x844, 412x915 and desktop, read by you; work made by a helper agent is checked the same way before he sees it.
 - Play the whole thing: tutorial, every level / story, a mistake on purpose, the end screen - with real clicks.
 - Four upright phone sizes plus a landscape, with touch; assert no overflow and that the main buttons are on screen.
 - A test reads state through the game's test hook, never by guessing from pixels.

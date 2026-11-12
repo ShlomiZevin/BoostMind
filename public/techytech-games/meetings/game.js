@@ -14,6 +14,8 @@ function rng(seed) { let h = 1779033703 ^ seed.length; for (let i = 0; i < seed.
 const pick = (r, a) => a[Math.floor(r() * a.length)];
 function shuffle(r, a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 const img = (n) => 'assets/' + n + '.webp';
+// an online versus match of this app (online.js sets window.VS while one runs): the same seed on both phones
+const vsOn = (mode) => !!(window.VS && VS.active === mode && G.mode === mode);
 
 // ---------- people ----------
 const NAME = { amir: 'אמיר', ofer: 'עופר', ronit: 'רונית', gilad: 'גלעד', itay: 'איתי', yaniv: 'יניב', daniel: 'דניאל', yotam: 'יותם', osnat: 'אסנת', tzvika: 'צביקה', vova: 'וובה', erez: 'ארז', ido: 'עידו', lior: 'ליאור', rami: 'רמי', yoav: 'יואב' };
@@ -118,7 +120,7 @@ const ZMAX = ZL.length - 1;
 const zb = {
   N: 4, grid: null, tiles: [], r: null, moves: 0, nextId: 1, busy: false, best: 0, cw: 0, ch: 0, gap: 6, pad: 6,
   start(tut) {
-    this.r = rng('zoomba|' + DAY + (tut ? '|tut' : '')); this.moves = 0; this.best = 0; this.busy = false;
+    this.r = rng(vsOn('zoomba') ? 'zoomba-vs|' + VS.m.seed : 'zoomba|' + DAY + (tut ? '|tut' : '')); this.moves = 0; this.best = 0; this.busy = false;
     $('#zb').innerHTML = ''; $('#zb').hidden = false; this.tiles = []; this.grid = [...Array(4)].map(() => Array(4).fill(null));
     this.layout();
     if (tut) { this.add(1, 1, 1); this.add(3, 1, 1); this.add(2, 3, 2); }
@@ -220,6 +222,7 @@ const zb = {
       if (merges.length) { const top = Math.max(...merges.map((t) => t.lv)); sfx(top >= 7 ? 'big' : 'merge', .7, 1 + Math.min(.4, top * .03)); emit('merge'); }
       if (kicked) { sfx('removed', .8); flash('דניאל הוסר מהפגישה +150'); setTimeout(() => say('amir', L.amirKick), 300); emit('kick'); }
       if (gained) addScore(gained);
+      if (vsOn('zoomba')) VS.zMoved(merges);
       for (const t of [...this.tiles]) if (t.kind === 'itay') {  // Itay counts down and leaves by himself
         t.cd--; const cd = t.el.querySelector('.cd'); if (cd) cd.textContent = t.cd;
         if (t.cd <= 0) { this.remove(t, 'removed'); sfx('leave', .7); say('itay', L.itayLeave, 2600); }
@@ -229,6 +232,7 @@ const zb = {
       if (!this.canMove()) {
         const it = this.tiles.find((t) => t.kind === 'itay');
         if (it) { this.remove(it, 'removed'); sfx('leave', .7); say('itay', L.itayLeave, 2600); }  // no dead end: Itay runs to his call
+        else if (vsOn('zoomba')) VS.zLost();
         else if (!G.tut) setTimeout(() => endGame(), 650);
       }
     }, 130);
@@ -284,7 +288,7 @@ const TASKS = {
 const mt = {
   round: 0, task: null, order: [], r: null, t0: 0, found: false,
   start(tut) {
-    this.r = rng('meetly|' + DAY + (tut ? '|tut' : '')); this.round = 0;
+    this.r = rng(vsOn('meetly') ? 'meetly-vs|' + VS.m.seed : 'meetly|' + DAY + (tut ? '|tut' : '')); this.round = 0;
     const keys = Object.keys(TASKS); this.order = tut ? ['hand'] : [];
     if (!tut) { let last = ''; for (let i = 0; i < 40; i++) { let k; do k = pick(this.r, keys); while (k === last); this.order.push(k); last = k; } this.order[0] = 'hand'; }
     $('#mgrid').hidden = false; this.next();
@@ -342,6 +346,7 @@ const mt = {
   tap(d, cl) {
     if (G.over || this.found || !G.mode) return;
     if (G.tut && G.tut.waiting !== 'found') return;
+    if (vsOn('meetly')) return VS.mTap(d, cl);
     if (cl.target) {
       this.found = true; d.classList.add('found'); sfx('found', .8);
       const secs = (performance.now() - this.t0) / 1000;
@@ -404,7 +409,7 @@ const tz = {
   C: 5, R: 6, level: 0, pairs: [], paths: [], owner: null, drag: null, cell: 0, ox: 0, oy: 0, done: false,
   start(tut) {
     this.level = 0; this.tut = !!tut; $('#cv').hidden = false; resizeCv();
-    this.r = rng('teamz|' + DAY);
+    this.r = rng(vsOn('teamz') ? 'teamz-vs|' + VS.m.seed : 'teamz|' + DAY);
     this.load();
   },
   load() {
@@ -414,7 +419,7 @@ const tz = {
       segs = [[[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 1], [1, 1], [2, 1], [3, 1]], [[0, 2], [1, 2], [2, 2], [3, 2], [3, 3], [2, 3], [1, 3], [0, 3]]];
     } else {
       const [c, r, k0] = TZ_LEVELS[Math.min(this.level, TZ_LEVELS.length - 1)]; C = c;
-      const { W, H } = stage(); R = Math.max(r, Math.min(r + 4, Math.round(c * (H - 10) / (W - 10))));  // the board takes the phone's shape
+      const { W, H } = stage(); R = vsOn('teamz') ? r + 2 : Math.max(r, Math.min(r + 4, Math.round(c * (H - 10) / (W - 10))));  // the board takes the phone's shape (online: the same board on both phones)
       const k = Math.min(TZ_FACES.length, k0 + Math.floor((R - r) / 2));
       segs = genFlow(C, R, k, this.r) || genFlow(C, R, k - 1, this.r);
     }
@@ -425,7 +430,7 @@ const tz = {
     this.pairs.forEach((p) => faceImg(p.face));
     this.layout();
     verb(this.tut ? 'גררו מפרצוף לפרצוף הזהה לו' : 'חברו כל זוג – בלי לחצות, למלא הכול', 'ronit');
-    if (!this.tut && this.level > 0) say('ronit', ['רגע, הוספתי עוד בעל עניין.', 'מי בכלל אישר את זה? עוד סבב.', 'לא. אנחנו לא מסונכרנים. עוד פעם.']);
+    if (!this.tut && this.level > 0 && !vsOn('teamz')) say('ronit', ['רגע, הוספתי עוד בעל עניין.', 'מי בכלל אישר את זה? עוד סבב.', 'לא. אנחנו לא מסונכרנים. עוד פעם.']);
   },
   layout() {
     const { W, H } = stage();
@@ -467,7 +472,7 @@ const tz = {
     p.push(c); sfx('line', .25, 1 + p.length * .02);
     if (this.complete(i)) { sfx('connect', .6); emit('connect'); this.drag = null; this.check(); }
   },
-  up() { if (this.drag != null) { this.drag = null; this.check(); } },
+  up() { if (this.drag != null) { this.drag = null; this.check(); } if (vsOn('teamz')) VS.tProgress(); },
   filled() { let n = 0; for (const p of this.paths) n += p.length; return n; },
   check() {
     if (this.done) return;
@@ -476,6 +481,7 @@ const tz = {
     if (this.filled() < this.C * this.R) { flash('יש משבצות ריקות'); say('ronit', 'רגע, לא כולם בשיחה. כל משבצת צריכה להתמלא.', 2200); return; }
     this.done = true; sfx('level', .8); emit('level');
     if (this.tut) return;
+    if (vsOn('teamz')) return VS.tSolved();
     const pts = 60 * this.pairs.length + this.level * 40;
     addScore(pts); addTime(22); flash('מסונכרנים! +' + pts);
     say('amir', 'מצוין. אז אנחנו מסונכרנים.', 1800);
@@ -526,7 +532,7 @@ const CLOCK = { meetly: 40, teamz: 75 };
 let lastT = performance.now();
 function frame(now) {
   const dt = Math.min(.1, (now - lastT) / 1000); lastT = now;
-  if (G.mode && CLOCK[G.mode] && !G.tut && !G.over && !document.hidden && $('#end').hidden) {
+  if (G.mode && CLOCK[G.mode] && !G.tut && !G.over && !vsOn(G.mode) && !document.hidden && $('#end').hidden) {
     G.time -= dt; timerShow();
     if (G.time <= 0) { G.time = 0; timerShow(); endGame(); }
   }
@@ -555,7 +561,8 @@ function startMode(mode, tutorial) {
   $('#start').hidden = true; $('#end').hidden = true; $('#play').hidden = false; $('#play').dataset.mode = mode;
   $('#appIcon').src = 'assets/app-' + mode + '.png'; $('#appTitle').textContent = APP[mode];
   $('#zb').hidden = $('#mgrid').hidden = $('#cv').hidden = true;
-  $('#timer').hidden = !CLOCK[mode]; G.time = G.timeMax = CLOCK[mode] || 0; if (CLOCK[mode]) timerShow();
+  $('#cl').hidden = $('#clHud').hidden = true; $('#play').classList.remove('narrow', 'vs'); $('#score').hidden = false; $('#bRestart').style.visibility = ''; $('#bAgain').textContent = 'עוד פגישה'; $('#bAgain').hidden = false; $('#bNew').hidden = true;
+  $('#timer').hidden = !CLOCK[mode] || vsOn(mode); G.time = G.timeMax = CLOCK[mode] || 0; if (CLOCK[mode]) timerShow();
   $('#flash').classList.remove('on');
   MODES[mode].start(tutorial); musicLevel();
   if (!tutorial) { window.track && window.track('game_start', SLUG); sfx('join', .6); }
@@ -566,7 +573,7 @@ const END = {
   teamz: { t: 'הזמן נגמר', s: 'הפגישה הבאה כבר התחילה', face: 'ronit', line: () => '"לא. אנחנו לא מסונכרנים." – יישרתם קו ב-' + tz.level + ' לוחות' },
 };
 function endGame() {
-  if (G.over || !G.mode || G.tut) return; G.over = true;
+  if (G.over || !G.mode || G.tut || vsOn(G.mode)) return; G.over = true;
   const mode = G.mode, nb = G.score > best(mode);
   saveBest(mode); sfx('over', .7);
   window.track && window.track('game_over', SLUG);
