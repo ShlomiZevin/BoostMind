@@ -83,6 +83,10 @@ conversation or one answer. When he says "read my comments": `OWNER_KEY=<his key
 (each comment + its whole conversation + what the chain's steps decided), then **discuss with him first** - what each
 needs (an engine / architecture change in the chain `techietech-api/wiki-deep.js`, a prompt, or character-specific only
 when nothing else works) - handle what you agreed, and answer under the comment (`reply <id> --file r.txt`).
+The chain (since 2026-11-12, his rule: at most 4 steps): direct (the strategy) -> search -> history -> talk (Terra writes the
+Hebrew). The character page (Backstage → דמויות, the record's `sheet`) is the ONLY truth about a character - never feed the chain
+other record fields; a profile problem goes to him. The director runs on Sonnet once `DIRECTOR_SONNET = true` in
+`techietech-api/wiki.js` + the secret `WIKI_ANTHROPIC_KEY`; test first: `node scripts/wiki/director_test.mjs --brain b.json --out r.md [--sonnet]`.
 
 ## Content - the database, never git (his rule, 2026-11-05)
 

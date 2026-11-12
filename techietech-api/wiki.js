@@ -33,6 +33,10 @@ async function keep(b, mode, turns, reply, u = {}, who = {}, extra = {}) {   // 
 }
 
 const OPENAI_API_KEY = defineSecret('WIKI_OPENAI_KEY');
+// the chain's director on Sonnet (2026-11-12): set DIRECTOR_SONNET = true once the secret WIKI_ANTHROPIC_KEY exists
+// (firebase functions:secrets:set WIKI_ANTHROPIC_KEY) - binding a secret that doesn't exist fails the deploy. Off = Terra directs.
+const DIRECTOR_SONNET = false;
+const ANTHROPIC_KEY = DIRECTOR_SONNET ? defineSecret('WIKI_ANTHROPIC_KEY') : null;
 const MODEL = 'gpt-5.6-terra';
 const MAX_TURNS = 16;
 const MAX_CHARS = 1200;
@@ -65,7 +69,7 @@ What a visitor can do on this site (shlomiverse.com). When they ask how to do so
 - Talk to any character in this chat, or write @ and a name to switch to them.
 - "מה הלאה בשלומיוורס": suggest an idea for an episode, a new character or a meeting between characters, and vote for others' ideas - the most loved reach Shlomi first. Also: request a video, report something broken.
 - When the visitor comes up with an idea for the verse - an episode, a new character, a meeting between residents, something you should do ("you should go on a date", "make a video where...") - react to it in your own voice, then hand it to them ready to send: [[idea:KIND|THE IDEA]] on its own line, where KIND is episode, character, meet or other and THE IDEA is their idea written up in one or two short Hebrew sentences, in their words, as they would send it (no quotes, no "|" or "]" inside). The page shows it as a filled-in idea card: one tap and it goes to the idea box, where others vote and the most loved reach Shlomi. Only for a real idea of theirs, at most once per idea, it counts as one of the three cards; never invent an idea for them.
-- Characters' own sites (shops, companies, services - see the site cards) and Hani's games.
+- Characters' own sites (shops, companies, services - see the site cards) and every character's games (see the games list).
 ${SIM_IN_CHAT ? `- The test "אתם חיים בסימולציה?" (shlomiverse.com/simulation): a few silly questions about the visitor, asked by a character, and at the end a department of the Shlomiverse, the simulation they live in (a mix of residents made just for them) and a picture of them with residents. You may suggest it, in your own voice and in one short sentence, when the talk itself comes to it - simulation, reality, fate, "who am I", what kind of person the visitor is - or when they ask what there is to do here; then put [[quiz]] on its own line (the page shows the test's card; it counts as one of the three cards). At most once in a conversation: never if you already suggested it, never in place of answering what they asked, and never in a reply that ends with [[signin]] or [[invite]].` : ''}
 - A Google account (one tap, no password) is what sticker-making, following, saving, comments, voting and more chat messages need; with it the characters know their name. Inside Instagram / TikTok / Facebook's own browser Google sign-in doesn't work - open the link in a normal browser first.`;
 
@@ -261,6 +265,8 @@ async function stream(key, mode, turns, onText, opts = {}) {
   };
 }
 exports._stream = stream;
+exports._fromBrain = fromBrain;   // tests: a brain file -> what canonNow() returns
+exports._contact = { CONTACT_CHAR, CONTACT_TOURIST };
 exports._canon = canonNow;   // the Shlomiverse's social layer (verse.js): characters answering in the comments
 exports._test = { RULES, canon, modeText };
 // the very same character the chat speaks as, for the site's processes - Miriam's check-in, Demokratovich's booth, the simulation
@@ -419,7 +425,7 @@ const tooMany = (ip) => {
 
 exports.wikiChat = onRequest({
   region: 'europe-west1',
-  secrets: [OPENAI_API_KEY],
+  secrets: [OPENAI_API_KEY, ...(ANTHROPIC_KEY ? [ANTHROPIC_KEY] : [])],
   cors: [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^http:\/\/localhost(:\d+)?$/],
   maxInstances: 4,
   concurrency: 20,
@@ -465,10 +471,13 @@ exports.wikiChat = onRequest({
       const cid = String(req.body.c || '').replace(/[^a-z0-9]/gi, '').slice(0, 12);
       const ref = cid ? admin.firestore().collection('chatBrains').doc(`${cid}_${mode}`) : null;   // the conversation's own brain
       const convo = ref ? ((await ref.get().catch(() => null))?.data()?.convo || {}) : {};
-      const rules = [opts.visitor || (opts.contact ? CONTACT_TOURIST : ''), opts.contact ? CONTACT_CHAR : '', opts.limit ? LIMIT[opts.limit] : '', opts.cont ? CONT : ''].filter(Boolean).join('\n\n');
+      // the request-card rules go apart: the chain uses them only when the visitor really looks for a video (his note 2026-11-12)
+      const rules = [opts.visitor, opts.limit ? LIMIT[opts.limit] : '', opts.cont ? CONT : ''].filter(Boolean).join('\n\n');
+      const contact = opts.contact ? [opts.visitor ? '' : CONTACT_TOURIST, CONTACT_CHAR].filter(Boolean).join('\n\n') : '';
+      const akey = ANTHROPIC_KEY && process.env.FUNCTIONS_EMULATOR !== 'true' ? ANTHROPIC_KEY.value() : null;
       let wrote = false;
       try {
-        const r = await deep.reply({ key, cur, mode, turns, convo, extra: rules, onText: (t) => { wrote = true; reply += t; res.write(t); } });
+        const r = await deep.reply({ key, akey, cur, mode, turns, convo, extra: rules, contact, onText: (t) => { wrote = true; reply += t; res.write(t); } });
         u = r.usage; extra = r.log;
         if (ref) await ref.set({ convo: r.convo, t: Timestamp.now(), exp: Timestamp.fromMillis(Date.now() + KEEP_DAYS * 864e5) }).catch(() => {});
         console.log('wikiChat deep', mode, (r.first / 1000).toFixed(1) + 's', '$' + r.cost.toFixed(4), r.steps.map((s) => s.step).join('>'));

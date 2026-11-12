@@ -45,6 +45,11 @@ exports.mapText = (brain, small = false) => {
     lines.push('## Sites - every site in the Shlomiverse (card id | name | address | what it is | whose). Asked about one, how to get to it, or to play / buy / order: show it with [[site:card id]] on its own line');
     for (const s of brain.sites) lines.push([s.id, s.title, s.url, s.about, s.whose.join(', ') + (s.in ? ` - a game in ${s.in}` : '')].join(' | '));
   }
+  // every live game of every character (his note 2026-11-12: the guide knew only Hani's) - build.py games()
+  if (brain.games?.length) {
+    lines.push('## Games - every game in the Shlomiverse (id | name | address | what it is | whose). Asked about games: name the ones that fit, with their address');
+    for (const g of brain.games) lines.push([g.id, g.title, pub(g.url), g.tagline || '', (g.chars || []).join(', ')].join(' | '));
+  }
   // the videos by title only (2026-11-08): what happens in each is found by look_up's search (wiki-search.js) - the cards were 70%
   // of the map and grew with every video
   lines.push('## Videos (id | date | title | cast) - what happens in each is NOT here: to find a video by what happens in it, use look_up with "search"');
