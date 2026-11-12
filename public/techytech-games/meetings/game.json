@@ -10,5 +10,5 @@
   "best": { "key": "shlomiverse:meetings:best", "label": "נקודות" },
   "record": { "unit": "נקודות", "better": "high" },
   "date": "2026-11-12",
-  "online": { "players": 2, "modes": ["friend", "quick"], "keys": ["callio", "meetly", "teamz", "zoomba"], "turns": true, "hidden": "until he releases it: shown only with ?online=1 or an invite link" }
+  "online": { "players": 2, "modes": ["friend", "quick"], "keys": ["callio", "meetly", "teamz", "zoomba"], "turns": true, "released": "2026-11-12" }
 }

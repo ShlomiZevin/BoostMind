@@ -199,6 +199,6 @@ if (window.VerseNet) {
     N.lobby(el.dataset.onl, vsLabel(el.dataset.onl)).catch(() => {});
   }));
   const showOnl = () => { document.querySelectorAll('[data-onl]').forEach((el) => { el.hidden = false; }); $('#appCallio').hidden = false; fitHub(); };
-  if (/^(localhost|127\.)/.test(location.hostname) || /[?&]online=1/.test(location.search)) showOnl();
+  showOnl();  // released to everyone 12 Nov 2026
   N.ready().then((r) => { if (r && r.flags && r.flags.online) showOnl(); });
 }

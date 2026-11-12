@@ -42,7 +42,7 @@ const cl = {
   paintCount() { const n = NET && NET.count; $('#clCount').innerHTML = n > 1 ? '<i></i>' + (n === 2 ? 'עוד שחקן אחד כאן עכשיו' : n + ' שחקנים כאן עכשיו') : ''; },
   notInVerse() {
     const n = $('#clNote'); n.hidden = false;
-    n.innerHTML = 'משחק מול חבר עובד בתוך שלומיוורס. <a href="https://shlomiverse.com/play/techytech-games-meetings?online=1" target="_top">פתחו כאן ←</a>';
+    n.innerHTML = 'משחק מול חבר עובד בתוך שלומיוורס. <a href="https://shlomiverse.com/play/techytech-games-meetings" target="_top">פתחו כאן ←</a>';
   },
   async go(kind) {
     sfx('tap', .5);
@@ -329,7 +329,7 @@ if (NET) {
   // Callio shows only where online play works and he asked for it: ?online=1 (his preview - he decides when everyone
   // sees it), an invite link (?room=), or a local test
   const local = /^(localhost|127\.)/.test(location.hostname), own = /[?&]online=1/.test(location.search);
-  if (local || own) $('#appCallio').hidden = false;
+  $('#appCallio').hidden = false;  // released to everyone 12 Nov 2026
   NET.ready().then((r) => { if (r && r.flags && r.flags.online) $('#appCallio').hidden = false; });
 }
 
