@@ -85,6 +85,7 @@ const canon = (brain) => {
 const chain = require('./wiki-chain');
 const { search } = require('./wiki-search');   // the videos by meaning (look_up's search)
 const deep = require('./wiki-deep');            // the characters' chain - understand > history > funny > talk (his plan "המוח המצחיק")
+const about = require('./about');               // the visitor's profile ("ספרו לנו עליכם") - what the characters know about them
 const DEEP_CHAT = true;                         // false = every character back on the one call below
 const fromBrain = (brain, md5) => ({ map: RULES + '\n\n' + chain.mapText(brain), byId: Object.fromEntries(brain.characters.map((c) => [c.id, c])),
   videos: Object.fromEntries(brain.videos.map((v) => [v.id, v])), games: Object.fromEntries((brain.games || []).map((g) => [g.id, g])), md5 });
@@ -267,6 +268,7 @@ async function stream(key, mode, turns, onText, opts = {}) {
 exports._stream = stream;
 exports._fromBrain = fromBrain;   // tests: a brain file -> what canonNow() returns
 exports._contact = { CONTACT_CHAR, CONTACT_TOURIST };
+exports._visitorText = visitorText; exports._visitorLine = visitorLine;   // tests: the visitor note
 exports._canon = canonNow;   // the Shlomiverse's social layer (verse.js): characters answering in the comments
 exports._test = { RULES, canon, modeText };
 // the very same character the chat speaks as, for the site's processes - Miriam's check-in, Demokratovich's booth, the simulation
@@ -317,20 +319,58 @@ exports.persona = async (mode, slim = false) => {
 const ANON_TOTAL = 3, FAN_TOTAL = 10, DAY_CAP = 1500;
 const OWNER = 'shlomi@boostart.io';
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
-// who the signed-in visitor is, for the characters (stage 3 of the conversion plan: "the characters know you in the chat - the
-// name, the number, the department and the simulation"): their name, and a citizen's number / department / classification /
-// the simulation they live in (sim.js, citizen.js). Mentioned only when it fits.
+// who the signed-in visitor is, for the characters (his round 3, 2026-11-13): everything real they told us - their profile
+// (about.js: filled by Miriam, Demokratovich and the simulation test) and their own typed words in those three flows - written
+// as someone the character already knows, talked to like a friend. Not the game's inventions (citizen number, department,
+// classification, the simulation result, the booth's yes/no lines) and not settings (notifications). The old note ended with
+// "use their name now and then" and the characters said the name in almost every answer.
+const STAGE_EN = { school: 'In school', army: 'Doing army or national service', student: 'A student', work: 'Working', parent: 'A parent', retired: 'Retired' };
+const FIRST_EN = { videos: 'the videos', chat: 'talking with the characters', games: 'the games', stickers: 'the stickers' };
+const SOURCE_EN = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube', friend: 'a friend who sent it' };
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const BOOTH_WHY = 'מה מטרת כניסתך לארצנו?';
+const OWN_WORDS = 8;
+function visitorText(nick, ab = {}, cz = {}, sim = {}, I = { names: {}, worlds: {} }) {
+  const name = String(nick || '').trim().slice(0, 40);
+  const v = (k) => (ab[k] && ab[k].v != null ? ab[k].v : null);
+  const words = (k) => (ab[k] && ab[k].raw ? ` (in their words: "${String(ab[k].raw).slice(0, 120)}")` : '');
+  const know = [];
+  if (STAGE_EN[v('stage')]) know.push(`${STAGE_EN[v('stage')]}${words('stage')}.`);
+  const fav = (v('fav') || []).map((id) => I.names[id]).filter(Boolean);
+  if (fav.length) know.push(`Came to see ${fav.join(', ')}.`);
+  if (I.worlds[v('world')]) know.push(`Laughs most at ${I.worlds[v('world')]}${words('world')}.`);
+  if (FIRST_EN[v('first')]) know.push(`Came mostly for ${FIRST_EN[v('first')]}.`);
+  if (SOURCE_EN[v('source')]) know.push(`Found the Shlomiverse through ${SOURCE_EN[v('source')]}${words('source')}.`);
+  else if (ab.source && ab.source.raw) know.push(`How they found the Shlomiverse, in their words: "${String(ab.source.raw).slice(0, 120)}".`);
+  if (v('wish')) know.push(`Would like to do here: "${String(v('wish')).slice(0, 200)}".`);
+  const b = v('bday');
+  if (b && b.d && b.m) know.push(`Birthday: ${b.d} ${MONTHS[b.m - 1]}${b.y ? ' ' + b.y : ''}.`);
+  // their own typed words: Miriam's own questions, why they came (the booth), the simulation test's questions
+  const own = [];
+  for (const t of cz.turns || []) if (t && t.typed && !t.field && t.a) own.push(`Miriam asked "${t.q}" -> "${t.a}"`);
+  const lines = cz.script && cz.script.length ? cz.script : null;
+  const wi = lines ? lines.findIndex((l) => l && l.t === BOOTH_WHY) : 1;
+  const why = (cz.bt || [])[wi];
+  if (why && why.a && !(lines && lines[wi] && (lines[wi].opts || []).includes(why.a))) own.push(`Rabbi Demokratovich asked why they came -> "${why.a}"`);
+  for (const s of sim.steps || []) if (s && s.free && !s.field) own.push(`The simulation test asked "${s.q}" -> "${s.free}"`);
+  if (own.length) know.push('In their own words: ' + own.slice(-OWN_WORDS).map((x) => String(x).slice(0, 260)).join(' · '));
+  if (name) know.unshift(`Their name: ${name} - between friends a name is for a hello, a goodbye or a big moment; the rest of the time they just talk.`);
+  return `You're chatting with someone you already know - a friend. Reply the way friends text each other: open straight with your reaction to what they just said, and speak to them as "you". What you know about them is the background of your friendship: it lives in how you see them, and it comes up when the conversation reaches it, the way a friend's life comes up between friends.`
+    + (know.length ? `\n\nWhat you know about them:\n- ${know.join('\n- ')}` : '');
+}
 async function visitorLine(who) {
   if (!who.uid) return '';
   try {
-    const f = (await admin.firestore().collection('fans').doc(who.uid).get()).data() || {};
-    const bits = [];
-    if (f.nick) bits.push(`their name is ${String(f.nick).slice(0, 40)}`);
-    if (f.citizen && f.citizen.n) bits.push(`they are citizen no. ${String(f.citizen.n).padStart(4, '0')} of the Shlomiverse${f.citizen.founding ? ' (a founding citizen)' : ''}${f.citizen.dept ? `, department: ${f.citizen.dept}` : ''}${f.citizen.cls ? `, classification: ${f.citizen.cls}` : ''}`);
-    else bits.push('they are a resident (signed up), not yet a citizen');
-    if (f.sim && f.sim.name) bits.push(`the simulation test says they live in "${f.sim.name}"${f.sim.dept ? `, assigned to ${f.sim.dept}` : ''}`);
-    return `About the visitor (you know them): ${bits.join('; ')}. Use their name now and then, naturally; bring up the rest only when it fits the talk, rarely, never as a list.`;
-  } catch (e) { return ''; }
+    const fs = admin.firestore();
+    const [f, ab, cz, I] = await Promise.all([
+      fs.collection('fans').doc(who.uid).get().then((g) => g.data() || {}),
+      about.get(who.uid).catch(() => ({})),
+      fs.collection('citizens').doc(who.uid).get().then((g) => g.data() || {}).catch(() => ({})),
+      about.ids().then((x) => ({ names: x.names, worlds: Object.fromEntries(x.worldList.map((w) => [w.id, w.title])) })).catch(() => ({ names: {}, worlds: {} })),
+    ]);
+    const sim = f.sim && f.sim.rid ? await fs.collection('sims').doc(String(f.sim.rid)).get().then((g) => g.data() || {}).catch(() => ({})) : {};
+    return visitorText(f.nick, ab, cz, sim, I);
+  } catch (e) { console.error('visitorLine', e.message); return ''; }
 }
 async function whoAsks(req) {
   const tok = (req.get('authorization') || '').replace(/^Bearer /, '');
