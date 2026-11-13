@@ -98,7 +98,7 @@ How a good plan works:
 - A catchphrase or a signature opening is something from their life, not a template: most answers have none, never as a fixed opening.
 - Knowledge as ${c.name} has it, judged from the page (their job, world, life, how they talk about things). Someone the page describes as explaining everything with total confidence answers everything with total confidence - right or invented - and never says they don't know. Anyone else: no source on the page = they only heard of it or don't know it, however famous the subject is.
 - A visitor who quotes or echoes a line or a moment of ${c.name}'s own is playing with them: kind "quote" - react to it in character; no video hunt.
-- Movement (his ask 2026-11-12): a conversation should want to go on. Decide how THIS answer keeps the visitor in it, the way ${c.name} would - a question back that only they would ask, a provocation, a hook left open ("ואז קרה משהו, אבל עזוב"), a small reveal from their life, pulling the visitor into their world or their cause, a challenge. Vary it: not every answer ends in a question, and a short message can simply land. Never an assistant's question ("how can I help?", "anything else?"), never a menu of options, never begging to keep talking.
+- Movement (his ask 2026-11-12): a conversation should want to go on. Decide how THIS answer keeps the visitor in it, the way ${c.name} would - a question back that only they would ask and the visitor can answer at once, a provocation, a specific named detail from their life left hanging so the visitor wants to ask about it, a small reveal from their life, pulling the visitor into their world or their cause, a challenge. Vary it: not every answer ends in a question, and a short message can simply land. Never an assistant's question ("how can I help?", "anything else?"), never a menu of options, never begging to keep talking.
 - "find_video" only when the visitor asks to see or find a video. A question about their past ("did you ever", "what happened with", "היה לך פעם", "מה קרה עם") gets videos from the life list or search words.
 
 ${sheetText(c, ALL)}
@@ -122,7 +122,7 @@ const PLAN_FORMAT = (c) => `Answer JSON only:
  "visitor": "anything the visitor told about themselves, or \\"\\"",
  "knows": {"level": "expert" | "some" | "heard_of" | "no", "how": "if not expert: how ${c.name} handles it, in character - at most 12 words - else \\"\\""},
  "length": "short" | "medium" | "story"}
-Keep every field short - a director's notes, not an essay.`;
+Keep every field short - a director's notes, not an essay. Write every text field in Hebrew - the plain spoken Hebrew ${c.name} lives in, the way you would brief a Hebrew writer (his rule, 2026-11-13: the thinking is in Hebrew); the writer works from your Hebrew as it is.`;
 
 // one answer. cur = wiki.js canonNow() (the brain: byId has each character's sheet and life, videos their transcripts);
 // convo = the conversation's brain from the previous answer ({} for a new one) - returned updated.
@@ -162,7 +162,7 @@ async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = 
   if (ids.length || (D.touches?.search && D.kind !== 'quote')) {
     const scripts = ids.slice(0, 3).map((id) => { const v = cur.videos[id]; return `### ${id} | ${v.date || ''} | ${v.title}\n${(v.transcript || v.card || '').slice(0, 9000)}`; }).join('\n\n');
     const h = await call(key, 'history', `You are ${c.name}'s memory. Find in these scripts what really happened to ${c.name} and what was said, for the visitor's question. Exact quotes only. If it isn't there, say it wasn't found - never invent.\n\n${scripts || '(no matching video was found)'}`,
-      [...last(turns, STEPS.history.couples), { role: 'developer', content: `Be brief - a note, not an essay (the next step waits for it). Answer JSON only: {"found": true/false, "what": "what happened, at most 2 short sentences", "lines": ["at most 3 short exact quotes that answer the question"], "video": "id to show, or \\"\\""}` }],
+      [...last(turns, STEPS.history.couples), { role: 'developer', content: `Be brief - a note, not an essay (the next step waits for it). Answer JSON only: {"found": true/false, "what": "what happened, in Hebrew, at most 2 short sentences", "lines": ["at most 3 short exact quotes that answer the question"], "video": "id to show, or \\"\\""}` }],
       { max: 500 });
     steps.push({ step: 'history', ...h });
     H = h.out || {};
