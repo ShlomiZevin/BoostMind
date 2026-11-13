@@ -77,7 +77,7 @@ export function openPlayer(id, q = {}) {
         <button data-dl><span class="vx-round">${I.download}</span>${esc(T.dl.btn)}</button>
       </div>
       <div class="vp-ep">
-        <div><h2>${esc(v.title)}</h2><div class="meta">${esc(S[v.series] && eps.length > 1 ? T.episode(n + 1, S[v.series].title) : (S[v.series]?.title || (lead ? C[lead].name : '')))}</div><a class="vp-credit" data-credit hidden></a></div>
+        <div><h2>${esc(v.title)}</h2><div class="meta">${esc(S[v.series] && eps.length > 1 ? T.episode(n + 1, S[v.series].title) : (S[v.series]?.title || (lead ? C[lead].name : '')))}<span class="vp-plays" data-plays-for="${esc(id)}"></span></div><a class="vp-credit" data-credit hidden></a></div>
         <button class="vx-round pp" data-pp aria-label="נגינה">${I.play}</button>
         <div class="scrub"><input type="range" min="0" max="1000" value="0" data-scrub aria-label="מיקום בסרטון"><div class="times"><span data-cur>00:00</span><span data-dur>--:--</span></div></div>
       </div>

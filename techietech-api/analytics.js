@@ -237,11 +237,18 @@ async function videoTops() {
     await shelf.set(closed);
   }
   const day = month[0].id === today ? videoCounts([month[0]]) : {};
+  const all = videoCounts(month, { ...closed.tot });
   await db.collection('videoStats').doc('_top').set({
     day: topOf(day), week: topOf(videoCounts(month.filter((d) => d.id > dayIL(new Date(Date.now() - 7 * 864e5))))),
-    month: topOf(videoCounts(month)), all: topOf(videoCounts(month, { ...closed.tot })),
+    month: topOf(videoCounts(month)), all: topOf(all),
     dayVideos: Object.keys(day).length, since: closed.upTo ? '' : from, at: Timestamp.now(),
   });
+  // the watch count on every video (his ask, 2026-11-13: "you decide"): all-time plays on the site, shown from PLAYS_MIN up -
+  // a handful of plays next to a 40K channel would make the site look empty, so smaller counts never reach the page
+  const n = {};
+  for (const [id, c] of Object.entries(all)) if (c >= PLAYS_MIN) n[id] = c;
+  await db.collection('videoStats').doc('_plays').set({ n, min: PLAYS_MIN, at: Timestamp.now() });
 }
+const PLAYS_MIN = 20;
 exports.videoTops = onSchedule({ schedule: 'every 15 minutes', region: 'europe-west1', memory: '256MiB', timeoutSeconds: 60 }, videoTops);
 exports._videoTops = videoTops;

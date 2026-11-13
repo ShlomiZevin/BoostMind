@@ -3069,3 +3069,12 @@ button:hover > .lk { color: #d8d4de; filter: none; }
 .pv-ev .chip.on { border-color: var(--vx-accent); color: #fff; background: rgba(255, 106, 31, .18); }
 .pv input[type=date] { color-scheme: dark; }
 .pv textarea { min-height: 150px; }
+
+/* the watch count on a video's picture (plays.js, his ask 2026-11-13): bottom-left like a TikTok grid, away from the top-10's
+   big rank number on the right; only videos with 20+ plays on the site get one */
+.vx-plays { position: absolute; left: 7px; bottom: 7px; z-index: 2; display: inline-flex; align-items: center; gap: 3px; direction: ltr; padding: 3px 8px 3px 6px;
+  border-radius: 999px; background: rgba(0, 0, 0, .55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #fff; font-size: .74rem; font-weight: 700;
+  line-height: 1; letter-spacing: .01em; pointer-events: none; }
+.vx-plays svg { width: 11px; height: 11px; fill: currentColor; flex: none; }
+.t10 .thumb { position: relative; }
+.vp-plays { white-space: nowrap; }

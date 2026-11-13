@@ -10,6 +10,7 @@ import { renderTop, yourVerse, homeSlot, stickersSlot, heroHi, notesPage, mePage
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff, recordsPage } from './records.js';
 import { startRowArrows } from './rows.js';
+import { startPlays } from './plays.js';
 import { archivePage, archiveCard } from './archive.js';
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
@@ -83,6 +84,7 @@ pages.records = recordsPage;   // שיאי היום, the full board (records.js)
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
 startRowArrows();   // a computer: arrows on the rows that move sideways (rows.js)
+startPlays();       // the watch count on every video card and in the player (plays.js)
 onStories(() => { refresh(); paintStoryRing(); });
 
 // the wiki rendered before this module arrived (the Firebase SDK loads first). On the home: fill in only the account parts
