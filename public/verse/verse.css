@@ -974,6 +974,12 @@ body > footer { padding: 14px 0 !important; margin-top: 40px !important; }
 .vx-btn.wa svg { width: 20px; height: 20px; }
 /* the small forms (video request, something broken) */
 .rqs { padding: 4px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+/* a long form scrolls inside its sheet (a visitor's report 2026-11-13: the personal-video form ran past the screen on an iPhone
+   and nothing scrolled - the send button was out of reach); the send button stays at the bottom, the fields scroll under it */
+.vx-sheet.rqs-sheet > .rqs { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 0; }
+.vx-sheet.rqs-sheet > .rqs > * { flex-shrink: 0; }   /* in a scrolling column the faces row (its own sideways scroller) would shrink to nothing */
+.vx-sheet.rqs-sheet > .rqs > button[type=submit], .vx-sheet.rqs-sheet > .rqs > .vx-btn.main.block:last-child { position: sticky; bottom: 0; flex: none; margin-top: 4px; margin-bottom: 14px;
+  box-shadow: 0 0 0 10px rgba(22, 20, 24, .92), 0 -18px 22px 10px rgba(22, 20, 24, .85); }
 .rqs textarea, .rqs input, .biz-form input, .biz-form textarea { width: 100%; border-radius: 16px; border: 1px solid var(--vx-glass-line); background: rgba(255, 255, 255, .06); color: #fff; font: inherit; padding: 12px 14px; }
 .rqs textarea { min-height: 110px; resize: none; }
 .rqs textarea:focus, .rqs input:focus, .biz-form input:focus, .biz-form textarea:focus { outline: none; border-color: var(--vx-accent); }
