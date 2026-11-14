@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * The OpenAI helper: ask any GPT model (Terra, SOL, Luna, pro...) and write the answer to a UTF-8 file.
+ * The OpenAI helper: ask a GPT model (Terra - always, his rule 2026-11-14) and write the answer to a UTF-8 file.
+ * SOL is never used ("too expensive and sometimes overcomplicates"): a --model gpt-5.6-sol is switched to Terra.
  *
  * FILE IN, FILE OUT — ON PURPOSE. The Windows console mangles Hebrew in both
  * directions: a Hebrew prompt typed into a shell heredoc arrives as broken
@@ -70,7 +71,8 @@ async function main() {
 
   if (has('--models')) return listModels(key);
 
-  const model = arg('--model', 'gpt-5.6-sol');
+  let model = arg('--model', 'gpt-5.6-terra');
+  if (/sol/i.test(model)) { console.error(`(${model} -> gpt-5.6-terra: Terra for everything, never SOL - his rule, 2026-11-14)`); model = 'gpt-5.6-terra'; }
   const inFile = arg('--in');
   const outFile = arg('--out');
   const systemFile = arg('--system');
@@ -82,7 +84,7 @@ async function main() {
   if (inFile) prompt = fs.readFileSync(inFile, 'utf8');
   if (!prompt) throw new Error('Give either --in <file> (preferred) or --prompt "<ascii text>"');
 
-  // Screenshots or drafts for SOL to look at: --image a.png --image b.jpg
+  // Screenshots or drafts for the model to look at: --image a.png --image b.jpg
   const images = process.argv.flatMap((a, i) => (a === '--image' && process.argv[i + 1] ? [process.argv[i + 1]] : []));
   const mime = p => ({ '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' })[path.extname(p).toLowerCase()] || 'image/png';
 

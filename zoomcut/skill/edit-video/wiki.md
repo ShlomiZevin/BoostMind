@@ -122,7 +122,7 @@ The steps it runs, for when one fails:
 2. **Fan copy** (the title and one-line teaser people see; a new character also gets a tagline, bio and 3 questions):
    `python scripts/wiki/copy_brief.py --only-missing`, then
    `node ~/.claude/skills/openai-leonardo/scripts/openai.js --in scripts/wiki/work/copy-brief.txt --out scripts/wiki/work/copy-answer.md --model gpt-5.6-terra` (from the repo: it takes the design key, which Backstage counts),
-   read the answer, then `python scripts/wiki/merge_copy.py`. **Terra, not SOL** (his call). The copy lives in
+   read the answer, then `python scripts/wiki/merge_copy.py`. **Terra, never SOL** (his call - for everything, 2026-11-14). The copy lives in
    `scripts/wiki/copy.json` - fix a line there by hand any time.
 3. **Build:** `python scripts/wiki/build.py` - it lists anything still MISSING (an encode, a copy line).
 4. **Push:** `node scripts/wiki/push.cjs` (from BoostMind) - the wiki, the links page and the chat have it within

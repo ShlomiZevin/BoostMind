@@ -1,4 +1,4 @@
-"""Merge the JSON block of a SOL answer: videos into copy.json; characters' and worlds' fan copy straight onto their
+"""Merge the JSON block of a Terra answer: videos into copy.json; characters' and worlds' fan copy straight onto their
 records in the database (their only copy since 2026-11-06). New ones added, existing hand edits kept unless --force."""
 import json, os, re, sys
 from canon import HERE, load_json, characters, verse

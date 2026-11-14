@@ -1,11 +1,11 @@
 ---
 name: openai-leonardo
-description: The OpenAI helper - ask any GPT-5.x model (Terra, SOL, Luna) for wording, Hebrew copy, naming, positioning or a second opinion, and generate real images with Leonardo AI. Use whenever the user says "consult SOL", "ask SOL", "ask Terra", "consult Terra", "תתייעץ עם טרה", "תתייעץ עם סול", "שאל את סול", asks for a second opinion from OpenAI/GPT, wants Hebrew copy or naming polished, or asks for images, illustrations, artwork, backgrounds, hero shots, posters, icons or slide visuals to be generated — including for a deck, a brochure, a landing page or a React project. Also use before writing marketing or presentation copy in Hebrew.
+description: The OpenAI helper - ask Terra (GPT-5.6 Terra - the only model he uses) for wording, Hebrew copy, naming, positioning or a second opinion, and generate real images with Leonardo AI. Use whenever the user says "ask Terra", "consult Terra", "תתייעץ עם טרה" (an old "consult SOL" / "שאל את סול" also means Terra now), asks for a second opinion from OpenAI/GPT, wants Hebrew copy or naming polished, or asks for images, illustrations, artwork, backgrounds, hero shots, posters, icons or slide visuals to be generated — including for a deck, a brochure, a landing page or a React project. Also use before writing marketing or presentation copy in Hebrew.
 ---
 
 # OpenAI + Leonardo (was "SOL + Leonardo" / sol.js until 2026-11-06)
 
-Two external services, one workflow: **a GPT model (Terra, SOL...) writes the words and the art brief, Leonardo renders the picture.** `openai.js` is the OpenAI helper - any model, picked with `--model` (the old `sol.js` still works and runs the same thing). The OpenAI key: **inside `C:\workspace\BoostMind` (the Shlomiverse) `openai.js` always takes its design key, `scripts\design.env`** (Backstage → הוצאות counts it; missing → `node scripts/design-env.mjs`; 2026-11-06) - don't pass `--env` there. Elsewhere (aspect) it lives in `C:\workspace\aspect\aspect-agent-server\.env` (`OPENAI_API_KEY`). **The Leonardo key is his official account's, in `C:\workspace\BoostMind\zoomcut\.env` (`LEONARDO_API_KEY`, 2026-10-26) - `leo.js` picks the key by project: inside `C:\workspace\BoostMind` only that key; anywhere else (aspect) that project's own `.env`, then aspect-agent-server's. The two projects never share a Leonardo key (his ask, 2026-10-27).** The scripts find both automatically.
+Two external services, one workflow: **Terra writes the words and the art brief, Leonardo renders the picture.** `openai.js` is the OpenAI helper - any model, picked with `--model` (the old `sol.js` still works and runs the same thing). The OpenAI key: **inside `C:\workspace\BoostMind` (the Shlomiverse) `openai.js` always takes its design key, `scripts\design.env`** (Backstage → הוצאות counts it; missing → `node scripts/design-env.mjs`; 2026-11-06) - don't pass `--env` there. Elsewhere (aspect) it lives in `C:\workspace\aspect\aspect-agent-server\.env` (`OPENAI_API_KEY`). **The Leonardo key is his official account's, in `C:\workspace\BoostMind\zoomcut\.env` (`LEONARDO_API_KEY`, 2026-10-26) - `leo.js` picks the key by project: inside `C:\workspace\BoostMind` only that key; anywhere else (aspect) that project's own `.env`, then aspect-agent-server's. The two projects never share a Leonardo key (his ask, 2026-10-27).** The scripts find both automatically.
 
 Scripts are at `~/.claude/skills/openai-leonardo/scripts/` (the skill lives in the repo, `c:/workspace/BoostMind/zoomcut/skill/openai-leonardo`; a computer gets it with `node zoomcut/skill/openai-leonardo/install.mjs`). Both are standalone Node — no install, no project dependency.
 
@@ -28,13 +28,16 @@ So: **write the prompt to a file, read the answer from a file with the Read tool
 
 ---
 
-## Asking GPT (Terra, SOL, Luna...)
+## Asking GPT - always Terra (his rule, 2026-11-14)
+
+**Terra for everything - never SOL** (his words: "Sol is too expensive and sometimes overcomplicates stuff. We use
+Terra for anything."). `openai.js` defaults to Terra and switches a `--model gpt-5.6-sol` to Terra by itself.
 
 ```bash
 node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md
 node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md --model gpt-5.6-terra --effort high
 node ~/.claude/skills/openai-leonardo/scripts/openai.js --models      # what this key can actually reach
-node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md --image home.png --image ideas.png   # SOL looks at screenshots (design critique)
+node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md --image home.png --image ideas.png   # Terra looks at screenshots (design critique)
 ```
 
 Then read `answer.md` with the **Read** tool.
@@ -42,15 +45,14 @@ Then read `answer.md` with the **Read** tool.
 ### Which model
 | model | for |
 |---|---|
-| `gpt-5.6-sol` | **default.** Wording, naming, Hebrew copy, positioning, second opinions. |
-| `gpt-5.6-terra` | Longer analytical work, structure, critique of a plan. |
-| `gpt-5.6-luna` | Alternative voice — worth a second pass when SOL's answer feels safe. |
-| `gpt-5.5-pro` / `gpt-5.4-pro` | Slow and expensive; only for a genuinely hard judgement call. |
+| `gpt-5.6-terra` | **the only one - default and everything**: wording, naming, Hebrew copy, positioning, second opinions, analysis, critique. |
+| `gpt-5.6-sol` | **never** (his rule, 2026-11-14 - too expensive, overcomplicates). |
+| others (luna, pro) | not used unless he asks for one by name. |
 
 Run `--models` rather than assuming — the roster on this key changes.
 
 ### Writing a brief that gets a usable answer
-SOL returns filler when asked an open question. Structure that works:
+An open question returns filler. Structure that works:
 
 1. **Role + register**, one line: `אתה יועץ ניסוח ומיתוג בעברית. תשובות קצרות וחדות. בלי הקדמות.`
 2. **Context** — who the audience is and what they fear or want. This is what makes the answer specific rather than generic.
@@ -60,7 +62,7 @@ SOL returns filler when asked an open question. Structure that works:
 Ask for a recommendation *plus* the alternatives, never only the alternatives — a list without a pick is work handed back.
 
 ### Judging what comes back
-SOL is a consultant, not an authority. Disagree in the report when its pick is weaker; say why. The user asked for a second opinion, not a second decision-maker.
+Terra is a consultant, not an authority. Disagree in the report when its pick is weaker; say why. The user asked for a second opinion, not a second decision-maker.
 
 ---
 
@@ -126,7 +128,7 @@ An earlier project asked for "flat geometric shapes in the deck's colours" and g
 
 The strong pattern, and the reason these live in one skill:
 
-1. Ask **SOL** for the art brief in the target language and register — it writes better scene descriptions than a bare prompt, and catches clichés.
+1. Ask **Terra** for the art brief in the target language and register — it writes better scene descriptions than a bare prompt, and catches clichés.
 2. Feed that brief to **Leonardo** as `--prompt-file`.
 3. Review at full size, then iterate the brief, not the model.
 

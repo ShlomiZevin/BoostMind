@@ -54,7 +54,7 @@ Shlomi found new sites missing from his lists because some sessions never added 
 
 Backstage shows what the AI costs by asking OpenAI / ElevenLabs what each key spent - nothing is counted by us, so a
 call made with the wrong key is spent but never seen (or shows as someone else's). **Any OpenAI call a session makes
-for the Shlomiverse - an image, a mockup, copy, Terra/SOL, a transcript, a script you write yourself - uses the
+for the Shlomiverse - an image, a mockup, copy, Terra (always Terra - never SOL), a transcript, a script you write yourself - uses the
 design key: `OPENAI_API_KEY` in `scripts/design.env`** (git-ignored; missing on a computer → `node scripts/design-env.mjs`
 writes it from Secret Manager). Read it from that file inside your script; never print it.
 - Never the Aspect key (`aspect-agent-server/.env`), never Plaxzy's (`~/.plaxzy/openai-env.sh`), never `BoostMind/.env`

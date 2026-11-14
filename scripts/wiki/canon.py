@@ -1,7 +1,7 @@
 """Read the editor's canon (zoomcut/characters + zoomcut/episodes) for the the characters wiki site.
 
 Shared by build.py (writes the site data and the chat agent's brain) and copy_brief.py
-(asks SOL for the fan-facing copy). The editor is the only source: a new character or a
+(asks Terra for the fan-facing copy). The editor is the only source: a new character or a
 finished export there shows up here on the next build.
 """
 import json, os, re, glob
