@@ -700,6 +700,7 @@
 .cmsg{scroll-margin-top:20px;border-radius:14px;transition:background .6s;padding:2px 0}.cmsg.hl{background:rgba(255,106,31,.1)}
 .cthink{display:none;margin:6px 0 4px;margin-inline-start:40px;padding:10px 12px;border-radius:14px;background:rgba(127,180,255,.08);border:1px solid rgba(127,180,255,.28);font-size:.84rem;gap:6px}
 .thinking .cthink{display:grid}
+.tk-h{display:flex;align-items:baseline;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(127,180,255,.2)}.tk-h:first-child{margin-top:0;padding-top:0;border-top:0}.tk-h b{color:#cfe2ff;font-size:.8rem}.tk-h small{color:var(--dim);font-size:.72rem}
 .tk{display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px;line-height:1.5}.tk b{color:#a5c9ff;font-size:.76rem;padding-top:2px}.tk span{overflow-wrap:anywhere}.tk q{display:block;color:var(--dim);margin-top:2px}
 .cv-nothink{text-align:center;margin-top:14px}
 .mk-pill{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;margin-inline-start:6px;vertical-align:-6px}.mk-pill svg{width:13px;height:13px}
@@ -1677,9 +1678,30 @@ function chSegBar() {
   return `<div class="seg cn-seg">${[['list', 'שיחות', 0], ['notes', 'הערות', open]].map(([k, l, n]) => `<button data-chseg="${k}" class="${chSeg === k ? 'on' : ''}">${l}${n ? `<em>${n}</em>` : ''}</button>`).join('')}</div>`;
 }
 // what the chain's steps decided for one answer (kept on the log since 2026-11-12)
+// since 2026-11-14 (his ask: every step's own thinking): one block per step - the director, then the writer (think.v 2)
+const STEP_L = { direct: 'במאי', talk: 'כתיבה' };
 function thinkHtml(c) {
   const t = c.think, u = t.understand || {}, h = t.history, f = t.funny, pl = t.plan;   // plan: the director (since 2026-11-12); funny: the old writers' room
   const line = (l, v) => (v ? `<div class="tk"><b>${l}</b><span>${v}</span></div>` : '');
+  if (t.v === 2) {
+    const st = {}; (c.steps || []).forEach((x) => { st[x.step] = x; });
+    const head = (k, n, what) => { const x = st[k]; return `<div class="tk-h"><b>${n} · ${STEP_L[k]}</b><small>${what}${x ? ` · ${esc(String(x.model || '').replace('gpt-5.6-', '').replace('claude-', ''))} · ${((x.ms || 0) / 1000).toFixed(1)}ש׳ · $${(x.usd || 0).toFixed(4)}` : ''}</small></div>`; };
+    const p = pl || {};
+    return head('direct', 1, 'קרא את הדף, כל התסריטים וכל השיחה')
+      + line('מה הבין/ה', `${KIND_L[u.kind] ? `<span class="tag">${KIND_L[u.kind]}</span> ` : ''}${esc(u.wants || '')}`)
+      + line('התשובה', esc(p.answer || ''))
+      + line('מהתסריטים', (p.lines || []).map((x) => `<q>${esc(x)}</q>`).join(''))
+      + line('כמה יודע/ת', u.knows?.level ? `${esc(KNOW_L[u.knows.level] || u.knows.level)}${u.knows.how ? ' - ' + esc(u.knows.how) : ''}` : '')
+      + line('העמדה שלו/ה', esc(p.stance || ''))
+      + line('הניואנס', esc(p.nuance || '') || 'בלי')
+      + line('ביטוי', esc(p.phrase || '')) + line('קולבק', esc(p.callback || ''))
+      + line('ממשיך/ה ב', esc(p.move || '') || 'נוחתת, בלי המשך')
+      + line('להימנע מ', esc(p.avoid || ''))
+      + line('סרטון', p.video ? esc(V[p.video]?.title || p.video) : '')
+      + line('סיפרו על עצמם', esc(u.visitor || '')) + line('אורך', esc({ short: 'קצר', medium: 'בינוני', story: 'סיפור' }[u.length] || u.length || ''))
+      + head('talk', 2, 'כתב/ה את התשובה מהתוכנית')
+      + line('סה״כ', `${((c.steps || []).reduce((a, x) => a + (x.ms || 0), 0) / 1000).toFixed(1)}ש׳${typeof c.usd === 'number' ? ` · $${c.usd.toFixed(4)}` : ''}`);
+  }
   return line('מה הבין/ה', `${KIND_L[u.kind] ? `<span class="tag">${KIND_L[u.kind]}</span> ` : ''}${esc(u.wants || '')}`)
     + line('כמה יודע/ת', u.knows?.level ? `${esc(KNOW_L[u.knows.level] || u.knows.level)}${u.knows.how ? ' - ' + esc(u.knows.how) : ''}` : '')
     + line('חיפש/ה בסרטונים', [...(u.videos || []).map((v) => esc(V[v]?.title || v)), u.search ? `"${esc(u.search)}"` : '', u.follow ? 'המשך של מה שכבר דיברו' : ''].filter(Boolean).join(' · '))
