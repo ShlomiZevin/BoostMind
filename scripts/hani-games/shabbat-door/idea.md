@@ -47,3 +47,9 @@ the color is changing, and without פסיעה גסה."
   heart-monitor beeps), softer on red. Option B kept in snd/music-b.mp3 (quiet master).
 - "Didn't get the 1 out of 2 breads... make it clear that you need a lechem mishneh" -> HUD: "לחם משנה" + one full roll +
   one empty (grey) roll; every card says the goal: to Reb Shmulik in פנימית for the second roll, then back to Abba.
+
+## Round 4 (14 Nov 2026) - "לא צריך את החס וחלילה זזתי באדום... צריך פשוט פסילה, סאונד של פסילה וסאונד של הצלחה. חסרים סאונדים"
+- Caught = "נפסלת!" (visitors: "נפסל!"), no Hani sentence. Loud elimination buzzer (3 variants).
+- New sounds: door passed jingle (3), countdown ticks + GO on the card, tense ticks in the last second of green, shoe
+  squeak when she stops (2), stronger red alarm / green go (3 each), scanner sweep loop on red, heartbeat in the last
+  25 s, card whoosh (2), visitor eliminated (2), victory fanfare, sad trombone on time-out. All loudness-matched.
