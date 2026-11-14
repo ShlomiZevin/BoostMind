@@ -393,3 +393,19 @@ Hani, Osnat and Yotam are each filmed on their own with the Reader (no stand-in,
   Savta Friedman from `tree/`), have GPT empty the board ("remove all pinned photos, keep everything else"), then pin
   the photos in code (PIL: white frame, slight tilt, shadow, red pin) - one per card, never two the same
   (`h5/story/compose.py`). It is a connection board, not a family tree.
+
+## haredit-6 - prepared before the footage (2026-11-14): Hani's monologue to Dasi + a call from her MOTHER in the hospital
+Script `haredit-6` (Hani + "אמא:" rows, the Yiddish translations as `(תרגום – ...)` direction rows, no colon in any
+direction - "16:00" written as "ארבע"), Drop folder `haredit-6`, project from haredit-3. He films the mother himself and
+hasn't decided: **full screen** (her rows `mom.*`, group אמא) or a **small window over Hani** (`pip.*`, hidden: frame,
+background, "אמא" pill at x 690 y 280 w 360 h 540 - clear of Hani's head). Sets in `_assets/haredit/h6/`:
+`office-arrive.jpg` (her entrance, standing, from Dasi's seat), `set-wall-a.jpg` (seated, the series set + kids /
+family pictures), `office-leave.jpg` (16:00, low warm sun), the mother's ward `hosp-bed.jpg` (the father's legs in
+socks under the blanket, his head behind the curtain - "יצחק, שטיי אויף!" points at someone, nobody frozen),
+`hosp-seat.jpg`, `hosp-shida.jpg` (the empty bed + the shida). Sounds: `hosp-amb-b.mp3` (ward: murmur, trolley, chirps),
+`monitor-beep.wav`, `hosp-amb-a.mp3` (hum, muted) - each split at the mother's lines: through `filter: phone` (quiet)
+while we see Hani, in the room while we see the mother.
+- **`leonardo.mjs portrait` with a set as the reference draws a PERSON into it** (its hold-sentence says "the same
+  person as in the reference") - an empty set = `image` with the set described in words.
+- **The sound-effects model makes no monitor beeps** (two tries: hum and murmur only) - a monitor beep is a plain tone:
+  synthesised (ffmpeg aevalsrc, 975 Hz + harmonics, 0.11 s, 70 bpm, 35 beats = a seamless 30 s loop, a short echo).
