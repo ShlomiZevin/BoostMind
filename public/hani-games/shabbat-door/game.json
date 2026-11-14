@@ -1,0 +1,12 @@
+{
+  "slug": "shabbat-door",
+  "title": "דלת של שבת",
+  "tagline": "שבת בבית החולים ואין לחם משנה! עברו בדלתות השבת – רק כשהן נפתחות לבד.",
+  "character": "hani",
+  "status": "draft",
+  "date": "2026-11-15",
+  "cover": "cover.jpg",
+  "badges": ["ניגונים בלבד", "לכל המשפחה"],
+  "best": { "key": "hani-games:shabbat-door:best", "label": "שניות" },
+  "record": { "unit": "שניות", "better": "low" }
+}

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1b2a4e">
+<title>דלת של שבת – המשחקייה של חני</title>
+<meta name="description" content="שבת בבית החולים ואין לחם משנה! עברו עם חני בדלתות השבת – רק כשהן נפתחות לבד – והביאו את הלחמנייה של רב שמוליק.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="דלת של שבת – המשחקייה של חני">
+<meta property="og:description" content="עברו עם חני בדלתות השבת של בית החולים – רק כשהן נפתחות לבד!">
+<meta property="og:url" content="https://shlomiverse.com/hani-games/shabbat-door/">
+<meta property="og:image" content="https://shlomiverse.com/hani-games/shabbat-door/assets/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="hani-games" defer></script>
+<style>
+:root{
+  --ink:#16305e; --card:#fffaf0; --gold:#ffc94a; --gold2:#ff9f1c; --blue:#1d5fbf; --blue2:#0f3f8a; --green:#2bb673; --red:#e5484d;
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px); --strip:80px; --colw:min(100vw,520px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
+body{background:#0e1a33}
+[hidden]{display:none!important}
+button{font-family:inherit;border:0;cursor:pointer}
+.col{position:fixed;left:50%;transform:translateX(-50%);width:var(--colw)}
+
+/* the play field: the whole column between the thin HUD and Hani's strip */
+#stage{top:0;bottom:calc(var(--strip) + var(--safe-b));display:none}
+#stage.on{display:block}
+#cv{width:100%;height:100%;display:block}
+
+/* HUD - thin, over the top edge of the scene */
+#hud{top:calc(var(--safe-t) + 6px);display:none;align-items:center;gap:6px;padding:0 8px;z-index:3}
+#hud.on{display:flex}
+.ibtn{width:40px;height:40px;border-radius:13px;background:#0e1a3399;display:grid;place-items:center;flex:none}
+.ibtn svg{width:22px;height:22px;fill:#fff}
+.chip{height:40px;border-radius:13px;background:#0e1a33a6;color:#fff;font-weight:900;display:flex;align-items:center;gap:5px;padding:0 10px;font-size:18px;flex:none}
+#where{flex:1;min-width:0;justify-content:center;flex-direction:column;gap:3px;padding:3px 8px}
+#whereTxt{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1}
+#dots{display:flex;gap:4px}
+#dots i{width:9px;height:9px;border-radius:50%;background:#ffffff40}
+#dots i.on{background:var(--gold)}
+#dots i.now{background:#fff;box-shadow:0 0 0 2px var(--gold)}
+#clock{direction:ltr;font-variant-numeric:tabular-nums}
+#rolls img{width:26px;height:26px;object-fit:contain}
+#rolls span{direction:ltr}
+
+/* thumb controls, on the floor of the scene */
+#ctl{bottom:calc(var(--strip) + var(--safe-b) + 10px);display:none;justify-content:center;align-items:center;gap:22px;z-index:3;pointer-events:none}
+#ctl.on{display:flex}
+#walkBtn,#fastBtn{pointer-events:auto;border-radius:50%;color:#fff;font-weight:900;display:grid;place-items:center;touch-action:none;position:relative}
+#walkBtn{width:var(--wb,104px);height:var(--wb,104px);font-size:24px;background:radial-gradient(circle at 50% 35%,#4ad48a,#1e9a5a);box-shadow:0 6px 0 #11673b,0 0 0 5px #ffffffcc}
+#walkBtn.held{transform:translateY(4px);box-shadow:0 2px 0 #11673b,0 0 0 5px #fff}
+#walkBtn small,#fastBtn small{display:block;font-size:11px;font-weight:700;opacity:.9;margin-top:-2px}
+#fastBtn{width:var(--fb,74px);height:var(--fb,74px);font-size:17px;background:radial-gradient(circle at 50% 35%,#5a8ff0,#2457b8);box-shadow:0 5px 0 #143a80,0 0 0 4px #ffffffcc}
+#fastBtn.held{transform:translateY(3px);box-shadow:0 2px 0 #143a80,0 0 0 4px #fff}
+#fastBtn.empty{filter:grayscale(.9) brightness(.8)}
+#fastRing{position:absolute;inset:-9px;width:calc(100% + 18px);height:calc(100% + 18px);transform:rotate(-90deg);pointer-events:none}
+.ctlIn{line-height:1.05;text-align:center;pointer-events:none}
+
+/* Hani's own strip */
+#strip{bottom:0;height:calc(var(--strip) + var(--safe-b));padding-bottom:var(--safe-b);display:none;align-items:stretch;background:linear-gradient(#fffaf0f5,#fff3dcf9);border-top:3px solid var(--blue);box-shadow:0 -4px 14px #0003;z-index:2}
+#strip.on{display:flex}
+#haniBox{height:100%;width:calc(var(--strip) * 1.2);flex:none;overflow:hidden;position:relative}
+#hani{position:absolute;height:calc(var(--strip) * 2.1);width:auto;max-width:none;top:calc(var(--strip) * -0.36);left:calc(50% - var(--strip) * 0.84)}
+#sayWrap{flex:1;display:flex;align-items:center;padding:6px 10px 6px 12px;min-width:0}
+#say{position:relative;background:#fff;border:2px solid #d9e4f5;border-radius:16px;padding:7px 12px;font-size:16px;font-weight:700;line-height:1.3;opacity:0;transition:opacity .2s;max-width:100%}
+#say.on{opacity:1}
+#say:before{content:"";position:absolute;right:-9px;top:50%;margin-top:-8px;border:8px solid transparent;border-right:0;border-left-color:#d9e4f5}
+
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:6}
+.nin{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:min(12vw,60px);font-weight:900;white-space:nowrap;color:#ffe27a;text-align:center;line-height:1;
+  text-shadow:0 3px 0 #a86a00,0 6px 0 #5a3a00,0 0 30px #ffd76a;animation:nin 2.2s ease-out forwards}
+.nin.red{color:#fff;text-shadow:0 3px 0 #a3171b,0 6px 0 #5e0b0e,0 0 26px #ff6b6b}
+.nin small{display:block;font-size:.42em;color:#fff;text-shadow:0 2px 0 var(--ink);margin-top:8px}
+@keyframes nin{0%{transform:translate(-50%,-50%) scale(.3) rotate(-8deg);opacity:0}15%{transform:translate(-50%,-50%) scale(1.12) rotate(2deg);opacity:1}25%{transform:translate(-50%,-50%) scale(1) rotate(0)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(1);opacity:0}}
+.spark{position:absolute;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:#fff3b0;box-shadow:0 0 8px #ffd76a}
+
+#turn{display:none;position:fixed;inset:0;z-index:20;background:#16305e;color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:900;font-size:22px;text-align:center;padding:16px}
+#turn svg{width:64px;height:64px;animation:turn 1.6s ease-in-out infinite}
+@keyframes turn{50%{transform:rotate(-90deg)}}
+body.turn #turn{display:flex}
+
+/* screens */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(var(--safe-t) + 14px) 16px calc(var(--safe-b) + 14px);background:linear-gradient(#0e1a3388,#0e1a33e6 45%,#0e1a33f7);z-index:4}
+.screen.on{display:flex}
+.sub{color:#fff;font-size:17px;font-weight:700;text-align:center;max-width:360px;line-height:1.35;margin:0;text-shadow:0 1px 3px #0008}
+.big{min-width:220px;padding:15px 28px;border-radius:30px;font-size:24px;font-weight:900;color:#fff;background:linear-gradient(#3d86f0,var(--blue));box-shadow:0 5px 0 var(--blue2)}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--blue2)}
+.big.gold{background:linear-gradient(#ffd75e,var(--gold2));box-shadow:0 5px 0 #b86a00;color:#4a2a00}
+.mid{min-width:200px;padding:11px 22px;border-radius:24px;font-size:18px;font-weight:700;color:var(--ink);background:#fff;box-shadow:0 4px 0 #b4c3dc;text-decoration:none;display:inline-block;text-align:center}
+.best{color:#fff;font-size:16px;font-weight:700;text-align:center;line-height:1.5}
+.best b{color:var(--gold);direction:ltr;display:inline-block}
+.over-h{font-size:28px;font-weight:900;color:#fff;margin:0;text-align:center}
+.over-line{background:var(--card);border-radius:18px;padding:10px 16px;font-weight:700;max-width:340px;text-align:center}
+.over-score{font-size:50px;font-weight:900;color:var(--gold);text-shadow:0 3px 0 var(--ink);line-height:1;direction:ltr}
+.newrec{font-size:20px;font-weight:900;color:#fff;background:var(--green);padding:4px 14px;border-radius:14px;display:inline-block}
+#start{background:radial-gradient(ellipse at 50% 30%,#2c4479,#0e1a33 75%);gap:clamp(8px,2vh,18px)}
+#start .hero{width:min(92vw,560px,calc((100vh - 290px) * 1.333));aspect-ratio:4/3;border-radius:22px;box-shadow:0 0 0 4px #ffe27a55,0 14px 40px #000a;object-fit:cover}
+#start .title{width:min(80vw,420px);margin-top:calc(min(92vw,560px,calc((100vh - 290px) * 1.333)) * -0.2);filter:drop-shadow(0 4px 8px #000a)}
+.startBtns{display:flex;flex-direction:column;align-items:center;gap:10px}
+#playBtn{display:flex;align-items:center;justify-content:center;gap:10px;min-width:250px;font-size:28px;padding:15px 34px;animation:breathe 2.4s ease-in-out infinite}
+#playBtn svg{width:24px;height:24px;fill:#4a2a00}
+@keyframes breathe{50%{transform:scale(1.04)}}
+#howBtn{min-width:0;padding:9px 22px;font-size:16px;background:#ffffff1f;color:#fff;box-shadow:none;border:2px solid #ffffff55}
+.foot{display:flex;align-items:center;gap:14px}
+.back{color:#cfe0ff;font-weight:700;font-size:15px;text-decoration:none}
+#overHani{height:min(26vh,190px);filter:drop-shadow(0 6px 10px #0008)}
+
+/* tutorial */
+#tutDim{position:fixed;inset:0;display:none;pointer-events:none;z-index:7}
+#tutDim.on{display:block}
+#tutHole{position:absolute;border-radius:20px;box-shadow:0 0 0 200vmax #0d1d3aa6;border:3px solid var(--gold);transition:all .3s}
+#tutCard{position:fixed;left:10px;right:10px;display:none;background:var(--card);border-radius:20px;padding:12px 14px 10px;box-shadow:0 8px 24px #0009;max-width:460px;margin:0 auto;border:3px solid var(--blue);z-index:8}
+#tutCard.on{display:block}
+#tutText{font-size:17px;font-weight:700;line-height:1.35;min-height:46px}
+#tutText .ok{color:var(--green)}
+#tutBar{height:6px;background:#dde6f3;border-radius:3px;margin:9px 0 7px;overflow:hidden}
+#tutBar i{display:block;height:100%;background:var(--blue);width:0;transition:width .3s}
+#tutRow{display:flex;align-items:center;gap:10px}
+#tutCount{flex:1;font-size:14px;color:#6a7899;font-weight:700}
+#tutSkip{background:none;color:#6a7899;font-size:15px;font-weight:700;padding:8px}
+#tutNext{padding:10px 26px;border-radius:20px;font-size:18px;font-weight:900;color:#fff;background:var(--blue)}
+#tutNext:disabled{background:#c3cddd}
+#tutCard.slim{padding:8px 12px 6px}
+#tutCard.slim #tutText{font-size:15px;min-height:0}
+#tutCard.slim #tutBar{display:none}
+#tutCard.slim #tutRow{margin-top:4px}
+body.small #say{font-size:13.5px;padding:5px 9px;line-height:1.25}
+body.small .chip{font-size:15px;padding:0 7px}
+body.small #whereTxt{font-size:12px}
+body.small #rolls img{width:20px;height:20px}
+body.small .ibtn{width:36px}
+.keyhint{font-size:12px;color:#9aa6bd;font-weight:500}
+@media (hover:none){.keyhint{display:none}}
+</style>
+<script src="/verse/game-frame.js"></script>
+</head>
+<body>
+<div class="col" id="stage"><canvas id="cv"></canvas></div>
+
+<div class="col" id="hud">
+  <button class="ibtn" id="pauseBtn" aria-label="עצרנו"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+  <div class="chip" id="rolls"><img src="assets/roll.png" alt=""><span id="rollTxt">1/2</span></div>
+  <div class="chip" id="where"><span id="whereTxt"></span><span id="dots"></span></div>
+  <div class="chip" id="clock">0:00</div>
+  <button class="ibtn sndBtn" aria-label="צליל"></button>
+</div>
+
+<div class="col" id="ctl">
+  <button id="walkBtn"><span class="ctlIn">הולכים<small>החזיקו</small></span></button>
+  <button id="fastBtn"><svg id="fastRing" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#ffffff33" stroke-width="7"/><circle id="fastArc" cx="50" cy="50" r="46" fill="none" stroke="#ffe27a" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="0"/></svg><span class="ctlIn">בשינוי<small>מהר</small></span></button>
+</div>
+
+<div class="col" id="strip">
+  <div id="haniBox"><img id="hani" src="assets/pose-calm.png" alt="חני"></div>
+  <div id="sayWrap"><div id="say"></div></div>
+</div>
+<div id="fx"></div>
+<div id="turn"><svg viewBox="0 0 24 24" fill="none" stroke="#ffe27a" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>סובבו את הטלפון לאורך</div>
+
+<div class="screen on" id="start">
+  <img class="hero" src="assets/hero.jpg" alt="דלת של שבת – המשחקייה של חני">
+  <img class="title" src="assets/title.png" alt="דלת של שבת">
+  <p class="sub">שבת בבית החולים – ואין לחם משנה!<br>עברו בדלתות השבת רק כשהן נפתחות לבד.</p>
+  <div class="startBtns">
+    <button class="big gold" id="playBtn"><svg viewBox="0 0 24 24"><path d="M17 4v16L4 12z"/></svg>שחקו</button>
+    <button class="mid" id="howBtn">איך משחקים</button>
+  </div>
+  <div class="best" id="bestStart"></div>
+  <div class="foot">
+    <a class="back" href="../" target="_top">לכל המשחקים ←</a>
+    <button class="ibtn sndBtn" aria-label="צליל"></button>
+  </div>
+</div>
+
+<div class="screen" id="over">
+  <p class="over-h">לחם משנה! נס בתוך נס!</p>
+  <img id="overHani" src="assets/hani-joy.png" alt="">
+  <div class="over-line" id="overLine"></div>
+  <div class="over-score" id="overScore">0:00</div>
+  <div id="overRec"></div>
+  <div class="best" id="bestOver"></div>
+  <button class="big" id="againBtn">עוד פעם</button>
+  <a class="mid" href="../" target="_top">לכל המשחקים</a>
+</div>
+
+<div class="screen" id="paused">
+  <p class="over-h">עצרנו</p>
+  <div class="over-line">״רגע, אמא מתקשרת...״</div>
+  <button class="big" id="resumeBtn">ממשיכים</button>
+  <button class="mid" id="restartBtn">מתחילים מחדש</button>
+  <button class="mid" id="quitBtn">יציאה לתפריט</button>
+</div>
+
+<div id="tutDim"><div id="tutHole"></div></div>
+<div id="tutCard">
+  <div id="tutText"></div>
+  <div id="tutBar"><i></i></div>
+  <div id="tutRow">
+    <span id="tutCount"></span>
+    <button id="tutSkip">דלגו <span class="keyhint">(Esc)</span></button>
+    <button id="tutNext">הבא <span class="keyhint">(Enter)</span></button>
+  </div>
+</div>
+<script src="game.js?v=1"></script>
+</body>
+</html>
