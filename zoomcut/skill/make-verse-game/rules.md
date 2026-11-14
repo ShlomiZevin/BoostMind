@@ -128,3 +128,10 @@ principles - apply them to whatever the game is.
 - **Show a move, don't only tell it**: an animated hand plays a real valid move after a few seconds of no input, and at once in every "try it" tutorial step. Early levels use clearly different pieces; look-alikes come later.
 
 - **Name what the player handles** (Lola pills, 11 Nov 2026 - "so so so great"): when the pieces are real things with names, show the name on the piece the player drags or lifts and pop it with the points on every match / drop. Draw numbers apart from Hebrew text so RTL never scrambles them.
+
+- **A sound for EVERY event, and music** (דלת של שבת, 14 Nov 2026: "בכלל חסר סאונדים... אתה עושה משחק או משתלה?"): fail /
+  elimination buzzer, a success jingle on every goal reached, countdown ticks + GO, a warning before danger, a stop sound,
+  win fanfare, lose trombone, low-time heartbeat, transitions - plus a background music loop that fits the place. List
+  the game's events and check each one has its sound before he sees it.
+- **Failure is a plain word with its sound** ("נפסלת!" + buzzer) - not a character's joke line; and a new level never
+  opens in a failure: a held button is released between levels, and a level card says what was passed and what is next.
