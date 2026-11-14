@@ -413,3 +413,9 @@ while we see Hani, in the room while we see the mother.
 - **Everything at the office is the Techy-Tech set we already have** (his note, 2026-11-14): never a freshly invented
   office - the library first (`techy-tech` tag; Hani's cubicle = set-wall-a + kids + family-framed), a new angle or light
   = an edit pass on one of those (portrait 0.8, "keep this exact photo... change ONLY ...", NOBODY in it).
+- **Hani's parents have names** (his pick, 2026-11-14 - checked unused in every script, the wiki, the family tree, the
+  games): mother **פערל ברגר** (`perel` - "סבתא ברגר", Litvish, Jerusalem, Yiddish-flavoured Hebrew, calls her
+  "חנהל'ה"), father **ר' יצחק ברגר** (`yitzchak` - "סבא ברגר"). Character records with the family-tree portraits and
+  links both ways (hani, avraham-moshe, each other), HIDDEN until a video they're in goes out
+  (`content.mjs show character perel`). The script's plot (his fall, the ward) is NOT in their records yet - add it
+  when the video is published.
