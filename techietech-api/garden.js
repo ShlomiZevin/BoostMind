@@ -8,8 +8,8 @@
 // gardeners/<hash>/plants + /visits; photos and read-aloud audio in the private bucket shlomiverse-studio/garden/<hash>/
 // (shown through short signed links).
 //
-// AI (one call per tap, his cost rules): the question by voice = gpt-4o-transcribe; the look at the plant = Terra
-// (gpt-5.6-terra) with the photo, his plant list and that plant's history, a JSON answer; read aloud = gpt-4o-mini-tts,
+// AI (one call per tap, his cost rules): the question by voice = gpt-4o-transcribe; the look at the plant = Claude Opus 5.5
+// (VERSE_ANTHROPIC_KEY; Terra only as its fallback) with the photo, his plant list and that plant's history, a JSON answer; read aloud = gpt-4o-mini-tts,
 // made only when he taps and kept, so a second tap is free. Key: VERSE_SITE_OPENAI_KEY (the site's features share it;
 // Backstage -> הוצאות shows its spend). The page: public/garden/index.html. Hosting: /garden/api/** -> this function.
 const { onRequest } = require('firebase-functions/v2/https');
@@ -20,8 +20,13 @@ const crypto = require('crypto');
 
 if (!admin.apps.length) admin.initializeApp();
 const OPENAI = defineSecret('VERSE_SITE_OPENAI_KEY');
+const ANTHROPIC = defineSecret('VERSE_ANTHROPIC_KEY');   // the Console key "Shlomiverse" (the chat's director uses it too)
 const REGION = 'europe-west1';
 const BUCKET = 'shlomiverse-studio';
+// the look at the plant: Claude (his call, 2026-11-14 - Terra needed two guesses and his help on a plant Claude named at
+// once); Terra answers only when Claude refuses or fails, so the gardener never gets an error for it
+const CLAUDE = 'claude-opus-5-5';
+const EFFORT = 'medium';
 const MODEL = 'gpt-5.6-terra';
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
 const PER_DAY = 60;            // asks a day per gardener - far above a real day in the garden, a wall if a link leaks
@@ -85,22 +90,24 @@ const INSTRUCTIONS = `אתה "רופא הגינה": גנן ומומחה צמחי
 איך לכתוב: עברית פשוטה, חמה ומכבדת, כמו שכן שמבין בגינון. משפטים קצרים. בלי מונחים מקצועיים בלי הסבר. בלי אימוג'י. פנה אליו בלשון זכר יחיד.
 עד 4 צעדים. כל צעד משפט אחד קצר וברור (עד 20 מילים) - מה עושים, כמה ומתי. answer עד 3 משפטים קצרים. seen עד 3 משפטים. status_line משפט קצר אחד (למשל "נראה בריא ויפה", "יש בעיה קטנה: חוסר ברזל").
 note: שורה קצרה לזיכרון שלך על הצמח הזה (מה ראית ומה המלצת), כדי שבפעם הבאה תוכל להמשיך מאותה נקודה.
-tip: עצה קצרה אחת לעונה הזאת לצמח הזה (או ריק).`;
+tip: עצה קצרה אחת לעונה הזאת לצמח הזה (או ריק).
+corrected_name / corrected_latin: אם הוא אומר לך מה הצמח באמת (למשל "זה עץ ז'אקה", "זה לא אבוקדו, זה מנגו") - הוא מכיר את הגינה שלו: האמן לו
+(אלא אם זה בלתי אפשרי לגמרי), כתוב את השם שאמר (בשם המקובל בעברית) ואת השם המדעי שלו, וגם plant_name ו-latin יהיו השם הזה, והתשובה תהיה על הצמח הזה. אחרת - שניהם ריקים.`;
 
 const SCHEMA = {
   type: 'object', additionalProperties: false,
-  required: ['plant_name', 'latin', 'sure', 'answer', 'status', 'status_line', 'seen', 'steps', 'tip', 'note', 'same_plant'],
+  required: ['plant_name', 'latin', 'sure', 'answer', 'status', 'status_line', 'seen', 'steps', 'tip', 'note', 'same_plant', 'corrected_name', 'corrected_latin'],
   properties: {
     plant_name: { type: 'string' }, latin: { type: 'string' }, sure: { type: 'boolean' },
     answer: { type: 'string' },
     status: { type: 'string', enum: ['ok', 'small', 'problem', 'unknown'] },
     status_line: { type: 'string' }, seen: { type: 'string' },
     steps: { type: 'array', items: { type: 'string' } },
-    tip: { type: 'string' }, note: { type: 'string' }, same_plant: { type: 'string' },
+    tip: { type: 'string' }, note: { type: 'string' }, same_plant: { type: 'string' }, corrected_name: { type: 'string' }, corrected_latin: { type: 'string' },
   },
 };
 
-async function look({ photo, question, plants, history }) {
+function brief({ question, plants, history }) {
   const today = new Date().toLocaleDateString('he-IL', { timeZone: 'Asia/Jerusalem', day: 'numeric', month: 'long', year: 'numeric' });
   const lines = [`התאריך היום: ${today}.`];
   if (plants.length) lines.push('הצמחים השמורים שלו (מזהה | שם | מה ידוע):\n' + plants.map((p) => `${p.id} | ${p.name} | ${p.note || ''}`).join('\n'));
@@ -108,17 +115,46 @@ async function look({ photo, question, plants, history }) {
   if (history) lines.push(`זו תמונה של צמח שכבר שמור אצלו: ${history.name} (מזהה ${history.id}). מה היה בפעמים הקודמות (מהישן לחדש):\n` +
     history.visits.map((v) => `- ${v.date}: ${v.question ? `שאל: "${v.question}". ` : ''}${v.status_line}. ${v.note || ''}`).join('\n'));
   lines.push(question ? `השאלה שלו (תמלול של מה שאמר): "${question}"` : 'הוא לא שאל שאלה - רק שלח את התמונה.');
+  return lines.join('\n\n');
+}
+const tidy = (a) => { a.steps = (a.steps || []).map((s) => clip(s, 400)).filter(Boolean).slice(0, 5); return a; };
+
+let anthropic = null;
+async function lookClaude(photo, text, effort = EFFORT) {
+  if (!anthropic) { const { Anthropic } = require('@anthropic-ai/sdk'); anthropic = new Anthropic({ apiKey: ANTHROPIC.value(), maxRetries: 1, timeout: 40000 }); }
+  const r = await anthropic.beta.messages.create({
+    model: CLAUDE, max_tokens: 8000, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
+    output_config: { effort, format: { type: 'json_schema', schema: SCHEMA } },
+    system: INSTRUCTIONS,
+    messages: [{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: photo.replace(/^data:[^,]*,/, '') } },
+      { type: 'text', text }] }],
+  });
+  if (r.stop_reason === 'refusal') throw new Error('claude refusal: ' + (r.stop_details?.category || ''));
+  if (r.stop_reason === 'max_tokens') throw new Error('claude max_tokens');
+  const out = (r.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  return { a: tidy(JSON.parse(out)), usage: { model: r.model || CLAUDE, ...(r.usage || {}) } };
+}
+
+async function lookTerra(photo, brief) {
   const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { ...auth(), 'content-type': 'application/json' },
     body: JSON.stringify({ model: MODEL, instructions: INSTRUCTIONS, reasoning: { effort: 'low' }, max_output_tokens: 4000,
       text: { format: { type: 'json_schema', name: 'garden_answer', schema: SCHEMA, strict: true } },
-      input: [{ role: 'user', content: [{ type: 'input_text', text: lines.join('\n\n') }, { type: 'input_image', image_url: photo, detail: 'high' }] }] }) });
+      input: [{ role: 'user', content: [{ type: 'input_text', text: brief }, { type: 'input_image', image_url: photo, detail: 'high' }] }] }) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw fail(502, 'openai ' + r.status + ' ' + (j.error?.message || ''));
   const text = (j.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('');
   let a;
   try { a = JSON.parse(text); } catch { throw fail(502, 'bad_answer'); }
-  a.steps = (a.steps || []).map((s) => clip(s, 400)).filter(Boolean).slice(0, 5);
-  return { a, usage: j.usage || null };
+  return { a: tidy(a), usage: { model: MODEL, ...(j.usage || {}) } };
+}
+
+async function look({ photo, question, plants, history }) {
+  const text = brief({ question, plants, history });
+  try { return await lookClaude(photo, text); } catch (e) {
+    console.warn('garden: claude failed, Terra answers -', e.message);
+    return await lookTerra(photo, text);
+  }
 }
 
 // what "read to me" says - the same words as on the screen, in their order
@@ -189,15 +225,20 @@ async function ask(g, b) {
     await bucket().file(photoPath).save(photoBuf, { contentType: 'image/jpeg', resumable: false, metadata: { cacheControl: 'private, max-age=31536000' } });
   }
   const keep = !!(plant || clip(a.plant_name, 80));   // a photo with no plant in it makes no plant
+  // he said what the plant really is ("זה עץ ז'אקה") -> the saved plant takes that name (2026-11-14: a correction left
+  // his jackfruit saved as "אבוקדו")
+  const fixed = clip(a.corrected_name, 80);
+  const name = fixed || plant?.name || clip(a.plant_name, 80) || 'צמח';
+  const latin = fixed ? clip(a.corrected_latin, 120) : plant?.latin || clip(a.latin, 120);
   const pref = plant ? g.ref.collection('plants').doc(plant.id) : g.ref.collection('plants').doc(newId());
   const visit = { plantId: keep ? pref.id : null, at: FieldValue.serverTimestamp(), photo: photoPath, question, answer: a, usage, matched };
   await g.ref.collection('visits').doc(vid).set(visit);
-  if (keep) await pref.set({ name: plant?.name || clip(a.plant_name, 80) || 'צמח', latin: plant?.latin || clip(a.latin, 120), note: clip(a.note, 400),
+  if (keep) await pref.set({ name, latin, note: clip(a.note, 400),
     lastAt: FieldValue.serverTimestamp(), lastPhoto: photoPath, lastStatus: a.status, lastStatusLine: clip(a.status_line, 200),
     count: FieldValue.increment(1), ...(plant ? {} : { created: FieldValue.serverTimestamp() }) }, { merge: true });
   await g.ref.set({ day, used: used + 1, last: FieldValue.serverTimestamp(), asks: FieldValue.increment(1) }, { merge: true });
   return { visit: { id: vid, plantId: keep ? pref.id : null, at: Date.now(), question, answer: a, photo: await signed(photoPath), matched },
-    plant: keep ? { id: pref.id, name: plant?.name || clip(a.plant_name, 80), isNew: !plant } : null };
+    plant: keep ? { id: pref.id, name, isNew: !plant, renamed: !!(fixed && plant && fixed !== plant.name) } : null };
 }
 
 // "זה צמח אחר": the visit moves to a new plant of its own (or to another saved plant)
@@ -306,11 +347,11 @@ async function route(req, res) {
   throw fail(404, 'route');
 }
 
-exports.garden = onRequest({ region: REGION, secrets: [OPENAI], cors: CORS, invoker: 'public', maxInstances: 3, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
+exports.garden = onRequest({ region: REGION, secrets: [OPENAI, ANTHROPIC], cors: CORS, invoker: 'public', maxInstances: 3, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
   try { await route(req, res); } catch (e) {
     if (!e.status) console.error('garden', req.method, req.path, e);
     if (res.headersSent) return res.end();
     res.status(e.status || 500).json({ error: e.status ? e.message : 'server' });
   }
 });
-exports._test = { look, spoken, INSTRUCTIONS, SCHEMA };
+exports._test = { look, lookClaude, lookTerra, brief, spoken, INSTRUCTIONS, SCHEMA };

@@ -440,7 +440,7 @@ function renderAnswer(v, plant) {
     ${a.answer ? `<div class="abox"><div class="lbl">התשובה</div>${esc(a.answer)}</div>` : ''}
     ${a.plant_name ? `<h2 class="pname">${esc(a.plant_name)}</h2>` : ''}
     ${a.latin ? `<p class="latin">${esc(a.latin)}</p>` : ''}
-    ${a.plant_name && a.sure === false ? '<p class="unsure">(זה הניחוש הכי סביר - לא בטוח במאה אחוז)</p>' : ''}
+    ${a.plant_name && a.sure === false ? '<p class="unsure">(זה הניחוש הכי סביר - לא בטוח במאה אחוז. יודע מה זה? לחץ למטה על "שאלה נוספת על הצמח" ותגיד לי - אזכור)</p>' : ''}
     <div class="chip ${st}"><b>${esc(STATUS[st])}</b>${a.status_line ? `<span>${esc(a.status_line)}</span>` : ''}</div>
     <button class="btn main speak" data-act="speak" id="speak-btn">${ICON_SPEAK}הקרא לי</button>
     ${a.seen ? `<div class="box"><h3>מה אני רואה</h3><p>${esc(a.seen)}</p></div>` : ''}
