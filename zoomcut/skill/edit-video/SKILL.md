@@ -758,7 +758,8 @@ Never print a key, never write one into a file in the repo, never ask him for on
   WIKI_OPENAI_KEY, LEONARDO_API_KEY, MAPS_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY (not ours to touch).
 
 ### ElevenLabs - the whole toolbox (learned 2026-10-27, haredit-2; docs + github.com/elevenlabs/skills)
-**ElevenLabs out of credits? Leonardo resells it** (his tip, 2026-11-09 - "I'm almost certain you can create in
+**ElevenLabs has overage billing + auto-recharge** (his words, 2026-11-14: "we have the overage billing, we can use it ... we can use more"): `elevenlabs.mjs balance` showing more used than the plan (e.g. 301k of 266k) is NOT out of credits - keep using ElevenLabs (voices, music, sfx); say what it cost. Leonardo had 0 tokens that day.
+**ElevenLabs really refusing? Leonardo resells it** (his tip, 2026-11-09 - "I'm almost certain you can create in
 Leonardo"): `POST https://cloud.leonardo.ai/api/rest/v2/generations {model: "dialogue-v3", public: false, parameters:
 {prompt, voice_id, language_code: "he", prompt_influence: 0.5, quantity: 1}}` = ElevenLabs v3 speech on the Leonardo
 tokens (~$0.13 a short line; voice ids = ElevenLabs' presets - George JBFqnCBsd6RMkjVDRZzb, Brian nPczCjzI2devNBz1zQrb,
