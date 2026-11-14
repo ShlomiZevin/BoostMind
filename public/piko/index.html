@@ -17,12 +17,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!--
   Piko (פיקו) - his own picture + video maker (2026-11-06). Pictures: GPT Image 2.5 with reference images; videos:
-  Seedance 2.0 Mini from a start frame (+ an end frame); say it or type it. Everything goes into the Shlomiverse library.
+  Seedance 2.0 from a start frame, an end frame, both or neither; say it or type it. Everything goes into the Shlomiverse library.
   The server is techietech-api/piko.js (shlomiverse.com/piko/api/ -> function piko); API docs: techietech-api/piko-api.md.
   His Google account only (the owner gate in /studio/owner.js); his other tools use the same API with their own key.
+  Live (2026-11-14, his ask "the page refreshes all the time"): a job being made is followed through Firestore (the doc
+  pikoJobs/<id>, read-only for him in firestore.rules) and only its own progress bar changes - nothing polls, nothing redraws;
+  the API is asked once, when it is done, for the file's links. Polling is only the fallback when the listener can't open.
 -->
 <style>
-:root{--bg:#120f0e;--card:#1c1917;--card2:#25211e;--line:rgba(255,255,255,.08);--text:#f4efe9;--dim:#a8a099;--acc1:#ffc15a;--acc2:#ff7b2e;--acc:linear-gradient(135deg,var(--acc1),var(--acc2));--ok:#7bd88f;--bad:#ff8a7a;--r:18px}
+:root{--bg:#120f0e;--card:#1c1917;--card2:#25211e;--line:rgba(255,255,255,.08);--text:#f4efe9;--dim:#a8a099;--acc1:#ffc15a;--acc2:#ff7b2e;--acc:linear-gradient(135deg,var(--acc1),var(--acc2));--ok:#7bd88f;--bad:#ff8a7a;--link:#7fb2ff;--r:18px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:Heebo,system-ui,sans-serif;font-size:16px}
 body{min-height:100dvh;padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
@@ -42,21 +45,34 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
 .lbl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;margin:0 0 10px}
 .lbl small{color:var(--dim);font-weight:400}
-.drop{position:relative;display:grid;place-items:center;width:100%;min-height:190px;border:2px dashed rgba(255,193,90,.35);border-radius:14px;background:#171412;color:var(--dim);text-align:center;overflow:hidden}
-.drop img{width:100%;max-height:340px;object-fit:contain;display:block;background:#0c0a09}
-.drop .ph{display:grid;gap:6px;place-items:center;padding:20px;font-size:15px}
-.drop .ph svg{width:36px;height:36px;color:var(--acc1)}
+/* a picture slot: empty = one big tap target, filled = the picture with an x */
+.drop{position:relative;display:grid;place-items:center;width:100%;min-height:150px;border:2px dashed rgba(255,193,90,.35);border-radius:14px;background:#171412;color:var(--dim);text-align:center;overflow:hidden;transition:border-color .15s,background .15s}
+.drop img{width:100%;height:100%;object-fit:cover;display:block;background:#0c0a09}
+div.drop{border-style:solid;border-color:transparent}
+.drop .ph{display:grid;gap:4px;place-items:center;padding:14px;font-size:13px;line-height:1.35}
+.drop .ph svg{width:34px;height:34px;color:var(--acc1);margin-bottom:2px}
+.drop .ph b{color:var(--text);font-size:16px;font-weight:700}
+.drop.over,body.dragging button.drop{border-color:var(--acc1);background:rgba(255,193,90,.06)}
+.tag{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);border-radius:8px;padding:3px 9px;font-size:12px;font-weight:600}
 .x{position:absolute;top:8px;left:8px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.65);display:grid;place-items:center}
 .x svg{width:18px;height:18px}
-.link{display:inline-flex;align-items:center;gap:6px;color:#7fb2ff;font-size:15px;margin-top:10px}
+.link{display:inline-flex;align-items:center;gap:6px;color:var(--link);font-size:15px;margin-top:10px}
 .link svg{width:18px;height:18px}
-.endrow{display:flex;gap:10px;align-items:stretch;margin-top:10px}
-.endrow .drop{min-height:120px;flex:1}
+.frames{display:grid;grid-template-columns:1fr 38px 1fr;gap:6px;align-items:center}
+.frames .drop{aspect-ratio:3/4;min-height:0}
+.mid{display:grid;place-items:center;color:var(--dim)}
+.mid svg{width:20px;height:20px}
+.swap{width:38px;height:38px;border-radius:50%;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;color:var(--acc1)}
+.swap svg{width:18px;height:18px}
+.sub{display:flex;align-items:center;justify-content:center;gap:5px;height:38px;border-radius:10px;font-size:14px;color:var(--link)}
+.sub svg{width:16px;height:16px}
+.hint{margin:8px 0 0;font-size:13px;color:var(--dim);text-align:center;line-height:1.45}
 .refs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .refs .t{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#0c0a09}
 .refs .t img{width:100%;height:100%;object-fit:cover}
 .refs .t .x{top:4px;left:4px;width:26px;height:26px}
-.refs .add{aspect-ratio:1;border-radius:12px;border:2px dashed rgba(255,193,90,.35);display:grid;place-items:center;color:var(--acc1)}
+.refs .add{aspect-ratio:1;border-radius:12px;border:2px dashed rgba(255,193,90,.35);display:grid;place-items:center;align-content:center;gap:2px;color:var(--acc1);font-size:11px}
+.refs .add.made{border-color:rgba(127,178,255,.35);color:var(--link)}
 .say{display:flex;gap:12px;align-items:stretch}
 .mic{flex:none;width:84px;display:grid;place-items:center;gap:6px;font-size:13px;color:var(--dim);text-align:center}
 .mic i{width:68px;height:68px;border-radius:50%;background:var(--acc);display:grid;place-items:center;color:#2a1300;box-shadow:0 6px 24px rgba(255,123,46,.35);transition:transform .1s}
@@ -67,14 +83,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 textarea{flex:1;min-height:110px;resize:vertical;background:#171412;border:1px solid var(--line);border-radius:14px;padding:12px;line-height:1.5;font-size:16px}
 textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .heard{font-size:13px;color:var(--dim);margin:8px 0 0}
-.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.opt{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+/* the settings: one line that says what they are; a tap opens them */
+.setsum{display:flex;align-items:center;gap:8px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:14px;color:var(--dim);text-align:right;margin-bottom:12px}
+.setsum span{flex:1;color:var(--text);line-height:1.35}
+.setsum svg{width:18px;height:18px}
+.setsum .chev{transition:transform .2s}
+.setsum.open{border-radius:14px 14px 0 0;margin-bottom:0;border-bottom-color:transparent}
+.setsum.open .chev{transform:rotate(180deg)}
+.optsbox{background:var(--card);border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;padding:0 12px 12px;margin-bottom:12px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .opt span{display:block;font-size:13px;color:var(--dim);margin-bottom:4px}
 .opt select{width:100%;background:none;border:0;font-weight:700;font-size:16px;appearance:none;-webkit-appearance:none}
 .opt select option{color:#000}
 .vm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.vm button{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:right;display:flex;flex-direction:column;gap:3px}
-.vm button.on{border-color:var(--acc2);background:var(--card2)}
+.vm button{background:var(--card2);border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:right;display:flex;flex-direction:column;gap:3px}
+.vm button.on{border-color:var(--acc2)}
 .vm b{font-size:16px}
 .vm em{font-style:normal;font-weight:700;font-size:14px;color:var(--acc1);margin-top:2px}
 .vm small{font-size:13px;color:var(--dim);line-height:1.35}
@@ -82,16 +106,19 @@ textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .go small{font-weight:600;font-size:13px;opacity:.75}
 .go[disabled]{opacity:.45}
 .go .row{display:flex;align-items:center;gap:8px}
-.running{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:12px;text-align:right;width:100%}
+.clear{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:12px 0 0;color:var(--dim);font-size:14px;height:36px}
+.clear svg{width:16px;height:16px}
+.runs{margin-top:14px}
+.running{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:10px;text-align:right;width:100%}
 .running img,.running .blank{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#0c0a09;flex:none}
 .running b{display:block;font-size:15px}
-.running small{display:block}
+.running small{display:block;color:var(--dim);font-size:12px}
 .bar{display:block;height:6px;border-radius:9px;background:#2d2825;overflow:hidden;margin:6px 0 4px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,#b07cff,#ff7b2e);transition:width .6s}
-.running small{color:var(--dim);font-size:12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#b07cff,#ff7b2e);transition:width .8s ease}
 .media{border-radius:var(--r);overflow:hidden;background:#0c0a09;margin-bottom:12px;display:grid;place-items:center;min-height:200px}
 .media img,.media video{width:100%;max-height:70dvh;object-fit:contain;display:block}
-.wait{display:grid;place-items:center;gap:14px;padding:50px 20px;text-align:center;color:var(--dim)}
+.wait{display:grid;place-items:center;gap:12px;padding:46px 20px;text-align:center;color:var(--dim);width:100%}
+.wait .bar{width:min(260px,80%);margin:0}
 .spin{width:46px;height:46px;border-radius:50%;border:4px solid #2d2825;border-top-color:var(--acc1);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ptxt{display:flex;gap:8px;color:var(--text);font-size:15px;line-height:1.5;margin:0 0 12px}
@@ -109,7 +136,7 @@ textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .tile{position:relative;text-align:right}
 .tile .th{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#0c0a09}
-.tile .th img,.tile .th video{width:100%;height:100%;object-fit:cover;display:block}
+.tile .th img{width:100%;height:100%;object-fit:cover;display:block}
 .tile .badge{position:absolute;bottom:8px;right:8px;display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.65);border-radius:8px;padding:3px 7px;font-size:12px}
 .tile .badge svg{width:12px;height:12px}
 .tile .st{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);font-size:13px}
@@ -125,15 +152,20 @@ nav button em{position:absolute;top:10px;margin-right:30px;min-width:18px;height
 .sheet h3{margin:0 0 6px;font-size:18px}
 .sheet p{margin:0 0 16px;color:var(--dim);font-size:14px;line-height:1.5}
 .sheet .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet .row.one{grid-template-columns:1fr}
 .sheet .row button{height:50px;border-radius:14px;background:var(--card2);font-weight:700}
 .sheet .row button.danger{background:#5a1f1a;color:#ffb3a8}
-.pre{display:flex;gap:8px;overflow-x:auto;margin:-4px 0 12px;padding-bottom:2px;scrollbar-width:none}
+.sheet .row button.ok{background:var(--acc);color:#2a1300}
+.sheet input{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:#171412;padding:0 14px;margin:0 0 14px;font-size:16px}
+.made{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:58dvh;overflow:auto;margin:0 0 14px}
+.made button{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#0c0a09;border:3px solid transparent}
+.made button.on{border-color:var(--acc2)}
+.made img{width:100%;height:100%;object-fit:cover;display:block}
+.pre{display:flex;gap:8px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none}
 .pre::-webkit-scrollbar{display:none}
 .pre button{flex:none;display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:15px;color:var(--dim)}
 .pre button.on{background:rgba(255,193,90,.14);border-color:rgba(255,193,90,.6);color:var(--acc1)}
 .pre button svg{width:16px;height:16px}
-.sheet input{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:#171412;padding:0 14px;margin:0 0 14px;font-size:16px}
-.sheet .row button.ok{background:var(--acc);color:#2a1300}
 .plist{display:grid;gap:8px;margin:0 0 14px}
 .plist div{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#171412;border-radius:12px;padding:10px 12px;font-size:15px}
 .plist small{display:block;color:var(--dim);font-size:12px}
@@ -165,7 +197,8 @@ const IC = {
   x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.6L19 9.5l-5.2 1.9L12 17l-1.8-5.6L5 9.5l5.2-1.9zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9zM5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8L2.5 17.5l1.8-.7z"/></svg>',
   wand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20 15 9M14 4v3M18.5 5.5l-2 2M20 10h-3M9.5 5.5l2 2"/></svg>',
-  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>',
+  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  gallery: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>',
   coin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',
   share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>',
   down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>',
@@ -173,13 +206,19 @@ const IC = {
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
   edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+  sliders: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
 };
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const usd = (v) => (v == null ? '' : `$${v < 1 ? v.toFixed(v < 0.1 ? 3 : 2) : v.toFixed(2)}`);
 const ERR = { balance: 'אין מספיק יתרה ב-EvoLink לסרטון הזה. צריך להטעין (evolink.ai)', prompt: 'כתבו או אמרו מה ליצור', image: 'התמונה לא נקראה, נסו תמונה אחרת',
-  image_too_big: 'התמונה גדולה מדי', too_many_refs: 'עד 16 תמונות השראה', auth: 'צריך להתחבר מחדש', audio: 'ההקלטה לא נקלטה', end_needs_start: 'תמונת סיום צריכה גם תמונת פתיחה', server: 'משהו השתבש בשרת, נסו שוב' };
-const toast = (t) => { const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 3200); };
+  image_url: 'תמונה ישנה מדי, בחרו אותה שוב', job: 'התמונה הזו כבר לא זמינה, בחרו אחרת',
+  image_too_big: 'התמונה גדולה מדי', too_many_refs: 'עד 16 תמונות השראה', auth: 'צריך להתחבר מחדש', audio: 'ההקלטה לא נקלטה', server: 'משהו השתבש בשרת, נסו שוב' };
+const toast = (t) => { document.querySelectorAll('.toast').forEach((x) => x.remove()); const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 3200); };
+const fine = matchMedia('(pointer:fine)').matches;   // a computer: paste / drag a picture
 
 // ---- sign-in (his Google account - the owner gate) and the API ----
 const O = await import('/studio/owner.js');
@@ -209,15 +248,38 @@ function fileOf(j) {
 // his defaults (2026-11-07): story format 9:16, low quality, sound on; 2 pictures at once, 1 video
 const DEF = { video: { model: 'mini', duration: 6, quality: '480p', ratio: '9:16' }, image: { model: 'flare', size: 'story', quality: 'low', count: 2 } };
 const S = JSON.parse(localStorage.getItem('piko2') || 'null') || {};
+// what he was in the middle of (the prompt + the pictures) survives a reload - the phone drops a PWA in the background
+const DRAFT = 'piko-draft';
+const draft = (() => {
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT) || 'null') || {};
+    const old = Date.now() - (d.at || 0) > 5 * 3600e3;   // a picture link kept for longer than this has expired (made ones get fresh links below)
+    const ok = (p) => p && p.src && (p.job || !/^https:/.test(p.src) || !old);
+    return { prompt: d.prompt || '', start: ok(d.start) ? d.start : null, end: ok(d.end) ? d.end : null, refs: (d.refs || []).filter(ok) };
+  } catch { return { prompt: '', start: null, end: null, refs: [] }; }
+})();
 const st = {
-  view: 'make', mode: S.mode || 'video', prompt: '', heard: '',
-  start: null, end: null, showEnd: false, refs: [],                  // pictures: {src (data URL or a signed url), job?}
+  view: 'make', mode: S.mode || 'video', prompt: draft.prompt, heard: '',
+  start: draft.start, end: draft.end, refs: draft.refs,               // pictures: {src (data URL or a signed url), job?}
   video: { ...DEF.video, ...(S.video || {}) },
   image: { ...DEF.image, ...(S.image || {}) },
+  showOpts: !!S.showOpts,
   presets: [],                                                        // saved setups (the server keeps them - phone and computer agree)
   cfg: null, balance: null, jobs: [], more: false, filter: 'all', job: null, picking: null,
 };
-const keep = () => localStorage.setItem('piko2', JSON.stringify({ mode: st.mode, video: st.video, image: st.image }));
+const keep = () => localStorage.setItem('piko2', JSON.stringify({ mode: st.mode, video: st.video, image: st.image, showOpts: st.showOpts }));
+let draftT = 0;
+function saveDraft() {
+  clearTimeout(draftT);
+  draftT = setTimeout(() => {
+    const p = (x) => x && { src: x.src, job: x.job };
+    const full = { prompt: st.prompt, start: p(st.start), end: p(st.end), refs: st.refs.map(p), at: Date.now() };
+    for (const d of [full, { ...full, refs: [] }, { prompt: st.prompt, at: full.at }]) {   // too big for the phone's storage: keep less
+      try { localStorage.setItem(DRAFT, JSON.stringify(d)); return; } catch { /* smaller */ }
+    }
+  }, 300);
+}
+const filled = () => !!(st.prompt.trim() || st.start || st.end || st.refs.length);
 
 // ---- pictures in: smaller on the phone before they go (1536 px, JPEG) ----
 async function shrink(file, max = 1536) {
@@ -228,20 +290,57 @@ async function shrink(file, max = 1536) {
   c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
   return c.toDataURL('image/jpeg', 0.88);
 }
-$('#file').onchange = async (e) => {
-  const files = [...e.target.files]; e.target.value = '';
-  const slot = st.picking; st.picking = null;
-  if (!files.length || !slot) return;
-  for (const f of slot === 'refs' ? files : files.slice(0, 1)) {
-    const src = await shrink(f);
-    if (slot === 'refs') { if (st.refs.length < (st.cfg?.image.maxRefs || 16)) st.refs.push({ src }); }
-    else st[slot] = { src };
+const maxRefs = () => st.cfg?.image.maxRefs || 16;
+// pictures from the phone / a paste / a drag: into the slot asked for, else the first free one
+async function addFiles(list, slot) {
+  list = list.filter((f) => /^image\//.test(f.type));
+  if (!list.length) return;
+  slot ||= st.mode === 'image' ? 'refs' : !st.start ? 'start' : !st.end ? 'end' : 'start';
+  if (slot === 'refs') { for (const f of list) if (st.refs.length < maxRefs()) st.refs.push({ src: await shrink(f) }); }
+  else {
+    st[slot] = { src: await shrink(list[0]) };
+    if (list[1] && slot === 'start' && !st.end) st.end = { src: await shrink(list[1]) };   // two at once = start + end
   }
   render();
-};
+}
+$('#file').onchange = (e) => { const list = [...e.target.files]; e.target.value = ''; const slot = st.picking; st.picking = null; if (slot) addFiles(list, slot); };
 function pick(slot) { st.picking = slot; const f = $('#file'); f.multiple = slot === 'refs'; f.click(); }
 // a picture goes as: a job made here ({job}), a link it came back from ({url}), or the picture itself (a data URL)
 const input = (p) => (p ? (p.job ? { job: p.job } : /^https:/.test(p.src) ? { url: p.src } : p.src) : undefined);
+// a computer: Ctrl+V a picture, or drag it onto a slot (or anywhere on the make screen)
+document.addEventListener('paste', (e) => {
+  if (st.view !== 'make') return;
+  const list = [...(e.clipboardData?.files || [])].filter((f) => /^image\//.test(f.type));
+  if (!list.length) return;
+  e.preventDefault(); addFiles(list);
+});
+let dragN = 0;
+const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes('Files');
+document.addEventListener('dragenter', (e) => { if (st.view === 'make' && hasFiles(e)) { dragN++; document.body.classList.add('dragging'); } });
+document.addEventListener('dragleave', () => { if (--dragN <= 0) { dragN = 0; document.body.classList.remove('dragging'); } });
+document.addEventListener('dragover', (e) => { if (st.view === 'make' && hasFiles(e)) e.preventDefault(); });
+document.addEventListener('drop', (e) => {
+  dragN = 0; document.body.classList.remove('dragging');
+  if (st.view !== 'make' || !hasFiles(e)) return;
+  e.preventDefault(); addFiles([...e.dataTransfer.files], e.target.closest?.('[data-slot]')?.dataset.slot);
+});
+// a picture made in Piko into a slot (a start / end frame, or references - several)
+function pickMade(slot) {
+  const list = st.jobs.filter((j) => j.kind === 'image' && j.status === 'done' && j.url);
+  const multi = slot === 'refs', has = (j) => st.refs.some((r) => r.job === j.id);
+  const el = sheet(`<h3>${multi ? 'תמונות השראה מהיצירות' : slot === 'start' ? 'תמונת פתיחה מהיצירות' : 'תמונת סיום מהיצירות'}</h3>
+    ${list.length ? `<p>${multi ? 'אפשר לבחור כמה.' : 'בוחרים אחת.'}</p><div class="made">${list.map((j) => `<button data-m="${j.id}" class="${multi && has(j) ? 'on' : ''}"><img src="${esc(j.url)}" alt="" loading="lazy"></button>`).join('')}</div>`
+      : '<p>עוד אין כאן תמונות שנוצרו בפיקו.</p>'}
+    <div class="row one"><button data-no class="${multi && list.length ? 'ok' : ''}">${multi && list.length ? 'סיום' : 'סגירה'}</button></div>`);
+  el.querySelector('.made')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-m]'), j = b && list.find((x) => x.id === b.dataset.m);
+    if (!j) return;
+    if (!multi) { st[slot] = { src: j.url, job: j.id }; el.remove(); return render(); }
+    if (has(j)) st.refs = st.refs.filter((r) => r.job !== j.id);
+    else if (st.refs.length < maxRefs()) st.refs.push({ src: j.url, job: j.id });
+    b.classList.toggle('on', has(j)); render();
+  });
+}
 
 // ---- the mic: say it, it comes back as a clean prompt ----
 let rec = null;
@@ -308,7 +407,7 @@ async function make(again) {
       ? { start: input(st.start), end: input(st.end), model: st.video.model, duration: st.video.duration, quality: st.video.quality, ratio: st.video.ratio }
       : { refs: st.refs.map(input), model: st.image.model, size: st.image.size, quality: st.image.quality, count: st.image.count },
   };
-  if (!p.prompt) return toast(ERR.prompt);
+  if (!p.prompt) { toast(ERR.prompt); $('#prompt')?.focus(); return; }
   const go = $('.go'); if (go) { go.disabled = true; go.querySelector('.row').innerHTML = `<span class="spin" style="width:22px;height:22px;border-width:3px"></span> שולח…`; }
   try {
     const res = await api('POST', p.kind === 'video' ? '/videos' : '/images', { prompt: p.prompt, ...p.body });
@@ -317,7 +416,7 @@ async function make(again) {
     st.jobs.unshift(...jobs);
     st.job = jobs[0].id;
     show('job');
-    watch();
+    follow();
   } catch (e) { toast(e.message); render(); }
 }
 // a job "again" = the same request; a finished job seen later is rebuilt from what it keeps
@@ -329,36 +428,90 @@ function againOf(j) {
     : { refs: (inp.refs || []).map((u) => ({ url: u })), model: j.params?.model, size: j.params?.size, quality: j.params?.quality, count: 1 } };
 }
 
-// ---- following jobs that are still being made ----
-let polling = null;
+// ---- jobs being made: pushed, not polled ----
+// Firestore tells us each change to the job's doc; only the job's own progress bar is touched. When it is done, the API
+// is asked once (the file's links are signed there) and only that job's card / block / tile is drawn again.
 const live = (j) => ['queued', 'working', 'running', 'saving'].includes(j.status);
-function watch() {
+let FS = null;
+const fsReady = import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js')
+  .then((m) => { FS = { m, db: m.getFirestore(O.auth.app) }; }).catch(() => { FS = null; });
+const subs = new Map();
+let polling = null;
+async function follow() {
+  await fsReady;
+  const open = st.jobs.filter(live);
+  for (const [id, un] of subs) if (!open.some((j) => j.id === id)) { un(); subs.delete(id); }
+  for (const j of open) {
+    if (subs.has(j.id) || !FS || FS.broken) continue;
+    subs.set(j.id, FS.m.onSnapshot(FS.m.doc(FS.db, 'pikoJobs', j.id),
+      (d) => { if (d.exists()) changed(j.id, d.data()); },
+      () => { FS.broken = true; subs.delete(j.id); poll(); }));   // the listener can't open (rules / network): ask instead
+  }
+  if (open.length && (!FS || FS.broken)) poll();
+}
+// the fallback: ask the API every 5 s - still without redrawing anything but the job's own bar
+function poll() {
   if (polling) return;
   polling = setInterval(async () => {
     const open = st.jobs.filter(live);
     if (!open.length) { clearInterval(polling); polling = null; return; }
-    for (const j of open) {
-      try {
-        const n = await api('GET', '/jobs/' + j.id);
-        const was = j.status;
-        Object.assign(j, n);
-        if (was !== n.status && n.status === 'done') { toast(j.kind === 'video' ? 'הסרטון מוכן' : 'התמונה מוכנה'); if (j.kind === 'video') loadBalance(true); }
-        if (was !== n.status && n.status === 'failed') toast('לא הצליח: ' + (n.error || ''));
-      } catch { /* next round */ }
-    }
-    render();
-  }, 4000);
+    for (const j of open) { try { await changed(j.id, await api('GET', '/jobs/' + j.id), true); } catch { /* next round */ } }
+  }, 5000);
 }
+async function changed(id, d, fromApi) {
+  const j = st.jobs.find((x) => x.id === id);
+  if (!j || j.fin) return;
+  if (d.progress != null) j.progress = d.progress;
+  if (live(d)) { j.status = d.status; return patch(j); }
+  j.fin = true;   // done / failed: once
+  subs.get(id)?.(); subs.delete(id);
+  try { Object.assign(j, fromApi ? d : await api('GET', '/jobs/' + id)); } catch { j.status = d.status; j.error = d.error || null; }
+  if (j.status === 'done') { toast(j.kind === 'video' ? 'הסרטון מוכן' : 'התמונה מוכנה'); if (j.kind === 'video') loadBalance(true); }
+  else if (j.status === 'failed') toast('לא הצליח' + (j.error ? ': ' + j.error : ''));
+  else { j.fin = false; return follow(); }   // (a race: it is still being made)
+  redraw(j);
+}
+const pct = (j) => (j.progress ? j.progress + '%' : '');
+const barW = (j) => Math.max(6, j.progress || (j.status === 'queued' ? 4 : 12));
+// only the numbers move
+function patch(j) {
+  document.querySelectorAll(`[data-live="${j.id}"]`).forEach((el) => {
+    const p = el.querySelector('.pct'); if (p) p.textContent = pct(j);
+    const b = el.querySelector('.bar i'); if (b) b.style.width = barW(j) + '%';
+  });
+}
+// a job finished: draw only what shows it
+function redraw(j) {
+  drawNav();
+  const V = $('#view');
+  if (st.view === 'job') {
+    const el = V.querySelector(`[data-block="${j.id}"]`);
+    if (el) el.outerHTML = block(j);
+  } else if (st.view === 'gallery') {
+    const el = V.querySelector(`[data-tile="${j.id}"]`);
+    if (el) el.outerHTML = tile(j);
+  }
+  const runs = $('#runs'); if (runs) runs.innerHTML = runningCards(runList());
+  wire();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) follow(); });
 
 // ---- views ----
 function show(v) { st.view = v; render(); scrollTo(0, 0); }
 document.querySelectorAll('nav button').forEach((b) => (b.onclick = () => show(b.dataset.go)));
 
-function runningCards(list = st.jobs.filter(live)) {
-  return list.map((j) => `<button class="running" data-open="${j.id}">
-    ${j.poster || j.inputs?.start ? `<img src="${esc(j.poster || j.inputs.start)}" alt="">` : '<span class="blank"></span>'}
-    <span style="flex:1"><b>${j.kind === 'video' ? 'מכין סרטון…' : 'מצייר תמונה…'} ${j.progress ? j.progress + '%' : ''}</b>
-    <span class="bar"><i style="width:${Math.max(6, j.progress || (j.status === 'queued' ? 4 : 12))}%"></i></span>
+// the jobs still being made that the open screen doesn't already show big
+function runList() {
+  const open = st.jobs.filter(live);
+  if (st.view !== 'job') return open;
+  const j = st.jobs.find((x) => x.id === st.job);
+  return open.filter((x) => x.id !== j?.id && !(j?.batch && x.batch === j.batch));
+}
+function runningCards(list) {
+  return list.map((j) => `<button class="running" data-open="${j.id}" data-live="${j.id}">
+    ${j.poster || j.inputs?.start || j.inputs?.end ? `<img src="${esc(j.poster || j.inputs.start || j.inputs.end)}" alt="">` : '<span class="blank"></span>'}
+    <span style="flex:1"><b>${j.kind === 'video' ? 'מכין סרטון…' : 'מצייר תמונה…'} <span class="pct">${pct(j)}</span></b>
+    <span class="bar"><i style="width:${barW(j)}%"></i></span>
     <small>אפשר לסגור, זה ממשיך ונשמר לבד</small></span></button>`).join('');
 }
 
@@ -369,7 +522,7 @@ const VMODELS = [['mini', 'טיוטה', 'זול ומהיר, לנסות רעיו�
 const QUAL = { low: 'טיוטה', medium: 'רגילה', high: 'גבוהה', '480p': 'נמוכה', '720p': 'גבוהה' };
 const sel = (list, cur) => list.map(([k, l]) => `<option value="${k}" ${String(k) === String(cur) ? 'selected' : ''}>${l}</option>`).join('');
 const label = (list, k) => (list.find(([x]) => String(x) === String(k)) || [k, k])[1];
-// a setup in words: "6 שניות · נמוכה · סטורי (9:16)"
+// a setup in words: "טיוטה · 6 שניות · נמוכה · סטורי (9:16)"
 function describe(mode, p) {
   return mode === 'video' ? `${label(VMODELS, p.model || 'mini')} · ${p.duration} שניות · ${QUAL[p.quality]} · ${label(RATIOS, p.ratio)}`
     : `${p.count === 1 ? 'תמונה אחת' : p.count + ' תמונות'} · ${QUAL[p.quality]} · ${label(SIZES, p.size)} · ${p.model === 'sunburst' ? 'Sunburst' : 'Flare'}`;
@@ -378,8 +531,9 @@ function describe(mode, p) {
 const isOn = (p) => Object.entries(p.params).every(([k, v]) => String(st[p.mode][k]) === String(v));
 function presetRow() {
   const mine = st.presets.filter((p) => p.mode === st.mode);
+  if (!mine.length) return '';
   return `<div class="pre">${mine.map((p) => `<button data-preset="${esc(p.id)}" class="${isOn(p) ? 'on' : ''}">${esc(p.name)}</button>`).join('')}
-    ${mine.some(isOn) ? '' : `<button data-presave>${IC.plus}לשמור הגדרה</button>`}${mine.length ? `<button data-preedit aria-label="עריכת ההגדרות">${IC.edit}</button>` : ''}</div>`;
+    <button data-preedit aria-label="עריכת ההגדרות השמורות">${IC.edit}</button></div>`;
 }
 function sheet(html) {
   const el = document.createElement('div'); el.className = 'sheet'; el.innerHTML = `<div>${html}</div>`;
@@ -387,6 +541,7 @@ function sheet(html) {
   document.body.appendChild(el);
   return el;
 }
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.sheet').forEach((s) => s.remove()); });
 async function putPresets(list) {
   try { st.presets = (await api('PUT', '/presets', { presets: list })).presets; } catch (e) { toast(e.message); }
   render();
@@ -396,10 +551,9 @@ function savePreset() {
   const el = sheet(`<h3>לשמור את ההגדרות האלה</h3><p>${st.mode === 'video' ? 'סרטון' : 'תמונות'}: ${describe(st.mode, params)}</p>
     <input id="pname" maxlength="24" placeholder="שם קצר, למשל: סטורי מהיר"><div class="row"><button data-no>ביטול</button><button class="ok" data-yes>שמירה</button></div>`);
   const inp = el.querySelector('#pname'); setTimeout(() => inp.focus(), 50);
-  el.querySelector('[data-yes]').onclick = () => {
-    const name = inp.value.trim(); if (!name) return inp.focus();
-    el.remove(); putPresets([...st.presets, { name, mode: st.mode, params }]); toast('נשמר');
-  };
+  const yes = () => { const name = inp.value.trim(); if (!name) return inp.focus(); el.remove(); putPresets([...st.presets, { name, mode: st.mode, params }]); toast('נשמר'); };
+  el.querySelector('[data-yes]').onclick = yes;
+  inp.onkeydown = (e) => { if (e.key === 'Enter') yes(); };
 }
 function editPresets() {
   const draw = () => st.presets.filter((p) => p.mode === st.mode).map((p) => `<div><span><b>${esc(p.name)}</b><small>${describe(p.mode, p.params)}</small></span><button data-predel="${esc(p.id)}" aria-label="מחיקה">${IC.trash}</button></div>`).join('');
@@ -408,28 +562,39 @@ function editPresets() {
   el.querySelector('[data-presave2]').onclick = () => { el.remove(); savePreset(); };
 }
 
+// ---- the make screen: pictures -> words -> make. The settings are one line (open it to change them) ----
+function frame(key, title, note) {
+  const p = st[key];
+  return p ? `<div class="drop" data-slot="${key}"><img src="${esc(p.src)}" alt=""><span class="tag">${title}</span><button class="x" data-clear="${key}" aria-label="להסיר">${IC.x}</button></div>`
+    : `<button class="drop" data-pick="${key}" data-slot="${key}"><span class="ph">${IC.image}<b>${title}</b><span>${note}</span></span></button>`;
+}
+const madeAny = () => st.jobs.some((j) => j.kind === 'image' && j.status === 'done' && j.url);
+function framesHint() {
+  const t = st.start && st.end ? 'הסרטון יעבור מהתמונה הראשונה לשנייה' : st.start ? 'הסרטון יתחיל מהתמונה' : st.end ? 'הסרטון ייגמר בתמונה' : 'אפשר תמונת פתיחה, תמונת סיום, שתיהן, או בלי תמונה בכלל';
+  return t + (fine ? '. אפשר גם להדביק (Ctrl+V) או לגרור תמונה' : '');
+}
+function vPics() {
+  if (st.mode === 'video') {
+    const sub = (key) => (st[key] ? `<button class="sub" data-pick="${key}">${IC.again}להחליף</button>` : madeAny() ? `<button class="sub" data-made="${key}">${IC.grid}מהיצירות</button>` : '<span></span>');
+    return `<div class="card"><div class="frames">
+      ${frame('start', 'תמונת פתיחה', 'הסרטון מתחיל ממנה')}
+      <div class="mid">${st.start || st.end ? `<button class="swap" data-swap aria-label="להחליף בין הפתיחה לסיום">${IC.swap}</button>` : IC.arrow}</div>
+      ${frame('end', 'תמונת סיום', 'הסרטון נגמר בה')}
+      ${sub('start')}<span></span>${sub('end')}
+    </div><p class="hint">${framesHint()}</p></div>`;
+  }
+  const n = st.refs.length, max = maxRefs();
+  if (!n) return `<div class="card"><button class="drop" data-pick="refs" data-slot="refs"><span class="ph">${IC.image}<b>הוספת תמונות השראה</b><span>אפשר כמה, או בלי - רק מילים</span></span></button>
+    ${madeAny() ? `<button class="sub" data-made="refs" style="width:100%">${IC.grid}מהיצירות בפיקו</button>` : ''}${fine ? '<p class="hint">אפשר גם להדביק (Ctrl+V) או לגרור תמונות</p>' : ''}</div>`;
+  return `<div class="card" data-slot="refs"><p class="lbl">${IC.image}תמונות השראה <small>${n} מתוך ${max}</small></p>
+    <div class="refs">${st.refs.map((r, i) => `<div class="t"><img src="${esc(r.src)}" alt=""><button class="x" data-unref="${i}" aria-label="להסיר">${IC.x}</button></div>`).join('')}
+      ${n < max ? `<button class="add" data-pick="refs" aria-label="עוד תמונה">${IC.plus}</button>${madeAny() ? `<button class="add made" data-made="refs">${IC.grid}<span>מהיצירות</span></button>` : ''}` : ''}</div></div>`;
+}
 function vMake() {
   const v = st.mode === 'video', est = estimate();
-  const slot = (key, title, big) => {
-    const p = st[key];
-    return p ? `<div class="drop" style="${big ? '' : 'min-height:120px'}"><img src="${esc(p.src)}" alt=""><button class="x" data-clear="${key}">${IC.x}</button></div>`
-      : `<button class="drop" data-pick="${key}" style="${big ? '' : 'min-height:120px'}"><span class="ph">${IC.image}<span>${title}</span></span></button>`;
-  };
   return `
-  <div class="seg"><button data-mode="video" class="${v ? 'on' : ''}">${IC.video}סרטון</button><button data-mode="image" class="${v ? '' : 'on'}">${IC.image}תמונה</button></div>
-  ${presetRow()}
-  ${runningCards()}
-  ${v ? `<div class="card">
-      <p class="lbl">${IC.image}התמונה שממנה מתחילים <small>(אפשר גם בלי)</small></p>
-      ${slot('start', 'לחצו להוספת תמונה', true)}
-      ${st.end || st.showEnd ? `<p class="lbl" style="margin-top:14px">${IC.image}תמונת סיום <small>(הסרטון יגיע אליה)</small></p>${slot('end', 'תמונת הסיום')}`
-        : (st.start ? `<button class="link" data-showend>${IC.plus}תמונת סיום</button>` : '')}
-    </div>`
-    : `<div class="card">
-      <p class="lbl">${IC.image}תמונות השראה <small>(${st.refs.length ? `${st.refs.length} מתוך ${st.cfg?.image.maxRefs || 16}` : 'אפשר כמה, או בלי'})</small></p>
-      <div class="refs">${st.refs.map((r, i) => `<div class="t"><img src="${esc(r.src)}" alt=""><button class="x" data-unref="${i}">${IC.x}</button></div>`).join('')}
-        ${st.refs.length < (st.cfg?.image.maxRefs || 16) ? `<button class="add" data-pick="refs">${IC.plus}</button>` : ''}</div>
-    </div>`}
+  <div class="seg"><button data-mode="video" class="${v ? 'on' : ''}">${IC.video}סרטון</button><button data-mode="image" class="${v ? '' : 'on'}">${IC.gallery}תמונה</button></div>
+  ${vPics()}
   <div class="card">
     <div class="say">
       <button class="mic${rec ? ' rec' : ''}" data-mic><i>${rec ? IC.stop : IC.mic}</i><b style="font-weight:500">${rec ? 'לחצו לסיום' : (v ? 'ספרו מה יקרה' : 'ספרו מה לצייר')}</b></button>
@@ -437,7 +602,9 @@ function vMake() {
     </div>
     ${st.heard ? `<p class="heard">מה ששמעתי: ${esc(st.heard)}</p>` : ''}
   </div>
-  ${v ? `<div class="vm">${VMODELS.map(([id, name, note]) => { const c = vUsd(id, st.video); return `<button data-vmodel="${id}" class="${st.video.model === id ? 'on' : ''}"><b>${name}</b><small>${note}</small>${c != null ? `<em>≈ ${usd(c)}</em>` : ''}</button>`; }).join('')}</div>
+  ${presetRow()}
+  <button class="setsum${st.showOpts ? ' open' : ''}" data-opts aria-expanded="${st.showOpts}">${IC.sliders}<span>${describe(st.mode, st[st.mode])}</span>${IC.chev}</button>
+  ${st.showOpts ? `<div class="optsbox">${v ? `<div class="vm">${VMODELS.map(([id, name, note]) => { const c = vUsd(id, st.video); return `<button data-vmodel="${id}" class="${st.video.model === id ? 'on' : ''}"><b>${name}</b><small>${note}</small>${c != null ? `<em>≈ ${usd(c)}</em>` : ''}</button>`; }).join('')}</div>
     <div class="opts">
       <label class="opt"><span>אורך</span><select data-set="video.duration">${Array.from({ length: 12 }, (_, i) => i + 4).map((n) => `<option value="${n}" ${n === st.video.duration ? 'selected' : ''}>${n} שניות</option>`).join('')}</select></label>
       <label class="opt"><span>איכות</span><select data-set="video.quality"><option value="480p" ${st.video.quality === '480p' ? 'selected' : ''}>נמוכה (480p)</option><option value="720p" ${st.video.quality === '720p' ? 'selected' : ''}>גבוהה (720p)</option></select></label>
@@ -449,36 +616,49 @@ function vMake() {
       <label class="opt"><span>איכות</span><select data-set="image.quality"><option value="low" ${st.image.quality === 'low' ? 'selected' : ''}>טיוטה</option><option value="medium" ${st.image.quality === 'medium' ? 'selected' : ''}>רגילה</option><option value="high" ${st.image.quality === 'high' ? 'selected' : ''}>גבוהה</option></select></label>
       <label class="opt"><span>דגם</span><select data-set="image.model"><option value="flare" ${st.image.model === 'flare' ? 'selected' : ''}>Flare</option><option value="sunburst" ${st.image.model === 'sunburst' ? 'selected' : ''}>Sunburst</option></select></label>
     </div>`}
+    ${st.presets.filter((p) => p.mode === st.mode).some(isOn) ? '' : `<button class="link" data-presave>${IC.plus}לשמור כהגדרה בלחיצה אחת</button>`}</div>` : ''}
   <button class="go" data-go-make><span class="row">${IC.spark}${v ? 'יוצרים סרטון' : st.image.count > 1 ? `יוצרים ${st.image.count} תמונות` : 'יוצרים תמונה'}</span><small>${est != null ? '≈ ' + usd(est) : ''}</small></button>
-  <div style="height:16px"></div>`;
+  ${filled() ? `<button class="clear" data-clearall>${IC.x}לנקות ולהתחיל מחדש</button>` : ''}
+  <div class="runs" id="runs">${runningCards(runList())}</div>
+  <div style="height:8px"></div>`;
 }
 
 function vJob() {
   const j = st.jobs.find((x) => x.id === st.job);
   if (!j) return '<div class="empty">לא נמצא</div>';
   const group = j.batch ? st.jobs.filter((x) => x.batch === j.batch) : [j];
-  const ids = new Set(group.map((x) => x.id));
-  const others = st.jobs.filter((x) => live(x) && !ids.has(x.id));
-  return `<p class="ptxt">${IC.spark}<span dir="auto">${esc(j.prompt)}</span></p>${group.map(block).join('<div class="batchgap"></div>')}${others.length ? runningCards(others) : ''}`;
+  return `<p class="ptxt">${IC.spark}<span dir="auto">${esc(j.prompt)}</span></p>${group.map(block).join('<div class="batchgap"></div>')}<div class="runs" id="runs">${runningCards(runList())}</div>`;
 }
 function block(j) {
   const isV = j.kind === 'video';
   const media = j.status === 'done' && j.url
     ? (isV ? `<video src="${esc(j.url)}" ${j.poster ? `poster="${esc(j.poster)}"` : ''} controls playsinline autoplay loop></video>` : `<img src="${esc(j.url)}" alt="">`)
-    : j.status === 'failed' ? '' : `<div class="wait"><span class="spin"></span><b style="color:var(--text)">${isV ? 'מכין את הסרטון' : 'מצייר'}… ${j.progress ? j.progress + '%' : ''}</b><span>${isV ? 'בערך דקה-שתיים.' : 'בערך חצי דקה.'} אפשר לסגור, זה ממשיך ונשמר לבד.</span></div>`;
-  return `
+    : j.status === 'failed' ? '' : `<div class="wait" data-live="${j.id}"><span class="spin"></span><b style="color:var(--text)">${isV ? 'מכין את הסרטון' : 'מצייר'}… <span class="pct">${pct(j)}</span></b>
+      <span class="bar"><i style="width:${barW(j)}%"></i></span><span>${isV ? 'בערך דקה-שתיים.' : 'בערך חצי דקה.'} אפשר לסגור, זה ממשיך ונשמר לבד.</span></div>`;
+  return `<div data-block="${j.id}">
   ${j.status === 'failed' ? `<div class="err">לא הצליח${j.error ? ': ' + esc(j.error) : ''}</div>` : `<div class="media">${media}</div>`}
   ${j.status === 'done' ? `<div class="acts">
       <button class="pri" data-share="${j.id}">${IC.share}שיתוף</button>
       <button data-save="${j.id}">${IC.down}שמירה</button>
       <button data-again="${j.id}">${IC.again}עוד גרסה</button>
     </div>
-    ${!isV ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button data-tovideo="${j.id}">${IC.video}להפוך לסרטון</button><button data-toref="${j.id}">${IC.image}להמשיך ממנה</button></div>` : ''}
+    ${!isV ? `<div class="acts"><button data-tovideo="${j.id}">${IC.video}לסרטון</button><button data-toref="${j.id}">${IC.gallery}להמשיך ממנה</button><button data-edit="${j.id}">${IC.edit}לשנות</button></div>`
+      : `<div class="acts" style="grid-template-columns:1fr"><button data-edit="${j.id}">${IC.edit}לשנות את הבקשה ולנסות</button></div>`}
     <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span>${isV ? `<span>${label(VMODELS, j.params?.model || 'mini')}</span>` : ''}${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
     <button class="link" data-del="${j.id}" style="width:100%;justify-content:center;color:var(--dim);margin:0 0 6px">${IC.trash}להוריד מהגלריה</button>`
-    : j.status === 'failed' ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button class="pri" data-again="${j.id}">${IC.again}לנסות שוב</button><button data-edit="${j.id}">${IC.edit}לשנות ולנסות</button></div>` : ''}`;
+    : j.status === 'failed' ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button class="pri" data-again="${j.id}">${IC.again}לנסות שוב</button><button data-edit="${j.id}">${IC.edit}לשנות ולנסות</button></div>` : ''}
+  </div>`;
 }
 
+function tile(j) {
+  const pic = j.kind === 'video' ? (j.poster || '') : (j.url || '');
+  const when = new Date(j.created || Date.now());
+  const day = when.toDateString() === new Date().toDateString() ? 'היום' : when.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+  return `<button class="tile" data-open="${j.id}" data-tile="${j.id}"><div class="th">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}
+    ${j.kind === 'video' && j.status === 'done' ? `<span class="badge">${IC.play}0:${String(Math.round(j.dur || j.params?.duration || 0)).padStart(2, '0')}</span>` : ''}
+    ${live(j) ? `<span class="st" data-live="${j.id}">${j.kind === 'video' ? 'מכין…' : 'מצייר…'} <span class="pct">${pct(j)}</span></span>` : j.status === 'failed' ? '<span class="st">לא הצליח</span>' : ''}</div>
+    <small>${day}${j.usd != null ? ' · ' + usd(j.usd) : ''}${j.by && j.by !== 'owner' ? ' · ' + esc(j.client) : ''}</small></button>`;
+}
 function vGallery() {
   const list = st.jobs.filter((j) => st.filter === 'all' || j.kind === st.filter);
   const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
@@ -487,49 +667,54 @@ function vGallery() {
   return `
   <div class="sum"><span>החודש:</span><span>${mj.filter((j) => j.kind === 'video').length} סרטונים</span><span>${mj.filter((j) => j.kind === 'image').length} תמונות</span><span>${usd(spent)}</span></div>
   <div class="filt">${[['all', 'הכל'], ['video', 'סרטונים'], ['image', 'תמונות']].map(([k, l]) => `<button data-filter="${k}" class="${st.filter === k ? 'on' : ''}">${l}</button>`).join('')}</div>
-  ${list.length ? `<div class="grid">${list.map((j) => {
-    const pic = j.kind === 'video' ? (j.poster || '') : (j.url || '');
-    const when = new Date(j.created || Date.now());
-    const day = when.toDateString() === new Date().toDateString() ? 'היום' : when.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
-    return `<button class="tile" data-open="${j.id}"><div class="th">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}
-      ${j.kind === 'video' && j.status === 'done' ? `<span class="badge">${IC.play}0:${String(Math.round(j.dur || j.params?.duration || 0)).padStart(2, '0')}</span>` : ''}
-      ${live(j) ? `<span class="st">${j.kind === 'video' ? 'מכין…' : 'מצייר…'}</span>` : j.status === 'failed' ? '<span class="st">לא הצליח</span>' : ''}</div>
-      <small>${day}${j.usd != null ? ' · ' + usd(j.usd) : ''}${j.by && j.by !== 'owner' ? ' · ' + esc(j.client) : ''}</small></button>`;
-  }).join('')}</div>${st.more ? '<button class="link" data-more style="width:100%;justify-content:center;margin:16px 0">עוד</button>' : ''}`
+  ${list.length ? `<div class="grid">${list.map(tile).join('')}</div>${st.more ? '<button class="link" data-more style="width:100%;justify-content:center;margin:16px 0">עוד</button>' : ''}`
     : '<div class="empty">עוד לא נוצר כלום. לכו ל"יצירה".</div>'}`;
 }
 
-function render() {
+function drawNav() {
   const busy = st.jobs.filter(live).length;
   const nav = document.querySelectorAll('nav button');
-  nav[0].innerHTML = `${IC.wand}<span>יצירה</span>`; nav[1].innerHTML = `${IC.grid}<span>הגלריה</span>${busy ? `<em>${busy}</em>` : ''}`;
+  nav[0].innerHTML = `${IC.wand}<span>יצירה</span>`; nav[1].innerHTML = `${IC.gallery}<span>הגלריה</span>${busy ? `<em>${busy}</em>` : ''}`;
   nav.forEach((b) => b.classList.toggle('on', b.dataset.go === st.view || (st.view === 'job' && b.dataset.go === 'gallery')));
+}
+function render() {
+  drawNav();
   $('#view').innerHTML = st.view === 'make' ? vMake() : st.view === 'job' ? vJob() : vGallery();
   wire();
+  saveDraft();
 }
 
+// every handler is set with .onclick (never added), so wiring again after a partial redraw is safe
 function wire() {
   const V = $('#view');
+  const all = (s, fn) => V.querySelectorAll(s).forEach((b) => (b.onclick = (e) => fn(b, e)));
   if (st.view === 'job') {   // the result is open: get its file(s) now, so share / save open at once
     const cur = st.jobs.find((x) => x.id === st.job);
     if (cur) st.jobs.filter((x) => x.status === 'done' && (x.id === cur.id || (cur.batch && x.batch === cur.batch))).forEach((x) => fileOf(x).catch(() => {}));
   }
-  V.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => { st.mode = b.dataset.mode; keep(); render(); }));
-  V.querySelectorAll('[data-vmodel]').forEach((b) => (b.onclick = () => { st.video.model = b.dataset.vmodel; keep(); render(); }));
-  V.querySelectorAll('[data-pick]').forEach((b) => (b.onclick = () => pick(b.dataset.pick)));
-  V.querySelectorAll('[data-clear]').forEach((b) => (b.onclick = () => { st[b.dataset.clear] = null; if (b.dataset.clear === 'start') st.end = null; render(); }));
-  V.querySelectorAll('[data-unref]').forEach((b) => (b.onclick = () => { st.refs.splice(+b.dataset.unref, 1); render(); }));
-  V.querySelector('[data-showend]')?.addEventListener('click', () => { st.showEnd = true; render(); });
-  V.querySelector('[data-mic]')?.addEventListener('click', mic);
-  const ta = V.querySelector('#prompt'); if (ta) ta.oninput = () => { st.prompt = ta.value; st.heard = ''; };
+  all('[data-mode]', (b) => { st.mode = b.dataset.mode; keep(); render(); });
+  all('[data-vmodel]', (b) => { st.video.model = b.dataset.vmodel; keep(); render(); });
+  all('[data-pick]', (b) => pick(b.dataset.pick));
+  all('[data-made]', (b) => pickMade(b.dataset.made));
+  all('[data-clear]', (b, e) => { e.stopPropagation(); st[b.dataset.clear] = null; render(); });
+  all('[data-unref]', (b) => { st.refs.splice(+b.dataset.unref, 1); render(); });
+  all('[data-swap]', () => { [st.start, st.end] = [st.end, st.start]; render(); });
+  all('[data-mic]', () => mic());
+  all('[data-opts]', () => { st.showOpts = !st.showOpts; keep(); render(); });
+  all('[data-clearall]', () => { st.prompt = ''; st.heard = ''; st.start = st.end = null; st.refs = []; render(); });
+  const ta = V.querySelector('#prompt');
+  if (ta) {
+    ta.oninput = () => { st.prompt = ta.value; st.heard = ''; saveDraft(); };
+    ta.onkeydown = (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); make(); } };
+  }
   V.querySelectorAll('[data-set]').forEach((s) => (s.onchange = () => { const [a, k] = s.dataset.set.split('.'); st[a][k] = k === 'duration' || k === 'count' ? +s.value : s.value; keep(); render(); }));
-  V.querySelectorAll('[data-preset]').forEach((b) => (b.onclick = () => { const p = st.presets.find((x) => x.id === b.dataset.preset); if (p) { st[p.mode] = { ...st[p.mode], ...p.params }; keep(); render(); } }));
-  V.querySelector('[data-presave]')?.addEventListener('click', savePreset);
-  V.querySelector('[data-preedit]')?.addEventListener('click', editPresets);
-  V.querySelector('[data-go-make]')?.addEventListener('click', () => make());
-  V.querySelectorAll('[data-open]').forEach((b) => (b.onclick = () => { st.job = b.dataset.open; show('job'); }));
-  V.querySelectorAll('[data-filter]').forEach((b) => (b.onclick = () => { st.filter = b.dataset.filter; render(); }));
-  V.querySelector('[data-more]')?.addEventListener('click', loadMore);
+  all('[data-preset]', (b) => { const p = st.presets.find((x) => x.id === b.dataset.preset); if (p) { st[p.mode] = { ...st[p.mode], ...p.params }; keep(); render(); } });
+  all('[data-presave]', () => savePreset());
+  all('[data-preedit]', () => editPresets());
+  all('[data-go-make]', () => make());
+  all('[data-open]', (b) => { st.job = b.dataset.open; show('job'); });
+  all('[data-filter]', (b) => { st.filter = b.dataset.filter; render(); });
+  all('[data-more]', () => loadMore());
   if (st.view !== 'job') return;
   // each picture of a batch has its own buttons: data-<action>="<job id>"
   const on = (attr, fn) => V.querySelectorAll(`[data-${attr}]`).forEach((b) => (b.onclick = () => { const j = st.jobs.find((x) => x.id === b.dataset[attr]); if (j) fn(j); }));
@@ -537,16 +722,17 @@ function wire() {
   on('edit', (j) => { loadInto(j); show('make'); });
   on('share', (j) => share(j, false));
   on('save', (j) => share(j, true));
-  on('tovideo', (j) => { st.mode = 'video'; st.start = { src: j.url, job: j.id }; st.end = null; st.prompt = ''; st.heard = ''; keep(); show('make'); });
+  on('tovideo', (j) => { st.mode = 'video'; st.start = { src: j.url, job: j.id }; st.prompt = ''; st.heard = ''; keep(); show('make'); });
   on('toref', (j) => { st.mode = 'image'; st.refs = [{ src: j.url, job: j.id }]; st.prompt = ''; st.heard = ''; keep(); show('make'); });
   on('del', (j) => askDelete(j));
 }
-// "change and try again": the failed request back on the make screen
+// "change and try again": the request back on the make screen
 function loadInto(j) {
   const a = againOf(j);
   st.mode = a.kind; st.prompt = a.prompt; st.heard = '';
-  if (a.kind === 'video') { st.start = j.inputs?.start ? { src: j.inputs.start } : null; st.end = j.inputs?.end ? { src: j.inputs.end } : null; }
-  else st.refs = (j.inputs?.refs || []).map((u) => ({ src: u }));
+  if (a.kind === 'video') { st.start = j.inputs?.start ? { src: j.inputs.start } : null; st.end = j.inputs?.end ? { src: j.inputs.end } : null; Object.assign(st.video, j.params || {}); }
+  else { st.refs = (j.inputs?.refs || []).map((u) => ({ src: u })); Object.assign(st.image, j.params || {}); }
+  keep();
 }
 // share = the phone's share sheet; save = on iPhone the same sheet ("Save Video" / "Save Image"), elsewhere a download
 async function share(j, save) {
@@ -561,17 +747,17 @@ async function share(j, save) {
   }
 }
 function askDelete(j) {
-  const el = document.createElement('div'); el.className = 'sheet';
-  el.innerHTML = `<div><h3>להוריד מהגלריה?</h3><p>זה יורד מהרשימה כאן. בספריית השלומיוורס הקובץ נשאר.</p><div class="row"><button data-no>ביטול</button><button class="danger" data-yes>${IC.trash} להוריד</button></div></div>`;
-  el.onclick = (e) => { if (e.target === el || e.target.closest('[data-no]')) el.remove(); };
+  const el = sheet(`<h3>להוריד מהגלריה?</h3><p>זה יורד מהרשימה כאן. בספריית השלומיוורס הקובץ נשאר.</p><div class="row"><button data-no>ביטול</button><button class="danger" data-yes>${IC.trash} להוריד</button></div>`);
   el.querySelector('[data-yes]').onclick = async () => { el.remove(); try { await api('DELETE', '/jobs/' + j.id); st.jobs = st.jobs.filter((x) => x.id !== j.id);
-      const rest = j.batch && st.jobs.find((x) => x.batch === j.batch); if (rest) { st.job = rest.id; render(); } else show('gallery');  } catch (e) { toast(e.message); } };
-  document.body.appendChild(el);
+      const rest = j.batch && st.jobs.find((x) => x.batch === j.batch); if (rest) { st.job = rest.id; render(); } else show('gallery'); } catch (e) { toast(e.message); } };
 }
 async function loadJobs() {
   const r = await api('GET', '/jobs?limit=40');
   st.jobs = r.jobs; st.more = r.more;
-  if (st.jobs.some(live)) watch();
+  // pictures in the draft that were made here: their links were signed hours ago - take the fresh ones
+  const fresh = (p) => { if (!p?.job) return p; const j = st.jobs.find((x) => x.id === p.job); return j?.url ? { ...p, src: j.url } : p; };
+  st.start = fresh(st.start); st.end = fresh(st.end); st.refs = st.refs.map(fresh);
+  follow();
 }
 async function loadMore() {
   const last = st.jobs[st.jobs.length - 1];
@@ -583,7 +769,10 @@ render();
 drawBalance();
 navigator.serviceWorker?.register('/piko/sw.js', { scope: '/piko/' }).catch(() => {});
 await Promise.all([api('GET', '/config').then((c) => (st.cfg = c)).catch(() => {}), api('GET', '/presets').then((r) => (st.presets = r.presets)).catch(() => {}), loadBalance(false), loadJobs().catch((e) => toast(e.message))]);
+// the last draw after loading: keep what he is typing (he may have started before the list came)
+const ta = $('#prompt'), focused = document.activeElement === ta, caret = ta?.selectionStart;
 render();
+if (focused) { const t = $('#prompt'); t?.focus(); try { t.setSelectionRange(caret, caret); } catch { /* fine */ } }
 </script>
 </body>
 </html>

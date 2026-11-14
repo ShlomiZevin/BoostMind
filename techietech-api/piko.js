@@ -50,8 +50,8 @@ const IMAGE = {
 // photo 0.63 Mini vs 0.80 Fast): mini = the cheap draft (faces may drift a little), fast = keeps faces as in the photo, ~3x the price
 const VIDEO = {
   models: {
-    mini: { image: 'seedance-2.0-mini-image-to-video', text: 'seedance-2.0-mini-text-to-video', name: 'Mini', note: 'draft - cheap and quick, faces may drift a little' },
-    fast: { image: 'seedance-2.0-fast-image-to-video', text: 'seedance-2.0-fast-text-to-video', name: 'Fast', note: 'keeps faces as in the photo - about 3x the price' },
+    mini: { image: 'seedance-2.0-mini-image-to-video', text: 'seedance-2.0-mini-text-to-video', ref: 'seedance-2.0-mini-reference-to-video', name: 'Mini', note: 'draft - cheap and quick, faces may drift a little' },
+    fast: { image: 'seedance-2.0-fast-image-to-video', text: 'seedance-2.0-fast-text-to-video', ref: 'seedance-2.0-fast-reference-to-video', name: 'Fast', note: 'keeps faces as in the photo - about 3x the price' },
   },
   qualities: ['480p', '720p'],
   ratios: ['adaptive', '9:16', '16:9', '1:1', '4:3', '3:4', '21:9'],
@@ -165,8 +165,10 @@ async function transcribe(b) {
   const text = String(j.text || '').trim();
   if (!text) return { text: '', prompt: '' };
   const video = b.mode === 'video';
+  const frames = b.hasStart && b.hasEnd ? 'a photo the user gave as the first frame, ending on a second photo (the last frame)'
+    : b.hasStart ? 'a photo the user gave as the first frame' : b.hasEnd ? 'a photo the user gave as the LAST frame (the video ends on it)' : 'text only';
   const what = video
-    ? `a short video made from ${b.hasStart ? 'a photo the user gave as the first frame' : 'text only'}${b.hasEnd ? ', ending on a second photo (the last frame)' : ''}: say what happens, the motion, and the sounds / what is said (the camera only if they mentioned it)`
+    ? `a short video made from ${frames}: say what happens, the motion, and the sounds / what is said (the camera only if they mentioned it)`
     : `a picture${b.refs ? `, made from ${b.refs} reference image(s) the user gave` : ''}: say what is in it, the style, the framing`;
   const prompt = await gpt(
     `You turn a spoken, transcribed request (usually Hebrew) into a clear prompt for ${what}. ${video ? "Write the prompt in English." : "Write the prompt in the same language they spoke (Hebrew stays Hebrew)."} ` +
@@ -180,9 +182,12 @@ async function toEnglish(prompt, what) {
   if (!/[\u0590-\u05FF]/.test(prompt)) return prompt;
   return await gpt(`Translate this ${what}-generation prompt into natural English for the model. Keep every detail, add nothing, no preface.`, prompt) || prompt;
 }
-async function forVideo(prompt, hasStart) {
-  const en = await toEnglish(prompt, 'video');
-  return hasStart && !/faces?/i.test(en) ? `${en}\nKeep everyone's faces exactly as in the first frame.` : en;
+// frames: which photos the video has. Only an end frame = the reference model, told in the prompt that @image1 is the last frame
+async function forVideo(prompt, { start, end }) {
+  let en = await toEnglish(prompt, 'video');
+  if (end && !start) en += '\nThe video ends exactly on @image1: its final frame is @image1, with the same people, place and framing.';
+  if ((start || end) && !/faces?/i.test(en)) en += `\nKeep everyone's faces exactly as in the ${start ? 'first' : 'last'} frame.`;
+  return en;
 }
 
 async function image(job, refs) {
@@ -227,15 +232,17 @@ async function evoUpload(x) {
 
 async function startVideo(ref, job, inputs) {
   const p = job.params;
-  const promptEn = await forVideo(job.prompt, !!inputs.start);
+  const promptEn = await forVideo(job.prompt, { start: !!inputs.start, end: !!inputs.end });
+  const m = VIDEO.models[p.model] || VIDEO.models.mini, pics = !!(inputs.start || inputs.end);
   const image_urls = [];
   if (inputs.start) image_urls.push(await evoUpload(inputs.start));
   if (inputs.end) image_urls.push(await evoUpload(inputs.end));
   const token = crypto.randomBytes(16).toString('hex');
   const t = await evo('/v1/videos/generations', {
-    model: (VIDEO.models[p.model] || VIDEO.models.mini)[inputs.start ? 'image' : 'text'], prompt: promptEn,
+    // start (+ end) = image-to-video (1st = first frame, 2nd = last); only an end = reference-to-video; none = text-to-video
+    model: inputs.start ? m.image : inputs.end ? m.ref : m.text, prompt: promptEn,
     ...(image_urls.length ? { image_urls } : {}), duration: p.duration, quality: p.quality,
-    aspect_ratio: inputs.start ? p.ratio : (p.ratio === 'adaptive' ? '9:16' : p.ratio), generate_audio: true,
+    aspect_ratio: pics ? p.ratio : (p.ratio === 'adaptive' ? '9:16' : p.ratio), generate_audio: true,
     callback_url: `${SELF}/hook/${ref.id}?t=${token}`,
   });
   if (!t.id) throw new Error('evolink: no task id');
@@ -383,7 +390,7 @@ async function view(id, j, full) {
     progress: j.progress ?? null, error: j.error || null, created: ms(j.t), done: j.done || null, batch: j.batch || null,
     usd: j.usd ?? null, estimate: j.estimate ?? null, w: j.w || null, h: j.h || null, dur: j.dur || null,
     url: await signed(j.path), library: j.libraryId || null,
-    poster: j.kind === 'video' && j.inputs?.start ? await signed(j.inputs.start) : null,
+    poster: j.kind === 'video' && (j.inputs?.start || j.inputs?.end) ? await signed(j.inputs.start || j.inputs.end) : null,
     ...(full ? { inputs: Object.fromEntries(await Promise.all(Object.entries(j.inputs || {}).map(async ([k, v]) => [k, Array.isArray(v) ? await Promise.all(v.map(signed)) : await signed(v)]))) } : {}),
   };
 }
@@ -406,8 +413,7 @@ async function createJob(u, kind, b) {
     const jobs = await Promise.all(refsOut.map(async (r) => ({ id: r.id, ...(await view(r.id, (await r.get()).data())) })));
     return { ...jobs[0], jobs };
   } else {
-    const start = await readInput(b.start, u.by), end = await readInput(b.end, u.by);
-    if (end && !start) throw fail(400, 'end_needs_start');
+    const start = await readInput(b.start, u.by), end = await readInput(b.end, u.by);   // a start, an end, both or none
     const params = videoParams(b);
     const estimate = videoUsd(await prices(), params);
     const bal = await balance(true);
@@ -520,6 +526,15 @@ exports.pikoWork = onDocumentCreated({ document: `${JOBS}/{id}`, region: REGION,
       if (job.inputs?.start) inputs.start = await loadInput(job.inputs.start);
       if (job.inputs?.end) inputs.end = await loadInput(job.inputs.end);
       await startVideo(ref, job, inputs);
+      // follow it here until it is done, so its progress reaches the app as it happens (the app listens to this doc -
+      // nothing polls, nothing redraws); the callback / the sweep still finish it if this runs out of time
+      const until = Date.now() + 480e3;
+      while (Date.now() < until) {
+        await new Promise((ok) => setTimeout(ok, 6000));
+        const j = (await ref.get()).data();
+        if (j?.status !== 'running') break;
+        await checkVideo(ref, j).catch((e) => console.warn('piko follow', ref.id, e.message));
+      }
     }
   } catch (e) {
     console.error('piko work', ref.id, e.message);

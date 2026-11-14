@@ -1,7 +1,7 @@
 # Piko API
 
 The server behind Piko (shlomiverse.com/piko/): pictures from GPT Image 2.5 (with reference images) and videos from
-Seedance 2.0 Mini or Fast (a start frame, optionally an end frame, with sound). Shlomi's app and his other tools
+Seedance 2.0 Mini or Fast (a start frame, an end frame, both or neither, with sound). Shlomi's app and his other tools
 (startdoing.co.il) use this same API. Code: `piko.js`.
 
 This page online (always the deployed version): https://shlomiverse.com/piko/api/docs
@@ -18,7 +18,7 @@ Every call sends one of:
 
 Browsers may call it from shlomiverse.com, boostmind-b052c.web.app, startdoing.co.il (and www.) and localhost.
 Errors come back as `{ "error": "<code>" }` with the HTTP status: `auth` 401, `balance` 402 (not enough EvoLink credit),
-`prompt` / `image` / `too_many_refs` / `end_needs_start` 400, `image_too_big` 413, `too_many` 429.
+`prompt` / `image` / `too_many_refs` 400, `image_too_big` 413, `too_many` 429.
 
 ## Pictures in
 
@@ -70,7 +70,7 @@ side (default 1) - the answer is the first job plus `jobs` (all of them, one `ba
 (Face test, 2026-11-08: same photo + prompt, ArcFace similarity to the photo 0.63 with `mini`, 0.80 with `fast`.)
 The exact $ per second of each comes from `GET /config` → `video.models[]` (`{ id, name, note, default, usdPerSecond: { 480p, 720p } }`).
 `duration`: 4-15 s (default 6). `quality`: `480p` (default) | `720p`. `ratio`: `9:16` (default) or `adaptive` (follows the start
-picture), `16:9`, `1:1`, `4:3`, `3:4`, `21:9`. Sound is always on. The answer also carries `jobs: [the job]`. No `start` = a video from text only. A Hebrew prompt is translated to English for the model. Real faces are
+picture), `16:9`, `1:1`, `4:3`, `3:4`, `21:9`. Sound is always on. The answer also carries `jobs: [the job]`. Frames: `start` = the first frame; `end` = the last frame (the video ends on it); both = from one to the other; neither = a video from text only. Only an `end` uses Seedance's reference-to-video model, told in the prompt that the picture is the last frame (same price). A Hebrew prompt is translated to English for the model. Real faces are
 fine (both models). Takes ~1-2 min (`fast` a little longer). Refused (402) when EvoLink's balance is below the video's price.
 
 ### The job
@@ -80,7 +80,7 @@ fine (both models). Takes ~1-2 min (`fast` a little longer). Refused (402) when 
   "usd": 0.111, "estimate": 0.111, "created": 1794000000000, "done": 1794000100000, "error": null, "library": "8916fd98fdd2" }
 ```
 `status`: `queued` → `working` → (`running` → `saving`, videos) → `done` | `failed`. `url` / `poster` are signed links,
-good for 6 hours - ask for the job again for fresh ones. They are on storage.googleapis.com, so a browser page can play / show
+good for 6 hours - ask for the job again for fresh ones (`poster` = the start picture, or the end one when there is no start). A video's `progress` is updated every ~6 s while it is made. They are on storage.googleapis.com, so a browser page can play / show
 them but cannot read them for sharing or saving: download the file on your server (`url` or `GET /jobs/:id/file`) and keep your own copy. `usd` is what the provider charged (EvoLink for videos; for
 pictures, OpenAI's list price of the tokens used).
 
