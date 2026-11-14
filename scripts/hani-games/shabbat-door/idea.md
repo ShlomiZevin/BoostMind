@@ -38,3 +38,12 @@ the color is changing, and without פסיעה גסה."
 - A 2:30 clock "עד המוציא" for the whole route; run out = "הסעודה התחילה..." (doors passed / 7). Score = time (low).
 - Other visitors (3 painted Haredi men, from behind) play too; ~14% of reds one of them is caught and goes back.
 - Bots: sharp 89 s, careful 99 s, very cautious 142 s, always-holding fails at door 1.
+
+## Round 3 (14 Nov 2026) - his notes
+- "Every level you start with חס וחלילה... not clear what happened" -> bug: the button held through a door was still held
+  when the next corridor opened on red. Now every corridor needs a fresh press, and opens with a CARD: "✓ עברתם את דלת N!",
+  "דלת N+1 מתוך 7", the department, the goal, "מוכנים... 3 2 1" (game clock paused) -> green. Green sparks on passing a door.
+- "We need background music ... with beeps of hospital" -> ElevenLabs instrumental loop (pizzicato + klezmer clarinet +
+  heart-monitor beeps), softer on red. Option B kept in snd/music-b.mp3 (quiet master).
+- "Didn't get the 1 out of 2 breads... make it clear that you need a lechem mishneh" -> HUD: "לחם משנה" + one full roll +
+  one empty (grey) roll; every card says the goal: to Reb Shmulik in פנימית for the second roll, then back to Abba.

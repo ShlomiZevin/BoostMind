@@ -49,8 +49,10 @@ button{font-family:inherit;border:0;cursor:pointer}
 #dots i.on{background:var(--gold)}
 #dots i.now{background:#fff;box-shadow:0 0 0 2px var(--gold)}
 #clock{direction:ltr;font-variant-numeric:tabular-nums}
-#rolls img{width:26px;height:26px;object-fit:contain}
-#rolls span{direction:ltr}
+#rolls img{width:24px;height:24px;object-fit:contain}
+#rolls .rl{font-size:11px;font-weight:700;line-height:1.05;width:34px;text-align:center}
+#rolls img.empty,#lvlGoal img.empty{filter:grayscale(1) brightness(1.7);opacity:.35;outline:2px dashed #fff8;outline-offset:-1px;border-radius:50%}
+#rolls.got{box-shadow:0 0 0 2px var(--gold),0 0 14px #ffd76a}
 
 /* thumb controls, on the floor of the scene */
 #ctl{bottom:calc(var(--strip) + var(--safe-b) + 10px);display:none;justify-content:center;align-items:center;gap:22px;z-index:3;pointer-events:none}
@@ -65,6 +67,26 @@ button{font-family:inherit;border:0;cursor:pointer}
 @keyframes lowp{50%{transform:scale(1.06)}}
 .ctlIn{line-height:1.05;text-align:center;pointer-events:none}
 
+/* the card between corridors */
+#lvl{top:calc(var(--safe-t) + 60px);display:none;justify-content:center;z-index:3;pointer-events:none;padding:0 14px}
+#lvl.on{display:flex;animation:lvlIn .35s ease-out}
+@keyframes lvlIn{0%{opacity:0;transform:translateX(-50%) scale(.85)}100%{opacity:1;transform:translateX(-50%) scale(1)}}
+#lvlIn{background:#0b1530ee;border:3px solid var(--gold);border-radius:22px;padding:12px 18px 10px;text-align:center;color:#fff;box-shadow:0 10px 30px #000a;max-width:360px;width:100%}
+#lvlDone{color:#7dffb5;font-weight:900;font-size:16px;line-height:1.3}
+#lvlDone b{display:block;color:var(--gold)}
+#lvlNum{font-size:30px;font-weight:900;color:var(--gold);margin-top:4px;line-height:1.1}
+#lvlName{font-size:19px;font-weight:700;margin-top:2px}
+#lvlGoal{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;background:#ffffff14;border-radius:14px;padding:6px 8px;font-size:15px;font-weight:700;line-height:1.3}
+#lvlGoal b{color:var(--gold)}
+#lvlGoal .rolls2{display:flex;gap:2px;flex:none}
+#lvlGoal .rolls2 img{width:30px;height:30px;object-fit:contain}
+#lvlCount{font-size:38px;font-weight:900;color:#ff6b6d;min-height:44px;line-height:44px}
+body.small #lvlNum{font-size:24px}
+body.small #lvlGoal{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;background:#ffffff14;border-radius:14px;padding:6px 8px;font-size:15px;font-weight:700;line-height:1.3}
+#lvlGoal b{color:var(--gold)}
+#lvlGoal .rolls2{display:flex;gap:2px;flex:none}
+#lvlGoal .rolls2 img{width:30px;height:30px;object-fit:contain}
+#lvlCount{font-size:30px;min-height:36px;line-height:36px}
 /* Hani's own strip */
 #strip{bottom:0;height:calc(var(--strip) + var(--safe-b));padding-bottom:var(--safe-b);display:none;align-items:stretch;background:linear-gradient(#fffaf0f5,#fff3dcf9);border-top:3px solid var(--blue);box-shadow:0 -4px 14px #0003;z-index:2}
 #strip.on{display:flex}
@@ -137,6 +159,7 @@ body.small #say{font-size:13.5px;padding:5px 9px;line-height:1.25}
 body.small .chip{font-size:15px;padding:0 7px}
 body.small #whereTxt{font-size:12px}
 body.small #rolls img{width:20px;height:20px}
+body.small #rolls .rl{display:none}
 body.small .ibtn{width:36px}
 .keyhint{font-size:12px;color:#9aa6bd;font-weight:500}
 @media (hover:none){.keyhint{display:none}}
@@ -148,12 +171,15 @@ body.small .ibtn{width:36px}
 
 <div class="col" id="hud">
   <button class="ibtn" id="pauseBtn" aria-label="עצרנו"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
-  <div class="chip" id="rolls"><img src="assets/roll.png" alt=""><span id="rollTxt">1/2</span></div>
+  <div class="chip" id="rolls"><span class="rl">לחם משנה</span><img src="assets/roll.png" alt="לחמנייה"><img id="roll2" class="empty" src="assets/roll.png" alt="חסרה לחמנייה"></div>
   <div class="chip" id="where"><span id="whereTxt"></span><span id="dots"></span></div>
   <div class="chip" id="clock">0:00</div>
   <button class="ibtn sndBtn" aria-label="צליל"></button>
 </div>
 
+<div class="col" id="lvl"><div id="lvlIn">
+  <div id="lvlDone"></div><div id="lvlNum"></div><div id="lvlName"></div><div id="lvlGoal"><span class="rolls2"><img src="assets/roll.png" alt=""><img id="lvlRoll2" src="assets/roll.png" alt=""></span><span id="lvlGoalTxt"></span></div><div id="lvlCount"></div>
+</div></div>
 <div class="col" id="ctl">
   <button id="walkBtn"><span class="ctlIn">הולכים<small>החזיקו</small></span></button>
 </div>
@@ -209,6 +235,6 @@ body.small .ibtn{width:36px}
     <button id="tutNext">הבא <span class="keyhint">(Enter)</span></button>
   </div>
 </div>
-<script src="game.js?v=3"></script>
+<script src="game.js?v=5"></script>
 </body>
 </html>
