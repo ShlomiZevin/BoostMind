@@ -399,8 +399,9 @@ Script `haredit-6` (Hani + "אמא:" rows, the Yiddish translations as `(תרג�
 direction - "16:00" written as "ארבע"), Drop folder `haredit-6`, project from haredit-3. He films the mother himself and
 hasn't decided: **full screen** (her rows `mom.*`, group אמא) or a **small window over Hani** (`pip.*`, hidden: frame,
 background, "אמא" pill at x 690 y 280 w 360 h 540 - clear of Hani's head). Sets in `_assets/haredit/h6/`:
-`office-arrive.jpg` (her entrance, standing, from Dasi's seat), `set-wall-a.jpg` (seated, the series set + kids /
-family pictures), `office-leave.jpg` (16:00, low warm sun), the mother's ward `hosp-bed.jpg` (the father's legs in
+`tt-openspace.jpg` (her entrance, standing = haredit-5's Techy-Tech open space, library corridor-yotam-26c675),
+`set-wall-a.jpg` (seated: her cubicle exactly as haredit-2/3 - box x -302 y -450 w 1800, kids.png x -8 y 414 w 398,
+family-framed.png x 573 y 854 w 585), `tt-openspace-1600.jpg` (the same open space at 16:00, an edit pass: light only), the mother's ward `hosp-bed.jpg` (the father's legs in
 socks under the blanket, his head behind the curtain - "יצחק, שטיי אויף!" points at someone, nobody frozen),
 `hosp-seat.jpg`, `hosp-shida.jpg` (the empty bed + the shida). Sounds: `hosp-amb-b.mp3` (ward: murmur, trolley, chirps),
 `monitor-beep.wav`, `hosp-amb-a.mp3` (hum, muted) - each split at the mother's lines: through `filter: phone` (quiet)
@@ -409,3 +410,6 @@ while we see Hani, in the room while we see the mother.
   person as in the reference") - an empty set = `image` with the set described in words.
 - **The sound-effects model makes no monitor beeps** (two tries: hum and murmur only) - a monitor beep is a plain tone:
   synthesised (ffmpeg aevalsrc, 975 Hz + harmonics, 0.11 s, 70 bpm, 35 beats = a seamless 30 s loop, a short echo).
+- **Everything at the office is the Techy-Tech set we already have** (his note, 2026-11-14): never a freshly invented
+  office - the library first (`techy-tech` tag; Hani's cubicle = set-wall-a + kids + family-framed), a new angle or light
+  = an edit pass on one of those (portrait 0.8, "keep this exact photo... change ONLY ...", NOBODY in it).
