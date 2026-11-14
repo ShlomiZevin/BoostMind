@@ -17,12 +17,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await sleep(1200);
     const lay = await p.evaluate(() => {
       const r = (id) => document.getElementById(id).getBoundingClientRect();
-      const hud = r('hud'), w = r('walkBtn'), f = r('fastBtn'), strip = r('strip'), st = r('stage');
-      const gap = w.left - f.right;
-      return { hudBottom: Math.round(hud.bottom), controlsAboveStrip: w.bottom <= strip.top && f.bottom <= strip.top, gap: Math.round(gap), walk: Math.round(w.width), fieldShare: Math.round(st.height / innerHeight * 100), over: document.documentElement.scrollWidth > innerWidth };
+      const hud = r('hud'), w = r('walkBtn'), strip = r('strip'), st = r('stage');
+      return { hudBottom: Math.round(hud.bottom), controlsAboveStrip: w.bottom <= strip.top, walk: Math.round(w.width), fieldShare: Math.round(st.height / innerHeight * 100), over: document.documentElement.scrollWidth > innerWidth };
     });
     await sleep(1500); await p.screenshot({ path: OUT + `p-${name}-play.png` });
-    // walk straight into the closed door on purpose: a mistake
+    // keep walking through a red light on purpose: a mistake
     await p.evaluate(() => SHABBAT_DOOR.hold(true));
     let m = 0; for (let t = 0; t < 80 && !m; t++) { await sleep(100); m = await p.evaluate(() => SHABBAT_DOOR.mistakes); }
     await sleep(250); await p.screenshot({ path: OUT + `p-${name}-oops.png` }); await p.evaluate(() => SHABBAT_DOOR.hold(false));

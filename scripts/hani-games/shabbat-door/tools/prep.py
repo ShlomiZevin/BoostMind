@@ -32,3 +32,8 @@ fit_h(trim(Image.open(A + '/orderly.png').convert('RGBA')), 600).save(P + '/orde
 r = trim(Image.open(A + '/roll.png').convert('RGBA')); r.thumbnail((160, 160)); r.save(P + '/roll.png')
 for n in ['er', 'ward', 'out']:
     Image.open(A + '/corridor-%s.png' % n).convert('RGB').resize((768, 1152), Image.LANCZOS).save(P + '/bg-%s.jpg' % n, quality=84)
+# the other visitors (seen from behind), cut by shapes
+vf, vrep = cut_sheet(A + '/visitors.png', 3, 1); print('\n'.join(vrep))
+vbase = max(f[0].height for f in vf)
+for k, (im, fx, h) in enumerate(vf):
+    im = trim(im); im = im.resize((round(im.width * 540 / vbase), round(im.height * 540 / vbase)), Image.LANCZOS); im.save(P + '/visitor-%d.png' % (k + 1)); print('visitor', k + 1, im.size)

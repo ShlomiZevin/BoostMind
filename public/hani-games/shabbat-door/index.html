@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#1b2a4e">
 <title>דלת של שבת – המשחקייה של חני</title>
-<meta name="description" content="שבת בבית החולים ואין לחם משנה! עברו עם חני בדלתות השבת – רק כשהן נפתחות לבד – והביאו את הלחמנייה של רב שמוליק.">
+<meta name="description" content="רמזור אדום-ירוק בבית החולים! ירוק – הולכים, אדום – קופאים. עברו עם חני בדלתות השבת והביאו את הלחמנייה של רב שמוליק לפני המוציא.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="he_IL">
 <meta property="og:title" content="דלת של שבת – המשחקייה של חני">
-<meta property="og:description" content="עברו עם חני בדלתות השבת של בית החולים – רק כשהן נפתחות לבד!">
+<meta property="og:description" content="ירוק – הולכים, אדום – קופאים! עברו עם חני בדלתות השבת לפני המוציא.">
 <meta property="og:url" content="https://shlomiverse.com/hani-games/shabbat-door/">
 <meta property="og:image" content="https://shlomiverse.com/hani-games/shabbat-door/assets/share.jpg">
 <meta property="og:image:width" content="1200">
@@ -55,14 +55,14 @@ button{font-family:inherit;border:0;cursor:pointer}
 /* thumb controls, on the floor of the scene */
 #ctl{bottom:calc(var(--strip) + var(--safe-b) + 10px);display:none;justify-content:center;align-items:center;gap:22px;z-index:3;pointer-events:none}
 #ctl.on{display:flex}
-#walkBtn,#fastBtn{pointer-events:auto;border-radius:50%;color:#fff;font-weight:900;display:grid;place-items:center;touch-action:none;position:relative}
+#walkBtn{pointer-events:auto;border-radius:50%;color:#fff;font-weight:900;display:grid;place-items:center;touch-action:none;position:relative}
 #walkBtn{width:var(--wb,104px);height:var(--wb,104px);font-size:24px;background:radial-gradient(circle at 50% 35%,#4ad48a,#1e9a5a);box-shadow:0 6px 0 #11673b,0 0 0 5px #ffffffcc}
 #walkBtn.held{transform:translateY(4px);box-shadow:0 2px 0 #11673b,0 0 0 5px #fff}
-#walkBtn small,#fastBtn small{display:block;font-size:11px;font-weight:700;opacity:.9;margin-top:-2px}
-#fastBtn{width:var(--fb,74px);height:var(--fb,74px);font-size:17px;background:radial-gradient(circle at 50% 35%,#5a8ff0,#2457b8);box-shadow:0 5px 0 #143a80,0 0 0 4px #ffffffcc}
-#fastBtn.held{transform:translateY(3px);box-shadow:0 2px 0 #143a80,0 0 0 4px #fff}
-#fastBtn.empty{filter:grayscale(.9) brightness(.8)}
-#fastRing{position:absolute;inset:-9px;width:calc(100% + 18px);height:calc(100% + 18px);transform:rotate(-90deg);pointer-events:none}
+#walkBtn small{display:block;font-size:11px;font-weight:700;opacity:.9;margin-top:-2px}
+#walkBtn.red{box-shadow:0 6px 0 #11673b,0 0 0 5px #ff5a5c,0 0 22px #ff5a5c99}
+#walkBtn.red.held{box-shadow:0 2px 0 #11673b,0 0 0 5px #ff5a5c,0 0 26px #ff5a5c}
+#clock.low{background:#c62a2fd9;animation:lowp 1s infinite}
+@keyframes lowp{50%{transform:scale(1.06)}}
 .ctlIn{line-height:1.05;text-align:center;pointer-events:none}
 
 /* Hani's own strip */
@@ -156,7 +156,6 @@ body.small .ibtn{width:36px}
 
 <div class="col" id="ctl">
   <button id="walkBtn"><span class="ctlIn">הולכים<small>החזיקו</small></span></button>
-  <button id="fastBtn"><svg id="fastRing" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#ffffff33" stroke-width="7"/><circle id="fastArc" cx="50" cy="50" r="46" fill="none" stroke="#ffe27a" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="0"/></svg><span class="ctlIn">בשינוי<small>מהר</small></span></button>
 </div>
 
 <div class="col" id="strip">
@@ -169,7 +168,7 @@ body.small .ibtn{width:36px}
 <div class="screen on" id="start">
   <img class="hero" src="assets/hero.jpg" alt="דלת של שבת – המשחקייה של חני">
   <img class="title" src="assets/title.png" alt="דלת של שבת">
-  <p class="sub">שבת בבית החולים – ואין לחם משנה!<br>עברו בדלתות השבת רק כשהן נפתחות לבד.</p>
+  <p class="sub">שבת בבית החולים – ואין לחם משנה!<br>ירוק – הולכים. אדום – קופאים!</p>
   <div class="startBtns">
     <button class="big gold" id="playBtn"><svg viewBox="0 0 24 24"><path d="M17 4v16L4 12z"/></svg>שחקו</button>
     <button class="mid" id="howBtn">איך משחקים</button>
@@ -182,7 +181,7 @@ body.small .ibtn{width:36px}
 </div>
 
 <div class="screen" id="over">
-  <p class="over-h">לחם משנה! נס בתוך נס!</p>
+  <p class="over-h" id="overH">לחם משנה! נס בתוך נס!</p>
   <img id="overHani" src="assets/hani-joy.png" alt="">
   <div class="over-line" id="overLine"></div>
   <div class="over-score" id="overScore">0:00</div>
@@ -210,6 +209,6 @@ body.small .ibtn{width:36px}
     <button id="tutNext">הבא <span class="keyhint">(Enter)</span></button>
   </div>
 </div>
-<script src="game.js?v=1"></script>
+<script src="game.js?v=3"></script>
 </body>
 </html>

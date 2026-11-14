@@ -26,3 +26,15 @@ try: wait for green and pass -> staff may open it.
 ## Files
 art/ (prompts + raw paintings), snd/ (raw ElevenLabs), tools/prep.py (cut -> public assets), tools/sfx.js,
 tools/t1-play.js (tutorial + 3 bots), tools/t2-phones.js (5 sizes + landscape). Server: python -m http.server 5302 in public/.
+
+## Round 2 (14 Nov 2026) - his note
+"Let's do it red light, green light, as we had in Squid Games... just in our hospital. Put timers on the doors for when
+the color is changing, and without פסיעה גסה."
+- Now the Squid-Game rules: GREEN = the door is open, walk; RED = the door's sensor watches the whole corridor (a red beam
+  sweeps) - any movement after a 0.28 s grace = "חס וחלילה!", back to the start of the corridor. No sensor mat any more.
+- Each phase has its own length (seeded by the day); a timer sign above every door: colour light + ring + "0:0N" until it
+  changes; yellow blink the last second; the motor-box light matches; a big "ירוק – הולכים!" / "אדום – קופאים!" call.
+- בשינוי removed (no פסיעה גסה) - one button only.
+- A 2:30 clock "עד המוציא" for the whole route; run out = "הסעודה התחילה..." (doors passed / 7). Score = time (low).
+- Other visitors (3 painted Haredi men, from behind) play too; ~14% of reds one of them is caught and goes back.
+- Bots: sharp 89 s, careful 99 s, very cautious 142 s, always-holding fails at door 1.
