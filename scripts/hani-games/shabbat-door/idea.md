@@ -53,3 +53,11 @@ the color is changing, and without פסיעה גסה."
 - New sounds: door passed jingle (3), countdown ticks + GO on the card, tense ticks in the last second of green, shoe
   squeak when she stops (2), stronger red alarm / green go (3 each), scanner sweep loop on red, heartbeat in the last
   25 s, card whoosh (2), visitor eliminated (2), victory fanfare, sad trombone on time-out. All loudness-matched.
+
+## Round 5 (14 Nov 2026) - "the other players' logic is broken; פסיעה גסה is gone; more seconds between levels; let me click to start"
+- Visitors fixed: same-side visitors walked through each other (now they wait behind, gap 0.16), a sideways jump at the
+  door (removed), late movers drawn standing (drawn walking now). Test: 0 overlaps, no jumps over 3 whole runs.
+- פסיעה גסה is a rule again (not a hurry button): holding fills a ring around "הולכים" (2.6 s) and her steps grow
+  (up to +70% speed); full = "פסיעה גסה! נפסלת"; letting go empties it (0.9 s). Warning ticks + "פסיעה גסה בשבת?! לאט!".
+- The card between levels waits for a tap on "יוצאים!" (enabled after 1.2 s so it is read), then 3-2-1 -> green.
+- Bots: sharp 56 s, careful 82 s, cautious 135 s; never-let-go fails (24 disqualifications), always-hold fails.

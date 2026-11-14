@@ -1,4 +1,5 @@
-// plays the tutorial with real presses, then whole runs with bots (fast-forwarded through the test hook), screenshots in ../shots
+// plays the tutorial with real presses (each "try" step waits for the real action), then whole runs with bots
+// (fast-forwarded through the test hook), then checks the other visitors never overlap or jump. Screenshots in ../shots
 const { chromium } = require(process.env.HOME + '/plaxzy-creator/node_modules/playwright-core');
 const OUT = __dirname + '/../shots/', BASE = process.env.BASE || 'http://localhost:5302/hani-games';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -11,44 +12,71 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.goto(BASE + '/shabbat-door/?solo=1'); await sleep(1500);
   await p.screenshot({ path: OUT + 't-start.png' });
   await p.click('#playBtn', { force: true }); await sleep(600);
-  const S = () => p.evaluate(() => ({ st: SHABBAT_DOOR.state, z: +SHABBAT_DOOR.z.toFixed(2), green: SHABBAT_DOOR.green, i: SHABBAT_DOOR.tut.i, oops: SHABBAT_DOOR.oops }));
-  for (let k = 0; k < 6; k++) { await p.screenshot({ path: OUT + `t-tut${k + 1}.png` }); await p.keyboard.press('Enter'); await sleep(350); }
   const wb = await p.locator('#walkBtn').boundingBox();
-  const down = () => p.mouse.move(wb.x + wb.width / 2, wb.y + wb.height / 2).then(() => p.mouse.down());
-  // try steps: walk on green, stand on red - with real presses
-  for (const step of ['walk', 'freeze', 'pass']) {
-    await p.screenshot({ path: OUT + `t-try-${step}.png` });
-    let isDown = false;
-    for (let t = 0; t < 500; t++) {
-      const s = await p.evaluate(() => ({ g: SHABBAT_DOOR.green, left: SHABBAT_DOOR.timeLeft, z: SHABBAT_DOOR.z, done: !document.getElementById('tutNext').disabled }));
-      if (s.done) break;
-      let go = s.g && s.left > 0.45;
-      if (step === 'walk' && s.z > 0.2) go = false;
-      if (go && !isDown) { await down(); isDown = true; } else if (!go && isDown) { await p.mouse.up(); isDown = false; }
-      if (step === 'freeze' && t === 25) await p.screenshot({ path: OUT + 't-red.png' });
-      await sleep(80);
+  await p.mouse.move(wb.x + wb.width / 2, wb.y + wb.height / 2);
+  let isDown = false;
+  for (let guard = 0; guard < 40; guard++) {
+    const st = await p.evaluate(() => ({ i: SHABBAT_DOOR.tut.i, on: SHABBAT_DOOR.tut.on, wait: document.getElementById('tutNext').disabled }));
+    if (!st.on) break;
+    await p.screenshot({ path: OUT + `t-tut${st.i + 1}.png` });
+    if (st.wait) {   // a "try" step: walk on green (short of פסיעה גסה), stand on red
+      for (let t = 0; t < 600; t++) {
+        const s = await p.evaluate(() => ({ g: SHABBAT_DOOR.green, left: SHABBAT_DOOR.timeLeft, z: SHABBAT_DOOR.z, gasa: SHABBAT_DOOR.gasa, i: SHABBAT_DOOR.tut.i, done: !document.getElementById('tutNext').disabled }));
+        if (s.done) break;
+        let go = s.g && s.left > 0.45 && s.gasa < 0.7;
+        if (s.i === 6 && s.z > 0.2) go = false;
+        if (go && !isDown) { await p.mouse.down(); isDown = true; } else if (!go && isDown) { await p.mouse.up(); isDown = false; }
+        await sleep(70);
+      }
+      if (isDown) { await p.mouse.up(); isDown = false; }
+      console.log('try step', st.i + 1, 'done');
     }
-    if (isDown) await p.mouse.up();
-    console.log('tut', step, await S());
-    await p.keyboard.press('Enter'); await sleep(300);
+    await p.keyboard.press('Enter'); await sleep(350);
   }
-  await p.screenshot({ path: OUT + 't-tut-last.png' });
-  await p.keyboard.press('Enter'); await sleep(1500);
-  console.log('game', await S());
-  await p.screenshot({ path: OUT + 't-play1.png' });
-  for (let t = 0; t < 40; t++) { await sleep(100); if (await p.evaluate(() => !SHABBAT_DOOR.green && SHABBAT_DOOR.redFor > 0.5)) break; }
-  await p.screenshot({ path: OUT + 't-play-red.png' });
-  // bots, fast-forwarded: careful (stops early), sharp (stops late), sloppy (always holds), slow (very careful)
-  for (const [bot, margin] of [['careful', 0.5], ['sharp', 0.1], ['slow', 1.2], ['sloppy', -1]]) {
+  await sleep(600);
+  console.log('game', await p.evaluate(() => ({ st: SHABBAT_DOOR.state, cardWaits: SHABBAT_DOOR.introWait, clock: SHABBAT_DOOR.clock })));
+  await p.screenshot({ path: OUT + 't-card.png' });
+  await sleep(1300); await p.click('#lvlGo', { force: true }); await sleep(1500);
+  await p.screenshot({ path: OUT + 't-count.png' });
+  await sleep(2200); await p.screenshot({ path: OUT + 't-play1.png' });
+  // bots: careful / sharp / slow walk only on green and let go before פסיעה גסה; greedy never lets go on green; sloppy always holds
+  for (const [bot, margin, gmax] of [['careful', 0.5, 0.7], ['sharp', 0.12, 0.92], ['slow', 1.2, 0.6], ['greedy', 0.3, 2], ['sloppy', -1, 2]]) {
     await p.evaluate(() => SHABBAT_DOOR.startGame());
-    const r = await p.evaluate(([bot, margin]) => {
-      const G = SHABBAT_DOOR; let n = 0;
-      while (G.state === 'play' && n < 60 * 400) { n++; const go = margin < 0 ? true : (G.green && G.timeLeft > margin); G.hold(go); G.tick(1 / 60); }
+    const r = await p.evaluate(([bot, margin, gmax]) => {
+      const G = SHABBAT_DOOR; let n = 0, rest = 0;
+      while (G.state === 'play' && n < 60 * 400) {
+        n++;
+        if (G.introWait) G.cardGo();
+        let go = margin < 0 ? true : (G.green && G.timeLeft > margin);
+        if (G.gasa > gmax) rest = 0.35;
+        if (rest > 0) { rest -= 1 / 60; go = false; }
+        G.hold(go); G.tick(1 / 60);
+      }
       return { bot, failed: G.failed, time: Math.round(G.clock), doors: G.si, mistakes: G.mistakes };
-    }, [bot, margin]);
+    }, [bot, margin, gmax]);
     console.log(JSON.stringify(r));
-    await sleep(300);
   }
+  // the visitors: across whole runs, two on the same side never overlap, nobody jumps sideways, everyone moves on green
+  const ppl = await p.evaluate(() => {
+    const G = SHABBAT_DOOR; let overlaps = 0, maxJump = 0, frames = 0, movedOnGreen = 0, caught = 0, stuck = 0;
+    for (let run = 0; run < 3; run++) {
+      G.startGame(); const last = new Map(); let n = 0;
+      while (G.state === 'play' && n++ < 60 * 300) {
+        if (G.introWait) G.cardGo();
+        G.hold(G.green && G.timeLeft > 0.5 && G.gasa < 0.7); G.tick(1 / 60); frames++;
+        const live = G.people.filter((q) => !q.done && q.out <= 0 && q.back <= 0);
+        for (const a of live) for (const c of live) if (a !== c && a.lane === c.lane && Math.abs(a.z - c.z) < 0.08) overlaps++;
+        for (const q of G.people) {
+          const prev = last.get(q); if (prev !== undefined && q.out <= 0 && q.back <= 0 && !q.done) maxJump = Math.max(maxJump, Math.abs(q.z - prev));
+          if (prev !== undefined && q.z > prev && G.green) movedOnGreen++;
+          if (q.out > 1.08) caught++;
+          last.set(q, q.z);
+        }
+      }
+    }
+    return { frames, overlaps, maxJump: +maxJump.toFixed(3), movedOnGreen, caught };
+  });
+  console.log('visitors', JSON.stringify(ppl));
   await sleep(2800); await p.screenshot({ path: OUT + 't-over.png' });
   console.log('errors:', errs.length ? errs : 'none');
   await b.close();
