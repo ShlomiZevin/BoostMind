@@ -26,7 +26,7 @@ GROUPS = [
     ('new', 'חדש / לא ממוין'),
 ]
 FOLDER = {
-    'links': 'verse', 'wiki': 'verse', 'archive': 'verse', 'tziftzif': 'verse', 'charadot': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'piko': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
+    'links': 'verse', 'wiki': 'verse', 'archive': 'verse', 'tziftzif': 'verse', 'charadot': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'piko': 'tools', 'garden': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
     'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters', 'neve-tidhar': 'characters',
     'sketch-studio': 'tools', 'karaoke': 'tools', 'sticker-lab': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
@@ -87,6 +87,7 @@ EXTRA = [
     ('servers', 'verseOnComment - הדמויות עונות בתגובות', 'https://console.cloud.google.com/run/detail/me-west1/verseoncomment/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'verseOwner - מאחורי הקלעים', 'https://console.cloud.google.com/run/detail/europe-west1/verseowner/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'verseAutoAnnounce - התראה על סרטון חדש לעוקבים (כל 15 דק\')', 'https://console.cloud.google.com/run/detail/europe-west1/verseautoannounce/metrics?project=boostmind-b052c', 'פונקציה'),
+    ('servers', 'garden - רופא הגינה: תמונה של צמח -> מה זה, מה הבעיה, מה לעשות (קישורים פרטיים: scripts/garden/key.mjs)', 'https://console.cloud.google.com/run/detail/europe-west1/garden/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'piko + pikoWork + pikoSweep - פיקו: תמונות וסרטונים (ה-API גם ל-startdoing.co.il)', 'https://console.cloud.google.com/run/detail/europe-west1/piko/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'mind - המוח השני: העמוד, ההוקים של הסשנים ושרת ה-MCP', 'https://console.cloud.google.com/run/detail/europe-west1/mind/metrics?project=boostmind-b052c', 'פונקציה'),
     ('servers', 'verseMcp - שרת MCP של השלומיוורס ל-ChatGPT / Claude (קריאה בלבד: דמויות, סדרות, סרטונים ותמלולים). הכתובת: shlomiverse.com/mcp/<המפתח>', 'https://console.cloud.google.com/run/detail/europe-west1/versemcp/metrics?project=boostmind-b052c', 'פונקציה'),

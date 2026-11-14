@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>רופא הגינה</title>
+<meta name="description" content="מצלמים צמח ומקבלים תשובה: מה הצמח, מה רואים, ואיך לטפל">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1e613a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="רופא הגינה">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="/garden/icon-64.png">
+<link rel="apple-touch-icon" href="/garden/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!-- רופא הגינה (shlomiverse.com/garden/): a photo of a plant (+ an optional spoken question) -> what it is, what is seen,
+     a problem?, what to do; read aloud; his plants remembered. Mobile only. API: techietech-api/garden.js (/garden/api). -->
+<style>
+:root{
+  --bg:#f7f2e8; --card:#fffdf8; --ink:#1d2b22; --mute:#5b6a60; --line:#e4dccb;
+  --green:#1e613a; --green-dk:#164a2c; --sage:#e2ebdc; --sage-ink:#1e613a;
+  --ok-bg:#dcefd9; --ok-ink:#1e613a; --small-bg:#fbefc4; --small-ink:#7a5200;
+  --bad-bg:#f8dcd4; --bad-ink:#9b2c1a; --unk-bg:#e9e6df; --unk-ink:#4b524d;
+  --rec:#c8361f; --r:22px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:'Rubik','Heebo',system-ui,sans-serif;font-size:21px;line-height:1.5;overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom)}
+.app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;position:relative}
+.view{display:none;padding:0 18px 32px}
+.view.on{display:block}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg{flex:none}
+
+/* top bar (every view but home) */
+.bar{display:flex;align-items:center;gap:8px;min-height:64px;margin:0 -6px 6px;padding-top:env(safe-area-inset-top)}
+.back{display:flex;align-items:center;gap:6px;min-height:56px;padding:0 10px;font-size:21px;font-weight:500;color:var(--green);border-radius:16px}
+.back:active{background:var(--sage)}
+.bar .t{margin-inline-start:auto;font-weight:700;color:var(--green);font-size:20px;padding-inline-end:6px}
+
+/* home hero */
+.hero{margin:0 -18px;height:300px;position:relative;background:url(/garden/header.jpg) center 62%/cover no-repeat;
+  padding:calc(34px + env(safe-area-inset-top)) 22px 0;text-align:center}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(247,242,232,.92) 0%,rgba(247,242,232,.8) 30%,rgba(247,242,232,0) 52%,rgba(247,242,232,0) 66%,var(--bg) 100%)}
+.hero>*{position:relative;z-index:1}
+.hero h1{font-size:52px;line-height:1.05;font-weight:800;color:var(--green-dk);letter-spacing:-.5px}
+.hero p{margin-top:8px;font-size:22px;font-weight:500;color:#22301f;text-shadow:0 0 10px rgba(247,242,232,.9),0 0 3px rgba(247,242,232,.9)}
+
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;min-height:72px;border-radius:var(--r);
+  font-size:25px;font-weight:700;padding:12px 18px;text-align:center;transition:transform .08s}
+.btn:active{transform:scale(.98)}
+.btn.main{background:var(--green);color:#fff;box-shadow:0 6px 18px rgba(30,97,58,.25)}
+.btn.main:active{background:var(--green-dk)}
+.btn.soft{background:var(--sage);color:var(--sage-ink)}
+.btn.line{background:var(--card);color:var(--green);border:2px solid #cfdcc9}
+.btn.big{min-height:150px;flex-direction:column;gap:6px;font-size:38px;font-weight:800}
+.btn.rec{background:var(--rec);color:#fff;box-shadow:0 6px 18px rgba(200,54,31,.3)}
+.btn+.btn{margin-top:14px}
+.home-actions{margin-top:-28px;position:relative;z-index:2}
+.link{display:inline-block;font-size:19px;font-weight:500;color:var(--green);text-decoration:underline;text-underline-offset:4px;padding:10px 4px;min-height:44px}
+.center{text-align:center}
+.row2{margin-top:16px}
+.row2 .btn{font-size:23px}
+
+/* plants grid */
+.sec{font-size:27px;font-weight:800;color:var(--green-dk);margin:34px 2px 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pc{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:0 2px 10px rgba(60,50,20,.08);text-align:center;padding:0 0 12px;display:block;width:100%}
+.pc img,.pc .noimg{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--sage)}
+.pc b{display:block;font-size:22px;font-weight:700;margin-top:8px;padding:0 6px;line-height:1.25}
+.pc small{display:flex;align-items:center;justify-content:center;gap:6px;font-size:16px;color:var(--mute);margin-top:2px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--unk-ink)}
+.dot.ok{background:#3c9a5b}.dot.small{background:#d6a215}.dot.problem{background:#c8361f}
+.empty{background:var(--card);border-radius:20px;padding:26px 20px;text-align:center;color:var(--mute);font-size:21px;border:2px dashed var(--line)}
+
+/* photo */
+.shot{width:100%;max-height:52vh;object-fit:cover;border-radius:var(--r);display:block;background:var(--sage);box-shadow:0 4px 16px rgba(60,50,20,.12)}
+.ask-title{font-size:28px;font-weight:800;text-align:center;margin:22px 0 4px}
+.ask-sub{text-align:center;color:var(--mute);font-size:19px;margin-bottom:18px}
+.note{background:var(--small-bg);color:var(--small-ink);border-radius:16px;padding:14px 16px;font-size:19px;margin-top:14px}
+
+/* recording */
+.recwrap{text-align:center;padding-top:20px}
+.mic{width:170px;height:170px;border-radius:50%;background:var(--rec);margin:24px auto 18px;display:flex;align-items:center;justify-content:center;
+  position:relative;color:#fff}
+.mic::before,.mic::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--rec);opacity:.35;animation:pulse 1.6s ease-out infinite;z-index:-1}
+.mic::after{animation-delay:.8s}
+@keyframes pulse{from{transform:scale(1);opacity:.4}to{transform:scale(1.7);opacity:0}}
+.rec-say{font-size:30px;font-weight:800}
+.timer{font-size:26px;color:var(--mute);margin:6px 0 24px;font-variant-numeric:tabular-nums;direction:ltr}
+
+/* waiting */
+.waitwrap{text-align:center;padding-top:10px}
+.scan{position:relative;border-radius:var(--r);overflow:hidden}
+.scan .shot{border-radius:0;box-shadow:none}
+.scan::after{content:"";position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.45),rgba(255,255,255,0));animation:scan 2.2s ease-in-out infinite}
+@keyframes scan{to{top:100%}}
+.wline{font-size:28px;font-weight:700;color:var(--green-dk);margin-top:26px;min-height:2.6em}
+.dots{display:flex;gap:10px;justify-content:center;margin-top:8px}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--green);animation:bob 1.2s infinite ease-in-out}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bob{0%,80%,100%{transform:scale(.6);opacity:.5}40%{transform:scale(1);opacity:1}}
+
+/* answer */
+.qbox{background:var(--card);border-radius:18px;padding:14px 16px;margin-top:16px;border:2px solid var(--line)}
+.qbox .lbl{font-size:17px;color:var(--mute);font-weight:500}
+.qbox .q{font-size:21px;font-weight:500}
+.abox{background:var(--sage);border-radius:18px;padding:16px;margin-top:12px;font-size:22px}
+.abox .lbl{font-size:18px;font-weight:700;color:var(--green);margin-bottom:4px}
+.pname{font-size:40px;font-weight:800;line-height:1.15;margin-top:20px;color:var(--ink)}
+.latin{font-size:17px;color:var(--mute);direction:ltr;text-align:right;font-style:italic}
+.unsure{font-size:17px;color:var(--mute)}
+.chip{border-radius:18px;padding:14px 18px;margin-top:14px;text-align:center}
+.chip b{display:block;font-size:27px;font-weight:800;line-height:1.25}
+.chip span{display:block;font-size:19px;margin-top:4px}
+.chip.ok{background:var(--ok-bg);color:var(--ok-ink)}
+.chip.small{background:var(--small-bg);color:var(--small-ink)}
+.chip.problem{background:var(--bad-bg);color:var(--bad-ink)}
+.chip.unknown{background:var(--unk-bg);color:var(--unk-ink)}
+.box{background:var(--card);border-radius:18px;padding:16px 18px;margin-top:14px;box-shadow:0 2px 10px rgba(60,50,20,.06)}
+.box h3{font-size:24px;font-weight:800;color:var(--green-dk);margin-bottom:6px}
+.steps{list-style:none;padding:0;margin:4px 0 0}
+.steps li{display:flex;gap:12px;align-items:flex-start;padding:8px 0}
+.steps li+li{border-top:1px solid var(--line)}
+.steps .n{flex:none;width:36px;height:36px;border-radius:50%;background:var(--green);color:#fff;font-weight:800;font-size:20px;
+  display:flex;align-items:center;justify-content:center;margin-top:2px}
+.tip{background:#eef3e6;border-radius:18px;padding:14px 16px;margin-top:14px;font-size:20px}
+.tip b{color:var(--green)}
+.saved{margin-top:16px;text-align:center;font-size:19px;color:var(--mute)}
+.saved b{color:var(--ink)}
+.speak{margin-top:18px}
+
+/* plant page */
+.pstatus{margin-top:12px}
+.tl{margin-top:8px}
+.tli{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:18px;padding:10px;margin-top:12px;width:100%;text-align:right;box-shadow:0 2px 8px rgba(60,50,20,.06)}
+.tli img{width:84px;height:84px;border-radius:14px;object-fit:cover;flex:none;background:var(--sage)}
+.tli .d{font-size:17px;color:var(--mute)}
+.tli .s{font-size:19px;font-weight:500;line-height:1.35}
+.tli .qq{font-size:16px;color:var(--mute);line-height:1.35;margin-top:2px}
+.rename{display:inline-flex;align-items:center;gap:6px;font-size:18px;color:var(--green);padding:8px 4px;min-height:44px}
+
+/* error / no key */
+.msg{text-align:center;padding-top:40px}
+.msg .ic{width:96px;height:96px;border-radius:50%;background:var(--sage);color:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.msg h2{font-size:30px;font-weight:800;margin-bottom:10px}
+.msg p{color:var(--mute);font-size:21px;margin-bottom:26px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:16px;padding:14px 20px;font-size:19px;
+  max-width:calc(100% - 32px);width:max-content;text-align:center;z-index:9;display:none}
+.toast.on{display:block}
+.loading{text-align:center;color:var(--mute);padding:20px}
+input[type=file]{display:none}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HOME -->
+<section class="view" id="v-home">
+  <header class="hero">
+    <h1>רופא הגינה</h1>
+    <p>מצלמים צמח - ומקבלים תשובה</p>
+  </header>
+  <div class="home-actions">
+    <button class="btn main big" data-act="camera"><svg width="58" height="58" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3.5 7.6 5.5H4.5A2.5 2.5 0 0 0 2 8v10a2.5 2.5 0 0 0 2.5 2.5h15A2.5 2.5 0 0 0 22 18V8a2.5 2.5 0 0 0-2.5-2.5h-3.1L15 3.5H9Zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z"/></svg>צלם צמח</button>
+    <button class="btn soft" data-act="gallery"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="m4 18 5.5-5.5 4 4 2.5-2.5L20 18"/></svg>בחר תמונה מהגלריה</button>
+  </div>
+  <h2 class="sec">הצמחים שלי</h2>
+  <div id="plants"><div class="loading">רגע...</div></div>
+</section>
+
+<!-- PHOTO (just taken) -->
+<section class="view" id="v-photo">
+  <div class="bar"><button class="back" data-act="back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>ביטול</button><span class="t" id="photo-for"></span></div>
+  <img class="shot" id="photo-img" alt="התמונה שצילמת">
+  <p class="ask-title">רוצה לשאול משהו?</p>
+  <p class="ask-sub">אפשר לשאול בקול, או פשוט לשלוח</p>
+  <button class="btn main" data-act="record"><svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21m-3.5 0h7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>שאל שאלה בקול</button>
+  <button class="btn line" data-act="send"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4 9.5 14.5M20 4l-6.5 16-4-5.5L4 10.5 20 4Z"/></svg>שלח בלי שאלה</button>
+  <div class="note" id="mic-note" hidden>אין גישה למיקרופון בטלפון. אפשר ללחוץ "שלח בלי שאלה" - וגם ככה תקבל תשובה מלאה.</div>
+</section>
+
+<!-- FOLLOW-UP on a saved plant -->
+<section class="view" id="v-follow">
+  <div class="bar"><button class="back" data-act="back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>חזרה</button><span class="t" id="follow-name"></span></div>
+  <img class="shot" id="follow-img" alt="">
+  <p class="ask-title">מה תרצה לשאול?</p>
+  <p class="ask-sub">לחץ, ותגיד את השאלה בקול</p>
+  <button class="btn main" data-act="record"><svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21m-3.5 0h7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>שאל שאלה בקול</button>
+  <button class="btn line" data-act="camera-plant"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3.5 7.6 5.5H4.5A2.5 2.5 0 0 0 2 8v10a2.5 2.5 0 0 0 2.5 2.5h15A2.5 2.5 0 0 0 22 18V8a2.5 2.5 0 0 0-2.5-2.5h-3.1L15 3.5H9Zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z"/></svg>צלם תמונה חדשה</button>
+  <div class="note" id="mic-note2" hidden>אין גישה למיקרופון בטלפון. אפשר לצלם תמונה חדשה ולשלוח בלי שאלה.</div>
+</section>
+
+<!-- RECORDING -->
+<section class="view" id="v-rec">
+  <div class="recwrap">
+    <div class="mic"><svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21m-3.5 0h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+    <p class="rec-say">מקשיב... דבר עכשיו</p>
+    <p class="timer" id="timer">0:00</p>
+    <button class="btn main" data-act="stop"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>סיימתי - שלח</button>
+    <p class="center" style="margin-top:14px"><button class="link" data-act="cancel-rec">ביטול</button></p>
+  </div>
+</section>
+
+<!-- WAITING -->
+<section class="view" id="v-wait">
+  <div class="waitwrap">
+    <div class="scan" style="margin-top:24px"><img class="shot" id="wait-img" alt=""></div>
+    <p class="wline" id="wline">מסתכל על הצמח...</p>
+    <div class="dots"><i></i><i></i><i></i></div>
+  </div>
+</section>
+
+<!-- ANSWER -->
+<section class="view" id="v-answer">
+  <div class="bar"><button class="back" data-act="home"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>לדף הבית</button><span class="t">רופא הגינה</span></div>
+  <div id="answer"></div>
+</section>
+
+<!-- PLANT -->
+<section class="view" id="v-plant">
+  <div class="bar"><button class="back" data-act="home"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>הצמחים שלי</button></div>
+  <div id="plant"></div>
+</section>
+
+<!-- MESSAGE (no key / error / limit) -->
+<section class="view" id="v-msg">
+  <div class="msg">
+    <div class="ic"><svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor"><path d="M20 3.5C11 3.5 5 8.3 5 15c0 1.5.4 2.8 1 3.9L3.5 21.4l1.1 1.1 2.4-2.4c1.2.7 2.6 1.1 4.1 1.1 6.6 0 9.6-6.8 8.9-17.7Zm-4 5.2c-3.4 1.6-6.1 4.4-7.6 8l-1.4-.6c1.6-3.9 4.6-7 8.3-8.8l.7 1.4Z"/></svg></div>
+    <h2 id="msg-h"></h2>
+    <p id="msg-p"></p>
+    <button class="btn main" id="msg-btn" data-act="retry">נסה שוב</button>
+    <p class="center" style="margin-top:10px"><button class="link" id="msg-home" data-act="home">לדף הבית</button></p>
+  </div>
+</section>
+
+<input type="file" id="in-camera" accept="image/*" capture="environment">
+<input type="file" id="in-gallery" accept="image/*">
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const API = '/garden/api';
+const ICON_BACK = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+const ICON_SPEAK = '<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5H4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const ICON_STOP = '<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+const ICON_CHAT = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4V5Z"/></svg>';
+const ICON_PLUS = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const ICON_CAM = '<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3.5 7.6 5.5H4.5A2.5 2.5 0 0 0 2 8v10a2.5 2.5 0 0 0 2.5 2.5h15A2.5 2.5 0 0 0 22 18V8a2.5 2.5 0 0 0-2.5-2.5h-3.1L15 3.5H9Zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z"/></svg>';
+const ICON_MIC = '<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21m-3.5 0h7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+const ICON_PEN = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></svg>';
+const STATUS = { ok: 'נראה בריא', small: 'יש בעיה קטנה', problem: 'יש בעיה - כדאי לטפל', unknown: 'קשה לדעת מהתמונה' };
+
+// ---------------------------------------------------------------- the private key ----------------------------------------------------------------
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+const url = new URL(location.href);
+let KEY = url.searchParams.get('k') || '';
+if (KEY) store.set('gardenKey', KEY);
+else if ((KEY = store.get('gardenKey') || '')) { url.searchParams.set('k', KEY); history.replaceState(history.state, '', url); }
+if (KEY) {
+  const m = document.createElement('link');
+  m.rel = 'manifest'; m.href = `${API}/manifest?k=${encodeURIComponent(KEY)}`;
+  document.head.appendChild(m);
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/garden/sw.js', { scope: '/garden/' }).catch(() => {});
+
+async function api(path, body) {
+  const r = await fetch(API + path, { method: body ? 'POST' : 'GET', headers: { authorization: 'Key ' + KEY, ...(body ? { 'content-type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || 'http ' + r.status), { status: r.status, code: j.error });
+  return j;
+}
+
+// ---------------------------------------------------------------- views + the back button ----------------------------------------------------------------
+const S = { photo: null, plantId: null, plantName: '', plantPhoto: null, retry: null, visit: null, me: null };
+function show(view, push = true, data = {}) {
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'v-' + view));
+  if (push) history.pushState({ view, ...data }, '', url);
+  window.scrollTo(0, 0);
+  if (view !== 'answer') stopAudio();
+}
+window.addEventListener('popstate', (e) => {
+  const st = e.state || { view: 'home' };
+  if (recorder) cancelRec();
+  // never land back on a passing screen (recording / waiting) - go to where it makes sense
+  if (st.view === 'rec' || st.view === 'wait' || st.view === 'msg' || (st.view === 'photo' && !S.photo)) return history.back();
+  if (st.view === 'plant' && st.id) return openPlant(st.id, false);
+  if (st.view === 'answer' && st.visitId && (!S.visit || S.visit.id !== st.visitId)) return openVisit(st.visitId, false);
+  if (st.view === 'home') loadHome();
+  show(st.view, false);
+});
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 3200); }
+
+function message(kind, retry) {
+  S.retry = retry || null;
+  const M = {
+    nokey: ['הקישור הזה חסר', 'רופא הגינה נפתח רק מהקישור האישי ששלחו לך. פתח אותו שוב מההודעה שקיבלת.'],
+    limit: ['להיום זה מספיק', 'שלחת היום הרבה תמונות. מחר אפשר להמשיך כרגיל.'],
+    error: ['משהו לא עבד', 'כנראה בעיה רגעית בחיבור. לחץ "נסה שוב".'],
+    photo: ['התמונה לא נקלטה', 'נסה לצלם שוב, באור יום.'],
+  }[kind] || ['משהו לא עבד', ''];
+  $('#msg-h').textContent = M[0]; $('#msg-p').textContent = M[1];
+  $('#msg-btn').hidden = !(retry && kind !== 'limit');
+  $('#msg-home').hidden = kind === 'nokey';
+  show('msg');
+}
+const onErr = (e, retry) => { console.warn(e); if (e.status === 401) return message('nokey'); if (e.status === 429) return message('limit'); if (e.code === 'photo') return message('photo'); message('error', retry); };
+
+// ---------------------------------------------------------------- home ----------------------------------------------------------------
+const fmtDate = (t) => (t ? new Date(t).toLocaleDateString('he-IL', { day: 'numeric', month: 'long' }) : '');
+async function loadHome() {
+  const box = $('#plants');
+  try {
+    const me = await api('/me');
+    S.me = me;
+    if (!me.plants.length) { box.innerHTML = '<div class="empty">עוד אין כאן צמחים.<br>צלם את הצמח הראשון שלך - והוא יישמר כאן.</div>'; return; }
+    box.innerHTML = '<div class="grid">' + me.plants.map((p) => `<button class="pc" data-plant="${esc(p.id)}">${p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy">` : '<div class="noimg"></div>'}<b>${esc(p.name)}</b><small><i class="dot ${esc(p.status)}"></i>${esc(fmtDate(p.last))}</small></button>`).join('') + '</div>';
+  } catch (e) {
+    if (e.status === 401) return message('nokey');
+    box.innerHTML = '<div class="empty">לא הצלחתי לטעון את הצמחים. <button class="link" data-act="reload">נסה שוב</button></div>';
+  }
+}
+
+// ---------------------------------------------------------------- a photo ----------------------------------------------------------------
+function pick(id) { const i = $(id); i.value = ''; i.click(); }
+async function shrink(file) {
+  const src = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = src;
+    await img.decode();
+    const max = 1600, s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.85);
+  } finally { URL.revokeObjectURL(src); }
+}
+async function gotFile(file) {
+  if (!file) return;
+  try { S.photo = await shrink(file); } catch (e) { return message('photo'); }
+  $('#photo-img').src = S.photo;
+  $('#photo-for').textContent = S.plantId ? S.plantName : '';
+  $('#mic-note').hidden = true;
+  show('photo', true);
+}
+$('#in-camera').addEventListener('change', (e) => gotFile(e.target.files[0]));
+$('#in-gallery').addEventListener('change', (e) => gotFile(e.target.files[0]));
+
+// ---------------------------------------------------------------- the spoken question ----------------------------------------------------------------
+let recorder = null, chunks = [], recTimer = null, recStart = 0, recStream = null, recCancelled = false;
+const MAX_REC = 90;
+async function startRec() {
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { const n = S.photo ? '#mic-note' : '#mic-note2'; $(n).hidden = false; $(n).scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  recStream = stream; chunks = []; recCancelled = false;
+  const type = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+  try { recorder = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream); }
+  catch { stream.getTracks().forEach((t) => t.stop()); $(S.photo ? '#mic-note' : '#mic-note2').hidden = false; return; }
+  recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  recorder.onstop = () => {
+    clearInterval(recTimer);
+    recStream?.getTracks().forEach((t) => t.stop());
+    const mime = recorder.mimeType || type || 'audio/webm';
+    recorder = null;
+    if (recCancelled) return;
+    const blob = new Blob(chunks, { type: mime });
+    const fr = new FileReader();
+    fr.onload = () => send({ audio: fr.result, mime });
+    fr.readAsDataURL(blob);
+  };
+  recorder.start(500);
+  recStart = Date.now();
+  $('#timer').textContent = '0:00';
+  recTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - recStart) / 1000);
+    $('#timer').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    if (s >= MAX_REC) stopRec();
+  }, 250);
+  show('rec', true);
+}
+function stopRec() { if (recorder && recorder.state !== 'inactive') recorder.stop(); }
+function cancelRec() { recCancelled = true; stopRec(); }
+
+// ---------------------------------------------------------------- send + wait ----------------------------------------------------------------
+const LINES = ['מסתכל על הצמח...', 'בודק את העלים...', 'מחפש מזיקים וכתמים...', 'חושב מה הכי נכון לעשות...', 'מכין לך תשובה...'];
+let lineTimer = null;
+async function send(extra = {}) {
+  const body = { ...extra };
+  if (S.photo) body.photo = S.photo;
+  if (S.plantId) body.plantId = S.plantId;
+  $('#wait-img').src = S.photo || S.plantPhoto || '';
+  let i = 0;
+  $('#wline').textContent = LINES[0];
+  clearInterval(lineTimer);
+  lineTimer = setInterval(() => { i = Math.min(i + 1, LINES.length - 1); $('#wline').textContent = LINES[i]; }, 2800);
+  // the recording screen is replaced, so back never returns to it
+  if (history.state?.view === 'rec') history.replaceState({ view: 'wait' }, '', url); else history.pushState({ view: 'wait' }, '', url);
+  show('wait', false);
+  try {
+    const r = await api('/ask', body);
+    clearInterval(lineTimer);
+    S.photo = null;
+    S.visit = r.visit;
+    renderAnswer(r.visit, r.plant);
+    history.replaceState({ view: 'answer', visitId: r.visit.id }, '', url);
+    show('answer', false);
+  } catch (e) {
+    clearInterval(lineTimer);
+    history.replaceState({ view: 'msg' }, '', url);
+    onErr(e, () => send(extra));
+  }
+}
+
+// ---------------------------------------------------------------- the answer ----------------------------------------------------------------
+function renderAnswer(v, plant) {
+  const a = v.answer || {};
+  const st = STATUS[a.status] ? a.status : 'unknown';
+  const name = plant?.name || a.plant_name || '';
+  let saved = '';
+  if (v.plantId && v.matched) saved = `<p class="saved">נשמר אצל: <b>${esc(name)}</b><br><button class="link" data-act="other">זה צמח אחר</button></p>`;
+  else if (v.plantId && plant?.isNew) saved = `<p class="saved">נשמר ב"הצמחים שלי"</p>`;
+  else if (v.plantId) saved = `<p class="saved">נשמר אצל: <b>${esc(name)}</b></p>`;
+  $('#answer').innerHTML = `
+    ${v.photo ? `<img class="shot" src="${esc(v.photo)}" alt="">` : ''}
+    ${v.question ? `<div class="qbox"><div class="lbl">שאלת:</div><div class="q">${esc(v.question)}</div></div>` : ''}
+    ${a.answer ? `<div class="abox"><div class="lbl">התשובה</div>${esc(a.answer)}</div>` : ''}
+    ${a.plant_name ? `<h2 class="pname">${esc(a.plant_name)}</h2>` : ''}
+    ${a.latin ? `<p class="latin">${esc(a.latin)}</p>` : ''}
+    ${a.plant_name && a.sure === false ? '<p class="unsure">(זה הניחוש הכי סביר - לא בטוח במאה אחוז)</p>' : ''}
+    <div class="chip ${st}"><b>${esc(STATUS[st])}</b>${a.status_line ? `<span>${esc(a.status_line)}</span>` : ''}</div>
+    <button class="btn main speak" data-act="speak" id="speak-btn">${ICON_SPEAK}הקרא לי</button>
+    ${a.seen ? `<div class="box"><h3>מה אני רואה</h3><p>${esc(a.seen)}</p></div>` : ''}
+    ${(a.steps || []).length ? `<div class="box"><h3>מה לעשות</h3><ol class="steps">${a.steps.map((s, i) => `<li><span class="n">${i + 1}</span><span>${esc(s)}</span></li>`).join('')}</ol></div>` : ''}
+    ${a.tip ? `<div class="tip"><b>טיפ לעונה:</b> ${esc(a.tip)}</div>` : ''}
+    ${saved}
+    <div class="row2">
+      ${v.plantId ? `<button class="btn soft" data-act="follow">${ICON_CHAT}שאלה נוספת על הצמח</button>` : `<button class="btn soft" data-act="camera">${ICON_CAM}צלם שוב</button>`}
+      <button class="btn soft" data-act="new">${ICON_PLUS}צמח חדש</button>
+    </div>`;
+  S.plantName = name;
+}
+async function openVisit(id, push = true) {
+  try {
+    const { visit } = await api('/visit/' + encodeURIComponent(id));
+    S.visit = visit;
+    renderAnswer(visit, { name: S.plantName });
+    show('answer', push, { visitId: id });
+  } catch (e) { onErr(e, () => openVisit(id, push)); }
+}
+
+// read to me: the tap unlocks audio on iPhone (a silent play inside the tap), then the voice is fetched and played
+const audio = new Audio();
+const SILENT = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqpAAAAAAD/+xDEAAPAAAGkAAAAIAAANIAAAARMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxDwDwAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+let playing = false, audioFor = null, audioUrl = null;
+function setSpeak(on) { const b = $('#speak-btn'); if (b) b.innerHTML = on ? `${ICON_STOP}עצור` : `${ICON_SPEAK}הקרא לי`; playing = on; }
+function stopAudio() { try { audio.pause(); } catch {} setSpeak(false); }
+audio.addEventListener('ended', () => setSpeak(false));
+async function speak() {
+  if (playing) return stopAudio();
+  const v = S.visit;
+  if (!v) return;
+  setSpeak(true);
+  // the voice streams straight from the function (starts in ~1 s; the hosting proxy would hold it until the end) and
+  // the play() stays inside the tap, so iPhone allows it
+  if (audioFor !== v.id) { audioFor = v.id; audioUrl = `${SPEECH}/visit/${encodeURIComponent(v.id)}/speech?k=${encodeURIComponent(KEY)}`; audio.src = audioUrl; }
+  else audio.currentTime = 0;
+  const b = $('#speak-btn'); if (b && audio.readyState < 3) b.innerHTML = `${ICON_STOP}רגע, מכין...`;
+  audio.onplaying = () => { if (playing) setSpeak(true); };
+  audio.onerror = () => { audioFor = null; setSpeak(false); toast('לא הצלחתי להקריא כרגע. נסה שוב.'); };
+  try { await audio.play(); } catch (e) { if (playing) { audioFor = null; setSpeak(false); toast('לא הצלחתי להקריא כרגע. נסה שוב.'); } }
+}
+const SPEECH = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/garden';
+
+// "זה צמח אחר": this photo becomes a plant of its own
+async function otherPlant() {
+  const v = S.visit;
+  try {
+    const r = await api(`/visit/${encodeURIComponent(v.id)}/move`, { to: 'new' });
+    v.plantId = r.plantId; v.matched = false;
+    renderAnswer(v, { name: v.answer?.plant_name, isNew: true });
+    toast('נשמר כצמח חדש');
+  } catch (e) { toast('לא הצלחתי לשנות. נסה שוב.'); }
+}
+
+// ---------------------------------------------------------------- a saved plant ----------------------------------------------------------------
+async function openPlant(id, push = true) {
+  const box = $('#plant');
+  box.innerHTML = '<div class="loading">רגע...</div>';
+  show('plant', push, { id });
+  try {
+    const { plant: p, visits } = await api('/plant/' + encodeURIComponent(id));
+    S.plantId = null;
+    S.cur = p;
+    const st = STATUS[p.status] ? p.status : 'unknown';
+    box.innerHTML = `
+      <h2 class="pname" style="margin-top:4px">${esc(p.name)}</h2>
+      ${p.latin ? `<p class="latin">${esc(p.latin)}</p>` : ''}
+      <button class="rename" data-act="rename">${ICON_PEN}שנה שם</button>
+      ${p.photo ? `<img class="shot" src="${esc(p.photo)}" alt="" style="margin-top:6px">` : ''}
+      <div class="chip ${st} pstatus"><b>${esc(STATUS[st])}</b>${p.statusLine ? `<span>${esc(p.statusLine)}</span>` : ''}</div>
+      <div style="margin-top:16px">
+        <button class="btn main" data-act="plant-camera">${ICON_CAM}צלם שוב את הצמח</button>
+        <button class="btn soft" data-act="plant-ask">${ICON_MIC}שאל שאלה על הצמח</button>
+      </div>
+      <h3 class="sec" style="font-size:24px">מה היה עד עכשיו</h3>
+      <div class="tl">${visits.map((v) => `<button class="tli" data-visit="${esc(v.id)}">${v.photo ? `<img src="${esc(v.photo)}" alt="" loading="lazy">` : ''}<div><div class="d">${esc(fmtDate(v.at))}</div><div class="s">${esc(v.answer?.status_line || '')}</div>${v.question ? `<div class="qq">שאלת: ${esc(v.question)}</div>` : ''}</div></button>`).join('')}</div>`;
+    S.plantName = p.name;
+  } catch (e) { onErr(e, () => openPlant(id, false)); }
+}
+function aboutPlant(p) { S.plantId = p.id; S.plantName = p.name; S.plantPhoto = p.photo; }
+function follow(p) {
+  aboutPlant(p);
+  S.photo = null;
+  $('#follow-name').textContent = p.name;
+  $('#follow-img').src = p.photo || '';
+  $('#follow-img').hidden = !p.photo;
+  $('#mic-note2').hidden = true;
+  show('follow', true);
+}
+async function rename() {
+  const p = S.cur; if (!p) return;
+  const n = prompt('איך לקרוא לצמח הזה?', p.name);
+  if (!n || !n.trim() || n.trim() === p.name) return;
+  try { await api(`/plant/${encodeURIComponent(p.id)}/name`, { name: n.trim() }); openPlant(p.id, false); toast('השם נשמר'); }
+  catch (e) { toast('לא הצלחתי לשמור. נסה שוב.'); }
+}
+
+// ---------------------------------------------------------------- taps ----------------------------------------------------------------
+document.addEventListener('click', (e) => {
+  const pl = e.target.closest('[data-plant]'); if (pl) return openPlant(pl.dataset.plant);
+  const vi = e.target.closest('[data-visit]'); if (vi) return openVisit(vi.dataset.visit);
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act;
+  if (act === 'camera') { S.plantId = null; S.plantName = ''; return pick('#in-camera'); }
+  if (act === 'gallery') { S.plantId = null; S.plantName = ''; return pick('#in-gallery'); }
+  if (act === 'camera-plant' || act === 'plant-camera') { if (act === 'plant-camera' && S.cur) aboutPlant(S.cur); return pick('#in-camera'); }
+  if (act === 'record') return startRec();
+  if (act === 'stop') return stopRec();
+  if (act === 'cancel-rec') { cancelRec(); return history.back(); }
+  if (act === 'send') return send({});
+  if (act === 'back') return history.back();
+  if (act === 'home' || act === 'new') { S.plantId = null; S.photo = null; loadHome(); return show('home', true); }
+  if (act === 'speak') return speak();
+  if (act === 'other') return otherPlant();
+  if (act === 'follow') { const v = S.visit; return follow({ id: v.plantId, name: S.plantName, photo: v.photo }); }
+  if (act === 'plant-ask') return S.cur && follow(S.cur);
+  if (act === 'rename') return rename();
+  if (act === 'retry') { const r = S.retry; S.retry = null; return r ? r() : (loadHome(), show('home', true)); }
+  if (act === 'reload') return loadHome();
+});
+
+// ---------------------------------------------------------------- start ----------------------------------------------------------------
+if (!KEY) { history.replaceState({ view: 'msg' }, '', url); message('nokey'); }
+else { history.replaceState({ view: 'home' }, '', url); show('home', false); loadHome(); }
+})();
+</script>
+</body>
+</html>

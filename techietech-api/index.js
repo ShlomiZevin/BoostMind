@@ -236,6 +236,9 @@ const piko = require('./piko');
 exports.piko = piko.piko;
 exports.pikoWork = piko.pikoWork;
 exports.pikoSweep = piko.pikoSweep;
+// רופא הגינה (shlomiverse.com/garden/?k=<key>): photo of a plant (+ a spoken question) -> what it is, what is wrong,
+// what to do, read aloud; private links, no sign-in - see garden.js, scripts/garden/key.mjs
+exports.garden = require('./garden').garden;
 // the daily AI-cost alert: every hour, today's total (the "סה"כ AI" of Backstage → הוצאות); at $10 a mail to
 // him, at $30 a big warning - one mail per level a day (owner/costAlert) - see costs.js
 exports.costAlert = require('./costs').costAlert;

@@ -72,6 +72,13 @@
     ],
     "rewrites": [
       {
+        "source": "/garden/api/**",
+        "function": {
+          "functionId": "garden",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "/piko/api/**",
         "function": {
           "functionId": "piko",
