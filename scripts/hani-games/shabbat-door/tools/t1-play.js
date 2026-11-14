@@ -50,6 +50,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         let go = margin < 0 ? true : (G.green && G.timeLeft > margin);
         if (G.gasa > gmax) rest = 0.35;
         if (rest > 0) { rest -= 1 / 60; go = false; }
+        if (margin >= 0 && G.z < G.doorZ - 0.08 && G.z > G.doorZ - 0.2 && (G.pastZ - G.z) / 0.22 > G.timeLeft - 0.2) go = false;
         G.hold(go); G.tick(1 / 60);
       }
       return { bot, failed: G.failed, time: Math.round(G.clock), doors: G.si, mistakes: G.mistakes };
@@ -58,12 +59,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   }
   // the visitors: across whole runs, two on the same side never overlap, nobody jumps sideways, everyone moves on green
   const ppl = await p.evaluate(() => {
-    const G = SHABBAT_DOOR; let overlaps = 0, maxJump = 0, frames = 0, movedOnGreen = 0, caught = 0, stuck = 0;
+    const G = SHABBAT_DOOR; let overlaps = 0, maxJump = 0, frames = 0, movedOnGreen = 0, caught = 0, stuck = 0, closedOk = 0, openOnRed = 0;
     for (let run = 0; run < 3; run++) {
       G.startGame(); const last = new Map(); let n = 0;
       while (G.state === 'play' && n++ < 60 * 300) {
         if (G.introWait) G.cardGo();
-        G.hold(G.green && G.timeLeft > 0.5 && G.gasa < 0.7); G.tick(1 / 60); frames++;
+        let go = G.green && G.timeLeft > 0.5 && G.gasa < 0.7; if (G.z < G.doorZ - 0.08 && G.z > G.doorZ - 0.2 && (G.pastZ - G.z) / 0.22 > G.timeLeft - 0.2) go = false;
+        G.hold(go); G.tick(1 / 60); frames++;
+        if (!G.green && G.doorOpen < 0.01) closedOk++; if (!G.green && G.redFor > 0.6 && G.doorOpen > 0.01) openOnRed++;
         const live = G.people.filter((q) => !q.done && q.out <= 0 && q.back <= 0);
         for (const a of live) for (const c of live) if (a !== c && a.lane === c.lane && Math.abs(a.z - c.z) < 0.08) overlaps++;
         for (const q of G.people) {
@@ -74,7 +77,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         }
       }
     }
-    return { frames, overlaps, maxJump: +maxJump.toFixed(3), movedOnGreen, caught };
+    return { frames, overlaps, maxJump: +maxJump.toFixed(3), movedOnGreen, caught, openOnRed };
   });
   console.log('visitors', JSON.stringify(ppl));
   await sleep(2800); await p.screenshot({ path: OUT + 't-over.png' });

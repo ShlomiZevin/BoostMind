@@ -30,7 +30,7 @@ const SCENES = [
   { name: 'יוצאים מפנימית', bg: 'er', g: [1.6, 2.8], r: [2.4, 3.8], people: 3, line: 'עוד דלת ועוד דלת... ישועת השם כהרף עין!' },
   { name: 'אורתופדית – אבא מחכה', bg: 'ward', g: [1.4, 2.6], r: [2.2, 3.8], people: 3, line: 'אבא מחכה להמוציא! עוד דלת אחת!' },
 ];
-const LIMIT = 150;                                   // seconds until the meal - the whole route
+const LIMIT = 170;                                   // seconds until the meal - the whole route
 const DOORZ = 1.0, PAST = 1.06, DONEZ = 1.22;        // depth: 0 = near, 1 = the door's line
 const WALK = 0.2;                                    // depth per second (one pace - no hurrying)
 const SLIDE = 0.5, WARN = 1.0, GRACE = 0.28;         // glass slide; yellow before red; a moment to stop after red
@@ -207,6 +207,7 @@ function cardGo() {
 $('lvlGo').addEventListener('click', cardGo);
 function hideCard() { $('lvl').classList.remove('on'); }
 const timeLeft = () => Math.max(0, phaseLen - phaseT);
+const inDoorway = (q) => q > DOORZ - 0.08 && q < PAST;   // the threshold: from here the door's sensor would hold it open
 const doorIsOpen = () => green;
 function step(dt) {
   if (!sc) return;
@@ -240,10 +241,8 @@ function step(dt) {
   loop('sweep', !green, 0.5);
   loop('heart', state === 'play' && LIMIT - clock < 25, 0.6);
   musicLevel();
-  // the glass stays open while someone stands in the doorway
-  const inDoorway = (q) => q > DOORZ - 0.08 && q < PAST + 0.02;
-  const keepOpen = inDoorway(z) || people.some((p) => !p.done && inDoorway(p.z));
-  doorOpen = clamp(doorOpen + (green || keepOpen ? 1 : -1) * dt / SLIDE, 0, 1);
+  // the door follows its own timer ONLY - it never stays open for a person (that would be חילול שבת)
+  doorOpen = clamp(doorOpen + (green ? 1 : -1) * dt / SLIDE, 0, 1);
   // Hani
   if (oops > 0) { oops -= dt; if (oops <= 0) { z = 0; fade = 1; } }
   const wasMoving = moving;
@@ -257,6 +256,8 @@ function step(dt) {
   loop('step-loop', moving, 0.45);
   // the rule: moving while the sensor watches (after a moment to stop)
   if (moving && !green && redFor > GRACE && oops <= 0) caught('red');
+  // standing in the doorway when it must close = it would stay open because of you
+  if (!passed && oops <= 0 && !green && redFor > GRACE && inDoorway(z)) caught('door');
   if (!passed && z >= PAST) { passed = true; doorPassed(); }
   if (passed) { z += dt * 0.35; walkT += dt * 1.3; if (z >= DONEZ) nextScene(); }
   stepPeople(dt);
@@ -278,6 +279,9 @@ function stepPeople(dt) {
         p.out = 1.1; play('npc-out', 0.55); continue;
       }
     }
+    // a sensible visitor doesn't start through the door when there is no time left to cross it
+    if (go && p.z < DOORZ - 0.08 && p.z > DOORZ - 0.2 && (PAST - p.z) / p.speed > timeLeft() - 0.15 && R() > 0.04) go = false;
+    if (!green && redFor > GRACE && inDoorway(p.z)) { p.out = 1.1; play('npc-out', 0.55); continue; }
     // never walk into the one ahead on the same side
     if (go) { const ahead = people.find((q) => q !== p && !q.done && q.out <= 0 && q.lane === p.lane && q.z > p.z && q.z - p.z < 0.16); if (ahead) go = false; }
     p.mv = go;
@@ -291,7 +295,9 @@ function caught(kind) {
   oops = 1.3; flash = 1; held = false; $('walkBtn').classList.remove('held'); gasa = 0;
   play('out', 1); setPose('surprised', 1.6); sayEl.classList.remove('on'); sayT = 0;
   if (state === 'play') mistakes++;
-  if (kind === 'gasa') banner('פסיעה גסה!', 'נפסלת – חוזרים להתחלה', true); else banner('נפסלת!', 'זזת באדום – חוזרים להתחלה', true);
+  if (kind === 'gasa') banner('פסיעה גסה!', 'נפסלת – חוזרים להתחלה', true);
+  else if (kind === 'door') { z = DOORZ - 0.13; banner('נפסלת!', 'נתקעת בדלת – היא לא יכולה להיסגר', true); }
+  else banner('נפסלת!', 'זזת באדום – חוזרים להתחלה', true);
   if (navigator.vibrate) try { navigator.vibrate(120); } catch (e) {}
 }
 function doorPassed() {
@@ -314,12 +320,12 @@ function win() {
   play('fanfare', 1);
   banner('לחם משנה!', 'נס בתוך נס!'); setPose('surprised', 3); say('תראי איך הקדוש ברוך הוא מסדר את הדברים! נס בתוך נס!', 3.5);
   sparks(innerWidth / 2, innerHeight * 0.4, 30, '#ffe27a');
-  setTimeout(gameOver, 2600);
+  overTimer = setTimeout(gameOver, 2600);
 }
 function fail() {
   state = 'won'; failed = true; stopLoops(); held = false;
   play('fail', 1); banner('נגמר הזמן!', 'הסעודה התחילה...', true); setPose('surprised', 2.5); say('אוי! התחילו את הסעודה... ואין לחם משנה!', 3);
-  setTimeout(gameOver, 2400);
+  overTimer = setTimeout(gameOver, 2400);
 }
 
 // ───────────────────────── drawing ─────────────────────────
@@ -368,6 +374,13 @@ function drawScan(t) {
   // a soft red edge on the screen
   cx.save(); const v = cx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
   v.addColorStop(0, 'rgba(255,40,40,0)'); v.addColorStop(1, `rgba(255,40,40,${0.28 * in_})`); cx.fillStyle = v; cx.fillRect(0, 0, W, H); cx.restore();
+}
+function drawThreshold() {
+  const d = doorRect(), k = d.k, wO = (DOOR.ox1 - DOOR.ox0) * k, y0 = feetY(DOORZ - 0.08), y1 = feetY(DOORZ), w0 = wO * scl(DOORZ - 0.08) / scl(DOORZ);
+  const danger = !green || timeLeft() < WARN;
+  cx.save(); cx.beginPath(); cx.moveTo(W / 2 - w0 / 2, y0); cx.lineTo(W / 2 + w0 / 2, y0); cx.lineTo(W / 2 + wO / 2, y1); cx.lineTo(W / 2 - wO / 2, y1); cx.closePath();
+  cx.fillStyle = danger ? 'rgba(255,77,79,.28)' : 'rgba(255,201,74,.18)'; cx.fill();
+  cx.setLineDash([8, 6]); cx.lineWidth = 2.5; cx.strokeStyle = danger ? '#ff6b6d' : '#ffd23f'; cx.stroke(); cx.restore();
 }
 function drawDoor() {
   const d = doorRect(), k = d.k;
@@ -421,6 +434,7 @@ function draw() {
   items.push({ z, f: drawHani });
   items.sort((a, b) => b.z - a.z);
   for (const it of items) if (it.z >= DOORZ) it.f();
+  drawThreshold();
   drawDoor();
   drawScan(performance.now() / 1000);
   for (const it of items) if (it.z < DOORZ) it.f();
@@ -476,7 +490,9 @@ function resetRun() {
   R = seeded(`${SLUG}|${today()}`);
   clock = 0; mistakes = 0; rolls = 1; held = false; lastLine = 0; lateSaid = false; failed = false; setRolls();
 }
+let overTimer = 0;
 function startGame() {
+  clearTimeout(overTimer);
   tut.end(true);
   resetRun(); state = 'play'; show(null); playing(true); enterScene(0);
   window.track && track('game_start', SLUG);
@@ -542,7 +558,7 @@ const STEPS = [
   { text: 'וזה השעון <b>עד המוציא</b>. נגמר – והסעודה מתחילה בלי לחם משנה!', spot: elSpot('#clock') },
   { text: '<b style="color:#1e9a5a">ירוק</b> = הדלת פתוחה – <b>הולכים</b>.<br><b style="color:#d23">אדום</b> = החיישן של הדלת מסתכל על כל המסדרון – <b>קופאים!</b>', spot: doorSpot },
   { text: 'הטיימר מראה <b>עוד כמה שניות הצבע מתחלף</b>. צהוב מהבהב = עוד רגע אדום!', spot: timerSpot },
-  { text: 'זזתם באדום? <b>פסילה!</b> חוזרים לתחילת המסדרון. גם האנשים מסביב משחקים – ולפעמים הם נפסלים.' },
+  { text: 'זזתם באדום? <b>פסילה!</b> ונתקעתם <b>בתוך הדלת</b> (הפס על הרצפה) כשהיא צריכה להיסגר? היא נשארת פתוחה בגללכם – <b>פסילה!</b> נכנסים לדלת רק כשיש מספיק זמן לעבור.' },
   { text: '<b>החזיקו "הולכים"</b> כדי ללכת, ועזבו כדי לעמוד. נסו: לכו קצת – ועצרו. <span class="keyhint">(במחשב: רווח)</span>', try: 'walk', spot: elSpot('#walkBtn') },
   { text: '<b>פסיעה גסה!</b> לא רצים בשבת: ככל שמחזיקים יותר – הצעדים גדלים והטבעת מתמלאת. מלאה = <b>פסילה</b>. עוזבים לרגע – והיא מתרוקנת.', spot: elSpot('#walkWrap') },
   { text: 'עכשיו: <b>כשיהיה אדום – אל תזוזו</b> עד שיחזור הירוק.', try: 'freeze' },
@@ -627,6 +643,6 @@ layout(); showBest(); requestAnimationFrame(frame);
 window.SHABBAT_DOOR = {
   get state() { return state; }, get z() { return z; }, get si() { return si; }, get clock() { return clock; }, get mistakes() { return mistakes; },
   get green() { return green; }, get timeLeft() { return timeLeft(); }, get redFor() { return redFor; }, get oops() { return oops; }, get rolls() { return rolls; },
-  get failed() { return failed; }, get intro() { return introT; }, get introWait() { return introWait; }, get gasa() { return gasa; }, cardGo() { $('lvlGo').disabled = false; cardGo(); }, get pastZ() { return PAST; }, get scene() { return sc; }, get people() { return people; }, LIMIT,
+  get failed() { return failed; }, get intro() { return introT; }, get introWait() { return introWait; }, get gasa() { return gasa; }, cardGo() { $('lvlGo').disabled = false; cardGo(); }, get pastZ() { return PAST; }, get doorZ() { return DOORZ; }, get doorOpen() { return doorOpen; }, get scene() { return sc; }, get people() { return people; }, LIMIT,
   hold(v) { held = v; }, tick(dt) { step(dt); }, tut, startGame,
 };

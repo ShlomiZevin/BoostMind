@@ -61,3 +61,10 @@ the color is changing, and without פסיעה גסה."
   (up to +70% speed); full = "פסיעה גסה! נפסלת"; letting go empties it (0.9 s). Warning ticks + "פסיעה גסה בשבת?! לאט!".
 - The card between levels waits for a tap on "יוצאים!" (enabled after 1.2 s so it is read), then 3-2-1 -> green.
 - Bots: sharp 56 s, careful 82 s, cautious 135 s; never-let-go fails (24 disqualifications), always-hold fails.
+
+## Round 6 (14 Nov 2026) - "when I'm too close to the door it remains open... if it's with the person it's חילול שבת"
+- The door follows its timer ONLY (no more "stay open while someone is in the doorway"). A dashed threshold on the floor
+  marks the doorway (red when it is about to close). In the doorway after the light turns red = "נפסלת! נתקעת בדלת";
+  visitors too, and they don't start through without time to cross. Test: door open on red = 0 frames in 3 runs;
+  t6-doorway.js stops inside on purpose -> disqualified, door closes.
+- Clock 2:50 (the doorway rule makes it harder). Bots: sharp 66 s, careful 105 s.

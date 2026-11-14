@@ -14,7 +14,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await p.screenshot({ path: OUT + `p-${name}-start.png` });
     if (name === 'land') { console.log(name, 'turn notice:', await p.evaluate(() => document.body.classList.contains('turn'))); await ctx.close(); continue; }
     if (touch) await p.tap('#playBtn', { force: true }); else await p.click('#playBtn', { force: true });
-    await sleep(1200);
+    await sleep(1400); await p.evaluate(() => SHABBAT_DOOR.cardGo()); await sleep(3300);
     const lay = await p.evaluate(() => {
       const r = (id) => document.getElementById(id).getBoundingClientRect();
       const hud = r('hud'), w = r('walkBtn'), strip = r('strip'), st = r('stage');
