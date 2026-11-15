@@ -459,3 +459,11 @@ while we see Hani, in the room while we see the mother.
     any soft first word (his method, SKILL.md "How he cuts between two clips"). `pace.mjs` after such a cut: the group's
     start is its voice's pre-roll, so `--from` a few tenths before the section's first picture, and check the picture
     row after it - the stretched pre-roll pushed the picture 2 frames, a hole (closed by stretching the clip before).
+  - **Export traps found on haredit-6 (2026-11-15), for the tool session:** (1) a section's own speed (`pace` from
+    `tools/pace.mjs` / the group panel) is applied to the PICTURE in the export but not to the voice clips - the voice ran
+    ~8% fast and ended 1.35 s before the picture ("the ending is completely out of sync"); workaround: those voice clips
+    on their own audio rows with `tempo` = pace / project speed (0.88), `pace` removed from them - measured in sync.
+    (2) Two audio rows with IDENTICAL voice settings can collide in the export (voice_chain's temp file
+    `voice.<hash>.in.f32` removed by the other) - the export fails; give one a 1 Hz different `lowcut`.
+    (3) "Full quality to my email": the email channel compresses to Gmail's limit (154 MB -> 21 MB) - say so; the real
+    file needs a private link.
