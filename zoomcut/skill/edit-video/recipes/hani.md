@@ -419,3 +419,20 @@ while we see Hani, in the room while we see the mother.
   links both ways (hani, avraham-moshe, each other), HIDDEN until a video they're in goes out
   (`content.mjs show character perel`). The script's plot (his fall, the ward) is NOT in their records yet - add it
   when the video is published.
+- **The cut from his takes (2026-11-15)** - 20 Hani takes + 5 of the mother in the Drop folder "חני ואבא" (not
+  `haredit-6`; copied down by hand). His rules: "most is one time, some two - take the last one", "cut fast, no quiet
+  stuff", "everything as groups", and he removed "דסי" on purpose ("we don't know who she talks to - better").
+  Built by a session script (scratchpad `build6c.py`, the savta-1 method): cut-outs from the hidden `_haredit-6-takes`
+  (hard links), every piece a group (video + background + kids / family pictures + voice + subtitles, one link),
+  silences >= 0.25 s cut only at a word boundary (he talks fluidly - few cuts; the real gaps are between takes, butted),
+  every Hani <-> mother turn overlapping 0.6 s, the "What we see" strip.
+  **The mother - full screen AND the small window** (his words: "if you show her in a thumbnail, her voice comes out
+  of the mobile, like a speaker"): full screen when she starts a line (her voice in the room, Hani's tail through
+  the phone); the window over Hani's REAL listening face (the pauses he left in his call take) for the end of some
+  lines - and her voice there through `fx.filter: phone`. The window rows (`pip.*`, group "אמא בחלון קטן") are no
+  character's row, so the strip never hides them: their clips exist exactly where the window shows. The sound follows
+  the strip: every voice clip split where it changes. Measured: the phone filter keeps the level - phone clips need
+  gain 0.5 (-6 dB) to sit under Hani. Her "יצחק! שטיי אויף!" = full screen after a window start.
+- **Subtitle font traps**: Assistant draws Hebrew vowel marks wrong (וואָס, מײַן, רֶבּ came out garbled) - plain
+  spelling in subtitles ("וואס", "ר' שמוליק"); the maqaf (ה־VPN) is fine. Yiddish lines get a translation row
+  (`subs.tr`, smaller, under hers), the mother her own colour (`subs.mom`).
