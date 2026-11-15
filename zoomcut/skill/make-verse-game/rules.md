@@ -129,6 +129,8 @@ principles - apply them to whatever the game is.
 
 - **Name what the player handles** (Lola pills, 11 Nov 2026 - "so so so great"): when the pieces are real things with names, show the name on the piece the player drags or lifts and pop it with the points on every match / drop. Draw numbers apart from Hebrew text so RTL never scrambles them.
 
+- **A limit must actually bite** (דלת של שבת, 15 Nov 2026: "you can never reach the פסיעה גסה because you stop before it anyway"): a rule that limits the player (too fast, too greedy) must be something a player chasing the goal actually runs into. Tie it to the action that wins (here: tapping faster gets you through the door sooner, tapping too fast = running = disqualified), and prove it with a bot that ignores the rule: it has to fail.
+- **Between-level cards = 4 short lines** (same day: "too much noise, things repeated"): what you just did, where you are now (big), one goal line, one button. Nothing the HUD already shows, no sentences. During the countdown only the big number stays.
 - **A sound for EVERY event, and music** (דלת של שבת, 14 Nov 2026: "בכלל חסר סאונדים... אתה עושה משחק או משתלה?"): fail /
   elimination buzzer, a success jingle on every goal reached, countdown ticks + GO, a warning before danger, a stop sound,
   win fanfare, lose trombone, low-time heartbeat, transitions - plus a background music loop that fits the place. List

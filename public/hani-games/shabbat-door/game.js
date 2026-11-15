@@ -32,7 +32,8 @@ const SCENES = [
 ];
 const LIMIT = 170;                                   // seconds until the meal - the whole route
 const DOORZ = 1.0, PAST = 1.06, DONEZ = 1.22;        // depth: 0 = near, 1 = the door's line
-const WALK = 0.2;                                    // depth per second (one pace - no hurrying)
+const STEP = 0.065, STEPV = 0.26;                    // depth of one step (one tap); base speed of a step
+const GAP_RUN = 0.23, GAP_FAST = 0.32, GASA_DECAY = 0.4;   // taps closer than this = running / hurrying; the ring empties per second
 const SLIDE = 0.5, WARN = 1.0, GRACE = 0.28;         // glass slide; yellow before red; a moment to stop after red
 
 // ───────────────────────── Hani's lines ─────────────────────────
@@ -161,7 +162,7 @@ let green = true, phaseT = 0, phaseLen = 3, redFor = 0, doorOpen = 1, oops = 0, 
 let clock = 0, mistakes = 0, rolls = 1, lastLine = 0, flash = 0, winT = 0, people = [], callT = 0, lateSaid = false, failed = false;
 let tutReds = 0, introT = 0, introWait = false, lastPassed = 0, gasa = 0, gasaSaid = false;
 const INTRO = 3;      // after the tap on the card: 3-2-1, the door's timer counts it down to green
-const GASA_T = 2.6, GASA_OFF = 0.9;   // seconds of holding until פסיעה גסה; seconds of letting go to empty it
+let stepLeft = 0, lastTap = -9, simT = 0, taps = 0;
 const tutScene = { name: 'איך משחקים', bg: 'ward', g: [3.2, 3.6], r: [2.6, 3.0], people: 1 };
 function newPhase(toGreen) {
   green = toGreen; phaseT = 0; phaseLen = toGreen ? rnd(sc.g[0], sc.g[1]) : rnd(sc.r[0], sc.r[1]); callT = 1;
@@ -172,7 +173,7 @@ function enterScene(i, s) {
   si = i; sc = s || SCENES[i];
   z = 0; passed = false; fade = 1; oops = 0; walkT = 0;
   // a fresh press is needed in every corridor (never carry a held button into a red light)
-  setHeld(false); gasa = 0; gasaSaid = false;
+  setHeld(false); gasa = 0; gasaSaid = false; stepLeft = 0;
   green = false; phaseT = 0; redFor = 0; doorOpen = 0; introT = 0; introWait = false;
   if (state === 'tut') phaseLen = rnd(1.6, 2.4);
   else { phaseLen = 9; introWait = true; showCard(i); }
@@ -181,28 +182,31 @@ function enterScene(i, s) {
   for (let k = 0; k < sc.people; k++) people.push({ img: kinds[k % 3], lane: k % 2 ? 1 : -1, side: 0.34, z: k < 2 ? rnd(0.3, 0.5) : rnd(0.02, 0.12), speed: rnd(0.12, 0.18), react: 0, stopIn: 0, out: 0, back: 0, done: false, mv: false, walkT: rnd(0, 3) });
   dots();
   $('whereTxt').textContent = sc.name;
-  if (sc.line) say(sc.line, 3.6);
+  if (sc.line && state === 'tut') say(sc.line, 3.6);
 }
 // the card between corridors: what you just passed, where you are now, and 3-2-1 to green
 function showCard(i) {
   const c = $('lvl');
-  $('lvlDone').innerHTML = i === 0 ? 'שבת בבית החולים – הולכים לרב שמוליק!' : `✓ עברתם את דלת ${i}!` + (SCENES[i - 1].roll ? ' <b>רב שמוליק נתן לחמנייה – 2/2!</b>' : '');
-  $('lvlNum').textContent = `דלת ${i + 1} מתוך ${SCENES.length}`;
+  const got = i > 0 && SCENES[i - 1].roll;
+  const done = $('lvlDone'); done.hidden = i === 0 && false;
+  done.className = got ? 'roll' : i === 0 ? 'start' : '';
+  done.innerHTML = got ? '<img src="assets/roll.png" alt=""><img src="assets/roll.png" alt=""> יש לחם משנה!'
+    : i === 0 ? '<img src="assets/roll.png" alt=""><img class="empty" src="assets/roll.png" alt=""> חסרה לחמנייה'
+    : `<i>✓</i> דלת ${i} עברה`;
+  $('lvlNum').innerHTML = `דלת ${i + 1} <small>/ ${SCENES.length}</small>`;
   $('lvlName').textContent = SCENES[i].name;
-  $('lvlGoalTxt').innerHTML = GOALS(i); $('lvlRoll2').classList.toggle('empty', rolls < 2);
+  $('lvlGoalTxt').innerHTML = GOALS(i);
+  $('lvl').classList.remove('count');
   $('lvlCount').textContent = '';
   const go = $('lvlGo'); go.hidden = false; go.disabled = true; setTimeout(() => { go.disabled = false; }, 1200);
   c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); play('whoosh', 0.6);
 }
 // the two rolls of lechem mishneh: one from the start, the second from Reb Shmulik
 function setRolls() { $('roll2').classList.toggle('empty', rolls < 2); $('rolls').classList.toggle('got', rolls >= 2); }
-const GOALS = (i) => i === 0 ? 'יש רק לחמנייה <b>אחת</b> – וצריך <b>לחם משנה</b>! הולכים לרב שמוליק בפנימית.'
-  : i <= 3 ? 'יעד: <b>רב שמוליק בפנימית</b> – עוד לחמנייה ללחם משנה.'
-  : i === 4 ? 'יש <b>לחם משנה</b>! עכשיו חוזרים לאבא באורתופדית.'
-  : 'יעד: <b>אבא באורתופדית</b> – לפני המוציא!';
+const GOALS = (i) => i <= 3 ? 'אל רב שמוליק בפנימית' : 'חוזרים לאבא באורתופדית';
 function cardGo() {
   if (!introWait || $('lvlGo').disabled) return;
-  introWait = false; introT = INTRO; phaseT = 0; phaseLen = INTRO; $('lvlGo').hidden = true; step.lastN = -1;
+  introWait = false; introT = INTRO; phaseT = 0; phaseLen = INTRO; $('lvlGo').hidden = true; step.lastN = -1; $('lvl').classList.add('count');
 }
 $('lvlGo').addEventListener('click', cardGo);
 function hideCard() { $('lvl').classList.remove('on'); }
@@ -215,12 +219,13 @@ function step(dt) {
   callT = Math.max(0, callT - dt * 1.2);
   const sim = state === 'play' || (state === 'tut' && tutRunning());
   if (!sim) { draw(); return; }
+  simT += dt;
   if (introWait) { draw(); return; }   // the card waits for the player's tap (the game clock waits too)
   if (introT > 0) {   // 3-2-1: the door's timer counts down to green
     introT -= dt; phaseT += dt;
     const n = Math.ceil(introT); $('lvlCount').textContent = n > 0 ? String(n) : '';
     if (n !== step.lastN) { step.lastN = n; if (n > 0) play('tick', 0.8); }
-    if (introT <= 0) { step.lastN = -1; hideCard(); newPhase(true); play('go', 0.8); say('ירוק! החזיקו "הולכים"!', 1.6); }
+    if (introT <= 0) { step.lastN = -1; hideCard(); newPhase(true); play('go', 0.8); say(sc.line || 'ירוק! צעד-צעד-צעד!', 2.6); }
     draw(); return;
   }
   if (state === 'play') {
@@ -246,13 +251,12 @@ function step(dt) {
   // Hani
   if (oops > 0) { oops -= dt; if (oops <= 0) { z = 0; fade = 1; } }
   const wasMoving = moving;
-  moving = oops <= 0 && !passed && held;
-  if (wasMoving && !moving && oops <= 0 && !passed) play('squeak', 0.5);
-  // פסיעה גסה: the longer she walks without a pause, the bigger her steps - until it is a פסיעה גסה
-  if (moving) { gasa = Math.min(1, gasa + dt / GASA_T); z += WALK * (1 + 0.7 * gasa) * dt; walkT += dt * (1.3 + gasa); }
-  else gasa = Math.max(0, gasa - dt / GASA_OFF);
-  if (moving && gasa > 0.7) { const b = Math.floor(gasa * 16); if (b !== step.lastG) { step.lastG = b; play('warn', 0.5); } if (!gasaSaid) { gasaSaid = true; say('פסיעה גסה בשבת?! לאט!', 1.8); } }
-  if (moving && gasa >= 1) caught('gasa');
+  moving = oops <= 0 && !passed && stepLeft > 0.0005;
+  if (wasMoving && !moving && oops <= 0 && !passed) play('squeak', 0.3);
+  // each tap is one step: she walks it out, a bit faster when taps pile up
+  if (moving) { const d = Math.min(stepLeft, (STEPV + stepLeft * 3) * dt); z += d; stepLeft -= d; walkT += dt * (1.3 + stepLeft * 8); }
+  else stepLeft = 0;
+  gasa = Math.max(0, gasa - GASA_DECAY * dt);
   loop('step-loop', moving, 0.45);
   // the rule: moving while the sensor watches (after a moment to stop)
   if (moving && !green && redFor > GRACE && oops <= 0) caught('red');
@@ -292,10 +296,10 @@ function stepPeople(dt) {
 // a clear "passed" moment - green, never mistaken for the red "caught"
 function passFx() { play('pass', 0.9); const d = doorRect(), r = cv.getBoundingClientRect(); sparks(r.left + W / 2, r.top + d.y + d.h * 0.5, 18, '#7dffb5'); }
 function caught(kind) {
-  oops = 1.3; flash = 1; held = false; $('walkBtn').classList.remove('held'); gasa = 0;
+  oops = 1.3; flash = 1; held = false; $('walkBtn').classList.remove('held'); gasa = 0; stepLeft = 0;
   play('out', 1); setPose('surprised', 1.6); sayEl.classList.remove('on'); sayT = 0;
   if (state === 'play') mistakes++;
-  if (kind === 'gasa') banner('פסיעה גסה!', 'נפסלת – חוזרים להתחלה', true);
+  if (kind === 'gasa') banner('פסיעה גסה!', 'רצת בשבת – חוזרים להתחלה', true);
   else if (kind === 'door') { z = DOORZ - 0.13; banner('נפסלת!', 'נתקעת בדלת – היא לא יכולה להיסגר', true); }
   else banner('נפסלת!', 'זזת באדום – חוזרים להתחלה', true);
   if (navigator.vibrate) try { navigator.vibrate(120); } catch (e) {}
@@ -449,28 +453,37 @@ function draw() {
 
 // ───────────────────────── controls ─────────────────────────
 function setHeld(v) {
-  if (v && (oops > 0 || introWait || introT > 0)) return;
-  held = v; $('walkBtn').classList.toggle('held', v);
-  if (v && state === 'tut' && tutWait && tutWait.id === 'walk') tutWait.pressed = true;
+  held = false; $('walkBtn').classList.toggle('held', !!v);
+  if (!v) stepLeft = Math.min(stepLeft, STEP * 0.5);
+}
+// one tap = one step. Too fast = running on Shabbat = פסיעה גסה (the ring fills)
+function tap() {
+  const live = state === 'play' || (state === 'tut' && tutRunning());
+  if (!live || paused || oops > 0 || introWait || introT > 0 || passed) return;
+  const gap = simT - lastTap; lastTap = simT; taps++;
+  stepLeft = Math.min(stepLeft + STEP, STEP * 2.2);
+  if (gap < GAP_RUN) gasa += 0.34; else if (gap < GAP_FAST) gasa += 0.2;
+  play('squeak', 0.12);
+  if (gasa > 0.66) { play('warn', 0.5); if (!gasaSaid) { gasaSaid = true; say('לאט! זה כבר ריצה – פסיעה גסה!', 1.8); } }
+  if (gasa >= 1) { caught('gasa'); return; }
+  const b = $('walkBtn'); b.classList.add('held'); clearTimeout(tap.t); tap.t = setTimeout(() => b.classList.remove('held'), 90);
 }
 {
   const el = $('walkBtn');
-  el.addEventListener('pointerdown', (e) => { e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch (_) {} setHeld(true); });
-  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, () => setHeld(false));
+  el.addEventListener('pointerdown', (e) => { e.preventDefault(); tap(); });
   el.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 const WALKKEYS = new Set([' ', 'ArrowUp', 'w', 'W']);
 addEventListener('keydown', (e) => {
   const live = state === 'play' || (state === 'tut' && tutRunning());
   if (state === 'play' && introWait && !paused && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); cardGo(); return; }
-  if (live && !paused && WALKKEYS.has(e.key)) { e.preventDefault(); if (!e.repeat) setHeld(true); return; }
+  if (live && !paused && WALKKEYS.has(e.key)) { e.preventDefault(); if (!e.repeat) tap(); return; }
   if (tut.on) return;
   if (e.key === 'Escape' && state === 'play') pause(!paused);
   if ((e.key === ' ' || e.key === 'Enter') && paused) { e.preventDefault(); pause(false); return; }
   if ((e.key === ' ' || e.key === 'Enter') && state === 'menu' && $('start').classList.contains('on')) { e.preventDefault(); $('playBtn').click(); }
   else if ((e.key === ' ' || e.key === 'Enter') && state === 'over') { e.preventDefault(); startGame(); }
 });
-addEventListener('keyup', (e) => { if (WALKKEYS.has(e.key)) setHeld(false); });
 
 // ───────────────────────── HUD / screens ─────────────────────────
 const fmtT = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
@@ -559,11 +572,11 @@ const STEPS = [
   { text: '<b style="color:#1e9a5a">ירוק</b> = הדלת פתוחה – <b>הולכים</b>.<br><b style="color:#d23">אדום</b> = החיישן של הדלת מסתכל על כל המסדרון – <b>קופאים!</b>', spot: doorSpot },
   { text: 'הטיימר מראה <b>עוד כמה שניות הצבע מתחלף</b>. צהוב מהבהב = עוד רגע אדום!', spot: timerSpot },
   { text: 'זזתם באדום? <b>פסילה!</b> ונתקעתם <b>בתוך הדלת</b> (הפס על הרצפה) כשהיא צריכה להיסגר? היא נשארת פתוחה בגללכם – <b>פסילה!</b> נכנסים לדלת רק כשיש מספיק זמן לעבור.' },
-  { text: '<b>החזיקו "הולכים"</b> כדי ללכת, ועזבו כדי לעמוד. נסו: לכו קצת – ועצרו. <span class="keyhint">(במחשב: רווח)</span>', try: 'walk', spot: elSpot('#walkBtn') },
-  { text: '<b>פסיעה גסה!</b> לא רצים בשבת: ככל שמחזיקים יותר – הצעדים גדלים והטבעת מתמלאת. מלאה = <b>פסילה</b>. עוזבים לרגע – והיא מתרוקנת.', spot: elSpot('#walkWrap') },
+  { text: '<b>כל הקשה על "צעד" = צעד אחד.</b> לא מקישים – עומדים. נסו: כמה צעדים. <span class="keyhint">(במחשב: רווח)</span>', try: 'walk', spot: elSpot('#walkBtn') },
+  { text: '<b>פסיעה גסה!</b> מקישים מהר מדי = <b>רצים בשבת</b>. הטבעת מתמלאת – מלאה = <b>פסילה</b>. מהר מגיעים לדלת, אבל בקצב רגוע: צעד... צעד... צעד.', spot: elSpot('#walkWrap') },
   { text: 'עכשיו: <b>כשיהיה אדום – אל תזוזו</b> עד שיחזור הירוק.', try: 'freeze' },
   { text: '<b>לכו בירוק, עמדו באדום – ועברו בדלת!</b>', try: 'pass' },
-  { text: 'בין דלת לדלת יש כרטיס – קוראים, לוחצים <b>״יוצאים!״</b>, 3-2-1 – ירוק. <b>בהצלחה!</b>', last: true },
+  { text: 'בין דלת לדלת: לוחצים <b>״יוצאים!״</b>, 3-2-1 – ירוק. <b>בהצלחה!</b>', last: true },
 ];
 function tutRunning() { return tut.on && tutWait && !tutWait.done; }
 const tut = {
@@ -601,7 +614,7 @@ const tut = {
     if (!this.on) return;
     const s = this.step();
     // "walk" = she walked a bit and stopped (without being caught)
-    if (tutWait && tutWait.id === 'walk' && !tutWait.done && tutWait.pressed && !held && z > 0.1 && oops <= 0) tutWait.done = true;
+    if (tutWait && tutWait.id === 'walk' && !tutWait.done && taps - (tutWait.t0 ?? (tutWait.t0 = taps)) >= 4 && !moving && oops <= 0) tutWait.done = true;
     // "freeze": being caught during red spoils this red - wait for the next one
     if (tutWait && tutWait.id === 'freeze' && oops > 0) tutWait.redClean = false;
     if (tutWait && tutWait.id === 'freeze' && !green && oops > 0.9) tutWait.redClean = false;
@@ -644,5 +657,5 @@ window.SHABBAT_DOOR = {
   get state() { return state; }, get z() { return z; }, get si() { return si; }, get clock() { return clock; }, get mistakes() { return mistakes; },
   get green() { return green; }, get timeLeft() { return timeLeft(); }, get redFor() { return redFor; }, get oops() { return oops; }, get rolls() { return rolls; },
   get failed() { return failed; }, get intro() { return introT; }, get introWait() { return introWait; }, get gasa() { return gasa; }, cardGo() { $('lvlGo').disabled = false; cardGo(); }, get pastZ() { return PAST; }, get doorZ() { return DOORZ; }, get doorOpen() { return doorOpen; }, get scene() { return sc; }, get people() { return people; }, LIMIT,
-  hold(v) { held = v; }, tick(dt) { step(dt); }, tut, startGame,
+  tap() { tap(); }, get simT() { return simT; }, get taps() { return taps; }, get moving() { return moving; }, tick(dt) { step(dt); }, tut, startGame,
 };

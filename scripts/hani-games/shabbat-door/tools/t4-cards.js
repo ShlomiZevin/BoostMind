@@ -9,7 +9,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await ctx.addInitScript(() => { localStorage.setItem('t-ignore', '1'); localStorage.setItem('hani-games:shabbat-door:tut', '1'); });
     const p = await ctx.newPage(); await p.goto(BASE + '/shabbat-door/?solo=1'); await sleep(1200);
     await p.click('#playBtn', { force: true }); await sleep(900); await p.screenshot({ path: OUT + `k-${n}-1.png` });
-    await p.evaluate(() => { const G = SHABBAT_DOOR; let k = 0; while (G.si < 4 && k++ < 60 * 300) { G.hold(G.green && G.timeLeft > 0.4); G.tick(1 / 60); } G.hold(false); });
+    await p.evaluate(() => { const G = SHABBAT_DOOR; let k = 0; let last = -9; while (G.si < 4 && k++ < 60 * 300) { if (G.introWait) G.cardGo(); if (G.green && G.timeLeft > 0.6 && G.gasa < 0.5 && G.simT - last > 0.32) { last = G.simT; G.tap(); } G.tick(1 / 60); } });
     await sleep(1200); await p.screenshot({ path: OUT + `k-${n}-5.png` });
     await ctx.close();
   }

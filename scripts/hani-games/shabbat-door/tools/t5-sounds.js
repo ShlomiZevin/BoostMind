@@ -11,7 +11,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.click('#playBtn', { force: true }); await sleep(3000);
   // count what plays: wrap the AudioBufferSourceNode start
   await p.evaluate(() => { window.__played = {}; const st = AudioBufferSourceNode.prototype.start; AudioBufferSourceNode.prototype.start = function (...a) { const n = this.buffer && this.buffer.duration.toFixed(2); window.__played[n] = (window.__played[n] || 0) + 1; return st.apply(this, a); }; });
-  const res = await p.evaluate(() => { const G = SHABBAT_DOOR; let k = 0, hold = true; while (G.si < 2 && k++ < 60 * 120) { hold = k < 400 ? true : (G.green && G.timeLeft > 0.4); G.hold(hold); G.tick(1 / 60); } return { si: G.si, mistakes: G.mistakes }; });
+  const res = await p.evaluate(() => { const G = SHABBAT_DOOR; let k = 0, last = -9; while (G.si < 2 && k++ < 60 * 120) { if (G.introWait) G.cardGo(); const go = k < 400 ? true : (G.green && G.timeLeft > 0.6 && G.gasa < 0.5); if (go && G.simT - last > 0.3) { last = G.simT; G.tap(); } G.tick(1 / 60); } return { si: G.si, mistakes: G.mistakes }; });
   const dec = await p.evaluate(() => Object.keys(window.__played).length);
   console.log('round', res, 'distinct sounds played:', dec, 'missing files:', bad.length ? bad : 'none');
   await b.close();

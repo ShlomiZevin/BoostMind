@@ -68,3 +68,7 @@ the color is changing, and without פסיעה גסה."
   visitors too, and they don't start through without time to cross. Test: door open on red = 0 frames in 3 runs;
   t6-doorway.js stops inside on purpose -> disqualified, door closes.
 - Clock 2:50 (the doorway rule makes it harder). Bots: sharp 66 s, careful 105 s.
+
+## Round 7 (15 Nov)
+- Level card cut to 4 lines (done / door N of 7 + name / goal with arrow / יוצאים!), light card like the concept art/concept/card-a.png; during 3-2-1 only a big number.
+- Walking is now TAP: one tap = one step. Taps under 0.23 s apart = running (+0.34 on the ring), under 0.32 s = hurrying (+0.2), the ring empties 0.4/s. Full = פסיעה גסה. Fast taps reach the door sooner, so the limit bites (hurry bot 0.22 s fails, sharp bot 67 s, careful 118 s).

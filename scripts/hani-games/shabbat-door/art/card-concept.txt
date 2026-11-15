@@ -1,0 +1,7 @@
+Mobile game UI mockup, portrait phone screen, Hebrew right-to-left game about a Haredi woman walking hospital corridors on Shabbat through automatic doors that play "red light green light".
+Show ONLY the short card that appears between levels, over a dimmed hospital corridor. The card must be readable in one second and contain just three things:
+1. a tiny green check line: "דלת 1 עברה"
+2. the big level line: "דלת 2 / 7" with the place name "יוצאים מהבניין"
+3. one short goal line with an arrow: "אל רב שמוליק בפנימית"
+and one big start button "יוצאים!".
+Clean, bold, game-like, lots of breathing room, no extra icons or repeated information. Hebrew text spelled exactly as given.

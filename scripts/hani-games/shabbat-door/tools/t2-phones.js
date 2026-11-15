@@ -22,9 +22,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     });
     await sleep(1500); await p.screenshot({ path: OUT + `p-${name}-play.png` });
     // keep walking through a red light on purpose: a mistake
-    await p.evaluate(() => SHABBAT_DOOR.hold(true));
+    await p.evaluate(() => (() => { for (let k = 0; k < 6; k++) SHABBAT_DOOR.tap(); })());
     let m = 0; for (let t = 0; t < 80 && !m; t++) { await sleep(100); m = await p.evaluate(() => SHABBAT_DOOR.mistakes); }
-    await sleep(250); await p.screenshot({ path: OUT + `p-${name}-oops.png` }); await p.evaluate(() => SHABBAT_DOOR.hold(false));
+    await sleep(250); await p.screenshot({ path: OUT + `p-${name}-oops.png` }); 
     console.log(name, vp.width + 'x' + vp.height, JSON.stringify(lay), 'startFits', startFit, 'mistake', m, errs.length ? 'ERR ' + errs : '');
     await ctx.close();
   }
