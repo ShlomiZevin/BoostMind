@@ -8,7 +8,7 @@ const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const SLUG = 'shabbat-door';
-const KEY = { best: `hani-games:${SLUG}:best`, day: `hani-games:${SLUG}:day`, tut: `hani-games:${SLUG}:tut`, snd: `hani-games:${SLUG}:snd` };
+const KEY = { best: `hani-games:${SLUG}:best`, day: `hani-games:${SLUG}:day`, tut: `hani-games:${SLUG}:tut2`, snd: `hani-games:${SLUG}:snd` };
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} },
@@ -22,12 +22,12 @@ const pickR = (a) => a[Math.floor(Math.random() * a.length)];
 // ───────────────────────── the route ─────────────────────────
 // g / r = the range of a green / red phase in seconds (each phase picks its own length); people = other visitors
 const SCENES = [
-  { name: 'אורתופדית', bg: 'ward', g: [3.2, 4.2], r: [2.2, 3.2], people: 1, line: 'שבת שלום! רק לחמנייה אחת... אין לחם משנה! הולכים לרב שמוליק.' },
-  { name: 'יוצאים מהבניין', bg: 'er', g: [2.6, 3.8], r: [2.2, 3.4], people: 2, line: 'ירוק – הולכים. אדום – עומדים כמו פסל!' },
-  { name: 'המעבר לבניין השני', bg: 'out', g: [2.4, 3.4], r: [2.2, 3.6], people: 2, line: 'אברהם משה בירר עם הרב – העירוב כולל את המעבר. הכול מסודר!' },
-  { name: 'פנימית – רב שמוליק', bg: 'er', g: [2.0, 3.2], r: [2.4, 3.6], people: 3, line: 'פנימית! רב שמוליק כבר מחכה עם הלחמנייה.', roll: true },
-  { name: 'חוזרים – המעבר', bg: 'out', g: [1.8, 3.0], r: [2.2, 3.6], people: 2, line: 'עכשיו חוזרים לאבא – בלי פסיעה גסה!' },
-  { name: 'יוצאים מפנימית', bg: 'er', g: [1.6, 2.8], r: [2.4, 3.8], people: 3, line: 'עוד דלת ועוד דלת... ישועת השם כהרף עין!' },
+  { name: 'אורתופדית', bg: 'ward', g: [3.2, 4.2], r: [2.2, 3.2], people: 1, line: 'רק לחמנייה אחת... צריך לחם משנה!' },
+  { name: 'יוצאים מהבניין', bg: 'er', g: [2.6, 3.8], r: [2.2, 3.4], people: 2, line: 'ירוק – הולכים. אדום – פסל!' },
+  { name: 'המעבר לבניין השני', bg: 'out', g: [2.4, 3.4], r: [2.2, 3.6], people: 2, line: 'העירוב כולל את המעבר. הכול מסודר!' },
+  { name: 'פנימית – רב שמוליק', bg: 'er', g: [2.0, 3.2], r: [2.4, 3.6], people: 3, line: 'רב שמוליק כבר מחכה עם הלחמנייה!', roll: true },
+  { name: 'חוזרים – המעבר', bg: 'out', g: [1.8, 3.0], r: [2.2, 3.6], people: 2, line: 'יש לחם משנה! חוזרים לאבא!' },
+  { name: 'יוצאים מפנימית', bg: 'er', g: [1.6, 2.8], r: [2.4, 3.8], people: 3, line: 'ישועת השם כהרף עין!' },
   { name: 'אורתופדית – אבא מחכה', bg: 'ward', g: [1.4, 2.6], r: [2.2, 3.8], people: 3, line: 'אבא מחכה להמוציא! עוד דלת אחת!' },
 ];
 const LIMIT = 170;                                   // seconds until the meal - the whole route
@@ -60,8 +60,9 @@ let haniPose = 'calm', faceT = 0, sayT = 0;
 function setPose(n, hold = 0) { if (hold) faceT = hold; if (haniPose !== n) { haniPose = n; haniEl.src = poseSrc[n]; } }
 function say(text, dur = 3) { sayEl.textContent = text; sayEl.classList.add('on'); sayT = dur; if (faceT <= 0) setPose('talk'); }
 const fxEl = $('fx');
-function banner(text, small, red) {
-  const b = document.createElement('div'); b.className = 'nin' + (red ? ' red' : ''); b.innerHTML = text + (small ? `<small>${small}</small>` : '');
+function banner(text, small, red, face) {
+  const b = document.createElement('div'); b.className = 'nin' + (red ? ' red' : '');
+  b.innerHTML = (face ? `<span class="bface"><img src="assets/pose-${face}.png" alt=""></span>` : '') + text + (small ? `<small>${small}</small>` : '');
   fxEl.appendChild(b); setTimeout(() => b.remove(), 2200);
 }
 function sparks(x, y, n = 16, color) {
@@ -138,7 +139,7 @@ let W = 360, H = 640, DPR = 1, TOP = 52;
 function layout() {
   const iw = innerWidth, ih = innerHeight;
   document.body.classList.toggle('turn', iw > ih * 1.15 && ih < 500);
-  const strip = Math.round(clamp(ih * 0.1, 64, 88)); document.documentElement.style.setProperty('--strip', strip + 'px');
+  document.documentElement.style.setProperty('--strip', '0px');   // no Hani strip: she is on the cards and the banners
   const r = cv.getBoundingClientRect(); W = Math.max(200, r.width); H = Math.max(200, r.height);
   DPR = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   const wb = Math.round(clamp(H * 0.17, 80, 120)); document.documentElement.style.setProperty('--wb', wb + 'px');
@@ -162,7 +163,7 @@ let green = true, phaseT = 0, phaseLen = 3, redFor = 0, doorOpen = 1, oops = 0, 
 let clock = 0, mistakes = 0, rolls = 1, lastLine = 0, flash = 0, winT = 0, people = [], callT = 0, lateSaid = false, failed = false;
 let tutReds = 0, introT = 0, introWait = false, lastPassed = 0, gasa = 0, gasaSaid = false;
 const INTRO = 3;      // after the tap on the card: 3-2-1, the door's timer counts it down to green
-let stepLeft = 0, lastTap = -9, simT = 0, taps = 0;
+let stepLeft = 0, lastTap = -9, simT = 0, taps = 0, goFlash = 0;
 const tutScene = { name: 'איך משחקים', bg: 'ward', g: [3.2, 3.6], r: [2.6, 3.0], people: 1 };
 function newPhase(toGreen) {
   green = toGreen; phaseT = 0; phaseLen = toGreen ? rnd(sc.g[0], sc.g[1]) : rnd(sc.r[0], sc.r[1]); callT = 1;
@@ -193,6 +194,7 @@ function showCard(i) {
   done.innerHTML = got ? '<img src="assets/roll.png" alt=""><img src="assets/roll.png" alt=""> יש לחם משנה!'
     : i === 0 ? '<img src="assets/roll.png" alt=""><img class="empty" src="assets/roll.png" alt=""> חסרה לחמנייה'
     : `<i>✓</i> דלת ${i} עברה`;
+  $('lvlSay').textContent = SCENES[i].line || '';
   $('lvlNum').innerHTML = `דלת ${i + 1} <small>/ ${SCENES.length}</small>`;
   $('lvlName').textContent = SCENES[i].name;
   $('lvlGoalTxt').innerHTML = GOALS(i);
@@ -206,7 +208,7 @@ function setRolls() { $('roll2').classList.toggle('empty', rolls < 2); $('rolls'
 const GOALS = (i) => i <= 3 ? 'אל רב שמוליק בפנימית' : 'חוזרים לאבא באורתופדית';
 function cardGo() {
   if (!introWait || $('lvlGo').disabled) return;
-  introWait = false; introT = INTRO; phaseT = 0; phaseLen = INTRO; $('lvlGo').hidden = true; step.lastN = -1; $('lvl').classList.add('count');
+  introWait = false; introT = INTRO; phaseT = 0; phaseLen = INTRO; $('lvlGo').hidden = true; step.lastN = -1; hideCard();
 }
 $('lvlGo').addEventListener('click', cardGo);
 function hideCard() { $('lvl').classList.remove('on'); }
@@ -225,7 +227,7 @@ function step(dt) {
     introT -= dt; phaseT += dt;
     const n = Math.ceil(introT); $('lvlCount').textContent = n > 0 ? String(n) : '';
     if (n !== step.lastN) { step.lastN = n; if (n > 0) play('tick', 0.8); }
-    if (introT <= 0) { step.lastN = -1; hideCard(); newPhase(true); play('go', 0.8); say(sc.line || 'ירוק! צעד-צעד-צעד!', 2.6); }
+    if (introT <= 0) { step.lastN = -1; hideCard(); newPhase(true); play('go', 0.8); goFlash = 0.8; }
     draw(); return;
   }
   if (state === 'play') {
@@ -233,6 +235,7 @@ function step(dt) {
     if (!lateSaid && LIMIT - clock < 25) { lateSaid = true; say(pickR(LINES.late), 2.4); }
     if (clock >= LIMIT) { fail(); return; }
   }
+  goFlash = Math.max(0, goFlash - dt);
   // the light's own timer
   phaseT += dt;
   if (green && phaseT > phaseLen - WARN) { const b = Math.floor((phaseLen - phaseT) * 4); if (b !== step.lastB) { step.lastB = b; play('warn', 0.6); } }
@@ -299,9 +302,9 @@ function caught(kind) {
   oops = 1.3; flash = 1; held = false; $('walkBtn').classList.remove('held'); gasa = 0; stepLeft = 0;
   play('out', 1); setPose('surprised', 1.6); sayEl.classList.remove('on'); sayT = 0;
   if (state === 'play') mistakes++;
-  if (kind === 'gasa') banner('פסיעה גסה!', 'רצת בשבת – חוזרים להתחלה', true);
-  else if (kind === 'door') { z = DOORZ - 0.13; banner('נפסלת!', 'נתקעת בדלת – היא לא יכולה להיסגר', true); }
-  else banner('נפסלת!', 'זזת באדום – חוזרים להתחלה', true);
+  if (kind === 'gasa') banner('פסיעה גסה!', 'רצת בשבת – חוזרים להתחלה', true, 'surprised');
+  else if (kind === 'door') { z = DOORZ - 0.13; banner('נפסלת!', 'נתקעת בדלת – היא לא יכולה להיסגר', true, 'surprised'); }
+  else banner('נפסלת!', 'זזת באדום – חוזרים להתחלה', true, 'surprised');
   if (navigator.vibrate) try { navigator.vibrate(120); } catch (e) {}
 }
 function doorPassed() {
@@ -322,13 +325,13 @@ function nextScene() {
 function win() {
   state = 'won'; stopLoops(); held = false;
   play('fanfare', 1);
-  banner('לחם משנה!', 'נס בתוך נס!'); setPose('surprised', 3); say('תראי איך הקדוש ברוך הוא מסדר את הדברים! נס בתוך נס!', 3.5);
+  banner('לחם משנה!', 'נס בתוך נס!', false, 'talk'); setPose('surprised', 3); say('תראי איך הקדוש ברוך הוא מסדר את הדברים! נס בתוך נס!', 3.5);
   sparks(innerWidth / 2, innerHeight * 0.4, 30, '#ffe27a');
   overTimer = setTimeout(gameOver, 2600);
 }
 function fail() {
   state = 'won'; failed = true; stopLoops(); held = false;
-  play('fail', 1); banner('נגמר הזמן!', 'הסעודה התחילה...', true); setPose('surprised', 2.5); say('אוי! התחילו את הסעודה... ואין לחם משנה!', 3);
+  play('fail', 1); banner('נגמר הזמן!', 'הסעודה התחילה...', true, 'surprised'); setPose('surprised', 2.5); say('אוי! התחילו את הסעודה... ואין לחם משנה!', 3);
   overTimer = setTimeout(gameOver, 2400);
 }
 
@@ -418,12 +421,33 @@ function drawTimer() {
   cx.fillText(`0:0${Math.min(9, Math.ceil(timeLeft()))}`, px + (pw - 2 * r - 5) / 2 + 2, cy + 1);
   cx.restore();
   // a big call when the colour changes
-  if (callT > 0 && introT <= 0 && oops <= 0) {
+  if (callT > 0 && introT <= 0 && goFlash <= 0 && oops <= 0) {
     cx.save(); cx.globalAlpha = Math.min(1, callT * 1.6); cx.font = `900 ${Math.round(clamp(W * 0.085, 24, 40))}px Rubik, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
     cx.fillStyle = green ? '#5cf0a0' : '#ff5a5c'; cx.shadowColor = '#000'; cx.shadowBlur = 8;
     cx.fillText(green ? 'ירוק – הולכים!' : 'אדום – קופאים!', W / 2, d.y + d.h * 0.45);
     cx.restore();
   }
+}
+// 3-2-1 before every corridor: a red glowing light on the door's glass (never over the timer sign), then a green "go"
+function drawCount() {
+  if (!(introT > 0 && !introWait) && goFlash <= 0) return;
+  const d = doorRect(), x = W / 2, y = d.y + d.h * 0.55, R0 = clamp(d.h * 0.3, 40, 78);
+  const go = introT <= 0, f = go ? goFlash / 0.8 : introT % 1, col = go ? '#2fd677' : '#ff3b3f';
+  const R1 = R0 * (go ? 1 + 0.25 * (1 - f) : 1 + 0.22 * Math.pow(f, 4));
+  cx.save();
+  if (!go) { cx.fillStyle = 'rgba(5,10,25,.28)'; cx.fillRect(0, 0, W, H); }
+  cx.globalAlpha = go ? Math.min(1, f * 2) : 1;
+  const g = cx.createRadialGradient(x, y - R1 * 0.3, R1 * 0.1, x, y, R1);
+  g.addColorStop(0, go ? '#9dffc6' : '#ff9a9c'); g.addColorStop(0.55, col); g.addColorStop(1, go ? '#0d7a3d' : '#9c0f14');
+  cx.shadowColor = col; cx.shadowBlur = R1 * 0.9;
+  cx.beginPath(); cx.arc(x, y, R1, 0, Math.PI * 2); cx.fillStyle = g; cx.fill();
+  cx.fill();   // twice = a stronger glow
+  cx.shadowBlur = 0; cx.lineWidth = 4; cx.strokeStyle = '#ffffffaa';
+  cx.beginPath(); cx.arc(x, y, R1 + 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (go ? 1 : f)); cx.stroke();
+  cx.fillStyle = '#fff'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.shadowColor = '#0008'; cx.shadowBlur = 8;
+  cx.font = `900 ${Math.round(go ? R1 * 0.62 : R1 * 1.25)}px Rubik, sans-serif`;
+  cx.fillText(go ? 'צעד!' : String(Math.ceil(introT)), x, y + (go ? 2 : R1 * 0.06));
+  cx.restore();
 }
 function rr(x, y, w, h, r) { cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); }
 function draw() {
@@ -443,6 +467,7 @@ function draw() {
   drawScan(performance.now() / 1000);
   for (const it of items) if (it.z < DOORZ) it.f();
   drawTimer();
+  drawCount();
   if (flash > 0) { cx.fillStyle = `rgba(229,72,77,${flash * 0.35})`; cx.fillRect(0, 0, W, H); }
   if (fade > 0) { cx.fillStyle = `rgba(14,26,51,${fade})`; cx.fillRect(0, 0, W, H); }
   const left = Math.max(0, LIMIT - clock); $('clock').textContent = fmtT(state === 'tut' ? LIMIT : left); $('clock').classList.toggle('low', state === 'play' && left < 25);
@@ -498,7 +523,7 @@ function showBest() {
   $('bestStart').innerHTML = b ? `השיא שלך: <b>${fmtT(b)}</b>${d ? ` · השיא של היום: <b>${fmtT(d)}</b>` : ''}` : '';
 }
 function show(id) { document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id)); }
-function playing(on) { for (const id of ['hud', 'strip', 'stage', 'ctl']) $(id).classList.toggle('on', on); if (on) layout(); }
+function playing(on) { for (const id of ['hud', 'stage', 'ctl']) $(id).classList.toggle('on', on); if (on) layout(); }
 function resetRun() {
   R = seeded(`${SLUG}|${today()}`);
   clock = 0; mistakes = 0; rolls = 1; held = false; lastLine = 0; lateSaid = false; failed = false; setRolls();
@@ -556,6 +581,7 @@ $('restartBtn').onclick = () => { paused = false; SND.ctx && SND.ctx.resume(); s
 $('quitBtn').onclick = toMenu;
 $('playBtn').onclick = () => { loop('niggun-freilach', false); if (!store.get(KEY.tut)) tut.begin(); else startGame(); };
 $('howBtn').onclick = () => { loop('niggun-freilach', false); tut.begin(); };
+$('howBtn2').onclick = () => { paused = false; $('paused').classList.remove('on'); SND.ctx && SND.ctx.resume(); stopLoops(); tut.begin(); };
 $('againBtn').onclick = () => { loop('niggun-freilach', false); startGame(); };
 
 // ───────────────────────── tutorial ─────────────────────────

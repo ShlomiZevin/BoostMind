@@ -72,3 +72,8 @@ the color is changing, and without פסיעה גסה."
 ## Round 7 (15 Nov)
 - Level card cut to 4 lines (done / door N of 7 + name / goal with arrow / יוצאים!), light card like the concept art/concept/card-a.png; during 3-2-1 only a big number.
 - Walking is now TAP: one tap = one step. Taps under 0.23 s apart = running (+0.34 on the ring), under 0.32 s = hurrying (+0.2), the ring empties 0.4/s. Full = פסיעה גסה. Fast taps reach the door sooner, so the limit bites (hurry bot 0.22 s fails, sharp bot 67 s, careful 118 s).
+
+## Round 8 (15 Nov) - "now the game is perfect"
+- 3-2-1 = a red glowing light on the door glass (never over the timer sign), then a green "צעד!" light.
+- No Hani strip during play: she speaks on the level card (face + bubble), and her face is on the failure / win banners.
+- Tutorial key bumped to tut2, so everyone sees the new tap tutorial once; "איך משחקים" also in the pause menu.
