@@ -153,11 +153,19 @@ const PLAN_FORMAT = (c) => `Answer JSON only, exactly these fields:
  "find": true | false}
 Every text field in plain Hebrew (his rule, 2026-11-13) - a director's short notes, not an essay and not the answer itself.`;
 
+// the real day, date and hour in Israel (his note 2026-11-15: at 22:22 at night Hani said she is in the middle of work and
+// leaves at 16:20). Sent with the conversation, never in the cached system prompt.
+const nowIL = (d = new Date()) => {
+  const tz = 'Asia/Jerusalem';
+  return `${new Intl.DateTimeFormat('he-IL', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d)} · ${new Intl.DateTimeFormat('he-IL-u-ca-hebrew', { timeZone: tz, day: 'numeric', month: 'long' }).format(d)} · ${new Intl.DateTimeFormat('he-IL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d)}`;
+};
+const NOW = (now) => `RIGHT NOW (Israel): ${now}. This is the real now for you too - where you are and what you are doing follow from it, the way your page and your videos describe your days, weeks and holidays. Don't announce the time unless it comes up.`;
+
 // one answer. cur = wiki.js canonNow() (the brain: byId has each character's sheet and life, videos their transcripts);
 // convo = the conversation's brain from the previous answer ({} for a new one) - returned updated.
 // extra: the chat's own rules for this message (the limit, who the visitor is - wiki.js); contact: the request-card rules, used
 // only when the visitor really looks for a video (his note 2026-11-12: a quoted line got the archive + a request card)
-async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = () => {}, extra = '', contact = '' }) {
+async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = () => {}, extra = '', contact = '', at = new Date() }) {   // at: the moment (a test can set it)
   const c = cur.byId[mode];
   if (!c) throw new Error('not a character: ' + mode);
   const steps = [];
@@ -167,7 +175,8 @@ async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = 
   // 1 · direct - the page + every script + the whole conversation
   const system = DIRECTOR(c, known, scriptsOf(cur, c));
   const usedPhrases = convo.phrases || [];
-  const memo = usedPhrases.length ? `Catchphrases ${c.name} already said in this conversation (never again): ${JSON.stringify(usedPhrases)}` : '';
+  const now = nowIL(at);
+  const memo = NOW(now) + (usedPhrases.length ? `\nCatchphrases ${c.name} already said in this conversation (never again): ${JSON.stringify(usedPhrases)}` : '');
   const all = last(turns, STEPS.direct.couples);
   let d = null;
   if (akey) {
@@ -200,7 +209,9 @@ You know this only a little, like an educated outsider - no details an expert wo
   // the writer gets no catchphrase list - one the director names is the only one in an answer (his note 2026-11-14: with the
   // list in front of it, Terra put Hani's "את קולטת" in three answers in a row, whatever the rule against repeating said)
   const t = await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
-    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${notes}${limit}${rules ? '\n\n' + rules : ''}\n\nNow write your answer to the visitor's last message - only the answer. It ends as a whole sentence, unless your page says you get cut off or trail off (his note 2026-11-15: Asaf, whose page says nothing of it, cut himself off with "—" twice; Daniel, whose page does, should be cut off).` }],
+    // whole sentence unless the page says they get cut off (his notes 2026-11-15: Asaf, whose page says nothing of it, cut
+    // himself off with "—"; Daniel, whose page does, should be) - or the sign-in teaser in `extra` asks to stop mid-sentence
+    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${NOW(now)}\n\n${notes}${limit}${rules ? '\n\n' + rules : ''}\n\nNow write your answer to the visitor's last message - only the answer. It ends as a whole sentence, unless your page says you get cut off or trail off, or the rules for this message tell you to stop in the middle.` }],
     { json: false, onText, max: 900 });
   const talkAt = Date.now() - t0 - t.ms;   // when talk started, from the visitor's message
   steps.push({ step: 'talk', ...t, out: t.out });
