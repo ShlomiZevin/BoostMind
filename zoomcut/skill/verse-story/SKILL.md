@@ -24,6 +24,11 @@ Reply in English; Hebrew only in the story.
    preview -> `--test` -> post. Not on Shabbat. A video story: give the clip as `"file"` (any .mov / .mp4) - it is made
    story-ready by itself (section "A video story").
 
+## What he gets (his rule, 2026-11-15)
+**Send him ONLY the clean poster** - the 1080x1920 picture with its words set on it, nothing around it (no name bar,
+no ring, no button, no story frame). He posts it himself. The `-phone.png` / `-short.png` previews are for YOUR check
+only - never the hand-over. Example: `scripts/hani-games/shabbat-door/promo/poster.js`.
+
 ## His rules (2026-11-04 - every one cost a round)
 1. **Nothing sits on anything.** No word on a face, no word on a word that is already in the picture, no box on another
    box, nothing under the name bar or the button. The viewer keeps the picture between the bar and the button on every
