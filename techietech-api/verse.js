@@ -649,6 +649,27 @@ const ops = {
   },
 };
 
+// a bug report's phone in words: "אנדרואיד 16 · Samsung SM-A736B · בתוך Instagram · מסך 360x395"
+function deviceText(ua = '', screen = '') {
+  const out = [];
+  let m;
+  if ((m = ua.match(/Android (\d+(?:\.\d+)?)/))) out.push(`אנדרואיד ${m[1]}`);
+  else if ((m = ua.match(/(iPhone|iPad).*? OS (\d+)[_.](\d+)/))) out.push(`${m[1]} (iOS ${m[2]}.${m[3]})`);
+  else if (/Windows/.test(ua)) out.push('מחשב Windows');
+  else if (/Macintosh/.test(ua)) out.push('מחשב Mac');
+  if ((m = ua.match(/;\s*(SM-[\w]+|Pixel [\w ]+?|Redmi [\w ]+?|M\d{4}\w+)\s*(?:Build|[;)])/))) out.push(/^SM-/.test(m[1]) ? `Samsung ${m[1]}` : m[1]);
+  const app = /Instagram/.test(ua) ? 'Instagram' : /FBAN|FBAV|FB_IAB/.test(ua) ? 'Facebook' : /musical_ly|TikTok|Bytedance/i.test(ua) ? 'TikTok'
+    : /Line\//.test(ua) ? 'Line' : /Snapchat/.test(ua) ? 'Snapchat' : '';
+  if (app) out.push(`בתוך הדפדפן של ${app}`);
+  else if ((m = ua.match(/(Edg|SamsungBrowser|Firefox|FxiOS|CriOS|OPR)\/(\d+)/))) out.push({ Edg: 'Edge', SamsungBrowser: 'Samsung Internet', FxiOS: 'Firefox', CriOS: 'Chrome', OPR: 'Opera' }[m[1]] || m[1]);
+  else if (/Chrome\/\d+/.test(ua)) out.push('Chrome');
+  else if (/Safari\//.test(ua)) out.push('Safari');
+  if (screen) out.push(`מסך ${screen}`);
+  return out.join(' · ') || '-';
+}
+// the time as he reads it: Israel time, day.month.year hour:minute
+const ilTime = (d = new Date()) => new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(d).replace(',', '');
+
 // the guide's smart contact: "can't find a video?" / collaborations / a bug. Signed in only (his rule, 2026-11-01:
 // everyone who sends anything is a Google account, so he has their email) - the account's email is the way back
 // when no other contact was typed.
@@ -680,10 +701,13 @@ async function request(d, auth, ip) {
     : kind === 'video' ? `שלומיוורס | מחפשים סרטון${doc.nick ? ' · ' + doc.nick : ''}`
     : kind === 'personal' ? `שלומיוורס | סרטון אישי · ${doc.event || 'אירוע'}${doc.forWho ? ' ל' + doc.forWho : ''}${doc.date ? ' · ' + doc.date : ''}` : `שלומיוורס | פנייה${doc.nick ? ' · ' + doc.nick : ''}`;
   const where = kind === 'bug' ? 'דיווח תקלה' : kind === 'business' ? 'מטופס העסקים' : kind === 'personal' ? 'סרטון אישי, מעמוד הקהילה' : d.from === 'community' ? 'מעמוד הקהילה' : 'דרך המדריך בצ׳אט';
-  const body = [...(kind === 'bug' ? [`${doc.page}`, `${doc.ua} · ${doc.screen}`, ...(doc.errors.length ? ['שגיאות: ' + doc.errors.join(' | ')] : []), ''] : []),
+  // a bug: what he needs at a glance (his note 2026-11-16, a report mail of a raw browser string) - the page, the phone
+  // in words, the errors; the raw string goes last, for whoever fixes it
+  const body = [...(kind === 'bug' ? [`דף: ${doc.page}`, `מכשיר: ${deviceText(doc.ua, doc.screen)}`, ...(doc.errors.length ? ['שגיאות: ' + doc.errors.join(' | ')] : []), ''] : []),
     ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, ''] : []),
     ...(kind === 'personal' ? [`דמות: ${doc.char || '-'} · עבור: ${doc.forWho || '-'} · אירוע: ${doc.event || '-'} · תאריך: ${doc.date || '-'}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
-    `חשבון Google: ${doc.email}${doc.nick ? ` · בשלומיוורס: ${doc.nick}` : ''}`, '', `${where} · ${new Date().toISOString()} · ${ref.id}`].join('\n');
+    `חשבון Google: ${doc.email}${doc.nick ? ` · בשלומיוורס: ${doc.nick}` : ''}`, '', `${where} · ${ilTime()} · ${ref.id}`,
+    ...(kind === 'bug' && doc.ua ? ['', `פרטים טכניים: ${doc.ua}`] : [])].join('\n');
   // a business inquiry also reaches him as a Mind task, waiting for him (his ask 2026-11-10: "a form I get a notification on")
   if (kind === 'business' && !LOCAL) {
     try {
