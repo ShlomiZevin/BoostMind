@@ -176,6 +176,12 @@ after every build (no strip frame without a clip, no overlap on a row, ≥1 s sh
   show with the What we see"): the next line starts ~0.7 s before the other ends (own voice rows, full volume); never
   back-to-back turns. The strip's first pick = whoever starts a sentence (≥0.7 s a shot); he changes it. Two talking in
   parallel = a second subtitles row for the other one (higher, another colour) so both read.
+- **A PHONE CALL is the exception - no word on word** (his words, haredit-6, 2026-11-15: "you did word on word, which is good
+  for normal videos; here, because of the sound filter changes, it works less - a general note for the whole call"):
+  in a call where the voice switches between the room and the phone filter, each one finishes and the other comes in
+  right after (overlap 0) - the strip switches on the new speaker's first word.
+- **Two characters' subtitles are never on screen together** (his note, haredit-6: "they go on top of each other -
+  general"): when one starts, the other's ends (across the rows, the translation row too).
 - **Real life, not a play** (his words, savta-1, 2026-11-11 - "a recurring theme ... don't be afraid of talking over
   each other, it makes a good rhythm. We're not in a play or a soap opera where one talks only after the other finishes
   and everything is programmed. We're in real-life scenes"): lines land ON each other; an off-screen voice with no room

@@ -436,3 +436,21 @@ while we see Hani, in the room while we see the mother.
 - **Subtitle font traps**: Assistant draws Hebrew vowel marks wrong (וואָס, מײַן, רֶבּ came out garbled) - plain
   spelling in subtitles ("וואס", "ר' שמוליק"); the maqaf (ה־VPN) is fine. Yiddish lines get a translation row
   (`subs.tr`, smaller, under hers), the mother her own colour (`subs.mom`).
+- **Round 1 notes on haredit-6 (30 notes, 2026-11-15) - what they taught:**
+  - **Soft first words**: his takes often OPEN quietly - "הוא", "אז", "אבל" at ~-40 dB, a short dip, then the loud
+    speech. An edge at the loud onset (peak -26) clipped them in every take ("חסר כל ליל שבת / הוא עם / אז / היא
+    מתחילה וזה חתוך"). Find the start by walking back up to 0.5 s over sustained sound >= noise + 8 dB (>= 60 ms);
+    the end by walking on while above peak -27 (a breath is NOT a word's tail - his "cut the silence here" notes were
+    all breaths at -37..-44 between sentences). A cut that saves under 0.12 s is not made: a 0.09 s jump inside one
+    take played the picture off the sound ("שומעים אבל לא מסונכרן").
+  - **The entrance is at her cubicle** ("she arrives at her cubicle, she doesn't just sit down in it"): standing = the
+    cubicle set + both pictures at 0.75 (`cubw`), never the open space.
+  - **The mother**: her first line wholly in the small window (Hani listening underneath - the take's pause after "כן,
+    אמא?" + more listening from a later pause of the same take), voice through the phone. Her full-screen set must be
+    from HIS camera's angle - a low phone looking up: `h6/hosp-up.jpg` (ceiling, curtain track, monitor on its arm, IV
+    pole). Her name, the Haredi way, on the window and as a pill on full screen: "אמי מורתי פערל שתחי'" (his ask).
+  - **Hospital sound = beeps only, many and loud** ("not the hospital background, only the beeps, much louder, part of
+    the chaos"): `h6/monitor-beeps-busy.wav` (synthesised: two monitors 78/96 bpm, an IV-pump triple alarm, a nurse-call
+    chime, SpO2 ticks; 30 s seamless), row volume 0.9, in the room on the mother, through the phone on Hani.
+  - Section speed: "I talked very fast from here" = `tools/pace.mjs --from <s> --to end --pace 1.1` - its seconds are
+    the RAW timeline (the project at 1x), not the sped time notes.mjs prints.
