@@ -1683,9 +1683,21 @@ const STEP_L = { direct: 'במאי', talk: 'כתיבה' };
 function thinkHtml(c) {
   const t = c.think, u = t.understand || {}, h = t.history, f = t.funny, pl = t.plan;   // plan: the director (since 2026-11-12); funny: the old writers' room
   const line = (l, v) => (v ? `<div class="tk"><b>${l}</b><span>${v}</span></div>` : '');
+  const st = {}; (c.steps || []).forEach((x) => { st[x.step] = x; });
+  const head = (k, n, what) => { const x = st[k]; return `<div class="tk-h"><b>${n} · ${STEP_L[k]}</b><small>${what}${x ? ` · ${esc(String(x.model || '').replace('gpt-5.6-', '').replace('claude-', ''))} · ${((x.ms || 0) / 1000).toFixed(1)}ש׳ · $${(x.usd || 0).toFixed(4)}` : ''}</small></div>`; };
+  const total = () => line('סה״כ', `${((c.steps || []).reduce((a, x) => a + (x.ms || 0), 0) / 1000).toFixed(1)}ש׳${typeof c.usd === 'number' ? ` · $${c.usd.toFixed(4)}` : ''}`);
+  // since 2026-11-15 (his call): the director only tells the writer what to say + the nuance (think.v 3)
+  if (t.v === 3) {
+    return head('direct', 1, 'קרא את הדף, כל התסריטים וכל השיחה')
+      + line('מה לומר', esc(t.say || ''))
+      + line('הניואנס', esc(t.nuance || '') || 'בלי')
+      + line('מהתסריטים', (t.lines || []).map((x) => `<q>${esc(x)}</q>`).join(''))
+      + line('כמה יודע/ת', t.knows?.level && t.knows.level !== 'expert' ? `${esc(KNOW_L[t.knows.level] || t.knows.level)}${t.knows.how ? ' - ' + esc(t.knows.how) : ''}` : '')
+      + line('סרטון', t.video ? esc(V[t.video]?.title || t.video) : '')
+      + head('talk', 2, 'כתב/ה את התשובה')
+      + total();
+  }
   if (t.v === 2) {
-    const st = {}; (c.steps || []).forEach((x) => { st[x.step] = x; });
-    const head = (k, n, what) => { const x = st[k]; return `<div class="tk-h"><b>${n} · ${STEP_L[k]}</b><small>${what}${x ? ` · ${esc(String(x.model || '').replace('gpt-5.6-', '').replace('claude-', ''))} · ${((x.ms || 0) / 1000).toFixed(1)}ש׳ · $${(x.usd || 0).toFixed(4)}` : ''}</small></div>`; };
     const p = pl || {};
     return head('direct', 1, 'קרא את הדף, כל התסריטים וכל השיחה')
       + line('מה הבין/ה', `${KIND_L[u.kind] ? `<span class="tag">${KIND_L[u.kind]}</span> ` : ''}${esc(u.wants || '')}`)
