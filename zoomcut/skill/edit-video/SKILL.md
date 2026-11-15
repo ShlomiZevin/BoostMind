@@ -87,6 +87,28 @@ layers a builder made; the editor and the export don't know or care which builde
    says who is seen when, so he makes the J / L cuts himself by dragging a line - nothing rebuilds, nothing pushes.
    Build it that way from the first cut (fill the strip by the rules above); an older one-row cut becomes a dialogue
    copy with `tools/to_dialogue.py`.
+4b. **EVERY CUT BETWEEN TWO CLIPS - his method, in every video** (taught on haredit-6, 2026-11-15; he called the result
+   "perfect" and asked for it in this skill: "the drag before and after the sound between cuts works perfectly - that was
+   the magic"):
+   - **The picture: cut right in the middle, tight.** The left clip ends on its last word, the right clip starts on its
+     first word ("I like it when something just ended and then the next is starting") - no pause, no breath, no silence.
+   - **The voices: overlap the cut.** The LEFT clip's voice runs a little longer than its picture (~0.25 s), the RIGHT
+     clip's voice starts a little earlier than its picture (~0.3 s) - "even if something is missing in the video, we
+     will still hear it", "even if it will be one on top of another". A soft first word or a last syllable the picture
+     edge misses is heard anyway.
+   - **Two voice rows, alternating** (`voice` / `voice.2`, same settings): the overlapping voices never sit on one row,
+     and he can drag each handle himself. Every voice keeps its picture's `link` (the group) - only its from / dur /
+     `in` reach past the picture.
+   - **The handles stop before another loud word of the same take** (a re-said line must not leak in) and inside the
+     recording's first 0.3 s / last 0.25 s (no record tap). A voice that would overlap on both rows: end the earlier
+     tail where the next begins.
+   - **Where to cut**: the picture edge on the LOUD speech (peak -22 dB, walked out a few hundredths over the soft
+     sound); a pause = a gap between loud runs at a word boundary - a breath (-37..-44 dB) is a pause, cut it; never a
+     cut that saves under ~0.12 s (a tiny jump inside one take plays the picture off the sound). Never start a picture
+     on a "quiet word" search - it finds noise and opens silence.
+   - **A passage he calls strong** (a joke building to a laugh) stays one continuous clip - no cuts inside it.
+   - Worked code: `recipes/call-from-takes.example.py` (`pieces()` = where to cut, `handles()` + `hani_piece()` = the
+     voice overlap on two rows).
 5. **The editor is the tool; this skill uses it.** Making a video = setting up a project's layers with the tool as it
    is, then he (or you, on his word) changes them. A video session does not change the tool. Something the tool can't
    do = a deliberate, generic tool improvement (a layer kind / control every project gets, written in `editor.md`) -
