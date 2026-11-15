@@ -322,6 +322,10 @@ export const T = {
   waStepsAndroid: ['לוחצים על „העתיקו סטיקר“', 'בוואטסאפ: לחיצה ארוכה, הדבקה ושליחה כסטיקר', 'לתמיד: „שליחה בוואטסאפ“ או „שמירה לטלפון“ ← יצירה'],
   waStepsIOS: ['לוחצים על „העתיקו סטיקר“', 'בוואטסאפ: לחיצה ארוכה, הדבקה ושליחה כסטיקר', 'לתמיד: „שמירה לתמונות“, ואז סטיקרים ← פלוס'],
   waStepsDesktop: ['לוחצים על „העתיקו סטיקר“', 'בוואטסאפ ווב הדביקו, או בחרו „הורדת הסטיקר“'],
+  // inside Instagram / TikTok / Facebook's own browser nothing can copy, share or save a picture (a visitor's report,
+  // 2026-11-15): one tap opens the same sticker in the phone's browser, where all three work
+  waOut: 'פתחו בדפדפן ושמרו את הסטיקר',
+  waStepsInApp: ['הדפדפן של האפליקציה לא נותן להעתיק או לשמור תמונות', 'לוחצים על „פתחו בדפדפן“ - הסטיקר נפתח שם מוכן', 'שם מעתיקים או שומרים, ומדביקים בוואטסאפ'],
 
   // stories
   storiesTitle: 'הסטוריז של הדמויות',

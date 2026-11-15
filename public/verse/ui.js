@@ -225,9 +225,10 @@ export const standalone = () => matchMedia('(display-mode: standalone)').matches
 export const inApp = () => /musical_ly|bytedance|BytedanceWebview|TikTok|Instagram|FBAN|FBAV|FB_IAB|Line\//i.test(navigator.userAgent);
 // out of the in-app browser in one tap (instead of "copy the link"): Android opens it in the phone's browser (intent),
 // iPhone in Safari (x-safari-https, iOS 17+). `?signin=<key>` opens the sign-in sheet there, for what they were doing
-export function openOutside(key) {
+// (params: what to open there instead of the sign-in - the sticker sheet, player.js waCard)
+export function openOutside(key, params) {
   const u = new URL(location.href);
-  u.searchParams.set('signin', key || 'default');
+  for (const [k, v] of Object.entries(params || { signin: key || 'default' })) u.searchParams.set(k, v);
   const url = u.toString();
   track('open_out', isIOS() ? 'ios' : isAndroid() ? 'android' : 'other');
   if (isAndroid()) location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';

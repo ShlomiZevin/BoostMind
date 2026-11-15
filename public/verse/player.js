@@ -4,7 +4,7 @@
 // likes, replies, @character answers) and the sticker screen (mockup 3) live here too.
 import { db, F, call, downloadLink } from './fb.js';
 import { T } from './copy.js';
-import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, LIKE, LINK_RE, linkTag, ofc, lockScroll, unlockScroll } from './ui.js';
+import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, inApp, openOutside, LIKE, LINK_RE, linkTag, ofc, lockScroll, unlockScroll } from './ui.js';
 import { st, onState, needFan, follow, save, signedIn } from './state.js';
 import { openBoard, onScore, TROPHY } from './records.js';
 import { appMoment } from './install.js';
@@ -787,8 +787,11 @@ async function stickerFiles(src) {
 }
 export async function waCard(src, videoId) {
   const os = isIOS() ? 'ios' : isAndroid() ? 'android' : 'desktop';
-  const steps = { ios: T.waStepsIOS, android: T.waStepsAndroid, desktop: T.waStepsDesktop }[os];
-  const copy = `<button class="vx-btn main block" data-copy-st>${I.copy}${esc(T.waCopy)}</button>`;
+  // inside Instagram / TikTok / Facebook: the phone's browser first (the buttons below rarely work there)
+  const boxed = inApp() && os !== 'desktop';
+  const steps = boxed ? T.waStepsInApp : { ios: T.waStepsIOS, android: T.waStepsAndroid, desktop: T.waStepsDesktop }[os];
+  const copy = (boxed ? `<button class="vx-btn main block" data-out>${I.out}${esc(T.waOut)}</button>` : '')
+    + `<button class="vx-btn ${boxed ? 'glass' : 'main'} block" data-copy-st>${I.copy}${esc(T.waCopy)}</button>`;
   const btns = copy + { ios: `<button class="vx-btn glass block" data-save>${I.download}${esc(T.waSavePhotos)}</button>`,
     android: `<button class="vx-btn glass block" data-send>${I.whatsapp}${esc(T.waSend)}</button><button class="vx-btn glass block" data-save>${I.download}${esc(T.waSave)}</button>`,
     desktop: `<button class="vx-btn glass block" data-save>${I.download}${esc(T.waDownload)}</button>` }[os];
@@ -811,10 +814,20 @@ export async function waCard(src, videoId) {
   h.el.addEventListener('click', async (e) => {
     const b = e.target.closest('button');
     if (!b) return;
-    if (b.matches('[data-copy-st]')) {
+    if (b.matches('[data-out]')) {
+      // the same page in the phone's browser, with this sticker's sheet open there (WA_PARAM below)
+      openOutside(null, { [WA_PARAM]: src, ...(videoId ? { [WA_PARAM + 'v']: videoId } : {}) });
+      setTimeout(() => { if (document.visibilityState === 'visible') toast(T.signinOutFail); }, 1600);
+    }
+    else if (b.matches('[data-copy-st]')) {
       // written inside the tap (iPhone Safari allows the clipboard only there) - the PNG goes as a see-through sticker
       try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': Promise.resolve(F.png) })]); toast(T.waCopied); track('st_copy', videoId); }
-      catch (err) { console.warn('sticker copy', err); toast(T.waCopyFail); }
+      catch (err) {
+        console.warn('sticker copy', err); toast(T.waCopyFail);
+        track('st_copy_fail', boxed ? 'inapp' : os);
+        // into the page's error list, so a "something isn't working" report says what failed (community.js recentErrors)
+        try { reportError(new Error('sticker copy: ' + (err && (err.name + ' ' + err.message)))); } catch (e) { /* old browsers */ }
+      }
     }
     // the file alone, no text with it: a caption would make WhatsApp send a picture, not a sticker
     else if (b.matches('[data-send]')) { if (!(await share(F.webp || F.png))) download(F.webp || F.png); track('share', videoId); }
@@ -822,3 +835,16 @@ export async function waCard(src, videoId) {
   });
 }
 document.addEventListener('click', (e) => { const i = e.target.closest('[data-wa-img]'); if (i) waCard(i.dataset.waImg, i.dataset.waV); });
+// arrived from "open in the browser" above: the sticker's sheet again, ready (only our own pictures; `?sticker=` is taken -
+// it is a sticker's id on a video page)
+const WA_PARAM = 'wa';
+{
+  const q = new URLSearchParams(location.search), src = q.get(WA_PARAM);
+  if (src) {
+    const u = new URL(location.href); u.searchParams.delete(WA_PARAM); u.searchParams.delete(WA_PARAM + 'v');
+    history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+    let ok = false;
+    try { const h = new URL(src, location.href); ok = h.protocol === 'https:' && [location.host, 'storage.googleapis.com', 'firebasestorage.googleapis.com'].includes(h.host); } catch (e) { /* not a link */ }
+    if (ok) { track('st_open_out', 'arrived'); setTimeout(() => waCard(src, q.get(WA_PARAM + 'v') || ''), 600); }
+  }
+}
