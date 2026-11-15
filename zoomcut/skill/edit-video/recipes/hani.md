@@ -175,6 +175,12 @@ He uploads through the Drop (iPhone; random file names). Several takes of a pass
   cloud copy). The video = project `hani-milon-2`,
   hani-milon's timing exactly (his final there: speed 2 -> cover 113 frames, a word every 165 with 8-frame crossfades, the
   freilach loop points, a whoosh 2 frames before each word) = 76 s. ~$1.95 of pictures.
+- **A family-news story = the family WhatsApp group itself** (2026-11-15, his "מושלם!!!!" - her father in the orthopaedic ward):
+  a 1080x1920 screenshot built in HTML (puppeteer, Heebo; green bar with the group "משפחת ברגר" = HER PARENTS' family, her
+  message green on the LEFT, others white on the right, blue ticks) - every word set by code. Hani's photo = a real phone
+  snapshot, not a clean studio shot (he looks unwell: gauze, drip, bracelet, trapeze bar, a food tray); Perel's photo = "like
+  grandmas' photos": tilted, blurry, her thumb in the corner, but you understand it; Perel writes in Yiddish. The scratchpad
+  builder was `yitz-chat.cjs` + `yitz-chat.json` (messages list: out / from / img / text / time).
 - The wiki / links page when he publishes (wiki.md).
 - Each new family member or caller = a character profile (`POST /api/characters/<id>`), relations both ways.
 
