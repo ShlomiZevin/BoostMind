@@ -165,7 +165,8 @@ He uploads through the Drop (iPhone; random file names). Several takes of a pass
 - **מילון חנה–עברי כרך ד' = THE METHOD NOW** (2026-11-15, project `hani-milon-4`, his 19 of כרך ב''s words, 54 s): `dict/t/page.png` (the
   page with NO letters and no person - one edit pass of a story), Hani as transparent cut-outs (`oai-image.js --transparent`, refs
   portrait-final + an earlier cut-out for framing) - TWO poses a word, switching halfway ("more pictures of her with each entry");
-  **Yiddish words = Perel** (his rule), built from HER FIRST portrait (`zoomcut/characters/perel/portrait.jpg`) - the face he
+  **Yiddish words AND every word that is the mother's line = Perel** (his rule; "שלוחי מצווה אינם ניזוקים זה של אמא של חני"),
+  props must match the word ("בלחם משנה חני צריכה להחזיק 2 לחמים" - both poses), built from HER FIRST portrait (`zoomcut/characters/perel/portrait.jpg`) - the face he
   liked; four later "filter-like" / "apathetic" retries were "super bad". Text = editor text layers: titles **Rubik Black** (his
   pick "5" of 8; static instance made with fontTools - a variable font draws too thin), body Assistant 600/700/800 static; sizes and
   the quote box height measured with PIL. Builder: the session's `vol4_build.py` pattern (page / pic / qbox / t.label / t.word /
