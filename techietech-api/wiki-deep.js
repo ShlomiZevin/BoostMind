@@ -133,6 +133,7 @@ WHAT YOU WRITE:
 4. knows - how much ${c.name} knows about the subject, judged from the page and the scripts, never from what you know. Someone the page describes as explaining everything with total confidence answers everything - right or invented - and never says they don't know. Anyone else: no source on the page or in the scripts = they only heard of it or don't know it, however famous it is.
 5. video - the id of one of their videos to show, only when the visitor asks to see one or the answer is that video - else "".
 6. find - true only when the visitor asks to see or find a video.
+7. rest - true only when the time line says it is Shabbat or a holiday now AND ${c.name}'s page makes it clear they keep it (a religious life is written on it): then they are not on their phone and the chat says so for them. A page that says nothing of keeping Shabbat = false.
 
 Before you answer, read your notes as ${c.name}: would this exact person - their values, faith, modesty, manners, relationships - really say this, to this visitor, now? Anything forced or out of character: cut it.
 
@@ -150,7 +151,8 @@ const PLAN_FORMAT = (c) => `Answer JSON only, exactly these fields:
  "lines": ["exact quotes from the scripts"],
  "knows": {"level": "expert" | "some" | "heard_of" | "no", "how": "if not expert: how ${c.name} handles not knowing, in character - at most 12 words - else \\"\\""},
  "video": "id, or \\"\\"",
- "find": true | false}
+ "find": true | false,
+ "rest": true | false}
 Every text field in plain Hebrew (his rule, 2026-11-13) - a director's short notes, not an essay and not the answer itself.`;
 
 // the real day, date and hour in Israel (his note 2026-11-15: at 22:22 at night Hani said she is in the middle of work and
@@ -160,8 +162,8 @@ const nowIL = (d = new Date()) => {
   const holy = holyNow(d);
   return `${new Intl.DateTimeFormat('he-IL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d)} · ${new Intl.DateTimeFormat('he-IL-u-ca-hebrew', { timeZone: TZ, day: 'numeric', month: 'long' }).format(d)} · ${new Intl.DateTimeFormat('he-IL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d)}${holy ? ` · עכשיו ${holy} (מכניסת ${holy === 'שבת' ? 'השבת' : 'החג'} ועד צאת${holy === 'שבת' ? ' השבת' : ' החג'})` : ''}`;
 };
-// Shabbat and the holidays, by Jerusalem's sunset (his note 2026-11-15: on Shabbat a character who keeps it answers only
-// "שבת שלום, אחזור בצאת השבת"). Holy from 20 minutes before sunset of the eve to 40 minutes after sunset of the day itself.
+// Shabbat and the holidays, by Jerusalem's sunset (his notes 2026-11-15: a character who keeps it doesn't answer - a fixed line
+// as if from the operator, [[away:<שבת|holiday>]], which the chat shows as a note; the director decides who keeps it, from the page). Holy from 20 minutes before sunset of the eve to 40 minutes after sunset of the day itself.
 const YOMTOV = { Tishri: { 1: 'ראש השנה', 2: 'ראש השנה', 10: 'יום כיפור', 15: 'סוכות', 22: 'שמחת תורה' }, Nisan: { 15: 'פסח', 21: 'שביעי של פסח' }, Sivan: { 6: 'שבועות' } };
 function sunset(y, m, d) {   // the sunrise equation for Jerusalem -> Date of sunset that civil day
   const rad = Math.PI / 180, lat = 31.778, lng = 35.235;
@@ -184,7 +186,7 @@ function holyNow(at) {
   if (t >= set - 20 * 6e4) { const h = holyOf(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate()); if (h) return h; }
   return t < set + 40 * 6e4 ? holyOf(y, m, d) : '';
 }
-const NOW = (now) => `RIGHT NOW (Israel): ${now}. This is the real now for you too - where you are and what you are doing follow from it, the way your page and your videos describe your days, weeks and holidays. Don't announce the time unless it comes up. If it is Shabbat or a holiday now and your page makes it clear that you keep it (a religious life is written on it): you are not on your phone - answer only with a short greeting for the day and that you will answer after it ends, nothing else. A page that says nothing of keeping Shabbat = you don't keep it; answer as usual.`;
+const NOW = (now) => `RIGHT NOW (Israel): ${now}. This is the real now for you too - where you are and what you are doing follow from it, the way your page and your videos describe your days, weeks and holidays. Don't announce the time unless it comes up.`;
 
 // one answer. cur = wiki.js canonNow() (the brain: byId has each character's sheet and life, videos their transcripts);
 // convo = the conversation's brain from the previous answer ({} for a new one) - returned updated.
@@ -212,6 +214,7 @@ async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = 
   if (!d) d = await call(key, 'direct', system, [...all, { role: 'developer', content: `${memo}\n\n${PLAN_FORMAT(c)}` }], { max: 1600, cacheKey: 'dir-' + c.id });
   steps.push({ step: 'direct', ...d });
   const D = d.out || {};
+  const holy = holyNow(at), away = !!holy && D.rest === true;   // Shabbat / a holiday and they keep it: no answer, the operator's note
   const own = new Set((c.life || []).map((x) => x.v));
   const video = own.has(D.video) ? D.video : '';
 
@@ -233,13 +236,13 @@ You know this only a little, like an educated outsider - no details an expert wo
   const rules = [extra, D.find === true ? contact : ''].filter(Boolean).join('\n\n');
   // the writer gets no catchphrase list - one the director names is the only one in an answer (his note 2026-11-14: with the
   // list in front of it, Terra put Hani's "את קולטת" in three answers in a row, whatever the rule against repeating said)
-  const t = await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
+  const t = away ? { out: `[[away:${holy}]]`, ms: 0, first: 0 } : await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
     // whole sentence unless the page says they get cut off (his notes 2026-11-15: Asaf, whose page says nothing of it, cut
     // himself off with "—"; Daniel, whose page does, should be) - or the sign-in teaser in `extra` asks to stop mid-sentence
     [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${NOW(now)}\n\n${notes}${limit}${rules ? '\n\n' + rules : ''}\n\nNow write your answer to the visitor's last message - only the answer. It ends as a whole sentence, unless your page says you get cut off or trail off, or the rules for this message tell you to stop in the middle.` }],
     { json: false, onText, max: 900 });
   const talkAt = Date.now() - t0 - t.ms;   // when talk started, from the visitor's message
-  steps.push({ step: 'talk', ...t, out: t.out });
+  if (away) onText(t.out); else steps.push({ step: 'talk', ...t, out: t.out });
 
   // the conversation's brain = only the catchphrases said (the director reads the whole conversation itself). A catchphrase is
   // said once a conversation - counted from the answer itself (his note 2026-11-14: Hani's "נס בתוך נס" in three answers in a row)
@@ -259,7 +262,7 @@ You know this only a little, like an educated outsider - no details an expert wo
 function thinkOf(D) {
   const c = (v, n = 400) => (typeof v === 'string' ? v.slice(0, n) : v == null ? undefined : JSON.stringify(v).slice(0, n));
   const o = { v: 3, say: c(D.say), nuance: c(D.nuance), lines: (D.lines || []).slice(0, 3).map((x) => c(x, 200)),
-    knows: D.knows ? { level: c(D.knows.level, 20), how: c(D.knows.how) } : undefined, video: c(D.video, 60), find: D.find === true || undefined };
+    knows: D.knows ? { level: c(D.knows.level, 20), how: c(D.knows.how) } : undefined, video: c(D.video, 60), find: D.find === true || undefined, rest: D.rest === true || undefined };
   return JSON.parse(JSON.stringify(o));   // drops the undefined
 }
 

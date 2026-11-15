@@ -1694,6 +1694,7 @@ function thinkHtml(c) {
       + line('מהתסריטים', (t.lines || []).map((x) => `<q>${esc(x)}</q>`).join(''))
       + line('כמה יודע/ת', t.knows?.level && t.knows.level !== 'expert' ? `${esc(KNOW_L[t.knows.level] || t.knows.level)}${t.knows.how ? ' - ' + esc(t.knows.how) : ''}` : '')
       + line('סרטון', t.video ? esc(V[t.video]?.title || t.video) : '')
+      + line('שבת / חג', t.rest ? 'שומר/ת - הודעת מערכת במקום תשובה, בלי כתיבה' : '')
       + head('talk', 2, 'כתב/ה את התשובה')
       + total();
   }

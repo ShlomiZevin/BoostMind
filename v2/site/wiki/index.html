@@ -1039,6 +1039,14 @@ function renderText(text, streaming) {
   }).join('');
 }
 
+// Shabbat / a holiday and the character keeps it (wiki-deep.js, his note 2026-11-15): no answer - a fixed line as if from the
+// operator, shown as a note and kept out of the history
+const AWAY = /^\s*\[\[away:([^\]]+)\]\]\s*$/;
+function awayNote(mode, holy) {
+  const n = who(mode).name, no = gw(mode, 'עונה', 'עונה', 'עונים');
+  return holy === 'שבת' ? `${n} ${gw(mode, 'שומר', 'שומרת', 'שומרים')} שבת ולא ${no} עכשיו. אפשר לכתוב שוב בצאת השבת.`
+    : `${n} ${gw(mode, 'חוגג', 'חוגגת', 'חוגגים')} את ${holy} ולא ${no} עכשיו. אפשר לכתוב שוב בצאת החג.`;
+}
 function drawChat() {
   const w = who(cxMode);
   threads[cxMode] ||= load(cxMode);
@@ -1150,10 +1158,12 @@ async function send(text, cont = false) {
       out += dec.decode(value, { stream: true });
       if (cxMode !== mode) continue;
       bubble.classList.remove('wait');
-      bubble.innerHTML = renderText(out, true);
+      const aw = out.match(AWAY);
+      if (aw) { bubble.className = 'm note'; bubble.textContent = awayNote(mode, aw[1]); } else bubble.innerHTML = renderText(out, true);
       msgs.scrollTop = msgs.scrollHeight;
     }
-    threads[mode].push({ role: 'assistant', content: out.trim() });
+    const aw = out.match(AWAY);
+    threads[mode].push(aw ? { role: 'note', content: awayNote(mode, aw[1]) } : { role: 'assistant', content: out.trim() });
     save(mode);
     if (/\[\[signin\]\]/.test(out)) t('wall', mode);   // the character stopped mid-story for a tourist
   } catch (e) {
