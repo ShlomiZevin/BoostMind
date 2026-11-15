@@ -154,7 +154,7 @@ character alone has no converter yet - say so, that is tool work) before he sees
 Format: `layers.md` -> "Dialogue". A row group per character: **video** (cut-out clips) / **רקע** (one background per
 clip, linked, moves with it; may be a video) / **voice** (the character's sound). One **"What we see"** strip picks who is
 on screen; `edit.ripple: false`. Make one from a cut: `tools/to_dialogue.py <project> <new-id>` (every frame checked).
-**From his raw takes (characters filmed apart): `recipes/dialogue-from-takes.md`** - the whole method + the checks
+**From his raw takes (characters filmed apart): `recipes/dialogue-from-takes.md`** - **a phone call** (one on screen, the caller full screen or in a small window, his "perfect" haredit-6): its section "A phone call" + `recipes/call-from-takes.example.py` - the whole method + the checks
 after every build (no strip frame without a clip, no overlap on a row, ≥1 s shots, no selfie start/stop shown).
 - **Once he edits it, it is HIS - be gentle** ("the version is almost perfect, don't ruin it"): never re-convert or
   rebuild it; only small targeted ops on exactly what his note names; say which clip / row changes. No backups needed.

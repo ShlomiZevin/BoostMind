@@ -89,3 +89,34 @@ is HOW to get there. A worked builder: `dialogue-from-takes.example.py` (savta-1
 - A cut inside one person that can't be hidden feels like a jump - if he says so, put that silence back (cut fewer).
   Moving one line = move everything after it by the same frames (not the loops - they just end earlier).
 - Every rule he states "in general" goes into SKILL.md the same turn, committed.
+
+## A phone call - one character on screen, the caller full screen or in a small window (haredit-6, 2026-11-15)
+Hani at the office + her mother calling from the ward, each filmed alone (his last word on it: "it's perfect now").
+Worked builder: `call-from-takes.example.py` (the cut, the call, the strip, the window, the sounds, the checks; its
+end = the targeted late-round fixes). What got it to "perfect" in 3 rounds - do these from the first cut:
+- **Edges**: the PICTURE on the loud speech (peak -22 dB), walked out a little over soft sounds; a pause = a gap between
+  loud runs at a word boundary - breaths (-37..-44 dB) are pause, cut them; never a cut that saves < 0.12 s (a tiny
+  jump inside one take plays the picture off the sound). Never search for a "quiet first word" for the picture - it
+  found noise and opened silence ("starts late").
+- **His cut between two clips**: picture cut tight in the middle; the left clip's VOICE runs ~0.25 s past its picture,
+  the right one's starts ~0.3 s before it, on two alternating voice rows (`voice`, `voice.2`) - every soft first word
+  and last syllable is heard even when the picture edge is a little in (SKILL.md, his method).
+- **Turns stick**: every turn overlaps ~0.6 s - in the call too.
+- **The caller's voice is ONE voice per line**: a line she starts full screen = her room voice to its end, even while
+  we already see the other; the phone / speaker filter only for a line wholly in the small window. The one on screen
+  is never filtered. The ward beeps switch room <-> phone only where a line starts.
+- **The small window** = its own rows (`pip.bg`, `pip.video`, `pip.frame`, `pip.tag`, group "<caller> בחלון קטן") -
+  no character's rows, so the strip never hides them; its clips exist exactly where it shows, over the REAL listening
+  face from the pauses he left in his call take (more listening from another pause of the same take if needed). Modes
+  per line: whole line in the window / full screen / full then the window for her last words (the listener's face
+  before the answer) / the window then full on her big moment ("יצחק! שטיי אויף!").
+- **The caller's set from HIS camera**: a phone held low, looking up -> a low-angle set (ceiling, curtain track,
+  monitor on its arm); her name as a pill on full screen and on the window, in the world's own way ("אמי מורתי פערל שתחי'").
+- **Subtitles**: a row per character (her own colour) + a translation row for Yiddish, smaller, under hers; the two
+  characters' subtitles never on screen together; none shorter than ~0.6 s - when an overlap squeezes one, move the
+  other's start, don't flash it; plain spelling (Assistant draws vowel marks wrong).
+- **Late rounds = targeted ops** (`cut(c0, c1, ...)` in the example): remove a stretch of the timeline -> everything
+  after moves left, clips crossing it split into two groups (a new link) or shorten, notes and duration follow; then
+  subtitles: a clip's end must never take its group's SUBTITLES with it (set each to the next one's start), and no
+  0.1 s leftovers at a split. Check after each: the strip has picture everywhere, no overlaps on a row, no subtitle
+  overlap / flash.
