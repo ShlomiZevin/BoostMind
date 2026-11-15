@@ -120,3 +120,10 @@ end = the targeted late-round fixes). What got it to "perfect" in 3 rounds - do 
   subtitles: a clip's end must never take its group's SUBTITLES with it (set each to the next one's start), and no
   0.1 s leftovers at a split. Check after each: the strip has picture everywhere, no overlaps on a row, no subtitle
   overlap / flash.
+- **Round 4 (his last notes on haredit-6)**: the STRONGEST passage (the vort + her laugh) = one continuous clip, no
+  silence cuts inside ("it's one of the strongest parts, it can't have jumps") - mark such a passage `keep` for its
+  whole length from the first cut. Under the small window, ONE continuous listening moment (from the longest quiet pause
+  of the call take), never two different ones joined ("she jumps between different waits"). A full-screen line of the
+  caller is not cut to the window mid-sentence - stay on her to the end of the sentence, cut to the other on their first
+  word. After merging clips, re-check the two voice rows (a merged voice can overlap the next one's pre-roll: move it to
+  the free row, else end the earlier tail where the next begins).
