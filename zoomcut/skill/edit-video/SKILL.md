@@ -176,10 +176,16 @@ after every build (no strip frame without a clip, no overlap on a row, ≥1 s sh
   show with the What we see"): the next line starts ~0.7 s before the other ends (own voice rows, full volume); never
   back-to-back turns. The strip's first pick = whoever starts a sentence (≥0.7 s a shot); he changes it. Two talking in
   parallel = a second subtitles row for the other one (higher, another colour) so both read.
-- **A PHONE CALL is the exception - no word on word** (his words, haredit-6, 2026-11-15: "you did word on word, which is good
-  for normal videos; here, because of the sound filter changes, it works less - a general note for the whole call"):
-  in a call where the voice switches between the room and the phone filter, each one finishes and the other comes in
-  right after (overlap 0) - the strip switches on the new speaker's first word.
+- **A voice never changes its filter in the middle of a line** (his words, haredit-6, 2026-11-15, after I split voices by
+  the picture: "it's not nice when you change the voice of one in the middle"): a line keeps the voice it started
+  with - the mother starts full screen = her room voice all the way, even after the cut to Hani; the phone / speaker
+  filter only for a line shown ALL in the small window. The turns still overlap ("more sticky, it was better") - I had
+  removed the overlap for a call; wrong, the fix is one voice per line, not fewer overlaps.
+- **How he cuts between two clips** (his method, 2026-11-15 - "I like it when something just ended and the next is
+  starting"): the PICTURE cut right in the middle, tight - the left clip ends on its last word, the right starts on its
+  first; the VOICES overlap the cut - the left clip's voice runs ~0.25 s past its picture, the right one's starts ~0.3 s
+  before its picture ("even if something is missing in the video we still hear it"), on two alternating voice rows so
+  he can drag each. Handles never reach another loud word of the take (a re-said line) or its first 0.3 s.
 - **Two characters' subtitles are never on screen together** (his note, haredit-6: "they go on top of each other -
   general"): when one starts, the other's ends (across the rows, the translation row too).
 - **Real life, not a play** (his words, savta-1, 2026-11-11 - "a recurring theme ... don't be afraid of talking over

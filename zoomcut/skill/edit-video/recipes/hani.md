@@ -454,3 +454,8 @@ while we see Hani, in the room while we see the mother.
     chime, SpO2 ticks; 30 s seamless), row volume 0.9, in the room on the mother, through the phone on Hani.
   - Section speed: "I talked very fast from here" = `tools/pace.mjs --from <s> --to end --pace 1.1` - its seconds are
     the RAW timeline (the project at 1x), not the sped time notes.mjs prints.
+  - Round 2-3 (same day): a starting "quiet word" search found noise (-42 dB before "אבא") and opened 0.3 s of silence
+    ("starts late, out of sync") - the picture now starts on the loud speech and the VOICE's 0.3 s pre-roll carries
+    any soft first word (his method, SKILL.md "How he cuts between two clips"). `pace.mjs` after such a cut: the group's
+    start is its voice's pre-roll, so `--from` a few tenths before the section's first picture, and check the picture
+    row after it - the stretched pre-roll pushed the picture 2 frames, a hole (closed by stretching the clip before).
