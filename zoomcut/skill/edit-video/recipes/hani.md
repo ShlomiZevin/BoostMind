@@ -161,7 +161,7 @@ He uploads through the Drop (iPhone; random file names). Several takes of a pass
   model). The model's heavy title font swaps ה for ת (חנהל'ה, הייסט) and ם for ס (לחם): a hint naming the letters fixed ם
   once, not ה; then erase + retype: mask only the NAVY letters (HSV hue 90-140, so the gold rule survives), cv2.inpaint, Frank
   Ruhl Libre 900 in PIL - this PIL has no raqm, so the Hebrew string is drawn REVERSED, and read from a UTF-8 file (a Hebrew
-  command-line argument arrives garbled). Check every title + quote on a contact sheet. The video = project `hani-milon-2`,
+  command-line argument arrives garbled). Check every title + quote on a contact sheet - THE COVER TOO (its "מילון חנת-עברי" went to him; he caught it: "הפתיחה שבורה"; a retyped long title set smaller needs `stroke 4` to match the series' weight). His next step (2026-11-15): the model writes NO text at all - a fixed text-free page + Hani per word, every word written by code as editor text layers. The video = project `hani-milon-2`,
   hani-milon's timing exactly (his final there: speed 2 -> cover 113 frames, a word every 165 with 8-frame crossfades, the
   freilach loop points, a whoosh 2 frames before each word) = 76 s. ~$1.95 of pictures.
 - The wiki / links page when he publishes (wiki.md).
