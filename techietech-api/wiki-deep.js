@@ -155,11 +155,36 @@ Every text field in plain Hebrew (his rule, 2026-11-13) - a director's short not
 
 // the real day, date and hour in Israel (his note 2026-11-15: at 22:22 at night Hani said she is in the middle of work and
 // leaves at 16:20). Sent with the conversation, never in the cached system prompt.
+const TZ = 'Asia/Jerusalem';
 const nowIL = (d = new Date()) => {
-  const tz = 'Asia/Jerusalem';
-  return `${new Intl.DateTimeFormat('he-IL', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d)} · ${new Intl.DateTimeFormat('he-IL-u-ca-hebrew', { timeZone: tz, day: 'numeric', month: 'long' }).format(d)} · ${new Intl.DateTimeFormat('he-IL', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d)}`;
+  const holy = holyNow(d);
+  return `${new Intl.DateTimeFormat('he-IL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d)} · ${new Intl.DateTimeFormat('he-IL-u-ca-hebrew', { timeZone: TZ, day: 'numeric', month: 'long' }).format(d)} · ${new Intl.DateTimeFormat('he-IL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d)}${holy ? ` · עכשיו ${holy} (מכניסת ${holy === 'שבת' ? 'השבת' : 'החג'} ועד צאת${holy === 'שבת' ? ' השבת' : ' החג'})` : ''}`;
 };
-const NOW = (now) => `RIGHT NOW (Israel): ${now}. This is the real now for you too - where you are and what you are doing follow from it, the way your page and your videos describe your days, weeks and holidays. Don't announce the time unless it comes up.`;
+// Shabbat and the holidays, by Jerusalem's sunset (his note 2026-11-15: on Shabbat a character who keeps it answers only
+// "שבת שלום, אחזור בצאת השבת"). Holy from 20 minutes before sunset of the eve to 40 minutes after sunset of the day itself.
+const YOMTOV = { Tishri: { 1: 'ראש השנה', 2: 'ראש השנה', 10: 'יום כיפור', 15: 'סוכות', 22: 'שמחת תורה' }, Nisan: { 15: 'פסח', 21: 'שביעי של פסח' }, Sivan: { 6: 'שבועות' } };
+function sunset(y, m, d) {   // the sunrise equation for Jerusalem -> Date of sunset that civil day
+  const rad = Math.PI / 180, lat = 31.778, lng = 35.235;
+  const n = Math.round(Date.UTC(y, m - 1, d, 12) / 864e5 + 2440587.5 - 2451545 + 0.0008), J = n - lng / 360;
+  const M = (357.5291 + 0.98560028 * J) % 360, C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+  const L = (M + C + 180 + 102.9372) % 360, Jt = 2451545 + J + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+  const dec = Math.asin(Math.sin(L * rad) * Math.sin(23.4397 * rad));
+  const w = Math.acos((Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(dec)) / (Math.cos(lat * rad) * Math.cos(dec))) / rad;
+  return new Date((Jt + w / 360 - 2440587.5) * 864e5);
+}
+function holyOf(y, m, d) {   // what a civil day (in Israel) is: 'שבת', a holiday's name, or ''
+  const noon = new Date(Date.UTC(y, m - 1, d, 10));
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-u-ca-hebrew', { timeZone: TZ, day: 'numeric', month: 'long' }).formatToParts(noon).map((x) => [x.type, x.value]));
+  return YOMTOV[p.month]?.[+p.day] || (noon.getUTCDay() === 6 ? 'שבת' : '');
+}
+function holyNow(at) {
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(at).split('-').map(Number);
+  const set = sunset(y, m, d).getTime(), t = at.getTime();
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  if (t >= set - 20 * 6e4) { const h = holyOf(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate()); if (h) return h; }
+  return t < set + 40 * 6e4 ? holyOf(y, m, d) : '';
+}
+const NOW = (now) => `RIGHT NOW (Israel): ${now}. This is the real now for you too - where you are and what you are doing follow from it, the way your page and your videos describe your days, weeks and holidays. Don't announce the time unless it comes up. If it is Shabbat or a holiday now and your page makes it clear that you keep it (a religious life is written on it): you are not on your phone - answer only with a short greeting for the day and that you will answer after it ends, nothing else. A page that says nothing of keeping Shabbat = you don't keep it; answer as usual.`;
 
 // one answer. cur = wiki.js canonNow() (the brain: byId has each character's sheet and life, videos their transcripts);
 // convo = the conversation's brain from the previous answer ({} for a new one) - returned updated.
@@ -238,4 +263,4 @@ function thinkOf(D) {
   return JSON.parse(JSON.stringify(o));   // drops the undefined
 }
 
-module.exports = { reply, STEPS, PRICE, SONNET };
+module.exports = { reply, STEPS, PRICE, SONNET, _nowIL: nowIL };
