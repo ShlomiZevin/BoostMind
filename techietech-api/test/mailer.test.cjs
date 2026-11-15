@@ -1,4 +1,4 @@
-// node techietech-api/test/mailer.test.cjs - the mail rules, without Firestore: one a day, welcome first, choices, off,
+// node techietech-api/test/mailer.test.cjs - the mail rules, without Firestore: one a day, news once a week and only fresh, welcome first, choices, off,
 // stories only for followers (unless sent to everyone), Shabbat and night hours. Needs the API's node_modules.
 const assert = require('assert');
 const { plan, sendingHours } = require('../mailer');
@@ -10,7 +10,8 @@ const cfg = { on: true };
 const u = (uid, extra = {}) => ({ uid, email: uid + '@x.com', name: uid, ...extra });
 const ev = (id, kind, hoursAgo, extra = {}) => ({ id, kind, t: now - hoursAgo * H, ...extra });
 const events = [ev('game_a', 'game', 3), ev('video_b', 'video', 2), ev('story_c', 'story', 1, { char: 'hani', everyone: false })];
-const welcomed = { welcomed: now - 70 * H, last: now - 70 * H };   // the news waits 3 days after the last mail (NEWS_GAP)
+const D = 24 * H;
+const welcomed = { welcomed: now - 8 * D, last: now - 8 * D };   // the news waits a week after the last automatic mail (NEWS_GAP)
 
 const r = (users, state, follows = {}, evs = events, c = cfg) => Object.fromEntries(plan({ users, state, follows, events: evs, now, cfg: c }).map((p) => [p.uid, p]));
 
@@ -33,24 +34,30 @@ out = r([u('a')], { a: welcomed }, {}, [ev('story_d', 'story', 1, { char: 'yotam
 assert.equal(out.a.kind, 'story');
 
 // already mailed today (even 3 hours ago, or late last night < 20h) -> nothing
-assert.equal(r([u('a')], { a: { welcomed: now - 50 * H, last: now - 3 * H } }).a, undefined);
-assert.equal(r([u('a')], { a: { welcomed: now - 50 * H, last: now - 14 * H } }).a, undefined);
+assert.equal(r([u('a')], { a: { welcomed: now - 8 * D, last: now - 3 * H } }).a, undefined);
+assert.equal(r([u('a')], { a: { welcomed: now - 8 * D, last: now - 14 * H } }).a, undefined);
 
 // the welcome was today -> the news waits for tomorrow
 assert.equal(r([u('a')], { a: { welcomed: now - 2 * H, last: now - 2 * H } }).a, undefined);
 
-// a story posted just before someone's welcome still reaches them with their first news (the welcome sets the cursor 3 days back)
-out = r([u('a')], { a: { welcomed: now - 70 * H, last: now - 70 * H, cursor: now - 70 * H - 3 * 24 * H } }, {}, [ev('story_e', 'story', 74, { char: 'yotam', everyone: true })]);
-assert.equal(out.a.kind, 'story');
-
-// news at most once in 3 days (2026-11-08): news 2 days ago -> nothing today, even with new things; 3 days -> all of it in one digest
-assert.equal(r([u('a')], { a: { ...welcomed, newsAt: now - 48 * H, last: now - 48 * H, cursor: now - 48 * H } }).a, undefined);
-out = r([u('a')], { a: { ...welcomed, newsAt: now - 70 * H, last: now - 70 * H, cursor: now - 70 * H } });
+// news at most once a WEEK (his rule 2026-11-15): news 6 days ago -> nothing, even with new things; 7 days -> one digest
+assert.equal(r([u('a')], { a: { ...welcomed, newsAt: now - 6 * D, last: now - 6 * D, cursor: now - 6 * D } }).a, undefined);
+out = r([u('a')], { a: { ...welcomed, newsAt: now - 7 * D, last: now - 7 * D, cursor: now - 7 * D } });
 assert.equal(out.a.kind, 'digest');
 assert.deepEqual(out.a.events.map((e) => e.id), ['game_a', 'video_b']);
 // a personal mail yesterday (an idea step - not news) doesn't push the news back
-out = r([u('a')], { a: { ...welcomed, newsAt: now - 80 * H, last: now - 22 * H, cursor: now - 80 * H } });
+out = r([u('a')], { a: { ...welcomed, newsAt: now - 8 * D, last: now - 22 * H, cursor: now - 8 * D } });
 assert.equal(out.a.kind, 'digest');
+// the week counts from the welcome and the embassy letter too: welcomed 3 days ago / letter 5 days ago -> no news yet
+assert.equal(r([u('a')], { a: { welcomed: now - 3 * D, last: now - 3 * D } }).a, undefined);
+assert.equal(r([u('a')], { a: { ...welcomed, cz: now - 5 * D, last: now - 5 * D } }).a, undefined);
+
+// only fresh news (his rule 2026-11-15, a trailer 3 days old went out as "new video"): over 2 days old is not news, even when
+// it is newer than their last mail; with something fresh, the mail carries only the fresh things
+assert.equal(r([u('a')], { a: welcomed }, {}, [ev('video_old', 'video', 3 * 24)]).a, undefined);
+out = r([u('a')], { a: welcomed }, {}, [ev('video_old', 'video', 3 * 24), ev('video_new', 'video', 20)]);
+assert.equal(out.a.kind, 'video');
+assert.deepEqual(out.a.events.map((e) => e.id), ['video_new']);
 
 // stopped everything -> never; even before the welcome
 assert.equal(r([u('a')], { a: { ...welcomed, off: true } }).a, undefined);
@@ -64,7 +71,7 @@ assert.equal(out.a.kind, 'game');
 assert.equal(r([u('a')], { a: { ...welcomed, cursor: now - 0.5 * H } }).a, undefined);
 
 // old news (over a week) is not news
-assert.equal(r([u('a')], { a: { welcomed: now - 20 * 24 * H, last: now - 20 * 24 * H } }, {}, [ev('game_old', 'game', 8 * 24)]).a, undefined);
+assert.equal(r([u('a')], { a: { welcomed: now - 20 * D, last: now - 20 * D } }, {}, [ev('game_old', 'game', 8 * 24)]).a, undefined);
 
 // the switch off: only the addresses in `only`
 out = r([u('a'), u('shlomi', { email: 'Shlomi@BoostArt.io' })], {}, {}, events, { on: false, only: ['shlomi@boostart.io'] });
@@ -83,7 +90,7 @@ assert.equal(sendingHours(at('2026-11-05T06:00:00Z')), false);   // Thu 08:00
 const czCfg = { on: true, cz: true };
 const P = (users, state, citizens = new Set(), c = czCfg) => Object.fromEntries(plan({ users, state, follows: {}, events, now, cfg: c, citizens }).map((p) => [p.uid, p]));
 assert.equal(r([u('a')], { a: welcomed }).a.kind, 'digest');                                  // switch off: the news as before
-out = P([u('a'), u('b'), u('c'), u('new'), u('today')], { a: welcomed, b: welcomed, c: { ...welcomed, cz: now - 50 * H }, today: { ...welcomed, last: now - 2 * H } }, new Set(['b']));
+out = P([u('a'), u('b'), u('c'), u('new'), u('today')], { a: welcomed, b: welcomed, c: { ...welcomed, cz: now - 8 * D }, today: { ...welcomed, last: now - 2 * H } }, new Set(['b']));
 assert.equal(out.a.kind, 'citizen');                                                         // before the day's news
 assert.equal(out.a.events.length, 0);
 assert.equal(out.b.kind, 'digest');                                                          // a citizen: never

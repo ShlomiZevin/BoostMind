@@ -32,11 +32,13 @@ const SITE = 'https://shlomiverse.com';
 const MEDIA = 'https://storage.googleapis.com/shlomiverse-media/wiki';
 
 const DAY_GAP = 20 * 3600e3;      // and never twice on the same Israeli date
-const MAX_AGE = 7 * 864e5;        // news older than a week is not news
-// news (a video / story / game / the digest) at most once in 3 days per person - his call 2026-11-08, after three days in a row
-// of mail to everyone (something went up every day): what happens in between waits and goes out together as one digest. The
-// welcome, the embassy letter and personal mail (idea steps, codes, replies) are not news. 66 h, not 72: the runs drift by hours
-const NEWS_GAP = 66 * 3600e3;
+// his rule 2026-11-15 ("don't nudge our audience"), after a "new video" mail about a trailer up for 3 days already:
+// news = only what went up in the last 2 days - a mail never carries old news; nothing fresh -> no mail at all
+const MAX_AGE = 2 * 864e5;
+// and news at most once a WEEK per person (was 3 days, 2026-11-08). The week counts from the last automatic mail - news, the
+// welcome or the embassy letter - so a new account gets the welcome, the letter, then a quiet week. Personal mail (idea steps,
+// codes, replies to their own forms) is not news and doesn't move it.
+const NEWS_GAP = 7 * 864e5;
 const PER_RUN = 120;              // a run never sends more than this (Gmail's daily limit is ~500)
 const TOPICS = [['story', 'סטוריז חדשים של הדמויות'], ['video', 'סרטונים חדשים'], ['game', 'משחקים חדשים']];
 
@@ -224,7 +226,7 @@ function plan({ users, state, follows, events, now, cfg, citizens = new Set() })
     // everyone else waits for cfg.cz (the residents' mail, his word only)
     const czNew = cfg.czFrom && ms(s.welcomed) >= ms(cfg.czFrom);
     if ((cfg.cz || czNew) && !s.cz && !citizens.has(u.uid)) { out.push({ ...u, kind: 'citizen', events: [] }); continue; }
-    if (now - (ms(s.newsAt) || ms(s.last) || 0) < NEWS_GAP) continue;   // the last news (or, before newsAt existed, the last mail) too recent
+    if (now - Math.max(ms(s.newsAt) || 0, ms(s.welcomed) || 0, ms(s.cz) || 0) < NEWS_GAP) continue;   // an automatic mail this week already
     const from = Math.max(ms(s.cursor) || ms(s.welcomed), now - MAX_AGE);
     const p = s.prefs || {};
     const mine = events.filter((e) => ms(e.t) > from && p[e.kind] !== false
@@ -379,7 +381,7 @@ async function run({ now = Date.now(), dry = false, force = false, budget = 420e
       const fresh = (await ref.get()).data() || {};               // still due? (nothing else mailed them meanwhile)
       if (fresh.off || (ms(fresh.last) && il(ms(fresh.last)).day === il(now).day)) continue;
       const x = await mailFor(p, w, now, tz);
-    // after the welcome the news starts 3 days back: what happened just before someone joined still reaches them (tomorrow)
+    // the welcome sets the cursor 3 days back (MAX_AGE keeps the first news fresh anyway: only the last 2 days count)
     // the embassy's letter leaves the cursor where it was: the news it pushed back goes out tomorrow
     const cursor = p.kind === 'citizen' ? (fresh.cursor || fresh.welcomed || Timestamp.fromMillis(now))
       : Timestamp.fromMillis(p.kind === 'welcome' ? now - 3 * 864e5 : Math.max(now, ...p.events.map((e) => ms(e.t))));
