@@ -33,18 +33,25 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
   `assets/`, `library/`, `studio/` (ideas, jobs, models), `locks/<id>.json`. Keys: ONE secret `studio-keys` (JSON) -
   `node render/cloud/keys.mjs push | pull | list` (never print a value). `.env` is written from it.
 - **The system in one line (2026-11-05, his ask "the right way, not a patch"): git carries the TOOL, the cloud carries
-  the WORK.** `episodes/` is not in git at all (ignored whole). He works locally; the other computer sees it within
-  minutes.
+  the WORK.** `episodes/` is not in git at all (ignored whole). He works locally; what he makes goes up by itself.
+- **Up by itself, down only when he asks** (his rule, 2026-11-16: "don't refresh my local computer all the time - only
+  if I ask to sync, and only for that project"). Nothing is downloaded on open / F5 / in the background; the editor's
+  **Sync** button (top bar) brings that one project's newer files down (+ the shared folders), then sends his up.
+  Opening a project that is only in the cloud (the menu's "in the cloud") brings it - that is asking for it.
 - Switched on on both his computers (`episodes/_cloud/config.json` `{"sync": "on"}`; setup.ps1 sets it on a new one).
-- **Projects** (`sync.mjs`) - one computer edits a project at a time: a lock per project (take-over window), pull on
-  open, push after edits / every minute while open, and **every 5 minutes any project changed here goes up, whoever
-  changed it** (a session writing files, the Drop, a build) - never during its job. Never deletes locally; files
-  vanishing all at once (project.json / episode.json, or >30% of them - a git pull, a cleared folder) are never
-  deleted in the cloud, and the menu offers that project from the cloud again.
-- **Shared folders** (`pool.mjs`) - `episodes/_assets` and the characters' pictures: a pool that only grows, synced
-  both ways at start, every 5 min, after a project goes up and before one opens. Nothing is ever deleted by it (delete
-  in each place by hand); changed on both = both kept ("(conflict <computer>)"); a file git carries is never in the
-  cloud (the characters' profiles are git's, their portraits the cloud's). One round now: `node render/cloud/pool.mjs`.
+- **Projects** (`sync.mjs`) - one computer edits a project at a time: a lock per project (take-over window), NO pull
+  on open (the editor is told "changed on your other computer - Sync now / keep this copy" from one listing), push
+  after edits / every minute while open, and **every 5 minutes any project changed here goes up, whoever changed it**
+  (a session writing files, the Drop, a build) - never during its job. A file the cloud has newer (changed elsewhere
+  since this computer last synced) is never overwritten or deleted from here - it waits for Sync, which keeps this
+  computer's copy beside it ("(conflict <computer>)"). Never deletes locally; files vanishing all at once
+  (project.json / episode.json, or >30% of them - a git pull, a cleared folder) are never deleted in the cloud, and
+  the menu offers that project from the cloud again. Projects thinned for space (thin.mjs, `thinned` in the sync
+  state) say so on open; Sync brings their files back.
+- **Shared folders** (`pool.mjs`) - `episodes/_assets` and the characters' pictures: a pool that only grows - UP at
+  start, every 5 min and after a project goes up; DOWN only with a project's Sync. Nothing is ever deleted by it
+  (delete in each place by hand); changed on both = both kept ("(conflict <computer>)"); a file git carries is never in
+  the cloud (the characters' profiles are git's, their portraits the cloud's). One round both ways: `node render/cloud/pool.mjs`.
 - A session needs to do NOTHING for this: write the project's files as usual - they reach the cloud by themselves.
 - Tests: a second studio with `PORT=4848 ZC_CLOUD=test` (+ `ZC_HOST`, `ZC_EPISODES` to act as another computer) touches
   ONLY hidden `_test` projects - no Drop, no keys, no picking up his jobs. Delete the `_test` project and its

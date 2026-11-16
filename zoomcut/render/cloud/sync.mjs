@@ -2,10 +2,16 @@
 // ./layout.mjs). One computer at a time edits a project:
 //   open   -> the project's lock (locks/<id>.json: "open on OFFICE-PC since 14:02") - taken if free, stale (no beat
 //             for 3 minutes) or his own; held by another computer -> the editor asks "take it over?"
-//          -> what changed in the cloud comes down (a file this computer didn't change since the last sync), then the
-//             footage folders the project uses; the editor waits with a progress line
+//          -> NOTHING comes down by itself (his rule, 2026-11-16: "don't refresh my local computer all the time - only
+//             if I ask to sync, and only for that project"): the editor opens what is on this computer and is only told
+//             when the cloud has newer files of it (one listing, nothing downloaded). A project only in the cloud comes
+//             down when he opens it from the menu - that is asking for it
+//   sync   -> his Sync (the top bar): what changed in the cloud comes down (a file this computer didn't change since
+//             the last sync), then the footage folders the project uses, then what changed here goes up
 //   while open: the editor beats every minute; what changed here goes up a few seconds after an edit and every minute
-//             (never while a job of the project runs - its files are half-written then; the next round takes them)
+//             (never while a job of the project runs - its files are half-written then; the next round takes them).
+//             A file the cloud has newer (changed on the other computer since this one last synced) is never
+//             overwritten from here - it waits for his Sync (the editor tells him)
 //   close / another project -> a last push, the lock is let go
 // Nothing is ever deleted on this computer by the sync. A file deleted here that was in the cloud is deleted there
 // (the bucket keeps deleted files 7 days). A file changed on both sides (only if two computers worked without the lock)
@@ -95,7 +101,7 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
   async function pull(id) {
     const P = (progress[id] = { state: 'checking', files: 0, done: 0, bytes: 0, doneBytes: 0 });
     const dir = path.join(EPS, id), prefix = `projects/${id}/`;
-    if (shared) await shared.round();  // (the shared pictures it may use come first - pool.mjs)
+    if (shared) await shared.full();  // (the shared pictures it may use come first - pool.mjs, both ways)
     const remote = await list(prefix);
     if (!Object.keys(remote).length) { P.state = 'ready'; return P; }  // (not in the cloud yet: the first push sends it)
     const state = readJson(stateFile(id), { files: {} }), local = walk(dir);
@@ -125,6 +131,7 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
       });
     };
     await get(todo);
+    delete state.thinned;  // (what thin.mjs moved off this computer is back)
     fs.writeFileSync(stateFile(id), JSON.stringify(state));
     // then the footage folders it uses - read from the project as it is now (never overwritten: a take doesn't
     // change; only what's missing here)
@@ -167,10 +174,16 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
     }
     if (!changed.length && !gone.length) return { up: 0 };
     const remote = await list(prefix);
+    // (the cloud's copy changed since this computer last synced - the other computer's work: never overwritten or
+    // deleted from here; his Sync brings it - and keeps this computer's copy beside it if both changed)
+    const newerThere = (rel) => { const r = remote[prefix + rel], st = state.files[rel]; return !!r && !(st && st.fp === fp(r)); };
+    const waiting = [];
+    gone = gone.filter((rel) => !newerThere(rel));
     let up = 0, bytes = 0;
     await pool(changed, 3, async ([rel, l]) => {
       const f = path.join(dir, rel), r = remote[prefix + rel];
       if (r && await sameAs(f, l, r, state.files[rel])) { state.files[rel] = { ...l, fp: fp(r) }; return; }
+      if (newerThere(rel)) { waiting.push(rel); return; }
       const md5 = await md5File(f);
       const o = await upload(f, prefix + rel, md5);
       const now = fs.statSync(f);
@@ -187,8 +200,11 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
     fs.writeFileSync(stateFile(id), JSON.stringify(state));
     if (up) shared?.soon();  // (the shared pictures it uses go up with it)
     if (up || gone.length) log(`cloud: ${id} - ${up} files up (${(bytes / 1e6).toFixed(1)} MB)${gone.length ? `, ${gone.length} deleted` : ''}`);
-    return { up, gone: gone.length };
+    if (waiting.length) log(`cloud: ${id} - ${waiting.length} files are newer in the cloud (${waiting.slice(0, 3).join(', ')}) - not sent; his Sync brings them`);
+    behind[id] = waiting.length;
+    return { up, gone: gone.length, waiting: waiting.length };
   }
+  const behind = {};  // id -> files the cloud has newer, found by the last push (the editor tells him: Sync)
   const soon = {};
   // after an edit or a finished job: up a few seconds later. A project the editor doesn't hold (a session built it, or
   // he hasn't opened it here): its lock is taken just for the push and let go - unless another computer has it open
@@ -221,7 +237,11 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
 
   // ---- the studio's endpoints -------------------------------------------------------------------------------------
   app.get('/api/cloud', (_q, res) => res.json({ mode: mode(), host: HOST, held: [...held.keys()] }));
-  // open a project here: its lock, then what changed comes down. {locked: {host, since}} = ask him; {pulling} = wait
+  // open a project here: its lock - nothing comes down (his rule, 2026-11-16), unless the project is only in the cloud.
+  // {locked: {host, since}} = ask him; {pulling} = wait; {ready, newer: n} = the cloud has n newer files (Sync brings
+  // them); {ready, thinned: n} = n heavy files were moved to the cloud to save space (thin.mjs - Sync brings them back)
+  const pullNow = (id, after) => serial(id, async () => { await pull(id); if (after) await after(); })
+    .catch((e) => { progress[id] = { ...(progress[id] || {}), state: 'error', error: e.message }; log('cloud pull: ' + e.message); });
   app.post('/api/cloud/:id/open', async (q, res) => {
     const id = q.params.id;
     if (!allowed(id)) return res.json({ ready: true, off: true });
@@ -229,12 +249,33 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
       for (const other of [...held.keys()]) if (other !== id) serial(other, async () => { await push(other); await unlock(other); }).catch(() => {});  // (one project open here at a time)
       const l = await lock(id, !!q.body?.force);
       if (l.locked) return res.json({ locked: l.locked });
-      serial(id, () => pull(id)).catch((e) => { progress[id] = { ...(progress[id] || {}), state: 'error', error: e.message }; log('cloud pull: ' + e.message); });
-      res.json({ pulling: true, took: l.took });
+      if (!fs.existsSync(path.join(EPS, id, 'episode.json'))) { pullNow(id); return res.json({ pulling: true, took: l.took }); }  // (only in the cloud: opening it from the menu = asking for it)
+      const state = readJson(stateFile(id), { files: {} }), prefix = `projects/${id}/`;
+      let newer = 0;
+      try {
+        for (const [name, r] of Object.entries(await list(prefix))) {
+          const rel = name.slice(prefix.length); if (!rel || skip(rel)) continue;
+          const st = state.files[rel];
+          if (st ? st.fp !== fp(r) : !(state.thinned || []).includes(rel) && !fs.existsSync(path.join(EPS, id, rel))) newer++;
+        }
+      } catch {}  // (no internet: he works on what is here)
+      res.json({ ready: true, took: l.took, ...(newer ? { newer } : {}), ...(state.thinned?.length ? { thinned: state.thinned.length } : {}) });
     } catch (e) { res.json({ ready: true, error: e.message }); }  // (no internet / no login: he works on what is here)
   });
+  // his Sync (the top bar): this project's newer files come down, then what changed here goes up. {pulling} = wait
+  app.post('/api/cloud/:id/sync', async (q, res) => {
+    const id = q.params.id;
+    if (!allowed(id)) return res.json({ ready: true, off: true });
+    try {
+      const l = await lock(id, !!q.body?.force);
+      if (l.locked) return res.json({ locked: l.locked });
+      behind[id] = 0;
+      pullNow(id, () => push(id));
+      res.json({ pulling: true });
+    } catch (e) { res.json({ ready: true, error: e.message }); }
+  });
   app.get('/api/cloud/:id/progress', (q, res) => res.json(progress[q.params.id] || { state: 'ready' }));
-  app.post('/api/cloud/:id/beat', async (q, res) => { try { res.json(allowed(q.params.id) ? await beat(q.params.id) : { off: true }); } catch (e) { res.json({ error: e.message }); } });
+  app.post('/api/cloud/:id/beat', async (q, res) => { try { res.json(allowed(q.params.id) ? { ...(await beat(q.params.id)), behind: behind[q.params.id] || 0 } : { off: true }); } catch (e) { res.json({ error: e.message }); } });
   app.post('/api/cloud/:id/close', async (q, res) => {
     const id = q.params.id;
     serial(id, async () => { await push(id); await unlock(id); }).catch(() => {});

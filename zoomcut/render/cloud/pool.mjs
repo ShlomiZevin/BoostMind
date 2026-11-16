@@ -8,8 +8,9 @@
 //     back here (and stays in the cloud for the other computers); one deleted in the cloud goes up again;
 //   - changed on both sides since the last sync: both are kept, this computer's as "<name> (conflict <computer>)<ext>";
 //   - a file git carries is never in the cloud too (two systems carrying one file overwrote each other - tzvika-1).
-// When: at start, every 5 minutes, after a project goes up (the pictures it uses go with it) and before a project opens
-// (its pictures are here before he sees it). State: episodes/_cloud/pool-state.json.
+// When: UP at start, every 5 minutes and after a project goes up (the pictures it uses go with it); DOWN only with his
+// Sync of a project (his rule, 2026-11-16: "don't refresh my local computer all the time") or `node render/cloud/pool.mjs`.
+// State: episodes/_cloud/pool-state.json.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -34,7 +35,7 @@ function gitFiles(P) {
 }
 const conflictName = (f) => { const e = path.extname(f); return f.slice(0, f.length - e.length) + ` (conflict ${HOST})` + e; };
 
-async function syncPool(P, state, n) {
+async function syncPool(P, state, n, down_ = true) {  // (down_ false: only what is new here goes up)
   const tracked = gitFiles(P);
   if (!tracked) return;
   const st = (state[P.prefix] ||= {});
@@ -50,6 +51,7 @@ async function syncPool(P, state, n) {
       if (await sameAs(f, l, r, s)) { st[rel] = { ...l, fp: fp(r) }; continue; }
       const here = !s || s.size !== l.size || s.mtime !== l.mtime, there = !s || s.fp !== fp(r);
       if (here && !there) up.push(rel);
+      else if (!down_ && there) continue;  // (newer in the cloud: waits for his Sync - never overwritten from here)
       else if (!here && there) down.push(rel);
       else if (!s && l.mtime >= (+(r.meta.mtime || 0) || Date.parse(r.updated) || 0)) up.push(rel);  // (never synced here: the newer one wins - this one)
       else {  // (both changed: keep both - this computer's copy goes up under its new name)
@@ -58,7 +60,7 @@ async function syncPool(P, state, n) {
         down.push(rel); n.conflicts.push(rel);
       }
     } else if (l) up.push(rel);
-    else if (!(s && s.fp === fp(r))) down.push(rel);  // (in the cloud and never here - or changed there since it was deleted here)
+    else if (down_ && !(s && s.fp === fp(r))) down.push(rel);  // (in the cloud and never here - or changed there since it was deleted here)
   }
   await pool(up, 3, async (rel) => {
     const f = path.join(P.dir, rel);
@@ -79,15 +81,18 @@ async function syncPool(P, state, n) {
   });
 }
 
-// one round over every pool; rounds never overlap (a second call waits for the running one and shares it)
-let running = null;
-export function poolRound({ log = console.log } = {}) {
-  if (running) return running;
+// one round over every pool; rounds never overlap (a second call waits for the running one and shares it - a round
+// both ways waits for an up-only one, then runs)
+let running = null, runningDown = false;
+export function poolRound({ log = console.log, down = true } = {}) {
+  if (running && (runningDown || !down)) return running;
+  if (running) return running.catch(() => {}).then(() => poolRound({ log, down }));
+  runningDown = down;
   running = (async () => {
     const state = readJson(STATE, {});
     const n = { up: 0, down: 0, upBytes: 0, downBytes: 0, cleaned: 0, conflicts: [], errors: [] };
     try {
-      for (const P of POOLS) await syncPool(P, state, n);
+      for (const P of POOLS) await syncPool(P, state, n, down);
     } finally {
       fs.mkdirSync(path.dirname(STATE), { recursive: true });
       fs.writeFileSync(STATE, JSON.stringify(state));
@@ -101,16 +106,18 @@ export function poolRound({ log = console.log } = {}) {
   return running;
 }
 
-// the studio's side: a round at start, every 5 minutes, and soon() - a few seconds after a project went up
+// the studio's side: up at start, every 5 minutes, and soon() - a few seconds after a project went up; full() = both
+// ways (his Sync of a project, sync.mjs pull)
 export function startPools({ log = console.log } = {}) {
-  const round = () => poolRound({ log }).catch((e) => log('cloud: shared folders - ' + e.message));
+  const round = () => poolRound({ log, down: false }).catch((e) => log('cloud: shared folders - ' + e.message));
+  const full = () => poolRound({ log, down: true }).catch((e) => log('cloud: shared folders - ' + e.message));
   setTimeout(round, 20e3);
   const t = setInterval(round, 5 * 60e3); t.unref?.();
   let soonT = null;
-  return { round, soon: () => { clearTimeout(soonT); soonT = setTimeout(round, 5000); } };
+  return { round, full, soon: () => { clearTimeout(soonT); soonT = setTimeout(round, 5000); } };
 }
 
-// node render/cloud/pool.mjs   - one round now (what the studio does by itself every 5 minutes)
+// node render/cloud/pool.mjs   - one round now, both ways
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.slice(1))) {
   const n = await poolRound();
   console.log(JSON.stringify({ up: n.up, down: n.down, cleaned: n.cleaned, conflicts: n.conflicts.length, errors: n.errors }));

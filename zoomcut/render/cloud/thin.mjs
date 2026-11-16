@@ -4,7 +4,8 @@
 //     cloud, remade by themselves if ever needed (not in a project whose job is running);
 //  2. a project he hasn't touched for `days`: its heavy files that the cloud holds IDENTICALLY (size + md5 / CRC32C) are
 //     removed here. The project itself - every .json / .txt (project.json, episode.json, captions...) and the small
-//     files - always stays, so it stays in his menu as it was; opening it brings the rest back (sync.mjs pull).
+//     files - always stays, so it stays in his menu as it was; opening it says so and his Sync brings the rest back
+//     (sync.mjs pull; the sync state lists them in `thinned`).
 // Only with the studio online switched on (else nothing would bring the files back). The sync state forgets what was
 // removed, so the sync never reads it as "deleted here" and never deletes it in the cloud.
 import fs from 'node:fs';
@@ -39,7 +40,7 @@ export async function thin({ days = 7, dry = false, only = null, busy = () => fa
       const r = remote[`projects/${id}/${rel}`];
       if (!r || !(await sameAs(path.join(dir, rel), l, r, state.files[rel]))) continue;  // (only what the cloud holds identically)
       freed += l.size;
-      if (!dry) { fs.rmSync(path.join(dir, rel)); delete state.files[rel]; }
+      if (!dry) { fs.rmSync(path.join(dir, rel)); delete state.files[rel]; (state.thinned ||= []).push(rel); }
     }
     if (freed && !dry) fs.writeFileSync(stateFile(id), JSON.stringify(state));
     if (freed) { heavy += freed; projects++; }

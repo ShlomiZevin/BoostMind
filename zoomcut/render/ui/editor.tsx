@@ -46,14 +46,34 @@ function Editor() {
       await new Promise((ok) => setTimeout(ok, 1200));
     }
   }, [ep]);
-  // the studio online (render/cloud/sync.mjs): a project is opened on ONE computer at a time - its lock first, then
-  // what changed in the cloud comes down, then it loads. Off (not switched on yet): it just loads
-  const [cloud, setCloud] = useState<any>(null);  // {locked} | {pulling, p} | {lost} | {error} | null
+  // the studio online (render/cloud/sync.mjs): a project is opened on ONE computer at a time - its lock first, then it
+  // loads what is on this computer. Nothing comes down unless he presses Sync (his rule, 2026-11-16: "don't refresh my
+  // local computer all the time"); he is told when the cloud has newer files of it. Off (not switched on): it just loads
+  const [cloud, setCloud] = useState<any>(null);  // {locked} | {pulling, p, sync?} | {lost} | {newer} | {thinned} | {behind} | {error} | null
+  const [cloudOn, setCloudOn] = useState(false);
+  useEffect(() => { api('/api/cloud').then((c) => setCloudOn(c?.mode === 'on' || c?.mode === 'test')).catch(() => {}); }, []);
   const prevEp = useRef<string | null>(null);
+  const toldBehind = useRef('');  // (the "newer in the cloud" window shows once per project)
+  const syncCloud = async (force = false) => {  // his Sync: this video's newer files come down, his changes go up - then it reopens
+    const r = await api(`/api/cloud/${ep}/sync`, { force }).catch((e) => ({ error: String(e) }));
+    if (r.locked) { setCloud({ locked: r.locked, sync: true }); return; }
+    if (r.error) { setCloud({ error: r.error }); return; }
+    if (!r.pulling) { setCloud(null); return; }
+    setCloud({ pulling: true, p: null, sync: true });
+    for (;;) {
+      await new Promise((ok) => setTimeout(ok, 600));
+      const p = await api(`/api/cloud/${ep}/progress`).catch(() => ({ state: 'error', error: 'the studio did not answer' }));
+      if (p.state === 'error') { setCloud({ error: p.error }); return; }
+      if (p.state === 'ready') break;
+      setCloud({ pulling: true, p, sync: true });
+    }
+    location.reload();  // (the editor reads the project fresh)
+  };
   const openCloud = async (force = false) => {
     const r = await api(`/api/cloud/${ep}/open`, { force }).catch(() => ({ ready: true }));
     if (r.locked) { setCloud({ locked: r.locked }); return false; }
     if (r.error) setCloud({ error: r.error });
+    if (r.newer || r.thinned) { toldBehind.current = ep; setCloud({ newer: r.newer || 0, thinned: r.thinned || 0 }); return true; }
     if (r.pulling) {
       setCloud({ pulling: true, p: null });
       for (;;) {
@@ -77,7 +97,11 @@ function Editor() {
   }, [ep]);
   useEffect(() => {  // while it's open here: a beat a minute keeps the lock; taken over elsewhere -> he is told
     if (!ep) return;
-    const t = setInterval(async () => { const r = await api(`/api/cloud/${ep}/beat`, {}).catch(() => null); if (r?.lost) setCloud({ lost: r.lost }); }, 60e3);
+    const t = setInterval(async () => {
+      const r = await api(`/api/cloud/${ep}/beat`, {}).catch(() => null);
+      if (r?.lost) setCloud({ lost: r.lost });
+      else if (r?.behind && toldBehind.current !== ep) { toldBehind.current = ep; setCloud({ behind: r.behind }); }  // (an edit here couldn't go up: the cloud's copy is newer)
+    }, 60e3);
     const bye = () => navigator.sendBeacon(`/api/cloud/${ep}/close`);
     addEventListener('pagehide', bye);
     return () => { clearInterval(t); removeEventListener('pagehide', bye); };
@@ -86,9 +110,9 @@ function Editor() {
     <div className="pm-modal"><div className="pm-box" style={{ maxWidth: 440 }}>
       {cloud.locked && <>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>This video is open on {cloud.locked.host}</div>
-        <div className="help" style={{ margin: '0 0 14px' }}>Since {new Date(cloud.locked.since).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}. Take it over and that computer stops saving it to the cloud - what it saved so far comes here.</div>
+        <div className="help" style={{ margin: '0 0 14px' }}>Since {new Date(cloud.locked.since).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}. Take it over and that computer stops saving it to the cloud.{cloud.sync ? ' Then what it saved so far comes here.' : ' You work on the copy on this computer - press Sync to bring what it saved.'}</div>
         <div style={{ display: 'grid', gap: 6 }}>
-          <button className="btn primary" onClick={async () => { setCloud(null); if (await openCloud(true)) load(); }}>Take it over</button>
+          <button className="btn primary" onClick={async () => { const sync = cloud.sync; setCloud(null); if (sync) syncCloud(true); else if (await openCloud(true)) load(); }}>Take it over</button>
           <button className="btn ghost" onClick={() => { setCloud(null); if (prevEp.current && prevEp.current !== ep) setEp(prevEp.current); }}>Cancel</button>
         </div></>}
       {cloud.lost && <>
@@ -96,6 +120,16 @@ function Editor() {
         <div className="help" style={{ margin: '0 0 14px' }}>Changes made here aren't saved to the cloud any more. Take it back to keep working here.</div>
         <div style={{ display: 'grid', gap: 6 }}>
           <button className="btn primary" onClick={async () => { setCloud(null); if (await openCloud(true)) load(); }}>Take it back</button>
+        </div></>}
+      {(cloud.newer > 0 || cloud.thinned > 0 || cloud.behind > 0) && <>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{cloud.thinned && !cloud.newer ? 'Some files of this video are only in the cloud' : 'This video changed on your other computer'}</div>
+        <div className="help" style={{ margin: '0 0 14px' }}>
+          {cloud.behind ? `${cloud.behind} file${cloud.behind === 1 ? '' : 's'} you changed here weren't saved to the cloud, because the cloud has a newer copy. Sync brings the newer one and keeps yours beside it.`
+            : cloud.newer ? `The cloud has ${cloud.newer} newer file${cloud.newer === 1 ? '' : 's'} of it. You're looking at the copy on this computer - Sync brings the newer ones (and saves your changes up).`
+            : `${cloud.thinned} big file${cloud.thinned === 1 ? '' : 's'} (previews, sounds) were moved to the cloud to save space - parts may show empty until Sync brings them back.`}</div>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <button className="btn primary" onClick={() => syncCloud()}>Sync now</button>
+          <button className="btn ghost" onClick={() => setCloud(null)}>Keep working on this computer's copy</button>
         </div></>}
       {cloud.missing && <>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{cloud.missing.length} file{cloud.missing.length === 1 ? '' : 's'} of this video aren't on any computer yet</div>
@@ -109,11 +143,11 @@ function Editor() {
   const cloudWait = cloud?.pulling ? (() => {
     const p = cloud.p, pct = p?.bytes ? Math.round((p.doneBytes / p.bytes) * 100) : null;
     return <div className="cloud-wait"><div className="cloud-card">
-      <div className="cloud-title">Opening <b>{ep}</b></div>
+      <div className="cloud-title">{cloud.sync ? 'Syncing' : 'Opening'} <b>{ep}</b></div>
       <div className="cloud-bar"><div className={pct == null ? 'run' : ''} style={pct == null ? undefined : { width: `${Math.max(3, pct)}%` }} /></div>
       <div className="cloud-sub">{p?.state === 'preparing' ? 'Making the previews this computer is missing…' : !p || p.state === 'checking' ? 'Checking what changed on your other computer…'
         : `Bringing the latest from the cloud - ${p.done} of ${p.files} files · ${Math.round(p.doneBytes / 1e6)} of ${Math.round(p.bytes / 1e6)} MB`}</div>
-      <button className="btn ghost" onClick={() => { setCloud(null); load(); }}>Open what's on this computer now</button>
+      {!cloud.sync && <button className="btn ghost" onClick={() => { setCloud(null); load(); }}>Open what's on this computer now</button>}
     </div></div>;
   })() : null;
   useEffect(() => { const on = () => load(); window.addEventListener('studio-reload', on); return () => window.removeEventListener('studio-reload', on); }, [load]);
@@ -215,6 +249,7 @@ function Editor() {
         })() : <div className="state"><span className={`ring ${busy ? 'busy' : job?.code && !(job.code === 2 && data?.footage?.unassigned?.length) ? 'err' : ''}`} />{statusText}</div>}
         <div className="grow" />
         {busy && <button className="btn" onClick={async () => setJob(await api(`/api/ep/${ep}/cancel`, {}))}>{I.stop} Stop</button>}
+        {cloudOn && <button className="btn" disabled={busy} onClick={() => syncCloud()} title="Bring this video's latest from the cloud (what changed on your other computer) and save your changes up. Nothing comes down without it.">Sync</button>}
         <button className="btn" disabled={busy} onClick={async () => setJob(await api(`/api/ep/${ep}/analyze`, {}))}>Re-analyze</button>
         {shareText && <div className="state" style={{ color: share!.ok === false ? 'var(--bad)' : share!.ok ? 'var(--ok)' : 'var(--dim)' }}>{shareText}</div>}
         {data?.output && !busy && <a href={`${data.output}?v=${Date.now()}`} target="_blank"><button className="btn">Open MP4</button></a>}
