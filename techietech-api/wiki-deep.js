@@ -272,4 +272,59 @@ function thinkOf(D) {
   return JSON.parse(JSON.stringify(o));   // drops the undefined
 }
 
-module.exports = { reply, STEPS, PRICE, SONNET, _nowIL: nowIL };
+// A post on ציפציפ (tz.js - his call 2026-11-16, "now that the chat is so good": the residents post with the same chain). The
+// same director (the same page + scripts, so the same cached block) and the same writer; only the moment differs: instead of a
+// visitor's message, what is in front of them on the feed. scene = what they see and what they do (a post of their own, a reply,
+// a repost, an answer to someone who tagged them); last = their own last posts; name = what ציפציפ calls them when it is not
+// their own name (a public figure's verse name - tz.js ALIASES). Returns text '' when they would not post (or keep Shabbat now).
+async function post({ key, akey = null, cur, mode, scene, last: mine = [], name = '', at = new Date() }) {
+  let c = cur.byId[mode];
+  if (!c) throw new Error('not a character: ' + mode);
+  if (name && name !== c.name) {   // the verse name everywhere they read about themselves
+    const re = new RegExp(c.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    c = { ...c, name, sheet: JSON.parse(JSON.stringify(c.sheet || {}), (k, v) => (typeof v === 'string' ? v.replace(re, name) : v)) };
+  }
+  const steps = [];
+  const known = chain.known(cur, mode).map((id) => cur.byId[id].name);
+  const system = DIRECTOR(c, known, scriptsOf(cur, c));
+  const now = nowIL(at);
+  const feed = `ציפציפ is the Shlomiverse's X (Twitter): short posts, mostly about the day's news, read by strangers scrolling by.
+What is in front of ${c.name} now:
+${scene}
+
+${c.name}'s own last posts (never the same take or opening again):
+${mine.map((t) => '- ' + t).join('\n') || '(none yet)'}`;
+  const ask = `${NOW(now)}
+
+THIS TIME ${c.name} IS NOT IN A CONVERSATION: they are on their phone, on ציפציפ.
+${feed}
+
+"say" = what ${c.name} posts: their real take on what is in front of them - what this person, and nobody else, would think of it - named plainly, one idea. A real person posting, not a performance: their habits and catchphrases only where they truly belong. Facts about real people in the news only from what is in front of them. If ${c.name} would really not post about this at all, "say" = "SKIP".
+
+${PLAN_FORMAT(c)}`;
+  let d = null;
+  if (akey) d = await sonnet(akey, system, ask).catch((e) => { console.error('post director on Sonnet failed - Terra directs', e.message); return null; });
+  if (!d) d = await call(key, 'direct', system, [{ role: 'user', content: ask }], { max: 1600, cacheKey: 'dir-' + c.id });
+  steps.push({ step: 'direct', ...d });
+  const D = d.out || {};
+  const done = (text) => {
+    const total = steps.reduce((a, s) => a + (s.cost || 0), 0);
+    const sum = (f) => steps.reduce((a, s) => a + (f(s.usage || {}) || 0), 0);
+    return { text, plan: D, cost: total, u: [sum((u) => u.input_tokens), sum((u) => u.input_tokens_details?.cached_tokens), sum((u) => u.output_tokens)],
+      think: thinkOf(D), steps: steps.map((s) => ({ step: s.step, model: s.model || 'gpt-5.6-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) };
+  };
+  if (!D.say || /^\s*SKIP\b/i.test(D.say) || (holyNow(at) && D.rest === true)) return done('');
+  const notes = [`What you post (the director's notes - true; say it in your own words and voice): ${D.say}`,
+    D.nuance ? `The nuance that comes out of you here, naturally, never pushed: ${D.nuance}` : '',
+    (D.lines || []).length ? `What you really said / what really happened (your own videos): ${JSON.stringify(D.lines)}` : ''].filter(Boolean).join('\n');
+  const lvl = D.knows?.level;
+  const limit = lvl === 'no' || lvl === 'heard_of' ? `\n\nYou know this only ${lvl === 'no' ? 'not at all' : 'by name'} - no details of it beyond what is in front of you. ${D.knows.how || ''}`
+    : lvl === 'some' ? `\n\nYou know this only a little, like an outsider. ${D.knows.how || ''}` : '';
+  const t = await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}`,
+    [{ role: 'developer', content: `${NOW(now)}\n\nYou are on ציפציפ, posting from your phone. ${feed}\n\n${notes}${limit}\n\nWrite only the post: Hebrew, like a real tweet - one to three short lines, at most 240 characters, no hashtags, no emoji, no quotation marks around it. A stranger scrolling gets it in one read: the subject named in plain words. People from your own life by who they are to you (בעלי, הבוס שלי), not by a name strangers don't know. A post of your own talks to the world, never to another resident by name; a reply talks to the one you answer.` }],
+    { json: false, max: 700 });
+  steps.push({ step: 'talk', ...t });
+  return done(String(t.out || '').replace(/\[\[[^\]]*\]\]/g, '').replace(/^["“”׳״']+|["“”׳״']+$/g, '').trim());
+}
+
+module.exports = { reply, post, STEPS, PRICE, SONNET, _nowIL: nowIL };

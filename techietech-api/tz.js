@@ -32,6 +32,7 @@ const crypto = require('crypto');
 const webpush = require('web-push');
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
+const deep = require('./wiki-deep');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -39,9 +40,11 @@ const LOCAL = !!process.env.FUNCTIONS_EMULATOR;
 const TZ_KEY = defineSecret('VERSE_TZ_OPENAI_KEY');
 const CH_KEY = defineSecret('VERSE_CH24_OPENAI_KEY');
 const VAPID_PRIVATE = defineSecret('VERSE_VAPID_PRIVATE');
-const SECRETS = LOCAL ? [] : [TZ_KEY, CH_KEY, VAPID_PRIVATE];   // locally the emulator never asks Secret Manager
+const AN_KEY = defineSecret('VERSE_ANTHROPIC_KEY');   // the chain's director (Sonnet) - the same key as the chat's
+const SECRETS = LOCAL ? [] : [TZ_KEY, CH_KEY, VAPID_PRIVATE, AN_KEY];   // locally the emulator never asks Secret Manager
 const tzKey = () => (LOCAL ? process.env.VERSE_OPENAI_KEY : TZ_KEY.value());
 const chKey = () => (LOCAL ? process.env.VERSE_OPENAI_KEY : CH_KEY.value());
+const anKey = () => (LOCAL ? process.env.VERSE_ANTHROPIC_KEY || null : AN_KEY.value());
 const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';   // as in verse.js
 const HIM = 'rJLlCV393shl7njhzWZmoaE15Yp2';   // his account - reports reach his phone
 const MODEL = 'gpt-5.6-terra';
@@ -50,8 +53,8 @@ const MEDIA = 'shlomiverse-media';
 const OWNER = 'shlomi@boostart.io';
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
 const REPLIES_A_DAY = 10;
-const MAIN = 5;                // residents drawn to post each run (his rule 2026-11-09: at random, the loved ones more often)
-const REACT = 3;               // more residents drawn to answer / repost those posts (his "I mainly care about reposting and commenting")
+const MAIN = 3;                // residents drawn to post each run (his rule 2026-11-09: at random, the loved ones more often)
+const REACT = 2;               // more residents drawn to answer / repost those posts (his "I mainly care about reposting and commenting")
 const DESK_POSTS = 2;          // of each desk run's articles, how many ח24 also posts on ציפציפ (all stay on its site) - ציפציפ is the residents' (his note 2026-11-09)
 const HIDE_AT = 3;             // reports that take a post off the site until he looks
 const BIG_CHANCE = 0.04;       // a run may start a bigger story that develops over days (~once in 8 days) - life stays regular      // a resident's answers to one visitor a day (like the comments' CHARACTER_REPLIES_A_DAY)
@@ -141,25 +144,6 @@ const rels = (c) => (c.relations || []).map((r) => (typeof r === 'string' ? r : 
 const rosterLine = (c) => `${c.id} | ${nameOf(c)} | ${lastVid[c.id] ? 'newest video ' + day(lastVid[c.id]) : 'no video yet'} | ${c.world} | ${short(c.role, 90)} | ${short(c.brief, 140)} | ${short(rels(c), 140)}`;
 // how one resident is related to another (from either side's relations), for a reply that knows whom it answers
 const relOf = (a, b) => { if (!a || !b) return ''; const hit = (x, id) => rels(x).find((r) => new RegExp(`(^|[^\\w-])${id}([^\\w-]|$)`).test(r)); const r = hit(a, b.id) || hit(b, a.id); return r ? short(r, 160) : ''; };
-// the voice for the writing call = the chat's core profile (wiki.js core(): brief, personality, speech, catchphrases, comedy,
-// writing rules, never, themes, behavior last - his note 2026-11-09: "the chat works great, they need to tweet the same, careful with
-// the prompt size"), within VOICE_MAX characters (the chat's is 4000; a tweet needs the voice, not the whole history)
-const VOICE_MAX = 2400;
-const VOICE = [['brief', 'who'], ['personality', 'personality'], ['speech', 'speech'], ['catchphrases', 'catchphrases'], ['comedy', 'comedy'],
-  ['writing_rules', 'writing rules'], ['dont', 'never'], ['themes', 'themes'], ['behavior', 'behavior']];
-const voice = (c) => {
-  let out = [`### ${c.id} - ${nameOf(c)} (${c.world}) - ${short(c.role, 120)}`, ...(AL[c.id] ? [`ON ציפציפ THIS RESIDENT IS CALLED "${AL[c.id].name}" - never write the original name "${c.name}", not even in other residents' posts`] : [])].join('\n');
-  const tail = `\nrelations: ${short(rels(c), 300)}`;
-  for (const [k, label] of VOICE) {
-    let t = (Array.isArray(c[k]) ? c[k].join(' · ') : typeof c[k] === 'object' && c[k] ? JSON.stringify(c[k]) : String(c[k] || '')).trim();
-    if (!t) continue;
-    const room = VOICE_MAX - out.length - tail.length - label.length - 3;
-    if (room < 80) break;
-    if (t.length > room) t = t.slice(0, t.lastIndexOf(' ', room)) + '…';
-    out += `\n${label}: ${t}`;
-  }
-  return out + tail;
-};
 
 // ---------- OpenAI ----------
 async function ask(k, instructions, input, schema, name, effort = 'low', max = 2400) {
@@ -323,23 +307,6 @@ async function desk(slot = 'manual', n) {
   return { articles: arts.length, posts: posts.length, run: runRef.id };
 }
 
-const POST_RULES = `You write posts for "ציפציפ", the Shlomiverse's own social network - exactly like X / Twitter, and like Twitter mostly about the news. The Shlomiverse is a comedy universe whose residents are REAL people living in a parallel universe: write them as real people posting from their phone, never as characters; never mention a parody, AI, a script or Shlomi.
-POSTS: Hebrew, short like real tweets (one to three short lines, at most 240 characters), in the resident's OWN voice - their speech, catchphrases (sparingly, not in every post), world and relations from their profile below. Each takes the news through their own life and worldview: a hot take, a complaint, sarcasm, a "back in my day", a professional opinion, an argument. Funny through their point of view, never by explaining the joke. ALWAYS HEBREW - even a resident who lectures in English or mixes English writes in Hebrew here, at most a single English word. No hashtags, no emoji. Each post a different rhythm - never two opening the same way.
-REAL PEOPLE IN THE NEWS: facts only from the headline; never invent a quote, an action or a private detail about a real person; the opinions and jokes are the resident's own. A resident who is an impression of a real public figure speaks only in opinions and jokes in that figure's style - never announces a concrete fact or decision as if it happened. No insults about religion, origin, gender or body. Children never talk about politics.
-NAMES: residents are called only by the names given in their profiles here (some go by a verse name - never use the original one). The news channel is "החרדות 24" (never "ח24" or "חרדות" alone).
-CLEAR ABOVE ALL (his note 2026-11-09: "gibberish, no logic, nobody wants to read it"): a stranger scrolling ציפציפ who never met this resident must get the post in ONE read - what it is about, and the joke. So:
-- NAME THE SUBJECT in the post itself, in plain words: "הפועל תל אביב ביורוליג", "מחירי הדלק", "החנות של Be בקניון" - never "it", "this", "the thing" or a detail of the story that only someone who read it knows.
-- ONE idea, ONE joke, said simply. Plain everyday Hebrew a person really types - no word salad, no stacked metaphors, no riddles, no jargon pile-up.
-- NO PRIVATE REFERENCES: never a name, place, event or inside joke from the resident's own life that the reader can't know (a neighbour's name, an old episode, "כמו בפעם ההיא") - their life shows through WHO they are and HOW they talk, not through references. Family, friends and colleagues by their role ("בעלי", "הבוס שלי", "השכנה"), never by name.
-- ONLY WHAT A PERSON TYPES: no stage directions, brackets, sound effects, captions or video formats ("[נחתך]", "[הסר: ...]", "POV:", "be like") - a running gag from their videos shows only as something a real person would really type in a post. Never the words "דמות", "סרטון", "פרק".
-- A post of their own never addresses another resident ("צביקה, ..."); talking to someone happens only in a reply to that person's post.
-- A reply / repost answers THAT post directly and stays on its subject - it makes sense right under it, and a little on its own too.
-- The joke = their known point of view meeting the news: the Haredi mother counts the kids' sandwiches in it, the tech CEO turns it into a pitch, the taxi driver blames the traffic. Recognisable in one beat.
-EXAMPLES of the difference:
-BAD (gibberish): "מקרר מחובר זה פרודקשן עם מדבקות של גלידות ותיעוד אינסידנט יותר גרוע." - what fridge? what happened? nobody knows.
-GOOD: "קראתי שפרצו למקררים חכמים. אצלי המקרר לא מתחבר אפילו לחשמל כמו שצריך, שינסו."
-BAD: "לא, אני לא הבנתי, מדף המשחות זה בדרך כלל אצל זוהרה." - who is זוהרה? which shelf?
-GOOD: "חנות של Be נפתחת בלב המפרץ. מצוין, עוד מקום שבו אני מחפשת משחת שיניים ארבעים דקות ויוצאת עם קרם ידיים."`;
 
 // ---------- the residents' run (his rule 2026-11-09: "randomly choose characters, more weight to the loved ones; then find
 // which news is relevant to which character; only then ask each one for their tweet - dedicated per character", not all the
@@ -359,14 +326,17 @@ The residents who post now were already drawn by an algorithm - never add or swa
 4. STORY: life in the verse stays regular - no big events. If the input says an ongoing story exists, one resident at most may touch it (put it in their angle). If the input says a big story MAY start, you may set new_story to one short English line: something bigger that happens inside the verse and develops over the next days (realistic for that world, not a disaster) - otherwise new_story = "".`;
 const MATCH_SCHEMA = S({ bad_day: bool, why: str, main: arr(S({ id: str, kind: { type: 'string', enum: ['news', 'ch_quote', 'ch_reply', 'answer', 'life'] }, ref: int, angle: str })),
   react: arr(S({ id: str, to: int, kind: { type: 'string', enum: ['reply', 'quote'] }, angle: str })), new_story: str });
-const ONE_RULES = POST_RULES + `
-YOU ARE THIS PERSON in everything (as in the verse's chat): every opinion comes from their own religion and how strictly they keep it, community, values, job and habits in the profile - never what they would never do or say. The profile's "comedy", "writing rules" and "never" are directing notes: follow them, never quote them. A smart post = what THIS person, and nobody else, would notice in the news.
-NOW YOU WRITE ONE POST of ONE resident (their profile below) about ONE thing, given below with the take. text = the post. (A post about a real headline goes up with the news link under it - still name the subject in the text.)`;
-const ONE_SCHEMA = S({ text: str });
 
+// every post / reply / answer is written by the chat's chain (wiki-deep.js post() - his call 2026-11-16, "now that the chat is so
+// good"): the director reads the character page + all their scripts + what is in front of them on the feed, Terra writes the post.
+// The matching's angle is not passed - the director decides the take from the page (the matcher only matches). '' = no post.
+let curOf = { b: null, cur: null };
+const curNow = (b) => { if (curOf.b !== b) curOf = { b, cur: require('./wiki')._fromBrain(b, 'tz') }; return curOf.cur; };
 async function writeOne(c, what, angle, last) {
-  return ask(tzKey(), ONE_RULES, [{ role: 'user', content: `${voice(c)}\n\nTHEIR LAST POSTS (never repeat a take or an opening):\n${last.map((t) => '- ' + t).join('\n') || '(none yet)'}\n\nNOW THEY POST:\n${what}\n\nTHE TAKE: ${angle}` }],
-    ONE_SCHEMA, 'one', 'medium', 2500);
+  const alias = AL[c.id] && AL[c.id].name;
+  const scene = what + (alias && alias !== c.name ? `\nOn ציפציפ they are called "${alias}" - never the name "${c.name}".` : '');
+  const r = await deep.post({ key: tzKey(), akey: anKey(), cur: curNow(await brainNow()), mode: c.id, scene, last, name: alias || '' });
+  return { out: { text: r.text }, u: r.u };
 }
 
 async function run(slot = 'manual') {
@@ -705,10 +675,8 @@ async function answer(doc) {
   const b = await brainNow(), C = byId(b), id = tagged.find((x) => C[x]);
   if (!id || !(await spend('tzreply', doc.fan.uid, REPLIES_A_DAY))) return;
   const all = (await db().collection('tzPosts').where('root', '==', doc.root).where('status', '==', 'live').get()).docs.map((d) => d.data()).sort((a, b) => ms(a.t) - ms(b.t)).slice(-12);
-  const lines = all.map((p) => `${p.fan ? `${p.fan.nick} (a visitor)` : p.by}: ${p.text}`).join('\n');
-  const r = await ask(tzKey(), `${POST_RULES}\nNow ONE resident answers a visitor who tagged them in a thread on ציפציפ. Write only the answer: their voice, short (at most 200 characters), talking to the visitor, on the thread's topic. Never reveal anything about AI, never break the world.`,
-    [{ role: 'user', content: `THE RESIDENT:\n${voice(C[id])}\n\nTHE THREAD:\n${lines}\n\nThe visitor ${doc.fan.nick} wrote: ${doc.text}` }],
-    S({ text: str }), 'answer', 'low', 600);
+  const lines = all.map((p) => `${p.fan ? `${p.fan.nick} (a visitor)` : C[p.by] ? nameOf(C[p.by]) : p.by}: ${p.text}`).join('\n');
+  const r = await writeOne(C[id], `A thread on ציפציפ:\n${lines}\n\nThe visitor ${doc.fan.nick} tagged ${nameOf(C[id])} in it and wrote: ${doc.text}\nThey REPLY to the visitor, right under it - talking to them, on the thread's topic.`, '', []);
   const text = clip(r.out.text, 280);
   if (!text) return;
   const a = { id: newId(), by: id, text, parent: doc.id, root: doc.root, quote: null, article: null, link: null, status: 'live', t: Timestamp.now(),
