@@ -120,9 +120,9 @@ layers a builder made; the editor and the export don't know or care which builde
    His timestamps are the editor's time at 1x speed. When he says "you do it", make the call yourself.
 8. **You don't export - he does.** Exporting is HIS step (the Send window), not part of your hand-over (his words,
    2026-10-25: "I hate it when he exports, especially the full quality"). If YOU want to check your work, use the live
-   preview and stills first; if you still need a file, ONLY the fast test export, without sending it
-   (`POST /api/ep/<id>/export {test: true, send: []}` - about a minute, `out/<id>.test.mp4`), and only when nothing else
-   runs (`GET /api/jobs` → `busy` empty). **Never a Full quality export on your own** - only when he asks or presses Send.
+   preview and stills (single frames). **No export of any kind - not even the fast test export** (his words, 2026-11-16:
+   "I don't want you to export anymore as part of building the first editor - I will always review and comment and
+   check"). He exports from the Send window.
 
 ## USING THE TOOL RIGHT - what went wrong on gilad-joins (2026-10-22) and the rules from it
 The video came out great; the way I used the tool did not ("something in the tool you didn't use as supposed to").
@@ -522,7 +522,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   (cutaways from elsewhere in the take, never across a restart), each line levelled against his voice around it
   (0-2 dB under), and on **their own subtitles row** - another colour, font and place, with the name ("עומר:"). (4) A
   high-school class laughing = adult voices (the sfx model makes little kids from "class"; ask for 18-year-olds with
-  deep voices, pick by measuring the pitch). (5) Measure the balance in a fast test export (music ~12-14 dB under the
+  deep voices, pick by measuring the pitch). (5) Measure the balance from the layer stems (work/public/layers/stems, never an export - 2026-11-16) (music ~12-14 dB under the
   voice in the gaps), not by guessing gains. (6) **A hand change on a builder piece (zoom, box) makes it his** - the
   next rebuild keeps it AND adds the new one (doubles); deleting it puts it in `layer.removed` and it never comes back
   until that list is cleared (`layer.update set {removed: []}`). Do picture tweaks only after the last rebuild.

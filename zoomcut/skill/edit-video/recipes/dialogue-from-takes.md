@@ -128,7 +128,7 @@ end = the targeted late-round fixes). What got it to "perfect" in 3 rounds - do 
   word. After merging clips, re-check the two voice rows (a merged voice can overlap the next one's pre-roll: move it to
   the free row, else end the earlier tail where the next begins).
 - **"Jumps" he sees inside ONE clip** (haredit-6, the window over Hani): measure the export before touching the cut - a
-  fast test export, frame differences (gray 90x160) around his note: no jump inside the clip = the editor's preview
+  test export ONLY if he says so (no session exports, 2026-11-16 - else ask him to press "Test on my phone"), frame differences (gray 90x160) around his note: no jump inside the clip = the editor's preview
   stalling (two cut-out videos at once), the file is smooth; tell him to check it on "Test on my phone". **A voice
   glitch at a picture change**: the same take as two butted voice clips (split where the picture switched) clicks /
   repeats a few ms - one continuous voice clip per line (merge back-to-back clips of the same take whose source runs on).
