@@ -117,6 +117,14 @@ nothing. Locks: `database.rules.json` (signed-in, own slot, turns, size caps, on
 Firebase console -> Realtime Database -> Usage. First games: the meetings hub's Callio + online Meetly / Teamz / Zoomba
 (`public/techytech-games/meetings/`, tests `scripts/techytech-games/meetings/tools/t4-online.js`, `t5-races.js`).
 
+## Log what you ship - the events log (his ask, 2026-11-16)
+
+He reads the stats as "before / after" a change: Backstage → סקירה shows a marker on every day chart and an "אירועים" card (7 days
+before vs 7 days from). **Anything that could move the numbers is logged the day it goes live**: a release or a visible change, a mail
+to everyone, a new game, a marketing push, an outage. `OWNER_KEY=<his key> node scripts/stats/event.mjs add --day YYYY-MM-DD --kind
+release|mail|content|marketing|incident|other --title-file t.txt [--note-file n.txt] [--link URL]` (Hebrew through files; `list`, `del <id>`).
+Data: Firestore `siteEvents` (techietech-api/siteevents.js, verseOwner ops `events`/`eventAdd`/`eventEdit`/`eventDel`).
+
 ## Deploy
 
 ```bash
