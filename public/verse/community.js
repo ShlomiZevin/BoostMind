@@ -321,41 +321,80 @@ async function vote(b) {
 }
 
 // ---------- a personal video (his ask 2026-11-12): a character, for whom, what event, when, and everything about that person ----------
+// The sheet: a fixed top (title, close), the steps in a body that scrolls, a fixed bottom (the promise line + send) - his
+// note 2026-11-16 ("broken in pixel-perfect UI/UX ... a fixed top, a fixed button and a nice body"). The checks are ours, not
+// the browser's: its "required" bubbles can point at a field scrolled out of sight inside the body, and then a tap on send
+// seems to do nothing (a visitor wrote her whole request by email instead). A missing step turns red, says what it needs,
+// and scrolls into view.
 function personalSheet() {
   const chars = W.characters.filter((c) => c.img).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0));
   let pick = '';
   const today = new Date().toISOString().slice(0, 10);
-  const h = sheet(`<form class="rqs pv"><h2 class="vx-h">${esc(T.pv.title)}</h2><p class="vx-sub">${esc(T.pv.sub)}</p>
-      <b class="pv-l">${esc(T.pv.who)}</b>
-      <div class="pv-chars">${chars.map((c) => `<button type="button" data-pv="${esc(c.id)}"><img src="${esc(abs(c.img))}" alt="" loading="lazy"><span>${esc(c.name)}</span></button>`).join('')}</div>
-      <b class="pv-l">${esc(T.pv.forWho)}</b><input name="forWho" maxlength="80" required>
-      <b class="pv-l">${esc(T.pv.event)}</b>
-      <div class="pv-ev">${T.pv.events.map((e) => `<button type="button" class="chip" data-pv-ev="${esc(e)}">${esc(e)}</button>`).join('')}</div>
-      <input name="event" maxlength="80" required>
-      <b class="pv-l">${esc(T.pv.date)}</b><input name="date" type="date" min="${today}" required>
-      <textarea name="text" maxlength="3000" required placeholder="${esc(T.pv.ph)}"></textarea>
-      <input name="contact" maxlength="160" placeholder="${esc(T.reqContact)}">
-      <p class="rqs-note">${esc(T.pv.note)}</p>
-      <button class="vx-btn main block" type="submit">${esc(T.pv.send)}</button></form>`, { cls: 'rqs-sheet' });
-  const f = h.el.querySelector('form');
+  const P = T.pv;
+  const step = (n, key, label, inner, extra = '') => `<section class="pv-step" data-step="${key}"><div class="pv-sh"><i>${n}</i><b>${esc(label)}</b>${extra}</div>
+      <p class="pv-err">${esc(P.miss[key] || '')}</p>${inner}</section>`;
+  const h = sheet(`<form class="rqs pv" novalidate>
+    <div class="pv-top"><div><h2 class="vx-h">${esc(P.title)}</h2><p class="vx-sub">${esc(P.sub)}</p></div>
+      <button type="button" class="vx-x" data-pv-x aria-label="${esc(P.close)}">${I.x}</button></div>
+    <div class="pv-body">
+      ${step(1, 'char', P.who, `<div class="pv-chars">${chars.map((c) => `<button type="button" data-pv="${esc(c.id)}"><img src="${esc(abs(c.img))}" alt="" loading="lazy"><span>${esc(c.name)}</span></button>`).join('')}</div>`, '<em class="pv-picked"></em>')}
+      ${step(2, 'event', P.event, `<div class="pv-ev">${P.events.map((e) => `<button type="button" class="chip" data-pv-ev="${esc(e)}">${esc(e)}</button>`).join('')}<button type="button" class="chip" data-pv-ev="">${esc(P.other)}</button></div>
+        <input name="event" maxlength="80" placeholder="${esc(P.otherPh)}" hidden>`)}
+      <div class="pv-two">
+        ${step(3, 'forWho', P.forWho, `<input name="forWho" maxlength="80" placeholder="${esc(P.forWhoPh)}" autocomplete="off">`)}
+        ${step(4, 'date', P.date, `<input name="date" type="date" min="${today}">`)}
+      </div>
+      ${step(5, 'text', P.about, `<textarea name="text" maxlength="3000" placeholder="${esc(P.ph)}"></textarea><small class="pv-count"><span>0</span>/3000</small>`)}
+      <label class="pv-contact"><span>${esc(P.contact)}</span><input name="contact" maxlength="160" placeholder="${esc(P.contactPh)}"></label>
+    </div>
+    <div class="pv-foot"><p class="rqs-note">${esc(P.note)}</p><button class="vx-btn main block" type="submit">${esc(P.send)}</button></div></form>`, { cls: 'rqs-sheet pv-sheet' });
+  const f = h.el.querySelector('form'), body = f.querySelector('.pv-body');
+  const ok = (key) => f.querySelector(`[data-step="${key}"]`)?.classList.remove('bad');
+  // the top gets its line only once the body has moved under it
+  body.addEventListener('scroll', () => f.classList.toggle('pv-scrolled', body.scrollTop > 4), { passive: true });
   f.onclick = (e) => {
+    if (e.target.closest('[data-pv-x]')) return h.close('x');
     const c = e.target.closest('[data-pv]'), ev = e.target.closest('[data-pv-ev]');
-    if (c) { pick = c.dataset.pv; f.querySelectorAll('[data-pv]').forEach((b) => b.classList.toggle('on', b === c)); }
-    if (ev) { f.event.value = ev.dataset.pvEv; f.querySelectorAll('[data-pv-ev]').forEach((b) => b.classList.toggle('on', b === ev)); }
+    if (c) {
+      pick = c.dataset.pv; ok('char');
+      f.querySelectorAll('[data-pv]').forEach((b) => b.classList.toggle('on', b === c));
+      f.querySelector('.pv-picked').textContent = C[pick]?.name || '';
+    }
+    if (ev) {
+      const other = !ev.dataset.pvEv;
+      f.querySelectorAll('[data-pv-ev]').forEach((b) => b.classList.toggle('on', b === ev));
+      f.event.hidden = !other;
+      f.event.value = other ? '' : ev.dataset.pvEv;
+      if (other) f.event.focus(); else ok('event');
+    }
   };
+  f.addEventListener('input', (e) => {
+    const n = e.target.name;
+    if (n === 'text') f.querySelector('.pv-count span').textContent = e.target.value.length;
+    if (n && e.target.value.trim()) ok(n);
+  });
+  const miss = () => (!pick ? 'char' : !f.event.value.trim() ? 'event' : !f.forWho.value.trim() ? 'forWho'
+    : !f.date.value || f.date.value < today ? 'date' : f.text.value.trim().length < 3 ? 'text' : '');
   f.onsubmit = async (e) => {
     e.preventDefault();
-    if (!pick) { toast(T.pv.needChar); f.querySelector('.pv-chars').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
-    const text = f.text.value.trim();
-    if (text.length < 3) return;
+    const m = miss();
+    if (m) {
+      const s = f.querySelector(`[data-step="${m}"]`);
+      s.classList.add('bad');
+      s.querySelector('.pv-err').textContent = m === 'date' && f.date.value ? P.past : P.miss[m];
+      s.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      const input = s.querySelector('input:not([hidden]), textarea');
+      if (input && m !== 'date') setTimeout(() => input.focus({ preventScroll: true }), 350);
+      return;
+    }
     if (!(await needFan('contact'))) return;   // sending anything needs an account (his rule, 2026-11-01)
     const btn = f.querySelector('button[type=submit]');
     btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
     try {
-      await call('request', { kind: 'personal', text, char: C[pick]?.name || pick, forWho: f.forWho.value.trim(), event: f.event.value.trim(), date: f.date.value, contact: f.contact.value.trim() });
+      await call('request', { kind: 'personal', text: f.text.value.trim(), char: C[pick]?.name || pick, forWho: f.forWho.value.trim(), event: f.event.value.trim(), date: f.date.value, contact: f.contact.value.trim() });
       track('request', 'personal');
-      f.innerHTML = `<div class="rqs-done">${I.check}<h2 class="vx-h">${esc(T.pv.done)}</h2><p class="vx-sub">${esc(T.pv.doneSub)}</p></div>`;
-    } catch (err) { btn.disabled = false; btn.textContent = T.pv.send; toast(err.code === 'slow_down' ? T.cmSlow : T.errGeneric); }
+      f.innerHTML = `<div class="rqs-done">${I.check}<h2 class="vx-h">${esc(P.done)}</h2><p class="vx-sub">${esc(P.doneSub)}</p></div>`;
+    } catch (err) { btn.disabled = false; btn.textContent = P.send; toast(err.code === 'slow_down' ? T.cmSlow : T.errGeneric); }
   };
 }
 

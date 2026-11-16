@@ -1,7 +1,7 @@
 // A computer: every row that moves sideways (videos, sites, games, stories) gets two round arrows instead of a grey scrollbar
 // (his note 2026-11-09: "I can't reach it" - a mouse doesn't scroll sideways). Hebrew reads right to left, so what comes next
 // is on the LEFT: the left arrow points left and moves on, the right one goes back. Phones keep the finger swipe, no arrows.
-const ROWS = '.row, .srow, .grow, .yv-picks, .yv-st, .rings';
+const ROWS = '.row, .srow, .grow, .yv-picks, .yv-st, .rings, .pv-chars';   // .pv-chars: the personal-video form's faces
 const FINE = matchMedia('(hover: hover) and (pointer: fine)');
 const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 

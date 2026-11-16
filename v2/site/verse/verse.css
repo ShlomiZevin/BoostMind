@@ -3058,17 +3058,53 @@ button:hover > .lk { color: #d8d4de; filter: none; }
 @media (min-width: 900px) { .cmy { max-width: 1200px; } .cmy .cxg .cx-t.big .cx-rings img { width: 78px; height: 78px; } }
 .cmy > .cx-biz { margin-top: 18px; }
 
-/* the personal video form */
-.pv .pv-l { font-weight: 800; font-size: .92rem; margin-top: 4px; }
-.pv-chars { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: thin; }
-.pv-chars button { flex: none; width: 72px; display: grid; justify-items: center; gap: 5px; color: rgba(255, 255, 255, .75); font: inherit; font-size: .74rem; line-height: 1.2; text-align: center; background: none; border: 0; cursor: pointer; }
-.pv-chars img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid transparent; transition: border-color .15s, transform .15s; }
+/* the personal video form (his note 2026-11-16: a fixed top, a fixed button, a nice body) - the sheet is three rows (divs: the wiki styles every footer):
+   .pv-top (title + close) / .pv-body (the numbered steps, the only part that scrolls) / .pv-foot (the promise + send) */
+.vx-sheet.pv-sheet > .rqs.pv { overflow: hidden; padding: 0; gap: 0; display: flex; flex-direction: column; }
+.pv-top { flex: none; display: flex; align-items: flex-start; gap: 10px; padding: 4px 18px 12px; border-bottom: 1px solid transparent; transition: border-color .2s, box-shadow .2s; }
+.pv-top > div { flex: 1; min-width: 0; }
+.pv-top .vx-h { font-size: 1.45rem; line-height: 1.15; margin: 0; }
+.pv-top .vx-sub { font-size: .88rem; margin: 6px 0 0; color: rgba(255, 255, 255, .62); line-height: 1.45; }
+.pv-top .vx-x { position: static; flex: none; width: 36px; height: 36px; margin-top: -2px; background: rgba(255, 255, 255, .08); border: 0; cursor: pointer; }
+.pv.pv-scrolled .pv-top { border-bottom-color: var(--vx-glass-line); box-shadow: 0 8px 18px -12px rgba(0, 0, 0, .7); }
+.pv-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 6px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+.vx-sheet.pv-sheet > .rqs.pv > .pv-body { flex: 1 1 auto; min-height: 0; }   /* beats the forms' flex-shrink: 0 above */
+.pv-body > * { flex-shrink: 0; }
+.pv-step { background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); border-radius: 18px; padding: 12px 12px 14px; min-width: 0; transition: border-color .2s, background .2s; }
+.pv-sh { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; min-width: 0; }
+.pv-sh i { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .74rem; font-weight: 800; background: rgba(255, 106, 31, .18); color: var(--vx-accent); }
+.pv-sh b { font-weight: 800; font-size: .95rem; white-space: nowrap; }
+.pv-picked { margin-inline-start: auto; font-style: normal; font-size: .8rem; font-weight: 700; color: var(--vx-accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-err { display: none; margin: -4px 0 8px; font-size: .8rem; font-weight: 700; color: #ff7a6b; }
+.pv-step.bad { border-color: rgba(255, 92, 76, .75); background: rgba(255, 92, 76, .07); }
+.pv-step.bad .pv-err { display: block; }
+.pv-step.bad .pv-sh i { background: rgba(255, 92, 76, .9); color: #fff; }
+/* the faces: a row that moves sideways - the far edge fades, so the next face shows there are more */
+.pv-chars { display: flex; gap: 8px; overflow-x: auto; margin: 0 -12px; padding: 4px 12px 2px; scrollbar-width: none; scroll-snap-type: x proximity;
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent); }
+.pv-chars::-webkit-scrollbar { display: none; }
+.pv-chars button { flex: none; width: 66px; display: grid; justify-items: center; align-content: start; gap: 6px; color: rgba(255, 255, 255, .72); font: inherit; font-size: .72rem; line-height: 1.2; text-align: center; background: none; border: 0; cursor: pointer; scroll-snap-align: start; padding: 0; }
+.pv-chars img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255, 255, 255, .12); transition: border-color .15s, transform .15s, box-shadow .15s; }
 .pv-chars button.on img { border-color: var(--vx-accent); transform: scale(1.06); box-shadow: 0 0 14px rgba(255, 106, 31, .45); }
 .pv-chars button.on span { color: #fff; font-weight: 800; }
+.pv-chars span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .pv-ev { display: flex; flex-wrap: wrap; gap: 6px; }
+.pv-ev .chip { height: 36px; padding: 0 14px; font-size: .86rem; }
 .pv-ev .chip.on { border-color: var(--vx-accent); color: #fff; background: rgba(255, 106, 31, .18); }
-.pv input[type=date] { color-scheme: dark; }
-.pv textarea { min-height: 150px; }
+.pv-ev + input { margin-top: 10px; }
+.pv-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pv-two .pv-step { padding-bottom: 12px; }
+.pv input, .pv textarea { padding: 11px 12px; border-radius: 14px; font-size: 16px; }   /* 16px: iPhone doesn't zoom into the field */
+.pv input[type=date] { color-scheme: dark; direction: rtl; text-align: right; min-height: 46px; padding-inline: 10px; font-size: 15px; display: block; -webkit-appearance: none; appearance: none; }
+.pv input[type=date]::-webkit-date-and-time-value { text-align: right; }
+.pv textarea { min-height: 150px; line-height: 1.5; display: block; }
+.pv-count { display: block; text-align: left; margin-top: 6px; font-size: .74rem; color: rgba(255, 255, 255, .42); direction: ltr; }
+.pv-contact { display: grid; gap: 6px; padding: 0 4px; font-size: .84rem; color: rgba(255, 255, 255, .6); font-weight: 700; }
+.pv-foot { flex: none; padding: 10px 18px 14px; border-top: 1px solid var(--vx-glass-line); background: rgba(16, 15, 19, .92); box-shadow: 0 -10px 22px -14px rgba(0, 0, 0, .8); }
+.pv-foot .rqs-note { margin: 0 0 8px; text-align: center; font-size: .76rem; }
+.pv-foot .vx-btn { margin: 0; }
+.pv > .rqs-done { padding: 26px 18px 30px; }
+@media (max-width: 340px) { .pv-two { grid-template-columns: 1fr; } }
 
 /* the watch count on a video's picture (plays.js, his ask 2026-11-13): bottom-left like a TikTok grid, away from the top-10's
    big rank number on the right; only videos with 20+ plays on the site get one */
