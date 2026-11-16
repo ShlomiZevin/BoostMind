@@ -116,3 +116,27 @@ a 1080x1920 picture on **black** - the logo, the hook ("מחפשים עובדי�
 "fade_in": 0.08}` - a negative `start` counts from the end; set the episode `"timing": {"tail_after_removal": …}` so the
 poster starts exactly on the last word (check `edit.json`: poster `from` = the last word's end), held ~4 s. It's an
 image layer: live in the editor, covering everything in the export. Any preset timing value can be overridden per episode.
+
+## His rounds on not-the-question (2026-11-16) - do these from the first build
+- **One fixed overlap at every handover** (his note: "sometimes you start too early and sometimes too late - just set up a
+  fixed time"; the join he called perfect = the words overlap 0.47 s). The builder times lines by their `in` / `out`,
+  which carry a different breath / silence each, so the same setting gave -0.85 .. +0.8 s. Fix: trim EVERY line to its
+  words (corrections `in` = speech onset - 0.04, `out` = last word's energy end + 0.06, measured at 10 ms from
+  `work/audio/<clip>.wav`: first frame > -30 dB walked out to -42 dB), then `timing` handover_overlap = quick_overlap =
+  0.48, victim_answer = -0.48, eager_extra 0. Check the soft first words by hand ("כן", "אוקיי" sit under -30 dB - keep
+  the transcript's start), keep "אה" tails out, and re-measure the word gaps after the build.
+- **No `[שתיקה]`** even when the script has *(שתיקה קצרה)* - "don't make a pause here, it must be continuous".
+- **An aside that is only a mumble = no look** (`"show": 0` - the picture stays on the speaker). A look only for a line.
+- **Silent business is a cutaway** ("move him to the speaking bubble for one or two seconds"): Daniel crunching his
+  snack with the bag to camera, Ofer picking his ear - an empty-text script line (`**דניאל:** (קראנץ')` - parentheses =
+  no subtitle) + corrections `{clip, in, out, aside: true, at, show: 1.8-2.2, gain}` (gain 0 for a silent one, high for
+  a crunch - it sits ~35 dB under speech).
+- **A TikTok-app take: no RNNoise** (`clean: "off"`) - the `nn` setting copied from the old Daniel (filter-app voice)
+  made this one "completely broken". Check each take's audio before copying a character's voice settings.
+- **Held props survive the Zoom cut-out** (the עיגוליות bag held to camera stayed whole) - check a still with
+  `cutout: true` before turning the cut-out off; turning it off lost his office background ("daniel missing his bg").
+  Text on a prop read backwards = the picture layer's `mirror: true`.
+- **Listening tiles can land on a bad stretch** (Daniel's phone fell, 1:17-1:20 of his take): list the take's bad
+  spans from a contact sheet before handing over and move those tile items' `in` by op after the last rebuild.
+- **The removal while the boss keeps talking**: split the boss's last line at the removal (script line, `[מנסה לדבר]`,
+  `[הסר]`, the rest as its own line) and pull the rest in (`shift` ~-0.3) so he talks over the victim's last try.
