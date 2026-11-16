@@ -170,6 +170,10 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/new",
+        "destination": "/wiki/index.html"
+      },
+      {
         "source": "/records",
         "destination": "/wiki/index.html"
       },

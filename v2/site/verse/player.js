@@ -341,6 +341,14 @@ function deepLinks(q) {
   if (q.c) setTimeout(() => openComments({ focus: q.c }), 300);
   else if (q.sticker) setTimeout(() => openComments({ tab: 's', focus: q.sticker }), 300);
   else if (q.how === 'sticker') setTimeout(stickerTip, 900);
+  else if (q.cm) setTimeout(() => { openComments(); if (q.at && C[q.at]) atStart(q.at); }, 300);   // from /new (feed.js)
+}
+// the comment box opens already addressed to the character (an @tag - verseOnComment has the character answer)
+function atStart(char, tries = 0) {
+  const ta = document.querySelector('.cm textarea');
+  if (!ta) { if (tries < 40) setTimeout(() => atStart(char, tries + 1), 250); return; }   // signing in first: wait for the box
+  if (!ta.value.trim()) { ta.value = '@' + C[char].name + ' '; ta.dispatchEvent(new Event('input', { bubbles: true })); }
+  ta.focus();
 }
 // from the home's "what you can do": the sticker button pointed out until they press it (or anything else)
 function stickerTip() {

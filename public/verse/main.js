@@ -17,6 +17,7 @@ import { simPage, mountBand, quizCard } from './sim.js';
 import { mountTz } from './tzhome.js';
 import { adSlot } from './ads.js';
 import { citizenPage } from './citizen.js';
+import { feedPage, unmountFeed, resumeFeed } from './feed.js';
 appBoot();
 
 Object.assign(HOOK, {
@@ -28,6 +29,7 @@ Object.assign(HOOK, {
     // back onto the home kept from under a video / game opened straight from a link: its records were never filled in
     if ((a || b) && location.pathname === '/') setTimeout(recordsHome, 0);
     // a video opened from the chat: back to that conversation
+    if ((a || b) && location.pathname === '/new') setTimeout(resumeFeed, 0);   // back on the new feed (feed.js): its video plays again
     if (a && HOOK.chatReturn) { const mode = HOOK.chatReturn; HOOK.chatReturn = null; setTimeout(() => openChat(mode), 0); }
     return a || b;
   },
@@ -59,6 +61,7 @@ Object.assign(HOOK, {
     // the signed-in home has a solid top bar (no hero under it)
     renderTop();
     paintFollow();
+    if (page !== 'new') unmountFeed();   // left /new: its videos stop
     if (page === 'notes') document.title = `${T.notesTitle} · שלומיוורס`;
     if (!page) mountBand();   // "אתם חיים בסימולציה?" under the question box (sim.js)
     if (!page) mountTz();   // "עכשיו בחרדות" under the stories (tzhome.js - only once ציפציפ answers)
@@ -81,6 +84,7 @@ pages.simulation = simPage;
 pages.citizenship = citizenPage;
 pages.archive = archivePage;   // הארכיון - every Instagram post, for residents (archive.js)
 pages.records = recordsPage;   // שיאי היום, the full board (records.js)
+pages.new = feedPage;          // /new - the feed, a new first screen to test (feed.js; not the home)
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
 startRowArrows();   // a computer: arrows on the rows that move sideways (rows.js)
