@@ -43,7 +43,6 @@ PROPOSAL = re.compile(r'שלומי זוין|נועם זוין|Shlomi Zovin|Shlom
 EXTRA = [
     # the Shlomiverse and his socials
     ('verse', 'הארכיון · כל האינסטגרם, לסמן מה להביא', 'https://shlomiverse.com/archive', ''),
-    ('verse', "הפיד החדש (בבדיקה) · מסך ראשון: סרטונים, משחקים, צ'אט", 'https://shlomiverse.com/new', 'חדש'),
     ('verse', 'TikTok', 'https://www.tiktok.com/@shlomizevin', 'רשת'),
     ('verse', 'Instagram', 'https://www.instagram.com/shlomizevin', 'רשת'),
     ('verse', 'YouTube', 'https://www.youtube.com/@shlomizevin', 'רשת'),

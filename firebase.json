@@ -12,6 +12,7 @@
       "python scripts/deploy_check.py"
     ],
     "redirects": [
+      { "source": "/new{,/**}", "destination": "/", "type": 302 },
       { "source": "/c/neve-dugi{,/**}", "destination": "/c/neve-tzafoni", "type": 301 },
       { "source": "/c/neve-dromi{,/**}", "destination": "/c/neve-tzafoni", "type": 301 },
       {
@@ -167,10 +168,6 @@
       },
       {
         "source": "/community",
-        "destination": "/wiki/index.html"
-      },
-      {
-        "source": "/new",
         "destination": "/wiki/index.html"
       },
       {

@@ -17,7 +17,6 @@ import { simPage, mountBand, quizCard } from './sim.js';
 import { mountTz } from './tzhome.js';
 import { adSlot } from './ads.js';
 import { citizenPage } from './citizen.js';
-import { newHomePage } from './newhome.js';
 appBoot();
 
 Object.assign(HOOK, {
@@ -82,7 +81,6 @@ pages.simulation = simPage;
 pages.citizenship = citizenPage;
 pages.archive = archivePage;   // הארכיון - every Instagram post, for residents (archive.js)
 pages.records = recordsPage;   // שיאי היום, the full board (records.js)
-pages.new = newHomePage;       // /new - the new home being tested (newhome.js; not the home yet)
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
 startRowArrows();   // a computer: arrows on the rows that move sideways (rows.js)
