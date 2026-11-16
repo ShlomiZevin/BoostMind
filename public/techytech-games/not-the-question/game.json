@@ -1,0 +1,13 @@
+{
+  "slug": "not-the-question",
+  "title": "לא זו השאלה",
+  "tagline": "דניאל בפגישת הנהלה של טקי-טק. כל תשובה ברורה ונכונה מקבלת «זאת לא השאלה» – יורדים לפרטים רק דרך התשובות המעורפלות.",
+  "character": "daniel",
+  "chars": ["daniel", "amir", "ofer"],
+  "world": "טקי-טק",
+  "status": "draft",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:not-the-question:best", "label": "עומק" },
+  "record": { "unit": "רמות פירוט", "better": "high" },
+  "date": "2026-11-16"
+}

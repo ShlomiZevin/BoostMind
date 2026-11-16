@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1b3b8a">
+<title>לא זו השאלה – טקי-טק</title>
+<meta name="description" content="דניאל בפגישת הנהלה של טקי-טק. כל תשובה ברורה ונכונה מקבלת «זאת לא השאלה». יורדים לפרטים דרך התשובות המעורפלות – כמה עמוק תגיעו?">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="לא זו השאלה – טקי-טק">
+<meta property="og:description" content="כל תשובה ברורה מקבלת «זאת לא השאלה». כמה עמוק תגיעו לפרטים?">
+<meta property="og:url" content="https://shlomiverse.com/techytech-games/not-the-question/">
+<meta property="og:image" content="https://shlomiverse.com/techytech-games/not-the-question/assets/share.jpg?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="techytech-games" defer></script>
+<script src="/verse/game-frame.js"></script>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+<style>
+:root{
+  --ink:#16213e; --blue:#2d6cf0; --blueD:#1b46b0; --green:#16a873; --greenD:#0d7a52; --red:#e5383b; --yellow:#ffc531; --purple:#7a4ce0;
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
+  --stripH:64px; --sw:100vw;
+}
+@media (max-height:600px){:root{--stripH:56px}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
+body{background:#2a3b66 url(assets/bg.jpg) center/cover no-repeat;position:relative}
+@media (min-aspect-ratio:1/1){
+  :root{--sw:calc(100vh * .5625)}
+  html{background:radial-gradient(circle at 50% 40%,#2a4a8a,#0b1530)}
+  body{width:var(--sw);margin:0 auto;transform:translateZ(0);box-shadow:0 0 0 1px #ffffff22,0 20px 60px #0009}
+}
+[hidden]{display:none!important}
+button{font-family:inherit;border:0;cursor:pointer;color:inherit;padding:0;background:none}
+a{color:inherit}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* ---------- the meeting strip (top) ---------- */
+#strip{position:absolute;top:calc(var(--safe-t) + 6px);left:8px;right:8px;height:var(--stripH);display:flex;align-items:center;gap:8px;
+  background:#0f1d40e6;border-radius:16px;padding:6px;box-shadow:0 6px 16px #0006;color:#fff;z-index:5}
+.tile{position:relative;height:100%;aspect-ratio:1;border-radius:11px;overflow:hidden;flex:none;background:#223;outline:2px solid transparent;transition:outline-color .15s}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile.talk{outline-color:var(--yellow)}
+.tile i{position:absolute;bottom:0;left:0;right:0;font-style:normal;font-size:10px;font-weight:700;text-align:center;background:#0009;line-height:14px}
+#say{flex:1;min-width:0;font-size:clamp(13px,3.7vw,16px);font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#say b{color:var(--yellow);font-weight:900}
+#say.no{color:#ff8a8a}
+#say.no b{color:#ff5a5a}
+#say.yes b{color:#6ee7a8}
+#hud{position:absolute;top:calc(var(--safe-t) + var(--stripH) + 12px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;z-index:4;pointer-events:none}
+#depth{background:#ffffffee;border-radius:14px;padding:4px 12px 5px;text-align:center;box-shadow:0 4px 10px #0004;min-width:64px}
+#depth small{display:block;font-size:11px;font-weight:700;color:#556}
+#depth b{display:block;font-size:26px;font-weight:900;line-height:1;direction:ltr}
+#strikes{display:flex;gap:5px;background:#ffffffee;border-radius:14px;padding:6px 8px;box-shadow:0 4px 10px #0004;align-items:center}
+#strikes span{font-size:11px;font-weight:700;color:#556;margin-inline-end:2px}
+#strikes i{width:22px;height:22px;border-radius:50%;background:var(--green);display:block;border:2px solid #fff;box-shadow:0 1px 3px #0004;transition:background .2s,transform .2s}
+#strikes i.x{background:var(--red);transform:scale(.85)}
+#pauseB{pointer-events:auto;width:40px;height:40px;border-radius:12px;background:#ffffffee;box-shadow:0 4px 10px #0004;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center}
+#hudR{display:flex;gap:8px;align-items:flex-start}
+#stage{position:absolute;top:calc(var(--safe-t) + var(--stripH) + 64px);left:0;right:0;text-align:center;z-index:3;pointer-events:none}
+#stage span{display:inline-block;background:#0f1d40cc;color:#fff;font-size:12px;font-weight:700;border-radius:99px;padding:3px 12px}
+#chip{position:absolute;bottom:calc(var(--safe-b) + 18px);left:0;right:0;margin:0 auto;width:fit-content;background:#fff;border-radius:99px;padding:9px 18px;font-weight:900;font-size:16px;box-shadow:0 6px 16px #0005;z-index:4;max-width:92%;text-align:center;pointer-events:none;transition:opacity .4s}
+#chip.off{opacity:0}
+#pop{position:absolute;left:0;right:0;top:38%;text-align:center;z-index:6;pointer-events:none;font-weight:900;font-size:clamp(26px,8vw,40px);color:#fff;text-shadow:0 3px 0 #0006,0 0 18px #000a;opacity:0;transform:scale(.6);transition:opacity .2s,transform .25s}
+#pop.on{opacity:1;transform:scale(1)}
+#pop.red{color:#ff4d4d}
+#pop.green{color:#5df0a0}
+#pop.gold{color:var(--yellow)}
+
+/* ---------- screens (one layer at a time) ---------- */
+.screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center}
+#start{background:url(assets/hero.jpg) center top/100% auto no-repeat,#0b1a3a url(assets/bg.jpg) center bottom/cover no-repeat;justify-content:flex-end;padding:calc(var(--safe-t) + 10px) 18px calc(var(--safe-b) + 14px);gap:10px}
+#start::before{content:"";position:absolute;inset:0;background:linear-gradient(to top,#0b1a3af5 0,#0b1a3ad9 190px,#0b1a3a00 300px);pointer-events:none}
+@media (max-aspect-ratio:3/5){#start{background-size:100% auto}}
+@media (min-aspect-ratio:3/5){#start{background-size:cover,cover}}
+@media (max-height:520px){#over .removed{width:110px}#over .sc b{font-size:34px}#over{gap:6px}#over .quote{display:none}#over h2,#card h2{font-size:22px}.big{padding:9px 0;font-size:20px}}
+@media (max-height:520px){#start p{display:none}}
+#start p{background:#0b1a3aaa;border-radius:12px;padding:6px 10px}
+#turn{display:none}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:500px){#turn{display:flex;position:fixed;inset:0;z-index:99;background:#0b1a3a;color:#fff;font-weight:900;font-size:22px;align-items:center;justify-content:center;text-align:center;padding:20px}}
+#start > *{position:relative}
+#start p{color:#fff;text-align:center;font-weight:500;font-size:clamp(13px,3.7vw,16px);text-shadow:0 1px 4px #000c;margin:0;max-width:26em;line-height:1.35}
+.big{background:linear-gradient(#ffd54a,#ffb300);color:#3a2500;font-weight:900;font-size:clamp(22px,6.4vw,28px);border-radius:20px;padding:12px 0;width:min(84%,340px);box-shadow:0 6px 0 #b77d00,0 10px 20px #0006}
+.big:active{transform:translateY(3px);box-shadow:0 3px 0 #b77d00,0 6px 12px #0006}
+.big.breath{animation:breath 1.6s ease-in-out infinite}
+@keyframes breath{50%{transform:scale(1.04)}}
+.soft{color:#fff;font-weight:700;font-size:15px;text-decoration:underline;padding:6px 10px}
+#best{color:#ffe28a;font-weight:700;font-size:14px;text-shadow:0 1px 3px #000c;min-height:1.2em}
+.foot{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:420px;font-size:13px;font-weight:700;color:#cfe0ff}
+.foot a{text-decoration:none}
+.sndB{background:#ffffff22;border-radius:99px;padding:5px 12px;color:#fff;font-weight:700;font-size:13px}
+
+#over,#card,#pause{background:#0b1530d9;justify-content:center;padding:calc(var(--safe-t) + 16px) 18px calc(var(--safe-b) + 16px);gap:12px;color:#fff;text-align:center}
+.removed{position:relative;width:min(56vw,220px);aspect-ratio:1;border-radius:22px;overflow:hidden;outline:4px solid var(--red);box-shadow:0 0 30px #e5383b88;animation:blink 1s steps(2) 3}
+.removed img{width:100%;height:100%;object-fit:cover;filter:grayscale(.4)}
+.removed span{position:absolute;left:0;right:0;bottom:0;background:var(--red);font-weight:900;font-size:15px;padding:6px 0}
+@keyframes blink{50%{outline-color:#ff9a9a}}
+#over h2,#card h2{margin:0;font-size:clamp(24px,7vw,32px);font-weight:900}
+#over .sc{font-size:15px;font-weight:700;color:#cfe0ff}
+#over .sc b{display:block;font-size:52px;color:#fff;line-height:1.05;direction:ltr}
+#newRec{color:var(--yellow);font-weight:900;font-size:18px}
+#over .quote{font-size:14px;color:#ffd0d0;font-weight:500;max-width:22em;line-height:1.35}
+#card .l1{font-size:15px;color:#cfe0ff;font-weight:700}
+#card .l3{font-size:15px;font-weight:500;max-width:22em;line-height:1.35}
+#card img{width:min(60%,240px)}
+
+/* ---------- tutorial ---------- */
+#tut{position:absolute;inset:0;z-index:30;pointer-events:none}
+#spot{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px #0b1530b8;transition:all .3s;outline:3px solid var(--yellow)}
+#tut.free #spot{box-shadow:none}
+#tcard{position:absolute;left:12px;right:12px;background:#fff;border-radius:18px;padding:12px 14px 10px;box-shadow:0 10px 30px #0008;pointer-events:auto;max-width:440px;margin:0 auto}
+#tcard .n{font-size:11px;font-weight:700;color:#778}
+#tcard .t{font-size:clamp(15px,4.2vw,17px);font-weight:700;line-height:1.35;margin:4px 0 8px}
+#tcard .row{display:flex;justify-content:space-between;align-items:center}
+#tnext{background:var(--blue);color:#fff;font-weight:900;font-size:17px;border-radius:12px;padding:8px 26px}
+#tskip{font-size:13px;color:#778;text-decoration:underline;padding:6px}
+#tcard.try #tnext{display:none}
+#tcard .ok{color:var(--greenD);font-weight:900}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="turn">📱 סובבו את הטלפון לאורך</div>
+
+<div id="strip" hidden>
+  <div class="tile" id="tAmir"><img src="assets/amir.webp" alt=""><i>אמיר</i></div>
+  <div class="tile" id="tOfer"><img src="assets/ofer.webp" alt=""><i>עופר</i></div>
+  <div id="say"></div>
+</div>
+<div id="hud" hidden>
+  <div id="depth"><small>עומק</small><b id="depthN">0</b></div>
+  <div id="hudR">
+    <div id="strikes"><span>פסילות</span><i></i><i></i><i></i></div>
+    <button id="pauseB" aria-label="עצירה">II</button>
+  </div>
+</div>
+<div id="stage" hidden><span id="stageT"></span></div>
+<div id="chip" class="off"></div>
+<div id="pop"></div>
+
+<div id="start" class="screen">
+  <p>פגישת הנהלה בטקי-טק. כל תשובה ברורה ונכונה מקבלת «זאת לא השאלה». ירדו לפרטים דרך התשובות המעורפלות.</p>
+  <div id="best"></div>
+  <button class="big breath" id="playB">יורדים לפרטים</button>
+  <button class="soft" id="howB">איך משחקים</button>
+  <div class="foot">
+    <a href="/c/daniel" target="_top">דניאל בשלומיוורס ←</a>
+    <button class="sndB" id="sndB">🔊 צליל</button>
+  </div>
+</div>
+
+<div id="card" class="screen" hidden>
+  <div class="l1" id="cL1"></div>
+  <h2 id="cL2"></h2>
+  <div class="l3" id="cL3"></div>
+  <button class="big" id="cGo">ממשיכים</button>
+</div>
+
+<div id="pause" class="screen" hidden>
+  <h2 style="margin:0">עצרנו</h2>
+  <button class="big" id="resB">ממשיכים</button>
+  <button class="soft" id="restB">מתחילים מחדש</button>
+  <button class="soft" id="homeB">למסך הפתיחה</button>
+  <button class="sndB" id="sndB2">🔊 צליל</button>
+</div>
+
+<div id="over" class="screen" hidden>
+  <div class="removed"><img src="assets/daniel-try.webp" alt=""><span>הוסר מהפגישה</span></div>
+  <div class="quote">״טוב דניאל, אנחנו נשלח לך זימון.״</div>
+  <div class="sc">הגעתם לעומק<b id="oScore">0</b></div>
+  <div id="newRec" hidden>שיא חדש!</div>
+  <div class="sc" id="oBest"></div>
+  <button class="big" id="againB">עוד פגישה</button>
+  <a class="soft" href="/c/daniel" target="_top">לדף של דניאל ←</a>
+</div>
+
+<div id="tut" hidden>
+  <div id="spot"></div>
+  <div id="tcard">
+    <div class="n" id="tn"></div>
+    <div class="t" id="tt"></div>
+    <div class="row"><button id="tskip">דילוג</button><button id="tnext">הבא</button></div>
+  </div>
+</div>
+
+<script type="module" src="game.js?v=1"></script>
+</body>
+</html>

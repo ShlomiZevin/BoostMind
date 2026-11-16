@@ -1,0 +1,9 @@
+The finished game screen of a mobile phone game, upright 9:16, to show the game's look before it is built.
+
+The game: a "Helix Jump" style game set in a corporate Zoom management meeting at the Israeli tech company "Techy-Tech". A tall central pole goes down into the depth of the screen, with round ring platforms around it, one under the other, each ring split into slices. The player is Daniel (the man in the black cap, glasses and grey t-shirt from the reference): his face in a round video-call avatar coin that bounces on the rings and falls through the gaps, going down "into the details".
+
+Each ring is a question from the managers. The gaps in the ring carry short Hebrew answers written on them. The obvious, correct answer gap glows like a trap; the vague corporate-buzzword gaps are the safe way down. A few slices are red danger slices.
+
+At the top of the screen, a strip with two small video-call tiles of the managers: Amir (navy blazer, messy brown hair, glasses, from the reference) asking with his hands, and Ofer nodding beside him; a speech line in Hebrew under them: "זאת לא השאלה". A small score counter of how deep you got.
+
+Painted, warm, glossy mobile-game style matching the reference poster, bright office colors, clean and readable at phone size. Same faces as the references.
