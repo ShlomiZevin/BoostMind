@@ -1,0 +1,5 @@
+{ "char": "daniel", "file": "C:/workspace/BoostMind/scripts/techytech-games/not-the-question-promo/not-the-question-story.jpg",
+  "text": "משחק חדש: לא זו השאלה. ענית ברור? זאת לא השאלה. רק תשובות מעורפלות מורידות למטה לפרטים.",
+  "link": "/techytech-games/not-the-question/", "label": "לשחק עכשיו", "everyone": true, "toVideos": false,
+  "keepClear": [[18, 0, 88, 24], [1, 24, 37, 42], [66, 25, 100, 43], [47, 41, 69, 53], [11, 58, 88, 85]],
+  "boxes": [] }
