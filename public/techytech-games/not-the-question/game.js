@@ -296,7 +296,7 @@ function paintBall(img) {
   // a light band around the ball, like a call app's stripe
   x.fillStyle = '#ffffff22'; x.fillRect(0, cy + 150, W, 14); x.fillRect(0, cy - 164, W, 14);
   // the face window: drawn row by row, each row widened by 1/cos(latitude) so it is round on the sphere
-  const R = 118, ring = 16, sx = 96, sy = 6, ss = 320; // the face's square in daniel.webp (512x512)
+  const R = 118, ring = 16, sx = 76, sy = 20, ss = 360; // the face's square in daniel.webp (512x512)
   for (let y = -R - ring; y <= R + ring; y++) {
     const lat = (y / H) * Math.PI, k = 1 / Math.cos(lat), r = Math.sqrt(Math.max(0, (R + ring) ** 2 - y * y));
     x.fillStyle = '#ffffff'; x.fillRect(cx - r * k, cy + y, 2 * r * k, 1.5); // the white window frame
