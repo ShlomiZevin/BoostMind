@@ -1,0 +1,9 @@
+{
+  "positive_global_styles": ["upbeat quirky corporate comedy", "bouncy funk bassline", "plucky synths", "light claps", "playful mobile arcade game music", "instrumental", "118 bpm", "loopable, steady energy"],
+  "negative_global_styles": ["vocals", "slow", "ambient", "sad", "orchestral", "long intro", "fade out"],
+  "sections": [
+    { "section_name": "groove", "positive_local_styles": ["bouncy bass and plucks", "office comedy groove"], "negative_local_styles": ["intro", "silence"], "duration_ms": 16000, "lines": [] },
+    { "section_name": "lift", "positive_local_styles": ["add bright synth hook", "a bit more energy"], "negative_local_styles": ["drop", "silence"], "duration_ms": 16000, "lines": [] },
+    { "section_name": "groove again", "positive_local_styles": ["back to the main groove", "same tempo"], "negative_local_styles": ["ending", "fade"], "duration_ms": 16000, "lines": [] }
+  ]
+}

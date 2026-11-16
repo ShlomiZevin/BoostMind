@@ -24,12 +24,12 @@ const STAGES = [
   { name: 'החשבונית', note: 'עכשיו יש שתי תשובות נכונות על כל טבעת.', qs: [
     { who: 'amir', q: 'תמונה של חשבונית - המערכת מזהה את הסכום?', clear: ['כן', 'כן, את הסכום'], vague: ['אז איזה סכום אתם רוצים?'] },
     { who: 'amir', q: 'הסכום בחשבונית הוא הסכום שאנחנו רוצים?', clear: ['כן, זה הסכום', 'הסכום הסופי'], vague: ['זה המקום שלי כאיש מקצוע'] },
-    { who: 'ofer', q: 'היא מזהה מע״מ?', clear: ['כן, בנפרד', 'כן, 18%'], vague: ['בוא נרד לפרטים'] },
+    { who: 'ofer', q: 'היא מזהה גם את התאריך?', clear: ['כן, גם תאריך', 'כן, את התאריך'], vague: ['בוא נרד לפרטים'] },
     { who: 'amir', q: 'ומה עם חשבונית מקומטת?', clear: ['מיישרים וקוראים', 'עדיין קוראים'], vague: ['צריך מבט הוליסטי'] },
     { who: 'ofer', q: 'זה עובד גם באנגלית?', clear: ['כן, גם באנגלית', 'כן, כל שפה'], vague: ['זה Value Proposition'] },
     { who: 'amir', q: 'אפשר לקרוא כמה חשבוניות ביחד?', clear: ['כן, בבת אחת', 'כן, בבאץ׳'], vague: ['זאת שאלה של סקייל'] },
     { who: 'amir', q: 'מה קורה כשהסכום לא ברור?', clear: ['מסמנים לבדיקה', 'שולחים לאדם'], vague: ['נגדיר את זה בהמשך'] },
-    { who: 'ofer', q: 'זה יהיה מוכן ל-Q4?', clear: ['כן, עד Q4', 'כן, בספטמבר'], vague: ['זה על ה-Roadmap'] },
+    { who: 'ofer', q: 'זה יהיה מוכן לרבעון הבא?', clear: ['כן, ברבעון הבא', 'כן, בספטמבר'], vague: ['זה על ה-Roadmap'] },
   ]},
   { name: 'היועץ החיצוני', note: 'יותר אדום. פחות זמן לחשוב.', qs: [
     { who: 'daniel', q: 'דניאל: אוקיי, אם תרצו אני יכול—', clear: ['אני יכול לעשות את זה', 'אני אבנה את זה'], vague: ['נביא יועץ חיצוני'] },
@@ -37,7 +37,7 @@ const STAGES = [
     { who: 'ofer', q: 'אנחנו מגיעים אליו עם פתרון?', clear: ['כן, יש פתרון', 'כבר יש פתרון'], vague: ['בגלל זה מביאים אותו'] },
     { who: 'amir', q: 'מתי נשב איתו?', clear: ['מחר ב-10', 'ביום ראשון'], vague: ['נשלח לך זימון'] },
     { who: 'ofer', q: 'מי מחזיק את ה-Ownership?', clear: ['אני', 'דניאל'], vague: ['ההנהלה מובילה'] },
-    { who: 'amir', q: 'רונית יודעת על זה?', clear: ['לא, עוד לא', 'צריך לספר לה'], vague: ['שזה יגיע ממנה'] },
+    { who: 'amir', q: 'ומה עם רונית? היא בתמונה?', clear: ['לא, עוד לא', 'צריך לספר לה'], vague: ['שזה יגיע ממנה'] },
     { who: 'amir', q: 'אנחנו מסונכרנים?', clear: ['לא ממש', 'לא, אין החלטה'], vague: ['חד משמעית'] },
     { who: 'ofer', q: 'מה ה-Next Step?', clear: ['להתחיל לפתח', 'לבנות את הדמו'], vague: ['עוד פגישת יישור קו'] },
   ]},
@@ -79,6 +79,7 @@ const VO_TEXT = {
   'deep-1': 'אמיר, אני חושב שאנחנו עדיין לא מספיק עמוק בפרטים.', 'deep-2': 'אני חושב שכדאי שנביא יועץ חיצוני.', 'deep-3': 'את השאלות שאנחנו אפילו לא יודעים שאנחנו עדיין לא שואלים.',
   'end-1': 'טוב דניאל, אנחנו נשלח לך זימון.', 'dan-1': 'רגע, רק רציתי—', 'dan-2': 'כן, אפשר—', 'dan-3': 'אז קודם כול—',
 };
+const Q_VO = {"דיברנו על קריאה של תמונות. זה אפשרי?": "q-1", "מבחינת התהליך, אנחנו יודעים להכיל את זה?": "q-2", "אז איך אנחנו קוראים תמונה?": "q-3", "כמה זמן זה ייקח?": "q-4", "יש סיבה שלא נספיק עד יום ראשון?": "q-5", "צריך עוד אנשים בצוות?": "q-6", "ה-POC יוכיח Scalability?": "q-7", "צריך לשים פה RAG?": "q-8", "תמונה של חשבונית - המערכת מזהה את הסכום?": "q-9", "הסכום בחשבונית הוא הסכום שאנחנו רוצים?": "q-10", "היא מזהה גם את התאריך?": "q-11", "ומה עם חשבונית מקומטת?": "q-12", "זה עובד גם באנגלית?": "q-13", "אפשר לקרוא כמה חשבוניות ביחד?": "q-14", "מה קורה כשהסכום לא ברור?": "q-15", "זה יהיה מוכן לרבעון הבא?": "q-16", "מה נשאל את היועץ?": "q-17", "אנחנו מגיעים אליו עם פתרון?": "q-18", "מתי נשב איתו?": "q-19", "מי מחזיק את ה-Ownership?": "q-20", "ומה עם רונית? היא בתמונה?": "q-21", "אנחנו מסונכרנים?": "q-22", "מה ה-Next Step?": "q-23", "אז מה אתה מציע?": "q-ask"};
 const VO_WHO = (id) => (/^(yes-3|chad|deep-1|deep-3)/.test(id) ? 'ofer' : /^dan/.test(id) ? 'daniel' : 'amir');
 
 const A = { ctx: null, buf: {}, last: {}, on: LS.get(KEY_SND, '1') === '1', music: null, musicGain: null, voice: null, master: null };
@@ -102,10 +103,11 @@ function wake() {
 }
 async function loadOne(name, dir) {
   try { const r = await fetch(`assets/${dir}/${name}.mp3`); const ab = await r.arrayBuffer(); A.buf[name] = await A.ctx.decodeAudioData(ab); } catch {}
+  if (name === 'music-loop' && G.running && !G.paused && !G.over) startMusic();
 }
 function loadAll() {
   Object.values(SND).flat().concat(['music-loop']).forEach((n) => loadOne(n, 'sfx'));
-  Object.values(VO).flat().forEach((n) => loadOne(n, 'vo'));
+  Object.values(VO).flat().concat(Object.values(Q_VO)).forEach((n) => loadOne(n, 'vo'));
 }
 function pick(list, group) { let i = Math.floor(Math.random() * list.length); if (list.length > 1 && list[i] === A.last[group]) i = (i + 1) % list.length; A.last[group] = list[i]; return list[i]; }
 function play(name, vol = 1, rate = 1) {
@@ -116,12 +118,13 @@ function play(name, vol = 1, rate = 1) {
 function sfx(group, vol = 1, rate = 1) { return play(pick(SND[group], group), vol, rate); }
 function startMusic() {
   if (!A.ctx || A.music || !A.buf['music-loop']) return;
-  const s = A.ctx.createBufferSource(), g = A.ctx.createGain(); s.buffer = A.buf['music-loop']; s.loop = true; g.gain.value = 0.22;
+  const s = A.ctx.createBufferSource(), g = A.ctx.createGain(); s.buffer = A.buf['music-loop']; s.loop = true; s.loopStart = 0.03; s.loopEnd = A.buf['music-loop'].duration - 0.03; g.gain.value = 0.3;
   s.connect(g); g.connect(A.master); s.start(); A.music = s; A.musicGain = g;
 }
 function stopMusic() { if (A.music) { try { A.music.stop(); } catch {} A.music = null; } }
 // one voice at a time; the strip shows who talks
 let voiceTimer = 0;
+function readQuestion(id, who) { if (A.voice) { try { A.voice.stop(); } catch {} } A.voice = play(id, 1.0); talk(who, (A.buf[id] ? A.buf[id].duration : 1.5) * 1000); }
 function voice(group, opts = {}) {
   const id = typeof group === 'string' && VO_TEXT[group] ? group : pick(VO[group], 'vo-' + group);
   const who = VO_WHO(id);
@@ -238,45 +241,44 @@ function labelTex(text, kind) {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 
-// ---- answer cards: a flat card on the panel, its words straight and big, always turned to the player
-// (the camera looks down at the rings, so the words are drawn taller to look normal on screen)
-const SIGN_STRETCH = 1.55;
-function drawRed(x, W, H) {
-  x.clearRect(0, 0, W, H); x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.save(); x.translate(W / 2, H / 2); x.scale(1, SIGN_STRETCH * 0.62);
-  x.font = '220px sans-serif'; x.fillText('✋', 0, -80);
-  x.direction = 'rtl'; x.font = '900 120px Rubik, sans-serif'; x.fillStyle = '#ffffff'; x.strokeStyle = '#7a0b0d'; x.lineWidth = 16;
-  x.strokeText('קוטעים', 0, 150); x.fillText('קוטעים', 0, 150); x.restore();
-}
+// ---- answer cards: the painted card (assets/card.png) lying flat on the panel, its words straight, always turned to
+// the player. The camera looks down at the rings (~35 deg), which squashes what lies flat to ~0.58 of its height -
+// the card's plane and its words are drawn that much taller, so on screen they look like a normal card.
+const FLAT = 1 / 0.58;
+const CARD_IMG = new Image(); CARD_IMG.src = 'assets/card.png';
+const STOP_TEX = new THREE.TextureLoader().load('assets/stop.png'); STOP_TEX.colorSpace = THREE.SRGBColorSpace;
+const RED_TEX = STOP_TEX;
+const CARD_W = 1.8, CARD_H = 1.8 / 2.1 * FLAT; // plane size in the world
+const CARD_FONT = 'Fredoka, Rubik, sans-serif';
 function signTex(text, kind) {
-  const W = 1024, H = 672, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const W = 1024, H = Math.round(1024 * CARD_H / CARD_W), c = document.createElement('canvas'); c.width = W; c.height = H;
   LABC.width = W; LABC.height = H; const x = LABC.getContext('2d'); x.clearRect(0, 0, W, H);
   const red = kind === 'no';
-  x.fillStyle = red ? '#e5383b' : '#ffffff'; x.strokeStyle = red ? '#ffffff' : '#16213e'; x.lineWidth = 18;
-  x.beginPath(); x.roundRect(14, 14, W - 28, H - 28, 70); x.fill(); x.stroke();
+  if (CARD_IMG.complete && CARD_IMG.naturalWidth) x.drawImage(CARD_IMG, 0, 0, W, H);
+  else { x.fillStyle = '#fff'; x.strokeStyle = '#1b46b0'; x.lineWidth = 30; x.beginPath(); x.roundRect(20, 20, W - 40, H - 40, 90); x.fill(); x.stroke(); }
+  if (red) { x.save(); x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(229,56,59,0.88)'; x.fillRect(0, 0, W, H); x.restore(); }
   x.direction = 'rtl'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  const words = text.split(' '), maxW = W - 110;
-  const fits = (ls, sz) => { x.font = `900 ${sz}px Rubik, sans-serif`; return ls.every((l) => x.measureText(l).width <= maxW); };
-  let lines = [text], size = 190;
-  while (!fits(lines, size) && size > 130) size -= 4;
+  const words = text.split(' '), maxW = W * 0.8, maxH = (H * 0.62) / FLAT; // the card's white inside, in unsquashed px
+  const fits = (ls, sz) => { x.font = `700 ${sz}px ${CARD_FONT}`; return ls.every((l) => x.measureText(l).width <= maxW) && ls.length * sz * 1.05 <= maxH; };
+  let lines = [text], size = 170;
+  while (!fits(lines, size) && size > 120) size -= 4;
   if (!fits(lines, size) && words.length > 1) {
-    let best = 1, bw = 1e9; x.font = '900 120px Rubik, sans-serif';
+    let best = 1, bw = 1e9; x.font = `700 100px ${CARD_FONT}`;
     for (let i = 1; i < words.length; i++) { const w = Math.max(x.measureText(words.slice(0, i).join(' ')).width, x.measureText(words.slice(i).join(' ')).width); if (w < bw) { bw = w; best = i; } }
-    lines = [words.slice(0, best).join(' '), words.slice(best).join(' ')]; size = 150;
+    lines = [words.slice(0, best).join(' '), words.slice(best).join(' ')]; size = 140;
   }
-  while (!fits(lines, size) && size > 60) size -= 4;
-  x.font = `900 ${size}px Rubik, sans-serif`; x.fillStyle = red ? '#ffffff' : '#16213e';
-  x.save(); x.translate(W / 2, H / 2); x.scale(1, SIGN_STRETCH * 0.62);
-  lines.forEach((l, i) => x.fillText(l, 0, (i - (lines.length - 1) / 2) * size * 1.08));
+  while (!fits(lines, size) && size > 50) size -= 4;
+  x.save(); x.translate(W / 2, H / 2 + H * 0.01); x.scale(1, FLAT);
+  x.font = `700 ${size}px ${CARD_FONT}`;
+  lines.forEach((l, i) => {
+    const y = (i - (lines.length - 1) / 2) * size * 1.05;
+    x.fillStyle = red ? '#7a0b0d55' : '#1b46b022'; x.fillText(l, 0, y + size * 0.05); // a soft shadow under the words
+    x.fillStyle = red ? '#ffffff' : '#16213e'; x.fillText(l, 0, y);
+  });
   x.restore();
   c.getContext('2d').drawImage(LABC, 0, 0);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
-const RED_TEX = (() => {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 420; drawRed(c.getContext('2d'), 512, 420);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-})();
-document.fonts && document.fonts.load('900 120px Rubik').then(() => { drawRed(RED_TEX.image.getContext('2d'), 512, 420); RED_TEX.needsUpdate = true; });
 function sign(group, a, w, h, tex) {
   const pivot = new THREE.Object3D(); pivot.position.set(1.9 * Math.sin(a), 0.112, 1.9 * Math.cos(a)); group.add(pivot); pivot.userData.a = a;
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
@@ -375,12 +377,12 @@ function buildRing(i, arrive) {
     if (sl.panel >= 0) continue;
     const mat = sl.kind === 'red' ? MAT.red : plainMat(pal[k % 2]);
     const m = new THREE.Mesh(sliceGeo(k * SA + 0.004, (k + 1) * SA - 0.004), mat); group.add(m); ring.meshes[k] = m;
-    if (sl.kind === 'red') ring.signs.push(sign(group, (k + 0.5) * SA, 0.9, 0.75, RED_TEX).parent);
+    if (sl.kind === 'red') ring.signs.push(sign(group, (k + 0.5) * SA, 0.82, 0.82 * FLAT, STOP_TEX).parent);
   }
   L.panels.forEach((p) => {
     const a0 = p.s0 * SA + 0.006, a1 = (p.s0 + p.n) * SA - 0.006;
     const m = new THREE.Mesh(sliceGeo(a0, a1), MAT.panel.clone()); group.add(m);
-    const lab = sign(group, (p.s0 + p.n / 2) * SA, 1.78, 1.18, signTex(p.text, '')); ring.signs.push(lab.parent);
+    const lab = sign(group, (p.s0 + p.n / 2) * SA, CARD_W, CARD_H, signTex(p.text, '')); ring.signs.push(lab.parent);
     p.mesh = m; p.label = lab;
     for (let j = 0; j < p.n; j++) ring.meshes[(p.s0 + j) % SLICES] = m;
   });
@@ -424,6 +426,9 @@ function resetWorld(tutorial) {
 function askRing(i) {
   const r = G.rings[i]; if (!r || r.asked) return; r.asked = true; G.lastAsked = i;
   if (r.q.who === 'daniel') ask('amir', 'אז מה אתה מציע?'); else ask(r.q.who, r.q.q);
+  // the question is read aloud (Amir / Ofer)
+  const qid = Q_VO[r.q.who === 'daniel' ? 'אז מה אתה מציע?' : r.q.q];
+  if (qid && (G.running || G.tut)) setTimeout(() => { if (G.ringAt === i && !G.over && !G.frozen) readQuestion(qid, r.q.who === 'daniel' ? 'amir' : r.q.who); }, r.q.who === 'daniel' ? 1400 : 250);
   if (r.q.who === 'daniel') say('daniel', r.q.q.replace(/^דניאל: /, ''), '');
   talk(r.q.who === 'daniel' ? '' : r.q.who, 1800);
   if (!G.tut && !G.redWarned && r.slots.some((x) => x.kind === 'red')) { G.redWarned = true; chip('✋ אדום = קוטעים אותך. אל תנחתו עליו!', 3800); }
@@ -485,7 +490,7 @@ function passRing(ring, how) {
   if (G.tut) return;
   G.combo++;
   if (G.combo >= 3 && !G.momentum) { G.momentum = true; sfx('momentum', 0.8); pop('מומנטום!', 'gold'); setGlow(true); }
-  else if (how === 'vague' && Math.random() < 0.35) voice('yes', { cls: 'yes' });
+  else if (how === 'vague' && Math.random() < 0.3) say(Math.random() < 0.5 ? 'amir' : 'ofer', Math.random() < 0.5 ? 'בדיוק!' : 'מעולה.', 'yes');
   // a new stage?
   if (G.score > 0 && G.score % RING_PER_STAGE === 0) setTimeout(() => stageCard(stageOf(G.score)), 350);
 }
@@ -746,6 +751,6 @@ window.NTQ = {
 
 setSound(A.on);
 resize();
-document.fonts && document.fonts.load('900 40px Rubik').finally(() => {});
+document.fonts && Promise.all([document.fonts.load('900 40px Rubik', 'אב'), document.fonts.load('700 40px Fredoka', 'אבג')]).catch(() => {});
 showStart();
 requestAnimationFrame(frame);
