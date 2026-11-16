@@ -1211,7 +1211,7 @@ async function peekLeft() {
     if (r.ok) { quota = await r.json(); inviteDone(quota.invite); paintLeft(); }
   } catch (e) {}
 }
-function openChat(mode, text) {
+function openChat(mode, text, noFocus) {   // noFocus: APP SHELL - opened from the tab bar, the keyboard waits for a tap
   cxMode = mode && (mode === 'guide' || C[mode]) ? mode : 'guide';
   threads[cxMode] ||= load(cxMode);
   if (cxMode !== 'guide' && !threads[cxMode].length) threads[cxMode].push({ role: 'note', content: joined(cxMode) });
@@ -1219,7 +1219,7 @@ function openChat(mode, text) {
   drawChat();
   peekLeft();   // fresh each time (they may have signed in or out since)
   cx.classList.add('open'); $('#cx-back').classList.add('open');
-  if (text) send(text); else setTimeout(() => $('textarea', cx)?.focus(), 60);
+  if (text) send(text); else if (!noFocus) setTimeout(() => $('textarea', cx)?.focus(), 60);
 }
 function switchChat(mode) {
   if (mode === cxMode || busy) return;

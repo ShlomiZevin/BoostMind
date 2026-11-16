@@ -70,7 +70,7 @@ if (bar) bar.addEventListener('click', (e) => {
     if (chatOpen()) return;
     if (layer) nav(lastBase);
     const mode = typeof cxMode !== 'undefined' && cxMode ? cxMode : 'guide';
-    openChat(mode);
+    openChat(mode, null, true);   // no keyboard popping up from a tab tap
     paint();
     return;
   }
@@ -95,14 +95,22 @@ if (cx) new MutationObserver(() => {
 }).observe(cx, { attributes: true, attributeFilter: ['class'] });
 
 // ---------- the keyboard is up: the bar steps aside (and comes back when it goes down) ----------
+// a real keyboard = a text field focused AND the visible area shrunk well below its tallest (iPhone shrinks only the visual
+// viewport; Android may shrink the window too - so against the tallest seen, reset when the phone turns)
 const coarse = matchMedia('(pointer: coarse)');
+const vv = window.visualViewport;
+let tallest = vv ? vv.height : innerHeight;
+addEventListener('orientationchange', () => { tallest = 0; setTimeout(() => { tallest = vv ? vv.height : innerHeight; kbCheck(); }, 400); });
 function kbCheck() {
   const f = document.activeElement;
   const typing = !!(f && f.matches && f.matches('input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]), textarea, select, [contenteditable="true"]'));
-  const kb = typing && coarse.matches;
+  const h = vv ? vv.height : innerHeight;
+  if (!typing || h > tallest) tallest = Math.max(tallest, h);
+  const kb = typing && coarse.matches && !!vv && tallest - h > 120;
   if (kb !== html.classList.contains('kb')) { html.classList.toggle('kb', kb); requestAnimationFrame(tbChanged); }
 }
 addEventListener('focusin', kbCheck);
+vv?.addEventListener('resize', kbCheck);
 addEventListener('focusout', () => setTimeout(kbCheck, 0));
 
 // ---------- a game's full screen, a phone turned into a computer-wide window ----------

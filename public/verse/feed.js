@@ -39,7 +39,6 @@ function slide(v, i) {
     <div class="fd-media"></div>
     <div class="fd-shade"></div>
     <div class="fd-big" aria-hidden="true">${I.play}</div>
-    <button class="fd-sound" data-f="sound" hidden>${ICON_SOUND_OFF}<span>${esc(FT.sound)}</span></button>
     <div class="fd-ui">
       <div class="fd-rail">
         <button data-f="comments" aria-label="${esc(FT.comments)}"><span class="fd-ic">${ICON_COMMENT}</span><b data-cc>${esc(FT.comments)}</b></button>
@@ -49,6 +48,7 @@ function slide(v, i) {
         <button data-f="dl"><span class="fd-ic">${I.download}</span><b>${esc(FT.dl)}</b></button>
       </div>
       <div class="fd-info">
+        <button class="fd-sound" data-f="sound" hidden>${ICON_SOUND_OFF}<span>${esc(FT.sound)}</span></button>
         <h2 class="fd-t">${esc(v.title)}</h2>
         ${cast.length ? `<div class="fd-cast"><span class="fd-cl">${esc(FT.cast)}</span>${cast.map((id) => `<a class="fd-chip" href="/c/${id}">${av({ char: id })}<span>${esc(C[id].name)}</span></a>`).join('')}</div>
         <div class="fd-acts"><button class="fd-follow" data-f="follow"></button><button class="fd-talk" data-f="talk">${I.comment}<span>${esc(cast.length > 1 ? FT.talkAll : FT.talk1[gender(cast[0])])}</span></button></div>` : ''}
