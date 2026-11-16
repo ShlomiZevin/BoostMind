@@ -167,6 +167,15 @@ the editor stay.
   and check for overlaps (none may overlap).
   Every re-cut moves hand-pinned cards: re-place them from the voice pieces (take second -> timeline), and re-time
   items he moved (user: true keeps their old time).
+- **demokratovich-chanuka** (2026-11-16, Reader + Drop `demokratovich-chanuka`): "ימות המשיח" faith lesson for Kislev
+  (משיח מלשון שיחה, AI as the signs, נס פח הכנסת, 44+4 = 48 candles / seats). His notes before filming: **the Reader
+  first** ("תן לי קודם את הרידר" - he films while you prepare), **the set must not be too dark** ("לא רואים כלום" - the
+  mourning set was too dark; a warm, evenly lit evening shul), **only Eisenkot as the Kohen Gadol** (one gold frame;
+  the other side = a lit silver chanukiah on a pedestal; Bennett out). Set `_assets/demokratovich/chanuka/set.jpg` (2x) +
+  `sign` Eisenkot (`priests/eisenkot-rosh-hashana.png`) + the AI tag; `set-preview.jpg` = the same with the plaque
+  baked, a `pre.set` layer to see before Analyze (remove it after). Bed: the sad clarinet niggun he asked for =
+  `nechama/niggun-A-clarinet.mp3` with its three silent breaks cut out (`chanuka/clarinet-bed.wav`, 82.7 s, -15.7 LUFS,
+  layer 0.22 = level with the Modzitz at 0.141); Modzitz on a muted row as the alternative.
 - **Sticker with words on it (a badge, a label):** write the words on the square Leonardo image (HTML over the jpg,
   screenshot), THEN cut it out - cutting first and squeezing the cut-out back into a square stretched two of them.
 
