@@ -7,6 +7,8 @@
 //   GET  /api/characters/:id        one, with its videos' titles and every asset as a URL
 //   POST /api/characters/:id        {patch} - edit (or create) one; null removes a field
 //   POST /api/characters/pace       {paces: {<name as in a script>: wpm}, script} - the Reader's paces, matched by name
+//   GET  /api/characters/pace?names=a,b   {<name>: wpm} - each name's saved pace (the record's, else one kept for a
+//                                   name not known yet) - the Reader fills a new script's paces with them
 //   GET  /charfile?p=<path>         an asset file (only under the studio, the website folder or Downloads)
 // A video belongs to a character when its project.json lists the id in `characters` (the builders write it) or the
 // character lists the video.
@@ -82,6 +84,19 @@ export default function characters(app, { ROOT, EPS }) {
       await adoptPaces(all);
       const vids = videosOf();
       res.json({ worlds, characters: all.map((c) => { const x = full(c, vids, face); return { ...x, video_count: x.videos.length }; }) });
+    } catch (e) { fail(res, e); }
+  });
+  app.get('/api/characters/pace', async (q, res) => {  // the Reader, when a script loads (his ask, 2026-11-16: "save it per name of character")
+    try {
+      const names = String(q.query.names || '').split(',').map((x) => x.trim()).filter(Boolean);
+      const all = await db.characters(), unknown = read(PACES, {}) || {}, out = {};
+      for (const name of names) {
+        const hit = all.find((c) => namesOf(c).includes(norm(name)));
+        const kept = Object.entries(unknown).filter(([n]) => norm(n) === norm(name)).sort((a, b) => (b[1].at || 0) - (a[1].at || 0))[0]?.[1];
+        const best = [hit?.pace, kept].filter((p) => +p?.wpm).sort((a, b) => (b.at || 0) - (a.at || 0))[0];
+        if (best) out[name] = +best.wpm;
+      }
+      res.json(out);
     } catch (e) { fail(res, e); }
   });
   app.get('/api/characters/:id', async (q, res) => {

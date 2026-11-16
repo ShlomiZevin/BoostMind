@@ -358,7 +358,14 @@ function load(text, key) {
   cur = Math.min(saved.cur || 0, Math.max(0, lines.length - 1));
   locked = !!saved.locked;
   paces = saved.paces || {};
-  sendPaces();  // (paces measured before reach the Characters page too)
+  // each character's pace is kept by name (render/characters.mjs) - a script takes it from there, so a pace measured
+  // in one script is there in the next (his ask, 2026-11-16); the latest measurement wins over this script's old one
+  if (chars.length) fetch('/api/characters/pace?names=' + encodeURIComponent(chars.join(','))).then((r) => r.json()).then((got) => {
+    if (src !== key || !got || got.error) return;
+    let changed = false;
+    for (const c of chars) if (+got[c] && paces[c] !== +got[c]) { paces[c] = +got[c]; changed = true; }
+    if (changed) { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces, mark })); render(); foot(); if (playing) schedule(); }
+  }).catch(() => {});
   mark = Number.isInteger(saved.mark) && saved.mark < lines.length ? saved.mark : null;  // the checkpoint
   wpm = saved.locked && saved.wpm ? saved.wpm : (saved.wpm || +(store.get('reader-wpm') || DEFAULT_WPM));
   setPlay(false);
@@ -367,8 +374,9 @@ function load(text, key) {
 }
 
 const color = (who) => KNOWN[who] || PALETTE[chars.indexOf(who) % PALETTE.length];
-const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces, mark })); if (!locked) store.set('reader-wpm', wpm); sendPaces(); };
-// each character's pace also goes to its profile on the Characters page (render/characters.mjs matches the name)
+const save = () => { store.set('reader-' + src, JSON.stringify({ me, cur, wpm, locked, paces, mark })); if (!locked) store.set('reader-wpm', wpm); };
+// a character's pace he sets or measures goes to its name (render/characters.mjs - the Characters page and every next
+// script). Only then - never on load or a move, which would send an older pace of this script back over a newer one
 let paceTimer = null;
 const sendPaces = () => { clearTimeout(paceTimer); paceTimer = setTimeout(() => { if (!Object.keys(paces).length) return;
   fetch('/api/characters/pace', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ paces, script: String(src).replace(/^script:/, '') }) }).catch(() => {}); }, 800); };
@@ -396,7 +404,7 @@ function render() {
       const v = Math.round(+pi.value);
       if (v) paces[c] = Math.max(60, Math.min(600, v)); else delete paces[c];
       pi.value = paces[c] || '';
-      save(); foot(); if (playing) schedule();
+      save(); sendPaces(); foot(); if (playing) schedule();
     };
     pi.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); pi.blur(); } };
     const mb = document.createElement('button');  // measure his pace on a line of his (a fair length)
@@ -531,7 +539,7 @@ function measureClose() { if (meas?.raf) cancelAnimationFrame(meas.raf); meas = 
 function measureStep() {  // Start -> Stop -> Save
   if (!meas) return;
   if (meas.pace != null) {  // Save
-    if (meas.who) paces[meas.who] = meas.pace; else { wpm = meas.pace; showPace(); }
+    if (meas.who) { paces[meas.who] = meas.pace; sendPaces(); } else { wpm = meas.pace; showPace(); }
     save(); render(); foot();
     if (playing) schedule();
     measureClose();
