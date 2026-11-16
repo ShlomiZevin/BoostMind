@@ -95,15 +95,23 @@ Real problems: never advice that could hurt (health, medication, money, law, saf
 // reads them all instead of a search step choosing 1-3 and a memory step summarising them, which is where the misses came from:
 // Hani didn't know her own עיגוליות, the memory wrote "no reason was given" for 16:20). Over MAX_SCRIPTS characters (not near
 // today) the newest videos are kept whole and the oldest drop to their one-line event.
+// The list = the record's videos (kept current by every publish), not `life` - life is written once with the sheet
+// (scripts/characters/sheet.mjs), so a video published after it was missing from their memory (his note 2026-11-16: Hani
+// didn't know her father fell into a pit - haredit-6, published the day after her sheet). Each video: what happens in it
+// (life's event, or the card a publish writes) + its words - a transcript can be only the on-screen text (haredit-6's is).
 const MAX_SCRIPTS = 150000;
 function scriptsOf(cur, c) {
-  const vids = (c.life || []).map((x) => ({ x, v: cur.videos[x.v] })).filter((o) => o.v);
+  const ev = Object.fromEntries((c.life || []).map((x) => [x.v, x.e]));
+  const vids = (c.videos || []).map((id) => cur.videos[id]).filter(Boolean)
+    .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
   let left = MAX_SCRIPTS;
-  const parts = vids.slice().reverse().map(({ x, v }) => {
-    const t = String(v.transcript || v.card || '').trim();
-    if (!t || t.length > left) return `### ${x.v} | ${x.d || ''} | ${v.title}\n(${x.e})`;
+  const parts = vids.slice().reverse().map((v) => {
+    const what = ev[v.id] || String(v.card || v.teaser || '').split(/\s*נושאים:/)[0].trim();
+    const head = `### ${v.id} | ${v.date || ''} | ${v.title}${what ? `\n(${what})` : ''}`;
+    const t = String(v.transcript || '').trim();
+    if (!t || t.length > left) return head;
     left -= t.length;
-    return `### ${x.v} | ${x.d || ''} | ${v.title}\n${t}`;
+    return `${head}\n${t}`;
   });
   return parts.reverse().join('\n\n') || '(no videos yet)';
 }
