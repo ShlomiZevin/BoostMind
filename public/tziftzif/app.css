@@ -188,3 +188,5 @@ img { display: block; max-width: 100%; }
   .side .sm { display: block; padding: 12px 16px; color: var(--acc); font-size: .92rem; }
   .side .fine { color: var(--dim); font-size: .78rem; padding: 0 16px; margin: 0; }
 }
+/* the like = the Shlomiverse logo with its word (his rule 2026-11-16) */
+.ac img.pl { width: 24px; height: 20px; object-fit: contain; filter: grayscale(1) brightness(1.4) opacity(.6); } .ac .st.on img.pl { filter: drop-shadow(0 0 5px rgba(255,122,31,.6)); }

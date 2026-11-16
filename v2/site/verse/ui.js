@@ -5,7 +5,7 @@ const s = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="curre
 export const I = {
   // the logo's planet without its word (the full logo can't be read at like-button size): a back ring, the planet, the
   // ring's front arc over it. Strokes follow the text colour, so off = dim, on = orange (verse.css)
-  planet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" class="pl"><g transform="rotate(-16 12 12)"><path d="M1.5 12.6A10.5 4.3 0 0 1 22.5 12.6" stroke-width="2.4"/><circle cx="12" cy="12" r="7.6" fill="var(--pl-fill, #141218)" stroke-width="2"/><path d="M1.5 12.6A10.5 4.3 0 0 0 22.5 12.6" stroke-width="2.8"/></g></svg>`,
+  planet: '<img class="pl" src="/verse/logo-160.png" alt="">',   // the Shlomiverse's mark = the logo with its word (his rule 2026-11-16: never the planet alone)
   sticker: s('<path d="M20 12.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6.5"/><path d="M20 12.5 12.5 20c0-4.1 3.4-7.5 7.5-7.5z"/>'),
   game: s('<path d="M7.5 7h9a5 5 0 0 1 4.9 6l-.8 3.7a2.4 2.4 0 0 1-4.1 1.1L14.4 16H9.6l-2.1 1.8a2.4 2.4 0 0 1-4.1-1.1L2.6 13a5 5 0 0 1 4.9-6z"/><path d="M8 10v3M6.5 11.5h3"/><circle cx="15.5" cy="10.8" r=".6" fill="currentColor"/><circle cx="17" cy="12.6" r=".6" fill="currentColor"/>'),
   bag: s('<path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/>'),
@@ -78,7 +78,7 @@ export const abs = (p) => (!p ? '' : /^(https?:|\/)/.test(p) ? p : '/wiki/' + p)
 
 // a face: a character's portrait, a fan's Google photo or their initial, or the planet for the Shlomiverse itself
 export function av({ char, fan, planet, ring, cls = '' } = {}) {
-  if (planet || (fan && fan.official)) return `<span class="vx-av planet ${cls}">${I.planet}</span>`;   // the Shlomiverse answering = its planet
+  if (planet || (fan && fan.official && !fan.photo)) return `<span class="vx-av planet ${cls}"><img src="/verse/logo-160.png" alt="שלומיוורס"></span>`;   // the Shlomiverse answering = its logo (the official account shows its own picture)
   if (char) {
     const c = C[char];
     const img = c && c.img ? `<img src="${abs(c.img)}" alt="${esc(c.name)}" loading="lazy">` : `<span style="color:${charColor(char)}">${esc((c?.name || '?')[0])}</span>`;

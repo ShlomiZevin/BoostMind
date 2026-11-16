@@ -24,7 +24,7 @@ const I = {
   reply: S('<path d="M4 5h16v11H9l-5 4z"/>'),
   share: S('<path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"/>'),
   // the like = the verse's own like (his ask 2026-11-08): the logo's planet without its word, as in the verse's ui.js
-  stamp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" class="pl"><g transform="rotate(-16 12 12)"><path d="M1.5 12.6A10.5 4.3 0 0 1 22.5 12.6" stroke-width="2.4"/><circle cx="12" cy="12" r="7.6" fill="var(--bg)" stroke-width="2"/><path d="M1.5 12.6A10.5 4.3 0 0 0 22.5 12.6" stroke-width="2.8"/></g></svg>',
+  stamp: '<img class="pl" src="/verse/logo-160.png" alt="">',   // the logo with its word (his rule 2026-11-16: never the planet alone)
   more: S('<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>'),
   send: S('<path d="M21 3 3 10.5l7 2.5 2.5 7z"/><path d="m10 13 4-4"/>'),
   pen: S('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>'),

@@ -3114,3 +3114,16 @@ button:hover > .lk { color: #d8d4de; filter: none; }
 .vx-plays svg { width: 11px; height: 11px; fill: currentColor; flex: none; }
 .t10 .thumb { position: relative; }
 .vp-plays { white-space: nowrap; }
+
+/* the logo instead of the planet alone (his rule 2026-11-16): the same spots, sized for the logo image */
+img.pl { width: 1.5em; height: 1.5em; object-fit: contain; vertical-align: middle; flex: none; }
+.lk img.pl { width: 100%; height: 100%; display: block; filter: grayscale(1) brightness(1.4) opacity(.55); transition: filter .2s; }
+button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); }
+.on > .lk img.pl { filter: drop-shadow(0 0 5px rgba(255, 106, 31, .7)); }
+.idea-step .lk img.pl, .vp-credit .lk img.pl { filter: drop-shadow(0 0 4px rgba(255, 106, 31, .7)); }
+.vx-av.planet img { width: 92%; height: 92%; object-fit: contain; }
+.think img.pl { width: 26px; height: 22px; animation: think 1.25s ease-in-out infinite; transform-origin: center; }
+.think img.pl:nth-child(2) { animation-delay: .18s; } .think img.pl:nth-child(3) { animation-delay: .36s; }
+.vx-notif .ic img.pl { width: 30px; height: 30px; }
+.tzh-n img.pl { width: 20px; height: 18px; }
+.cx-chips img.pl { width: 20px; height: 18px; }
