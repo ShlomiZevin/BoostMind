@@ -130,8 +130,9 @@ image layer: live in the editor, covering everything in the export. Any preset t
 - **Silent business is a cutaway** ("move him to the speaking bubble for one or two seconds"): Daniel crunching his
   snack with the bag to camera, Ofer picking his ear - an empty-text script line (`**דניאל:** (קראנץ')` - parentheses =
   no subtitle) + corrections `{clip, in, out, aside: true, at, show: 1.8-2.2, gain}` (gain 0 for a silent one, high for
-  a crunch - it sits ~35 dB under speech).
-- **A TikTok-app take: no RNNoise** (`clean: "off"`) - the `nn` setting copied from the old Daniel (filter-app voice)
+  a crunch, at most ~1.5: gain 6 lifted his room noise - "terrible bg noise... just show him eating with regular sound,
+  maybe a bit louder"; that clip `clean: "off"`).
+- **A TikTok-app take: no RNNoise** (`clean: "mild"` - "off" left an annoying room noise) - the `nn` setting copied from the old Daniel (filter-app voice)
   made this one "completely broken". Check each take's audio before copying a character's voice settings.
 - **Held props survive the Zoom cut-out** (the עיגוליות bag held to camera stayed whole) - check a still with
   `cutout: true` before turning the cut-out off; turning it off lost his office background ("daniel missing his bg").
@@ -140,3 +141,9 @@ image layer: live in the editor, covering everything in the export. Any preset t
   spans from a contact sheet before handing over and move those tile items' `in` by op after the last rebuild.
 - **The removal while the boss keeps talking**: split the boss's last line at the removal (script line, `[מנסה לדבר]`,
   `[הסר]`, the rest as its own line) and pull the rest in (`shift` ~-0.3) so he talks over the victim's last try.
+- **Every voice starts ~0.25 s before its first word, the words staying put** (round 2: "Ofer swallows the first word -
+  just start his sound earlier without changing anything"): `in` -0.25 AND `shift` -0.25 on each line (check the take
+  is silent there). Trimming lines to the words made the soft first syllables too tight.
+- **Rebuild after hand ops**: items changed by op are `user: true` and keep their OLD frames through a rebuild (they
+  overlapped the new cut). Hand them back first - `item.update` with `"user": false` and `set: {"user": null}` - then
+  rebuild and re-apply. After every rebuild check each voice row for overlaps of the same person.
