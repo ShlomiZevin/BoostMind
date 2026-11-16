@@ -176,6 +176,25 @@ the editor stay.
   baked, a `pre.set` layer to see before Analyze (remove it after). Bed: the sad clarinet niggun he asked for =
   `nechama/niggun-A-clarinet.mp3` with its three silent breaks cut out (`chanuka/clarinet-bed.wav`, 82.7 s, -15.7 LUFS,
   layer 0.22 = level with the Modzitz at 0.141); Modzitz on a muted row as the alternative.
+- **A monologue from his takes as grouped clips** (demokratovich-chanuka, 2026-11-16 - "all in all very good"): the worked
+  builder `recipes/monologue-from-takes.example.py` (the haredit-6 cut method: picture tight on the loud speech, voices
+  overlapping each cut on two rows; hidden `_<id>-takes` copy analyzed for the cut-outs; subtitles = heard words aligned to
+  the script's spelling). His round-2 notes, all now in the builder - do them in the FIRST cut:
+  - **"You see me starting the recording"**: the phone tap at a take's start (a < 0.15 s blip, then >= 0.3 s quiet) was
+    counted as speech and opened the piece 0.6 s early - drop such blips at both ends before cutting.
+  - **Every silence out**: the min piece 0.8 s merged short phrases back over their pause (two silences he marked) - 0.35 s
+    for a monologue; a quiet stretch >= 0.2 s under speech level is a cut even where whisper shows no word boundary;
+    after the build list every silence >= 0.2 s left inside a piece (only acted beats may stay).
+  - Two voice tails on one row after short pieces: end the earlier where the next begins.
+  - **Stickers never on him** ("put the images in a place not covering the rabbi"): place each from his cut-out (the
+    matte sampled over the sticker's time, mapped to the canvas) - the spot covering him least, beside / above his head,
+    not on the plaque / Eisenkot, not under the hook or the scroll; the grandpa at the right, y 560 was "placed very well".
+  - **The end card on the LAST word** ("you put the end in too early, really too early") - not rising during the line
+    (that was the yamim-noraim note; here it was wrong), a 0.6 s fade, 4 s hold.
+  - Full width only (box w 1080): a narrower cut-out showed a hard straight edge where the take's frame ends.
+  - **Music: the Modzitz niggun** ("use the niggun Modzitz, it's better" than the sad clarinet he first asked for) - his
+    bed for this rabbi; glued at 84 s (a second item from 20 s, 1 s crossfade).
+  - **No export** while building - he reviews in the editor (SKILL.md rule 8).
 - **Sticker with words on it (a badge, a label):** write the words on the square Leonardo image (HTML over the jpg,
   screenshot), THEN cut it out - cutting first and squeezing the cut-out back into a square stretched two of them.
 

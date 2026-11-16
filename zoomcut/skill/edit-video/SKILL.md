@@ -952,7 +952,7 @@ separately filmed characters). Pick by the footage; never name things after a se
 | **"quick edit" / עריכה מהירה** - one person in short phone takes (TikTok app, face filter), joined tight + POV + the character's music, minutes, ONE round (Asaf) | `recipes/quick-edit.md` | lesson.py |
 | **a sketch of characters filmed apart, one at a time (selfie), talking to each other** (+ voices heard only) - the method he called "amazing": takes -> grouped clips, overlaps, cut-aways, the strip, the checks, his rounds (savta-1) | `recipes/dialogue-from-takes.md` (+ its `.example.py`) | layers (analysis on a hidden copy) |
 | several characters, one file each, a meeting / call grid | `recipes/zoom-call.md` | zoomcut.py |
-| one person talking to camera - rabbi lesson, guru podcast (tadar), news anchor, keynote | `recipes/monologue.md` | lesson.py |
+| one person talking to camera - rabbi lesson, guru podcast (tadar), news anchor, keynote | `recipes/monologue.md` (from his takes as grouped clips: `recipes/monologue-from-takes.example.py`) | layers (analysis on a hidden copy) |
 | one person reacting to a voice we don't see - a Zoom at his desk, a phone call on speaker, an office day (Hani) | `recipes/offscreen-voice.md` | lesson.py |
 | **a new Hani Friedman video (haredit-N)** - read this FIRST: the steps + every lesson from haredit-2 | `recipes/hani.md` (then `offscreen-voice.md`) | lesson.py |
 | a silent stare + her thoughts as voice-over (Gen Z), cinematic | `recipes/genz-thoughts.md` | lesson.py |
