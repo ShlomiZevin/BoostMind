@@ -86,12 +86,14 @@ a{color:inherit}
 @media (max-aspect-ratio:3/5){#start{background-size:100% auto}}
 @media (min-aspect-ratio:3/5){#start{background-size:cover,cover}}
 @media (max-height:520px){#over .removed{width:110px}#over .sc b{font-size:34px}#over{gap:6px}#over .quote{display:none}#over h2,#card h2{font-size:22px}.big{padding:9px 0;font-size:20px}}
-@media (max-height:520px){#start p{display:none}}
-#start p{background:#0b1a3aaa;border-radius:12px;padding:6px 10px}
+@media (max-height:520px){#start .pitch{display:none}}
+#start .pitch{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:4px}
 #turn{display:none}
 @media (orientation:landscape) and (pointer:coarse) and (max-height:500px){#turn{display:flex;position:fixed;inset:0;z-index:99;background:#0b1a3a;color:#fff;font-weight:900;font-size:22px;align-items:center;justify-content:center;text-align:center;padding:20px}}
 #start > *{position:relative}
-#start p{color:#fff;text-align:center;font-weight:500;font-size:clamp(13px,3.7vw,16px);text-shadow:0 1px 4px #000c;margin:0;max-width:26em;line-height:1.35}
+#start .pq{background:#fff;color:#14142b;font-weight:900;font-size:clamp(17px,5vw,22px);padding:7px 16px;border-radius:14px;border:3px solid #e0202f;transform:rotate(-2deg);box-shadow:0 6px 16px #0008;white-space:nowrap}
+#start .pq b{color:#e0202f}
+#start .ph{background:#ffd23f;color:#14142b;font-weight:800;font-size:clamp(14px,4vw,17px);padding:5px 14px;border-radius:12px;border:2px solid #fff;box-shadow:0 5px 14px #0007;white-space:nowrap}
 .big{background:linear-gradient(#ffd54a,#ffb300);color:#3a2500;font-weight:900;font-size:clamp(22px,6.4vw,28px);border-radius:20px;padding:12px 0;width:min(84%,340px);box-shadow:0 6px 0 #b77d00,0 10px 20px #0006}
 .big:active{transform:translateY(3px);box-shadow:0 3px 0 #b77d00,0 6px 12px #0006}
 .big.breath{animation:breath 1.6s ease-in-out infinite}
@@ -152,7 +154,7 @@ a{color:inherit}
 <div id="pop"></div>
 
 <div id="start" class="screen">
-  <p>פגישת הנהלה בטקי-טק. כל תשובה ברורה ונכונה מקבלת «זאת לא השאלה». ירדו לפרטים דרך התשובות המעורפלות.</p>
+  <div class="pitch"><div class="pq">ענית ברור? <b>זאת לא השאלה.</b></div><div class="ph">רק תשובות מעורפלות מורידות למטה</div></div>
   <div id="best"></div>
   <button class="big breath" id="playB">יורדים לפרטים</button>
   <button class="soft" id="howB">איך משחקים</button>
