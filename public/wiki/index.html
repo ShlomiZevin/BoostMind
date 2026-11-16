@@ -44,6 +44,8 @@
 <script>try { const t = localStorage.getItem('wiki-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 // opened straight onto a game or a video (a refresh, a shared link, a push): the home stays hidden until that page is up
 if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classList.add('opening'); setTimeout(() => document.documentElement.classList.remove('opening'), 8000); }</script>
+<script>/* APP SHELL (gates.js APP_SHELL, verse/shell.js): html.app before the first paint - a test browser (vx-preview) or the last answer */
+try { if (localStorage.getItem('vx-preview') === '1' || localStorage.getItem('vx-app') === '1') document.documentElement.classList.add('app'); } catch (e) {}</script>
 <style>html.opening, html.opening body { background: #000; } html.opening body > :not(.vp) { visibility: hidden; }</style>
 <!-- the Shlomiverse as an app on the home screen + push (v2: /manifest.webmanifest, /sw.js, /verse/) -->
 <link rel="manifest" href="/manifest.webmanifest">
@@ -459,6 +461,7 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
   }
   @media (prefers-reduced-motion: reduce) { .col { animation: none; } }
 </style>
+<link rel="stylesheet" href="/verse/shell.css"><!-- APP SHELL: the tab bar, the slim top bar, the videos feed (only under html.app) -->
 </head>
 <body>
 <header class="top" id="top">
@@ -469,6 +472,7 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
       <a href="/characters" data-nav="characters">דמויות</a>
       <a href="/series" data-nav="series" class="nav-series">סדרות</a>
       <a href="/videos" data-nav="videos">סרטונים</a>
+      <a href="/games" data-nav="games" class="nav-games" hidden>משחקים</a><!-- APP SHELL: shown under html.app -->
       <a href="/sites" data-nav="sites" class="nav-sites">אתרים</a>
       <a href="/community" data-nav="community">קהילה</a>
       <a href="/chat" data-nav="chat">צ'אט</a>
@@ -488,6 +492,14 @@ if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classLis
 </header>
 
 <main id="app"></main>
+<!-- APP SHELL: the bottom tab bar on phones (verse/shell.css shows it only under html.app; shell.js wires it) -->
+<nav class="tabbar" id="tabbar" aria-label="ניווט ראשי" hidden>
+  <a href="/" data-tab="home"><img src="/verse/art/tabs/home.png" alt="" width="32" height="32"><span>בית</span></a>
+  <a href="/videos" data-tab="videos"><img src="/verse/art/tabs/videos.png" alt="" width="32" height="32"><span>סרטונים</span></a>
+  <a href="/games" data-tab="games"><img src="/verse/art/tabs/games.png" alt="" width="32" height="32"><span>משחקים</span></a>
+  <a href="/chat" data-tab="chat"><img src="/verse/art/tabs/chat.png" alt="" width="32" height="32"><span>צ'אט</span></a>
+  <a href="/characters" data-tab="characters"><img src="/verse/art/tabs/characters.png" alt="" width="32" height="32"><span>דמויות</span></a>
+</nav>
 
 <footer>
   <!-- short: who this is, where else to find him (each link says where it goes) -->
@@ -691,6 +703,11 @@ const pages = {
       <section class="sec"><div class="sec-h"><h2>סרטונים</h2></div>${s.videos.length ? `<div class="vgrid">${s.videos.map((id) => vcard(V[id])).join('')}</div>` : '<div class="empty">עוד אין כאן סרטונים.</div>'}</section></div>`;
   },
   videos(q) {
+    // APP SHELL: on a phone the videos are a feed, one per screen (verse/feed.js); the grid stays at ?view=grid
+    if (!q.view && document.documentElement.classList.contains('app') && matchMedia('(max-width: 760px)').matches) {
+      const f = HOOK.videosFeed ? HOOK.videosFeed(q) : `<div class="vx-loader" role="status" aria-label="נכנסים לשלומיוורס" data-say="נכנסים לשלומיוורס"></div>`;
+      if (f) return f;
+    }
     const list = W.videos.filter((v) => !q.s || v.series === q.s);
     return `<div class="wrap"><div class="page-h"><h1>הסרטונים</h1><p>מהחדש לישן.</p></div>
       ${filterChips(q.s, '/videos')}<div class="vgrid">${list.map(vcard).join('')}</div></div>`;

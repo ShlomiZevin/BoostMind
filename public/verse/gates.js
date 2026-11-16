@@ -16,6 +16,10 @@ const ABOUT_OPEN = true;   // "מה סיפרתם לנו" on the אני page (pla
 // a session's test browser (vx-preview) sees it
 // OPENED 2026-11-08 with ציפציפ + ח24 themselves (his "open both sites and put it on the Shlomiverse home page")
 const TZ_HOME = true;
+// the app shell (plan app-shell, mockups Documents/shlomiverse-v2-design/app-shell): the bottom tab bar, the slim top bar, the
+// videos feed (verse/shell.js, shell.css, feed.js). Off for everyone; his account and the sessions' test browsers (vx-preview)
+// see it. The wiki page sets html.app early from vx-preview / the last answer (vx-app), shell.js keeps it right
+const APP_SHELL = false;
 const HIM = new Set(['rJLlCV393shl7njhzWZmoaE15Yp2']);   // shlomi@boostart.io
 // a test browser sees what he sees (localStorage vx-preview = 1) - only for the sessions' phone checks and screenshots
 const peek = () => { try { return localStorage.getItem('vx-preview') === '1'; } catch (e) { return false; } };
@@ -26,3 +30,4 @@ export const nextBar = () => NEXT_BAR || him();
 export const flyOpen = () => FLY_OPEN || him();
 export const aboutOpen = () => ABOUT_OPEN || him();
 export const tzHomeOpen = () => TZ_HOME || peek();
+export const appShell = () => APP_SHELL || him();

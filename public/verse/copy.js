@@ -575,4 +575,9 @@ export const T = {
   // download (the player's rail): the file always comes with the Shlomiverse's mark
   dl: { btn: 'הורדה', title: 'הורדת הסרטון', making: 'מכינים לכם את הסרטון עם החותמת של השלומיוורס...', loading: 'הסרטון יורד...',
     ready: 'הסרטון מוכן', save: 'שמירה לתמונות', started: 'ההורדה התחילה', slow: 'הורדתם הרבה סרטונים. נסו שוב עוד מעט.' },
+  // the videos feed (feed.js, the app shell's סרטונים tab - mockup app-shell/2): the words on the mockup he approved
+  feed: { title: 'סרטונים', sound: 'לחצו לשמיעה', cast: 'בכיכוב:', sticker: 'סטיקר', comments: 'תגובות', save: 'שמירה', saved: 'נשמר', share: 'שיתוף', dl: 'הורדה',
+    followAll: 'לעקוב אחרי הדמויות', followingAll: 'עוקבים אחרי כולן', talkAll: 'לדבר עם הדמויות',
+    follow1: { m: 'לעקוב אחריו', f: 'לעקוב אחריה', p: 'לעקוב אחריהם' }, talk1: { m: 'לדבר איתו', f: 'לדבר איתה', p: 'לדבר איתם' },
+    pickFollow: 'אחרי מי לעקוב?', pickTalk: 'עם מי לדבר?', talkTo: 'לדבר', play: 'נגינה', pause: 'עצירה' },
 };

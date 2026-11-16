@@ -1,0 +1,160 @@
+/* The app shell (verse/shell.js, plan app-shell, mockups Documents/shlomiverse-v2-design/app-shell/1-4). Everything here applies
+   only under html.app (gates.js APP_SHELL - his account and test browsers first) and, for the bars, only on a phone (<= 760px).
+   --th = the top bar's height, --tb = the bottom tab bar's (0 when it steps aside: a computer, the keyboard, a game's full
+   screen, the simulation / citizenship journeys). Layers and sheets end above the tab bar; the tab bar sits above them (z 92). */
+:root { --th: 0px; --tb: 0px; }
+.vp-x { display: none; }   /* the video / game layer's close button (player.js) - only in the app shell */
+
+/* a computer in the app shell: the top nav gets משחקים */
+html.app .nav a.nav-games { display: block; }
+
+@media (max-width: 760px) {
+  html.app { --th: calc(52px + env(safe-area-inset-top)); --tb: calc(62px + env(safe-area-inset-bottom)); }
+  html.app.kb, html.app:has(.vp.vg.full), html.app:has(body[data-page="simulation"]), html.app:has(body[data-page="citizenship"]) { --tb: 0px; }
+
+  /* ---------- the top bar (mockups 1, 2): slim and solid, the logo at the right, search + bell + the account at the left ---------- */
+  html.app .top, html.app .top.solid, html.app body:not(.at-home) .top { background: #0b0b0e; border-bottom: 1px solid rgba(255, 255, 255, .08); padding-top: env(safe-area-inset-top); transition: none; }
+  html.app .top .wrap { height: 52px; gap: 4px; padding-inline: 12px 10px; }
+  html.app .top .brand { flex: none; gap: 0; margin: 0; }
+  html.app .top .brand > span { display: none; }
+  html.app .top .brand .brand-logo { width: 54px; height: auto; margin-block: -6px; filter: drop-shadow(0 0 6px rgba(255, 106, 31, .35)); }
+  html.app .top .brand::after { content: ''; width: 1px; height: 28px; background: rgba(255, 255, 255, .14); margin-inline-start: 12px; }
+  html.app .nav { display: none !important; }   /* the old bottom bar: the tab bar replaces it */
+  html.app #theme { display: none !important; }
+  html.app .top .search:not(.s-open) { flex: none !important; width: 42px !important; min-width: 0 !important; margin: 0 !important; margin-inline-start: auto !important; }
+  html.app .top .search:not(.s-open) input { width: 42px; height: 42px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: transparent; caret-color: transparent; cursor: pointer; font-size: 16px; }
+  html.app .top .search:not(.s-open) input::placeholder { color: transparent; -webkit-text-fill-color: transparent; }
+  html.app .top .search:not(.s-open) > svg { right: 9px; top: 9px; width: 24px; height: 24px; color: #fff; stroke-width: 2.2; }
+  html.app .top .search.s-open { position: absolute; inset-inline: 10px; top: calc(env(safe-area-inset-top) + 6px); width: auto !important; margin: 0 !important; z-index: 5; }
+  html.app .top .search.s-open input { height: 40px; padding: 0 38px 0 12px; color: var(--text); background: var(--card); border: 1px solid var(--line2); caret-color: auto; cursor: text; font-size: 16px; }
+  html.app .top .search.s-open input::placeholder { color: var(--dim); -webkit-text-fill-color: var(--dim); }
+  html.app .top .search.s-open > svg { right: 11px; top: 11px; }
+  html.app .top .vx-top { display: flex; align-items: center; gap: 4px; flex: none; margin: 0; }
+  html.app .top .vx-top .st-chip { display: none; }
+  html.app .top .vx-top .icon-btn { width: 42px; height: 42px; border: 0; border-radius: 12px; background: transparent; color: #fff; position: relative; }
+  html.app .top .vx-top .icon-btn svg { width: 25px; height: 25px; }
+  html.app .top .vx-top .in-btn { height: 38px; padding: 0 22px; margin-inline-start: 6px; border-radius: 99px; font-size: 1rem; font-weight: 800; box-shadow: 0 4px 14px rgba(255, 106, 31, .3); }
+  html.app .top .vx-top .me-wrap { margin-inline-start: 6px; }
+  html.app .top .vx-top .me-btn { width: 38px; height: 38px; }
+
+  /* the page between the bars */
+  html.app main, html.app body:not(.at-home) main { padding-top: var(--th) !important; }
+  /* the home's card between the bars (mockup 1), the counts pill inside its foot */
+  html.app section.hero { height: auto; min-height: calc(100svh - var(--th) - var(--tb)); padding: 12px 0 14px; }
+  html.app section.hero .hero-in { padding-bottom: 72px; }
+  html.app section.hero .scroll-hint { margin-top: -62px; z-index: 4; }
+  html.app section.hero:has(.at-box:not([hidden])) .scroll-hint { visibility: hidden; }
+  html.app footer { padding-bottom: calc(40px + var(--tb)); }
+  html.app .fab { display: none !important; }
+
+  /* ---------- the tab bar: the five drawn icons, the label under each; the one showing in colour, orange, a line on top ---------- */
+  html.app .tabbar { display: flex; position: fixed; inset-inline: 0; bottom: 0; z-index: 92; height: var(--tb); padding: 0 4px env(safe-area-inset-bottom);
+    background: #0b0b0e; border-top: 1px solid rgba(255, 255, 255, .09); box-shadow: 0 -8px 24px rgba(0, 0, 0, .35); }
+  html.app.kb .tabbar, html.app:has(.vp.vg.full) .tabbar, html.app:has(body[data-page="simulation"]) .tabbar, html.app:has(body[data-page="citizenship"]) .tabbar { display: none; }
+  html.app .tabbar a { flex: 1 1 0; min-width: 0; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    color: #8f8c97; font-size: 13px; font-weight: 700; line-height: 1.15; text-decoration: none; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  html.app .tabbar img { width: 34px; height: 34px; object-fit: contain; filter: grayscale(.6) brightness(.85); opacity: .78; transition: filter .15s, opacity .15s, transform .15s; }
+  html.app .tabbar span { white-space: nowrap; }
+  html.app .tabbar a.on { color: var(--accent, #ff6a1f); }
+  html.app .tabbar a.on img { filter: none; opacity: 1; transform: scale(1.06); }
+  html.app .tabbar a.on::before { content: ''; position: absolute; top: -1px; left: 50%; width: 56px; height: 3px; border-radius: 0 0 4px 4px; transform: translateX(-50%);
+    background: var(--accent, #ff6a1f); box-shadow: 0 0 12px rgba(255, 106, 31, .65); }
+  html.app .tabbar a:active img { transform: scale(.92); }
+
+  /* ---------- layers and sheets end above the tab bar ---------- */
+  html.app .vp, html.app .st, html.app .sv { bottom: var(--tb); }
+  html.app .cx { bottom: var(--tb); }
+  html.app .cx-back { bottom: var(--tb); }
+  html.app .vx-sheet { bottom: var(--tb); max-height: calc(92svh - var(--tb)); }
+  html.app .vx-toast { bottom: calc(26px + var(--tb)); }
+  html.app:not(.kb) .vp:not(.full) .vp-ep { bottom: 14px; }
+
+  /* the video / game layer's close: an arrow at the start edge (it goes back to the page under it) */
+  html.app .vp-x { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 50%; padding: 0; cursor: pointer;
+    background: rgba(12, 12, 14, .55); border: 1px solid rgba(255, 255, 255, .2); color: #fff; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  html.app .vp-x svg { width: 22px; height: 22px; }
+  /* the video page shows nothing over the video until a tap - its close stays, at the head's start, the face moves beside it */
+  html.app .vp > .vp-x { position: absolute; z-index: 6; top: calc(16px + env(safe-area-inset-top)); right: 14px; }
+  html.app .vp:not(.vg) .vp-head { padding-inline-start: 52px; }
+}
+
+/* ---------- the videos feed (feed.js, mockup 2): one video per screen between the bars ---------- */
+html.feed-on body { overflow: hidden; }
+html.feed-on footer { display: none; }
+.fd { position: fixed; top: var(--th); bottom: var(--tb); inset-inline: 0; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory;
+  background: #000; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.fd::-webkit-scrollbar { display: none; }
+.fd-s { position: relative; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; background: #000; color: #fff; isolation: isolate; }
+.fd-poster, .fd-media, .fd-media video { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fd-poster, .fd-media video { object-fit: cover; display: block; background: transparent; }
+.fd-shade { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .22), transparent 16%, transparent 44%, rgba(0, 0, 0, .5) 64%, rgba(0, 0, 0, .9) 100%); }
+.fd-big { position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; border-radius: 50%; background: rgba(0, 0, 0, .5);
+  display: grid; place-items: center; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 2; }
+.fd-big svg { width: 36px; height: 36px; fill: #fff; margin-inline-end: -4px; }
+.fd-s.paused .fd-big { opacity: 1; }
+
+/* "לחצו לשמיעה": while the feed is muted, on the video that plays */
+.fd-sound { position: absolute; top: 14px; left: 14px; z-index: 3; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px 0 14px;
+  border-radius: 99px; background: rgba(12, 12, 14, .74); border: 1.5px solid var(--accent, #ff6a1f); color: #fff; font: inherit; font-weight: 800; font-size: 1rem;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(0, 0, 0, .45); cursor: pointer; animation: fd-in .3s ease both; }
+.fd-sound[hidden] { display: none; }
+.fd-sound svg { width: 22px; height: 22px; flex: none; color: var(--accent, #ff6a1f); }
+@keyframes fd-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.fd-ui { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px 12px 16px; }
+/* the action column (mockup 2): round buttons at the start edge, each its icon over its word */
+.fd-rail { align-self: flex-start; display: flex; flex-direction: column; gap: 11px; margin: 0 -2px 16px 0; }
+.fd-rail button { width: 56px; height: 56px; border-radius: 50%; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: rgba(16, 16, 20, .66); border: 1px solid rgba(255, 255, 255, .17); color: #fff; cursor: pointer;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0, 0, 0, .35); transition: transform .12s; }
+.fd-rail button:active { transform: scale(.92); }
+.fd-ic { display: block; line-height: 0; }
+.fd-ic svg { width: 24px; height: 24px; }
+.fd-ic.on { color: var(--accent, #ff6a1f); }
+.fd-ic.on svg { fill: currentColor; }
+.fd-rail b { font-size: 11px; font-weight: 700; line-height: 1.1; letter-spacing: -.01em; }
+
+.fd-info { display: flex; flex-direction: column; gap: 10px; }
+.fd-t { font-size: 1.16rem; font-weight: 800; line-height: 1.3; text-shadow: 0 1px 10px rgba(0, 0, 0, .7); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fd-cast { display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: -12px; padding: 1px 12px; }
+.fd-cast::-webkit-scrollbar { display: none; }
+.fd-cl { flex: none; font-weight: 700; font-size: .95rem; text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
+.fd-chip { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding-inline: 4px 16px; border-radius: 99px; color: #fff; text-decoration: none;
+  background: rgba(20, 20, 24, .62); border: 1px solid rgba(255, 255, 255, .22); font-weight: 700; font-size: .95rem; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.fd-chip .vx-av { width: 32px; height: 32px; flex: none; border: 0; }
+.fd-acts { display: flex; gap: 10px; margin-top: 2px; }
+.fd-acts button { flex: 1 1 0; min-width: 0; height: 48px; padding: 0 8px; border-radius: 99px; display: flex; align-items: center; justify-content: center; gap: 6px;
+  font: inherit; font-weight: 800; font-size: 15px; letter-spacing: -.015em; white-space: nowrap; cursor: pointer; transition: transform .12s; }
+.fd-acts button:active { transform: scale(.97); }
+.fd-acts span { overflow: hidden; text-overflow: ellipsis; }
+.fd-acts svg { width: 20px; height: 20px; flex: none; }
+.fd-follow { background: var(--accent, #ff6a1f); color: #fff; border: 1.5px solid var(--accent, #ff6a1f); box-shadow: 0 6px 18px rgba(255, 106, 31, .35); }
+.fd-follow.on { background: rgba(16, 16, 20, .66); color: #fff; box-shadow: none; }
+.fd-follow.on svg { color: var(--accent, #ff6a1f); }
+.fd-talk { background: rgba(10, 10, 12, .5); color: #fff; border: 1.5px solid rgba(255, 255, 255, .88); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.fd-line { position: absolute; bottom: 0; inset-inline: 0; height: 3px; background: rgba(255, 255, 255, .14); z-index: 3; pointer-events: none; }
+.fd-line i { display: block; height: 100%; width: 0; background: var(--accent, #ff6a1f); margin-inline-start: auto; }
+@media (max-width: 370px) {
+  .fd-rail button { width: 54px; height: 54px; }
+  .fd-rail { gap: 9px; }
+  .fd-acts { gap: 8px; }
+  .fd-acts button { font-size: 13.5px; padding: 0 6px; gap: 5px; }
+  .fd-acts svg { width: 18px; height: 18px; }
+  .fd-t { font-size: 1.08rem; }
+}
+@media (max-height: 700px) {
+  .fd-rail button { width: 50px; height: 50px; }
+  .fd-ic svg { width: 22px; height: 22px; }
+  .fd-rail b { font-size: 10.5px; }
+  .fd-rail { gap: 7px; margin-bottom: 10px; }
+}
+
+/* the people on a video with several: who to follow / who to talk to */
+.fd-pl { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.fd-pr { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; background: rgba(255, 255, 255, .05); }
+.fd-pr .vx-av { width: 48px; height: 48px; flex: none; }
+.fd-pr b { flex: 1; min-width: 0; font-size: 1.02rem; font-weight: 800; }
+.fd-pr .vx-pill { flex: none; }
+.fd-tt { display: inline-flex; align-items: center; gap: 6px; }
+.fd-tt svg { width: 16px; height: 16px; }

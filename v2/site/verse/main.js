@@ -17,12 +17,15 @@ import { simPage, mountBand, quizCard } from './sim.js';
 import { mountTz } from './tzhome.js';
 import { adSlot } from './ads.js';
 import { citizenPage } from './citizen.js';
+import { shellAfterRoute } from './shell.js';   // APP SHELL: the tab bar, the slim top bar (gates.js APP_SHELL)
+import { videosFeed, feedAfterRoute } from './feed.js';   // APP SHELL: the videos feed on phones
 appBoot();
 
 Object.assign(HOOK, {
   openPlayer,
   openGame,
   openStory,
+  videosFeed,   // APP SHELL: /videos on a phone (the wiki page asks only under html.app)
   closeOverlays: () => {
     const a = closePlayer(), b = closeStory();
     // back onto the home kept from under a video / game opened straight from a link: its records were never filled in
@@ -55,6 +58,7 @@ Object.assign(HOOK, {
     const back = /^\/(v|story|play)\//.test(h) ? '/' : h;
     setBack(back); setStoryBack(back);
     setCurrent(page, id);
+    feedAfterRoute(page); shellAfterRoute();   // APP SHELL
     document.body.dataset.page = page || 'home';
     // the signed-in home has a solid top bar (no hero under it)
     renderTop();

@@ -23,7 +23,7 @@ export function episodes(v) {
 }
 const WATCH = 'vx-watch';
 export function watched() { try { return JSON.parse(localStorage.getItem(WATCH)) || {}; } catch (e) { return {}; } }
-function remember(id, t, d) {
+export function remember(id, t, d) {   // exported for the videos feed (feed.js)
   const all = watched();
   all[id] = { t: Math.round(t), d: Math.round(d), at: Date.now() };
   const keep = Object.entries(all).sort((a, b) => b[1].at - a[1].at).slice(0, 40);
@@ -34,14 +34,16 @@ function remember(id, t, d) {
 // The layer takes the size of what the phone really shows (visualViewport), kept up to date: iPhone sometimes sizes a
 // fixed full-screen layer shorter than the screen and leaves an empty black strip at the bottom (his screenshot,
 // 2026-11-03, a game opened by refreshing its link).
+// APP SHELL: the layer ends above the bottom tab bar (0 when the bar is hidden - no app shell, a computer, the keyboard, full screen)
+const tabBar = () => document.getElementById('tabbar')?.offsetHeight || 0;
 function fit(el) {
   const vv = window.visualViewport;
   if (!vv) return () => {};
-  const go = () => { el.style.top = vv.offsetTop + 'px'; el.style.height = vv.height + 'px'; el.style.bottom = 'auto'; };
+  const go = () => { el.style.top = vv.offsetTop + 'px'; el.style.height = Math.max(0, vv.height - tabBar()) + 'px'; el.style.bottom = 'auto'; };
   go();
   const ts = [setTimeout(go, 300), setTimeout(go, 1200)];
-  vv.addEventListener('resize', go); vv.addEventListener('scroll', go); addEventListener('orientationchange', go);
-  return () => { ts.forEach(clearTimeout); vv.removeEventListener('resize', go); vv.removeEventListener('scroll', go); removeEventListener('orientationchange', go); };
+  vv.addEventListener('resize', go); vv.addEventListener('scroll', go); addEventListener('orientationchange', go); addEventListener('vx-tb', go);
+  return () => { ts.forEach(clearTimeout); vv.removeEventListener('resize', go); vv.removeEventListener('scroll', go); removeEventListener('orientationchange', go); removeEventListener('vx-tb', go); };
 }
 const opened = () => document.documentElement.classList.remove('opening');   // the wiki page hid the home until now
 export function openPlayer(id, q = {}) {
@@ -64,6 +66,7 @@ export function openPlayer(id, q = {}) {
       <div class="vp-mark"><img src="/verse/logo-160.png" alt=""></div>
       <div class="vp-line"><i></i></div>
     </div>
+    <button class="vp-x" data-close aria-label="סגירה">${I.back}</button><!-- APP SHELL: a real close, always showing (shell.css, only under html.app) -->
     <div class="vp-ui">
       <div class="vp-head">
         ${lead ? `<a class="vp-who" href="/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
@@ -210,6 +213,7 @@ export function openGame(id, q = {}) {
   el.innerHTML = `<div class="vp-bg" style="background-image:url('${esc(g.img || '')}')"></div>
     <div class="vg-col">
       <div class="vg-head">
+        <button class="vp-x" data-close aria-label="סגירה">${I.back}</button><!-- APP SHELL -->
         ${lead ? `<a class="vp-who" href="/c/${lead}">${av({ char: lead, ring: true })}<b>${esc(C[lead].name)}</b></a>${followBtn(lead, 'pill')}` : ''}
         <a class="vp-brand" href="/" data-close aria-label="חזרה לשלומיוורס"><img src="/verse/logo-160.png" alt="שלומיוורס"></a>
       </div>
@@ -377,7 +381,7 @@ function paint() {
   if (h) { h.classList.toggle('on', !!P.hearted); $('[data-heart-l]', el).textContent = P.hearted ? T.gLiked : T.gLike; }
   paintFollow(el);
 }
-function share(v) {
+export function share(v) {
   const url = `${location.origin}/${v.game ? 'play' : 'v'}/${v.id}`;
   track('share', v.id);
   if (navigator.share) navigator.share({ title: v.title, text: T.shareText(v.title), url }).catch(() => {});
@@ -387,7 +391,7 @@ function share(v) {
 // The file carries the logo + shlomiverse.com (verse-download/), so every copy on WhatsApp / TikTok brings people back.
 // iPhone: the file is fetched here, then "save to Photos" opens the share sheet (it has to be a tap of its own);
 // elsewhere the browser downloads the link itself.
-async function download(v) {
+export async function download(v) {
   if (!(await needFan('download'))) return;
   track('download', v.id);
   const h = sheet(`<div class="dl"><h2 class="vx-h">${esc(T.dl.title)}</h2><p class="vx-sub" data-msg>${esc(T.dl.making)}</p>
@@ -492,20 +496,22 @@ function richText(text, nicks = []) {
   return h.replace(/\u0000(\d+)\u0000/g, (_, i) => marks[i]);
 }
 
-export function openComments({ tab = 'c', focus = null } = {}) {
-  if (!P || document.querySelector('.cm')) return;
-  const { v } = P;
-  P.video?.pause();
-  setUi(true);
+// ctx (optional): {el, v, video, lead, stats} of a video that isn't the open player - the videos feed (feed.js); default the player
+export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
+  const X = ctx || P;
+  if (!X || document.querySelector('.cm')) return;
+  const { v } = X;
+  X.video?.pause();
+  if (!ctx) setUi(true);
   let comments = [], stickers = [], myLikes = new Set(), myStamps = new Set(), cur = tab, replying = null;
   // what this fan just sent shows at once (faded, "sending") while the server checks it; the real one replaces it
   let pending = [], nicks = [];
   const all = () => [...comments, ...pending.filter((p) => !p.realId || !comments.some((c) => c.id === p.realId))];
   const open = new Set(), typing = new Map(), off = [];
-  const h = P.cm = sheet(`<div class="tabs"><button class="vx-pill" data-tab="c"></button>${v.game ? '' : '<button class="vx-pill" data-tab="s"></button>'}
+  const h = X.cm = sheet(`<div class="tabs"><button class="vx-pill" data-tab="c"></button>${v.game ? '' : '<button class="vx-pill" data-tab="s"></button>'}
       <button class="vx-x" data-vx-close style="position:static;margin-inline-start:auto">${I.x}</button></div>
     <div class="list"></div>
-    <div class="cm-compose"></div>`, { cls: 'cm', onClose: () => { off.forEach((u) => u()); if (P) P.cm = null; } });
+    <div class="cm-compose"></div>`, { cls: 'cm', onClose: () => { off.forEach((u) => u()); X.cm = null; } });
   const list = $('.list', h.el), compose = $('.cm-compose', h.el);
 
   off.push(F.onSnapshot(F.query(F.collection(db, 'comments'), F.where('videoId', '==', v.id), F.where('hidden', '==', false), F.orderBy('t', 'desc'), F.limit(300)), (s) => {
@@ -540,7 +546,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
   function draw() {
     const comments = all();
     nicks = [...new Set(comments.filter((x) => !x.char).map((x) => x.nick))];
-    $('[data-tab="c"]', h.el).textContent = T.tabsComments(comments.length || P?.stats?.comments || 0);
+    $('[data-tab="c"]', h.el).textContent = T.tabsComments(comments.length || X.stats?.comments || 0);
     if (!v.game) $('[data-tab="s"]', h.el).textContent = T.tabsStickers(stickers.length);
     h.el.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('on', b.dataset.tab === cur));
     compose.style.display = cur === 'c' ? '' : 'none';
@@ -652,7 +658,7 @@ export function openComments({ tab = 'c', focus = null } = {}) {
       call('deleteComment', { id: b.dataset.del }).catch(() => toast(T.errGeneric));
     } else if (b.dataset.stamp) {
       stampIt(b, stickers, myStamps, draw);
-    } else if (b.matches('[data-make]')) { h.close('sticker'); openSticker(); }
+    } else if (b.matches('[data-make]')) { h.close('sticker'); openSticker(ctx); }
   });
 }
 
@@ -695,11 +701,12 @@ function grabFrame(video) {
   c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
   try { return c.toDataURL('image/jpeg', 0.88); } catch (e) { console.error('frame', e); return null; }
 }
-export async function openSticker() {
-  if (!P) return;
-  const { v, video, lead } = P;
+export async function openSticker(ctx = null) {   // ctx: as openComments
+  const X = ctx || P;
+  if (!X) return;
+  const { v, video, lead } = X;
   video.pause();
-  setUi(true);
+  if (!ctx) setUi(true);
   const frame = grabFrame(video);   // first, so the sign-in sheet can show this very moment as the sticker
   if (!frame) { toast(T.errGeneric); return; }
   if (!(await needFan('sticker', lead, { img: frame }))) return;
@@ -757,7 +764,7 @@ export async function openSticker() {
     const b = e.target.closest('button');
     if (!b) return;
     if (b.matches('[data-make]')) make();
-    else if (b.matches('[data-all]')) { shut(); openComments({ tab: 's' }); }
+    else if (b.matches('[data-all]')) { shut(); openComments({ tab: 's' }, ctx); }
     else if (b.matches('[data-again]')) { el.querySelector('[data-row2]')?.remove(); made = null; input.focus(); input.select(); row.innerHTML = `<button class="vx-btn main" data-make>${I.sticker}${esc(T.stMake)}</button>`; }
     else if (b.matches('[data-post]') && made) {
       b.disabled = true;
