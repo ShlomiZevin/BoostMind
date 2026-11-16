@@ -143,7 +143,8 @@ function setSound(on) {
 let reactT = 0;
 function say(who, text, cls = '') { // a reaction (Daniel's answer, Amir, Ofer) - its own line under the strip, the question stays
   const el = $('#react'); el.className = 'on ' + cls;
-  el.innerHTML = `<b>${NAMES[who] || ''}:</b> ${text.replace(/</g, '&lt;')}`;
+  el.innerHTML = (who === 'daniel' ? '<img class="av" src="assets/daniel.webp" alt="">' : '') + `<b>${NAMES[who] || ''}:</b> ${text.replace(/</g, '&lt;')}`;
+  if (who === 'daniel') talk('', 0); // Daniel talks - no manager tile lights up
   $('#stage').classList.add('off'); clearTimeout(reactT);
   reactT = setTimeout(() => { el.className = ''; $('#stage').classList.remove('off'); }, 2600);
 }
@@ -459,12 +460,13 @@ function strike(kind, ring, panel) {
   if (navigator.vibrate) try { navigator.vibrate(60); } catch {}
   if (kind === 'red') {
     sfx('red', 0.9); pop('קטעו אותך!', 'red');
-    voice('dan', { silentText: true }); say('daniel', 'כן, אפשר— (אמיר קוטע)', 'no');
-    setTimeout(() => { if (!G.over && G.running) voice('chad', { cls: 'no' }); }, 700);
+    const dId = voice('dan', { silentText: true }); say('daniel', 'כן, אפשר—', 'no');
+    // Ofer cuts in only after Daniel's words end, so it is clear who talks
+    setTimeout(() => { if (!G.over && G.running) voice('chad', { cls: 'no' }); }, (A.buf[dId] ? A.buf[dId].duration * 1000 : 700) + 150);
   } else {
     sfx('reject', 0.9); pop('זאת לא השאלה', 'red');
     voice('no', { cls: 'no' });
-    if (Math.random() < 0.55) setTimeout(() => { if (!G.over && G.running && !A.voiceBusy) voice('chad', { cls: 'no' }); }, 1700);
+    if (Math.random() < 0.3) setTimeout(() => { if (!G.over && G.running && !A.voiceBusy) voice('chad', { cls: 'no' }); }, 1700);
   }
   if (panel) flashPanel(panel);
   if (G.strikes >= 3) setTimeout(gameOver, 900);

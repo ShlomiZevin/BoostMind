@@ -5,7 +5,7 @@
   "character": "daniel",
   "chars": ["daniel", "amir", "ofer"],
   "world": "טקי-טק",
-  "status": "draft",
+  "status": "live",
   "cover": "cover.jpg",
   "best": { "key": "shlomiverse:not-the-question:best", "label": "עומק" },
   "record": { "unit": "רמות פירוט", "better": "high" },
