@@ -1249,6 +1249,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (String(op).startsWith('plan')) { const r = await require('./plans').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     // דמויות: every character + his notes on any part of them, an ongoing tool (charnotes.js)
     if (String(op).startsWith('char')) { const r = await require('./charnotes').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
+    // אירועים: the dated list of what happened (a release, a mail to everyone, a new game) the stats are read against (siteevents.js)
+    if (String(op).startsWith('event')) { const r = await require('./siteevents').owner(op, b); if (r) return res.status(r.error ? (r.error === 'event' ? 404 : 400) : 200).json(r); }
     // שיחות: his comments on conversations (chatnotes.js)
     if (/^(chatNote|chatThread|chatMark)/.test(String(op))) { const r = await require('./chatnotes').owner(op, b); if (r) return res.status(r.error ? 400 : 200).json(r); }
     // only the marks of what he already saw (owner/seen) - the tabs that need nothing else from 'list' (דמויות, תוכניות)

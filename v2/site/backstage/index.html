@@ -431,6 +431,32 @@
   .chart svg { width: 100%; height: 190px; display: block; }
   .chart g[data-d] { cursor: pointer; }
   .chart .tip { position: absolute; top: 0; transform: translateX(50%); background: #1d1d23; border: 1px solid var(--line2); padding: 6px 10px; border-radius: 10px; font-size: .8rem; font-weight: 700; pointer-events: none; display: none; white-space: nowrap; }
+  /* the events log (2026-11-16): a dashed line on every day chart, its titles in the tip; the list + before / after in סקירה */
+  .chart g.evm { cursor: pointer; }
+  .chart .tip.ev { transform: none; top: 24px; white-space: normal; width: max-content; max-width: min(260px, 100%); line-height: 1.35; z-index: 2; }
+  .tip .ev-t { display: block; font-weight: 800; color: #b9d2ff; } .tip .ev-t.inc { color: #ff8a8a; } .tip small { display: block; color: var(--dim); font-weight: 600; }
+  .ev-row { display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: start; padding: 12px 2px; }
+  .ev-row time { flex: none; width: 44px; color: var(--dim); font-size: .85rem; font-weight: 800; font-variant-numeric: tabular-nums; padding-top: 2px; }
+  .ev-row .body { flex: 1; min-width: 0; }
+  .ev-row .l1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .ev-row .l1 b { font-weight: 800; overflow-wrap: anywhere; }
+  .ev-row .l2 { color: var(--dim); font-size: .88rem; margin-top: 2px; overflow-wrap: anywhere; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .ev-more { color: var(--accent); font-weight: 700; font-size: .9rem; padding: 8px 2px 0; }
+  .ev-f .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .ev-f label { display: block; } .ev-f .lbl { margin: 12px 0 6px; } .ev-f .lbl small { color: var(--faint); font-weight: 600; }
+  .ev-f input, .ev-f select { width: 100%; height: 46px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); color: var(--text); font: inherit; padding: 0 12px; outline: 0; }
+  .ev-f input:focus, .ev-f select:focus { border-color: var(--accent); }
+  .ev-f textarea { min-height: 80px; font-size: 1rem; }
+  .ev-err { color: #ff8a8a; font-size: .88rem; min-height: 1.3em; margin-top: 8px; }
+  .ev-acts { display: flex; gap: 8px; margin-top: 14px; } .ev-acts .btn { flex: 1; justify-content: center; }
+  .ev-note { color: var(--dim); white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 8px; }
+  .ev-link { color: #ff9a5c; font-size: .88rem; word-break: break-all; }
+  .ev-h3 { font-size: 1.05rem; font-weight: 900; margin: 14px 0 2px; }
+  .ev-ba .r { display: grid; grid-template-columns: minmax(0, 1fr) 66px 66px 52px; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: .92rem; }
+  .ev-ba .r:first-child { border-top: 0; }
+  .ev-ba .r.h { color: var(--faint); font-size: .74rem; font-weight: 700; line-height: 1.2; }
+  .ev-ba .r > :not(:first-child) { text-align: end; font-variant-numeric: tabular-nums; }
+  .ev-ba .r b { font-weight: 800; }
+  .ev-ba .up { color: #5fd58a; font-weight: 800; } .ev-ba .down { color: #ff7a7a; font-weight: 800; } .ev-ba .same { color: var(--faint); }
   .gl { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
   .gl > *, .dgrid > *, .cols > * { min-width: 0; }
   .kgrid.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -819,6 +845,7 @@ const dayName = (d) => d === dayIL() ? 'היום' : d === dayBack(1) ? 'אתמו
 const hi = () => { const h = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: 'numeric', hour12: false }).format(new Date()); return h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב'; };
 
 // ---------- faces ----------
+let EVS = [];   // the events log (siteevents.js), newest first
 let W, C = {}, V = {}, L = null, S = null, tab = (location.hash.match(/^#(\w+)/) || [])[1] || 'overview', pick = null, file = null;
 let rqKind = 'all', rqQuery = '', contentSeg = 'all', publishSeg = 'story', range = 1;   // today first (his ask)
 const GUIDE_FACE = '<span class="vx-av"><span class="gmark"><img src="/verse/logo-160.png" alt=""></span></span>';
@@ -845,6 +872,7 @@ const LOADERS = {
   }),
   L: () => api('list').then((r) => { L = r; SEEN = { ...r.seen, ...SEEN }; }),
   S: () => api('stats&days=45').then((r) => { S = r; }),
+  EV: () => api('events').then((r) => { EVS = r.events || []; }).catch(() => {}),   // never holds a tab up: no events = no markers
   PL: () => api('plans').then((r) => { PL = r; }),
   CH: () => Promise.all([loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]),
   SEEN: () => api('seenMap').then((r) => { SEEN = { ...r.seen, ...SEEN }; }),
@@ -852,9 +880,9 @@ const LOADERS = {
   CN: () => api('chatNotes', {}).then((r) => { CN = r; }),
 };
 const NEED = {
-  overview: ['W', 'L', 'S', 'CH'], chats: ['W', 'S', 'CH', 'CN'], people: ['W', 'S', 'L'],
+  overview: ['W', 'L', 'S', 'CH', 'EV'], chats: ['W', 'S', 'CH', 'CN'], people: ['W', 'S', 'L', 'EV'],
   requests: ['W', 'L'], ideas: ['W', 'L'], content: ['W', 'L'], videos: ['W', 'L'], publish: ['W', 'L', 'S'],
-  plans: ['PL', 'SEEN'], chars: ['W', 'SEEN', 'CR'], tz: ['W'], mail: ['W'], costs: [], more: [],
+  plans: ['PL', 'SEEN'], chars: ['W', 'SEEN', 'CR'], tz: ['W'], mail: ['W'], costs: ['EV'], more: [],
 };
 const MENU = ['SEEN', 'PL', 'CR', 'L'];   // what the menu's numbers count (badges)
 const HAVE = new Set(), LOADING = {};
@@ -1581,7 +1609,9 @@ function overview() {
     ${todayCard(metric, 'ov-fc').replace('margin-top:16px', 'margin:0 0 14px')}
     <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="ov-ch"></div></div>
     ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
-      <div class="kgrid" style="margin:4px 0 0">${ALL.map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div></div>` : ''}
+      <div class="kgrid" style="margin:4px 0 0">${ALL.map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div>
+      ${evsOn(sel.d).length ? `<div class="rows" style="margin-top:8px">${evsOn(sel.d).map(evRow).join('')}</div>` : ''}</div>` : ''}
+    ${evCard()}
     ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
     <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>
     <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>
@@ -2130,14 +2160,132 @@ function bars(el, rows, unit, onPick, on, ghost) {   // ghost: {day: projected t
     const g = ghost[d] > v ? `<rect x="${x + 1}" y="${y(ghost[d])}" width="${bw - 2}" height="${Math.max(0, top - y(ghost[d]))}" rx="${Math.min(4, bw / 2)}" fill="rgba(255,106,31,.14)" stroke="#ff6a1f" stroke-opacity=".55" stroke-dasharray="3 3"/>` : '';
     return `<g data-d="${d}" data-v="${v}"${ghost[d] ? ` data-g="${Math.round(ghost[d])}"` : ''}><rect x="${W_ - (i + 1) * step}" y="0" width="${step}" height="${H - padB}" fill="transparent"/>${g}${v ? `<rect x="${x}" y="${top}" width="${bw}" height="${H - padB - top}" rx="${Math.min(4, bw / 2)}" fill="${sel ? '#ffb07a' : on ? 'rgba(255,106,31,.45)' : '#ff6a1f'}"/>` : ''}${lbl}</g>`;
   }).reverse().join('');
-  el.innerHTML = `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${marks}</svg><div class="tip"></div>`;
+  // the events log: a thin dashed line on each event's day (red for an outage), a dot on top = the place to tap
+  const EVD = evDays();
+  const flags = rows.map(([d], i) => {
+    const es = EVD[d];
+    if (!es) return '';
+    const cx = W_ - (i + 0.5) * step, col = es.some((x) => x.kind === 'incident') ? '#ff5a5a' : '#8fb8ff', hw = Math.max(12, step / 2), rx = Math.max(0, Math.min(W_ - 2 * hw, cx - hw));   // the tap area stays inside the chart
+    return `<g class="evm" data-ev="${d}"><line x1="${cx}" x2="${cx}" y1="${padT - 2}" y2="${H - padB}" stroke="${col}" stroke-width="1.5" stroke-dasharray="3 3" pointer-events="none"/><circle cx="${cx}" cy="${padT - 4}" r="3.5" fill="${col}" pointer-events="none"/><rect x="${rx}" y="0" width="${2 * hw}" height="30" fill="transparent"/></g>`;
+  }).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${marks}${flags}</svg><div class="tip"></div>`;
   const tip = el.querySelector('.tip');
+  // wrap = a tip with event titles: it wraps and stays inside the chart (a long Hebrew title on a phone)
+  const show = (g, html, wrap) => {
+    tip.classList.toggle('ev', wrap); tip.innerHTML = html; tip.style.display = 'block';
+    const r = g.getBoundingClientRect(), p = el.getBoundingClientRect();
+    if (!wrap) { tip.style.right = (p.right - r.right + r.width / 2) + 'px'; return; }
+    const w = tip.offsetWidth, left = Math.max(0, Math.min(p.width - w, r.left + r.width / 2 - p.left - w / 2));
+    tip.style.right = (p.width - left - w) + 'px';
+  };
+  const hide = () => { tip.style.display = 'none'; tip.dataset.ev = ''; };
+  const evTip = (d) => (EVD[d] || []).map((x) => `<span class="ev-t${x.kind === 'incident' ? ' inc' : ''}">${esc(x.title)}</span>`).join('');
   el.querySelectorAll('g[data-d]').forEach((g) => {
-    g.onmouseenter = () => { const r = g.getBoundingClientRect(), p = el.getBoundingClientRect(); tip.style.display = 'block'; tip.style.right = (p.right - r.right + r.width / 2) + 'px'; tip.textContent = `${dayName(g.dataset.d)} · ${fmt(+g.dataset.v)} ${unit}${g.dataset.g ? ` · צפי כ-${fmt(+g.dataset.g)}` : ''}`; };
-    g.onmouseleave = () => (tip.style.display = 'none');
-    if (onPick) g.onclick = () => onPick(g.dataset.d);
+    const d = g.dataset.d;
+    g.onmouseenter = () => { show(g, esc(`${dayName(d)} · ${fmt(+g.dataset.v)} ${unit}${g.dataset.g ? ` · צפי כ-${fmt(+g.dataset.g)}` : ''}`) + evTip(d), !!EVD[d]); tip.dataset.ev = ''; };
+    g.onmouseleave = hide;
+    if (onPick) g.onclick = () => onPick(d);
+  });
+  // a marker: hover (a mouse) or tap (the phone) shows its titles; a second tap closes them
+  el.querySelectorAll('g.evm').forEach((g) => {
+    const d = g.dataset.ev, open = (by) => { show(g, `<small>${esc(dayName(d))}</small>${evTip(d)}`, true); tip.dataset.ev = d; tip.dataset.by = by; };
+    g.onpointerenter = (e) => { if (e.pointerType === 'mouse') open('hover'); };
+    g.onpointerleave = (e) => { if (e.pointerType === 'mouse') hide(); };
+    g.onclick = (e) => { e.stopPropagation(); if (tip.dataset.ev === d && tip.dataset.by === 'tap') hide(); else open('tap'); };
   });
 }
+
+// ---------- אירועים (2026-11-16, his ask: "an event table, so we know that until a specific date it was then some event,
+// and we can check stats until then and from then"): what happened and when (techietech-api/siteevents.js) - a marker on
+// every day chart, the list here in סקירה, and for each one the 7 days before against the 7 days from it. Sessions log
+// theirs with scripts/stats/event.mjs. ----------
+const EV_KIND = { release: ['שחרור', 'or'], mail: ['מייל', 'wh'], content: ['תוכן', ''], marketing: ['שיווק', 'or'], incident: ['תקלה', 'red'], other: ['אחר', ''] };
+const evChip = (k) => { const [l, c] = EV_KIND[k] || EV_KIND.other; return `<span class="tag ${c}">${l}</span>`; };
+const evsOn = (d) => EVS.filter((e) => e.day === d);
+const evDays = () => { const m = {}; for (const e of EVS) (m[e.day] ||= []).push(e); return m; };
+const dayAdd = (d, n) => dayIL(dayStart(d) + 12 * 3600e3 + n * 864e5);
+let evAll = false;
+const evRow = (e) => `<button class="ev-row" data-evopen="${esc(e.id)}"><time>${dm(e.day)}</time><div class="body"><div class="l1">${evChip(e.kind)}<b>${esc(e.title)}</b></div>${e.note ? `<div class="l2">${esc(e.note)}</div>` : ''}</div></button>`;
+function evCard() {
+  const shown = evAll ? EVS : EVS.slice(0, 5);
+  return `<div class="card" id="ev-st" style="margin-top:14px"><div class="card-h"><h2>אירועים</h2><button data-evadd>${IC.plus}אירוע</button></div>
+    <p class="hint" style="margin:-4px 0 4px">מה קרה ומתי. מסומן בקו על הגרפים. לחיצה על אירוע: 7 ימים לפני מול 7 ימים ממנו.</p>
+    <div class="rows">${shown.map(evRow).join('') || '<div class="empty">עוד אין אירועים</div>'}</div>
+    ${EVS.length > 5 ? `<button class="ev-more" data-evall>${evAll ? 'פחות' : `כל האירועים (${EVS.length})`}</button>` : ''}</div>`;
+}
+// before / after: the 7 days before the event against the 7 days from it (its own day first), full days only (today isn't
+// over) and only days the counters already existed - from the stats op's days, nothing new asked from the server.
+// Two full weeks = totals; a shorter side = a day's average on both sides, so they compare
+function evCompare(e) {
+  const today = dayIL(), have = Object.fromEntries((S?.days || []).map((d) => [d.d, d])), first = S?.days?.[0]?.d || today;
+  const span = (from, n) => Array.from({ length: n }, (_, i) => dayAdd(from, i)).filter((d) => d < today && d >= first).map((d) => have[d] || { d, n: {} });
+  const before = span(dayAdd(e.day, -7), 7), after = span(e.day, 7);
+  if (!after.length) return `<p class="hint">${e.day >= today ? 'האירוע היום או אחריו. ההשוואה תופיע אחרי יום מלא אחריו.' : 'אין נתונים מהימים האלה.'}</p>`;
+  const avg = before.length < 7 || after.length < 7;
+  const one = (f, list) => (list.length ? sum(list, f) / (avg ? list.length : 1) : null);
+  const num = (v) => (v == null ? '—' : avg ? (Math.round(v * 10) / 10).toLocaleString('he-IL') : fmt(v));
+  const chg = (a, b) => {
+    if (a == null || b == null) return '<span class="same">—</span>';
+    if (!a) return b ? '<span class="up">חדש</span>' : '<span class="same">—</span>';
+    const p = Math.round((b - a) / a * 100);
+    return `<bdi dir="ltr" class="${p > 0 ? 'up' : p < 0 ? 'down' : 'same'}">${p > 0 ? '+' : ''}${p}%</bdi>`;
+  };
+  const row = (label, a, b, show = num) => `<div class="r"><span>${label}</span><b>${show(a)}</b><b>${show(b)}</b>${chg(a, b)}</div>`;
+  const tb = before.length ? timeStats(before) : null, ta = timeStats(after);
+  return `<p class="hint">${avg ? `ממוצע ליום · ${before.length} ימים לפני, ${after.length} ימים ממנו` : 'סך הכול בכל שבוע'}</p>
+    <div class="ev-ba"><div class="r h"><span></span><span>לפני</span><span>${avg ? 'ממנו' : '7 ימים ממנו'}</span><span>שינוי</span></div>
+      ${['visitors', 'new_visitors'].map((m) => row(METRICS[m][0], one(METRICS[m][2], before), one(METRICS[m][2], after))).join('')}
+      ${row('זמן באתר (חציון)', tb ? tb.med : null, ta ? ta.med : null, (v) => (v == null ? '—' : dur(v)))}
+      ${['joined', 'chat_message', 'video', 'game_start'].map((m) => row(METRICS[m][0], one(METRICS[m][2], before), one(METRICS[m][2], after))).join('')}</div>`;
+}
+function evOpen(id) {
+  const e = EVS.find((x) => x.id === id);
+  if (!e) return;
+  sheet(`<div class="sh-h"><div class="t"><b>${esc(e.title)}</b><small>${esc(dayName(e.day))} · ${(EV_KIND[e.kind] || EV_KIND.other)[0]}</small></div><button class="x" data-close aria-label="סגירה">${IC.x}</button></div>
+    <div class="sh-b">${e.note ? `<p class="ev-note">${esc(e.note)}</p>` : ''}${e.link ? `<p><a class="ev-link" href="${esc(e.link)}" target="_blank" rel="noopener" dir="ltr">${esc(e.link)}</a></p>` : ''}
+      <h3 class="ev-h3">לפני ואחרי</h3>${evCompare(e)}
+      <div class="ev-acts"><button class="btn" data-evdel="${esc(e.id)}">מחיקה</button><button class="btn" data-close>סגירה</button></div></div>`, 'ev-sheet');
+}
+function evNew() {
+  sheet(`<div class="sh-h"><div class="t"><b>אירוע חדש</b><small>יסומן על הגרפים ביום שלו</small></div><button class="x" data-close aria-label="סגירה">${IC.x}</button></div>
+    <div class="sh-b ev-f">
+      <div class="two"><label><span class="lbl">תאריך</span><input id="ev-day" type="date" value="${dayIL()}"></label>
+        <label><span class="lbl">סוג</span><select id="ev-kind">${Object.entries(EV_KIND).map(([k, [l]]) => `<option value="${k}">${l}</option>`).join('')}</select></label></div>
+      <label><span class="lbl">מה קרה</span><input id="ev-title" maxlength="120" placeholder="למשל: דף בית חדש עלה"></label>
+      <label><span class="lbl">פרטים <small>לא חובה</small></span><textarea id="ev-note" rows="3"></textarea></label>
+      <label><span class="lbl">קישור <small>לא חובה</small></span><input id="ev-link" type="url" dir="ltr" placeholder="https://"></label>
+      <p class="ev-err" id="ev-err"></p>
+      <div class="ev-acts"><button class="btn main" data-evsave>שמירה</button><button class="btn" data-close>ביטול</button></div></div>`, 'ev-sheet');
+}
+// after a change: the list again from the server, the tab drawn where it was
+async function evAfter() { closeSheet(); await reload(['EV']); const y = scrollY; draw(); scrollTo(0, y); }
+async function evSave(b) {
+  const v = (q) => $(q).value.trim(), err = $('#ev-err');
+  const body = { day: v('#ev-day'), kind: v('#ev-kind'), title: v('#ev-title'), note: v('#ev-note'), link: v('#ev-link') };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(body.day)) { err.textContent = 'חסר תאריך'; return; }
+  if (!body.title) { err.textContent = 'חסר מה קרה'; return; }
+  if (body.link && !/^https?:\/\/\S+$/.test(body.link)) { err.textContent = 'קישור מתחיל ב-https://'; return; }
+  b.disabled = true;
+  try { await api('eventAdd', body); } catch (x) { b.disabled = false; err.textContent = 'לא נשמר, נסו שוב'; return; }
+  await evAfter();
+}
+// clicks of this part (before the page's own handler sees them)
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-evopen], [data-evadd], [data-evall], [data-evsave], [data-evdel]');
+  if (!b) return;
+  e.stopImmediatePropagation();
+  const d = b.dataset;
+  if (d.evopen) evOpen(d.evopen);
+  else if (d.evadd !== undefined) evNew();
+  else if (d.evall !== undefined) { evAll = !evAll; $('#ev-st').outerHTML = evCard(); }
+  else if (d.evsave !== undefined) await evSave(b);
+  else if (d.evdel) {
+    if (!await askBox('למחוק את האירוע?', { ok: 'מחיקה' })) return;
+    b.disabled = true;
+    try { await api('eventDel', { id: d.evdel }); } catch (x) { b.disabled = false; return; }
+    await evAfter();
+  }
+}, true);
 
 // ---------- אנשים: every account, when they joined, and one person's whole story ----------
 let pQuery = '', pFilter = 'all', pDay = null;
