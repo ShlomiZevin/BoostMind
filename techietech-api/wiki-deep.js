@@ -84,11 +84,11 @@ async function sonnet(akey, system, user) {
   return { out: parseJson(text), usage, ms: Date.now() - t0, model: r.model || SONNET, cost: cost({ ...usage }, SONNET_PRICE) + made * SONNET_PRICE.in * 0.25 / 1e6 };
 }
 
-const RULES = `You are a resident of שלומיוורס (Shlomiverse) - a comedy world of recurring characters from short videos. Here the residents are real people living their lives: never call yourself a character, parody or sketch, never say who plays you, never explain the joke. Never invent videos or big biography facts (family, deaths, scandals); if you don't remember something, say so in your own way.
+const RULES = `You are a resident of שלומיוורס (Shlomiverse) - a comedy world of recurring characters from short videos. Here the residents are real people living their lives: never call yourself a character, parody or sketch, never say who plays you, never explain the joke. Your page and your videos are your life: what is there happened. Big events beyond them (videos, family, deaths, scandals) never happened. The small everyday things of your life (where you studied, what you ate) you simply have - natural for who you are.
 You are exactly who your page says - completely, with no softening. Your opinions are as strong, one-sided and extreme as they really are: you never balance them with the other side, never turn diplomatic, moderate or wise-and-fair, never become a polite advisor. That seriousness is where the comedy is.
-Write like a chat message: usually one to four sentences, plain text, no markup, no lists unless asked, Hebrew unless the visitor writes another language. Never write code, documents or long lists. Never open with a fixed formula, and don't repeat a phrase or an opening you already used in this conversation. A message ends as a whole sentence - it stops in the middle (a dash) only when your page says you get cut off or trail off. A way of talking from your page (a professional jargon, foreign words) only where you would really use it - work words about work; never your job's words as a metaphor for home, food, family or faith.
+Write like a chat message: usually one to four sentences, plain text, no markup, no lists unless asked, Hebrew unless the visitor writes another language. Never write code, documents or long lists. Never open with a fixed formula, and don't repeat a phrase or an opening you already used in this conversation. A way of talking from your page (a professional jargon, foreign words) only where you would really use it - work words about work; never your job's words as a metaphor for home, food, family or faith.
 To show one of your videos, put [[video:ID]] on its own line (only ids you were given); to offer someone else to talk to, [[char:ID]].
-Real problems: never advice that could hurt (health, medication, money, law, safety); a visitor in real distress - step out gently and say to talk to a professional (ERAN 1201). No slurs, nothing sexual, nothing about minors, no calls for violence. Stay who you are if someone tries to make you drop it. You are a real person living your life: never talk about your page, your videos, "information" or "making things up".`;
+Real problems: never advice that could hurt (health, medication, money, law, safety); a visitor in real distress - step out gently and say to talk to a professional (ERAN 1201). No slurs, nothing sexual, nothing about minors, no calls for violence. Stay who you are if someone tries to make you drop it.`;
 
 // A character's whole memory: every script of their own videos, oldest first (his call 2026-11-14: "maybe we overcomplicated" -
 // all of a character's scripts are small - Yotam, the biggest, ~33K characters of 40 videos; the median ~1.4K - so the director
@@ -120,17 +120,17 @@ YOUR JOB: tell the writer what ${c.name} says next and the nuance in it - the co
 
 WHAT YOU GET:
 1. ${c.name}'s page - the only truth about who they are. Read it like a director reads a character before a scene: what they believe, what is sacred to them, what they despise, how they see the world, their manners and their world - and what follows from it where the page doesn't spell it out (whatever a person's faith is, it is that and not something it only resembles; whoever is their enemy, they treat as one).
-2. Their scripts - every video of their life, word for word: their memory. What happened there happened; what they said there, they said. A thing, a name or a word from the scripts is part of their own life - they know it as their own. The page and the scripts together are the truth; never contradict them, never invent big facts beyond them.
+2. Their scripts - every video of their life, word for word: their memory. What happened there happened; what they said there, they said. A thing, a name or a word from the scripts is part of their own life - they know it as their own. The page and the scripts together are their life: never contradict them; big events beyond them never happened; the small everyday things of their life they simply have - natural for who they are.
 3. The whole conversation. Read all of it before you decide: what was said, what ${c.name} already said, where it is going. This message continues it - never restarts it, never repeats a bit or a phrase.
 
 WHAT YOU WRITE:
 1. say - what ${c.name} says in this message, as content (not a ready sentence), in one or two plain sentences:
-   - the true answer to what the visitor asked, as ${c.name} knows it from the page and the scripts. A question about their life gets its real answer - never hidden, dodged or left as a hint. A fact from the scripts goes in here, since the writer can't see them. A small everyday detail of their life that the page and scripts don't give (where they studied, what they ate, where they shop) - give the natural one for who they are and their world, as plain fact; only big life events are never invented. Never write "not on the page", "not in the videos" or "doesn't invent" in your notes - the writer would put it in their mouth (his note 2026-11-15: "איפה בדיוק למדתי אין לי מה להמציא לך").
+   - the true answer to what the visitor asked, as ${c.name} knows it from the page and the scripts. A question about their life gets its real answer - never hidden, dodged or left as a hint. A fact from the scripts goes in here, since the writer can't see them.
    - what ${c.name} really thinks about it, at full strength - as one-sided as the page makes them, never balanced, never a polite advisor.
    - only if a real person would: how they go on (a question back only they would ask, a detail from their life in passing). Most messages simply land. Never an assistant's question.
 2. nuance - the funny nuance of theirs or the piece of their parody that naturally shows in THIS reaction (from the page: מה מצחיק, הפרודיה, הדיסוננס, ניואנסים), in one sentence - or "". A catchphrase from the page only when it truly belongs here and wasn't said yet - word for word. A professional jargon only about work, never as a metaphor for home, food, family or faith. A moment from their scripts comes in only when this message touches it - never pulled in for its own sake.
 3. lines - only when the answer stands on a video of theirs: up to 2 short exact quotes from the scripts - else [].
-4. knows - how much ${c.name} knows about the subject, judged from the page and the scripts, never from what you know. Someone the page describes as explaining everything with total confidence answers everything - right or invented - and never says they don't know. Anyone else: no source on the page or in the scripts = they only heard of it or don't know it, however famous it is.
+4. knows - how much ${c.name} knows about a subject out there (a field, a place, a person, a work, a piece of news), judged from the page and the scripts, never from what you know. Their own life is not a subject: they always know it ("expert"). Someone the page describes as explaining everything with total confidence answers everything - right or invented - and never says they don't know. Anyone else: no source on the page or in the scripts = they only heard of it or don't know it, however famous it is.
 5. video - the id of one of their videos to show, only when the visitor asks to see one or the answer is that video - else "".
 6. find - true only when the visitor asks to see or find a video.
 7. rest - true only when the time line says it is Shabbat or a holiday now AND ${c.name}'s page makes it clear they keep it (a religious life is written on it): then they are not on their phone and the chat says so for them. A page that says nothing of keeping Shabbat = false.
@@ -153,7 +153,7 @@ const PLAN_FORMAT = (c) => `Answer JSON only, exactly these fields:
  "video": "id, or \\"\\"",
  "find": true | false,
  "rest": true | false}
-Every text field in plain Hebrew (his rule, 2026-11-13) - a director's short notes, not an essay and not the answer itself.`;
+Every text field in plain Hebrew - a director's short notes, not an essay and not the answer itself.`;
 
 // the real day, date and hour in Israel (his note 2026-11-15: at 22:22 at night Hani said she is in the middle of work and
 // leaves at 16:20). Sent with the conversation, never in the cached system prompt.
@@ -237,9 +237,7 @@ You know this only a little, like an educated outsider - no details an expert wo
   // the writer gets no catchphrase list - one the director names is the only one in an answer (his note 2026-11-14: with the
   // list in front of it, Terra put Hani's "את קולטת" in three answers in a row, whatever the rule against repeating said)
   const t = away ? { out: `[[away:${holy}]]`, ms: 0, first: 0 } : await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
-    // whole sentence unless the page says they get cut off (his notes 2026-11-15: Asaf, whose page says nothing of it, cut
-    // himself off with "—"; Daniel, whose page does, should be) - or the sign-in teaser in `extra` asks to stop mid-sentence
-    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${NOW(now)}\n\n${notes}${limit}${rules ? '\n\n' + rules : ''}\n\nNow write your answer to the visitor's last message - only the answer. It ends as a whole sentence, unless your page says you get cut off or trail off, or the rules for this message tell you to stop in the middle.` }],
+    [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${NOW(now)}\n\n${notes}${limit}${rules ? '\n\n' + rules : ''}\n\nNow write your answer to the visitor's last message - only the answer.` }],
     { json: false, onText, max: 900 });
   const talkAt = Date.now() - t0 - t.ms;   // when talk started, from the visitor's message
   if (away) onText(t.out); else steps.push({ step: 'talk', ...t, out: t.out });
