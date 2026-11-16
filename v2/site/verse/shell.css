@@ -151,10 +151,13 @@ html.feed-on footer { display: none; }
 }
 
 /* the people on a video with several: who to follow / who to talk to */
-.fd-pl { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.fd-pick { padding: 4px 18px 18px; overflow-y: auto; }
+.fd-pick .vx-h { font-size: 1.35rem; }
+.fd-pl { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 .fd-pr { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; background: rgba(255, 255, 255, .05); }
 .fd-pr .vx-av { width: 48px; height: 48px; flex: none; }
 .fd-pr b { flex: 1; min-width: 0; font-size: 1.02rem; font-weight: 800; }
-.fd-pr .vx-pill { flex: none; }
+.fd-pr .vx-pill { flex: none; height: 40px; padding: 0 16px; font-weight: 800; }
+.fd-pr .fd-tt { background: var(--accent, #ff6a1f); border-color: var(--accent, #ff6a1f); color: #fff; }
 .fd-tt { display: inline-flex; align-items: center; gap: 6px; }
 .fd-tt svg { width: 16px; height: 16px; }

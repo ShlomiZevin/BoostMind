@@ -65,6 +65,7 @@ if (bar) bar.addEventListener('click', (e) => {
   const tab = a.dataset.tab, layer = LAYER.test(location.pathname);
   try { window.track && window.track('tab', tab); } catch (x) { /* analytics never breaks a tap */ }
   closeSheets();
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   if (tab === 'chat') {
     if (chatOpen()) return;
     if (layer) nav(lastBase);
@@ -86,7 +87,12 @@ if (bar) bar.addEventListener('click', (e) => {
 
 // ---------- the chat opens / closes: its tab lights up ----------
 const cx = document.getElementById('cx');
-if (cx) new MutationObserver(paint).observe(cx, { attributes: true, attributeFilter: ['class'] });
+// (closed with its box still focused, the keyboard would stay "up" for us and keep the bar away: the box lets go)
+if (cx) new MutationObserver(() => {
+  if (!chatOpen() && cx.contains(document.activeElement)) document.activeElement.blur();
+  kbCheck();
+  paint();
+}).observe(cx, { attributes: true, attributeFilter: ['class'] });
 
 // ---------- the keyboard is up: the bar steps aside (and comes back when it goes down) ----------
 const coarse = matchMedia('(pointer: coarse)');
