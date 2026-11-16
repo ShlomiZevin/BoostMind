@@ -147,10 +147,31 @@ exports.pick = async (key, model, cur, turns, scope) => {
 // and a look_up tool. Small talk / a follow-up the material covers -> it answers at once (one call). A question about
 // someone or something not in hand -> it calls look_up first (the router's job, same rules), then a second call answers
 // with the full material. Same map prefix, same cache key, so a question costs what router + answer cost before.
+// residents the visitor's last message names (their name or a proper alias, whole word, a Hebrew prefix letter allowed):
+// the guide gets their full profile in hand. His note 2026-11-16: the guide answered a bare "חני" from her one map line
+// and wrote "a mother of eight" (she has nine) - the model skipped look_up, so a named resident no longer depends on it.
+// Aliases that are common words (Hebrew starting with ה - "המורה", "השכן") or lowercase tags ("gym", "news") don't count.
+exports.named = (cur, turns) => {
+  const last = [...turns].reverse().find((t) => t.role === 'user');
+  const text = typeof last?.content === 'string' ? last.content : '';
+  if (!text) return [];
+  const esc = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const hits = [];
+  for (const c of Object.values(cur.byId)) {
+    const words = [c.name, ...(c.aka || []).filter((a) => !/^ה[א-ת]/.test(a) && !/^[a-z-]+$/.test(a))].filter((w) => w && w.length >= 2);
+    const at = Math.min(...words.map((w) => {
+      const m = new RegExp(`(^|[^א-תA-Za-z])[ובלמשהכ]?${esc(w)}(?![א-תA-Za-z])`, 'i').exec(text);
+      return m ? m.index : Infinity;
+    }));
+    if (at < Infinity) hits.push([at, c.id]);
+  }
+  return hits.sort((a, b) => a[0] - b[0]).map((h) => h[1]);
+};
+
 exports.base = (cur, mode, turns) => {
   const before = exports.earlier(cur, turns);
   const self = cur.byId[mode];
-  if (!self) return { characters: before.characters.slice(0, MAX_CHARS), videos: before.videos.slice(0, MAX_VIDEOS), allowed: null, scope: '' };
+  if (!self) return { characters: [...new Set([...exports.named(cur, turns), ...before.characters])].slice(0, MAX_CHARS), videos: before.videos.slice(0, MAX_VIDEOS), allowed: null, scope: '' };
   const allowed = exports.known(cur, mode);
   const own = [...(self.videos || [])].sort((a, b) => String(cur.videos[b]?.date || '').localeCompare(String(cur.videos[a]?.date || '')));
   const people = before.characters.filter((id) => id !== mode && allowed.includes(id));
