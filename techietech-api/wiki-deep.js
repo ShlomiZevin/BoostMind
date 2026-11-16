@@ -221,7 +221,9 @@ async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = 
   // 2 · talk - the person answers from the director's plan, the whole conversation in front of them
   // since 2026-11-15 (his call: the director only tells the writer what to say and the nuance; the writer phrases it - its Hebrew
   // is better; extra fields like "avoid" made strange notes)
-  const notes = [`What you say now (the director's notes - true; say it in your own words and voice): ${D.say || ''}`,
+  // nothing of the writer's own beyond the notes and the page (his note 2026-11-16: Demokratovich ended a ruling with an invented
+  // "טקי-טק" knock - it read as the company's name)
+  const notes = [`What you say now (the director's notes - true; say it in your own words and voice, and add no bit, word, sound or sign-off of your own that isn't in these notes or your page): ${D.say || ''}`,
     D.nuance ? `The nuance that comes out of you here, naturally, never pushed: ${D.nuance}` : '',
     (D.lines || []).length ? `What you really said / what really happened (your own videos): ${JSON.stringify(D.lines)}` : '',
     video ? `Show this video of yours: [[video:${video}]]` : '',
