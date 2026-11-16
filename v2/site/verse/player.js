@@ -341,13 +341,14 @@ function deepLinks(q) {
   if (q.c) setTimeout(() => openComments({ focus: q.c }), 300);
   else if (q.sticker) setTimeout(() => openComments({ tab: 's', focus: q.sticker }), 300);
   else if (q.how === 'sticker') setTimeout(stickerTip, 900);
-  else if (q.cm) setTimeout(() => { openComments(); if (q.at && C[q.at]) atStart(q.at); }, 300);   // from /new (feed.js)
+  else if (q.cm) { if (P) P.toRow = true; setTimeout(() => { openComments(); if (q.at && C[q.at]) atStart(q.at); }, 300); }   // from /new (feed.js): with the "to whom" row
 }
 // the comment box opens already addressed to the character (an @tag - verseOnComment has the character answer)
 function atStart(char, tries = 0) {
   const ta = document.querySelector('.cm textarea');
   if (!ta) { if (tries < 40) setTimeout(() => atStart(char, tries + 1), 250); return; }   // signing in first: wait for the box
-  if (!ta.value.trim()) { ta.value = '@' + C[char].name + ' '; ta.dispatchEvent(new Event('input', { bubbles: true })); }
+  if (!ta.value.trim()) { ta.value = '@' + C[char].name + ' '; ta.oninput?.(); }
+  document.querySelectorAll('.cm [data-to]').forEach((x) => x.classList.toggle('on', x.dataset.to === char));
   ta.focus();
 }
 // from the home's "what you can do": the sticker button pointed out until they press it (or anything else)
@@ -571,10 +572,23 @@ export function openComments({ tab = 'c', focus = null } = {}) {
     }).join('');
     if (focus) { const f = list.querySelector(`[data-cid="${focus}"]`); if (f) { f.scrollIntoView({ block: 'center' }); focus = null; } }
   }
+  // "to whom": everyone, or one of the characters in this video - a character tagged with @ answers (verseOnComment).
+  // Only from /new for now (feed.js, being tested); the row sets / clears the @tag at the start of the box
+  const cast = v.cast.filter((c) => C[c]);
+  const toRow = (signedOut) => (P?.toRow && cast.length ? `<div class="cm-to"><span>למי?</span><button type="button" data-to="" class="on"${signedOut ? ' data-in' : ''}>לכולם</button>${cast.map((id) => `<button type="button" data-to="${id}"${signedOut ? ' data-in' : ''}>${av({ char: id })}${esc(C[id].name)}</button>`).join('')}</div>` : '');
+  compose.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-to]'), ta = $('textarea', compose);
+    if (!b || !ta) return;
+    compose.querySelectorAll('[data-to]').forEach((x) => x.classList.toggle('on', x === b));
+    let text = ta.value;
+    for (const id of cast) { const tag = '@' + C[id].name; if (text.startsWith(tag)) text = text.slice(tag.length).replace(/^\s+/, ''); }
+    ta.value = (b.dataset.to ? '@' + C[b.dataset.to].name + ' ' : '') + text;
+    ta.focus(); ta.oninput();
+  });
   function drawCompose() {
-    if (!st.user || !st.fan?.nick) { compose.innerHTML = `<button class="vx-btn main block" data-in>${esc(T.cmSignin)}</button>`; return; }
+    if (!st.user || !st.fan?.nick) { compose.innerHTML = `${toRow(true)}<button class="vx-btn main block" data-in>${esc(T.cmSignin)}</button>`; return; }
     if (compose.querySelector('textarea')) return;
-    compose.innerHTML = `<div class="cm-replying" style="display:none"><span></span><button data-unreply>${I.x.replace('<svg', '<svg width="16" height="16"')}</button></div>
+    compose.innerHTML = `${toRow(false)}<div class="cm-replying" style="display:none"><span></span><button data-unreply>${I.x.replace('<svg', '<svg width="16" height="16"')}</button></div>
       <div class="cm-at" style="display:none"></div>
       <form>${av({ fan: st.fan, cls: '' }).replace('vx-av', 'vx-av" style="width:40px;height:40px;align-self:center')}
         <textarea rows="1" maxlength="500" placeholder="${esc(T.cmPlaceholder)}"></textarea>

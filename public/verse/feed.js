@@ -4,7 +4,7 @@
 // with the character (the site's own chat). A short tutorial on the first visit. Everything opens the site's real pages:
 // the video page with its comments (/v/<id>?cm=1[&at=<char>]), the games (/play/<id>), the chat (openChat). Phone first.
 // Why (14 days of data): 30% of new visitors tap nothing and leave in ~17 s; a video or a game as the first tap keeps them ~170 s.
-import { $, $$, esc, abs, av, track, charColor, I, toast } from './ui.js';
+import { $, $$, esc, abs, av, track, charColor, I, toast, sheet } from './ui.js';
 import { paintFollow } from './player.js';
 import { db, F } from './fb.js';
 
@@ -18,7 +18,9 @@ const lead = (v) => v.cast?.find((c) => C[c]) || null;
 const videos = () => (typeof fresh === 'function' ? fresh() : W.videos)
   .filter((v) => v.src && v.poster && !v.url && !String(v.id).startsWith('story-') && lead(v));
 const games = () => [...(W.games || [])].filter((g) => g.url && g.img).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
-const gameOf = (char) => games().find((g) => (g.chars || []).includes(char));
+const castOf = (v) => [...new Set(v.cast || [])].filter((c) => C[c]);
+// games for this video: those with any of its characters first, then the newest (his note: games, not "his one game")
+const gamesFor = (cast) => { const all = games(), mine = all.filter((g) => (g.chars || []).some((c) => cast.includes(c))); return [...mine, ...all.filter((g) => !mine.includes(g))]; };
 const gamePath = (g) => '/play/' + g.id;
 // the short name on the buttons: the first name, past a title ("הרב דמוקרטוביץ" -> "דמוקרטוביץ", "המורה רוזנבלום" -> "רוזנבלום")
 const first = (id) => { const w = (C[id]?.name || '').replace(/\s*\(.*?\)/g, '').split(' ').filter(Boolean); return (/^(הרב|המורה|ד"ר|דוקטור|פרופ'|הגננת|הסבתא)$/.test(w[0]) && w[1] ? w[1] : w[0]) || ''; };
@@ -58,6 +60,24 @@ body[data-page="new"] .top .brand span { display: none; }
 .fd-rd.main { background: var(--vx-accent, #ff6a1f); border-color: rgba(255,255,255,.3); }
 .fd-face .vx-av { width: 46px; height: 46px; }
 .fd-face { position: relative; }
+.fd-faces { display: flex; flex-direction: column; align-items: center; background: none; border: 0; padding: 0; }
+.fd-faces .vx-av { width: 46px; height: 46px; }
+.fd-faces.many .vx-av { width: 38px; height: 38px; margin-top: -12px; } .fd-faces.many .vx-av:first-child { margin-top: 0; }
+.fd-faces.sm { flex-direction: row; } .fd-faces.sm .vx-av { width: 30px; height: 30px; margin: 0 0 0 -8px; outline: 2px solid #000; } .fd-faces.sm .vx-av:first-child { margin: 0; }
+.fd-who { background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer; text-align: start; }
+.fd-cast h3 { margin: 4px 4px 12px; font-size: 18px; font-weight: 900; }
+.fd-cast-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-top: 1px solid rgba(255,255,255,.08); }
+.fd-cast-row a { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+.fd-cast-row .vx-av { width: 52px; height: 52px; flex: none; }
+.fd-cast-row b { display: block; font-size: 16px; } .fd-cast-row small { display: block; color: rgba(255,255,255,.6); font-size: 13px; }
+.fd-cast-row .vx-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; } .fd-cast-row .vx-btn svg { width: 18px; height: 18px; }
+.cm-to { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 0 2px 10px; scrollbar-width: none; }
+.cm-to::-webkit-scrollbar { display: none; }
+.cm-to > span { flex: none; font-size: 13px; color: rgba(255,255,255,.6); font-weight: 700; }
+.cm-to button { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 5px; padding-inline: 5px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #fff; font: 700 13px/1 inherit; font-family: inherit; }
+.cm-to button[data-to=""] { padding: 7px 14px; }
+.cm-to button .vx-av { width: 26px; height: 26px; }
+.cm-to button.on { background: var(--vx-accent, #ff6a1f); border-color: transparent; }
 .fd-info { position: absolute; z-index: 3; inset-inline: 14px 86px; bottom: calc(env(safe-area-inset-bottom) + 84px); }
 .fd-who { display: flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-weight: 800; font-size: 16px; }
 .fd-who .vx-av { width: 34px; height: 34px; }
@@ -104,22 +124,23 @@ function shell(tab) {
 
 // ---------- items ----------
 function videoItem(v) {
-  const ch = lead(v), name = C[ch].name, g = gameOf(ch);
+  const cast = castOf(v), ch = cast[0], many = cast.length > 1;
+  const faces = cast.slice(0, 3).map((c) => av({ char: c, ring: true })).join('');
+  const names = cast.slice(0, 3).map((c) => esc(C[c].name)).join(' · ') + (cast.length > 3 ? ` +${cast.length - 3}` : '');
   return `<section class="fd-item" data-kind="video" data-id="${esc(v.id)}">
     <img class="fd-poster" src="${abs(v.poster)}" alt="" loading="lazy">
     <video muted playsinline webkit-playsinline loop preload="none" poster="${abs(v.poster)}" data-src="${abs(v.src)}"></video>
     <div class="fd-shade"></div>
     <div class="fd-rail">
-      <div class="fd-face"><a href="/c/${ch}" aria-label="${esc(name)}">${av({ char: ch, ring: true })}</a></div>
-      <button data-fd-talk="${ch}" data-tut="talk"><span class="fd-rd main">${ICN.chat}</span>לדבר עם ${esc(first(ch))}</button>
-      <button data-fd-at="${ch}" data-tut="at"><span class="fd-rd">${ICN.at}</span>תגובה ל${esc(first(ch))}</button>
+      <button class="fd-faces ${many ? 'many' : ''}" data-fd-cast aria-label="מי בסרטון">${faces}</button>
+      <button ${many ? 'data-fd-pick' : `data-fd-talk="${ch}"`} data-tut="talk"><span class="fd-rd main">${ICN.chat}</span>${many ? 'לדבר איתם' : 'לדבר עם ' + esc(first(ch))}</button>
       <button data-fd-cm data-tut="cm"><span class="fd-rd">${I.comment}</span>תגובות<small data-fd-n></small></button>
-      ${g ? `<a href="${gamePath(g)}" data-fd-game="${esc(g.id)}"><span class="fd-rd">${I.game}</span>${gword(ch, 'המשחק שלו', 'המשחק שלה', 'המשחק שלהם')}</a>` : ''}
+      <button data-fd-games><span class="fd-rd">${I.game}</span>משחקים</button>
       <button data-fd-share><span class="fd-rd">${I.share}</span>שתפו</button>
     </div>
     <div class="fd-info">
       <button class="fd-sound" data-fd-sound>${ICN.muted}<span>הקישו לסאונד</span></button>
-      <a class="fd-who" href="/c/${ch}">${av({ char: ch })}<span>${esc(name)}</span></a>
+      <button class="fd-who" data-fd-cast><span class="fd-faces sm ${many ? 'many' : ''}">${cast.slice(0, 3).map((c) => av({ char: c })).join('')}</span><span>${names}</span></button>
       <h2>${esc(v.title)}</h2>${v.teaser ? `<p>${esc(v.teaser)}</p>` : ''}
       <a class="fd-open" href="/v/${esc(v.id)}">לסרטון המלא ←</a>
     </div>
@@ -197,7 +218,7 @@ function bindItem(it) {
   v.addEventListener('click', () => { S.muted = !S.muted; $$('.fd-item video', S.el).forEach((x) => { x.muted = S.muted; }); if (v.paused) v.play().catch(() => {}); paintSound(); if (!S.muted) track('feed', 'sound'); });
 }
 
-function draw(tab) {
+function draw(tab, order = null) {
   if (!S) return;
   S.tab = tab;
   S.el.dataset.tab = tab;
@@ -208,12 +229,26 @@ function draw(tab) {
   list.innerHTML = '';
   list.scrollTop = 0;
   if (tab === 'chat') { S.items = null; list.innerHTML = chatPage(); return; }
-  S.items = tab === 'games' ? games() : videos();
+  S.items = order || (tab === 'games' ? games() : videos());
   S.shown = 0;
   S.io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting && e.intersectionRatio >= 0.6) onScreen(e.target); }), { root: list, threshold: [0.6] });
   more();
   if (tab === 'videos') setTimeout(() => tutorial('videos'), 1400);
   if (tab === 'games') setTimeout(() => tutorial('games'), 900);
+}
+
+// ---------- who is in the video: talk to one of them, or open their page ----------
+function castSheet(id) {
+  const cast = castOf(V[id]);
+  pauseFeed();
+  const h = sheet(`<div class="fd-cast"><h3>${cast.length > 1 ? 'מי בסרטון' : 'בסרטון'}</h3>${cast.map((c) => `<div class="fd-cast-row">
+      <a href="/c/${c}" data-close>${av({ char: c, ring: true })}<span><b>${esc(C[c].name)}</b>${C[c].tagline ? `<small>${esc(C[c].tagline)}</small>` : ''}</span></a>
+      <button class="vx-btn main" data-talk-to="${c}">${ICN.chat}לדבר</button></div>`).join('')}</div>`, { cls: 'fd-cast-sheet', onClose: () => setTimeout(resumeFeed, 0) });
+  h.el.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-talk-to]');
+    if (t) { track('feed', 'talk:' + t.dataset.talkTo); h.close(); setTimeout(() => { pauseFeed(); if (typeof openChat === 'function') openChat(t.dataset.talkTo); }, 50); return; }
+    if (e.target.closest('[data-close]')) h.close();
+  });
 }
 
 // ---------- the first-visit tutorial: spotlights on the real buttons ----------
@@ -223,11 +258,10 @@ function tutorial(kind) {
   if (seen[kind] || !S || S.tab !== kind || document.querySelector('.fd-tut')) return;
   const item = $('.fd-item', S.el);
   if (!item) return;
-  const ch = item.querySelector('[data-fd-talk]')?.dataset.fdTalk;
   const steps = kind === 'games'
     ? [{ sel: '[data-tut="play"]', say: 'משחקים כאן, בלי לצאת מהפיד. כל משחק מסביר את עצמו בחצי דקה.' }]
-    : [{ sel: '[data-tut="talk"]', say: `דברו עם ${esc(C[ch]?.name || 'הדמות')}. ${gword(ch, 'הוא עונה', 'היא עונה', 'הם עונים')} לכם בעצמ${gword(ch, 'ו', 'ה', 'ם')}.` },
-      { sel: '[data-tut="at"]', say: `או תגיבו על הסרטון ל${esc(C[ch]?.name || 'דמות')}, ו${gword(ch, 'הוא יענה', 'היא תענה', 'הם יענו')} לכם שם.` },
+    : [{ sel: '[data-tut="talk"]', say: 'דברו עם הדמויות שבסרטון. כל אחת עונה לכם בעצמה.' },
+      { sel: '[data-tut="cm"]', say: 'בתגובות אפשר לכתוב לכולם, או לאחת הדמויות, והיא תענה לכם שם.' },
       { sel: null, say: 'החליקו למעלה לסרטון הבא. למעלה יש גם משחקים וצ\'אט.' }];
   let i = 0;
   const o = document.createElement('div');
@@ -283,8 +317,8 @@ function onClick(e) {
   if (e.target.closest('[data-fd-sound]')) { S.muted = false; $$('.fd-item video', S.el).forEach((x) => { x.muted = false; }); const v = $('video', item); v && v.play().catch(() => {}); paintSound(); track('feed', 'sound'); return; }
   const talk = e.target.closest('[data-fd-talk]');
   if (talk) { pauseFeed(); track('feed', 'talk:' + talk.dataset.fdTalk); if (typeof openChat === 'function') openChat(talk.dataset.fdTalk); return; }
-  const at = e.target.closest('[data-fd-at]');
-  if (at) { pauseFeed(); track('feed', 'at:' + id); nav(`/v/${encodeURIComponent(id)}?cm=1&at=${encodeURIComponent(at.dataset.fdAt)}`); return; }
+  if (e.target.closest('[data-fd-pick], [data-fd-cast]')) { track('feed', (e.target.closest('[data-fd-pick]') ? 'pick:' : 'cast:') + id); castSheet(id); return; }
+  if (e.target.closest('[data-fd-games]')) { track('feed', 'games:' + id); draw('games', gamesFor(castOf(V[id]))); return; }
   if (e.target.closest('[data-fd-cm]')) { pauseFeed(); track('feed', 'comments:' + id); nav(`/v/${encodeURIComponent(id)}?cm=1`); return; }
   const g = e.target.closest('[data-fd-game]');
   if (g) { pauseFeed(); track('feed', 'game:' + g.dataset.fdGame); return; }   // the router opens /play/<id>
