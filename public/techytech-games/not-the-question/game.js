@@ -128,7 +128,7 @@ function voice(group, opts = {}) {
   if (A.voice) { try { A.voice.stop(); } catch {} A.voice = null; }
   A.voice = play(id, 1.0);
   if (!opts.silentText) say(who, VO_TEXT[id], opts.cls || '');
-  talk(who, (A.buf[id] ? A.buf[id].duration : 1.2) * 1000);
+  talk(who, (A.buf[id] ? A.buf[id].duration : 1.2) * 1000, /^no-/.test(id) ? 'no' : '');
   return id;
 }
 function setSound(on) {
@@ -137,14 +137,20 @@ function setSound(on) {
 }
 
 // ---------------------------------------------------------------- strip + HUD
-function say(who, text, cls = '') {
-  const el = $('#say'); el.className = cls;
+let reactT = 0;
+function say(who, text, cls = '') { // a reaction (Daniel's answer, Amir, Ofer) - its own line under the strip, the question stays
+  const el = $('#react'); el.className = 'on ' + cls;
   el.innerHTML = `<b>${NAMES[who] || ''}:</b> ${text.replace(/</g, '&lt;')}`;
+  $('#stage').classList.add('off'); clearTimeout(reactT);
+  reactT = setTimeout(() => { el.className = ''; $('#stage').classList.remove('off'); }, 2600);
 }
-function talk(who, ms) {
+function ask(who, text) { // the question of the ring Daniel is on - always on screen
+  $('#say').innerHTML = `<b>${NAMES[who] || ''} שואל:</b> ${text.replace(/</g, '&lt;')}`;
+}
+function talk(who, ms, pose) {
   clearTimeout(voiceTimer);
   $('#tAmir').classList.toggle('talk', who === 'amir'); $('#tOfer').classList.toggle('talk', who === 'ofer');
-  $('#tAmir img').src = who === 'amir' ? 'assets/amir-talk.webp' : 'assets/amir.webp';
+  $('#tAmir img').src = who === 'amir' ? (pose === 'no' ? 'assets/amir-no.webp' : 'assets/amir-talk.webp') : 'assets/amir.webp';
   $('#tOfer img').src = who === 'ofer' ? 'assets/ofer-talk.webp' : 'assets/ofer.webp';
   voiceTimer = setTimeout(() => talk('', 0), Math.max(500, ms));
 }
@@ -232,6 +238,51 @@ function labelTex(text, kind) {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 
+// ---- answer cards: a flat card on the panel, its words straight and big, always turned to the player
+// (the camera looks down at the rings, so the words are drawn taller to look normal on screen)
+const SIGN_STRETCH = 1.55;
+function drawRed(x, W, H) {
+  x.clearRect(0, 0, W, H); x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.save(); x.translate(W / 2, H / 2); x.scale(1, SIGN_STRETCH * 0.62);
+  x.font = '220px sans-serif'; x.fillText('✋', 0, -80);
+  x.direction = 'rtl'; x.font = '900 120px Rubik, sans-serif'; x.fillStyle = '#ffffff'; x.strokeStyle = '#7a0b0d'; x.lineWidth = 16;
+  x.strokeText('קוטעים', 0, 150); x.fillText('קוטעים', 0, 150); x.restore();
+}
+function signTex(text, kind) {
+  const W = 1024, H = 672, c = document.createElement('canvas'); c.width = W; c.height = H;
+  LABC.width = W; LABC.height = H; const x = LABC.getContext('2d'); x.clearRect(0, 0, W, H);
+  const red = kind === 'no';
+  x.fillStyle = red ? '#e5383b' : '#ffffff'; x.strokeStyle = red ? '#ffffff' : '#16213e'; x.lineWidth = 18;
+  x.beginPath(); x.roundRect(14, 14, W - 28, H - 28, 70); x.fill(); x.stroke();
+  x.direction = 'rtl'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  const words = text.split(' '), maxW = W - 110;
+  const fits = (ls, sz) => { x.font = `900 ${sz}px Rubik, sans-serif`; return ls.every((l) => x.measureText(l).width <= maxW); };
+  let lines = [text], size = 190;
+  while (!fits(lines, size) && size > 130) size -= 4;
+  if (!fits(lines, size) && words.length > 1) {
+    let best = 1, bw = 1e9; x.font = '900 120px Rubik, sans-serif';
+    for (let i = 1; i < words.length; i++) { const w = Math.max(x.measureText(words.slice(0, i).join(' ')).width, x.measureText(words.slice(i).join(' ')).width); if (w < bw) { bw = w; best = i; } }
+    lines = [words.slice(0, best).join(' '), words.slice(best).join(' ')]; size = 150;
+  }
+  while (!fits(lines, size) && size > 60) size -= 4;
+  x.font = `900 ${size}px Rubik, sans-serif`; x.fillStyle = red ? '#ffffff' : '#16213e';
+  x.save(); x.translate(W / 2, H / 2); x.scale(1, SIGN_STRETCH * 0.62);
+  lines.forEach((l, i) => x.fillText(l, 0, (i - (lines.length - 1) / 2) * size * 1.08));
+  x.restore();
+  c.getContext('2d').drawImage(LABC, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+const RED_TEX = (() => {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 420; drawRed(c.getContext('2d'), 512, 420);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+document.fonts && document.fonts.load('900 120px Rubik').then(() => { drawRed(RED_TEX.image.getContext('2d'), 512, 420); RED_TEX.needsUpdate = true; });
+function sign(group, a, w, h, tex) {
+  const pivot = new THREE.Object3D(); pivot.position.set(1.9 * Math.sin(a), 0.112, 1.9 * Math.cos(a)); group.add(pivot); pivot.userData.a = a;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; pivot.add(m); return m;
+}
+
 // Daniel - a real glossy ball, his painted face in a round video-call window on its front
 const ball = new THREE.Group(); scene.add(ball);
 const ballCanvas = Object.assign(document.createElement('canvas'), { width: 1024, height: 512 });
@@ -295,7 +346,7 @@ function layout(i, arrive) {
   const st = stageOf(i), r = G.rand;
   const q = G.tutRing && i === 0 ? TUT_Q : questionFor(i);
   const nClear = G.tutRing && i === 0 ? 1 : st === 0 ? 1 : 2;
-  const nRed = G.tutRing && i === 0 ? 0 : i < 3 ? 0 : st === 0 ? 1 : st === 1 ? 1 + (r() < 0.5 ? 1 : 0) : st === 2 ? 2 : 2 + (r() < 0.4 ? 1 : 0);
+  const nRed = G.tutRing && i === 0 ? 1 : i < 3 ? 0 : st === 0 ? 1 : st === 1 ? 1 + (r() < 0.5 ? 1 : 0) : st === 2 ? 2 : 2 + (r() < 0.4 ? 1 : 0);
   const slots = new Array(SLICES).fill(null).map(() => ({ kind: 'plain', panel: -1 }));
   const reserved = new Set([arrive, (arrive + 1) % SLICES, (arrive + SLICES - 1) % SLICES]);
   const free = (k, n) => { for (let j = 0; j < n; j++) { const s = (k + j) % SLICES; if (reserved.has(s) || slots[s].kind !== 'plain') return false; } return true; };
@@ -318,18 +369,19 @@ function buildRing(i, arrive) {
   const L = layout(i, arrive);
   const group = new THREE.Group(); group.position.y = -i * GAP; tower.add(group);
   const pal = PALETTES[stageOf(i) % PALETTES.length];
-  const ring = { i, group, q: L.q, slots: L.slots, panels: L.panels, meshes: new Array(SLICES).fill(null), passed: false, asked: false };
+  const ring = { i, group, q: L.q, slots: L.slots, panels: L.panels, meshes: new Array(SLICES).fill(null), signs: [], passed: false, asked: false };
   for (let k = 0; k < SLICES; k++) {
     const sl = L.slots[k];
     if (sl.panel >= 0) continue;
     const mat = sl.kind === 'red' ? MAT.red : plainMat(pal[k % 2]);
     const m = new THREE.Mesh(sliceGeo(k * SA + 0.004, (k + 1) * SA - 0.004), mat); group.add(m); ring.meshes[k] = m;
+    if (sl.kind === 'red') ring.signs.push(sign(group, (k + 0.5) * SA, 0.9, 0.75, RED_TEX).parent);
   }
   L.panels.forEach((p) => {
     const a0 = p.s0 * SA + 0.006, a1 = (p.s0 + p.n) * SA - 0.006;
     const m = new THREE.Mesh(sliceGeo(a0, a1), MAT.panel.clone()); group.add(m);
-    const lab = new THREE.Mesh(labelGeo(a0 + 0.04, a1 - 0.04), new THREE.MeshBasicMaterial({ map: labelTex(p.text, ''), transparent: true, depthWrite: false, side: THREE.DoubleSide }));
-    group.add(lab); p.mesh = m; p.label = lab;
+    const lab = sign(group, (p.s0 + p.n / 2) * SA, 1.78, 1.18, signTex(p.text, '')); ring.signs.push(lab.parent);
+    p.mesh = m; p.label = lab;
     for (let j = 0; j < p.n; j++) ring.meshes[(p.s0 + j) % SLICES] = m;
   });
   G.rings[i] = ring;
@@ -351,7 +403,7 @@ function ensureRings() {
   // drop rings far above
   G.rings.forEach((r, i) => { if (r && i < G.ringAt - 2) { tower.remove(r.group); disposeGroup(r.group); G.rings[i] = null; } });
 }
-function disposeGroup(g) { g.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map) o.material.map.dispose(); }); }
+function disposeGroup(g) { g.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map && o.material.map !== RED_TEX) o.material.map.dispose(); }); }
 
 // ---------------------------------------------------------------- the round
 function resetWorld(tutorial) {
@@ -371,8 +423,10 @@ function resetWorld(tutorial) {
 }
 function askRing(i) {
   const r = G.rings[i]; if (!r || r.asked) return; r.asked = true; G.lastAsked = i;
-  say(r.q.who, r.q.q.replace(/^דניאל: /, ''), '');
+  if (r.q.who === 'daniel') ask('amir', 'אז מה אתה מציע?'); else ask(r.q.who, r.q.q);
+  if (r.q.who === 'daniel') say('daniel', r.q.q.replace(/^דניאל: /, ''), '');
   talk(r.q.who === 'daniel' ? '' : r.q.who, 1800);
+  if (!G.tut && !G.redWarned && r.slots.some((x) => x.kind === 'red')) { G.redWarned = true; chip('✋ אדום = קוטעים אותך. אל תנחתו עליו!', 3800); }
   const st = stageOf(i);
   $('#stageT').textContent = `שלב ${st + 1}: ${stageName(st)} · שאלה ${(i % RING_PER_STAGE) + 1}/${RING_PER_STAGE}`;
 }
@@ -410,12 +464,14 @@ function strike(kind, ring, panel) {
   if (panel) flashPanel(panel);
   if (G.strikes >= 3) setTimeout(gameOver, 900);
 }
-function flashPanel(p) { p.mesh.material.color.set(0xe5383b); p.label.material.map.dispose(); p.label.material.map = labelTex(p.text, 'no'); p.label.material.needsUpdate = true; G.flash.push({ p, t: 0.5 }); }
+function flashPanel(p) { p.mesh.material.color.set(0xe5383b); p.label.material.map.dispose(); p.label.material.map = signTex(p.text, 'no'); p.label.material.needsUpdate = true; G.flash.push({ p, t: 0.5 }); }
 
 function passRing(ring, how) {
   ring.passed = true;
   // break it: every slice flies out
+  ring.signs = [];
   ring.group.children.slice().forEach((m) => {
+    if (!m.geometry) { ring.group.remove(m); m.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.map && o.material.map !== RED_TEX) o.material.map.dispose(); }); return; } // a card holder: just gone
     const wp = new THREE.Vector3(); m.getWorldPosition(wp);
     tower.remove(m); ring.group.remove(m); m.position.copy(wp); m.rotation.y = G.rot; scene.add(m);
     if (m.material && m.material.transparent === false) { m.material = m.material.clone(); m.material.transparent = true; }
@@ -516,6 +572,8 @@ function frame(t) {
     if (p.t <= 0) { scene.remove(p.m); if (p.m.geometry) p.m.geometry.dispose(); return false; } return true; });
   G.flash = G.flash.filter((f) => { f.t -= dt; if (f.m) f.m.material.emissiveIntensity = f.t > 0 ? 0.4 + Math.sin(t / 40) * 0.6 + 0.6 : 0.4; return f.t > 0; });
   pole.position.y = (G.camY || 0) - 100;
+  G.rings.forEach((r) => { if (r) r.signs.forEach((sg) => { sg.rotation.y = -tower.rotation.y; const f = Math.cos(sg.userData.a + tower.rotation.y); sg.children[0].material.opacity = Math.max(0, Math.min(1, (f + 0.45) * 2.2)); }); });
+  MAT.red.emissiveIntensity = 0.45 + Math.sin(t / 160) * 0.35;
   if (!$('#tut').hidden && TSTEP) placeSpot();
   renderer.render(scene, camera);
 }
@@ -604,8 +662,9 @@ const STEPS = [
   { t: 'השאלה של הטבעת שעליה אתם עומדים מופיעה כאן.', spot: '#strip' },
   { t: '<b>גררו</b> ימינה ושמאלה כדי לסובב את המגדל.', spot: null, try: 'rotate' },
   { t: 'על הטבעת יש תשובות. התשובה <b>הברורה והנכונה</b>? «זאת לא השאלה» - פסילה.', spot: 'clear' },
+  { t: '✋ <b>אדום = קוטעים אותך. אסור לנחות עליו!</b> נחיתה על אדום = פסילה.', spot: 'red' },
   { t: 'סובבו את התשובה <b>המעורפלת</b> אל מתחת לדניאל - והוא ירד לשאלה הבאה.', spot: 'vague', try: 'pass' },
-  { t: 'פרוסה <b>אדומה</b> = קטעו אתכם. <b>3 פסילות</b> ומורידים אתכם מהפגישה.', spot: '#strikes' },
+  { t: 'כאן הפסילות: תשובה ברורה או אדום. <b>3 פסילות</b> ומורידים אתכם מהפגישה.', spot: '#strikes' },
   { t: 'שלוש תשובות מעורפלות ברצף = <b>מומנטום</b>: פורצים דרך הטבעת הבאה, מה שלא יהיה עליה.', spot: null },
   { t: 'מוכנים? הפגישה מתחילה.', spot: null, last: true },
 ];
@@ -625,9 +684,13 @@ function showStep() {
 }
 function spotRect() {
   const s = TSTEP && TSTEP.spot; if (!s) return null;
-  if (s === 'ball' || s === 'clear' || s === 'vague') {
+  if (s === 'ball' || s === 'clear' || s === 'vague' || s === 'red') {
     let p;
     if (s === 'ball') p = ball.position.clone();
+    else if (s === 'red') {
+      const r = G.rings[0], k = r ? r.slots.findIndex((x) => x.kind === 'red') : -1; if (k < 0) return null;
+      const a = (k + 0.5) * SA + tower.rotation.y; p = new THREE.Vector3(BALL_Z * Math.sin(a), -r.i * GAP, BALL_Z * Math.cos(a));
+    }
     else {
       const r = G.rings[0]; const pn = r && r.panels.find((x) => x.kind === s); if (!pn) return null;
       const a = (pn.s0 + 1) * SA + tower.rotation.y; p = new THREE.Vector3(BALL_Z * Math.sin(a), -r.i * GAP, BALL_Z * Math.cos(a));

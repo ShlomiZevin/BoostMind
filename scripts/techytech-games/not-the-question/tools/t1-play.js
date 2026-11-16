@@ -35,7 +35,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     const tryStep = await p.evaluate(() => document.getElementById('tcard').classList.contains('try'));
     console.log('step', s.step + 1, tryStep ? '(try)' : '', txt.slice(0, 60));
     if (tryStep && s.step === 3) { await drag(160); await drag(-160); await p.waitForTimeout(1300); continue; }
-    if (tryStep && s.step === 5) {
+    if (tryStep && s.step === 6) {
       const r = await p.evaluate(() => NTQ.ring(0)); const v = r.panels.find((x) => x.kind === 'vague');
       await turnTo(v.s0); await p.waitForTimeout(2200); continue;
     }

@@ -11,7 +11,7 @@
 <meta property="og:title" content="לא זו השאלה – טקי-טק">
 <meta property="og:description" content="כל תשובה ברורה מקבלת «זאת לא השאלה». כמה עמוק תגיעו לפרטים?">
 <meta property="og:url" content="https://shlomiverse.com/techytech-games/not-the-question/">
-<meta property="og:image" content="https://shlomiverse.com/techytech-games/not-the-question/assets/share.jpg?v=1">
+<meta property="og:image" content="https://shlomiverse.com/techytech-games/not-the-question/assets/share.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -25,9 +25,9 @@
 :root{
   --ink:#16213e; --blue:#2d6cf0; --blueD:#1b46b0; --green:#16a873; --greenD:#0d7a52; --red:#e5383b; --yellow:#ffc531; --purple:#7a4ce0;
   --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
-  --stripH:64px; --sw:100vw;
+  --stripH:74px; --sw:100vw;
 }
-@media (max-height:600px){:root{--stripH:56px}}
+@media (max-height:600px){:root{--stripH:66px}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
 body{background:#2a3b66 url(assets/bg.jpg) center/cover no-repeat;position:relative}
@@ -48,11 +48,17 @@ a{color:inherit}
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
 .tile.talk{outline-color:var(--yellow)}
 .tile i{position:absolute;bottom:0;left:0;right:0;font-style:normal;font-size:10px;font-weight:700;text-align:center;background:#0009;line-height:14px}
-#say{flex:1;min-width:0;font-size:clamp(13px,3.7vw,16px);font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-#say b{color:var(--yellow);font-weight:900}
-#say.no{color:#ff8a8a}
-#say.no b{color:#ff5a5a}
-#say.yes b{color:#6ee7a8}
+#say{flex:1;min-width:0;font-size:clamp(14px,4vw,17px);font-weight:900;line-height:1.22;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#say b{display:block;color:var(--yellow);font-weight:700;font-size:12px}
+#react{position:absolute;top:calc(var(--safe-t) + var(--stripH) + 62px);left:0;right:0;margin:0 auto;width:fit-content;max-width:92%;background:#fff;color:var(--ink);border-radius:14px;padding:6px 14px;font-weight:700;font-size:clamp(13px,3.7vw,15px);text-align:center;box-shadow:0 4px 12px #0005;z-index:6;pointer-events:none;opacity:0;transform:translateY(-6px);transition:opacity .2s,transform .2s}
+#react.on{opacity:1;transform:none}
+#react b{color:var(--blueD)}
+#react.no{background:#e5383b;color:#fff}
+#react.no b{color:#ffe0e0}
+#react.yes{background:#16a873;color:#fff}
+#react.yes b{color:#dfffee}
+#stage.off{opacity:0}
+#stage{transition:opacity .2s}
 #hud{position:absolute;top:calc(var(--safe-t) + var(--stripH) + 12px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;z-index:4;pointer-events:none}
 #depth{background:#ffffffee;border-radius:14px;padding:4px 12px 5px;text-align:center;box-shadow:0 4px 10px #0004;min-width:64px}
 #depth small{display:block;font-size:11px;font-weight:700;color:#556}
@@ -140,6 +146,7 @@ a{color:inherit}
     <button id="pauseB" aria-label="עצירה">II</button>
   </div>
 </div>
+<div id="react"></div>
 <div id="stage" hidden><span id="stageT"></span></div>
 <div id="chip" class="off"></div>
 <div id="pop"></div>
