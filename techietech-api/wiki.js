@@ -330,10 +330,14 @@ const SOURCE_EN = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube'
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const BOOTH_WHY = 'מה מטרת כניסתך לארצנו?';
 const OWN_WORDS = 8;
+const QUIZ_BY = ['yotam', 'sim'];   // about.js sources written by the simulation test (sim.js, verse.js d.add)
 function visitorText(nick, ab = {}, cz = {}, sim = {}, I = { names: {}, worlds: {} }) {
   const name = String(nick || '').trim().slice(0, 40);
-  const v = (k) => (ab[k] && ab[k].v != null ? ab[k].v : null);
-  const words = (k) => (ab[k] && ab[k].raw ? ` (in their words: "${String(ab[k].raw).slice(0, 120)}")` : '');
+  // only what the visitor said about themselves - never what the simulation test guessed from its silly questions (his note
+  // 2026-11-16: "where do people argue? at a work meeting" became "laughs most at טקי-טק" and Demokratovich ended a ruling with it)
+  const real = (k) => ab[k] && !QUIZ_BY.includes(ab[k].by);
+  const v = (k) => (real(k) && ab[k].v != null ? ab[k].v : null);
+  const words = (k) => (real(k) && ab[k].raw ? ` (in their words: "${String(ab[k].raw).slice(0, 120)}")` : '');
   const know = [];
   if (STAGE_EN[v('stage')]) know.push(`${STAGE_EN[v('stage')]}${words('stage')}.`);
   const fav = (v('fav') || []).map((id) => I.names[id]).filter(Boolean);
@@ -352,7 +356,6 @@ function visitorText(nick, ab = {}, cz = {}, sim = {}, I = { names: {}, worlds: 
   const wi = lines ? lines.findIndex((l) => l && l.t === BOOTH_WHY) : 1;
   const why = (cz.bt || [])[wi];
   if (why && why.a && !(lines && lines[wi] && (lines[wi].opts || []).includes(why.a))) own.push(`Rabbi Demokratovich asked why they came -> "${why.a}"`);
-  for (const s of sim.steps || []) if (s && s.free && !s.field) own.push(`The simulation test asked "${s.q}" -> "${s.free}"`);
   if (own.length) know.push('In their own words: ' + own.slice(-OWN_WORDS).map((x) => String(x).slice(0, 260)).join(' · '));
   if (name) know.unshift(`Their name: ${name} - between friends a name is for a hello, a goodbye or a big moment; the rest of the time they just talk.`);
   return `You're chatting with someone you already know - a friend. Reply the way friends text each other: open straight with your reaction to what they just said, and speak to them as "you". What you know about them is the background of your friendship: it lives in how you see them, and it comes up when the conversation reaches it, the way a friend's life comes up between friends.`
