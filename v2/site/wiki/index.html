@@ -1281,6 +1281,12 @@ function writeTo(c) {
   const short = (c.aka || []).filter(ok).sort((a, b) => a.length - b.length)[0];
   return short ? 'כתבו ל' + short + '…' : 'כתבו הודעה…';
 }
+// the header's words come with the social layer's copy (HOOK.T, main.js) - a chat drawn before it (a link straight to /chat)
+// gets them the moment it arrives
+window.chatHeadCopy = () => {
+  const g = $('.cx-hd-go span', cx);
+  if (g && HOOK.T) g.textContent = cx.classList.contains('cs-open') ? HOOK.T.shell.closeStrip : HOOK.T.shell.switchChar;
+};
 const csOpen = () => { try { return localStorage.getItem('vx-cs-open') === '1'; } catch (e) { return false; } };
 const setCsOpen = (on) => { try { if (on) localStorage.setItem('vx-cs-open', '1'); else localStorage.removeItem('vx-cs-open'); } catch (x) { /* private mode */ } };
 document.addEventListener('click', (e) => {

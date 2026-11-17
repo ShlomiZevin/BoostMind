@@ -33,7 +33,7 @@ function tbChanged() {
 function tabOf(path = location.pathname) {
   const p = path.split('/')[1] || '';
   if (!p) return 'home';
-  if (p === 'videos') return 'videos';
+  if (p === 'videos' || p === 'archive') return 'videos';
   if (p === 'games') return 'games';
   if (p === 'chat') return 'chat';
   if (p === 'community') return 'community';

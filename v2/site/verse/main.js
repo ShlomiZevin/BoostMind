@@ -72,6 +72,7 @@ Object.assign(HOOK, {
     if (!page) recordsHome(); else if (page !== 'records' && !/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום": the home's rows, and its own page
   },
 });
+window.chatHeadCopy?.();   // APP SHELL: a chat drawn before HOOK.T arrived (a straight link to /chat) gets its header's words
 // the account's pages wait for Firebase to say who this is: the loader until then, never a "sign in" card that flips a
 // second later (round 4, his note 2026-11-07: three screens on a refresh) - onState's refresh() draws them once it knows
 const known = (fn) => (...a) => (st.ready ? fn(...a) : loader());

@@ -612,3 +612,7 @@ html.app .gpage { padding-top: 26px; }
   html.app .cx.dock .composer button { width: 64px; }
   html.app .cx.dock .composer button .comet-img { width: 60px; height: 34px; }
 }
+/* the grid's rows: regular weight, the whole sentence (a second line only where it can't fit) */
+@media (max-width: 760px) { .vg-row { font-weight: 400; font-size: 12.2px; letter-spacing: -.02em; gap: 6px; padding-inline: 10px 8px; } .vg-row span { white-space: normal; overflow: visible; } }
+/* the videos feed: the pill a little lower, inside the frame, clear of the video's own "סיום" chip */
+html.feed-on .gf-tg { top: calc(var(--th) + 44px); }
