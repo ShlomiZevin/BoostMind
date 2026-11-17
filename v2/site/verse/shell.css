@@ -715,3 +715,9 @@ html.fd-clean .fd-ui, html.fd-clean .fd-line, html.fd-clean .top, html.fd-clean 
   html.app .cx.dock .cx-hd-face::after { width: 9px; height: 9px; bottom: 1px; left: 1px; border-width: 1.5px; }
   html.app .cx.dock .m.bot::before { background: #222 var(--face) 50% 18% / cover no-repeat; }
 }
+@media (max-width: 760px) {
+  /* the answer's tail (pointing to the face at the left): its border only on its two outer sides, the fill over the bubble's
+     edge where it joins - no line across the joint */
+  html.app .cx.dock .m.bot:not(.wait)::after { border: 0; border-left: 1px solid rgba(255, 255, 255, .14); border-bottom: 1px solid rgba(255, 255, 255, .14);
+    background: #1f1f24; inset-inline-end: -6.5px; top: 16px; }
+}
