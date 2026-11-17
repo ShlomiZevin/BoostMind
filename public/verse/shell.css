@@ -604,3 +604,11 @@ html.app .gpage { padding-top: 26px; }
   box-shadow: 0 4px 14px rgba(0, 0, 0, .4); pointer-events: none; animation: fd-in .25s ease both; transition: opacity .45s; }
 .gf-tip::before { content: ''; position: absolute; top: -5px; left: 18px; width: 10px; height: 10px; background: #ff6a1f; transform: rotate(45deg); }
 .gf-tip.out { opacity: 0; }
+/* the open faces strip as thin as the line (his rule): 34px faces, only the one talking named, tight; the send art at its own proportion */
+@media (max-width: 760px) {
+  html.app .cx.dock.cs-open .cx-strip { height: 48px; padding: 6px 10px; gap: 8px; align-items: center; }
+  html.app .cx.dock.cs-open .cx-strip button, html.app .cx.dock.cs-open .cx-strip button:has(.gmark), html.app .cx.dock.cs-open .cx-strip button:first-child { width: 34px !important; height: 34px; }
+  html.app .cx.dock.cs-open .cx-strip .cs-nm { display: none !important; }
+  html.app .cx.dock .composer button { width: 64px; }
+  html.app .cx.dock .composer button .comet-img { width: 60px; height: 34px; }
+}

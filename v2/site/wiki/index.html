@@ -1260,7 +1260,7 @@ function drawChat() {
       <button class="icon-btn nc" data-new-chat title="שיחה חדשה" aria-label="שיחה חדשה">${ICON.newChat}</button>
       <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
     ${dock ? '<div class="cx-vbar"></div>' : ''}<div class="msgs"></div>
-    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${dock ? '<img class="comet-img" src="/verse/art/send-comet.png" alt="" width="49" height="28">' : ICON.send}</button></form>
+    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${dock ? '<img class="comet-img" src="/verse/art/send-comet.png" alt="" width="60" height="34">' : ICON.send}</button></form>
     <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
   if (dock) $('.cx-strip', cx).scrollLeft = 0; else $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
