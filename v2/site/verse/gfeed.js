@@ -93,7 +93,7 @@ function mount(list) {
   el.addEventListener('click', onClick);
   // a cover whose words are the picture: the whole of it over a blurred copy of itself (every other cover fills the frame)
   el.querySelectorAll('.gf-main').forEach((img) => { if (img.complete && img.naturalWidth) fit(img); else img.addEventListener('load', () => fit(img), { once: true }); });
-  GF.rs = () => el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img));
+  GF.rs = () => { el.querySelectorAll('.gf-art[style*="flex"]').forEach((a) => { a.style.flex = ''; }); el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img)); };
   addEventListener('resize', GF.rs);
   addEventListener('vx-tb', GF.rs);
   track('feed', 'tab:games');
@@ -129,7 +129,8 @@ function boards(list, el) {
     BOARDS[key(g)] = top && typeof top.value === 'number' ? top : null;
   }).catch(() => { BOARDS[key(g)] = null; });
   // the game showing first: its board alone, first - its line's place kept (before the first paint), the score fading in,
-  // or the place easing shut when nobody scored today
+  // or, when nobody scored today, the place closing from below: the art keeps its height, so the title and "לשחק" stay
+  // exactly where the thumb saw them and only the hint moves up
   const first = list[GF.cur], slot = first && first.record && !(key(first) in BOARDS) && el.querySelector(`.gf-s[data-i="${GF.cur}"] .gf-rec`);
   const rest = () => games.filter((g) => !(key(g) in BOARDS)).forEach((g) => read(g).then(() => { if (own === GF && BOARDS[key(g)]) { own.late.add(g.id); placeLate(); } }));
   if (!slot) { rest(); return; }
@@ -140,6 +141,8 @@ function boards(list, el) {
     if (own !== GF) return;
     if (BOARDS[key(first)]) { slot.innerHTML = recLine(first); slot.classList.remove('rsv'); slot.classList.add('in'); }
     else {
+      const art = slot.closest('.gf-s').querySelector('.gf-art');
+      art.style.flex = `0 0 ${art.getBoundingClientRect().height}px`;   // (until the window changes size - GF.rs lets it go)
       slot.classList.add('shut');
       const done = () => { slot.hidden = true; slot.classList.remove('rsv', 'shut'); };
       slot.addEventListener('transitionend', done, { once: true });
