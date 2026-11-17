@@ -125,7 +125,10 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
     await py(['--characters', ...born]).catch((e) => { throw new Error('the new character page failed: ' + e.message); });
   }
   // (no cast here = none sent: the record keeps the one it has, else the API's AI picks it from the words - castBy 'ai')
-  const out = await api({ op: 'video', id, ...(cast.length ? { cast } : {}), transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
+  // the Instagram post it became (the Send window keeps it in publish.json) - the archive shows it as "in the verse" and
+  // nobody can ask for it from there again (his note 2026-11-17: a studio reel was requested from the archive)
+  const igUrl = (readJson(path.join(dir, 'publish.json'), {}).published?.instagram?.url) || '';
+  const out = await api({ op: 'video', id, ...(/^https:\/\/(www\.)?instagram\.com\//.test(igUrl) ? { ig: igUrl } : {}), ...(cast.length ? { cast } : {}), transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
   if (dryRun) { log(`✔ dry run: "${out.video?.title || ''}" - cast ${out.castBy || '?'}: ${(out.video?.cast || []).join(', ') || 'nobody'} - nothing written`); return out; }
   const live = await api({ op: 'get', id });
   if (!live.live) throw new Error(`written, but ${id} is hidden on the site (/backstage/ סרטונים shows it)`);
