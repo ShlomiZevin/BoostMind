@@ -771,3 +771,5 @@ html.fd-clean .fd-ui, html.fd-clean .fd-line, html.fd-clean .top, html.fd-clean 
 .sts-h em { order: -1; } .stm-fan img { width: 70px; height: 70px; left: calc(50% - 35px + (var(--k) - 1) * 36px); }
 /* fans' stickers: no easy long-press save or drag (copying goes through the card, signed in) */
 .stc img, .stc2 img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+/* clean mode's two faint buttons at the top corner (the video's own bottom UI stays clear) */
+.fd-cleanbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }

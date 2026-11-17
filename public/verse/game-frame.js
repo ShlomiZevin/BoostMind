@@ -52,7 +52,7 @@
   addEventListener('message', (e) => { const d = e.data; if (d && d.verse === 'frame' && e.source === parent) set(d.top); });
   if (new URLSearchParams(location.search).get('autostart') === '1') {
     root.classList.add('verse-autostart');
-    css.textContent += 'html.verse-autostart body{opacity:0!important}';
+    css.textContent += 'html.verse-autostart body{opacity:0!important;pointer-events:none!important}';
     const shown = (b) => { if (!b || b.disabled || b.offsetParent === null) return false; for (let n = b; n && n !== document.body; n = n.parentElement) { const c = getComputedStyle(n); if (c.visibility === 'hidden' || c.opacity === '0' || c.display === 'none') return false; } return true; };
     const t0 = Date.now();
     const tryStart = () => {

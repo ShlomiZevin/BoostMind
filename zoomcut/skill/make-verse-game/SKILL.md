@@ -226,7 +226,9 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
      show it only when `VerseGame.inVerse`. An existing home / menu / exit button just gets `data-verse-back` (its own
      click still runs first - a score it reports is kept); a new one gets `class="verse-only" data-verse-back`.
    - **Autostart**: the feed opens the game with `?autostart=1` and game-frame.js presses its start button - give the
-     start button `id="playBtn"` (the template's) or `data-verse-start`. The first play still opens the tutorial by
+     start button `id="playBtn"` (the template's) or `data-verse-start`. A game whose menu appears only after its assets / data
+     load: `<html data-verse-wait>` and set `data-verse-start` on the start button once ready (else autostart presses it
+     too early); a game with no start screen to skip (a book, a mode picker): `<html data-verse-noautostart>`. The first play still opens the tutorial by
      itself, and "איך משחקים" stays reachable (the pause menu, or the start screen it goes back to).
    **Daily records - every game with a score, no exceptions** (his ask, 3 Nov 2026): the verse keeps a table per game
    that starts fresh each Israeli day - the home's "שיאי היום", the "שיאים" button on the game's page, a celebration
