@@ -330,7 +330,8 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .chips button .n { margin-inline-start: 5px; font-size: 12px; opacity: .8; }
 .pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0 4px; }
 .pic { position: relative; margin: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--card2); }
-.pic img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; cursor: zoom-in; }
+.pic img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #0b0f17; cursor: zoom-in; }
+.pics:has(.pic:only-child) { grid-template-columns: 1fr; } .pic:only-child img { aspect-ratio: auto; max-height: 65vh; }
 .pic figcaption { font-size: 13px; color: var(--ink2); padding: 6px 9px 8px; line-height: 1.35; }
 .pic .pdel { position: absolute; top: 6px; left: 6px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; }
 .pic .pdel svg { width: 14px; height: 14px; }
