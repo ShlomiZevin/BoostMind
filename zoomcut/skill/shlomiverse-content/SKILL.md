@@ -5,6 +5,9 @@ description: How content gets onto the Shlomiverse (shlomiverse.com - the wiki, 
 
 # Shlomiverse content - one database, one door, two computers
 
+**Words:** every line a visitor reads uses one vocabulary - תושבים (never דמויות), המייסדים (never "לשלומי"), a real world
+(never parody / episode / fans). Read `words.md` (this folder) before writing any copy.
+
 His rule (2026-11-05, after a laptop build took every face but Asaf's off the site): **"I work from two computers and they
 must not ruin each other. A new video, a new character, a new profile image - none of it can break the site. It
 shouldn't come from git."**

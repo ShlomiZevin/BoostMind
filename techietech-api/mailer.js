@@ -40,7 +40,7 @@ const MAX_AGE = 2 * 864e5;
 // codes, replies to their own forms) is not news and doesn't move it.
 const NEWS_GAP = 7 * 864e5;
 const PER_RUN = 120;              // a run never sends more than this (Gmail's daily limit is ~500)
-const TOPICS = [['story', 'סטוריז חדשים של הדמויות'], ['video', 'סרטונים חדשים'], ['game', 'משחקים חדשים']];
+const TOPICS = [['story', 'סטוריז חדשים של התושבים'], ['video', 'סרטונים חדשים'], ['game', 'משחקים חדשים']];
 
 const signKey = () => 'mail|' + (LOCAL ? process.env.VERSE_VAPID_PRIVATE || 'local' : VAPID_PRIVATE.value());
 const prefsLink = (uid) => mail.unsubUrl(PREFS_URL, uid, signKey());
@@ -252,7 +252,7 @@ async function mailFor(p, w, now, tz = false) {
   const latestGames = (except) => (w.games || []).filter((g) => g.id !== except).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 2).map(gameCard);
   const latestVideos = (except) => (w.videos || []).filter((v) => v.id !== except && v.date && !v.archive).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(videoCard);
   if (p.kind === 'citizen') return { kind: 'citizen', d: citizenData(p.nick || first(p.name), tz) };
-  if (p.kind === 'welcome') return { kind: 'welcome', d: { subject: 'ברוכים הבאים לשלומיוורס', preheader: 'כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.',
+  if (p.kind === 'welcome') return { kind: 'welcome', d: { subject: 'ברוכים הבאים לשלומיוורס', preheader: 'כל התושבים. כל הסרטונים. ואפשר לדבר עם כולם.',
     name: first(p.name), tz, hero: `${SITE}/verse/og.jpg`, cast: ['hani', 'tzvika', 'rosenblum', 'ayelet', 'yaniv'].map((id) => who(w, id)) } };
   if (!evs.length) return null;
   if (evs.length === 1 && games.length) {
@@ -300,8 +300,8 @@ const citizenData = (name, tz = false) => ({ from: 'שגרירות השלומי�
     'כדי לעזוב את המציאות הנוכחית, תידרשו תחילה להוכיח שאתם קיימים. לשם כך הוקם מערך בירוקרטי שלם.',
     'מרים תקבל את פניכם בדלפק הצ\'ק־אין, תשאל שאלות שאין לה סמכות לשאול, לא תבין את התשובות ותסווג אתכם בהתאם.',
     'בתום ההליך יונפק לכם דרכון רשמי, מספר אזרח וכרטיס כניסה לשלומיוורס.',
-    ...(tz ? ['עם קבלת האזרחות, תוענק לכם זכות דיבור בציפציפ: תוכלו לצייץ, להגיב לדמויות ולהטביע חותמת רשמית על דבריהן. בנוסף, תוכלו להגיב שם לכתבות של החרדות, שעולות לציפציפ. תיוג דמות בתגובה יועבר לטיפולה האישי.'] : [])],
-  sim: { at: 3, cta: 'לבדיקת הסימולציה', para: 'טרם עזיבת המציאות הנוכחית, מומלץ לברר באיזו סימולציה אתם חיים בכלל. לצורך כך נפתח מבחן בן שבע שאלות, שבו יותם, ארכיטקט המערכת של החיים, יגיב לכל תשובה ויסווג אתכם. בתום המבחן יימסרו שם הסימולציה והדמויות החיות בה עמכם.' },
+    ...(tz ? ['עם קבלת האזרחות, תוענק לכם זכות דיבור בציפציפ: תוכלו לצייץ, להגיב לתושבים ולהטביע חותמת רשמית על דבריהם. בנוסף, תוכלו להגיב שם לכתבות של החרדות, שעולות לציפציפ. תיוג תושב בתגובה יועבר לטיפולו האישי.'] : [])],
+  sim: { at: 3, cta: 'לבדיקת הסימולציה', para: 'טרם עזיבת המציאות הנוכחית, מומלץ לברר באיזו סימולציה אתם חיים בכלל. לצורך כך נפתח מבחן בן שבע שאלות, שבו יותם, ארכיטקט המערכת של החיים, יגיב לכל תשובה ויסווג אתכם. בתום המבחן יימסרו שם הסימולציה והתושבים החיים בה עמכם.' },
   bold: 'לאלף הראשונים יוענק מעמד "אזרח מייסד".', fine: tz ? 'הטבות האזרחות ניתנות לכל אזרח, ללא קשר למעמד "אזרח מייסד". המעמד עצמו מקנה בעיקר אחריות היסטורית שלא ביקשתם.'
     : 'המעמד אינו מקנה זכויות או הטבות כלשהן. השגרירות שומרת לעצמה את הזכות לשלול אותן בכל עת.',
   cta: 'להגשת בקשת אזרחות', sign: 'שגרירות השלומיוורס', signRole: 'אגף הגירה, רישום וסיווג שרירותי',
@@ -312,7 +312,7 @@ const citizenData = (name, tz = false) => ({ from: 'שגרירות השלומי�
 // stopped mail, and on Shabbat / at night it waits in mailQueue for the first run in decent hours. (Terra wrote the words.)
 const IDEA_MAIL = {
   liked: { subject: 'השלומיוורס אהב את הרעיון שלכם', preheader: 'הוא סומן בקיר הרעיונות', chip: 'השלומיוורס אהב', title: '{nick}, יש מצב לרעיון הזה',
-    body: 'השלומיוורס אהב את הרעיון שלכם והוא עכשיו מסומן בקיר הרעיונות. זה עדיין לא מבטיח פרק, אבל נעדכן אתכם אם הוא יתקדם. בינתיים אפשר לשתף אותו ולגייס עוד +1ים.', cta: 'לראות את הרעיון' },
+    body: 'השלומיוורס אהב את הרעיון שלכם והוא עכשיו מסומן בקיר הרעיונות. זה עדיין לא מבטיח סרטון, אבל נעדכן אתכם אם הוא יתקדם. בינתיים אפשר לשתף אותו ולגייס עוד +1ים.', cta: 'לראות את הרעיון' },
   making: { subject: 'הרעיון שלכם כבר בעבודה', preheader: 'השלומיוורס התחיל לעבוד עליו', chip: 'בעבודה', title: 'הרעיון שלכם זז',
     body: 'השלומיוורס התחיל לעבוד על הרעיון שלכם, בכתיבה או בצילומים. יש עוד דרך למסך, אבל זה קורה. נעדכן אתכם כשהוא יצא לאוויר.', cta: 'לראות את הרעיון' },
   live: { subject: 'הסרטון מהרעיון שלכם עלה', preheader: 'ויש לכם עליו קרדיט', chip: 'עלה לאוויר', title: '{nick}, זה עלה למסך',

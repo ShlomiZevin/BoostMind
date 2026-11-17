@@ -98,7 +98,7 @@ const quote = (t) => `<table role="presentation" width="100%" cellpadding="0" ce
 function shell({ kind, subject, preheader, body, unsub, note }) {
   const footer = `<tr><td style="padding:28px 32px 34px;border-top:1px solid ${C.line}" align="center">
 <a href="${SITE}/?utm_source=mail&utm_campaign=${kind}"><img src="${LOGO}" alt="השלומיוורס" width="72" style="display:block;width:72px;height:auto;border:0;margin:0 auto 12px"></a>
-<div style="font:400 13px/1.7 ${FONT};color:${C.dim}">${gm(note || `כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.<br>
+<div style="font:400 13px/1.7 ${FONT};color:${C.dim}">${gm(note || `כל התושבים. כל הסרטונים. ואפשר לדבר עם כולם.<br>
 קיבלת את המייל כי יש לך חשבון בשלומיוורס. לא יותר ממייל אחד ביום.`)}</div>
 <div style="font:400 13px/1.7 ${FONT};color:${C.dim};padding-top:10px">
 ${unsub ? `<a href="${esc(unsub)}" style="color:${C.soft};text-decoration:underline">${gmi('לבחור על מה לקבל מיילים או להפסיק')}</a>
@@ -166,28 +166,28 @@ const ic = (k, px = 22, st = 'vertical-align:middle;margin-top:-3px') => `<img s
 // the first mail of a new account: what the verse is, who lives in it, where to start
 function welcome(d, k) {
   return [spacer(14), pad(hero(d.hero, track('/', k), 'השלומיוורס')), spacer(26), pad(h1(`ברוכים הבאים ליקום${d.name ? ', ' + d.name : ''}!`)), spacer(10),
-    pad(p('השלומיוורס הוא עולם שלם של דמויות – כל אחת עם הסרטונים שלה, הסטורי שלה, המשחקים שלה. ואפשר לדבר עם כולן.')), spacer(24),
+    pad(p('השלומיוורס הוא עולם שלם של תושבים – לכל אחד הסרטונים שלו, הסטורי שלו, המשחקים שלו. ואפשר לדבר עם כולם.')), spacer(24),
     // everything a new account can do in the verse (his ask: don't forget any of its features)
-    pad(bullets([[ic('play'), '<b style="color:#fff">סרטונים</b> – כל הדמויות, כל הסדרות, במקום אחד. שומרים את מה שאהבתם בנגיעה.'],
-      [ic('comment'), '<b style="color:#fff">לדבר עם הדמויות</b> – שאלו את חני, את צביקה או את רוזנבלום מה שבא לכם. הן מכירות אתכם בשם.'],
-      [ic('edit'), '<b style="color:#fff">תגובות</b> – כותבים @ ושם של דמות מתחת לסרטון, והיא עונה לכם.'],
-      [ic('game'), '<b style="color:#fff">משחקים</b> – כל דמות והמשחק שלה, עם שיא יומי.'],
-      [ic('bell'), '<b style="color:#fff">סטורי והתראות</b> – עוקבים אחרי הדמויות שאתם אוהבים ובוחרים ממי לקבל התראות.'],
-      [ic('people'), '<b style="color:#fff">הקהילה</b> – מציעים רעיון לפרק או לדמות חדשה, ומצביעים לרעיונות שבא לכם לראות.'],
+    pad(bullets([[ic('play'), '<b style="color:#fff">סרטונים</b> – כל התושבים, כל הסרטונים, במקום אחד. שומרים את מה שאהבתם בנגיעה.'],
+      [ic('comment'), '<b style="color:#fff">לדבר עם התושבים</b> – שאלו את חני, את צביקה או את רוזנבלום מה שבא לכם. הם מכירים אתכם בשם.'],
+      [ic('edit'), '<b style="color:#fff">תגובות</b> – כותבים @ ושם של תושב או תושבת מתחת לסרטון, ומקבלים תשובה.'],
+      [ic('game'), '<b style="color:#fff">משחקים</b> – כל תושב והמשחק שלו, עם שיא יומי.'],
+      [ic('bell'), '<b style="color:#fff">סטורי והתראות</b> – עוקבים אחרי התושבים שאתם אוהבים ובוחרים ממי לקבל התראות.'],
+      [ic('people'), '<b style="color:#fff">הקהילה</b> – מציעים רעיון לסרטון או לתושב חדש, ומצביעים לרעיונות שבא לכם לראות.'],
       [ic('install'), '<b style="color:#fff">אפליקציה</b> – מתקינים את השלומיוורס על הטלפון, ונכנסים בנגיעה.'],
       // ציפציפ and ח24, once they're open to everyone (d.tz = verseMeta/tz.open; his ask 2026-11-08, Terra's words) - ציפציפ's own mark
-      ...(d.tz ? [[ic('tz'), '<b style="color:#fff">ציפציפ והחרדות</b> – קראו מה הדמויות מצייצות ומה אסונית לוי מדווחת בחרדות. אזרחים יכולים גם לצייץ ולהגיב.']] : []),
+      ...(d.tz ? [[ic('tz'), '<b style="color:#fff">ציפציפ והחרדות</b> – קראו מה התושבים מצייצים ומה אסונית לוי מדווחת בחרדות. אזרחים יכולים גם לצייץ ולהגיב.']] : []),
       // there is more than the list - its own line, last - and right after it the verse that keeps growing (his notes on plans
       // mail-welcome and release-check, 2026-11-08; Terra's words)
       [ic('plus'), '<b style="color:#fff">ועוד…</b> – הרשימה נגמרה, אבל השלומיוורס ממש לא.']])), spacer(6),
     pad(h2('היקום ממשיך להיבנות')), spacer(8),
-    pad(p('כמו בעולם אמיתי, השלומיוורס כל הזמן גדל ומשתנה. דמויות, מקומות, משחקים ואתרים חדשים ממשיכים להופיע בו, בלי לחכות שהרשימה תתעדכן.', 16)), spacer(26),
+    pad(p('כמו בעולם אמיתי, השלומיוורס כל הזמן גדל ומשתנה. תושבים, מקומות, משחקים ואתרים חדשים ממשיכים להופיע בו, בלי לחכות שהרשימה תתעדכן.', 16)), spacer(26),
     // the stickers - his "super important" (2026-11-04): its own box, not one more line
     pad(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td style="background-color:#2a160c;background-image:linear-gradient(135deg,#3a1c10,#1d1d25);border:2px solid ${C.accent};border-radius:20px;padding:20px 20px 22px" align="center">
 <div style="padding-bottom:10px">${ic('sticker', 34)}</div>
-<div style="font:800 21px/1.3 ${FONT};color:${C.text}">${gm('סטיקרים מהדמויות – ישר לוואטסאפ')}</div>
-<div style="font:400 15px/1.6 ${FONT};color:${C.soft};padding:8px 0 16px">${gm('עוצרים על כל רגע בכל סרטון, ובנגיעה אחת הוא הופך לסטיקר של הדמות. כל הסטיקרים שלכם נשמרים במקום אחד.')}</div>
+<div style="font:800 21px/1.3 ${FONT};color:${C.text}">${gm('סטיקרים מהתושבים – ישר לוואטסאפ')}</div>
+<div style="font:400 15px/1.6 ${FONT};color:${C.soft};padding:8px 0 16px">${gm('עוצרים על כל רגע בכל סרטון, ובנגיעה אחת הוא הופך לסטיקר של מי שמופיע בו. כל הסטיקרים שלכם נשמרים במקום אחד.')}</div>
 ${button('להכין סטיקר', track('/my-stickers', k))}</td></tr></table>`), spacer(26),
     pad(`<div style="font:700 14px/1 ${FONT};color:${C.dim};text-align:center;padding-bottom:14px">${gm('כמה מהשכנים החדשים שלך')}</div>` + faces(d.cast.map((c) => ({ ...c, href: track(c.href, k) })))), spacer(30),
     pad(button('להיכנס ליקום', track('/', k))), spacer(30),
@@ -243,7 +243,7 @@ const KINDS = { game: newGame, story, video, digest, welcome, reply, idea, citiz
 function render(kind, d, { unsub, unsubPost } = {}) {
   if (kind !== 'reply') unsub = unsub || SITE + '/mail/off';
   const body = KINDS[kind]({ prefs: unsub, ...d }, kind);
-  const note = kind === 'reply' ? `זו תשובה אוטומטית מ${esc(d.site || 'השלומיוורס')}, בשלומיוורס – עולם של דמויות.<br>אפשר להשיב למייל הזה.` : d.note ? esc(d.note) : null;
+  const note = kind === 'reply' ? `זו תשובה אוטומטית מ${esc(d.site || 'השלומיוורס')}, בשלומיוורס – עולם של תושבים.<br>אפשר להשיב למייל הזה.` : d.note ? esc(d.note) : null;
   const html = shell({ kind, subject: d.subject, preheader: d.preheader || '', body, unsub, note });
   const text = [d.subject, '', ...(d.paras || [d.preheader || '']), '', abs(d.url || d.href || d.cta?.href || '/'), ...(unsub ? ['', 'לבחור על מה לקבל מיילים או להפסיק: ' + unsub] : [])].join('\n');
   const headers = unsub ? { 'List-Unsubscribe': `<${unsubPost || unsub}>`, ...(unsubPost ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}) } : {};
