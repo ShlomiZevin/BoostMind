@@ -1042,7 +1042,7 @@ const CR_TREE = new Set(['hani', 'avraham-moshe', 'shterni', 'brachi', 'chaimi',
 const CR_GUIDE = 'guide';
 const CR_TEXT = [['myth', 'המיתולוגיה של השלומיוורס - כל התושבים חיים לפיה'], ['shlomi', 'האגדה על שלומי זווין - נכנסת רק כשמבקר כותב "שלומי"'], ['person', 'מי זה'], ['speech', 'איך מדבר'], ['funny', 'מה מצחיק'], ['parody', 'הפרודיה'], ['dissonance', 'הדיסוננס']];
 const CR_LISTS = [['nuances', 'ניואנסים'], ['catchphrases', 'קאצ\'פרייז / רפליקות']];
-const crFace = (c) => CR_TREE.has(c.id) ? `<img class="ch-av" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="ch-av" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="ch-av">${esc((c.name || '?')[0])}</span>`;
+const crFace = (c) => c.id === 'guide' ? '<img class="ch-av" src="/verse/logo-160.png" alt="" loading="lazy" style="object-fit:contain;background:#111">' : CR_TREE.has(c.id) ? `<img class="ch-av" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="ch-av" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="ch-av">${esc((c.name || '?')[0])}</span>`;
 const crSeen = (id) => SEEN['char:' + id] || 0;
 const crHasSheet = (c) => !!(c.sheet && c.sheet.person);
 const crNotesOf = (id) => (CR?.notes || []).filter((n) => n.char === id);
@@ -1076,10 +1076,9 @@ function chars() {
       <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'עודכן מאז שראית', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))]].map(([k, l, c]) =>
         `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div>
       <div class="seg sm">${[['love', 'לפי אהוב'], ['viral', 'לפי ויראלי'], ['name', 'לפי שם']].map(([k, l]) => `<button data-crsort="${k}" class="${crSort === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>
-    ${(() => { const g = CR.chars.find((c) => c.id === CR_GUIDE); if (!g || !seg(g) || !words.every((w) => hay(g).includes(w))) return ''; const open = crOpen(g.id);
-      return `<div class="ch-list"><button class="item" data-cropen="${g.id}">${crFace(g)}<div class="body"><b>המדריך והמיתולוגיה</b><p>מי המדריך, איך הוא מדבר, והאגדות של השלומיוורס</p>
-        <div class="ch-tags">${crNew(g) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}</div></div></button></div>`; })()}
-    <div class="ch-list">${list.map((c) => { const open = crOpen(c.id);
+    <div class="ch-list">${(() => { const g = CR.chars.find((c) => c.id === CR_GUIDE); if (!g || !seg(g) || !words.every((w) => hay(g).includes(w))) return ''; const open = crOpen(g.id);
+      return `<button class="item" data-cropen="${g.id}">${crFace(g)}<div class="body"><b>המדריך והמיתולוגיה</b><p>מי המדריך, איך הוא מדבר, והאגדות של השלומיוורס</p>
+        <div class="ch-tags">${crNew(g) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}</div></div></button>`; })()}${list.map((c) => { const open = crOpen(c.id);
       return `<button class="item" data-cropen="${c.id}">${crFace(c)}<div class="body"><b>${esc(c.name)}</b><p>${esc(c.world || '')}${c.tagline ? ' · ' + esc(c.tagline) : ''}</p>
         <div class="ch-tags">${c.love ? `<span class="tag">אהוב ${c.love}</span>` : ''}${c.viral ? `<span class="tag">ויראלי ${c.viral}</span>` : ''}${crNew(c) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${crHasSheet(c) ? '' : '<span class="tag red">בלי דף</span>'}</div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
   const inp = $('[data-cr-q]'); if (inp) inp.oninput = (e) => { crQ = e.target.value; const pos = e.target.selectionStart; chars(); const x = $('[data-cr-q]'); x.focus(); x.setSelectionRange(pos, pos); };
