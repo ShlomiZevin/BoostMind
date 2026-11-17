@@ -552,3 +552,13 @@ html.gf-on .gf, html.feed-on .fd { top: calc(var(--th) + 40px); }
   .fd-rail b { display: none; }
   .fd-t { -webkit-line-clamp: 1; }
 }
+/* "בכיכוב:" stays put at the start; only the faces after it slide sideways, fading out at the end */
+.fd-cast { overflow: visible; -webkit-mask-image: none; mask-image: none; margin-inline: 0; padding: 1px 0; }
+.fd-chips { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline-end: -12px; padding: 1px 0; padding-inline-end: 12px;
+  -webkit-mask-image: linear-gradient(to left, transparent, #000 28px); mask-image: linear-gradient(to left, transparent, #000 28px); }
+.fd-chips::-webkit-scrollbar { display: none; }
+/* the chat tab just appears and goes, like a tab - no drawer slide on a phone in the shell (the computer's drawer keeps it) */
+@media (max-width: 760px) { html.app .cx, html.app .cx-back { transition: none !important; } }
+/* the column of round buttons above the words' dark bed; on a phone of ordinary height it starts near the top, clear of the title */
+.fd-rail { z-index: 1; }
+@media (max-height: 860px) { .fd-rail { top: 14px; transform: none; gap: 8px; } .fd-rail button { width: 52px; height: 52px; } }
