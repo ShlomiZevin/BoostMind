@@ -9,7 +9,7 @@ import { watched } from './player.js';
 import { pushState, enablePush } from './push.js';
 import { statusChip, SI, myStatus } from './status.js';
 import { citizenBanner } from './citizen.js';
-import { nextBar, czOpen } from './gates.js';
+import { nextBar, czOpen, appShell } from './gates.js';
 import { aboutCard } from './about.js';
 import { tzHome, tzSide } from './tzhome.js';
 import { adSlot } from './ads.js';
@@ -351,6 +351,7 @@ function meMenu(anchor) {
       ${row('a', 'href="/saved"', I.save, T.mmSaved, n(st.saves.size))}
       ${row('a', 'href="/my-stickers"', I.sticker, T.mmStickers)}
       ${row('a', 'href="/notes"', I.bell, T.mmBell, st.unread ? `<em>${st.unread}</em>` : '')}
+      ${appShell() ? row('a', 'href="/community"', I.people, T.mmCommunity) : ''}<!-- APP SHELL: the old nav's קהילה (no top nav on a phone) -->
     </div>
     <div class="mm-g">${esc(T.mmSettings)}</div>
     <div class="mm-list">

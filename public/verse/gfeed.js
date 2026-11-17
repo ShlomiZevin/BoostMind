@@ -20,7 +20,7 @@ const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><p
 const fmt = (v) => (Math.round(v * 100) / 100).toLocaleString('en-US');
 const lead = (g) => (g.chars || []).find((id) => C[id]) || null;
 // covers whose words (a title, the logo) are the picture: shown whole, never cropped at the sides. A game can say so itself
-// (game.json "cover_text": true, once build.py passes it on); until then these, looked at one by one (2026-11-17)
+// (game.json "cover_text": true - build.py, content.js and catalog.js pass it on); until that server change is live these, looked at one by one (2026-11-17)
 const COVER_TEXT = new Set(['hani-games-yosef', 'hani-games-pilai', 'verse-fly']);
 const wordy = (g) => (g.cover_text != null ? !!g.cover_text : COVER_TEXT.has(g.id));
 // one short line, as on the mockup: the first sentence; still long - cut at a clause (" – ", ":", ",") or a word, never mid-word

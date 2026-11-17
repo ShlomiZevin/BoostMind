@@ -33,7 +33,7 @@ const KINDS = {
     'sheet', 'love', 'viral', 'life'] },
   // world = the studio's name for it (character.world), name = its full name there (was characters/index.json)
   series: { col: 'catalogSeries', need: ['title'], fields: ['order', 'title', 'blurb', 'site', 'brief', 'world', 'name'] },
-  game: { col: 'catalogGames', need: ['url', 'title'], fields: ['url', 'title', 'tagline', 'img', 'chars', 'site', 'date', 'record'] },
+  game: { col: 'catalogGames', need: ['url', 'title'], fields: ['url', 'title', 'tagline', 'img', 'chars', 'site', 'date', 'record', 'cover_text'] },
   site: { col: 'catalogSites', need: ['url'], fields: ['order', 'url', 'title', 'about', 'img', 'host', 'whose', 'in', 'topic', 'tagline', 'mainOf'] },
 };
 const STUDIO = ['voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes'];   // not on the site

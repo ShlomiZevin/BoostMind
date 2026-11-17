@@ -239,6 +239,8 @@ def games(char_ids):
         rec = g.get('record')
         if isinstance(rec, dict) and rec.get('unit'):   # daily records (verse/records.js): the game reports a score at game over
             out[-1]['record'] = {'unit': rec['unit'], 'better': 'low' if rec.get('better') == 'low' else 'high', **({'max': rec['max']} if rec.get('max') else {})}
+        if g.get('cover_text') is True:   # the cover's words are the picture: the games feed shows it whole, never cropped (verse/gfeed.js)
+            out[-1]['cover_text'] = True
     out.sort(key=lambda x: x['date'], reverse=True)
     return out
 

@@ -638,6 +638,46 @@ function heroLine() {
 // the same words as /verse/copy.js T.hi (Terra)
 const dayHi = (n) => { const h = new Date().getHours(); return `${h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב'}, ${n}`; };
 
+// ---------- APP SHELL: the דמויות tab (plan app-shell phase 6, mockup 5-characters-tab) - on a phone דמויות / סדרות / אתרים
+// are one screen with segments; each keeps its own address, a segment moves in place (no entry of its own: back leaves the tab)
+const SEGS = [['characters', 'דמויות'], ['series', 'סדרות'], ['sites', 'אתרים']];
+const CT_FIRST = 24;   // rows drawn at first; "87 דמויות" opens the rest (a search looks at all of them)
+const segs = (cur) => `<nav class="ct-seg" role="tablist" aria-label="דמויות, סדרות ואתרים">${SEGS.map(([k, t]) =>
+  `<a href="/${k}" role="tab" data-seg="${k}" class="${k === cur ? 'on' : ''}" aria-selected="${k === cur}">${t}</a>`).join('')}</nav>`;
+function segGo(k) { const cur = location.pathname.split('/')[1]; if (k && k !== cur) { t('feed', 'tab:' + k); nav('/' + k, true); } }
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('.ct-seg a[data-seg]');
+  if (a) { e.preventDefault(); e.stopPropagation(); segGo(a.dataset.seg); return; }
+  const more = e.target.closest('#ct-more');
+  if (more) { document.querySelectorAll('#ct-list .ct-row[hidden]').forEach((r) => { r.hidden = false; }); more.remove(); }
+}, true);
+document.addEventListener('input', (e) => {
+  if (e.target.id !== 'ct-q') return;
+  const q = norm(e.target.value).trim(), rows = document.querySelectorAll('#ct-list .ct-row');
+  let n = 0;
+  rows.forEach((r, i) => { const on = q ? r.dataset.q.includes(q) : i < CT_FIRST || !document.getElementById('ct-more'); r.hidden = !on; if (on) n++; });
+  const none = document.querySelector('#ct-list .ct-none'); if (none) none.hidden = n > 0;
+  const more = document.getElementById('ct-more'); if (more) more.hidden = !!q;
+});
+// a sideways swipe on the tab moves to the segment beside it (right to left: דמויות -> סדרות -> אתרים)
+{
+  let x0 = null, y0 = 0;
+  document.addEventListener('touchstart', (e) => {
+    const p = e.target.closest('.ct-page');
+    x0 = p && e.touches.length === 1 && !e.target.closest('input, .srow, .topic-chips, .grow, .row, .sitegrid .st-games') ? e.touches[0].clientX : null;
+    y0 = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
+    const i = SEGS.findIndex(([k]) => k === location.pathname.split('/')[1]);
+    const next = SEGS[i + (dx > 0 ? 1 : -1)];   // (the next one lies to the left: the finger pulls it in to the right)
+    if (i >= 0 && next) segGo(next[0]);
+  }, { passive: true });
+}
+
 // ---------- pages ----------
 let heroWho = 'guide';
 const pages = {
@@ -673,10 +713,22 @@ const pages = {
   },
   characters(q) {
     const list = W.characters.filter((c) => !q.s || c.series === q.s);
+    // APP SHELL on a phone (mockup app-shell/5-characters-tab): the דמויות tab - segments, a search, one row per character
+    if (chatDock()) {
+      const rows = list.map((c, i) => `<a class="ct-row" href="/c/${c.id}" data-q="${esc(norm([c.name, ...(c.aka || []), c.tagline, c.role].join(' ')))}"${i >= CT_FIRST ? ' hidden' : ''}>
+        <span class="ct-face" style="--c:${color(c)}">${face(c)}</span><span class="ct-t"><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role || '')}</small></span>
+        <svg class="ct-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>`).join('');
+      return `<div class="wrap ct-page">${segs('characters')}
+        <label class="ct-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+          <input type="search" id="ct-q" placeholder="חיפוש דמות" autocomplete="off" enterkeyhint="search" aria-label="חיפוש דמות"></label>
+        <div class="ct-list" id="ct-list">${rows}<p class="ct-none" hidden>לא מצאנו דמות כזאת.</p></div>
+        ${list.length > CT_FIRST ? `<button type="button" class="ct-more" id="ct-more">${list.length} דמויות<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}</div>`;
+    }
     return `<div class="wrap"><div class="page-h"><h1>הדמויות</h1><p>${W.characters.length} דמויות, והרשימה ממשיכה לגדול.</p></div>
       ${filterChips(q.s, '/characters')}<div class="grid">${list.map(card).join('')}</div></div>`;
   },
   series() {
+    if (chatDock()) return `<div class="wrap ct-page">${segs('series')}<div class="sgrid ct-sgrid">${W.series.map(scard).join('')}</div></div>`;   // APP SHELL: the tab's סדרות
     return `<div class="wrap"><div class="page-h"><h1>הסדרות</h1><p>כל סדרה היא עולם, עם האנשים והסיפורים שלו.</p></div>
       <div class="sgrid" style="margin-top:22px">${W.series.map(scard).join('')}</div></div>`;
   },
@@ -691,7 +743,8 @@ const pages = {
     const topics = [...SITE_TOPICS, ['other', 'עוד', 'עוד', '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>']].filter(([k]) => by[k]);
     const count = (n) => (n === 1 ? 'אתר אחד' : `${n} אתרים`);
     const cards = (list) => list.map((s, i) => siteTile(s, list.length === 1 ? 'solo' : list.length % 2 === 1 && i === list.length - 1 ? 'odd' : '')).join('');
-    return `<div class="wrap"><div class="page-h"><h1>האתרים של הדמויות</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>
+    const tab = chatDock();   // APP SHELL on a phone: the tab's אתרים - the segments in place of the heading
+    return `<div class="wrap${tab ? ' ct-page' : ''}">${tab ? segs('sites') : '<div class="page-h"><h1>האתרים של הדמויות</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>'}
       <div class="topic-chips">${topics.map(([k, , short, ic]) => `<button type="button" data-topic-jump="${k}">${topicIcon(ic)}${esc(short)}</button>`).join('')}</div>
       ${topics.map(([k, title, , ic]) => `<section class="sec site-g" id="topic-${k}"><div class="sec-h"><h2>${topicIcon(ic)}${esc(title)}</h2><span class="tg-n">${count(by[k].length)}</span></div>
         <div class="sitegrid">${cards(by[k])}</div></section>`).join('')}</div>`;

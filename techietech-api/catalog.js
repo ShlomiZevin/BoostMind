@@ -68,7 +68,7 @@ async function compose(admin, { dry = false } = {}) {
     .sort((a, b) => b.videos.length - a.videos.length);
   const siteList = sites.sort(byOrder), cards = {};
   for (const s of siteList) { const card = { url: s.url, title: s.title || '', img: s.img || null, host: s.host || '' }; cards[s.id] = card; for (const o of s.mainOf || []) cards[o] = card; }
-  const gameList = games.map((g) => ({ id: g.id, url: g.url, title: g.title || '', tagline: g.tagline || '', img: g.img || null, chars: g.chars || [], site: g.site || '', date: g.date || '', ...(g.record ? { record: g.record } : {}) }))
+  const gameList = games.map((g) => ({ id: g.id, url: g.url, title: g.title || '', tagline: g.tagline || '', img: g.img || null, chars: g.chars || [], site: g.site || '', date: g.date || '', ...(g.record ? { record: g.record } : {}), ...(g.cover_text === true ? { cover_text: true } : {}) }))
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
   const wiki = { series, characters, videos: videos.map(siteVideo), sites: cards,
     site_list: siteList.map((s) => ({ id: s.id, url: s.url, title: s.title || '', about: s.about || '', whose: s.whose || [], in: s.in || null, img: s.img || null, ...(s.topic ? { topic: s.topic, tagline: s.tagline || '' } : {}) })),

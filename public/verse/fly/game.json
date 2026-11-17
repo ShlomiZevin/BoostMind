@@ -3,6 +3,7 @@
   "title": "הטיסה פנימה",
   "tagline": "חללית אחת, כל הדמויות בדרך, והכוכב של השלומיוורס בסוף.",
   "status": "live",
+  "cover_text": true,
   "date": "2026-11-08",
   "cover": "cover.jpg",
   "badges": [

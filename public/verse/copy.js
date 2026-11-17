@@ -406,7 +406,7 @@ export const T = {
   bizTopics: ['באנר באתר', 'סרטון ייעודי', 'שיתוף פעולה', 'אחר'], bizSend: 'שליחה', bizBadEmail: 'צריך אימייל כדי שנוכל לחזור אליכם',
   bizDone: 'קיבלנו, תודה!', bizDoneSub: 'נחזור אליכם במייל בהקדם.',
   savedTitle: 'שמורים', savedSub: 'הסרטונים ששמרתם לאחר כך', savedEmpty: 'עוד לא שמרתם סרטונים. בכל סרטון יש כפתור "שמירה", והוא יחכה לכם כאן.',
-  mmMine: 'שלי', mmSettings: 'הגדרות', mmFollows: 'הדמויות שלי', mmSaved: 'שמורים', mmStickers: 'הסטיקרים שלי', mmPhone: 'התראות לטלפון',
+  mmMine: 'שלי', mmSettings: 'הגדרות', mmCommunity: 'הקהילה', mmFollows: 'הדמויות שלי', mmSaved: 'שמורים', mmStickers: 'הסטיקרים שלי', mmPhone: 'התראות לטלפון',
   mmProfileSub: 'הדמויות, השמורים והסטיקרים שלכם', allLink: 'הכל',
   myCharsSub: 'הדמויות שאתם עוקבים אחריהן. מה שקורה להן מגיע אליכם.', myStickersSub: 'כל סטיקר כאן אפשר לקחת לוואטסאפ', myStickerDraft: 'טיוטה',
   yvMine: 'הדמויות שלכם', yvMore: 'עוד דמויות', yvSuggest: 'אולי תכירו', yvStart: 'בחרו את הדמויות שלכם', yvStickers: 'הסטיקרים של הצופים',
