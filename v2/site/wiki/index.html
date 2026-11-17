@@ -1045,7 +1045,18 @@ const convId = (mode) => {
 const save = (mode) => { try { sessionStorage.setItem('wiki-chat-' + mode, JSON.stringify(threads[mode].slice(-20))); } catch (e) {} };
 const who = (mode) => (mode === 'guide' ? GUIDE : C[mode]);
 let GENDER = {};
-fetch('/verse/genders.json').then((r) => (r.ok ? r.json() : {})).then((g) => { GENDER = g; }).catch(() => {});
+// (a chat drawn before this lands - a fresh link straight to a conversation - said "הצטרף" for everyone: its line is
+// written again in the right form when the genders arrive)
+fetch('/verse/genders.json').then((r) => (r.ok ? r.json() : {})).then((g) => { GENDER = g; fixJoined(); }).catch(() => {});
+function fixJoined() {
+  let changed = false;
+  for (const [id, t] of Object.entries(threads)) {
+    if (!t || !C[id]) continue;
+    for (const m of t) if (m.role === 'note' && m.content === `${C[id].name} הצטרף לשיחה` && m.content !== joined(id)) { m.content = joined(id); changed = true; }
+    if (changed) save(id);
+  }
+  if (changed && cx.classList.contains('open')) drawMsgs();
+}
 const gw = (id, m, f, p) => ({ f, p }[GENDER[id]] || m);   // the word for this character: masculine / feminine / plural
 const joined = (id) => `${who(id).name} ${gw(id, 'הצטרף', 'הצטרפה', 'הצטרפו')} לשיחה`;
 const greet = (mode) => mode === 'guide'

@@ -73,8 +73,7 @@ export function gamesFeed() {
   const list = W.games || [];
   if (!list.length) return null;
   queueMicrotask(() => mount(list));   // once the router has put it on the page
-  const wait = list.some((g) => g.record && !(key(g) in BOARDS));   // today's boards not read yet: shown once they are (a moment)
-  return `${gamesToggle('feed')}<div class="gf${wait ? ' gf-wait' : ''}" id="gf" role="feed" aria-label="${esc(G().title)}">${list.map(slide).join('')}</div>`;
+  return `${gamesToggle('feed')}<div class="gf" id="gf" role="feed" aria-label="${esc(G().title)}">${list.map(slide).join('')}</div>`;
 }
 
 function mount(list) {
@@ -88,6 +87,7 @@ function mount(list) {
   GF.io = new IntersectionObserver((es) => {
     for (const e of es) if (e.isIntersecting) { GF.cur = +e.target.dataset.i; placeLate(); }
   }, { root: el, threshold: [0.55] });
+  GF.cur = Math.round(el.scrollTop / (el.clientHeight || 1));
   boards(list, el);
   el.querySelectorAll('.gf-s').forEach((s) => GF.io.observe(s));
   el.addEventListener('click', onClick);
@@ -110,7 +110,7 @@ function fit(img) {
   const art = img.parentNode, h = art.clientHeight - 36;
   const on = !!art.dataset.words;
   art.classList.toggle('fit', on);
-  if (on && art.clientWidth && h > 0) art.style.setProperty('--gt', Math.max(0, (h - art.clientWidth / (img.naturalWidth / img.naturalHeight)) / 2) + 'px');   // where the picture starts: its top edge melts into the blur
+  if (on && art.clientWidth && h > 0) art.style.setProperty('--gt', Math.max(0, h - art.clientWidth / (img.naturalWidth / img.naturalHeight)) + 'px');   // where the picture starts: its top edge melts into the blur
 }
 // ---------- today's best: every scoring game's board, read when the feed opens (kept 5 minutes), before the feed shows ----------
 const BOARDS = {};   // '<game>_<day>' -> the leader or null
@@ -123,17 +123,30 @@ function recLine(g) {
 function boards(list, el) {
   const games = list.filter((g) => g.record);
   if (Date.now() - boardsAt > 300e3) { games.forEach((g) => delete BOARDS[key(g)]); boardsAt = Date.now(); }
-  const todo = games.filter((g) => !(key(g) in BOARDS));
-  const show = () => el.classList.remove('gf-wait');
-  if (!todo.length) { show(); return; }
   const own = GF;
-  const all = todo.map((g) => F.getDoc(F.doc(db, 'records', key(g))).then((s) => {
+  const read = (g) => F.getDoc(F.doc(db, 'records', key(g))).then((s) => {
     const top = s.exists() ? (s.data().top || [])[0] : null;
     BOARDS[key(g)] = top && typeof top.value === 'number' ? top : null;
-    if (own === GF && BOARDS[key(g)]) { own.late.add(g.id); if (!el.classList.contains('gf-wait')) placeLate(); }
-  }).catch(() => { BOARDS[key(g)] = null; }));
-  // all in, or 700 ms at most: the feed shows with every line already in its place
-  Promise.race([Promise.all(all), new Promise((r) => setTimeout(r, 700))]).then(() => { if (own !== GF) return; placeLate(true); show(); });
+  }).catch(() => { BOARDS[key(g)] = null; });
+  // the game showing first: its board alone, first - its line's place kept (before the first paint), the score fading in,
+  // or the place easing shut when nobody scored today
+  const first = list[GF.cur], slot = first && first.record && !(key(first) in BOARDS) && el.querySelector(`.gf-s[data-i="${GF.cur}"] .gf-rec`);
+  const rest = () => games.filter((g) => !(key(g) in BOARDS)).forEach((g) => read(g).then(() => { if (own === GF && BOARDS[key(g)]) { own.late.add(g.id); placeLate(); } }));
+  if (!slot) { rest(); return; }
+  slot.innerHTML = `<span>${esc(G().best)}</span> <b>0</b>`;
+  slot.hidden = false;
+  slot.classList.add('rsv');
+  read(first).then(() => {
+    if (own !== GF) return;
+    if (BOARDS[key(first)]) { slot.innerHTML = recLine(first); slot.classList.remove('rsv'); slot.classList.add('in'); }
+    else {
+      slot.classList.add('shut');
+      const done = () => { slot.hidden = true; slot.classList.remove('rsv', 'shut'); };
+      slot.addEventListener('transitionend', done, { once: true });
+      setTimeout(done, 600);
+    }
+    rest();
+  });
 }
 // a line that arrives late goes onto the games off screen at once, and onto the one showing only once it has left it
 function placeLate(all) {
