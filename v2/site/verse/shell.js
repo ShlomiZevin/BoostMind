@@ -5,6 +5,7 @@
 // citizenship journeys. Behind gates.js APP_SHELL: html.app (set early by the wiki page, kept right here) turns all of it on.
 import { onState } from './state.js';
 import { appShell } from './gates.js';
+import { feedToggle } from './gfeed.js';
 
 const html = document.documentElement;
 const bar = document.getElementById('tabbar');
@@ -54,7 +55,21 @@ function paint() {
   });
 }
 addEventListener('popstate', () => requestAnimationFrame(paint));
+// the feed / grid switch lives in the top bar on the videos and games tabs (his rule: it never moves when you tap it) - the
+// same spot in both views, between the search and the logo
+function barSwitch() {
+  const p = location.pathname, kind = p === '/videos' ? 'videos' : p === '/games' ? 'games' : null;
+  let w = document.getElementById('tb-tg');
+  if (!kind || !html.classList.contains('app') || !phone.matches) { w?.remove(); return; }
+  if (!w) {
+    w = Object.assign(document.createElement('span'), { id: 'tb-tg', className: 'tb-tg' });
+    const brand = document.querySelector('.top .brand');
+    brand?.parentNode.insertBefore(w, brand.nextSibling);
+  }
+  w.innerHTML = feedToggle(kind, /[?&]view=grid/.test(location.search) ? 'grid' : 'feed');
+}
 export function shellAfterRoute() {
+  barSwitch();
   dispatchEvent(new Event('vx-route'));   // a moment held for a calm page (install.js whenCalm) looks again
   if (!LAYER.test(location.pathname)) lastBase = location.pathname + location.search;
   paint();

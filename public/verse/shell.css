@@ -616,3 +616,42 @@ html.app .gpage { padding-top: 26px; }
 @media (max-width: 760px) { .vg-row { font-weight: 400; font-size: 12.2px; letter-spacing: -.02em; gap: 6px; padding-inline: 10px 8px; } .vg-row span { white-space: normal; overflow: visible; } }
 /* the videos feed: the pill a little lower, inside the frame, clear of the video's own "סיום" chip */
 html.feed-on .gf-tg { top: calc(var(--th) + 44px); }
+
+/* =================== APP SHELL round 5 (his last notes before release, mockup app-shell/r5/1-chat) =================== */
+/* the feed / grid switch in the top bar (videos, games), the same spot in both views; the floating pill is gone */
+html.app .top .tb-tg { display: none; }
+@media (max-width: 760px) {
+  html.app .top .tb-tg { display: flex; align-items: center; flex: none; margin-inline-start: auto; }
+  html.app .top .tb-tg .gf-tg { position: static !important; inset: auto !important; margin: 0 !important; z-index: auto; display: inline-flex; gap: 1px; padding: 2px; border-radius: 99px;
+    background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .16); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  html.app .top .tb-tg .gf-tg a { width: 30px !important; height: 26px !important; padding: 0; border-radius: 99px; color: rgba(255, 255, 255, .55); background: none; }
+  html.app .top .tb-tg .gf-tg a.on { background: rgba(255, 106, 31, .16); color: var(--accent, #ff6a1f); }
+  html.app .top .tb-tg .gf-tg svg { width: 16px; height: 16px; }
+  html.app .top .tb-tg ~ .search:not(.s-open) { margin-inline-start: 2px !important; }
+  .vg-page { padding-top: 4px !important; }
+  html.app .gpage { padding-top: 4px; }
+  html.app .gpage .vg-row { margin-bottom: 12px; }
+  html.app .gpage .gfeat { margin-top: 0; }
+
+  /* the character is there: a green dot on their face (header, beside the answers) and before their line; faces in full colour */
+  html.app .cx.dock .cx-hd-face { position: relative; overflow: visible; border: 0; background: none; }
+  html.app .cx.dock .cx-hd-face > img, html.app .cx.dock .cx-hd-face > .ph, html.app .cx.dock .cx-hd-face > .gmark { border-radius: 50%; overflow: hidden; border: 2px solid rgba(255, 255, 255, .22); box-sizing: border-box; }
+  html.app .cx.dock .cx-hd-face::after { content: ''; position: absolute; bottom: -1px; left: -1px; width: 11px; height: 11px; border-radius: 50%; background: #34d058; border: 2px solid #141419; }
+  html.app .cx.dock .cx-hd-t small { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  html.app .cx.dock .cx-hd-t small::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #34d058; }
+  html.app .cx.dock .m.bot::before { background: radial-gradient(circle at 18% 84%, #34d058 0 4.5px, #0b0b0e 5px 6.5px, transparent 7px), #222 var(--face) 50% 18% / cover no-repeat; }
+  html.app .cx.dock .cx-strip img, html.app .cx.dock .cx-hd-face img, html.app .cx.dock .m.bot::before { filter: none !important; opacity: 1 !important; }
+
+  /* the send a little smaller, an even 8px from the field */
+  html.app .cx.dock .composer { gap: 8px; }
+  html.app .cx.dock .composer button { width: 50px; }
+  html.app .cx.dock .composer button .comet-img { width: 48px; height: 27px; }
+
+  /* the questions left: a slim pill under the field (mockup r5/1) */
+  html.app .cx.dock .cx-left { padding: 4px 12px 10px; }
+  html.app .cx.dock .cx-left .ql { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 36px; padding: 4px 14px; box-sizing: border-box; border-radius: 99px;
+    background: #141419; border: 1px solid rgba(255, 255, 255, .12); color: rgba(255, 255, 255, .85); font-size: .86rem; font-weight: 600; }
+  html.app .cx.dock .cx-left .ql svg { width: 18px; height: 18px; flex: none; color: rgba(255, 255, 255, .7); }
+  html.app .cx.dock .cx-left .ql i { flex: none; width: 1px; height: 18px; background: rgba(255, 255, 255, .16); }
+  html.app .cx.dock .cx-left .ql-in { padding: 0; border: 0; background: none; color: var(--accent, #ff6a1f); font: inherit; font-weight: 700; cursor: pointer; }
+}
