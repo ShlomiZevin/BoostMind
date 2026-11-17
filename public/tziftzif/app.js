@@ -310,7 +310,7 @@ async function report(id) {
   sheet('דיווח על ציוץ', 'מה פוגע בציוץ הזה? (לא חובה)', async (why) => {
     const r = await api('report', { id, why }, true);
     if (r.error) { if (!r.shown) toast(ERR[r.error] || 'לא הצליח. נסו שוב.'); return false; }
-    toast('תודה. הדיווח הגיע לשלומי.'); track('tz_report', id); return true;
+    toast('תודה. הדיווח הגיע למייסדים.'); track('tz_report', id); return true;
   });
 }
 // a new post - with `quote`, a quote of that post under the text (the verse's home: "לצייץ על זה" on ח24's lead story)

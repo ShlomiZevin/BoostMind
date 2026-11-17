@@ -68,7 +68,7 @@ export async function needFan(key, char, opt = {}) {
 // a benefit row's icon, from what it promises
 const rowIcon = (r) => /מורידים|הורדה/.test(r) ? I.download : /סטיקר/.test(r) ? I.sticker : /התראה|התראות/.test(r) ? I.bell : /סרטונים וסטוריז|סטוריז/.test(r) ? I.play
   : /שמרתם|שומרים/.test(r) ? I.save : /בשם/.test(r) ? I.user : /הודעות|תגובה|תגובות|@/.test(r) ? I.comment : /רעיון|מצביעים|קולות/.test(r) ? I.plus
-  : /שלומי/.test(r) ? I.mail : /עוקבים|לעקוב/.test(r) ? I.bell : I.check;
+  : /מייסדים/.test(r) ? I.mail : /עוקבים|לעקוב/.test(r) ? I.bell : I.check;
 export function signInSheet(key, char, opt = {}) {
   return new Promise((resolve) => {
     const c = char && C[char];
