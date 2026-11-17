@@ -7,7 +7,7 @@ import { T } from './copy.js';
 import { I, $, esc, av, ago, mmss, sheet, toast, track, abs, charColor, stampText, catchphrase, wordmark, isIOS, isAndroid, inApp, openOutside, LIKE, LINK_RE, linkTag, ofc, lockScroll, unlockScroll } from './ui.js';
 import { st, onState, needFan, follow, save, signedIn } from './state.js';
 import { openBoard, onScore, TROPHY } from './records.js';
-import { appMoment } from './install.js';
+import { appMoment, whenCalm } from './install.js';
 import { offerPush } from './push.js';
 import { videoDone, ask3Moment } from './status.js';
 import { appShell } from './gates.js';
@@ -436,7 +436,7 @@ function destroy() {
   const liked = P.liked || (P.video && P.video.currentTime > 20), lead = P.lead, kind = P.video ? 'video' : 'game';
   // finished (80%+): it counts toward the tourist's 3 - and the ask after 3 videos goes before the home-screen invite
   if (P.video && P.video.duration && P.video.currentTime / P.video.duration >= 0.8) videoDone(P.v.id, lead);
-  if (liked) setTimeout(() => { if (!(kind === 'video' && ask3Moment())) appMoment(kind, lead); }, 400);   // both wait until no other layer is open
+  if (liked) setTimeout(() => whenCalm(() => { if (!(kind === 'video' && ask3Moment())) appMoment(kind, lead); }), 400);   // both wait until no other layer is open (APP SHELL: nor the chat / its detour)
   if (P.cm) P.cm.close('away');
   P.off.forEach((u) => u && u());
   document.removeEventListener('keydown', P.key);

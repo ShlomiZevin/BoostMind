@@ -93,6 +93,19 @@ function canOffer() {
   try { if (sessionStorage.getItem('vx-app-asked')) return false; } catch (x) {}
   return !document.querySelector('.vx-sheet, .st, .ac, .vp');   // never over a video, a game, a sheet, the stories
 }
+// APP SHELL: "calm" also means no chat open and no video -> chat detour on its way back (the first back must return to the
+// video, not close an invite that popped over the chat). A moment that comes at the wrong time waits for a calm page (a later
+// route), the latest one only. Without the shell: as before.
+const busy = () => document.documentElement.classList.contains('app') && !!(document.querySelector('.vx-sheet, .st, .ac, .vp, .sv, #cx.open')
+  || (typeof HOOK !== 'undefined' && HOOK.videoReturn) || (history.state && history.state.fromVideo));
+let held = null;
+export function whenCalm(fn) {
+  if (!busy()) { fn(); return; }
+  held = fn;
+}
+const retry = () => setTimeout(() => { if (held && !busy()) { const f = held; held = null; f(); } }, 1500);
+addEventListener('vx-route', retry);
+addEventListener('popstate', retry);
 // a good moment just happened: offer once the page is calm
 export function appMoment(kind, char) {
   if (!canOffer()) return;

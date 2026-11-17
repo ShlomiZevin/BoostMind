@@ -68,6 +68,7 @@ function gridButton() {
   top?.parentNode.insertBefore(b, top);
 }
 export function shellAfterRoute() {
+  dispatchEvent(new Event('vx-route'));   // a moment held for a calm page (install.js whenCalm) looks again
   if (!LAYER.test(location.pathname)) lastBase = location.pathname + location.search;
   gridButton();
   paint();
