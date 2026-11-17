@@ -18,6 +18,20 @@ const ICON_UP = svg('<path d="m6 13 6-6 6 6"/><path d="m6 19 6-6 6 6"/>', 2.6);
 const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.3-7.2c.6-.4.6-1.4 0-1.8L8.6 3.9C7.9 3.5 7 4 7 4.8z"/></svg>';
 const fmt = (v) => (Math.round(v * 100) / 100).toLocaleString('en-US');
 const lead = (g) => (g.chars || []).find((id) => C[id]) || null;
+// one short line, as on the mockup: the first sentence; still long - cut at a clause (" – ", ":", ",") or a word, never mid-word
+const MAX = 66;
+function shortLine(t) {
+  t = String(t || '').trim().replace(/\s+/g, ' ');
+  const m = t.match(/^.{10,}?[.!?](?=\s|$)/);
+  const x = m ? m[0] : t;
+  if (x.length <= MAX) return x;
+  const c = x.slice(0, MAX + 1);
+  let k = -1;
+  for (const b of [' – ', ' - ', ': ', ', ', '; ']) k = Math.max(k, c.lastIndexOf(b));
+  if (k >= 18) return x.slice(0, k).trim() + '…';
+  const sp = c.lastIndexOf(' ');
+  return x.slice(0, sp > 0 ? sp : MAX).replace(/[,:;–-]\s*$/, '').trim() + '…';
+}
 
 // the feed / grid switch (also on the grid page: wiki games() asks HOOK.gamesToggle)
 export function gamesToggle(on) {
@@ -36,13 +50,13 @@ document.addEventListener('click', (e) => {
 function slide(g, i, all) {
   const o = lead(g), last = i === all.length - 1;
   return `<section class="gf-s" data-i="${i}" data-id="${esc(g.id)}" aria-label="${esc(g.title)}">
-    <div class="gf-art">${g.img ? `<img src="${esc(g.img)}" alt="" ${i > 1 ? 'loading="lazy"' : ''}>` : ''}</div>
+    <div class="gf-art">${g.img ? `<img class="gf-bg" src="${esc(g.img)}" alt="" aria-hidden="true" ${i > 1 ? 'loading="lazy"' : ''}><img class="gf-main" src="${esc(g.img)}" alt="" ${i > 1 ? 'loading="lazy"' : ''}>` : ''}</div>
     <div class="gf-body">
       <h2 class="gf-t">${esc(g.title)}</h2>
-      ${g.tagline ? `<p class="gf-tag">${esc(g.tagline)}</p>` : ''}
+      ${g.tagline ? `<p class="gf-tag">${esc(shortLine(g.tagline))}</p>` : ''}
       ${o ? `<a class="gf-who" href="/c/${o}">${av({ char: o, ring: true })}<b>${esc(C[o].name)}</b></a>` : ''}
       <a class="gf-play" href="/play/${esc(g.id)}" data-gf-play="${esc(g.id)}">${PLAY}<span>${esc(G().play)}</span></a>
-      ${g.record ? `<div class="gf-rec" hidden></div>` : ''}
+      ${g.record ? `<div class="gf-rec" aria-hidden="true"><span>${esc(G().best)}</span> <b>0</b></div>` : ''}
       ${last ? `<a class="gf-next gf-end" href="/games?view=grid" data-gf-grid>${ICON_GRID}<span>${esc(G().last)} · ${esc(G().grid)}</span></a>`
         : `<div class="gf-next" aria-hidden="true">${ICON_UP}<span>${esc(G().more)}</span></div>`}
     </div>
@@ -70,6 +84,11 @@ function mount(list) {
   }, { root: el, threshold: [0.55] });
   el.querySelectorAll('.gf-s').forEach((s) => GF.io.observe(s));
   el.addEventListener('click', onClick);
+  // a cover far wider than its frame (words in the art): the whole picture over a blurred copy of itself, not a hard crop
+  el.querySelectorAll('.gf-main').forEach((img) => { if (img.complete && img.naturalWidth) fit(img); else img.addEventListener('load', () => fit(img), { once: true }); });
+  GF.rs = () => el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img));
+  addEventListener('resize', GF.rs);
+  addEventListener('vx-tb', GF.rs);
   track('feed', 'tab:games');
 }
 function onClick(e) {
@@ -77,6 +96,13 @@ function onClick(e) {
   if (p) track('feed', 'game:' + p.dataset.gfPlay);   // the link itself opens the game (the router: /play/<id>)
   const g = e.target.closest('[data-gf-grid]');
   if (g) { e.preventDefault(); e.stopPropagation(); nav('/games?view=grid', true); }
+}
+function fit(img) {
+  const art = img.parentNode, h = art.clientHeight - 36;
+  if (!art.clientWidth || h <= 0) return;
+  const ia = img.naturalWidth / img.naturalHeight, on = art.clientWidth / h / ia < 0.8;   // less than 80% of its width would show
+  art.classList.toggle('fit', on);
+  if (on) art.style.setProperty('--gt', Math.max(0, h - art.clientWidth / ia) + 'px');   // where the picture starts: its top edge melts into the blur
 }
 // today's best on this game's board (lower is better for some - the board keeps its own order; top[0] is the leader)
 function record(i) {
@@ -90,13 +116,15 @@ function record(i) {
     const slot = own === GF && GF.el.querySelector(`.gf-s[data-i="${i}"] .gf-rec`);
     if (!top || !slot || typeof top.value !== 'number') return;
     slot.innerHTML = `<span>${esc(G().best)}</span> <b>${fmt(top.value)}</b> <small>${esc(g.record.unit || '')}</small>`;
-    slot.hidden = false;
+    slot.removeAttribute('aria-hidden');
+    slot.classList.add('on');   // its place was kept: it fades in, nothing above it moves
   }).catch(() => {});
 }
 
 export function unmount() {
   if (!GF) return;
   GF.io?.disconnect();
+  removeEventListener('resize', GF.rs); removeEventListener('vx-tb', GF.rs);
   GF.el.removeEventListener('click', onClick);
   GF = null;
   document.documentElement.classList.remove('gf-on');

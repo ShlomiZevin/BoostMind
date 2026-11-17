@@ -181,15 +181,17 @@ html.feed-on footer { display: none; }
   html.app .cx.dock .cx-head, html.app .cx.dock .cx-note, html.app .cx.dock .cx-left .qd { display: none; }
 
   /* who you talk to: a row of cards, the face over the name; the one talking ringed in orange, its name on orange */
-  html.app .cx.dock .cx-strip { gap: 5px; padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, .1); scroll-padding-inline: 12px; }
+  html.app .cx.dock .cx-strip { gap: 5px; padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, .1); }
   html.app .cx.dock .cx-strip button { position: relative; display: block; width: calc((100vw - 40px) / 5); height: auto; aspect-ratio: 70 / 107; padding: 0; border-radius: 13px; overflow: hidden;
     outline: 0; border: 1.5px solid rgba(255, 255, 255, .2); background: #1b1b20; transition: border-color .15s, box-shadow .15s; transform: none; }
   html.app .cx.dock .cx-strip button > img, html.app .cx.dock .cx-strip button > .ph, html.app .cx.dock .cx-strip button > .gmark {
-    position: absolute; top: 0; inset-inline: 0; width: 100%; height: calc(100% - 27px); object-fit: cover; object-position: 50% 18%; border-radius: 0; }
+    position: absolute; top: 0; inset-inline: 0; width: 100%; height: calc(100% - 31px); object-fit: cover; object-position: 50% 18%; border-radius: 0; }
   html.app .cx.dock .cx-strip button > .gmark { display: grid; place-items: center; background: #15151a; }
   html.app .cx.dock .cx-strip button > .gmark img { width: 74%; height: auto; }
-  html.app .cx.dock .cx-strip button::after { content: attr(title); position: absolute; bottom: 0; inset-inline: 0; height: 27px; line-height: 27px; padding: 0 3px;
-    background: #141418; color: #fff; font-size: 11px; letter-spacing: -.02em; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* the name whole: two short lines when it needs them ("המורה / רוזנבלום") */
+  html.app .cx.dock .cx-strip button::after { content: attr(title); position: absolute; bottom: 0; inset-inline: 0; height: 31px; padding: 0 2px; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center; background: #141418; color: #fff; font-size: clamp(9.5px, 2.8vw, 11.5px); line-height: 1.08; letter-spacing: -.02em;
+    font-weight: 700; text-align: center; white-space: normal; overflow: hidden; }
   html.app .cx.dock .cx-strip button.on { border: 2.5px solid #ff6a1f; box-shadow: 0 0 16px rgba(255, 106, 31, .5); }
   html.app .cx.dock .cx-strip button.on::after { background: #ff6a1f; font-weight: 800; }
   /* the guide's card too (verse.css takes every frame off the logo elsewhere) */
@@ -201,7 +203,7 @@ html.feed-on footer { display: none; }
   /* the conversation: every bubble beside a face (the character's for an answer, a plain one for yours) */
   html.app .cx.dock .msgs { padding: 18px 12px 12px; gap: 16px; }
   html.app .cx.dock .m.me, html.app .cx.dock .m.bot { position: relative; align-self: flex-start; margin-inline-start: 56px; max-width: calc(100% - 64px);
-    font-size: 1.13rem; line-height: 1.5; padding: 12px 16px; border-radius: 18px; }
+    font-size: 1.25rem; line-height: 1.45; padding: 12px 16px; border-radius: 18px; }
   html.app .cx.dock .m.bot { background: #1f1f24; border: 1px solid rgba(255, 255, 255, .14); color: #fff; }
   html.app .cx.dock .m.me { background: #ff6a1f; color: #fff; font-weight: 600; }
   html.app .cx.dock .m.me::before, html.app .cx.dock .m.bot::before { content: ''; position: absolute; top: 0; inset-inline-start: -56px; width: 46px; height: 46px; border-radius: 50%; box-sizing: border-box; }
@@ -237,6 +239,13 @@ html.gf-on footer, html.gf-on .fab { display: none !important; }
 .gf-s { position: relative; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; display: flex; flex-direction: column; color: #fff; background: #0b0b0e; }
 .gf-art { position: relative; flex: 1 1 auto; min-height: 34%; overflow: hidden; background: #16161b; }
 .gf-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+.gf-art .gf-bg { display: none; filter: blur(22px) saturate(1.15) brightness(.7); transform: scale(1.18); }
+/* a cover far wider than the frame (gfeed.js fit): all of it, over its own blur */
+.gf-art.fit .gf-bg { display: block; }
+.gf-art.fit .gf-main { bottom: 36px; height: calc(100% - 36px); object-fit: contain; object-position: 50% 100%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--gt, 0px), #000 calc(var(--gt, 0px) + 26px), #000 80%, transparent);
+  mask-image: linear-gradient(to bottom, transparent var(--gt, 0px), #000 calc(var(--gt, 0px) + 26px), #000 80%, transparent); }
+.gf-art.fit::after { background: linear-gradient(to bottom, rgba(11, 11, 14, .3), transparent 16%, transparent 76%, rgba(11, 11, 14, .75) 90%, #0b0b0e 100%); }
 .gf-art::after { content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(to bottom, rgba(11, 11, 14, .25), transparent 18%, transparent 52%, rgba(11, 11, 14, .7) 80%, #0b0b0e 100%); }
 .gf-body { position: relative; z-index: 1; flex: none; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
@@ -256,7 +265,8 @@ html.gf-on footer, html.gf-on .fab { display: none !important; }
 .gf-play svg { width: 30px; height: 30px; flex: none; }
 .gf-rec { display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 26px; border-radius: 99px; background: rgba(255, 106, 31, .06);
   border: 1px solid rgba(255, 106, 31, .45); font-size: 1.12rem; font-weight: 800; }
-.gf-rec[hidden] { display: none; }
+.gf-rec { visibility: hidden; opacity: 0; transition: opacity .35s; }   /* its place is kept until today's best arrives */
+.gf-rec.on { visibility: visible; opacity: 1; }
 .gf-rec b { color: #ff7a2e; font-size: 1.32rem; font-weight: 900; direction: ltr; unicode-bidi: isolate; }
 .gf-rec small { color: rgba(255, 255, 255, .6); font-size: .85rem; font-weight: 700; }
 .gf-next { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 2px; color: rgba(255, 255, 255, .62); font-size: .92rem; font-weight: 700; text-decoration: none; }

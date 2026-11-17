@@ -1159,7 +1159,9 @@ function drawChat() {
   threads[cxMode] ||= load(cxMode);
   cx.style.setProperty('--c', color(w)); cx.style.setProperty('--c-ink', ink(color(w)));
   cx.style.setProperty('--face', `url("${cxMode === 'guide' ? '/verse/logo-160.png' : w.img || ''}")`);   // APP SHELL: the face beside each answer (shell.css)
-  const strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
+  let strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
+  const dock = cx.classList.contains('dock');
+  if (dock) strip = [w, ...strip.filter((c) => c.id !== w.id)];   // APP SHELL tab: the one talking is the first card (mockup 4)
   // no suggested questions (his call 2026-11-12: "let the people talk whatever they want") - every message is the visitor's own
   cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}</button>`).join('')}</div>
     <div class="cx-head">${cxMode === 'guide' ? `<span class="av">${face(w)}</span><span><b>${esc(w.name)}</b>`
@@ -1169,18 +1171,24 @@ function drawChat() {
     <div class="msgs"></div>
     <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
     <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
-  $('.cx-strip .on', cx)?.scrollIntoView({ inline: cx.classList.contains('dock') ? 'start' : 'center', block: 'nearest' });   // APP SHELL tab: the one talking first in the row (mockup 4)
+  if (dock) $('.cx-strip', cx).scrollLeft = 0; else $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
   const ta = $('textarea', cx);
   $('.composer', cx).onsubmit = (e) => { e.preventDefault(); send(ta.value); };
   ta.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(ta.value); } };
-  ta.oninput = () => { ta.style.height = '48px'; ta.style.height = Math.min(ta.scrollHeight + 2, 130) + 'px'; ta.style.overflow = ta.scrollHeight > 128 ? 'auto' : 'hidden'; };
+  ta.oninput = () => { ta.style.height = '48px'; ta.style.height = Math.min(ta.scrollHeight + 2, 130) + 'px'; ta.style.overflow = ta.scrollHeight > 128 ? 'auto' : 'hidden'; drafts[cxMode] = ta.value; };
   attachAt(ta);
+  // APP SHELL tab: what they typed and didn't send is still there when they come back; an answer still on its way keeps send off
+  if (dock && drafts[cxMode]) { ta.value = drafts[cxMode]; ta.dispatchEvent(new Event('input')); }
+  if (busy) $('.composer button', cx).disabled = true;
 }
+const drafts = {};
+let LIVE = null;   // the answer being written now ({mode, el}) - drawn again into the list whenever the chat is drawn again
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
   msgs.innerHTML = (cxMode === 'guide' ? `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` : '') +
     t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(atTags(esc(m.content), true))}</p>` : renderText(m.content)}</div>`).join('');
+  if (LIVE && LIVE.mode === cxMode) msgs.appendChild(LIVE.el);   // (left and came back while it streamed: the same bubble, still filling)
   msgs.scrollTop = msgs.scrollHeight;
 }
 // the anonymous ids the analytics already use, so the dashboard can show a conversation as one thread;
@@ -1235,8 +1243,9 @@ async function send(text, cont = false) {
   text = String(text || '').trim();
   if (!text || busy) return;
   if (!cont) { const to = atTarget(text); if (to && to !== cxMode && C[to]) switchChat(to); }
-  const mode = cxMode, ta = $('textarea', cx), btn = $('.composer button', cx), msgs = $('.msgs', cx);
-  busy = true; btn.disabled = true; if (!cont) { ta.value = ''; ta.style.height = '48px'; }
+  const mode = cxMode, ta = $('textarea', cx), btn = $('.composer button', cx);
+  const msgsNow = () => $('.msgs', cx), sendOn = () => { const b = $('.composer button', cx); if (b) b.disabled = false; };   // the chat may be drawn again meanwhile
+  busy = true; btn.disabled = true; if (!cont) { ta.value = ''; ta.style.height = '48px'; drafts[mode] = ''; }
   if (!cont) threads[mode].push({ role: 'user', content: text });
   t('chat_message', mode);
   drawMsgs();
@@ -1244,8 +1253,9 @@ async function send(text, cont = false) {
   bubble.className = 'm bot wait';
   bubble.innerHTML = mode === 'guide' ? `<span class="think" aria-label="חושב">${ICON.planet}${ICON.planet}${ICON.planet}</span>`
     : `<span class="typing"><b>${esc(who(mode).name)} ${gw(mode, 'מקליד', 'מקלידה', 'מקלידים')}</b><i></i><i></i><i></i></span>`;
-  msgs.appendChild(bubble);
-  msgs.scrollTop = msgs.scrollHeight;
+  LIVE = { mode, el: bubble };
+  msgsNow().appendChild(bubble);
+  msgsNow().scrollTop = msgsNow().scrollHeight;
   let out = '';
   try {
     const history = threads[mode].filter((m) => m.role !== 'note').slice(-16).concat(cont ? [{ role: 'user', content: 'המשך' }] : []);
@@ -1258,7 +1268,7 @@ async function send(text, cont = false) {
     inviteDone(res.headers.get('X-Invite'));
     const left = res.headers.get('X-Left');
     if (left === 'owner') quota = { owner: true }; else if (left !== null && left !== '' && quota) { quota.left = +left; } else if (left !== null && left !== '') peekLeft();
-    paintLeft();
+    paintLeft(); keepQuota();
     const reader = res.body.getReader(), dec = new TextDecoder();
     for (;;) {
       const { done, value } = await reader.read();
@@ -1268,7 +1278,7 @@ async function send(text, cont = false) {
       bubble.classList.remove('wait');
       const aw = out.match(AWAY);
       if (aw) { bubble.className = 'm note'; bubble.textContent = awayNote(mode, aw[1]); } else bubble.innerHTML = renderText(out, true);
-      msgs.scrollTop = msgs.scrollHeight;
+      if (bubble.isConnected) msgsNow().scrollTop = msgsNow().scrollHeight;
     }
     const aw = out.match(AWAY);
     threads[mode].push(aw ? { role: 'note', content: awayNote(mode, aw[1]) } : { role: 'assistant', content: out.trim() });
@@ -1278,11 +1288,11 @@ async function send(text, cont = false) {
     if (!cont) threads[mode].pop();
     if (cxMode === mode) { if (!cont) $('textarea', cx).value = text; bubble.classList.remove('wait'); bubble.innerHTML = e.message === 'quota' ? quotaNote(e.why)
       : `<p>${e.message === 'busy' ? 'הרבה הודעות בבת אחת. נסו שוב עוד מעט.' : 'משהו נתקע בדרך. נסו לשלוח שוב.'}</p>`; }
-    busy = false; btn.disabled = false;
+    LIVE = null; busy = false; sendOn();
     return;
   }
-  busy = false;
-  if (cxMode === mode) { btn.disabled = false; drawMsgs(); }
+  LIVE = null; busy = false; sendOn();
+  if (cxMode === mode) drawMsgs();
 }
 // ---------- the questions left (wiki.js counts them: 3 in total without an account, then 10 a day signed in) ----------
 let quota = null;   // {left, limit, signed} | {owner: true} | null (not known yet)
@@ -1295,13 +1305,24 @@ function leftLine() {
   return `${dots}<span>${words}</span>`;
 }
 const paintLeft = () => { const el = $('.cx-left', cx); if (el) el.innerHTML = leftLine(); };
+let quotaUid;   // APP SHELL: whose count `quota` is (the chat tab asks again only when that changes)
 async function peekLeft() {
   try {
+    const uid = HOOK.myUid ? HOOK.myUid() : null;
     const tok = HOOK.chatToken ? await HOOK.chatToken().catch(() => null) : null;
     const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify({ peek: true, ...visitor() }) });
-    if (r.ok) { quota = await r.json(); inviteDone(quota.invite); paintLeft(); }
-  } catch (e) {}
+    if (r.ok) { quota = await r.json(); quotaUid = uid; inviteDone(quota.invite); paintLeft(); keepQuota(); }
+  } catch (e) {}   // a failed check keeps the last known count
 }
+// APP SHELL: the last count this visit knew, for this account - shown while a check fails (the server refuses too many checks)
+function keepQuota() { if (appOn()) try { sessionStorage.setItem('vx-quota', JSON.stringify({ uid: quotaUid || null, q: quota })); } catch (e) { /* private mode */ } }
+function lastQuota() {
+  if (quota || !appOn()) return;
+  try { const k = JSON.parse(sessionStorage.getItem('vx-quota') || 'null'), uid = HOOK.myUid ? HOOK.myUid() : null; if (k && k.q && (k.uid || null) === uid) { quota = k.q; quotaUid = uid; } } catch (e) { /* none */ }
+}
+// the chat tab is opened again and again (every return to it): the server counts each check with the messages, so it asks
+// only the first time and when the account changed - a sent message brings the new count by itself (X-Left)
+const peekNeeded = () => !cx.classList.contains('dock') || !quota || quotaUid !== (HOOK.myUid ? HOOK.myUid() : null);
 // APP SHELL on a phone: every "talk to" goes to the chat tab (/chat?with=<id>); a question written elsewhere waits here (never in the address)
 let chatAsk = null, cxReg = null;
 function openChat(mode, text, noFocus) {   // noFocus: APP SHELL - opened from the tab bar, the keyboard waits for a tap
@@ -1318,11 +1339,12 @@ function openChatNow(mode, text, noFocus) {
   threads[cxMode] ||= load(cxMode);
   if (cxMode !== 'guide' && !threads[cxMode].length) threads[cxMode].push({ role: 'note', content: joined(cxMode) });
   t('chat_open', cxMode);
+  if (cx.classList.contains('dock')) lastQuota();   // APP SHELL tab: the count it already knows, drawn at once
   drawChat();
-  peekLeft();   // fresh each time (they may have signed in or out since)
+  if (peekNeeded()) peekLeft();   // fresh each time (they may have signed in or out since) - the chat tab: once (peekNeeded)
   const dock = cx.classList.contains('dock');
   cx.classList.add('open'); if (!dock) $('#cx-back').classList.add('open');
-  if (dock) $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'start', block: 'nearest' });   // (drawn while the tab was still hidden)
+  if (dock) $('.cx-strip', cx).scrollLeft = 0;   // the one talking first, at the gutter (drawn while the tab was still hidden)
   if (!dock && !cxReg && window.vxOverlay) cxReg = window.vxOverlay(() => closeChat('pop'));   // APP SHELL on a computer: back closes the drawer
   if (text) send(text); else if (!noFocus) setTimeout(() => $('textarea', cx)?.focus(), 60);
 }
