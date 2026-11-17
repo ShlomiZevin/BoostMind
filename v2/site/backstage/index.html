@@ -1037,7 +1037,10 @@ function more() {
 let CR = null, crId = null, crQ = '', crSeg = 'all', crSort = 'love', crSnap = 0;   // the list: by how loveable first (his ask)
 const crOpenRows = new Set();   // the life events whose note box is open - stays open until sent or closed
 const CR_TREE = new Set(['hani', 'avraham-moshe', 'shterni', 'brachi', 'chaimi', 'sruli', 'feigy', 'yanky', 'ruchami', 'malki', 'shloimi']);   // the family-tree pictures (public/friedman/img)
-const CR_TEXT = [['person', 'מי זה'], ['speech', 'איך מדבר'], ['funny', 'מה מצחיק'], ['parody', 'הפרודיה'], ['dissonance', 'הדיסוננס']];
+// the guide (2026-11-17, his ask): a page like a resident's - who he is, how he talks - plus the Shlomiverse's mythology,
+// which every resident lives by too (the record catalogCharacters/guide, hidden from the site; the chat reads it from the brain)
+const CR_GUIDE = 'guide';
+const CR_TEXT = [['myth', 'המיתולוגיה של השלומיוורס - כל התושבים חיים לפיה'], ['shlomi', 'האגדה על שלומי זווין - נכנסת רק כשמבקר כותב "שלומי"'], ['person', 'מי זה'], ['speech', 'איך מדבר'], ['funny', 'מה מצחיק'], ['parody', 'הפרודיה'], ['dissonance', 'הדיסוננס']];
 const CR_LISTS = [['nuances', 'ניואנסים'], ['catchphrases', 'קאצ\'פרייז / רפליקות']];
 const crFace = (c) => CR_TREE.has(c.id) ? `<img class="ch-av" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="ch-av" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="ch-av">${esc((c.name || '?')[0])}</span>`;
 const crSeen = (id) => SEEN['char:' + id] || 0;
@@ -1050,7 +1053,7 @@ const crLast = (c) => Math.max(0, ...['sheet', 'life', 'love', 'viral'].map((f) 
 // it is nobody's news; after it, a change counts once he has seen the character, a session's answer to his note always
 const CR_SINCE = 1794409057234;   // 2026-11-11, the deploy that wrote the 85 sheets + first scores
 const crNew = (c) => { const seen = Math.max(crSeen(c.id), CR_SINCE); return seen > 0 ? crLast(c) > seen : crNotesOf(c.id).some((n) => n.by === 'claude'); };
-const crBadge = () => CR ? CR.chars.filter((c) => !c.hidden && crNew(c)).length : 0;
+const crBadge = () => CR ? CR.chars.filter((c) => (!c.hidden || c.id === CR_GUIDE) && crNew(c)).length : 0;
 // drafts: what he typed and didn't send yet, per box, kept on this device (his note: the text vanished on another tap)
 const crDraftKey = (id, anchor) => `cr-draft:${id}:${anchor}`;
 const crDraft = (id, anchor) => { try { return localStorage.getItem(crDraftKey(id, anchor)) || ''; } catch (e) { return ''; } };
@@ -1071,6 +1074,9 @@ function chars() {
       <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'עודכן מאז שראית', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))]].map(([k, l, c]) =>
         `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div>
       <div class="seg sm">${[['love', 'לפי אהוב'], ['viral', 'לפי ויראלי'], ['name', 'לפי שם']].map(([k, l]) => `<button data-crsort="${k}" class="${crSort === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+    ${(() => { const g = CR.chars.find((c) => c.id === CR_GUIDE); if (!g) return ''; const open = crOpen(g.id);
+      return `<div class="ch-list"><button class="item" data-cropen="${g.id}">${crFace(g)}<div class="body"><b>המדריך והמיתולוגיה</b><p>מי המדריך, איך הוא מדבר, והאגדות של השלומיוורס</p>
+        <div class="ch-tags">${crNew(g) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}</div></div></button></div>`; })()}
     <div class="ch-list">${list.map((c) => { const open = crOpen(c.id);
       return `<button class="item" data-cropen="${c.id}">${crFace(c)}<div class="body"><b>${esc(c.name)}</b><p>${esc(c.world || '')}${c.tagline ? ' · ' + esc(c.tagline) : ''}</p>
         <div class="ch-tags">${c.love ? `<span class="tag">אהוב ${c.love}</span>` : ''}${c.viral ? `<span class="tag">ויראלי ${c.viral}</span>` : ''}${crNew(c) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${crHasSheet(c) ? '' : '<span class="tag red">בלי דף</span>'}</div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
@@ -1095,13 +1101,13 @@ function crView() {
       <button class="ch-nb ${k ? 'has' : ''}" data-crrow="${esc(a)}">${IC.comment}${k || 'הערה'}</button></div>${crNotesHtml(c, a, crOpenRows.has(a))}</div>`; }).join('');
   $('#pane').innerHTML = `<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
     <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}</div></div>
-    ${[['love', 'כמה אהוב'], ['viral', 'כמה ויראלי כרגע']].map(([f, l]) => `<div class="ch-love"><b>${l}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crscore="${f}" data-v="${i + 1}" class="${i + 1 <= (c[f] || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>`).join('')}
+    ${(c.id === CR_GUIDE ? [] : [['love', 'כמה אהוב'], ['viral', 'כמה ויראלי כרגע']]).map(([f, l]) => `<div class="ch-love"><b>${l}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crscore="${f}" data-v="${i + 1}" class="${i + 1 <= (c[f] || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>`).join('')}
     <div class="ch-sec"><h3>ההערות שלך על ${esc(c.name)}</h3>${crNotesHtml(c, '', true)}</div>
     ${crHasSheet(c) ? `<div class="ch-sec ${fresh('sheet') ? 'fresh' : ''}">${fresh('sheet') ? '<span class="tag ok">הדף עודכן מאז שראית</span>' : ''}
       ${CR_TEXT.filter(([k]) => s[k]).map(([k, l]) => `<h3>${l}</h3><p class="ch-p">${esc(s[k])}</p>`).join('')}
       ${CR_LISTS.map(([k, l]) => `<h3>${l}</h3>${(s[k] || []).length ? `<ul class="ch-ul">${s[k].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="ch-p dim">אין עדיין</p>'}`).join('')}</div>`
       : '<div class="ch-sec"><p class="ch-p ch-miss">עוד אין דף לדמות הזאת. אפשר לכתוב עליה הערה, וסשן יכתוב לה דף.</p></div>'}
-    <div class="ch-sec"><h3>החיים - אירוע לכל סרטון${fresh('life') ? ' <span class="tag ok">עודכן</span>' : ''}</h3>${lifeRows || '<p class="ch-p dim">עוד אין סרטונים איתו בשלומיוורס.</p>'}</div>`;
+    ${c.id === CR_GUIDE ? '' : `<div class="ch-sec"><h3>החיים - אירוע לכל סרטון${fresh('life') ? ' <span class="tag ok">עודכן</span>' : ''}</h3>${lifeRows || '<p class="ch-p dim">עוד אין סרטונים איתו בשלומיוורס.</p>'}</div>`}`;
   // every keystroke is kept (his note: the text vanished when he tapped something else before sending)
   document.querySelectorAll('[data-ctext]').forEach((ta) => { ta.oninput = () => crKeep(c.id, ta.dataset.ctext, ta.value); });
 }

@@ -85,7 +85,7 @@ async function sonnet(akey, system, user) {
 }
 
 const RULES = `You are a resident of שלומיוורס (Shlomiverse).
-${chain.WORLD}
+{{WORLD}}
 Never explain the joke. Your page and your videos are your life: what is there happened. Big events beyond them (videos, family, deaths, scandals) never happened. The small everyday things of your life (where you studied, what you ate) you simply have - natural for who you are.
 You are exactly who your page says - completely, with no softening. Your opinions are as strong, one-sided and extreme as they really are: you never balance them with the other side, never turn diplomatic, moderate or wise-and-fair, never become a polite advisor. That seriousness is where the comedy is.
 Write like a chat message: usually one to four sentences, plain text, no markup, no lists unless asked, Hebrew unless the visitor writes another language. Never write code, documents or long lists. Never open with a fixed formula, and don't repeat a phrase or an opening you already used in this conversation. A way of talking from your page (a professional jargon, foreign words) only where you would really use it - work words about work; never your job's words as a metaphor for home, food, family or faith.
@@ -122,8 +122,8 @@ function scriptsOf(cur, c) {
 // each with their own funny nuance and parody along the way; it reads the whole conversation. Specific about what it does and
 // what it outputs. The page + every script are one fixed block per character, so Anthropic serves them from its cache inside a
 // conversation (a cache read is 1/20 of the price).
-const DIRECTOR = (c, known, scripts) => `You are the director of ${c.name}, a resident of the Shlomiverse - a comedy world where the residents are real people living their lives. What ${c.name} says always keeps to this:
-${chain.WORLD}
+const DIRECTOR = (c, known, scripts, world = chain.WORLD) => `You are the director of ${c.name}, a resident of the Shlomiverse - a comedy world where the residents are real people living their lives. What ${c.name} says always keeps to this:
+${world}
 
 You direct nuanced comedy. You are not a gag writer and nothing is forced: ${c.name} is a real person in a real conversation, reacting the way they really would. The comedy is in the nuance - their own funny little ways and the parody they embody (from their page), showing up along the way, naturally, the way it would in a real exchange. One answer has a small nuance, another a bigger one, some have none. Never a punchline pushed in, never their pet topic dragged in, never a bit for its own sake.
 
@@ -211,7 +211,7 @@ async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = 
   const t0 = Date.now();
 
   // 1 · direct - the page + every script + the whole conversation
-  const system = DIRECTOR(c, known, scriptsOf(cur, c));
+  const system = DIRECTOR(c, known, scriptsOf(cur, c), chain.world(cur) + chain.legend(cur, turns));
   const usedPhrases = convo.phrases || [];
   const now = nowIL(at);
   const memo = NOW(now) + (usedPhrases.length ? `\nCatchphrases ${c.name} already said in this conversation (never again): ${JSON.stringify(usedPhrases)}` : '');
@@ -247,7 +247,7 @@ You know this only a little, like an educated outsider - no details an expert wo
   const rules = [extra, D.find === true ? contact : ''].filter(Boolean).join('\n\n');
   // the writer gets no catchphrase list - one the director names is the only one in an answer (his note 2026-11-14: with the
   // list in front of it, Terra put Hani's "את קולטת" in three answers in a row, whatever the rule against repeating said)
-  const t = away ? { out: `[[away:${holy}]]`, ms: 0, first: 0 } : await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
+  const t = away ? { out: `[[away:${holy}]]`, ms: 0, first: 0 } : await call(key, 'talk', `${RULES.replace('{{WORLD}}', chain.world(cur) + chain.legend(cur, turns))}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}${c.site ? `\n\nYour site: ${chain.pub(c.site)} (show it with [[site:${c.id}]] when asked)` : ''}`,
     [...last(turns, STEPS.talk.couples), { role: 'developer', content: `${NOW(now)}\n\n${notes}${limit}${rules ? '\n\n' + rules : ''}\n\nNow write your answer to the visitor's last message - only the answer.` }],
     { json: false, onText, max: 900 });
   const talkAt = Date.now() - t0 - t.ms;   // when talk started, from the visitor's message
@@ -289,7 +289,7 @@ async function post({ key, akey = null, cur, mode, scene, last: mine = [], name 
   }
   const steps = [];
   const known = chain.known(cur, mode).map((id) => cur.byId[id].name);
-  const system = DIRECTOR(c, known, scriptsOf(cur, c));
+  const system = DIRECTOR(c, known, scriptsOf(cur, c), chain.world(cur) + chain.legend(cur, [{ role: 'user', content: scene }]));
   const now = nowIL(at);
   const feed = `ציפציפ is the Shlomiverse's X (Twitter): short posts, mostly about the day's news, read by strangers scrolling by.
 What is in front of ${c.name} now:
@@ -323,7 +323,7 @@ ${PLAN_FORMAT(c)}`;
   const lvl = D.knows?.level;
   const limit = lvl === 'no' || lvl === 'heard_of' ? `\n\nYou know this only ${lvl === 'no' ? 'not at all' : 'by name'} - no details of it beyond what is in front of you. ${D.knows.how || ''}`
     : lvl === 'some' ? `\n\nYou know this only a little, like an outsider. ${D.knows.how || ''}` : '';
-  const t = await call(key, 'talk', `${RULES}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}`,
+  const t = await call(key, 'talk', `${RULES.replace('{{WORLD}}', chain.world(cur) + chain.legend(cur, [{ role: 'user', content: scene }]))}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}`,
     [{ role: 'developer', content: `${NOW(now)}\n\nYou are on ציפציפ, posting from your phone. ${feed}\n\n${notes}${limit}\n\nWrite only the post: Hebrew, like a real tweet - one to three short lines, at most 240 characters, no hashtags, no emoji, no quotation marks around it. A stranger scrolling gets it in one read: the subject named in plain words. People from your own life by who they are to you (בעלי, הבוס שלי), not by a name strangers don't know. A post of your own talks to the world, never to another resident by name; a reply talks to the one you answer.` }],
     { json: false, max: 700 });
   steps.push({ step: 'talk', ...t });

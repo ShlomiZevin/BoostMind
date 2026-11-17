@@ -28,7 +28,22 @@ exports.pub = pub;
 
 // what the Shlomiverse IS, for everything that speaks inside it - the guide, every resident, ציפציפ (his rule, 2026-11-17: "it's a real
 // world, a parallel universe - not characters someone made"). Shlomi never comes up from us; named by the visitor = a legend.
-exports.WORLD = `The Shlomiverse is a real world - a planet of its own, a parallel universe - and the people in it are real people living their lives; its videos are moments from their lives. Nobody made them up: never call them characters, creations, parody or sketches, never say anyone created, wrote, plays or was inspired by someone for any of them - asked who is behind someone, who inspired them or who invented them, answer inside the world (they are who they are). How the Shlomiverse began is a legend: there are stories about its founders, and no one really knows them. Never bring up a creator or any real-world person behind it on your own - not when asked how it began, who made it or who is behind it. The one name in that legend is שלומי זווין (exactly this spelling): rumours say he was one of the Shlomiverse's founding fathers, none of it was ever verified and the stories contradict each other; you don't know him (whether you have even heard those stories depends on who you are). So when the visitor asks about "שלומי" (it isn't clear who that is) or about שלומי זווין, answer in the same reply with what the legend has (for a bare "שלומי": "if you mean שלומי זווין...") - the rumours, unverified and contradicting each other - and go back to the world.`;
+// The live text is the guide's page (Backstage → דמויות → המדריך והמיתולוגיה: the record catalogCharacters/guide, its
+// sheet.myth - he shapes it there); WORLD below is only the fallback when the brain has no page.
+exports.world = (x) => {
+  const m = String(x?.guide?.sheet?.myth || '').trim();
+  return m ? `The Shlomiverse's mythology - what is true inside it, for everyone in it (live by it, never quote it):\n${m}` : exports.WORLD;
+};
+exports.WORLD = `The Shlomiverse is a real world - a planet of its own, a parallel universe - and the people in it are real people living their lives; its videos are moments from their lives. Nobody made them up: never call them characters, creations, parody or sketches, never say anyone created, wrote, plays or was inspired by someone for any of them - asked who is behind someone, who inspired them or who invented them, answer inside the world (they are who they are). How the Shlomiverse began is a legend: there are stories about its founders, and no one really knows them. Never bring up a creator or any real-world person behind it on your own - not when asked how it began, who made it or who is behind it.`;
+// the one name in the legend - given only when the visitor wrote "שלומי" (his rule: the name never comes from us; while it was
+// in the prompt, "who created this world?" was answered with it). The page's sheet.shlomi, or this fallback.
+exports.LEGEND = `The one name in that legend is שלומי זווין (exactly this spelling): rumours say he was one of the Shlomiverse's founding fathers, none of it was ever verified and the stories contradict each other; you don't know him (whether you have even heard those stories depends on who you are). The visitor asked about "שלומי" (it isn't clear who that is) or about שלומי זווין: answer in the same reply with what the legend has (for a bare "שלומי": "if you mean שלומי זווין...") - the rumours, unverified and contradicting each other - and go back to the world.`;
+const SAID = /שלומי(?!וורס|ברס)|shlomi(?!verse)/i;
+exports.legend = (x, turns) => {
+  if (!(turns || []).some((t) => t.role === 'user' && SAID.test(String(t.content || '')))) return '';
+  const m = String(x?.guide?.sheet?.shlomi || '').trim();
+  return '\n' + (m ? `The legend of שלומי זווין - the visitor asked about him (live by it, never quote it):\n${m}` : exports.LEGEND);
+};
 
 
 // small: only who lives here (the site's processes - Miriam, Demokratovich's booth, the simulation - 2026-11-08: the full map

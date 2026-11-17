@@ -49,8 +49,9 @@ function interleave(chars) {
 async function compose(admin, { dry = false } = {}) {
   const db = admin.firestore(), media = admin.storage().bucket(MEDIA), priv = admin.storage().bucket(PRIVATE);
   const all = async (col) => (await db.collection(col).get()).docs.map((d) => ({ id: d.id, ...d.data() })).filter((x) => !x.hidden);
-  const [vs, ts, chars, worlds, games, sites, [faces]] = await Promise.all([all('catalogVideos'), db.collection('catalogTranscripts').get(),
-    all('catalogCharacters'), all('catalogSeries'), all('catalogGames'), all('catalogSites'), media.getFiles({ prefix: 'wiki/img/c/' })]);
+  const [vs, ts, chars, worlds, games, sites, [faces], guideDoc] = await Promise.all([all('catalogVideos'), db.collection('catalogTranscripts').get(),
+    all('catalogCharacters'), all('catalogSeries'), all('catalogGames'), all('catalogSites'), media.getFiles({ prefix: 'wiki/img/c/' }),
+    db.collection('catalogCharacters').doc('guide').get().catch(() => null)]);
   const text = Object.fromEntries(ts.docs.map((d) => { const x = d.data(); return [d.id, (x.onScreen ? `טקסט על המסך: ${x.onScreen}
 ` : '') + (x.text || '')]; }));
   const face = Object.fromEntries(faces.map((f) => [f.name.slice('wiki/img/c/'.length).replace(/\.jpg$/, ''), BASE_URL + f.name.slice(5) + '?v=' + Buffer.from(f.metadata.md5Hash, 'base64').toString('hex').slice(0, 8)]));
@@ -81,6 +82,9 @@ async function compose(admin, { dry = false } = {}) {
     videos: videos.map((v) => ({ id: v.id, title: v.title || '', teaser: v.teaser || '', cast: v.cast || [], date: v.date || '', card: v.card || v.teaser || '', transcript: text[v.id] || '' })),
     sites: siteList.map((s) => ({ id: s.id, url: s.url, title: s.title || '', about: s.about || '', whose: s.whose || [], in: s.in || null })),
     games: gameList.map((g) => pick(g, ['id', 'url', 'title', 'tagline', 'chars', 'record'])),
+    // the guide's page + the Shlomiverse's mythology (catalogCharacters/guide - hidden, so never a resident on the site;
+    // Backstage → דמויות → המדריך והמיתולוגיה; the chat reads it: wiki-chain.js world(), wiki.js guidePage)
+    guide: guideDoc && guideDoc.exists ? { sheet: guideDoc.data().sheet || {} } : null,
   };
   if (!dry) {
     const body = Buffer.from(JSON.stringify(wiki));
