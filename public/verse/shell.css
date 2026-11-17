@@ -955,3 +955,11 @@ html:not(.fd-clean) .fd-shade { background: linear-gradient(to top, #000 0, #000
 /* the line as on the mockup: the orange fill alone; the thumb shows only while seeking */
 .fd-strip .fs-knob { opacity: 0; transition: opacity .15s; }
 .fd-strip.seeking .fs-knob { opacity: 1; }
+/* the counts as a badge on the circle's top corner (toward the screen's middle) - every rail button the same circle */
+.fd-rail.fd-fixed button:has(.fd-n:not(:empty)) { height: var(--rb, 56px); border-radius: 50%; }
+.fd-rail.fd-fixed .fd-n { position: absolute; top: -3px; inset-inline-end: -4px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px;
+  background: var(--accent, #ff6a1f); color: #fff; font-size: 10.5px; font-weight: 800; line-height: 18px; text-align: center; text-shadow: none; filter: none;
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .35); }
+.fd-rail.fd-fixed .fd-n:empty { display: none; }
+.fd-media video, .fd-poster { transform-origin: 50% 50%; }
+.fd-rail.fd-fixed .fd-n { inset-inline-end: auto; inset-inline-start: auto; left: -4px; right: auto; }   /* the corner toward the screen's middle */

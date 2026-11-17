@@ -51,12 +51,12 @@ function slide(v, i) {
 
 // ---------- the rail (his rule 2026-11-17): ONE column for the feed, fixed while the videos swipe under it - its counts and
 // states follow the video on screen. The counts of the video before and after are already listening, so a swipe never flickers ----------
-const nfmt = (n) => (n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n)) : '');
+const nfmt = (n) => (n ? (n > 99 ? '99+' : String(n)) : '');   // the badge on the circle's corner
 export const railBtn = (key, attr, ic, label, n) => `<button ${attr}="${key}"><span class="fd-ic"${key === 'save' ? ' data-sv' : ''}>${ic}</span><b${key === 'save' ? ' data-svl' : ''}>${esc(label)}</b>${n ? `<i class="fd-n" data-n="${n}"></i>` : ''}</button>`;
 // the rail's place: its bottom ~12px above the picture's bottom, the buttons as big as the room allows (46-56px), one even gap
 export function placeRail(rail, top, bottom) {
   const vis = [...rail.children].filter((b) => !b.hidden), n = vis.length || 1, g = innerHeight < 700 ? 6 : 8;
-  const extra = vis.filter((b) => b.querySelector('[data-n]')).length * 12;   // a button with a count grows by its line
+  const extra = 0;   // (the counts are badges on the circles' corner - every button the same circle)
   const size = Math.max(46, Math.min(innerHeight < 700 ? 46 : 56, Math.floor((bottom - top - extra - (n - 1) * g) / n)));   // a short phone: the small size
   rail.style.setProperty('--rb', size + 'px'); rail.style.setProperty('--rg', g + 'px');
   // the box from the top room to the bottom line, the buttons at its bottom: a count arriving never moves the rail's end
@@ -100,9 +100,21 @@ export function videosFeed(q) {
   return `<div class="fd" id="fd" role="feed" aria-label="${esc(FT.title)}">${list.map(slide).join('')}</div>`;
 }
 
+// edge to edge (his note): many videos carry thin black bars at their sides in the file itself; where the cover crop doesn't
+// already cut them (a 9:16 phone shows the whole width), the picture is grown just enough to hide ~1.8% at each side
+function edge(el, w, h) {
+  if (!el || !w || !h || !el.parentNode) return;
+  const box = el.parentNode.getBoundingClientRect();
+  if (!box.width || !box.height) return;
+  const shown = box.width / (w * Math.max(box.width / w, box.height / h));   // the part of the video's width on screen
+  const k = shown > 0.964 ? shown / 0.964 : 1;
+  el.style.transform = k > 1.001 ? `scale(${k.toFixed(4)})` : '';
+}
+const edgeAll = () => { if (!FD) return; FD.pool.forEach((v) => edge(v, v.videoWidth, v.videoHeight)); FD.slides.forEach((s) => { const i = s.querySelector('.fd-poster'); if (i) edge(i, i.naturalWidth, i.naturalHeight); }); };
 function makeVideo() {
   const v = document.createElement('video');
   v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+  v.addEventListener('loadedmetadata', () => edge(v, v.videoWidth, v.videoHeight));
   v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
   v.crossOrigin = 'anonymous';   // the sticker grabs a frame from it
   v.disablePictureInPicture = true;
@@ -157,7 +169,8 @@ function mount(list, start) {
   document.addEventListener('visibilitychange', vis);
   const rs = () => resnap();
   // the feed's own height changes (a phone's toolbar, clean mode, the keyboard): back onto the slide showing
-  FD.ro = new ResizeObserver(() => { resnap(); ctlPaint(); });
+  FD.ro = new ResizeObserver(() => { resnap(); ctlPaint(); edgeAll(); });
+  slides.forEach((s) => { const i = s.querySelector('.fd-poster'); if (i) { if (i.complete) edge(i, i.naturalWidth, i.naturalHeight); else i.addEventListener('load', () => edge(i, i.naturalWidth, i.naturalHeight), { once: true }); } });
   FD.ro.observe(el);
   // a scroll that ends between two videos (WebKit sometimes stops mid-way): onto the nearest one
   const ended = () => { clearTimeout(FD.endT); FD.endT = setTimeout(settle, 140); };
@@ -207,7 +220,7 @@ function load(i, preload) {
     vd.src = abs(v.src);
   } else if (preload === 'auto' && vd.preload !== 'auto') vd.preload = 'auto';
   const media = $('.fd-media', s);
-  if (vd.parentNode !== media) media.append(vd);
+  if (vd.parentNode !== media) { media.append(vd); edge(vd, vd.videoWidth, vd.videoHeight); }
 }
 function activate(i) {
   if (!FD || i === FD.idx || !FD.slides[i]) return;
