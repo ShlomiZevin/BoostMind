@@ -1,7 +1,7 @@
 // Editor vs export for film effects: one picture through the effect layers at a few frames - drawn by the editor
 // (render/ui/effect-test.html: CSS) and by the export (pipeline/film_fx.py: OpenCV) - and the difference measured.
 //   node tools/effects_parity.mjs <picture.png 1080x1920> [signal]     (grain left out: it is random by nature;
-//   signal = the socials' "signal lost" ending's effects instead: pixelate + dark)
+//   signal = the socials' "signal lost" ending's effects instead: pixelate + dark; glitch = the screen glitch alone)
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -25,6 +25,9 @@ const project = { canvas: { w: 1080, h: 1920, fps }, layers: [
 if (process.argv[3] === 'signal') project.layers = [
   { id: 'e.pixel', kind: 'effect', props: { filter: 'pixel', amount: 0.5 }, items: [{ id: 'p', from: 10, dur: 50, fade_in: 0.27, fade_out: 0 }] },
   { id: 'e.dark', kind: 'effect', props: { filter: 'dark', amount: 0.85 }, items: [{ id: 'd', from: 10, dur: 50, fade_in: 0.37, fade_out: 0 }] },
+];
+if (process.argv[3] === 'glitch') project.layers = [
+  { id: 'e.glitch', kind: 'effect', props: { filter: 'glitch', amount: 1 }, items: [{ id: 'g', from: 0, dur: 60, fade_in: 0, fade_out: 0 }] },
 ];
 const frames = [5, 15, 31, 45];
 

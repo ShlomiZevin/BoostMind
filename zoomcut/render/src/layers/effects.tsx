@@ -23,10 +23,25 @@ function Grain({ f, opacity }: { f: number; opacity: number }) {
   return <canvas ref={ref} width={270} height={480} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', mixBlendMode: 'overlay', opacity }} />;
 }
 
-// the screen glitch (effect_curve.js glitchPlan - the export applies the same plan in film_fx.py): the red and the blue
-// of the picture pulled apart, bands of it torn sideways, a few lines of static
+// the screen glitch (effect_curve.js glitchPlan - the export applies the same plan in film_fx.py _glitch): ONE SVG filter
+// on the picture - the red pulled one way and the blue the other, then bands of that torn sideways - plus a few lines of
+// static over it. Never copies of the picture: each copy of the layers below starts its own video players, and a glitch
+// that mounted them frame by frame froze the editor while playing (the signal-lost ending, 2026-11-17).
 const ONLY = { R: '1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0', G: '0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0', B: '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0' };
 const STATIC = 'repeating-linear-gradient(90deg, #fff 0 3px, #777 3px 5px, #111 5px 9px, #ccc 9px 11px, #333 11px 16px)';
+const GlitchFilter: React.FC<{ gp: any; W: number; H: number }> = ({ gp, W, H }) => (
+  <svg width="0" height="0" style={{ position: 'absolute' }}>
+    <filter id="zc_gl" x="0" y="0" width={W} height={H} filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values={ONLY.R} result="r0" />
+      <feOffset in="r0" dx={-gp.split} dy="0" result="r" />
+      <feColorMatrix in="SourceGraphic" type="matrix" values={ONLY.G} result="g" />
+      <feColorMatrix in="SourceGraphic" type="matrix" values={ONLY.B} result="b0" />
+      <feOffset in="b0" dx={gp.split} dy="0" result="b" />
+      <feComposite in="r" in2="g" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="rg" />
+      <feComposite in="rg" in2="b" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="sp" />
+      {gp.bands.map((b: any, i: number) => <feOffset key={i} in="sp" dx={b.dx} dy="0" x="0" y={b.y} width={W} height={b.h} result={`band${i}`} />)}
+      <feMerge><feMergeNode in="sp" />{gp.bands.map((_: any, i: number) => <feMergeNode key={i} in={`band${i}`} />)}</feMerge>
+    </filter></svg>);
 
 export const EffectWrap: React.FC<{ p: LayersProps; f: number; below: (lag: number) => React.ReactNode }> = ({ p, f, below }) => {
   const c = effectCss(p.project, f), s = c.s, H = p.project.canvas.h;
@@ -42,19 +57,11 @@ export const EffectWrap: React.FC<{ p: LayersProps; f: number; below: (lag: numb
         <feComposite in="SourceGraphic" in2="dots" operator="in" />
         <feMorphology operator="dilate" radius={b / 2} />
       </filter></svg>}
-    <AbsoluteFill style={{ transformOrigin: c.transformOrigin, transform: c.transform, filter: c.filter + (b > 0 ? ' url(#zc_px)' : '') }}>
+    {gp && <GlitchFilter gp={gp} W={p.project.canvas.w} H={H} />}
+    <AbsoluteFill style={{ transformOrigin: c.transformOrigin, transform: c.transform, filter: c.filter + (gp ? ' url(#zc_gl)' : '') + (b > 0 ? ' url(#zc_px)' : '') }}>
       {below(0)}
       {s.ghost > 0.002 && <AbsoluteFill style={{ opacity: s.ghost, pointerEvents: 'none' }}>{below(c.lag)}</AbsoluteFill>}
-      {gp && <>
-        <svg width="0" height="0" style={{ position: 'absolute' }}>{Object.entries(ONLY).map(([k, v]) => (
-          <filter key={k} id={`zc_gl_${k}`} colorInterpolationFilters="sRGB"><feColorMatrix type="matrix" values={v} /></filter>))}</svg>
-        {gp.split > 0 && <AbsoluteFill style={{ background: '#000', isolation: 'isolate', pointerEvents: 'none' }}>
-          {(['G', 'R', 'B'] as const).map((k) => <AbsoluteFill key={k} style={{ filter: `url(#zc_gl_${k})`, mixBlendMode: k === 'G' ? 'normal' : 'screen',
-            transform: `translateX(${k === 'R' ? -gp.split : k === 'B' ? gp.split : 0}px)` }}>{below(0)}</AbsoluteFill>)}
-        </AbsoluteFill>}
-        {gp.bands.map((b, i) => <AbsoluteFill key={i} style={{ clipPath: `inset(${b.y}px 0 ${Math.max(0, H - b.y - b.h)}px 0)`, transform: `translateX(${b.dx}px)`, pointerEvents: 'none' }}>{below(0)}</AbsoluteFill>)}
-        {gp.lines.map((l, i) => <div key={'l' + i} style={{ position: 'absolute', left: 0, right: 0, top: l.y, height: l.h, background: STATIC, backgroundPosition: `${(f * 37 + i * 11) % 16}px 0`, opacity: l.o, pointerEvents: 'none' }} />)}
-      </>}
+      {gp && gp.lines.map((l: any, i: number) => <div key={'l' + i} style={{ position: 'absolute', left: 0, right: 0, top: l.y, height: l.h, background: STATIC, backgroundPosition: `${(f * 37 + i * 11) % 16}px 0`, opacity: l.o, pointerEvents: 'none' }} />)}
     </AbsoluteFill>
     {s.vig > 0.001 && <AbsoluteFill style={{ pointerEvents: 'none', opacity: s.vig, background: 'radial-gradient(ellipse farthest-corner at center, rgba(0,0,0,0) 45%, rgba(0,0,0,1) 100%)' }} />}
     {s.grain > 0.001 && <Grain f={f} opacity={Math.min(1, s.grain * 0.55)} />}
