@@ -769,3 +769,5 @@ html.fd-clean .fd-ui, html.fd-clean .fd-line, html.fd-clean .top, html.fd-clean 
 .sts-mine { flex: none; width: 100%; height: 52px; border-radius: 99px; margin-top: 10px; justify-content: center; font-size: 1.08rem; font-weight: 800; }
 .sts-mine svg { width: 20px; height: 20px; }
 .sts-h em { order: -1; } .stm-fan img { width: 70px; height: 70px; left: calc(50% - 35px + (var(--k) - 1) * 36px); }
+/* fans' stickers: no easy long-press save or drag (copying goes through the card, signed in) */
+.stc img, .stc2 img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }

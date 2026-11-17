@@ -731,7 +731,7 @@ export function openStickers({ focus = null } = {}, ctx = null) {
   const list = $('.list', h.el);
   const card = (s) => {
     const on = myStamps.has(s.id), n = s.stampCount || 0;
-    return `<div class="stc2"><img src="${esc(s.img)}" alt="${esc(s.text || '')}" data-wa-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}">
+    return `<div class="stc2"><img src="${esc(s.img)}" alt="${esc(s.text || '')}" draggable="false" data-st-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}">
       <div class="stc2-f"><span class="stc2-who">${av({ fan: { nick: s.nick, photo: s.photo } })}<b>${esc(s.nick || '')}</b></span>
         <button class="stc2-stamp ${on ? 'on' : ''}" data-stamp="${s.id}" title="${esc(stampText(s.char))}">${LIKE}<span>${esc(S.stamp)}${n ? ' ' + (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n) : ''}</span></button></div></div>`;
   };
@@ -754,7 +754,7 @@ export function openStickers({ focus = null } = {}, ctx = null) {
 // ---------- stickers: the fans' strip / tab, and stamps (the character's catchphrase as the like) ----------
 function stickerCard(s, myStamps) {
   const n = s.stampCount || 0;
-  return `<div class="stc"><img src="${esc(s.img)}" alt="${esc(s.text)}" data-wa-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}">
+  return `<div class="stc"><img src="${esc(s.img)}" alt="${esc(s.text)}" draggable="false" data-st-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}">
     <button class="stamp ${myStamps.has(s.id) ? 'on' : ''}" data-stamp="${s.id}" title="${esc(stampText(s.char))}">${LIKE}<b>${n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n || ''}</b></button></div>`;
 }
 function stickerTab(stickers, myStamps) {
@@ -931,6 +931,14 @@ export async function waCard(src, videoId) {
   });
 }
 document.addEventListener('click', (e) => { const i = e.target.closest('[data-wa-img]'); if (i) waCard(i.dataset.waImg, i.dataset.waV); });
+// a sticker another fan made (his rule 2026-11-17): visitors may look and make their own, but copying / saving / sending someone
+// else's needs an account - the tap opens the sign-in sheet first; signed in, the same card as before
+document.addEventListener('click', async (e) => {
+  const i = e.target.closest('[data-st-img]');
+  if (!i) return;
+  if (!signedIn() && !(await needFan('pack', null, { img: i.dataset.stImg }))) return;   // (the sign-in sheet about getting a sticker to WhatsApp)
+  waCard(i.dataset.stImg, i.dataset.waV);
+});
 // arrived from "open in the browser" above: the sticker's sheet again, ready (only our own pictures; `?sticker=` is taken -
 // it is a sticker's id on a video page)
 const WA_PARAM = 'wa';
