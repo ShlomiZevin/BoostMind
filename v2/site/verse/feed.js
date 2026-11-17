@@ -157,7 +157,7 @@ function mount(list, start) {
   document.addEventListener('visibilitychange', vis);
   const rs = () => resnap();
   // the feed's own height changes (a phone's toolbar, clean mode, the keyboard): back onto the slide showing
-  FD.ro = new ResizeObserver(() => resnap());
+  FD.ro = new ResizeObserver(() => { resnap(); ctlPaint(); });
   FD.ro.observe(el);
   // a scroll that ends between two videos (WebKit sometimes stops mid-way): onto the nearest one
   const ended = () => { clearTimeout(FD.endT); FD.endT = setTimeout(settle, 140); };
@@ -316,9 +316,13 @@ function ctlPaint() {
   if (!c || !FD) return;
   // its place: the video's bottom-left corner, just above the words (measured in the full view, kept as it is in the clean one -
   // the control never moves when the view changes)
+  // one fixed y for every video: above the tallest words block of the feed (so no title ever reaches it), from the feed's bottom
   if (!isClean()) {
-    const info = FD.slides[FD.idx] && FD.slides[FD.idx].querySelector('.fd-info');
-    if (info && info.offsetHeight) c.style.top = Math.round(info.getBoundingClientRect().top - 48) + 'px';
+    const fb = FD.el.getBoundingClientRect().bottom;
+    let tall = 0;
+    // (the sound pill comes and goes on one slide: its row is counted as always there - 38px + the 10px gap)
+    for (const s of FD.slides) { const i = s.querySelector('.fd-info'), t = s.querySelector('.fd-tools'); if (i) tall = Math.max(tall, i.offsetHeight - (t ? t.offsetHeight + (t.offsetHeight ? 10 : 0) : 0)); }
+    if (tall) c.style.top = Math.round(fb - 16 - tall - 48 - 50) + 'px';
   }
   const vd = cur(), playing = vd && !vd.paused;
   const pp = c.querySelector('[data-c="pp"]'), view = c.querySelector('[data-c="view"]');
