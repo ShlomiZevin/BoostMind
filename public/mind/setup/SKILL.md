@@ -1,6 +1,6 @@
 ---
 name: mind
-description: Shlomi's notebook (המוח השני, https://shlomiverse.com/mind/) - his own ideas, to-dos, notes and reminders across all his projects. Use ONLY when he asks - he says למוח / תכניס למוח / רשום במוח / תוסיף לרעיונות / תוסיף למשימות / רשום לי / תזכיר לי / add to mind / put it in mind / send this to mind / תקרא מהמוח / read from mind, or asks what's in Mind / what's open / what's on his plate, or tells the session "if you need anything from me, write it in Mind" (session requests, with pictures to approve). Never write there on your own initiative and never report a session's work there.
+description: Shlomi's notebook (המוח השני, https://shlomiverse.com/mind/) - his own ideas, to-dos, notes and reminders across all his projects. Use ONLY when he asks - he says למוח / תכניס למוח / רשום במוח / תוסיף לרעיונות / תוסיף למשימות / רשום לי / תזכיר לי / add to mind / put it in mind / send this to mind / תקרא מהמוח / read from mind, or says to put something for today (להיום / תשים להיום / for today / on my today list), or asks what's in Mind / what's open / what's on his plate, or tells the session "if you need anything from me, write it in Mind" (session requests, with pictures to approve). Never write there on your own initiative and never report a session's work there.
 ---
 
 # Mind - Shlomi's notebook
@@ -33,6 +33,15 @@ approval, something only he can do - is ONE item:
 - Read his answer on the item's timeline (`mind_get_item`) - he writes a note, or presses "מאשר" (the item turns done
   with the note "אושר"). Act on it, and mark the item done when it is handled.
 - Nothing needed = write nothing. Never progress reports.
+
+## "For today" - his היום view (2026-11-17)
+"תשים להיום ..." / "להיום: ..." / "put it for today" / "add a task for today" / "mark X for today" = the item goes on his
+היום view (the first view on his page, highlighted, only what's marked for today):
+- something new -> search first, then `mind_add_item` with `today: true` (type task unless it is clearly something else);
+- something already there -> find it, `mind_update_item {id, today: true}`; "not today" / "תוריד מהיום" -> `today: false`.
+- CLI: `node ~/.mind/mind.mjs add text="..." today=true` / `update id=<id> today=true`.
+`today` keeps the day it was marked - tomorrow it is just an item again, so never re-mark on your own.
+Answer in one line: #id + title + "להיום".
 
 ## When he asks you to change an item
 "סמן את X כבוצע" / "add to item X that ..." -> find it (`mind_list_items {query}`), then `mind_update_item`.
