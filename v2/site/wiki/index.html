@@ -1643,6 +1643,17 @@ function search(q) {
 }
 // on a phone the search is an icon that opens over the top bar (verse.css .s-open)
 $('#q').addEventListener('focus', () => $('.search').classList.add('s-open'));
+// APP SHELL: while the search is open a real layer lies over the page and the tab bar - a tap on it only closes the search
+// (the dim alone let the tap through: it opened what was under it)
+{
+  const dim = Object.assign(document.createElement('div'), { className: 's-dim' });
+  dim.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); $('#results').classList.remove('open'); $('.search').classList.remove('s-open'); $('#q').blur(); }, true);
+  ['touchstart', 'pointerdown', 'mousedown'].forEach((k) => dim.addEventListener(k, (e) => e.stopPropagation(), true));
+  new MutationObserver(() => {
+    const on = appOn() && $('.search').classList.contains('s-open');
+    if (on && !dim.isConnected) document.body.append(dim); else if (!on && dim.isConnected) dim.remove();
+  }).observe($('.search'), { attributes: true, attributeFilter: ['class'] });
+}
 // APP SHELL: the X closes the search - cleared, the results gone, back to the bar
 $('#s-x').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); $('#q').value = ''; $('#results').classList.remove('open'); $('.search').classList.remove('s-open'); $('#q').blur(); });
 let searchTimer;
@@ -1654,6 +1665,7 @@ $('#results').addEventListener('click', (e) => {
   $('#results').classList.remove('open');
   if (a.dataset.ask) { e.preventDefault(); openChat('guide', a.dataset.ask); }
   $('#q').value = '';
+  if (appOn()) { $('.search').classList.remove('s-open'); $('#q').blur(); }   // APP SHELL: a result picked - the search (and its layer) closes
 });
 
 // the characters under a video card: their page, not the video

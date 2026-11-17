@@ -697,3 +697,5 @@ html.app .top .tb-tg { display: none; }
 .gf-s .gf-cast { margin: 2px 0 0; }
 .gf-s .gf-play { align-self: center; margin-top: 4px; width: min(88%, 360px); }
 @media (max-height: 700px) { .gf-s .gf-rail button { width: 48px; height: 48px; } .gf-s .gf-rail { gap: 7px; } .gf-s .gf-rail b { font-size: 10.5px; } }
+/* the open search's layer: takes every tap on the page and the tab bar (shell: index.html .s-dim) - the dim itself is the search's shadow */
+.s-dim { position: fixed; inset: 0; z-index: 95; background: transparent; -webkit-tap-highlight-color: transparent; }
