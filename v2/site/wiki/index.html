@@ -741,15 +741,23 @@ const pages = {
   },
   // every game: chips by character, the newest big, then each character's games under their face
   games(q) {
+    // APP SHELL: on a phone the games are a feed, one per screen (verse/gfeed.js); the grid stays at ?view=grid (and ?c=)
+    const appPhone = chatDock();
+    if (appPhone && !q.view && !q.c) {
+      const f = HOOK.gamesFeed ? HOOK.gamesFeed(q) : `<div class="vx-loader" role="status" aria-label="נכנסים לשלומיוורס" data-say="נכנסים לשלומיוורס"></div>`;
+      if (f) return f;
+    }
     const all = W.games || [], who = [...new Set(all.flatMap((g) => g.chars || []))].filter((id) => C[id]);
     const pick = q.c && C[q.c] ? q.c : '', list = pick ? gamesOf(pick) : all;
     const groups = (pick ? [pick] : who).map((id) => [id, gamesOf(id)]).filter(([, g]) => g.length).sort((a, b) => b[1].length - a[1].length);
-    return `<div class="wrap gpage"><div class="page-h"><h1>${GT.title}</h1><p>${GT.sub}</p></div>
+    return `<div class="wrap gpage">${appPhone && HOOK.gamesToggle ? HOOK.gamesToggle('grid') : ''}<div class="page-h"><h1>${GT.title}</h1><p>${GT.sub}</p></div>
       <div class="chips gchips"><a class="chip ${pick ? '' : 'on'}" href="/games">${GT.allChip}</a>${who.map((id) => `<a class="chip ${pick === id ? 'on' : ''}" href="/games?c=${id}"><span class="av">${face(C[id])}</span>${esc(C[id].name)}</a>`).join('')}</div>
       ${list.length ? gfeat(list[0]) : ''}
       ${groups.map(([id, g]) => `<section class="ggroup"><a class="gg-h" href="/c/${id}"><span class="av">${face(C[id])}</span><span><b>${esc(gGroupTitle(id, g))}</b><small>${GT.count(g.length)}</small></span></a>
         <div class="ggrid">${g.map((x) => gcard(x, false)).join('')}</div></section>`).join('')}</div>`;
   },
+  // APP SHELL: the chat tab - the page is empty, the chat itself (#cx) docks between the bars (dockChat)
+  chat() { return '<div class="cx-page"></div>'; },
   // "the end of the verse" - a character / video / game / page that isn't here (and /404.html for addresses off the site)
   notFound() { NF = true; document.title = "דף לא נמצא · שלומיוורס"; return `<div class="eov">
   <h1>הגעתם לקצה הוורס</h1><p>אין פה כלום. כנראה שהדף הלך לאיבוד ביקום הגדול שלנו.</p>
@@ -761,11 +769,83 @@ const pages = {
 // the verse's pages, by their first part (shlomiverse.com/<page>/...): anything else is another site of his (/links/, /hani-games/)
 const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation', 'citizenship', 'records', 'archive']);
 const isPage = (pathname) => pathname === '/' || PAGES.has(pathname.split('/')[1]);
-function nav(url, replace = false) {
+// ---------- APP SHELL (plan app-shell phase 2): the back button moves like an app's - only under html.app ----------
+// Every entry remembers where its page was scrolled ({y}, {fy} = a feed's own scroller). A video / game / story opened from
+// inside the site is an entry marked {vxl}: its close goes back (history.back) to the page under it - never back() without
+// our own mark (a deep link's first entry would leave the site). A sheet / card / the chat drawer pushes an entry of its own
+// ({vxo: depth}, same address): back closes it and nothing else (sheet -> layer -> chat -> the tab before).
+const appOn = () => document.documentElement.classList.contains('app');
+const chatDock = () => appOn() && matchMedia('(max-width: 760px)').matches;   // the chat is a tab (a page), not a drawer
+const LAYER_PATH = /^\/(v|play|story)\//;
+let backing = null, afterBack = [];   // our own history.back() on its way: navigations wait for it (else back pops them)
+const OV = [];   // the overlays open now, each with its own entry
+function saveY() {
+  const f = document.querySelector('.fd, .gf');
+  try { history.replaceState({ ...(history.state || {}), y: scrollY, fy: f ? f.scrollTop : 0 }, ''); } catch (e) { /* too many calls */ }
+}
+function goBack(n, doRoute) { backing = { route: doRoute }; history.go(-n); }
+window.vxOverlay = (close) => {
+  if (!appOn()) return null;
+  const s = history.state || {}, d = (s.vxo || 0) + 1;
+  const o = { d, close, url: location.pathname + location.search };
+  const push = () => history.pushState({ vxo: d, ul: s.vxl || s.ul ? 1 : 0 }, '');
+  if (backing) afterBack.push(push); else push();
+  OV.push(o);
+  // closed by a tap / Esc / a swipe: its entry goes too (only while it is still the entry showing)
+  o.drop = () => {
+    const i = OV.indexOf(o);
+    if (i < 0) return;
+    OV.splice(i, 1);
+    if ((history.state || {}).vxo === d && location.pathname + location.search === o.url) goBack(1, false);
+  };
+  return o;
+};
+// a layer's close: back to the page under it when we opened it, else to that page in place (as before without the shell)
+function navBack(fallback) {
+  if (!appOn()) { nav(fallback); return; }
+  const s = history.state || {};
+  if (s.vxl) { goBack(1, true); return; }
+  if (s.vxo && s.ul) { goBack(s.vxo + 1, true); return; }
+  nav(fallback, true);
+}
+window.navBack = navBack;
+function onPop(e) {
+  if (backing) {
+    const r = backing.route;
+    backing = null;
+    if (r) popRoute(e);
+    const q = afterBack; afterBack = [];
+    q.forEach((f) => f());
+    return;
+  }
+  if (appOn() && OV.length) {
+    const want = (e.state && e.state.vxo) || 0, url = OV[OV.length - 1].url;
+    while (OV.length && OV[OV.length - 1].d > want) OV.pop().close('pop');
+    if (location.pathname + location.search === url) return;   // only the sheet closed - the page stays as it is
+  } else if (appOn() && e.state && e.state.vxo) { goBack(1, true); return; }   // a sheet's entry whose sheet is long gone (left by a link): one more step
+  popRoute(e);
+}
+function popRoute(e) {
+  route();
+  const s = e && e.state;
+  if (!appOn() || !s || typeof s.y !== 'number') return;
+  scrollTo(0, s.y);
+  requestAnimationFrame(() => scrollTo(0, s.y));   // once the pictures have their boxes
+}
+function nav(url, replace = false, state = null) {
+  if (backing) { afterBack.push(() => nav(url, replace, state)); return; }
   if (typeof url === 'string' && url.startsWith('#/')) url = url.slice(1);   // an old-style link
   const u = new URL(url, location.origin);
   if (!isPage(u.pathname)) { location.href = u.href; return; }
-  if (u.pathname + u.search !== location.pathname + location.search) history[replace ? 'replaceState' : 'pushState'](null, '', u.pathname + u.search);
+  if (u.pathname + u.search !== location.pathname + location.search) {
+    if (!appOn()) history[replace ? 'replaceState' : 'pushState'](null, '', u.pathname + u.search);
+    else {
+      let s;
+      if (replace) { s = { ...(history.state || {}), ...(state || {}) }; delete s.y; delete s.fy; delete s.vxo; }   // keeps a layer's mark (the next episode / story)
+      else { saveY(); s = { ...(state || {}) }; if (LAYER_PATH.test(u.pathname)) s.vxl = 1; }
+      history[replace ? 'replaceState' : 'pushState'](s, '', u.pathname + u.search);
+    }
+  }
   route();
 }
 window.nav = nav;
@@ -781,9 +861,9 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   nav(u.pathname + u.search);
 });
-let shownPath = null;
+let shownPath = null, shownFull = null;
 let NF = false;   // the page now showing is the end of the verse (it set its own title)
-function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'archive' ? 'הארכיון · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : 'שלומיוורס · הוויקי של הדמויות'; }
+function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'archive' ? 'הארכיון · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : page === 'chat' ? "צ'אט · שלומיוורס" : 'שלומיוורס · הוויקי של הדמויות'; }
 function route() {
   const path = location.pathname || '/', qs = location.search.slice(1);
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
@@ -791,7 +871,8 @@ function route() {
   if (q.inv) { try { if (!localStorage.getItem('vx-inv')) localStorage.setItem('vx-inv', q.inv); } catch (e) {} const u = new URL(location.href); u.searchParams.delete('inv'); history.replaceState(history.state, '', u.pathname + u.search); }
   let [, page = '', id] = path.split('/');
   // #/chat?with=<id>&ask=<text> - the links page opens a conversation straight from a face or its question box
-  if (page === 'chat') { openChat(q.with && C[q.with] ? q.with : 'guide', q.ask || null); history.replaceState(null, '', '/'); page = ''; }
+  // APP SHELL on a phone: /chat is a page of its own (the chat tab) - drawn below, like any page
+  if (page === 'chat' && !chatDock()) { history.replaceState(null, '', '/'); openChat(q.with && C[q.with] ? q.with : 'guide', q.ask || null); page = ''; }
   // #/v/<id> - the video page; #/play/<id> - a game, on the same page; #/story/<character> - a character's stories.
   // They lie over whatever page was open (the home page when they are opened from outside: the links page, a push, a shared link)
   // a video / game that isn't there: the end of the verse, as its own page (not a layer over the home)
@@ -807,8 +888,15 @@ function route() {
   }
   // closing the video / stories back onto the page that was under it: keep that page (and where it was scrolled)
   const hadOverlay = HOOK.closeOverlays && HOOK.closeOverlays();
-  if (hadOverlay && path === shownPath && !location.search) { if (!NF) document.title = titleOf(page, id); return; }
-  shownPath = path;
+  // APP SHELL: the page under the layer is kept with its address's query too (the games feed, /videos?at=, a filter)
+  const full = path + location.search;
+  if (hadOverlay && (appOn() ? full === shownFull || (page === 'videos' && path === shownPath) : path === shownPath && !location.search)) {
+    if (page === 'chat' && chatDock()) dockChat(q);
+    if (!NF) document.title = titleOf(page, id);
+    return;
+  }
+  if (cx.classList.contains('dock') && page !== 'chat') undockChat();   // APP SHELL: left the chat tab (the conversation stays)
+  shownPath = path; shownFull = full;
   document.body.classList.toggle('at-home', !page);
   NF = false;
   document.documentElement.classList.remove('opening');   // a page, not a video / game layer: nothing to wait for
@@ -821,6 +909,7 @@ function route() {
   $('#app').innerHTML = waiting ? `<div class="vx-loader" role="status" aria-label="נכנסים לשלומיוורס" data-say="נכנסים לשלומיוורס"></div>`
     : (pages[page || 'home'] || pages.notFound)(q, decodeURIComponent(id || ''));
   document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('on', a.dataset.nav === (page === 'c' ? 'characters' : page === 's' ? 'series' : page)));
+  if (page === 'chat') dockChat(q);   // APP SHELL: the chat tab (route() sends /chat here only on a phone in the shell)
   if (HOOK.afterRoute) HOOK.afterRoute(page, id);
   const c = page === 'c' && C[id];
   if (!waiting) t('view', page ? page + (id ? '/' + id : '') : 'home');   // counted once, when the real page is drawn
@@ -1069,6 +1158,7 @@ function drawChat() {
   const w = who(cxMode);
   threads[cxMode] ||= load(cxMode);
   cx.style.setProperty('--c', color(w)); cx.style.setProperty('--c-ink', ink(color(w)));
+  cx.style.setProperty('--face', `url("${cxMode === 'guide' ? '/verse/logo-160.png' : w.img || ''}")`);   // APP SHELL: the face beside each answer (shell.css)
   const strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
   // no suggested questions (his call 2026-11-12: "let the people talk whatever they want") - every message is the visitor's own
   cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}</button>`).join('')}</div>
@@ -1079,7 +1169,7 @@ function drawChat() {
     <div class="msgs"></div>
     <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
     <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
-  $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  $('.cx-strip .on', cx)?.scrollIntoView({ inline: cx.classList.contains('dock') ? 'start' : 'center', block: 'nearest' });   // APP SHELL tab: the one talking first in the row (mockup 4)
   drawMsgs();
   const ta = $('textarea', cx);
   $('.composer', cx).onsubmit = (e) => { e.preventDefault(); send(ta.value); };
@@ -1212,15 +1302,46 @@ async function peekLeft() {
     if (r.ok) { quota = await r.json(); inviteDone(quota.invite); paintLeft(); }
   } catch (e) {}
 }
+// APP SHELL on a phone: every "talk to" goes to the chat tab (/chat?with=<id>); a question written elsewhere waits here (never in the address)
+let chatAsk = null, cxReg = null;
 function openChat(mode, text, noFocus) {   // noFocus: APP SHELL - opened from the tab bar, the keyboard waits for a tap
+  if (chatDock()) {
+    chatAsk = text || null;
+    const m = mode && (mode === 'guide' || C[mode]) ? mode : 'guide', s = history.state || {};
+    nav('/chat?with=' + m, cx.classList.contains('dock') || !!s.vxl || !!(s.vxo && s.ul));   // over a layer / already on the tab: in its place
+    return;
+  }
+  openChatNow(mode, text, noFocus);
+}
+function openChatNow(mode, text, noFocus) {
   cxMode = mode && (mode === 'guide' || C[mode]) ? mode : 'guide';
   threads[cxMode] ||= load(cxMode);
   if (cxMode !== 'guide' && !threads[cxMode].length) threads[cxMode].push({ role: 'note', content: joined(cxMode) });
   t('chat_open', cxMode);
   drawChat();
   peekLeft();   // fresh each time (they may have signed in or out since)
-  cx.classList.add('open'); $('#cx-back').classList.add('open');
+  const dock = cx.classList.contains('dock');
+  cx.classList.add('open'); if (!dock) $('#cx-back').classList.add('open');
+  if (dock) $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'start', block: 'nearest' });   // (drawn while the tab was still hidden)
+  if (!dock && !cxReg && window.vxOverlay) cxReg = window.vxOverlay(() => closeChat('pop'));   // APP SHELL on a computer: back closes the drawer
   if (text) send(text); else if (!noFocus) setTimeout(() => $('textarea', cx)?.focus(), 60);
+}
+// APP SHELL: the chat tab - the chat docks between the top bar and the tab bar (no backdrop, no close); leaving keeps the conversation
+function dockChat(q) {
+  let ask = chatAsk; chatAsk = null;
+  const want = q.with && (q.with === 'guide' || C[q.with]) ? q.with : cxMode;
+  if (q.ask) { ask = q.ask; history.replaceState(history.state, '', '/chat?with=' + want); shownFull = location.pathname + location.search; }   // the links page's question: asked, never kept in the address
+  document.documentElement.classList.add('chat-on');
+  if (cxReg) { const r = cxReg; cxReg = null; r.drop(); }
+  cx.classList.add('dock'); $('#cx-back').classList.remove('open');
+  if (cx.classList.contains('open') && want === cxMode) { if (ask) send(ask); return; }
+  if (cx.classList.contains('open') && !busy) { switchChat(want); if (ask) send(ask); return; }
+  openChatNow(want, ask, true);
+}
+function undockChat() {
+  closeChat();
+  cx.classList.remove('dock');
+  document.documentElement.classList.remove('chat-on');
 }
 function switchChat(mode) {
   if (mode === cxMode || busy) return;
@@ -1229,8 +1350,12 @@ function switchChat(mode) {
   threads[mode] ||= load(mode);
   if (!threads[mode].length) threads[mode].push({ role: 'note', content: joined(mode) });
   drawChat();
+  if (cx.classList.contains('dock') && location.pathname === '/chat') { history.replaceState(history.state, '', '/chat?with=' + mode); shownFull = location.pathname + location.search; }
 }
-function closeChat() { cx.classList.remove('open'); $('#cx-back').classList.remove('open'); cx.querySelectorAll('video').forEach((v) => v.pause()); }
+function closeChat(why) {
+  cx.classList.remove('open'); $('#cx-back').classList.remove('open'); cx.querySelectorAll('video').forEach((v) => v.pause());
+  if (cxReg) { const r = cxReg; cxReg = null; if (why !== 'pop') r.drop(); }
+}
 $('#cx-back').onclick = closeChat;
 $('#fab').onclick = () => openChat(cxMode);
 
@@ -1241,7 +1366,8 @@ function openVideo(id) {
   if (!v) return;
   if (v.url) { window.open(v.url, '_blank', 'noopener'); return; }
   // the full video page; opened from the chat, closing it comes back to the same conversation
-  if (HOOK.openPlayer) { HOOK.chatReturn = cx.classList.contains('open') ? cxMode : HOOK.chatReturn || null; closeChat(); nav('/v/' + id); return; }
+  // (APP SHELL: the chat tab stays under the video - back comes to it as it was)
+  if (HOOK.openPlayer) { if (!cx.classList.contains('dock')) { HOOK.chatReturn = cx.classList.contains('open') ? cxMode : HOOK.chatReturn || null; closeChat(); } nav('/v/' + id); return; }
   cx.querySelectorAll('video').forEach((x) => x.pause());
   t('video', id);
   player.innerHTML = `<video src="${v.src}" poster="${v.poster || ''}" controls controlslist="nodownload" oncontextmenu="return false" autoplay playsinline></video>
@@ -1355,7 +1481,7 @@ fetch(DATA, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject
   W.series.forEach((s) => (S[s.id] = s));
   W.videos.forEach((v) => (V[v.id] = v));
   $('#fab-faces').innerHTML = W.characters.filter((c) => c.img).slice(0, 3).map(face).join('');
-  addEventListener('popstate', route);
+  addEventListener('popstate', onPop);   // APP SHELL: an open sheet closes first (onPop); without the shell = route() as before
   // an old #/ link clicked inside the page (a story's link, a chat card): to its real address
   addEventListener('hashchange', () => { if (location.hash.startsWith('#/')) { history.replaceState(null, '', location.hash.slice(1)); route(); } });
   route();

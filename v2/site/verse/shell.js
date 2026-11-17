@@ -35,6 +35,7 @@ function tabOf(path = location.pathname) {
   if (!p) return 'home';
   if (p === 'videos') return 'videos';
   if (p === 'games') return 'games';
+  if (p === 'chat') return 'chat';
   if (['characters', 'c', 'series', 's', 'sites'].includes(p)) return 'characters';
   return '';
 }
@@ -66,23 +67,18 @@ if (bar) bar.addEventListener('click', (e) => {
   try { window.track && window.track('tab', tab); } catch (x) { /* analytics never breaks a tap */ }
   closeSheets();
   if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
-  if (tab === 'chat') {
-    if (chatOpen()) return;
-    if (layer) nav(lastBase);
-    const mode = typeof cxMode !== 'undefined' && cxMode ? cxMode : 'guide';
-    openChat(mode, null, true);   // no keyboard popping up from a tab tap
-    paint();
-    return;
-  }
-  const wasChat = chatOpen();
-  if (wasChat) closeChat();
+  // a layer the site opened (its entry marked) is replaced by the tab - back from the tab doesn't open it again
+  const s = history.state || {}, inPlace = layer && !!(s.vxl || (s.vxo && s.ul));
+  const docked = !!document.querySelector('#cx.dock');
+  if (chatOpen() && !docked) closeChat();   // the drawer (a computer-wide window)
   if (!layer && tabOf() === tab) {
-    // the tab already showing: back to its top (the feed to its first video)
-    if (!wasChat) { scrollTo({ top: 0, behavior: 'smooth' }); document.querySelector('.fd')?.scrollTo({ top: 0, behavior: 'smooth' }); }
+    // the tab already showing: back to its top (the feed to its first video / game, the chat to its last message)
+    scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelector('.fd, .gf')?.scrollTo({ top: 0, behavior: 'smooth' });
     paint();
     return;
   }
-  nav(a.getAttribute('href'));
+  nav(a.getAttribute('href'), inPlace);   // the chat tab: /chat = the last conversation (the keyboard waits for a tap)
 });
 
 // ---------- the chat opens / closes: its tab lights up ----------
@@ -107,10 +103,21 @@ function kbCheck() {
   const h = vv ? vv.height : innerHeight;
   if (!typing || h > tallest) tallest = Math.max(tallest, h);
   const kb = typing && coarse.matches && !!vv && tallest - h > 120;
-  if (kb !== html.classList.contains('kb')) { html.classList.toggle('kb', kb); requestAnimationFrame(tbChanged); }
+  if (kb !== html.classList.contains('kb')) { html.classList.toggle('kb', kb); requestAnimationFrame(tbChanged); if (kb) toBottom(); }
+  fitDock();
 }
+// the chat tab while typing: it fills exactly what the keyboard leaves visible (iPhone shrinks only the visual viewport -
+// a fixed bottom:0 would sit under the keyboard), the box right on top of the keyboard
+function fitDock() {
+  if (!cx) return;
+  if (cx.classList.contains('dock') && html.classList.contains('kb') && vv) {
+    cx.style.top = vv.offsetTop + 'px'; cx.style.height = vv.height + 'px'; cx.style.bottom = 'auto';
+  } else if (cx.style.height) { cx.style.top = cx.style.height = cx.style.bottom = ''; }
+}
+function toBottom() { const m = cx && cx.classList.contains('dock') && cx.querySelector('.msgs'); if (m) requestAnimationFrame(() => { m.scrollTop = m.scrollHeight; }); }
 addEventListener('focusin', kbCheck);
 vv?.addEventListener('resize', kbCheck);
+vv?.addEventListener('scroll', fitDock);
 addEventListener('focusout', () => setTimeout(kbCheck, 0));
 
 // ---------- a game's full screen, a phone turned into a computer-wide window ----------

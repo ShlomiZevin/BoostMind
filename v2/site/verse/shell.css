@@ -169,3 +169,117 @@ html.feed-on footer { display: none; }
 .fd-pr .fd-tt { background: var(--accent, #ff6a1f); border-color: var(--accent, #ff6a1f); color: #fff; }
 .fd-tt { display: inline-flex; align-items: center; gap: 6px; }
 .fd-tt svg { width: 16px; height: 16px; }
+
+/* ---------- the chat tab (mockup 4; wiki dockChat): on a phone in the shell /chat is a page - the chat docks between the
+   top bar and the tab bar, no backdrop, no close; the faces to switch on top, the box right above the tab bar ---------- */
+@media (max-width: 760px) {
+  html.chat-on body { overflow: hidden; }
+  html.chat-on footer, html.chat-on .fab { display: none !important; }
+  html.app .cx.dock { top: var(--th); bottom: var(--tb); left: 0; right: 0; width: auto; max-width: none; z-index: 31; transform: none; transition: none;
+    border: 0; box-shadow: none; background: #0b0b0e; --c: var(--accent, #ff6a1f) !important; --c-ink: #fff !important; }
+  html.app .cx.dock:not(.open) { display: none; }
+  html.app .cx.dock .cx-head, html.app .cx.dock .cx-note, html.app .cx.dock .cx-left .qd { display: none; }
+
+  /* who you talk to: a row of cards, the face over the name; the one talking ringed in orange, its name on orange */
+  html.app .cx.dock .cx-strip { gap: 5px; padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, .1); scroll-padding-inline: 12px; }
+  html.app .cx.dock .cx-strip button { position: relative; display: block; width: calc((100vw - 40px) / 5); height: auto; aspect-ratio: 70 / 107; padding: 0; border-radius: 13px; overflow: hidden;
+    outline: 0; border: 1.5px solid rgba(255, 255, 255, .2); background: #1b1b20; transition: border-color .15s, box-shadow .15s; transform: none; }
+  html.app .cx.dock .cx-strip button > img, html.app .cx.dock .cx-strip button > .ph, html.app .cx.dock .cx-strip button > .gmark {
+    position: absolute; top: 0; inset-inline: 0; width: 100%; height: calc(100% - 27px); object-fit: cover; object-position: 50% 18%; border-radius: 0; }
+  html.app .cx.dock .cx-strip button > .gmark { display: grid; place-items: center; background: #15151a; }
+  html.app .cx.dock .cx-strip button > .gmark img { width: 74%; height: auto; }
+  html.app .cx.dock .cx-strip button::after { content: attr(title); position: absolute; bottom: 0; inset-inline: 0; height: 27px; line-height: 27px; padding: 0 3px;
+    background: #141418; color: #fff; font-size: 11px; letter-spacing: -.02em; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html.app .cx.dock .cx-strip button.on { border: 2.5px solid #ff6a1f; box-shadow: 0 0 16px rgba(255, 106, 31, .5); }
+  html.app .cx.dock .cx-strip button.on::after { background: #ff6a1f; font-weight: 800; }
+  /* the guide's card too (verse.css takes every frame off the logo elsewhere) */
+  html.app .cx.dock .cx-strip button:has(.gmark) { border: 1.5px solid rgba(255, 255, 255, .2) !important; border-radius: 13px !important; overflow: hidden !important;
+    background: #15151a !important; outline: 0 !important; box-shadow: none !important; }
+  html.app .cx.dock .cx-strip button.on:has(.gmark) { border: 2.5px solid #ff6a1f !important; box-shadow: 0 0 16px rgba(255, 106, 31, .5) !important; }
+  html.app .cx.dock .cx-strip button:has(.gmark) span.gmark img { width: 74% !important; height: auto !important; filter: none; }
+
+  /* the conversation: every bubble beside a face (the character's for an answer, a plain one for yours) */
+  html.app .cx.dock .msgs { padding: 18px 12px 12px; gap: 16px; }
+  html.app .cx.dock .m.me, html.app .cx.dock .m.bot { position: relative; align-self: flex-start; margin-inline-start: 56px; max-width: calc(100% - 64px);
+    font-size: 1.13rem; line-height: 1.5; padding: 12px 16px; border-radius: 18px; }
+  html.app .cx.dock .m.bot { background: #1f1f24; border: 1px solid rgba(255, 255, 255, .14); color: #fff; }
+  html.app .cx.dock .m.me { background: #ff6a1f; color: #fff; font-weight: 600; }
+  html.app .cx.dock .m.me::before, html.app .cx.dock .m.bot::before { content: ''; position: absolute; top: 0; inset-inline-start: -56px; width: 46px; height: 46px; border-radius: 50%; box-sizing: border-box; }
+  html.app .cx.dock .m.bot::before { background: #222 var(--face) 50% 18% / cover no-repeat; border: 2.5px solid #ff6a1f; box-shadow: 0 0 10px rgba(255, 106, 31, .35); }
+  html.app .cx.dock .m.me::before { top: 50%; margin-top: -21px; width: 42px; height: 42px; border: 1.5px solid rgba(255, 255, 255, .22);
+    background: #3a3a41 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a3a3ab'%3E%3Ccircle cx='12' cy='8.6' r='4.3'/%3E%3Cpath d='M3.6 22c.8-4.6 4.2-7.3 8.4-7.3s7.6 2.7 8.4 7.3z'/%3E%3C/svg%3E") 50% 75% / 74% no-repeat; }
+  /* the bubble's tail, towards its face */
+  html.app .cx.dock .m.me:not(.wait)::after, html.app .cx.dock .m.bot:not(.wait)::after { content: ''; position: absolute; inset-inline-start: -6px; width: 12px; height: 12px; transform: rotate(45deg); }
+  html.app .cx.dock .m.bot:not(.wait)::after { top: 17px; background: #1f1f24; border-top: 1px solid rgba(255, 255, 255, .14); border-right: 1px solid rgba(255, 255, 255, .14); }
+  html.app .cx.dock .m.me:not(.wait)::after { bottom: 10px; background: #ff6a1f; }
+  html.app .cx.dock .m.bot.wait { display: flex; align-items: center; min-height: 46px; }
+
+  /* the box and its send button (a paper plane), the questions left under it */
+  html.app .cx.dock .composer { border-top: 0; padding: 10px 12px 6px; gap: 10px; align-items: flex-end; }
+  html.app .cx.dock .composer textarea { min-height: 54px; border-radius: 16px; background: #141418; border: 1.5px solid rgba(255, 255, 255, .24); color: #fff; font-size: 1.06rem; padding: 14px 16px; }
+  html.app .cx.dock .composer textarea::placeholder { color: rgba(255, 255, 255, .55); }
+  html.app .cx.dock .composer textarea:focus { border-color: rgba(255, 106, 31, .8); }
+  html.app .cx.dock .composer button { width: 58px; height: 54px; border-radius: 15px; background: #ff6a1f; color: #fff; box-shadow: 0 4px 16px rgba(255, 106, 31, .35); }
+  html.app .cx.dock .composer button svg { display: none; }
+  html.app .cx.dock .composer button::before { content: ''; width: 27px; height: 27px; background: currentColor;
+    -webkit-mask: var(--vx-plane) center / contain no-repeat; mask: var(--vx-plane) center / contain no-repeat; }
+  html.app .cx.dock .cx-left { padding: 2px 14px 10px; min-height: 0; font-size: .86rem; font-weight: 600; color: rgba(255, 255, 255, .58); }
+  html.app.kb .cx.dock .cx-left { padding-bottom: 6px; }
+}
+:root { --vx-plane: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpolygon points='3 11 22 2 13 21 11 13 3 11'/%3E%3C/svg%3E"); }
+
+/* ---------- the games feed (gfeed.js, mockup 3): one game per screen between the bars ---------- */
+html.gf-on body { overflow: hidden; }
+html.gf-on footer, html.gf-on .fab { display: none !important; }
+.gf { position: fixed; top: var(--th); bottom: var(--tb); inset-inline: 0; overflow-y: auto; overscroll-behavior: contain; scroll-snap-type: y mandatory;
+  background: #0b0b0e; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.gf::-webkit-scrollbar { display: none; }
+.gf-s { position: relative; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; display: flex; flex-direction: column; color: #fff; background: #0b0b0e; }
+.gf-art { position: relative; flex: 1 1 auto; min-height: 34%; overflow: hidden; background: #16161b; }
+.gf-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+.gf-art::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(11, 11, 14, .25), transparent 18%, transparent 52%, rgba(11, 11, 14, .7) 80%, #0b0b0e 100%); }
+.gf-body { position: relative; z-index: 1; flex: none; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+  margin-top: -64px; padding: 0 20px 12px; }
+.gf-t { font-size: clamp(2.05rem, 10vw, 2.7rem); font-weight: 900; line-height: 1.08; letter-spacing: -.01em; text-shadow: 0 2px 16px rgba(0, 0, 0, .8); margin: 0; }
+.gf-tag { margin: -4px 0 2px; max-width: 34ch; font-size: 1.02rem; font-weight: 600; line-height: 1.4; color: rgba(255, 255, 255, .9);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gf-who { display: inline-flex; align-items: center; gap: 10px; height: 48px; padding-inline: 4px 22px; border-radius: 99px; color: #fff; text-decoration: none;
+  background: rgba(255, 255, 255, .04); border: 1.5px solid rgba(255, 106, 31, .55); box-shadow: inset 0 0 14px rgba(255, 106, 31, .08); }
+.gf-who .vx-av { width: 40px; height: 40px; flex: none; }
+.gf-who b { font-size: 1.08rem; font-weight: 800; }
+.gf-play { display: flex; align-items: center; justify-content: center; gap: 12px; width: min(80%, 340px); height: 62px; border-radius: 99px; color: #fff; text-decoration: none;
+  background: linear-gradient(180deg, #ff8b3d, #ff6a1f 55%, #f05a0e); border: 1px solid rgba(255, 190, 140, .5);
+  box-shadow: 0 0 0 1px rgba(255, 106, 31, .25), 0 8px 26px rgba(255, 106, 31, .45); font-size: 1.95rem; font-weight: 900; letter-spacing: -.01em;
+  -webkit-tap-highlight-color: transparent; transition: transform .12s; }
+.gf-play:active { transform: scale(.97); }
+.gf-play svg { width: 30px; height: 30px; flex: none; }
+.gf-rec { display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 26px; border-radius: 99px; background: rgba(255, 106, 31, .06);
+  border: 1px solid rgba(255, 106, 31, .45); font-size: 1.12rem; font-weight: 800; }
+.gf-rec[hidden] { display: none; }
+.gf-rec b { color: #ff7a2e; font-size: 1.32rem; font-weight: 900; direction: ltr; unicode-bidi: isolate; }
+.gf-rec small { color: rgba(255, 255, 255, .6); font-size: .85rem; font-weight: 700; }
+.gf-next { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 2px; color: rgba(255, 255, 255, .62); font-size: .92rem; font-weight: 700; text-decoration: none; }
+.gf-next svg { width: 28px; height: 28px; color: #ff6a1f; animation: gf-up 1.6s ease-in-out infinite; }
+.gf-end { flex-direction: row; gap: 8px; color: #fff; }
+.gf-end svg { width: 20px; height: 20px; animation: none; }
+@keyframes gf-up { 0%, 100% { transform: translateY(3px); opacity: .75; } 50% { transform: translateY(-3px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .gf-next svg { animation: none; } }
+@media (max-height: 700px) {
+  .gf-body { gap: 9px; margin-top: -52px; }
+  .gf-t { font-size: 1.85rem; }
+  .gf-tag { font-size: .95rem; }
+  .gf-who { height: 42px; }
+  .gf-who .vx-av { width: 34px; height: 34px; }
+  .gf-play { height: 54px; font-size: 1.55rem; }
+  .gf-rec { padding: 5px 22px; font-size: 1rem; }
+}
+/* the feed / grid switch: small, at the top's end corner (over the feed; on the grid beside the heading) */
+.gf-tg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(12, 12, 14, .62); border: 1px solid rgba(255, 255, 255, .16);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.gf-tg a { width: 36px; height: 32px; display: grid; place-items: center; border-radius: 9px; color: rgba(255, 255, 255, .7); }
+.gf-tg a.on { background: rgba(255, 255, 255, .14); color: #fff; }
+.gf-tg svg { width: 19px; height: 19px; }
+html.gf-on .gf-tg { position: fixed; z-index: 3; top: calc(var(--th) + 10px); inset-inline-end: 12px; }
+html.app .gpage { position: relative; }
+.gpage > .gf-tg { position: absolute; top: 22px; inset-inline-end: 16px; z-index: 2; }

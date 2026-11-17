@@ -163,7 +163,7 @@ export function openStory(char) {
       // the next character with something unseen, or back where we came from
       const s2 = seen();
       const nextChar = [...new Set(all.filter((x) => Date.now() - x.ms < RECENT && x.char !== char && who(x.char) && !s2.has(x.id)).map((x) => x.char))][0];
-      if (nextChar) nav('/story/' + nextChar, true); else nav(backTo);
+      if (nextChar) nav('/story/' + nextChar, true); else navBack(backTo);
       return;
     }
     show();
@@ -201,9 +201,9 @@ export function openStory(char) {
     if (e.target.closest('[data-cta]')) { track('story_link', list[i].id); cancelAnimationFrame(SV.raf); return; }
     if (e.target.closest('[data-next]')) go(1);
     else if (e.target.closest('[data-prev]')) go(-1);
-    else if (e.target.closest('[data-x]')) nav(backTo);
+    else if (e.target.closest('[data-x]')) navBack(backTo);   // APP SHELL: back (wiki navBack); else nav(backTo) as before
   });
-  SV.key = (e) => { if (SV.full) { exitFull(); return; } if (e.key === 'ArrowLeft') go(1); if (e.key === 'ArrowRight') go(-1); if (e.key === 'Escape') nav(backTo); };
+  SV.key = (e) => { if (SV.full) { exitFull(); return; } if (e.key === 'ArrowLeft') go(1); if (e.key === 'ArrowRight') go(-1); if (e.key === 'Escape') navBack(backTo); };
   document.addEventListener('keydown', SV.key);
   show();
 }

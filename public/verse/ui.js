@@ -135,9 +135,12 @@ function layer(el, back, onClose) {
   document.body.append(back, el);
   requestAnimationFrame(() => { back.classList.add('open'); el.classList.add('open'); });
   let closed = false;
+  // APP SHELL: the sheet / card has its own history entry - the back button closes it (wiki vxOverlay; null without the shell)
+  const reg = window.vxOverlay ? window.vxOverlay(() => close('pop')) : null;
   const close = (why) => {
     if (closed) return;
     closed = true;
+    if (reg && why !== 'pop') reg.drop();
     back.classList.remove('open'); el.classList.remove('open');
     el.style.transform = ''; el.style.transition = ''; back.style.opacity = '';
     setTimeout(() => { el.remove(); back.remove(); }, 320);

@@ -426,7 +426,7 @@ export async function download(v) {
     h.close();
   };
 }
-function close() { nav(backTo); }
+function close() { navBack(backTo); }   // APP SHELL: back to the page under it when the site opened it (wiki navBack); else nav(backTo) as before
 function destroy() {
   if (!P) return;
   // a video watched (to its end, or 20 s) or a game played: once the layer is gone, a good moment to offer the home screen

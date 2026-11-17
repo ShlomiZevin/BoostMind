@@ -580,4 +580,7 @@ export const T = {
     followAll: 'לעקוב אחרי הדמויות', followingAll: 'עוקבים אחרי כולן', talkAll: 'לדבר עם הדמויות',
     follow1: { m: 'לעקוב אחריו', f: 'לעקוב אחריה', p: 'לעקוב אחריהם' }, talk1: { m: 'לדבר איתו', f: 'לדבר איתה', p: 'לדבר איתם' },
     pickFollow: 'אחרי מי לעקוב?', pickTalk: 'עם מי לדבר?', talkTo: 'לדבר', play: 'נגינה', pause: 'עצירה' },
+  // APP SHELL: the games feed (verse/gfeed.js, mockup app-shell/3-games-feed) - one game per screen, the grid at ?view=grid
+  gfeed: { title: 'משחקים', play: 'לשחק', best: 'השיא היום:', more: 'יש עוד משחקים - החליקו למעלה', last: 'ראיתם את כולם', grid: 'לכל המשחקים',
+    viewFeed: 'משחק אחד במסך', viewGrid: 'כל המשחקים ברשת', view: 'תצוגה' },
 };
