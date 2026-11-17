@@ -534,24 +534,6 @@ html.app .gpage, html.app .vg-page { position: relative; }
   html.app .cx.dock .composer button:disabled svg.comet2 { opacity: .35; filter: none; }
 }
 
-/* round 3, the switch's own strip: a thin, slightly see-through strip in the bar's tone under the top bar, the two-icon pill
-   at its start - on the videos and games tabs, feed and grid; the feeds start below it, so nothing sits on the video */
-.tg-strip { display: flex; align-items: center; justify-content: flex-end; height: 40px; padding-inline: 12px; box-sizing: border-box;
-  background: rgba(22, 22, 28, .86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, .08); }
-.tg-strip .gf-tg { position: static !important; margin: 0 !important; padding: 2px; box-shadow: none; }
-.tg-strip .gf-tg a, html.gf-on .tg-strip .gf-tg a, html.feed-on .tg-strip .gf-tg a { width: 34px; height: 28px; }
-.tg-strip .gf-tg svg { width: 18px; height: 18px; }
-html.gf-on .tg-strip, html.feed-on .tg-strip { position: fixed; top: var(--th); inset-inline: 0; z-index: 4; }
-html.gf-on .gf, html.feed-on .fd { top: calc(var(--th) + 40px); }
-.gpage > .tg-strip, .vg-page > .tg-strip { position: sticky; top: var(--th); z-index: 5; margin-inline: -16px; }
-.vg-page { padding-top: 0 !important; }
-/* a short phone (the feed is 40px shorter under the strip): the column of round buttons from the top, icons only, the title on one line */
-@media (max-height: 680px) {
-  .fd-rail { top: 12px; transform: none; gap: 6px; }
-  .fd-rail button { width: 44px; height: 44px; }
-  .fd-rail b { display: none; }
-  .fd-t { -webkit-line-clamp: 1; }
-}
 /* "בכיכוב:" stays put at the start; only the faces after it slide sideways, fading out at the end */
 .fd-cast { overflow: visible; -webkit-mask-image: none; mask-image: none; margin-inline: 0; padding: 1px 0; }
 .fd-chips { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline-end: -12px; padding: 1px 0; padding-inline-end: 12px;
@@ -561,7 +543,6 @@ html.gf-on .gf, html.feed-on .fd { top: calc(var(--th) + 40px); }
 @media (max-width: 760px) { html.app .cx, html.app .cx-back { transition: none !important; } }
 /* the column of round buttons above the words' dark bed; on a phone of ordinary height it starts near the top, clear of the title */
 .fd-rail { z-index: 1; }
-@media (max-height: 860px) { .fd-rail { top: 14px; transform: none; gap: 8px; } .fd-rail button { width: 52px; height: 52px; } }
 
 /* =================== APP SHELL round 4 (mockups app-shell/r4) =================== */
 @media (max-width: 760px) {
@@ -608,3 +589,18 @@ html.gf-on .gf, html.feed-on .fd { top: calc(var(--th) + 40px); }
   .vg-row + .vgrid, .vg-row + .vg-row + .vgrid { margin-top: 12px; }
 }
 @media (max-width: 760px) { .vg-row { min-height: 38px; padding: 6px 12px; font-size: clamp(11.5px, 3.3vw, 14px); letter-spacing: -.01em; } .vg-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .vg-row svg { width: 20px; height: 20px; } }
+
+/* the feed / grid switch (his call after four options): a small frosted pill, always showing, hanging just under the top bar at
+   the end side - the same place on the videos and games tabs, feed and grid; the view showing in orange */
+.gf-tg, html.gf-on .gf-tg, html.feed-on .gf-tg, .gpage > .gf-tg, .vg-page > .gf-tg { position: fixed; z-index: 6; top: calc(var(--th) + 6px); inset-inline-end: 10px; inset-inline-start: auto; margin: 0;
+  display: inline-flex; width: auto; gap: 1px; padding: 2px; border-radius: 99px; background: rgba(20, 20, 26, .58); border: 1px solid rgba(255, 255, 255, .18);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2); box-shadow: 0 3px 12px rgba(0, 0, 0, .35); }
+.gf-tg a, html.gf-on .gf-tg a, html.feed-on .gf-tg a { width: 30px; height: 24px; padding: 0; border-radius: 99px; color: rgba(255, 255, 255, .55); background: none; }
+.gf-tg a.on, html.gf-on .gf-tg a.on, html.feed-on .gf-tg a.on { background: rgba(255, 106, 31, .16); color: var(--accent, #ff6a1f); }
+.gf-tg svg { width: 16px; height: 16px; }
+.vg-page { padding-top: 40px !important; }
+html.app .gpage { padding-top: 26px; }
+.gf-tip { position: absolute; top: calc(100% + 8px); left: 0; padding: 5px 10px; border-radius: 9px; background: #ff6a1f; color: #fff; font-size: 12px; font-weight: 800; white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .4); pointer-events: none; animation: fd-in .25s ease both; transition: opacity .45s; }
+.gf-tip::before { content: ''; position: absolute; top: -5px; left: 18px; width: 10px; height: 10px; background: #ff6a1f; transform: rotate(45deg); }
+.gf-tip.out { opacity: 0; }

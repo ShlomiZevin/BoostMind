@@ -42,8 +42,8 @@ function shortLine(t) {
 const ICON_FEED = svg('<rect x="6.5" y="3" width="11" height="18" rx="2.5"/><path d="M9.5 17.5h5"/>');
 export function feedToggle(kind, on) {
   const A = T.shell, a = (k, href, t, ic) => `<a href="${href}" class="${on === k ? 'on' : ''}" aria-label="${esc(t)}" ${on === k ? 'aria-current="true"' : ''}>${ic}</a>`;
-  // (on its own thin strip under the top bar - nothing over the video; the feed starts below it)
-  return `<div class="tg-strip"><div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed, ICON_FEED)}${a('grid', '/' + kind + '?view=grid', A.grid, ICON_GRID)}</div></div>`;
+  // (a small frosted pill hanging just under the top bar at the end side, always showing - his call after four options)
+  return `<div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed, ICON_FEED)}${a('grid', '/' + kind + '?view=grid', A.grid, ICON_GRID)}</div>`;
 }
 export const gamesToggle = (on) => feedToggle('games', on);
 // the switch moves in place (no entry of its own: back from the grid leaves the tab, as from the feed)
@@ -177,4 +177,16 @@ export function unmount() {
 // the router moved on (another page, the grid): the feed lets go
 export function gfeedAfterRoute() {
   if (GF && !document.body.contains(GF.el)) unmount();
+  setTimeout(tgTip, 600);
+}
+// the first time on each tab (videos, games) in this browser: "פיד או רשת" from the pill, gone after ~3 s
+function tgTip() {
+  const tg = document.querySelector('.gf-tg');
+  if (!tg || tg.querySelector('.gf-tip')) return;
+  const kind = tg.classList.contains('gf-tg-videos') ? 'videos' : 'games', key = 'vx-tg-tip-' + kind;
+  try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch (e) { return; }
+  const tip = Object.assign(document.createElement('span'), { className: 'gf-tip', textContent: T.shell.tgTip });
+  tg.append(tip);
+  setTimeout(() => tip.classList.add('out'), 3000);
+  setTimeout(() => tip.remove(), 3500);
 }
