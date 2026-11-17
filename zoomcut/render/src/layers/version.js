@@ -75,3 +75,15 @@ export function windowOf(p, a, b) {
   }
   return { ...p, layers, duration: Math.max(1, b - a), split: undefined };
 }
+
+/** Where the socials' version drops, in seconds of the full video - for the Shlomiverse's locked version (BETA, 2026-11-17:
+ * v2/site/verse/signal-lost.js stops the full video there for a signed-out viewer and plays the same signal-lost moment
+ * over it): {at, glitches: [[start, end, amount], ...]} from the split and the socials-only glitch layers; null = no split. */
+export function dropOf(p) {
+  const at = splitAt(p);
+  if (at == null) return null;
+  const fps = p.canvas?.fps || 30, sp = +p.speed || 1, s = (f) => +(f / fps / sp).toFixed(3), glitches = [];
+  for (const l of p.layers || []) if (l.only === 'social' && !l.hidden && l.kind === 'effect' && l.props?.filter === 'glitch')
+    for (const it of l.items || []) if (!it.hidden && it.from < at) glitches.push([s(it.from), s(Math.min(at, it.from + it.dur)), +(it.amount ?? l.props?.amount ?? 1)]);
+  return { at: s(at), glitches: glitches.sort((a, b) => a[0] - b[0]) };
+}

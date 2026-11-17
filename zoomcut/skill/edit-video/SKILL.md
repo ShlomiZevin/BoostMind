@@ -123,6 +123,18 @@ layers a builder made; the editor and the export don't know or care which builde
    preview and stills (single frames). **No export of any kind - not even the fast test export** (his words, 2026-11-16:
    "I don't want you to export anymore as part of building the first editor - I will always review and comment and
    check"). He exports from the Send window.
+9. **The socials ending ("signal lost") - offer it on every video with a cliffhanger** (his concept, 2026-11-17: "make
+   sure ... any editor will know to add it"). The socials version "loses reception" at the most gripping moment, and
+   the ending is only on the Shlomiverse. When a video has a natural cliffhanger (the answer, the reveal, the punch
+   still to come), tell him in one line where you'd drop it. On his word: put the playhead there -> **✂ Socials end
+   here** -> **+ Ending** (two glitches + sound, the picture freezes into blocks and goes dark, then the error box
+   "בעיית קליטה / הקשר עם יקום שלומיוורס נותק / לסיום המלא – מוזמנים לטוס לביקור / shlomiverse.com"). Every part is a
+   layer he can change; never build it by hand. The drop may cut in the middle of a sentence. The best drops are
+   funny inside the scene (a call dropping just as someone says "stay on the line"). The script may mark the place
+   already: a line `[עד כאן ברשתות]`. Check the Socials view in the editor (the timeline's Shlomiverse / Socials
+   switch); the export makes both files. Recipe: `layers.md` -> split -> "The ending = signal lost". **On the
+   Shlomiverse** (BETA, not live yet): a signed-out viewer gets the same drop over the full video, with a sign-in
+   button that brings the reception back (`v2/site/verse/signal-lost.js`, timing from `version.js` `dropOf`).
 
 ## USING THE TOOL RIGHT - what went wrong on gilad-joins (2026-10-22) and the rules from it
 The video came out great; the way I used the tool did not ("something in the tool you didn't use as supposed to").
