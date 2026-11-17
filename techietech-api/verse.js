@@ -1419,6 +1419,12 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
         .sort((a, c) => (c.n || 0) - (a.n || 0) || (a.t || 0) - (c.t || 0));
       // what the residents wrote with their ask (the first 80 wishes - the ones he'll look at)
       await Promise.all(rows.slice(0, 80).map(async (w) => { w.notes = (await db.collection('wishes').doc(w.ig).collection('notes').orderBy('t', 'desc').limit(20).get()).docs.map((x) => ({ ...x.data(), t: ms(x.data().t) })); }));
+      // who asked (his ask 2026-11-17: "I want to see who requests it") - Backstage only; the archive page never shows names
+      await Promise.all(rows.slice(0, 80).filter((w) => !w.done).map(async (w) => {
+        const uids = (((await db.collection('wishVoters').doc(w.ig).get()).data() || {}).uids || []).slice(0, 20);
+        w.who = await Promise.all(uids.map(async (u) => { const [f, a] = await Promise.all([db.collection('fans').doc(u).get().then((x) => x.data() || {}), admin.auth().getUser(u).catch(() => null)]);
+          return { uid: u, nick: f.nick || a?.displayName || '', email: a?.email || '' }; }));
+      }));
       return res.json({ open: ((await db.collection('verseMeta').doc('archive').get()).data() || {}).open === true, wishes: rows });
     }
     if (op === 'wishFound') {

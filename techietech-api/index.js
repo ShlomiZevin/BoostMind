@@ -39,6 +39,13 @@ const keepRequest = (u, site, f) => admin.firestore().collection('requests').add
   uid: u.uid, email: u.email, contact: u.email, name: f.name || u.name || null, nick: null, phone: f.phone || null, choice: f.choice || null,
   when: f.when || null, text: f.text || '', t: FieldValue.serverTimestamp(), done: false }).catch((e) => console.error('keep request failed', e.message));
 
+// the same form from the same person again within 5 minutes = one request (2026-11-17: a CV came 3 times in a minute -
+// 3 mails, 3 rows in Backstage); the second send answers ok and does nothing
+async function sentJustNow(u, site, text) {
+  const q = await admin.firestore().collection('requests').where('uid', '==', u.uid).limit(30).get().catch(() => null);
+  return !!q?.docs.some((d) => { const r = d.data(); return r.kind === 'site' && r.site === site && (r.text || '') === (text || '') && Date.now() - (r.t?.toMillis?.() || 0) < 5 * 60e3; });
+}
+
 // a site page signed someone in: keep them, even if they never send (e.g. Yotamverse's order goes to its own collection)
 exports.siteUser = onRequest({ region: 'europe-west1', cors: CORS, maxInstances: 3, memory: '256MiB', timeoutSeconds: 30 }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
@@ -101,6 +108,7 @@ exports.techietechApply = onRequest({
   if (!file || !file.data.length || !OK_FILE.test(file.name)) return res.status(400).json({ error: 'file_type' });
 
   const position = (f.position || 'פנייה כללית').slice(0, 120);
+  if (await sentJustNow(u, 'techietech', [f.message, `קורות חיים: ${file.name} (במייל)`].filter(Boolean).join('\n\n'))) return res.json({ ok: true, again: true });
   const text = [
     `משרה: ${position}`,
     `שם: ${f.name}`,
@@ -182,6 +190,7 @@ exports.siteLead = onRequest({
     '',
     `נשלח מהאתר ${site.page} · ${new Date().toISOString()}`,
   ].filter((l, i, a) => l || a[i - 1]).join('\n');
+  if (await sentJustNow(u, f.site, clip(f.message, 3000))) return res.json({ ok: true, again: true });
   try {
     const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } });
     await t.sendMail({ from: `${site.from} <${GMAIL_USER.value()}>`, to: TO, replyTo: email,

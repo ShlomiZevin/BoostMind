@@ -2726,7 +2726,7 @@ function wishCard() {
       <button class="btn" data-ws-open="${WS.open ? 0 : 1}">${WS.open ? 'פתוח לכל התושבים · לסגור' : 'רק אתה מסמן · לפתוח לכולם'}</button></div>
     <p style="color:var(--dim);margin:0 0 10px;font-size:.9rem">פוסטים ישנים שסימנו ב-<a href="/archive/" target="_blank">/archive/</a> כדי שיעלו לשלומיוורס. מי שביקש מקבל הודעה כשהסרטון עולה.</p>
     ${list.length ? list.slice(0, 60).map((w) => `<div class="item"><img class="th" src="${IGT(w.ig)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div class="body"><b>${fmt(w.n)} ביקשו</b>
-      <p>${w.last ? 'אחרון ' + ago(w.last) : ''}</p>${(w.notes || []).map((n) => `<p style="margin:4px 0 0">"${esc(n.text)}"${n.nick ? ` <small style="color:var(--dim)">- ${esc(n.nick)}</small>` : ''}</p>`).join('')}</div>${w.permalink ? `<a class="btn" href="${esc(w.permalink)}" target="_blank" rel="noopener">לפוסט ${IC.out}</a>` : ''}</div>`).join('')
+      <p>${w.last ? 'אחרון ' + ago(w.last) : ''}</p>${(w.who || []).length ? `<p style="margin:4px 0 0">${w.who.map((p) => `${esc(p.nick || 'בלי שם')}${p.email ? ` <small style="color:var(--dim)">${esc(p.email)}</small>` : ''}`).join(' · ')}</p>` : ''}${(w.notes || []).map((n) => `<p style="margin:4px 0 0">"${esc(n.text)}"${n.nick ? ` <small style="color:var(--dim)">- ${esc(n.nick)}</small>` : ''}</p>`).join('')}</div>${w.permalink ? `<a class="btn" href="${esc(w.permalink)}" target="_blank" rel="noopener">לפוסט ${IC.out}</a>` : ''}</div>`).join('')
       : '<div class="empty">עוד אף אחד לא ביקש.</div>'}</div>`;
 }
 async function wishOpen(b) {
