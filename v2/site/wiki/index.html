@@ -644,6 +644,8 @@ const SEGS = [['characters', 'דמויות'], ['series', 'סדרות'], ['sites'
 const CT_FIRST = 24;   // rows drawn at first; "87 דמויות" opens the rest (a search looks at all of them)
 const segs = (cur) => `<nav class="ct-seg" role="tablist" aria-label="דמויות, סדרות ואתרים">${SEGS.map(([k, t]) =>
   `<a href="/${k}" role="tab" data-seg="${k}" class="${k === cur ? 'on' : ''}" aria-selected="${k === cur}">${t}</a>`).join('')}</nav>`;
+// the old top nav's קהילה, for everyone (visitors have no account menu, and the footer stays on the home): a calm link at the end
+const commLink = () => `<a class="ct-comm" href="/community"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/></svg><span>הקהילה</span></a>`;
 function segGo(k) { const cur = location.pathname.split('/')[1]; if (k && k !== cur) { t('feed', 'tab:' + k); nav('/' + k, true); } }
 document.addEventListener('click', (e) => {
   const a = e.target.closest('.ct-seg a[data-seg]');
@@ -715,20 +717,23 @@ const pages = {
     const list = W.characters.filter((c) => !q.s || c.series === q.s);
     // APP SHELL on a phone (mockup app-shell/5-characters-tab): the דמויות tab - segments, a search, one row per character
     if (chatDock()) {
-      const rows = list.map((c, i) => `<a class="ct-row" href="/c/${c.id}" data-q="${esc(norm([c.name, ...(c.aka || []), c.tagline, c.role].join(' ')))}"${i >= CT_FIRST ? ' hidden' : ''}>
+      const cs = (history.state && history.state.ct) || {}, qn = norm(cs.q || '').trim(), more = !!cs.more || list.length <= CT_FIRST;   // (back from a character: as it was)
+      let shown = 0;
+      const rows = list.map((c, i) => { const dq = norm([c.name, ...(c.aka || []), c.tagline, c.role].join(' ')), on = qn ? dq.includes(qn) : more || i < CT_FIRST; if (on) shown++;
+        return `<a class="ct-row" href="/c/${c.id}" data-q="${esc(dq)}"${on ? '' : ' hidden'}>
         <span class="ct-face" style="--c:${color(c)}">${face(c)}</span><span class="ct-t"><b>${esc(c.name)}</b><small>${esc(c.tagline || c.role || '')}</small></span>
-        <svg class="ct-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>`).join('');
+        <svg class="ct-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>`; }).join('');
       return `<div class="wrap ct-page">${segs('characters')}
         <label class="ct-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
-          <input type="search" id="ct-q" placeholder="חיפוש דמות" autocomplete="off" enterkeyhint="search" aria-label="חיפוש דמות"></label>
-        <div class="ct-list" id="ct-list">${rows}<p class="ct-none" hidden>לא מצאנו דמות כזאת.</p></div>
-        ${list.length > CT_FIRST ? `<button type="button" class="ct-more" id="ct-more">${list.length} דמויות<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}</div>`;
+          <input type="search" id="ct-q" placeholder="חיפוש דמות" autocomplete="off" enterkeyhint="search" aria-label="חיפוש דמות" value="${esc(cs.q || '')}"></label>
+        <div class="ct-list" id="ct-list">${rows}<p class="ct-none"${qn && !shown ? '' : ' hidden'}>לא מצאנו דמות כזאת.</p></div>
+        ${!more ? `<button type="button" class="ct-more" id="ct-more"${qn ? ' hidden' : ''}>${list.length} דמויות<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}${commLink()}</div>`;
     }
     return `<div class="wrap"><div class="page-h"><h1>הדמויות</h1><p>${W.characters.length} דמויות, והרשימה ממשיכה לגדול.</p></div>
       ${filterChips(q.s, '/characters')}<div class="grid">${list.map(card).join('')}</div></div>`;
   },
   series() {
-    if (chatDock()) return `<div class="wrap ct-page">${segs('series')}<div class="sgrid ct-sgrid">${W.series.map(scard).join('')}</div></div>`;   // APP SHELL: the tab's סדרות
+    if (chatDock()) return `<div class="wrap ct-page">${segs('series')}<div class="sgrid ct-sgrid">${W.series.map(scard).join('')}</div>${commLink()}</div>`;   // APP SHELL: the tab's סדרות
     return `<div class="wrap"><div class="page-h"><h1>הסדרות</h1><p>כל סדרה היא עולם, עם האנשים והסיפורים שלו.</p></div>
       <div class="sgrid" style="margin-top:22px">${W.series.map(scard).join('')}</div></div>`;
   },
@@ -747,7 +752,7 @@ const pages = {
     return `<div class="wrap${tab ? ' ct-page' : ''}">${tab ? segs('sites') : '<div class="page-h"><h1>האתרים של הדמויות</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>'}
       <div class="topic-chips">${topics.map(([k, , short, ic]) => `<button type="button" data-topic-jump="${k}">${topicIcon(ic)}${esc(short)}</button>`).join('')}</div>
       ${topics.map(([k, title, , ic]) => `<section class="sec site-g" id="topic-${k}"><div class="sec-h"><h2>${topicIcon(ic)}${esc(title)}</h2><span class="tg-n">${count(by[k].length)}</span></div>
-        <div class="sitegrid">${cards(by[k])}</div></section>`).join('')}</div>`;
+        <div class="sitegrid">${cards(by[k])}</div></section>`).join('')}${tab ? commLink() : ''}</div>`;
   },
   s(q, id) {
     const s = S[id];
@@ -834,8 +839,10 @@ const LAYER_PATH = /^\/(v|play|story)\//;
 let backing = null, afterBack = [];   // our own history.back() on its way: navigations wait for it (else back pops them)
 const OV = [];   // the overlays open now, each with its own entry
 function saveY() {
-  const f = document.querySelector('.fd, .gf');
-  try { history.replaceState({ ...(history.state || {}), y: scrollY, fy: f ? f.scrollTop : 0 }, ''); } catch (e) { /* too many calls */ }
+  const f = document.querySelector('.fd, .gf'), ct = document.getElementById('ct-list');
+  // the characters list as it was (opened in full, the search typed) - drawn again that way before the scroll comes back
+  const cts = ct ? { ct: { more: !document.getElementById('ct-more'), q: document.getElementById('ct-q')?.value || '' } } : {};
+  try { history.replaceState({ ...(history.state || {}), y: scrollY, fy: f ? f.scrollTop : 0, ...cts }, ''); } catch (e) { /* too many calls */ }
 }
 function goBack(n, doRoute) { backing = { route: doRoute }; history.go(-n); }
 window.vxOverlay = (close) => {
@@ -895,7 +902,7 @@ function nav(url, replace = false, state = null) {
     if (!appOn()) history[replace ? 'replaceState' : 'pushState'](null, '', u.pathname + u.search);
     else {
       let s;
-      if (replace) { s = { ...(history.state || {}), ...(state || {}) }; delete s.y; delete s.fy; delete s.vxo; }   // keeps a layer's mark (the next episode / story)
+      if (replace) { s = { ...(history.state || {}), ...(state || {}) }; delete s.y; delete s.fy; delete s.vxo; delete s.ct; }   // keeps a layer's mark (the next episode / story)
       else { saveY(); s = { ...(state || {}) }; if (LAYER_PATH.test(u.pathname)) s.vxl = 1; }
       history[replace ? 'replaceState' : 'pushState'](s, '', u.pathname + u.search);
     }

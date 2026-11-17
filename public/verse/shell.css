@@ -336,3 +336,15 @@ html.app .gpage { position: relative; }
 .ct-sgrid { margin-top: 14px; }
 .ct-page .topic-chips { margin-top: 14px; }
 html:has(.ct-page), html:has(.ct-page) body { overscroll-behavior-x: none; }   /* the sideways swipe moves between segments, not back in the browser */
+.ct-comm { display: flex; align-items: center; justify-content: center; gap: 8px; width: max-content; margin: 22px auto 4px; padding: 8px 16px; border-radius: 99px;
+  color: rgba(255, 255, 255, .72); font-size: .95rem; font-weight: 700; text-decoration: none; }
+.ct-comm svg { width: 20px; height: 20px; color: var(--accent, #ff6a1f); }
+.ct-page .topic-chips { margin-inline: -12px; padding-inline: 12px; }   /* the topic chips run to the screen's edge */
+@media (max-width: 760px) {
+  /* every page that scrolls ends above the tab bar, with a little air (the footer is only on the home) */
+  html.app main { padding-bottom: calc(var(--tb) + 28px); }
+  html.app body[data-page="home"] main { padding-bottom: 0; }
+  html.app body > footer { padding-bottom: calc(var(--tb) + 24px) !important; }   /* the home's footer: its links clear of the tab bar */
+  html.app { scroll-padding-top: calc(var(--th) + 8px); scroll-padding-bottom: calc(var(--tb) + 12px); }   /* a scroll to an element (a focused field) keeps it clear of both bars */
+}
+@media (max-width: 600px) { html.app .foot-links a[href="/community"] { display: flex; } }   /* the old bottom nav had קהילה; the tab bar doesn't */
