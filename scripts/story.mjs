@@ -4,9 +4,9 @@
 // Hebrew never goes through the console here, so the story comes as a JSON file:
 //   { "char": "hani", "text": "the line in the bell / push", "boxes": [ { "t": "...", "x": 50, "y": 78, ... } ],
 //     "file": "C:/path/story.jpg", "link": "/hani-games/gan-run/", "label": "לשחק עכשיו", "everyone": false, "notify": true }
-//   OWNER_KEY=<his key> node scripts/story.mjs story.json            post it (followers hear; everyone = every account)
-//   OWNER_KEY=<his key> node scripts/story.mjs story.json --test     post it to nobody, hidden at once (check, then remove)
-//   OWNER_KEY=<his key> node scripts/story.mjs story.json --edit <id> fix a story that is up, nobody is told again:
+//   node scripts/story.mjs story.json            post it (followers hear; everyone = every account)
+//   node scripts/story.mjs story.json --test     post it to nobody, hidden at once (check, then remove)
+//   node scripts/story.mjs story.json --edit <id> fix a story that is up, nobody is told again:
 //     only the keys the JSON has change - boxes ([] = no words on it), text, link + label ("link": "" = no button), file
 // file (picture or short clip, up to 30MB), link + label (the button) and everyone (every account hears, not only the
 // character's followers - big news only) are optional. link: https://..., a page of this site (/...) or a wiki place.
@@ -16,12 +16,13 @@
 // to choose). "videoId": "<id>" = the clip is already a video on the site (published from the studio, or another cut):
 // the character joins its cast instead of a second copy. "toVideos": false = a story only. --test never makes a video.
 import fs from 'node:fs';
+import { ownerKey } from './owner-key.mjs';
 import path from 'node:path';
 import { prepare } from './stories/video.mjs';
 
 const [jsonPath, flag, editId] = process.argv.slice(2);
-const KEY = process.env.OWNER_KEY;
-if (!jsonPath || !KEY || (flag === '--edit' && !editId)) { console.error('usage: OWNER_KEY=... node scripts/story.mjs story.json [--test | --edit <id>]'); process.exit(1); }
+const KEY = ownerKey();   // (found by itself - scripts/owner-key.mjs; never ask him for it)
+if (!jsonPath || !KEY || (flag === '--edit' && !editId)) { console.error('usage: node scripts/story.mjs story.json [--test | --edit <id>]'); process.exit(1); }
 const s = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
 const TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4', '.mov': 'video/quicktime' };

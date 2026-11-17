@@ -1,16 +1,17 @@
 // Plans in Backstage - the session's side (2026-11-06). A plan is a folder with index.html (the brief, its mockups as
 // <img src="img/NAME">) + img/. Backstage (תוכניות) shows it; he comments on any part and approves / asks for changes.
-//   OWNER_KEY=<his key> node scripts/plans/plan.mjs publish <folder> --id <plan-id> [--title-file t.txt] [--summary-file s.txt] [--cover NAME] [--note-file n.txt] [--replaces old-id,old-id2]
-//   OWNER_KEY=... node scripts/plans/plan.mjs list
-//   OWNER_KEY=... node scripts/plans/plan.mjs comments <plan-id> --out comments.md     (read it with the Read tool - Hebrew)
-//   OWNER_KEY=... node scripts/plans/plan.mjs reply <plan-id> --file reply.txt [--anchor <part>] [--to <comment id>]
-//   OWNER_KEY=... node scripts/plans/plan.mjs archive <plan-id> [--back]      (off his list - a newer round replaced it; --back returns it)
+//   node scripts/plans/plan.mjs publish <folder> --id <plan-id> [--title-file t.txt] [--summary-file s.txt] [--cover NAME] [--note-file n.txt] [--replaces old-id,old-id2]
+//   node scripts/plans/plan.mjs list
+//   node scripts/plans/plan.mjs comments <plan-id> --out comments.md     (read it with the Read tool - Hebrew)
+//   node scripts/plans/plan.mjs reply <plan-id> --file reply.txt [--anchor <part>] [--to <comment id>]
+//   node scripts/plans/plan.mjs archive <plan-id> [--back]      (off his list - a newer round replaced it; --back returns it)
 // Hebrew always through files (the console mangles it). Re-publishing the same id = a new version, back to "waiting for him".
 import fs from 'node:fs';
+import { ownerKey } from '../owner-key.mjs';
 import path from 'node:path';
 
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
-const KEY = process.env.OWNER_KEY;
+const KEY = ownerKey();   // (found by itself - scripts/owner-key.mjs; never ask him for it)
 if (!KEY) { console.error('OWNER_KEY is needed (his owner key)'); process.exit(1); }
 const [cmd, arg] = process.argv.slice(2);
 const opt = (n) => { const i = process.argv.indexOf('--' + n); return i > 0 ? process.argv[i + 1] : null; };

@@ -1,16 +1,17 @@
 // The events log - the session's side (2026-11-16, his ask: "an event table, so we can check the stats until then and
 // from then"). Every session that changes something visitors feel (a release, a mail to everyone, a new game, a marketing
 // push, an outage) logs it here; Backstage draws it on every day chart (סקירה → אירועים) with a before / after.
-//   OWNER_KEY=<his key> node scripts/stats/event.mjs add --day 2026-11-16 --kind release --title-file t.txt [--note-file n.txt] [--link URL]
-//   OWNER_KEY=... node scripts/stats/event.mjs list [--from 2026-11-01] [--to 2026-11-30] [--out events.md]
-//   OWNER_KEY=... node scripts/stats/event.mjs del <id>
-//   OWNER_KEY=... node scripts/stats/event.mjs seed scripts/stats/seed-events.json      (skips one already there: same day + title)
+//   node scripts/stats/event.mjs add --day 2026-11-16 --kind release --title-file t.txt [--note-file n.txt] [--link URL]
+//   node scripts/stats/event.mjs list [--from 2026-11-01] [--to 2026-11-30] [--out events.md]
+//   node scripts/stats/event.mjs del <id>
+//   node scripts/stats/event.mjs seed scripts/stats/seed-events.json      (skips one already there: same day + title)
 // kind: release | mail | content | marketing | incident | other. --day defaults to today (Israel).
 // Hebrew always through files (the console mangles it): titles / notes in, the list out with --out (read it with the Read tool).
 import fs from 'node:fs';
+import { ownerKey } from '../owner-key.mjs';
 
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
-const KEY = process.env.OWNER_KEY;
+const KEY = ownerKey();   // (found by itself - scripts/owner-key.mjs; never ask him for it)
 if (!KEY) { console.error('OWNER_KEY is needed (his owner key)'); process.exit(1); }
 const [cmd, arg] = process.argv.slice(2);
 const opt = (n) => { const i = process.argv.indexOf('--' + n); return i > 0 ? process.argv[i + 1] : null; };

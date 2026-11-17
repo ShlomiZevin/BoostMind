@@ -1,5 +1,5 @@
 // The chain plan (Backstage → תוכניות, id chat-chain): body.html -> index.html in the template's look. Re-publish after his notes:
-//   node scripts/plans/chat-chain/build.cjs && OWNER_KEY=... node scripts/plans/plan.mjs publish scripts/plans/chat-chain --id chat-chain --title-file scripts/plans/chat-chain/title.txt --summary-file scripts/plans/chat-chain/summary.txt
+//   node scripts/plans/chat-chain/build.cjs && node scripts/plans/plan.mjs publish scripts/plans/chat-chain --id chat-chain --title-file scripts/plans/chat-chain/title.txt --summary-file scripts/plans/chat-chain/summary.txt
 const fs = require('fs'), path = require('path');
 const tpl = fs.readFileSync('C:/workspace/BoostMind/scripts/plans/template/index.html', 'utf8');
 const style = tpl.match(/<style>[\s\S]*<\/style>/)[0];

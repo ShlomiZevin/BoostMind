@@ -1,15 +1,16 @@
 // His notes on the characters (Backstage → דמויות, techietech-api/charnotes.js) - the session's side. He writes messy notes on
 // any part of a character; a session puts them in order into the record (scripts/verse/content.mjs put) and answers here.
-//   OWNER_KEY=<his key> node scripts/characters/notes.mjs open --out notes.md        every open note + the line it is on (read it with the Read tool - Hebrew)
-//   OWNER_KEY=... node scripts/characters/notes.mjs char <id> --out notes.md        all of one character's notes, handled ones too
-//   OWNER_KEY=... node scripts/characters/notes.mjs reply <note-id> --file r.txt     answer under his note - it closes the note
-//   OWNER_KEY=... node scripts/characters/notes.mjs done <note-id> [--open]          handled without an answer (or open again)
+//   node scripts/characters/notes.mjs open --out notes.md        every open note + the line it is on (read it with the Read tool - Hebrew)
+//   node scripts/characters/notes.mjs char <id> --out notes.md        all of one character's notes, handled ones too
+//   node scripts/characters/notes.mjs reply <note-id> --file r.txt     answer under his note - it closes the note
+//   node scripts/characters/notes.mjs done <note-id> [--open]          handled without an answer (or open again)
 // The order of work: open -> change the record (content.mjs put, Hebrew through a file) -> reply with what changed, in a line
 // or two of Hebrew. He sees the answer and the changed lines marked green the next time he opens the character.
 import fs from 'node:fs';
+import { ownerKey } from '../owner-key.mjs';
 
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
-const KEY = process.env.OWNER_KEY;
+const KEY = ownerKey();   // (found by itself - scripts/owner-key.mjs; never ask him for it)
 if (!KEY) { console.error('OWNER_KEY is needed (his owner key)'); process.exit(1); }
 const [cmd, arg] = process.argv.slice(2);
 const opt = (n) => { const i = process.argv.indexOf('--' + n); return i > 0 ? process.argv[i + 1] : null; };

@@ -76,7 +76,7 @@ Shlomiverse logo + two-colour wordmark + URL, few elements, the character painte
 4. **Preview and fix** - `node scripts/stories/preview.mjs story.json [outDir]` until it says no box sits on anything;
    then LOOK at `-phone.png`, `-short.png` (a small phone) and `-wide.png` (a computer). Fix what looks wrong even if the
    checker passed (unreadable letters on a busy background = a box style with a background).
-5. **Post** - `OWNER_KEY=<ask him every time, never save it> node scripts/story.mjs story.json --test` (posted to
+5. **Post** - `node scripts/story.mjs story.json --test` (the owner key is found by itself - scripts/owner-key.mjs; never ask him for it, his rule 2026-11-17) (posted to
    nobody, hidden at once - check it in /backstage/ פרסום, then remove it), then without `--test`. `"everyone": true`
    only when he says so (big news). Never on Shabbat. Followers get the bell and a push at once - so step 4 first, always.
 6. **Fixing a story that is up** - the same JSON with only what changes, `node scripts/story.mjs fix.json --edit <id>`:

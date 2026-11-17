@@ -72,11 +72,15 @@ writes it from Secret Manager). Read it from that file inside your script; never
 
 ## Plans for his approval - Backstage → תוכניות (since 2026-11-06)
 
+**Never ask him for his owner key** (his rule, 2026-11-17): the Backstage tools (plan.mjs, event.mjs, story.mjs, notes.mjs,
+chat-notes.mjs) find it by themselves - `scripts/owner-key.mjs` reads `OWNER_KEY` from `scripts/design.env` (git-ignored; never in
+git, the repo is public). He says "put it in Backstage" -> you publish it.
+
 A plan, brief, draft or set of mockups for something new in the Shlomiverse goes to **Backstage → תוכניות**, not to
 a loose file: he reads it there, comments on any part (a heading, a mockup, a table row) and approves or asks for changes.
 A plan = a folder with `index.html` (mockups as `<img src="img/NAME">`) + `img/` - **start from `scripts/plans/template/`**
 (mobile first: he reads it on his phone; check it at 360px, no sideways scroll). Mockups by GPT Image (his rule).
-`OWNER_KEY=<his key> node scripts/plans/plan.mjs publish <folder> --id <plan-id> --title-file t.txt --summary-file s.txt`
+`node scripts/plans/plan.mjs publish <folder> --id <plan-id> --title-file t.txt --summary-file s.txt`
 (Hebrew through files), `... comments <plan-id> --out c.md` (read it before building), `... reply <plan-id> --file r.txt --to <comment id>`.
 Re-publishing the same id = a new version, back to "waiting for him". Private: Firestore `plans` + the private bucket
 `shlomiverse-studio/plans/` (techietech-api/plans.js). Build only what he approved.
@@ -84,7 +88,7 @@ Re-publishing the same id = a new version, back to "waiting for him". Private: F
 ## His comments on the chat - Backstage → שיחות → הערות (since 2026-11-12)
 
 He reviews the characters' conversations from time to time and comments (what he didn't like, a question) on a whole
-conversation or one answer. When he says "read my comments": `OWNER_KEY=<his key> node scripts/wiki/chat-notes.mjs open --out c.md`
+conversation or one answer. When he says "read my comments": `node scripts/wiki/chat-notes.mjs open --out c.md`
 (each comment + its whole conversation + what the chain's steps decided), then **discuss with him first** - what each
 needs (an engine / architecture change in the chain `techietech-api/wiki-deep.js`, a prompt, or character-specific only
 when nothing else works) - handle what you agreed, and answer under the comment (`reply <id> --file r.txt`).
@@ -121,7 +125,7 @@ Firebase console -> Realtime Database -> Usage. First games: the meetings hub's 
 
 He reads the stats as "before / after" a change: Backstage → סקירה shows a marker on every day chart and an "אירועים" card (7 days
 before vs 7 days from). **Anything that could move the numbers is logged the day it goes live**: a release or a visible change, a mail
-to everyone, a new game, a marketing push, an outage. `OWNER_KEY=<his key> node scripts/stats/event.mjs add --day YYYY-MM-DD --kind
+to everyone, a new game, a marketing push, an outage. `node scripts/stats/event.mjs add --day YYYY-MM-DD --kind
 release|mail|content|marketing|incident|other --title-file t.txt [--note-file n.txt] [--link URL]` (Hebrew through files; `list`, `del <id>`).
 Data: Firestore `siteEvents` (techietech-api/siteevents.js, verseOwner ops `events`/`eventAdd`/`eventEdit`/`eventDel`).
 

@@ -4,15 +4,16 @@
 // nothing, an engine / architecture change in the chain - wiki-deep.js, a prompt, or, only when nothing else works,
 // something character-specific) -> handle what you agreed -> answer under the comment (closes it). Never change anything
 // from a comment before you discussed it with him.
-//   OWNER_KEY=<his key> node scripts/wiki/chat-notes.mjs open --out c.md       every open comment + its whole conversation + what the chain's steps decided (read with the Read tool - Hebrew)
-//   OWNER_KEY=... node scripts/wiki/chat-notes.mjs all --out c.md              handled ones too
-//   OWNER_KEY=... node scripts/wiki/chat-notes.mjs marks [good|bad] --out m.md  the conversations he marked 👍 / 👎 (with or without a comment)
-//   OWNER_KEY=... node scripts/wiki/chat-notes.mjs reply <id> --file r.txt     answer under his comment - closes it
-//   OWNER_KEY=... node scripts/wiki/chat-notes.mjs done <id> [--open]          handled without an answer (or open again)
+//   node scripts/wiki/chat-notes.mjs open --out c.md       every open comment + its whole conversation + what the chain's steps decided (read with the Read tool - Hebrew)
+//   node scripts/wiki/chat-notes.mjs all --out c.md              handled ones too
+//   node scripts/wiki/chat-notes.mjs marks [good|bad] --out m.md  the conversations he marked 👍 / 👎 (with or without a comment)
+//   node scripts/wiki/chat-notes.mjs reply <id> --file r.txt     answer under his comment - closes it
+//   node scripts/wiki/chat-notes.mjs done <id> [--open]          handled without an answer (or open again)
 import fs from 'node:fs';
+import { ownerKey } from '../owner-key.mjs';
 
 const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseOwner';
-const KEY = process.env.OWNER_KEY;
+const KEY = ownerKey();   // (found by itself - scripts/owner-key.mjs; never ask him for it)
 if (!KEY) { console.error('OWNER_KEY is needed (his owner key)'); process.exit(1); }
 const argv = process.argv.slice(2);
 const opt = (n) => { const i = argv.indexOf('--' + n); return i >= 0 ? argv[i + 1] : null; };
