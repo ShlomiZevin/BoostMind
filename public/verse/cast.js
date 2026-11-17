@@ -9,7 +9,7 @@ import { T } from './copy.js';
 import { esc, av, sheet, track } from './ui.js';
 import { remember } from './player.js';
 
-const A = () => T.app;
+const A = () => T.shell;
 const LEAVE_N = 'vx-leave-n';
 const svg = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON_TALK = svg('<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/>');
@@ -18,6 +18,22 @@ const ICON_FILM = svg('<rect x="3.5" y="8" width="17" height="12" rx="2"/><path 
 const ICON_PAD = svg('<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r=".9" fill="currentColor"/><circle cx="17.5" cy="13.8" r=".9" fill="currentColor"/>', 1.8);
 const ICON_X = svg('<path d="M6 6l12 12M18 6 6 18"/>', 2.2);
 
+// a name that fits a button: the name, or its shortest Hebrew aka (רוזנבלום, דמוקרטוביץ) - measured after drawing, and when even
+// that doesn't fit the button says it without the name ("לדבר איתה", "לדף הדמות")
+const heb = (n) => n && /^[֐-׿][֐-׿\s'"״׳-]*$/.test(n);
+function shortName(c) {
+  if (c.name.length <= 9) return c.name;
+  const a = (c.aka || []).filter((n) => heb(n) && n.length <= 11).sort((x, y) => x.length - y.length)[0];
+  return a || c.name;
+}
+const gender = (id) => (typeof GENDER !== 'undefined' && GENDER[id]) || 'm';
+function fitButtons(el, id) {
+  requestAnimationFrame(() => {
+    const t = el.querySelector('[data-cs-talk] span'), p = el.querySelector('[data-cs-page] span');
+    if (t && t.scrollWidth > t.clientWidth + 1) t.textContent = T.feed.talk1[gender(id)] || T.feed.talk1.m;
+    if (p && p.scrollWidth > p.clientWidth + 1) p.textContent = A().pageGeneric;
+  });
+}
 const resumeLater = (vd) => { if (vd && !vd.ended && document.body.contains(vd)) vd.play().catch(() => {}); };
 
 export function castSheet(id, vctx) {
@@ -31,9 +47,10 @@ export function castSheet(id, vctx) {
       <button class="cs-x" data-vx-close aria-label="${esc(A().close)}">${ICON_X}</button>
       <div class="cs-top">${av({ char: id, ring: true, cls: 'cs-face' })}
         <div class="cs-t"><h2>${esc(c.name)}</h2>${c.tagline || c.role ? `<p>${esc(c.tagline || c.role)}</p>` : ''}${facts ? `<div class="cs-facts">${facts}</div>` : ''}</div></div>
-      <div class="cs-acts"><button class="vx-btn main" data-cs-talk>${ICON_TALK}<span>${esc(A().talkTo(c.name))}</span></button>
-        <a class="vx-btn ghost" href="/c/${esc(id)}" data-cs-page>${ICON_PAGE}<span>${esc(A().pageOf(c.name))}</span></a></div>
+      <div class="cs-acts"><button class="vx-btn main" data-cs-talk>${ICON_TALK}<span>${esc(A().talkTo(shortName(c)))}</span></button>
+        <a class="vx-btn ghost" href="/c/${esc(id)}" data-cs-page>${ICON_PAGE}<span>${esc(A().pageOf(shortName(c)))}</span></a></div>
     </div>`, { cls: 'cs-sheet', onClose: (why) => { if (was && why !== 'talk' && why !== 'page') resumeLater(vd); } });
+  fitButtons(h.el, id);
   h.el.addEventListener('click', (e) => {
     if (e.target.closest('[data-cs-talk]')) { h.close('talk'); talkFromVideo(id, vctx); }
     else if (e.target.closest('[data-cs-page]')) h.close('page');   // the link itself goes on (the router waits for the sheet's back)

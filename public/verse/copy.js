@@ -584,13 +584,13 @@ export const T = {
   gfeed: { title: 'משחקים', play: 'לשחק', best: 'השיא היום:', more: 'יש עוד משחקים - החליקו למעלה', last: 'ראיתם את כולם', grid: 'לכל המשחקים',
     viewFeed: 'משחק אחד במסך', viewGrid: 'כל המשחקים ברשת', view: 'תצוגה' },
   // APP SHELL round 2 (his 13 notes, mockups app-shell/r2)
-  app: {
+  shell: {
     feed: 'פיד', grid: 'רשת', view: 'תצוגה',
     simStrip: 'באיזו סימולציה אתם חיים?',
     arcTitle: 'הארכיון', arcLine: 'כל הסרטונים הישנים, לפי תאריך',
     cmyTitle: 'הקהילה', cmyLine: 'בקשות, רעיונות, סרטון אישי ובאגים',
     nVideos: (n) => (n === 1 ? 'סרטון אחד' : `${n} סרטונים`), nGames: (n) => (n === 1 ? 'משחק אחד' : `${n} משחקים`),
-    talkTo: (n) => `לדבר עם ${n}`, pageOf: (n) => `לדף של ${n}`, close: 'סגירה',
+    talkTo: (n) => `לדבר עם ${n}`, pageOf: (n) => `לדף של ${n}`, pageGeneric: 'לדף הדמות', close: 'סגירה',
     leaveTitle: (n) => `עוברים לצ'אט עם ${n}`, leaveLine: 'הסרטון יחכה לכם בדיוק איפה שעצרתם', leaveGo: "לצ'אט", leaveStay: 'להישאר בסרטון',
     backToVideo: 'חזרה לסרטון', fold: 'לקפל את שורת הדמויות', unfold: 'לפתוח את שורת הדמויות',
   },

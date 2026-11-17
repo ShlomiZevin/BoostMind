@@ -455,3 +455,30 @@ html:has(.ct-page), html:has(.ct-page) body { overscroll-behavior-x: none; }   /
 .gpage > .gf-tg, .vg-page > .gf-tg { position: static; display: flex; width: max-content; margin: 2px auto 0; }
 html.feed-on .gf-tg { position: fixed; z-index: 3; top: calc(var(--th) + 10px); inset-inline-end: 12px; }
 html.gf-on .gf-tg a, html.feed-on .gf-tg a { height: 30px; padding: 0 14px; font-size: .9rem; }
+
+/* ---------- round 2, review 1 ---------- */
+@media (max-width: 760px) {
+  /* the fold chevron alone at the left edge on its own ground: the faces end before it */
+  html.app .cx.dock .cx-strip { margin-inline-end: 56px; padding-inline-end: 12px; }
+  html.app .cx.dock .cs-fold { height: 73px; box-sizing: border-box; background: #0b0b0e; border-bottom: 1px solid rgba(255, 255, 255, .1); border-inline-start: 1px solid rgba(255, 255, 255, .06); }
+  html.app .cx.dock.cs-min .cs-fold { height: 57px; }
+  /* the way back to the video, pinned above the conversation */
+  html.app .cx.dock .cx-vbar { flex: none; display: flex; justify-content: center; padding: 10px 12px 2px; }
+  html.app .cx.dock .cx-vbar:empty { display: none; }
+  html.app .cx.dock .cx-vbar .cx-v { margin: 0; }
+  /* bubbles a little smaller, as on the mockup */
+  html.app .cx.dock .m.me, html.app .cx.dock .m.bot { font-size: 1.125rem; }
+  /* the videos grid's card (mockup r2/5): the title on the picture over a dark fade, a small play in a corner, the count on top */
+  .vg-page .vid { position: relative; gap: 0; border-radius: 14px; overflow: hidden; }
+  .vg-page .vid .thumb { border-radius: 14px; }
+  .vg-page .vid .thumb::after { content: ''; position: absolute; inset: 38% 0 0; z-index: 1; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, .55) 45%, rgba(0, 0, 0, .9)); }
+  .vg-page .vid .t { position: absolute; inset-inline: 7px; bottom: 7px; z-index: 2; color: #fff; font-size: .8rem; font-weight: 800; line-height: 1.28;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 6px rgba(0, 0, 0, .7); }
+  .vg-page .vid .play { inset: auto; inset-inline-end: 7px; bottom: 48px; z-index: 2; }
+  .vg-page .vid .play span { width: 28px; height: 28px; background: rgba(0, 0, 0, .55); border: 1.5px solid rgba(255, 255, 255, .85); }
+  .vg-page .vid .play svg { width: 11px; height: 11px; }
+  .vg-page .vid .vx-plays { top: 6px; bottom: auto; left: 6px; z-index: 2; }
+  /* the videos feed: its way to the grid sits in the top bar */
+  html.app .top .tb-grid { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; flex: none; border: 0; background: transparent; padding: 0; }
+  html.app .top .tb-grid svg { width: 22px; height: 22px; }
+}

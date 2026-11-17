@@ -87,7 +87,7 @@ export function mountBand() {
   // APP SHELL round 2 (his note 3, mockup r2/1-home): a thin one-line strip - a small face, the question, a small "לסיווג"
   if (appShell()) {
     el.innerHTML = `<a class="sim-strip" href="/simulation?host=${h}&from=home" data-sim-band><span class="sim-strip-face"><img src="${esc(img(h))}" alt="${esc(c.name)}"></span>
-      <b>${esc(T.app.simStrip)}</b><span class="sim-strip-go">${esc(S().go)}</span></a>`;
+      <b>${esc(T.shell.simStrip)}</b><span class="sim-strip-go">${esc(S().go)}</span></a>`;
     if (!el.dataset.seen) { el.dataset.seen = '1'; track('sim_band', h); }
     return;
   }

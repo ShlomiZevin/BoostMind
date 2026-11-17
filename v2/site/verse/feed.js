@@ -97,7 +97,7 @@ export function videosFeed(q) {
   if (start < 0) start = 0;
   mountAt = q.at || null;
   queueMicrotask(() => mount(list, start));   // once the router has put it on the page
-  return `${HOOK.feedToggle ? HOOK.feedToggle('videos', 'feed') : ''}<div class="fd" id="fd" role="feed" aria-label="${esc(FT.title)}">${list.map(slide).join('')}</div>`;
+  return `<div class="fd" id="fd" role="feed" aria-label="${esc(FT.title)}">${list.map(slide).join('')}</div>`;
 }
 
 function makeVideo() {

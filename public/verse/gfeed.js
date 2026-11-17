@@ -40,7 +40,7 @@ function shortLine(t) {
 // the feed / grid switch - "פיד" | "רשת" (round 2: the same on the games and the videos tab; on the grid pages too - wiki games()
 // / videos() ask HOOK.gamesToggle / HOOK.feedToggle)
 export function feedToggle(kind, on) {
-  const A = T.app, a = (k, href, t) => `<a href="${href}" class="${on === k ? 'on' : ''}" ${on === k ? 'aria-current="true"' : ''}>${esc(t)}</a>`;
+  const A = T.shell, a = (k, href, t) => `<a href="${href}" class="${on === k ? 'on' : ''}" ${on === k ? 'aria-current="true"' : ''}>${esc(t)}</a>`;
   return `<div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed)}${a('grid', '/' + kind + '?view=grid', A.grid)}</div>`;
 }
 export const gamesToggle = (on) => feedToggle('games', on);
