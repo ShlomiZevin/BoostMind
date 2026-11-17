@@ -820,3 +820,6 @@ fillDots(); resetActors(); layout(); hud(); showBest(); requestAnimationFrame(fr
 
 // for the tests
 window.PAC = { get state() { return state; }, get score() { return score; }, get lives() { return lives; }, get level() { return level; }, get haniCount() { return haniCount; }, get lift() { return lift; }, get rooms() { return rooms; }, clearFloor() { dots.clear(); powers.clear(); envelopes.clear(); levelClear(); }, get invites() { return invites; }, set invites(v) { invites = v; }, meetHani() { Object.assign(hani, { tx: yotam.tx, ty: yotam.ty, t: 0, cringe: 0 }); }, get power() { return power; }, get dots() { return dots.size + powers.size; }, get dotSet() { return new Set([...dots, ...powers]); }, yotam, hani, CHASERS, pos, steer, startGame, open, get tut() { return tut.on; }, get L() { return L; }, px, py };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

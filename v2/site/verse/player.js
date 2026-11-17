@@ -203,6 +203,7 @@ export function openPlayer(id, q = {}) {
 // cover and "התחברו כדי לשחק" stand in for it after that. A game with a daily record (game.json "record") gets the
 // "שיאים" button, and its score at game over goes on today's table (verse/records.js).
 const FREE = 'verse-free';
+const safeBottom = () => { const d = Object.assign(document.createElement('div'), { style: 'position:fixed;bottom:0;height:0;padding-bottom:env(safe-area-inset-bottom)' }); document.body.append(d); const h = d.offsetHeight; d.remove(); return h; };
 const safeTop = () => { const d = Object.assign(document.createElement('div'), { style: 'position:fixed;top:0;height:0;padding-top:env(safe-area-inset-top)' }); document.body.append(d); const h = d.offsetHeight; d.remove(); return h; };
 const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const SHRINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
@@ -305,7 +306,8 @@ export function openGame(id, q = {}) {
     // straight from the feed nothing floats over the game: it starts from the top, only the safe area kept (the home-screen app's
     // status bar); the layer's own full screen keeps the strip for its exit pill
     const top = el.classList.contains('ff') ? safeTop() : el.classList.contains('full') ? Math.ceil($('.vg-exit', el).getBoundingClientRect().bottom + 6) : 0;
-    frame?.contentWindow?.postMessage({ verse: 'frame', top }, '*');
+    // (a frame doesn't get the phone's safe areas: the bottom one - the home indicator - is passed in full screen, as the top)
+    frame?.contentWindow?.postMessage({ verse: 'frame', top, bottom: el.classList.contains('full') ? safeBottom() : 0 }, '*');
   };
   const full = async (on) => {
     el.classList.toggle('full', on);

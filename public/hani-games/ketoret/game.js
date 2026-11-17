@@ -691,3 +691,6 @@ function botMove() {   // test helper: the best move a careful player would make
 }
 window.__game = { botMove, swap() { $('swap').click(); }, get state() { return state; }, get score() { return score; }, get row() { return row; }, get phase() { return phase; }, get tray() { return tray; }, get stability() { return stability; },
   windows, brickPose, toScreen, seamRisk(w) { const ks = w.cells.map(([i, j]) => loopOf[i + ',' + j]); const lo = ks[0], hi = ks[ks.length - 1]; const a = (Math.min(lo, hi) - 1 + LOOP) % LOOP, b = Math.max(lo, hi); const wrap = Math.abs(lo - hi) > 4; return wrap ? [jointsBelow.has(Math.min(lo, hi)), jointsBelow.has((Math.max(lo, hi) - 1 + LOOP) % LOOP)].filter(Boolean).length : [jointsBelow.has(a), jointsBelow.has(b)].filter(Boolean).length; }, tut, startGame, rowY, get hornSpots() { return hornSpots; } };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

@@ -685,3 +685,6 @@ window.SHABBAT_DOOR = {
   get failed() { return failed; }, get intro() { return introT; }, get introWait() { return introWait; }, get gasa() { return gasa; }, cardGo() { $('lvlGo').disabled = false; cardGo(); }, get pastZ() { return PAST; }, get doorZ() { return DOORZ; }, get doorOpen() { return doorOpen; }, get scene() { return sc; }, get people() { return people; }, LIMIT,
   tap() { tap(); }, get simT() { return simT; }, get taps() { return taps; }, get moving() { return moving; }, tick(dt) { step(dt); }, tut, startGame,
 };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

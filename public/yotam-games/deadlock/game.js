@@ -688,3 +688,6 @@ window.DEADLOCK = {
   get signBottom() { return OY + 220 * S - cssPx('var(--safe-t)'); }, get peeks() { return peeks.map((k) => ({ id: pieces[k.i].id, text: k.el.textContent })); },
   skipDrive() { if (drive) drive.t = 9; },
 };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

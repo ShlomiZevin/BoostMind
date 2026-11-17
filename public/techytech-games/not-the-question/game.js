@@ -644,6 +644,7 @@ function gameOver() {
   }, 3300);
 }
 $('#againB').onclick = () => { sfx('tap', 0.6); startGame(false); };
+$('#menuB').onclick = () => { sfx('tap', 0.6); $('#homeB').click(); };   // the game-over screen's way to the menu
 
 function showStart() {
   G.running = false; G.over = false; stopMusic();

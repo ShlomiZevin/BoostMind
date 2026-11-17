@@ -808,3 +808,6 @@ loadModels().then(() => {
   requestAnimationFrame(frame);
 });
 window.__game = { get state() { return state; }, get clock() { return clock; }, get world() { return world; }, get hx() { return hx; }, get hz() { return hz; }, get day() { return day; }, get score() { return score; }, tryMove, tut, go, dayCard, ride, SND, setClock: v => { clock = v; } };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

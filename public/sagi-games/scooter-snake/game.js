@@ -706,3 +706,6 @@ window.SNAKE = {
   get B() { return B; }, get props() { return props; }, solid, want, DIRS, startGame, COLS, get ROWS() { return ROWS; }, officeForTest(seed, rows) { setRows(rows); buildOffice(seed); return { grid: grid.slice(), props: props.length, OFR, START }; }, get OFR() { return OFR; },
   setSpeedForTest(v) { window.__spd = v; },
 };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

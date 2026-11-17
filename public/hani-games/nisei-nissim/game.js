@@ -1326,3 +1326,6 @@ loadModels(f => { $('loading').textContent = 'רגע, טוען... ' + Math.round
   requestAnimationFrame(frame);
 });
 window.__game = { get state() { return state; }, get active() { return active; }, get score() { return score; }, get lives() { return lives; }, get meter() { return meter; }, set meter(v) { meter = v; hud(); }, spawn, finish, miracle, toScreen, DEFS, tut, startGame, SND, kids };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

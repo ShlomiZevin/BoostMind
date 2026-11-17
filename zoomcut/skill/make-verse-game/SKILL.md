@@ -228,6 +228,10 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
      `<span data-verse-back-btn></span>` in the main menu (poster / "שחקו" / "איך משחקים") and game-frame.js draws the same
      orange "חזרה למשחקים" pill with the planet in every game, only inside the verse - never style your own. It returns to
      the feed at this game. Exits inside the game (the pause menu, a home icon) go back to the GAME's own start screen.
+     The game's own "לכל המשחקים" link gets `verse-hide` (the verse button replaces it inside the verse), and EVERY end / game-over
+     screen offers a way to that menu ("לתפריט", the same as the pause menu's exit) - else a player there has no way back.
+     A frame gets no phone safe areas: bottom-anchored menus add `var(--verse-bottom, 0px)` to `--safe-b` as the top uses
+     `--verse-top`.
    - The feed's "לשחק" is the app's (one button for every game) - the game's own "שחקו" is on its start screen.
    **Daily records - every game with a score, no exceptions** (his ask, 3 Nov 2026): the verse keeps a table per game
    that starts fresh each Israeli day - the home's "שיאי היום", the "שיאים" button on the game's page, a celebration

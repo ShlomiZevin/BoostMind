@@ -449,3 +449,6 @@ layout(); showBest(); requestAnimationFrame(frame);
 
 // for the tests
 window.MILLI = { get state() { return state; }, get pain() { return pain; }, get sessions() { return sessions; }, get reps() { return reps; }, cur, zoneC, handlePos, startGame, get tut() { return tut.on; }, get L() { return L; } };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

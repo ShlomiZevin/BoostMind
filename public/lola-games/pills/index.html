@@ -23,7 +23,7 @@
 <style>
 :root{
   --ink:#3a2414; --cream:#fff8ec; --cream2:#f6e9d4; --rim:#e8cfa8; --purple:#7b3fc4; --purpleD:#5a2896; --pink:#ec5a9c; --pinkD:#b8336f; --green:#36b34a; --gold:#ffd23b;
-  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:calc(env(safe-area-inset-bottom,0px) + var(--verse-bottom,0px));
   --stripH:clamp(60px,10.5vh,92px); --hudH:50px;
 }
 @media (max-height:640px){:root{--hudH:50px}}

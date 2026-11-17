@@ -356,3 +356,6 @@ fetch('assets/stories.json', { cache: 'no-store' }).then((r) => r.json()).then((
 
 // for the tests
 window.PILAI = { get state() { return state; }, get story() { return story; }, get placed() { return placed; }, get stars() { return stars; }, get si() { return si; }, tut, startGame };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

@@ -986,3 +986,6 @@ window.__game = {
   get lives() { return lives; }, get totalAg() { return totalAg; }, get round() { return round; }, get roundAg() { return roundAg; }, get goalAg() { return goalAg; }, get timeLeft() { return timeLeft; },
   get nesN() { return nesN; }, get caughtN() { return caughtN; }, CATCH_Y, toScreen, tut, startGame, SND, COINS, spawnItem, COIN,
 };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

@@ -53,7 +53,9 @@
     root.style.setProperty('--verse-top', top + 'px');
     dispatchEvent(new CustomEvent('verseframe', { detail: { top } }));
   };
-  addEventListener('message', (e) => { const d = e.data; if (d && d.verse === 'frame' && e.source === parent) set(d.top); });
+  // --verse-bottom: the phone's bottom safe area in full screen (a frame doesn't get env(safe-area-inset-bottom)) - a game adds it
+  // to its bottom padding: --safe-b: calc(env(safe-area-inset-bottom, 0px) + var(--verse-bottom, 0px))
+  addEventListener('message', (e) => { const d = e.data; if (d && d.verse === 'frame' && e.source === parent) { root.style.setProperty('--verse-bottom', Math.max(0, Math.round(+d.bottom || 0)) + 'px'); set(d.top); } });
   if (new URLSearchParams(location.search).get('autostart') === '1') {
     root.classList.add('verse-autostart');
     // while it waits: the game hidden (no taps land), a small orange spinner on the game's own background, so it never looks frozen

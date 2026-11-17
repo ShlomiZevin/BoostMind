@@ -844,3 +844,5 @@ html.fd-clean .fd-hint { bottom: calc(66px + env(safe-area-inset-bottom)); }
 .gf-s .gf-play svg { width: 26px; height: 26px; }
 .fd-strip.is-muted .fs-time { display: none; }
 .fs-bar { min-width: 90px; }
+/* a narrow phone while muted: the sound control orange without its words, so the line keeps its room */
+@media (max-width: 380px) { .fs-snd.muted span { display: none; } .fs-snd.muted { padding: 0 8px; } }

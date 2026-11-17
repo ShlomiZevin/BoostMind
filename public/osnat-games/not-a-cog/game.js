@@ -762,3 +762,6 @@ window.NOTACOG = {
   endNow() { ghosts = 3; gameOver(); },
   set freeze(v) { laughT = v ? 1e9 : 0; },
 };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();

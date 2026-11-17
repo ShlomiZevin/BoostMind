@@ -425,3 +425,6 @@ layout(); hud(); showBest(); requestAnimationFrame(frame);
 
 // for the tests
 window.SOFA = { get state() { return state; }, get score() { return score; }, get hearts() { return hearts; }, get combo() { return combo; }, get tut() { return tut.on; }, moles, moleRect, startGame, spawn, SPOTS, get L() { return L; } };
+
+// the game-over screen's way to the menu (where the way back to the verse's games lives): the same as the pause menu's exit
+document.getElementById('menuBtn').onclick = () => document.getElementById('quitBtn').click();
