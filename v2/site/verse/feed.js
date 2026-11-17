@@ -144,7 +144,13 @@ function mount(list, start) {
       if (t / d >= 0.8 && !FD.done.has(v.id)) { FD.done.add(v.id); videoDone(v.id, castOf(v)[0] || null); }   // finished counts toward the tourist's 3
     });
     vd.addEventListener('play', () => { if (vd === cur()) { FD.slides[FD.idx].classList.remove('paused'); ctlPaint(); } });
-    vd.addEventListener('pause', () => { if (FD && vd === cur()) { if (FD.userPaused) FD.slides[FD.idx].classList.add('paused'); ctlPaint(); } });
+    vd.addEventListener('pause', () => {
+      if (!FD || vd !== cur()) return;
+      // a pause nobody asked for just as the sound came on (the browser's own) - the video plays on
+      if (!FD.userPaused && !blocked() && FD.soundAt && Date.now() - FD.soundAt < 2000) { vd.play().catch(() => {}); return; }
+      if (FD.userPaused) FD.slides[FD.idx].classList.add('paused');
+      ctlPaint();
+    });
     vd.addEventListener('volumechange', () => { if (FD && vd === cur()) paintSound(); });
   });
 
@@ -270,12 +276,15 @@ function mute() { const vd = cur(); if (!vd) return; soundOn = false; try { sess
 function unmute() {
   const vd = cur();
   if (!vd) return;
+  const was = !vd.paused;   // the sound never touches play / pause: what was playing keeps playing
   soundOn = true;
   try { sessionStorage.setItem(SOUND, '1'); } catch (e) { /* private mode */ }
+  // iPhone lets a video play with sound only after a tap on THAT element: the other two are let in now, inside this tap - FIRST,
+  // and stopped at once (iPhone pauses a playing video when another one starts with sound, so the one on screen goes last)
+  FD.pool.forEach((x) => { if (x !== vd && x.src) { x.muted = false; const q = x.play(); x.pause(); if (q) q.catch(() => {}); } });
   vd.muted = false;
-  vd.play().catch(() => {});
-  // iPhone lets a video play with sound only after a tap on THAT element: the other two are let in now, inside this tap
-  FD.pool.forEach((x) => { if (x !== vd && x.src) { x.muted = false; x.play().catch(() => {}); x.pause(); } });
+  FD.soundAt = Date.now();
+  if (was || !FD.userPaused) vd.play().catch(() => {});
   paintSound();
   track('feed', 'sound:' + FD.list[FD.idx].id);
 }

@@ -963,3 +963,13 @@ html:not(.fd-clean) .fd-shade { background: linear-gradient(to top, #000 0, #000
 .fd-rail.fd-fixed .fd-n:empty { display: none; }
 .fd-media video, .fd-poster { transform-origin: 50% 50%; }
 .fd-rail.fd-fixed .fd-n { inset-inline-end: auto; inset-inline-start: auto; left: -4px; right: auto; }   /* the corner toward the screen's middle */
+/* the video's title at the start (right), a little bigger, still two lines at most */
+.fd-t { text-align: start; font-size: 1.15rem; padding-inline: 0; }
+/* backs on the right (RTL start), pointing right: the stickers gallery's header and the sticker maker's */
+.sts-back { order: -2; }
+.sts-back svg { transform: none; }
+.sts-h em { order: 3; }
+html.app .st-head .st-back { grid-column: 1; grid-row: 1; justify-self: start; }
+html.app .st-head .ttl { grid-column: 3; grid-row: 1; justify-self: end; }
+html.app .st-head .vx-wordmark { grid-column: 2; grid-row: 1; }
+html.app .st-head .st-back svg { transform: scaleX(-1); }
