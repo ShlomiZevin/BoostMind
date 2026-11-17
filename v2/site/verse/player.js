@@ -164,7 +164,7 @@ export function openPlayer(id, q = {}) {
     else if (b.matches('[data-save]')) save(id);
     else if (b.matches('[data-share]')) share(v);
     else if (b.matches('[data-dl]')) download(v);
-    else if (b.matches('[data-sticker]')) openSticker();
+    else if (b.matches('[data-sticker]')) stickerMenu();   // (a phone: make one / the gallery; else the maker as before)
     else if (b.matches('[data-ep]') && b.dataset.ep) nav('/v/' + b.dataset.ep, true);
     else if (b.matches('.vp-who') && appShell() && P && P.video) { e.preventDefault(); castSheet(P.lead, { v: P.v, video: P.video, from: 'player' }); }   // APP SHELL: the video stays
     else if (b.matches('.vp-who')) { /* the link closes the player through the router */ }
@@ -513,10 +513,15 @@ function richText(text, nicks = []) {
 }
 
 // ctx (optional): {el, v, video, lead, stats} of a video that isn't the open player - the videos feed (feed.js); default the player
+// APP SHELL on a phone (his call 2026-11-17): comments are only comments - the stickers made from the video live behind the
+// video's own sticker button (stickerMenu: make one / the gallery), not in a tab here
+const phoneApp = () => appShell() && matchMedia('(max-width: 760px)').matches;
 export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
+  if (tab === 's' && phoneApp()) { openStickers({ focus }, ctx); return; }   // an old sticker link: the gallery
   const X = ctx || P;
   if (!X || document.querySelector('.cm')) return;
   const { v } = X;
+  const noSt = v.game || phoneApp();
   X.video?.pause();
   if (!ctx) setUi(true);
   let comments = [], stickers = [], myLikes = new Set(), myStamps = new Set(), cur = tab, replying = null;
@@ -524,7 +529,7 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
   let pending = [], nicks = [];
   const all = () => [...comments, ...pending.filter((p) => !p.realId || !comments.some((c) => c.id === p.realId))];
   const open = new Set(), typing = new Map(), off = [];
-  const h = X.cm = sheet(`<div class="tabs"><button class="vx-pill" data-tab="c"></button>${v.game ? '' : '<button class="vx-pill" data-tab="s"></button>'}
+  const h = X.cm = sheet(`<div class="tabs"><button class="vx-pill" data-tab="c"></button>${noSt ? '' : '<button class="vx-pill" data-tab="s"></button>'}
       <button class="vx-x" data-vx-close style="position:static;margin-inline-start:auto">${I.x}</button></div>
     <div class="list"></div>
     <div class="cm-compose"></div>`, { cls: 'cm', onClose: () => { off.forEach((u) => u()); X.cm = null; } });
@@ -536,7 +541,7 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
     for (const [root, w] of typing) if (comments.some((c) => c.parentId === root && c.char === w.char && (c.t?.toMillis?.() || Date.now()) > w.since)) typing.delete(root);
     draw();
   }, (e) => console.error('comments', e)));
-  if (!v.game) off.push(F.onSnapshot(F.query(F.collection(db, 'stickers'), F.where('videoId', '==', v.id), F.where('status', '==', 'live'), F.where('hidden', '==', false), F.orderBy('stampCount', 'desc'), F.limit(60)), (s) => {
+  if (!noSt) off.push(F.onSnapshot(F.query(F.collection(db, 'stickers'), F.where('videoId', '==', v.id), F.where('status', '==', 'live'), F.where('hidden', '==', false), F.orderBy('stampCount', 'desc'), F.limit(60)), (s) => {
     stickers = s.docs.map((d) => ({ id: d.id, ...d.data() }));
     draw();
   }, (e) => console.error('stickers', e)));
@@ -563,7 +568,7 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
     const comments = all();
     nicks = [...new Set(comments.filter((x) => !x.char).map((x) => x.nick))];
     $('[data-tab="c"]', h.el).textContent = T.tabsComments(comments.length || X.stats?.comments || 0);
-    if (!v.game) $('[data-tab="s"]', h.el).textContent = T.tabsStickers(stickers.length);
+    if (!noSt) $('[data-tab="s"]', h.el).textContent = T.tabsStickers(stickers.length);
     h.el.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('on', b.dataset.tab === cur));
     compose.style.display = cur === 'c' ? '' : 'none';
     if (cur === 's') { list.innerHTML = stickerTab(stickers, myStamps); return; }
@@ -678,6 +683,46 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
   });
 }
 
+// ---------- APP SHELL on a phone: the sticker button = one home for stickers - make one, or the fans' stickers of this video ----------
+const stQuery = (v) => F.query(F.collection(db, 'stickers'), F.where('videoId', '==', v.id), F.where('status', '==', 'live'), F.where('hidden', '==', false), F.orderBy('stampCount', 'desc'), F.limit(60));
+export function stickerMenu(ctx = null) {
+  const X = ctx || P;
+  if (!X) return;
+  if (!phoneApp()) { openSticker(ctx); return; }
+  const S = T.shell;
+  const h = sheet(`<div class="stm"><button class="stm-row main" data-stm="make">${I.sticker}<b>${esc(S.stMake)}</b></button>
+      <button class="stm-row" data-stm="gallery" hidden>${LIKE}<b>${esc(S.stGallery)}</b><em data-n></em></button><p class="stm-first" hidden>${esc(S.stFirst)}</p></div>`, { cls: 'stm-sheet' });
+  F.getDocs(stQuery(X.v)).then((s) => {
+    const n = s.size, g = $('[data-stm="gallery"]', h.el);
+    if (n) { g.hidden = false; $('[data-n]', g).textContent = String(n); } else $('.stm-first', h.el).hidden = false;
+  }).catch(() => { $('.stm-first', h.el).hidden = false; });
+  h.el.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-stm]');
+    if (!b) return;
+    h.close(b.dataset.stm);
+    setTimeout(() => (b.dataset.stm === 'make' ? openSticker(ctx) : openStickers({}, ctx)), 340);   // after the sheet's own back step
+  });
+}
+// the fans' stickers of this video, with stamps (what the comments' stickers tab was) - a sheet of its own
+export function openStickers({ focus = null } = {}, ctx = null) {
+  const X = ctx || P;
+  if (!X || document.querySelector('.sts-sheet')) return;
+  const { v } = X;
+  X.video?.pause();
+  let stickers = [], myStamps = new Set();
+  const off = [];
+  const h = sheet(`<div class="sts"><h2 class="vx-h">${esc(T.shell.stGallery)}</h2><div class="list"></div></div>`, { cls: 'sts-sheet', onClose: () => off.forEach((u) => u()) });
+  const list = $('.list', h.el);
+  const draw = () => {
+    list.innerHTML = stickers.length ? `<div class="stg">${stickers.map((s) => stickerCard(s, myStamps)).join('')}</div>` : `<div class="cm-empty">${esc(T.stFansEmpty)}</div>`;
+    if (focus) { const c = list.querySelector(`[data-stamp="${focus}"]`)?.closest('.stc'); if (c) { c.classList.add('hl'); c.scrollIntoView({ block: 'center' }); focus = null; } }
+  };
+  off.push(F.onSnapshot(stQuery(v), (s) => { stickers = s.docs.map((d) => ({ id: d.id, ...d.data() })); draw(); }, () => {}));
+  if (st.user) off.push(F.onSnapshot(F.query(F.collection(db, 'fans', st.user.uid, 'stamps'), F.where('videoId', '==', v.id)), (s) => { myStamps = new Set(s.docs.map((d) => d.id)); draw(); }, () => {}));
+  h.el.addEventListener('click', (e) => { const b = e.target.closest('[data-stamp]'); if (b) stampIt(b, stickers, myStamps, draw); });
+  draw();
+}
+
 // ---------- stickers: the fans' strip / tab, and stamps (the character's catchphrase as the like) ----------
 function stickerCard(s, myStamps) {
   const n = s.stampCount || 0;
@@ -685,7 +730,7 @@ function stickerCard(s, myStamps) {
     <button class="stamp ${myStamps.has(s.id) ? 'on' : ''}" data-stamp="${s.id}" title="${esc(stampText(s.char))}">${LIKE}<b>${n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n || ''}</b></button></div>`;
 }
 function stickerTab(stickers, myStamps) {
-  return `${appShell() ? '' : `<button class="vx-btn main block" data-make style="margin:6px 0 14px">${I.sticker}${esc(T.sticker)}</button>`}
+  return `${phoneApp() ? '' : `<button class="vx-btn main block" data-make style="margin:6px 0 14px">${I.sticker}${esc(T.sticker)}</button>`}
     ${stickers.length ? `<div class="stg">${stickers.map((s) => stickerCard(s, myStamps)).join('')}</div>` : `<div class="cm-empty">${esc(T.stFansEmpty)}</div>`}`;
 }
 async function stampIt(b, stickers, myStamps, redraw) {
@@ -780,7 +825,7 @@ export async function openSticker(ctx = null) {   // ctx: as openComments
     const b = e.target.closest('button');
     if (!b) return;
     if (b.matches('[data-make]')) make();
-    else if (b.matches('[data-all]')) { shut(); openComments({ tab: 's' }, ctx); }
+    else if (b.matches('[data-all]')) { shut(); if (phoneApp()) openStickers({}, ctx); else openComments({ tab: 's' }, ctx); }
     else if (b.matches('[data-again]')) { el.querySelector('[data-row2]')?.remove(); made = null; input.focus(); input.select(); row.innerHTML = `<button class="vx-btn main" data-make>${I.sticker}${esc(T.stMake)}</button>`; }
     else if (b.matches('[data-post]') && made) {
       b.disabled = true;

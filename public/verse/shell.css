@@ -721,3 +721,17 @@ html.fd-clean .fd-ui, html.fd-clean .fd-line, html.fd-clean .top, html.fd-clean 
   html.app .cx.dock .m.bot:not(.wait)::after { border: 0; border-left: 1px solid rgba(255, 255, 255, .14); border-bottom: 1px solid rgba(255, 255, 255, .14);
     background: #1f1f24; inset-inline-end: -6.5px; top: 16px; }
 }
+
+/* the sticker button's sheet (player.js stickerMenu): make one / the fans' stickers of this video, or the line inviting the first */
+.stm { padding: 6px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+.stm-row { display: flex; align-items: center; gap: 12px; width: 100%; height: 56px; padding: 0 16px; border-radius: 16px; font: inherit; font-size: 1.05rem; color: #fff; cursor: pointer;
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .16); text-align: start; }
+.stm-row[hidden] { display: none; }
+.stm-row.main { background: var(--accent, #ff6a1f); border-color: var(--accent, #ff6a1f); box-shadow: 0 6px 18px rgba(255, 106, 31, .35); }
+.stm-row svg { width: 24px; height: 24px; flex: none; }
+.stm-row b { flex: 1; font-weight: 800; }
+.stm-row em { font-style: normal; font-weight: 800; min-width: 28px; height: 26px; padding: 0 8px; display: grid; place-items: center; border-radius: 99px; background: rgba(255, 106, 31, .2); color: var(--accent, #ff6a1f); }
+.stm-first { margin: 2px 4px 0; color: rgba(255, 255, 255, .7); font-size: .95rem; text-align: center; }
+.stm-first[hidden] { display: none; }
+.sts { padding: 4px 16px 16px; overflow-y: auto; }
+.sts .stc.hl { border-color: var(--accent, #ff6a1f); box-shadow: 0 0 14px rgba(255, 106, 31, .4); }

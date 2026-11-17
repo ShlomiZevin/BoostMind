@@ -10,7 +10,7 @@ import { db, F } from './fb.js';
 import { T } from './copy.js';
 import { I, $, esc, av, abs, sheet, track } from './ui.js';
 import { st, onState, follow, save } from './state.js';
-import { openComments, openSticker, share, download, remember, followBtn, paintFollow, watched } from './player.js';
+import { openComments, stickerMenu, share, download, remember, followBtn, paintFollow, watched } from './player.js';
 import { castSheet, talkFromVideo } from './cast.js';   // round 2: a face = a card over the video; "לדבר" = the heads-up, then the chat
 import { offerPush } from './push.js';
 import { videoDone } from './status.js';
@@ -341,7 +341,7 @@ async function onClick(e) {
     case 'sound': unmute(); break;
     case 'full': clean(true); break;   // the first step: the clean feed (still swiping); the native full screen is inside it
     case 'comments': openComments({}, ctx); break;
-    case 'sticker': openSticker(ctx); break;
+    case 'sticker': stickerMenu(ctx); break;   // make one / the fans' stickers of this video
     case 'save': save(v.id); break;
     case 'share': share(v); break;
     case 'dl': download(v); break;
