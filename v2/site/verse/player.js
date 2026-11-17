@@ -685,41 +685,69 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
 
 // ---------- APP SHELL on a phone: the sticker button = one home for stickers - make one, or the fans' stickers of this video ----------
 const stQuery = (v) => F.query(F.collection(db, 'stickers'), F.where('videoId', '==', v.id), F.where('status', '==', 'live'), F.where('hidden', '==', false), F.orderBy('stampCount', 'desc'), F.limit(60));
+const SCISSORS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6.5" r="2.6"/><circle cx="6" cy="17.5" r="2.6"/><path d="M8.2 8 20 17M8.2 16 20 7"/></svg>';
+const SPARK = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>';
+const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>';
+// the sticker button (mockup app-shell/r8/1): two cards - make one from this moment / the fans' stickers of this video
 export function stickerMenu(ctx = null) {
   const X = ctx || P;
   if (!X) return;
   if (!phoneApp()) { openSticker(ctx); return; }
-  const S = T.shell;
-  const h = sheet(`<div class="stm"><button class="stm-row main" data-stm="make">${I.sticker}<b>${esc(S.stMake)}</b></button>
-      <button class="stm-row" data-stm="gallery" hidden>${LIKE}<b>${esc(S.stGallery)}</b><em data-n></em></button><p class="stm-first" hidden>${esc(S.stFirst)}</p></div>`, { cls: 'stm-sheet' });
+  const S = T.shell, lead = X.lead || (X.v.cast || []).find((c) => C[c]) || null;
+  const face = lead && C[lead]?.img ? `<img class="stm-face" src="${esc(abs(C[lead].img))}" alt="">` : '';
+  const h = sheet(`<div class="stm"><button class="vx-x stm-x" data-vx-close aria-label="${esc(T.shell.close)}">${I.x}</button>
+      <div class="stm-cards">
+        <button class="stm-card main" data-stm="make"><span class="stm-art">${face}<i class="stm-cut">${SCISSORS}</i><i class="stm-spark">${SPARK}</i></span><b>${esc(S.stMake)}</b><small>${esc(S.stMakeSub)}</small></button>
+        <button class="stm-card" data-stm="gallery"><span class="stm-art stm-fan" data-fan></span><b data-gt>${esc(S.stGallery)}</b><small data-gs>&nbsp;</small></button>
+      </div></div>`, { cls: 'stm-sheet' });
+  let n = 0;
   F.getDocs(stQuery(X.v)).then((s) => {
-    const n = s.size, g = $('[data-stm="gallery"]', h.el);
-    if (n) { g.hidden = false; $('[data-n]', g).textContent = String(n); } else $('.stm-first', h.el).hidden = false;
-  }).catch(() => { $('.stm-first', h.el).hidden = false; });
+    n = s.size;
+    const g = $('[data-stm="gallery"]', h.el);
+    if (n) {
+      $('[data-fan]', g).innerHTML = s.docs.slice(0, 3).map((d, k) => `<img style="--k:${k}" src="${esc(d.data().img)}" alt="">`).join('');
+      $('[data-gs]', g).textContent = S.stGallerySub(n);
+    } else { g.classList.add('none'); $('[data-gt]', g).textContent = S.stNone; $('[data-gs]', g).textContent = S.stNoneSub; $('[data-fan]', g).innerHTML = `<i class="stm-spark big">${SPARK}</i>`; }
+  }).catch(() => {});
   h.el.addEventListener('click', (e) => {
     const b = e.target.closest('[data-stm]');
     if (!b) return;
-    h.close(b.dataset.stm);
-    setTimeout(() => (b.dataset.stm === 'make' ? openSticker(ctx) : openStickers({}, ctx)), 340);   // after the sheet's own back step
+    const go = b.dataset.stm === 'make' || !n ? 'make' : 'gallery';
+    h.close(go);
+    setTimeout(() => (go === 'make' ? openSticker(ctx) : openStickers({}, ctx)), 340);   // after the sheet's own back step
   });
 }
-// the fans' stickers of this video, with stamps (what the comments' stickers tab was) - a sheet of its own
+// the fans' stickers of this video (mockup r8/2): a tall sheet, two columns, each with who made it and its stamp; one's own at the bottom
 export function openStickers({ focus = null } = {}, ctx = null) {
   const X = ctx || P;
   if (!X || document.querySelector('.sts-sheet')) return;
   const { v } = X;
   X.video?.pause();
+  const S = T.shell;
   let stickers = [], myStamps = new Set();
   const off = [];
-  const h = sheet(`<div class="sts"><h2 class="vx-h">${esc(T.shell.stGallery)}</h2><div class="list"></div></div>`, { cls: 'sts-sheet', onClose: () => off.forEach((u) => u()) });
+  const h = sheet(`<div class="sts"><div class="sts-h"><button class="sts-back" data-sts-back aria-label="${esc(S.stBack)}">${CHEV}</button><h2>${esc(S.stGallery)}</h2><em data-n></em></div>
+      <div class="list"></div><button class="vx-btn main sts-mine" data-sts-make>${I.plus}<span>${esc(S.stMine)}</span></button></div>`, { cls: 'sts-sheet', onClose: () => off.forEach((u) => u()) });
   const list = $('.list', h.el);
+  const card = (s) => {
+    const on = myStamps.has(s.id), n = s.stampCount || 0;
+    return `<div class="stc2"><img src="${esc(s.img)}" alt="${esc(s.text || '')}" data-wa-img="${esc(s.img)}" data-wa-v="${esc(s.videoId)}">
+      <div class="stc2-f"><span class="stc2-who">${av({ fan: { nick: s.nick, photo: s.photo } })}<b>${esc(s.nick || '')}</b></span>
+        <button class="stc2-stamp ${on ? 'on' : ''}" data-stamp="${s.id}" title="${esc(stampText(s.char))}">${LIKE}<span>${esc(S.stamp)}${n ? ' ' + (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n) : ''}</span></button></div></div>`;
+  };
   const draw = () => {
-    list.innerHTML = stickers.length ? `<div class="stg">${stickers.map((s) => stickerCard(s, myStamps)).join('')}</div>` : `<div class="cm-empty">${esc(T.stFansEmpty)}</div>`;
-    if (focus) { const c = list.querySelector(`[data-stamp="${focus}"]`)?.closest('.stc'); if (c) { c.classList.add('hl'); c.scrollIntoView({ block: 'center' }); focus = null; } }
+    $('[data-n]', h.el).textContent = stickers.length ? String(stickers.length) : '';
+    list.innerHTML = stickers.length ? `<div class="stg2">${stickers.map(card).join('')}</div>` : `<div class="cm-empty">${esc(T.stFansEmpty)}</div>`;
+    if (focus) { const c = list.querySelector(`[data-stamp="${focus}"]`)?.closest('.stc2'); if (c) { c.classList.add('hl'); c.scrollIntoView({ block: 'center' }); focus = null; } }
   };
   off.push(F.onSnapshot(stQuery(v), (s) => { stickers = s.docs.map((d) => ({ id: d.id, ...d.data() })); draw(); }, () => {}));
   if (st.user) off.push(F.onSnapshot(F.query(F.collection(db, 'fans', st.user.uid, 'stamps'), F.where('videoId', '==', v.id)), (s) => { myStamps = new Set(s.docs.map((d) => d.id)); draw(); }, () => {}));
-  h.el.addEventListener('click', (e) => { const b = e.target.closest('[data-stamp]'); if (b) stampIt(b, stickers, myStamps, draw); });
+  h.el.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-stamp]');
+    if (b) { stampIt(b, stickers, myStamps, draw); return; }
+    if (e.target.closest('[data-sts-back]')) { h.close('back'); setTimeout(() => stickerMenu(ctx), 340); return; }
+    if (e.target.closest('[data-sts-make]')) { h.close('make'); setTimeout(() => openSticker(ctx), 340); }
+  });
   draw();
 }
 
@@ -743,7 +771,7 @@ async function stampIt(b, stickers, myStamps, redraw) {
     track('stamp', s?.videoId);
     // the character's catchphrase lands on the sticker like a rubber stamp
     requestAnimationFrame(() => {
-      const card = document.querySelector(`[data-stamp="${id}"]`)?.closest('.stc');
+      const card = document.querySelector(`[data-stamp="${id}"]`)?.closest('.stc, .stc2');
       if (!card) return;
       const mark = Object.assign(document.createElement('span'), { className: 'stamp-mark', textContent: stampText(s?.char) });
       card.append(mark);
