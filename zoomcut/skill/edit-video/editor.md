@@ -429,4 +429,5 @@ a funny card ("OAF" - never the word OnlyFans). In the editor:
   4 s + a 3 s ending): 10.0 s and 7.0 s files, the tone stops on the cut frame.
 - The ending's look: his concept 2026-11-17 (Backstage plan `oaf-ending` comments) = "signal lost" - the demo is the hidden
   copy `_signal-lost-demo` of not-the-question (delete it once he has seen it).
+- A direct link to any project (a hidden `_` copy too): `http://localhost:4747/?ep=<project>` (render/ui/common.tsx tabProject).
 

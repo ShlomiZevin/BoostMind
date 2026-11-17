@@ -33,7 +33,13 @@ export const STATUS: Record<string, string> = { ok: 'Matched', check: 'Check', m
 export const f2 = (t?: number | null) => (t == null ? '' : t.toFixed(2));
 // the project of this browser tab: shared by its tools (editor, Reader, Karaoke), not by other tabs
 export const tabProject = {
-  get: () => { try { return sessionStorage.getItem('zc-ep') || localStorage.getItem('zc-ep') || ''; } catch { return ''; } },
+  get: () => {
+    try {  // a direct link: http://localhost:4747/?ep=<project> opens that project in this tab (a hidden "_" copy too), once
+      const w = window.top || window, u = new URLSearchParams(w.location.search).get('ep');
+      if (u) { sessionStorage.setItem('zc-ep', u); w.history.replaceState(null, '', w.location.pathname + w.location.hash); return u; }
+    } catch {}
+    try { return sessionStorage.getItem('zc-ep') || localStorage.getItem('zc-ep') || ''; } catch { return ''; }
+  },
   set: (id: string) => { try { sessionStorage.setItem('zc-ep', id); localStorage.setItem('zc-ep', id); } catch {} },
 };
 
