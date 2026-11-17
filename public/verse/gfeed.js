@@ -2,7 +2,8 @@
 // screen between the top bar and the tab bar, swipe up for the next (scroll-snap), newest first (wiki.json games, as the
 // games page). On every game: its cover big, the title, its one line, whose game it is (face + name), a big "לשחק" (the
 // game layer - /play/<id>, player.js openGame) and, for a game with daily records, today's best (records/<game>_<day>, the
-// same board records.js shows - read once, when the game comes on screen). The grid stays at /games?view=grid (a small
+// same board records.js shows - every board read once when the feed opens, before it shows, so the line never pushes the
+// page; kept a few minutes). The grid stays at /games?view=grid (a small
 // toggle at the top, on both). Analytics: 'feed' tab:games when it opens, game:<id> on "לשחק" (analytics.js whitelist).
 import { db, F } from './fb.js';
 import { T } from './copy.js';
@@ -60,7 +61,7 @@ function slide(g, i, all) {
       ${g.tagline ? `<p class="gf-tag">${esc(shortLine(g.tagline))}</p>` : ''}
       ${o ? `<a class="gf-who" href="/c/${o}">${av({ char: o, ring: true })}<b>${esc(C[o].name)}</b></a>` : ''}
       <a class="gf-play" href="/play/${esc(g.id)}" data-gf-play="${esc(g.id)}">${PLAY}<span>${esc(G().play)}</span></a>
-      ${g.record ? `<div class="gf-rec" aria-hidden="true"><span>${esc(G().best)}</span> <b>0</b></div>` : ''}
+      ${g.record ? `<div class="gf-rec" ${recLine(g) ? '' : 'hidden'}>${recLine(g)}</div>` : ''}
       ${last ? `<a class="gf-next gf-end" href="/games?view=grid" data-gf-grid>${ICON_GRID}<span>${esc(G().last)} · ${esc(G().grid)}</span></a>`
         : `<div class="gf-next" aria-hidden="true">${ICON_UP}<span>${esc(G().more)}</span></div>`}
     </div>
@@ -72,23 +73,25 @@ export function gamesFeed() {
   const list = W.games || [];
   if (!list.length) return null;
   queueMicrotask(() => mount(list));   // once the router has put it on the page
-  return `${gamesToggle('feed')}<div class="gf" id="gf" role="feed" aria-label="${esc(G().title)}">${list.map(slide).join('')}</div>`;
+  const wait = list.some((g) => g.record && !(key(g) in BOARDS));   // today's boards not read yet: shown once they are (a moment)
+  return `${gamesToggle('feed')}<div class="gf${wait ? ' gf-wait' : ''}" id="gf" role="feed" aria-label="${esc(G().title)}">${list.map(slide).join('')}</div>`;
 }
 
 function mount(list) {
   const el = document.getElementById('gf');
   if (!el || GF) return;
   document.documentElement.classList.add('gf-on');
-  GF = { el, list, recs: new Set() };
+  GF = { el, list, late: new Set(), cur: 0 };
   // back to the feed (a tab tapped back, the back button): where it was
   const fy = history.state && history.state.fy;
   if (fy) el.scrollTop = fy;
   GF.io = new IntersectionObserver((es) => {
-    for (const e of es) if (e.isIntersecting) { const i = +e.target.dataset.i; record(i); record(i + 1); }
+    for (const e of es) if (e.isIntersecting) { GF.cur = +e.target.dataset.i; placeLate(); }
   }, { root: el, threshold: [0.55] });
+  boards(list, el);
   el.querySelectorAll('.gf-s').forEach((s) => GF.io.observe(s));
   el.addEventListener('click', onClick);
-  // a cover far wider than its frame (words in the art): the whole picture over a blurred copy of itself, not a hard crop
+  // a cover whose words are the picture: the whole of it over a blurred copy of itself (every other cover fills the frame)
   el.querySelectorAll('.gf-main').forEach((img) => { if (img.complete && img.naturalWidth) fit(img); else img.addEventListener('load', () => fit(img), { once: true }); });
   GF.rs = () => el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img));
   addEventListener('resize', GF.rs);
@@ -101,30 +104,48 @@ function onClick(e) {
   const g = e.target.closest('[data-gf-grid]');
   if (g) { e.preventDefault(); e.stopPropagation(); nav('/games?view=grid', true); }
 }
-// the art fills the top of the slide edge to edge (cover, mockup 3); a cover of which less than 60% of the width would show
-// there, or one whose words would be cut, is shown whole over its own blur
+// the art fills the top of the slide edge to edge, cropped (cover, mockup 3); only a cover whose words are the picture
+// (COVER_TEXT / cover_text) is shown whole over its own blur
 function fit(img) {
-  const art = img.parentNode, H = art.clientHeight, h = H - 36;
-  if (!art.clientWidth || h <= 0) return;
-  const ia = img.naturalWidth / img.naturalHeight, on = !!art.dataset.words || art.clientWidth / H / ia < 0.6;
+  const art = img.parentNode, h = art.clientHeight - 36;
+  const on = !!art.dataset.words;
   art.classList.toggle('fit', on);
-  if (on) art.style.setProperty('--gt', Math.max(0, h - art.clientWidth / ia) + 'px');   // where the picture starts: its top edge melts into the blur
+  if (on && art.clientWidth && h > 0) art.style.setProperty('--gt', Math.max(0, (h - art.clientWidth / (img.naturalWidth / img.naturalHeight)) / 2) + 'px');   // where the picture starts: its top edge melts into the blur
 }
-// today's best on this game's board (lower is better for some - the board keeps its own order; top[0] is the leader)
-function record(i) {
-  if (!GF || GF.recs.has(i)) return;
-  const g = GF.list[i];
-  if (!g || !g.record) return;
-  GF.recs.add(i);
+// ---------- today's best: every scoring game's board, read when the feed opens (kept 5 minutes), before the feed shows ----------
+const BOARDS = {};   // '<game>_<day>' -> the leader or null
+let boardsAt = 0;
+const key = (g) => `${g.id}_${dayIL()}`;
+function recLine(g) {
+  const top = BOARDS[key(g)];
+  return top ? `<span>${esc(G().best)}</span> <b>${fmt(top.value)}</b> <small>${esc(g.record.unit || '')}</small>` : '';
+}
+function boards(list, el) {
+  const games = list.filter((g) => g.record);
+  if (Date.now() - boardsAt > 300e3) { games.forEach((g) => delete BOARDS[key(g)]); boardsAt = Date.now(); }
+  const todo = games.filter((g) => !(key(g) in BOARDS));
+  const show = () => el.classList.remove('gf-wait');
+  if (!todo.length) { show(); return; }
   const own = GF;
-  F.getDoc(F.doc(db, 'records', `${g.id}_${dayIL()}`)).then((s) => {
+  const all = todo.map((g) => F.getDoc(F.doc(db, 'records', key(g))).then((s) => {
     const top = s.exists() ? (s.data().top || [])[0] : null;
-    const slot = own === GF && GF.el.querySelector(`.gf-s[data-i="${i}"] .gf-rec`);
-    if (!top || !slot || typeof top.value !== 'number') return;
-    slot.innerHTML = `<span>${esc(G().best)}</span> <b>${fmt(top.value)}</b> <small>${esc(g.record.unit || '')}</small>`;
-    slot.removeAttribute('aria-hidden');
-    slot.classList.add('on');   // its place was kept: it fades in, nothing above it moves
-  }).catch(() => {});
+    BOARDS[key(g)] = top && typeof top.value === 'number' ? top : null;
+    if (own === GF && BOARDS[key(g)]) { own.late.add(g.id); if (!el.classList.contains('gf-wait')) placeLate(); }
+  }).catch(() => { BOARDS[key(g)] = null; }));
+  // all in, or 700 ms at most: the feed shows with every line already in its place
+  Promise.race([Promise.all(all), new Promise((r) => setTimeout(r, 700))]).then(() => { if (own !== GF) return; placeLate(true); show(); });
+}
+// a line that arrives late goes onto the games off screen at once, and onto the one showing only once it has left it
+function placeLate(all) {
+  if (!GF) return;
+  for (const id of [...GF.late]) {
+    const i = GF.list.findIndex((g) => g.id === id), slot = GF.el.querySelector(`.gf-s[data-i="${i}"] .gf-rec`);
+    if (!slot) { GF.late.delete(id); continue; }
+    if (!all && i === GF.cur) continue;
+    slot.innerHTML = recLine(GF.list[i]);
+    slot.hidden = false;
+    GF.late.delete(id);
+  }
 }
 
 export function unmount() {
