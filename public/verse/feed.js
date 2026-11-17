@@ -50,7 +50,6 @@ function slide(v, i) {
         <button data-f="dl"><span class="fd-ic">${I.download}</span><b>${esc(FT.dl)}</b></button>
       </div>
       <div class="fd-info">
-        <div class="fd-tools"><button class="fd-sound" data-f="sound" hidden>${ICON_SOUND_OFF}<span>${esc(FT.sound)}</span></button></div>
         <h2 class="fd-t">${esc(v.title)}</h2>
         ${cast.length ? `<div class="fd-cast"><span class="fd-cl">${esc(FT.cast)}</span><div class="fd-chips">${cast.map((id) => `<a class="fd-chip" href="/c/${id}">${av({ char: id })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></div>
         <div class="fd-acts"><button class="fd-follow" data-f="follow"></button><button class="fd-talk" data-f="talk">${I.comment}<span>${esc(cast.length > 1 ? FT.talkAll : FT.talk1[gender(cast[0])])}</span></button></div>` : ''}
@@ -127,6 +126,7 @@ function mount(list, start) {
       if (!d) return;
       const s = FD.slides[FD.idx];
       $('.fd-line i', s).style.width = (t / d) * 100 + '%';
+      stripTime();
       const v = FD.list[FD.idx];
       if (Date.now() - FD.lastSave > 3000) { FD.lastSave = Date.now(); remember(v.id, t, d); }
       if (t / d >= 0.8 && !FD.done.has(v.id)) { FD.done.add(v.id); videoDone(v.id, castOf(v)[0] || null); }   // finished counts toward the tourist's 3
@@ -176,7 +176,7 @@ function mount(list, start) {
 export function unmount() {
   if (!FD) return;
   document.documentElement.classList.remove('fd-clean');
-  document.getElementById('fd-ctl')?.remove(); document.getElementById('fd-hint')?.remove();
+  document.getElementById('fd-strip')?.remove(); document.getElementById('fd-hint')?.remove();
   clearTimeout(hint.t); clearTimeout(hint.idle);
   FD.io?.disconnect(); FD.mo?.disconnect();
   FD.statOff?.();
@@ -254,11 +254,8 @@ function play() {
     soundOn = false; vd.muted = true; vd.play().catch(() => {}); paintSound();
   });
 }
-function paintSound() {
-  if (!FD) return;
-  const vd = cur();
-  FD.slides.forEach((s, k) => { const b = $('.fd-sound', s); b.hidden = !(k === FD.idx && vd && vd.muted); });
-}
+function paintSound() { ctlPaint(); }   // (the strip's sound control says it - orange with "לחצו לשמיעה" while muted)
+function mute() { const vd = cur(); if (!vd) return; soundOn = false; try { sessionStorage.removeItem(SOUND); } catch (e) { /* private */ } vd.muted = true; ctlPaint(); }
 function unmute() {
   const vd = cur();
   if (!vd) return;
@@ -292,18 +289,37 @@ const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="tru
 const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>';
 const ICON_UP = svg('<path d="m6 15 6-6 6 6"/>', 2.4);
 const isClean = () => document.documentElement.classList.contains('fd-clean');
+// ---------- the play strip (his notes + mockups app-shell/r10): ONE fixed strip for the feed, not part of a slide - in the full
+// view it sits just above the words card at the same y for every video (the picture ends at it); in the clean view the same strip
+// moves to the screen's bottom, see-through, with "back to the full view" and "full screen". Play / pause, a seekable line with
+// the time, sound (orange with "לחצו לשמיעה" while muted) ----------
+const ICON_SND = svg('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>');
+const mmss = (x) => { x = Math.max(0, Math.floor(x || 0)); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); };
 function ctlMount() {
-  let c = document.getElementById('fd-ctl');
+  let c = document.getElementById('fd-strip');
   if (!c) {
-    c = Object.assign(document.createElement('div'), { id: 'fd-ctl', className: 'fd-ctl' });
-    c.innerHTML = `<button data-c="pp"></button><button data-c="view"></button><button data-c="detach" aria-label="${esc(T.shell.detach)}">${ICON_DETACH}</button>`;
+    c = Object.assign(document.createElement('div'), { id: 'fd-strip', className: 'fd-strip' });
+    c.innerHTML = `<button class="fs-pp" data-c="pp"></button>
+      <div class="fs-bar" data-c="seek"><i class="fs-fill"></i><b class="fs-knob"></b></div>
+      <span class="fs-time"></span>
+      <button class="fs-snd" data-c="snd"></button>
+      <button class="fs-view" data-c="view"></button>
+      <button class="fs-det" data-c="detach" aria-label="${esc(T.shell.detach)}">${ICON_DETACH}</button>`;
     c.addEventListener('click', (e) => {
       const b = e.target.closest('[data-c]');
-      if (!b || !FD) return;
+      if (!b || !FD || b.dataset.c === 'seek') return;
       if (b.dataset.c === 'pp') togglePlay();
+      else if (b.dataset.c === 'snd') { const vd = cur(); if (vd && vd.muted) unmute(); else mute(); }
       else if (b.dataset.c === 'view') clean(!isClean());
       else full(cur(), FD.list[FD.idx]);
     });
+    // seek: tap or drag on the line (left to right, as a timeline)
+    const bar = c.querySelector('.fs-bar');
+    const seekTo = (x) => { const vd = cur(), r = bar.getBoundingClientRect(); if (!vd || !vd.duration) return; vd.currentTime = Math.min(1, Math.max(0, (x - r.left) / r.width)) * vd.duration; stripTime(); };
+    let drag = false;
+    bar.addEventListener('pointerdown', (e) => { drag = true; bar.setPointerCapture(e.pointerId); seekTo(e.clientX); });
+    bar.addEventListener('pointermove', (e) => { if (drag) seekTo(e.clientX); });
+    bar.addEventListener('pointerup', () => { drag = false; });
     document.body.append(c);
     const h = Object.assign(document.createElement('div'), { id: 'fd-hint', className: 'fd-hint' });
     h.innerHTML = `${ICON_UP}<span>${esc(T.shell.swipeNext)}</span>`;
@@ -311,23 +327,40 @@ function ctlMount() {
   }
   ctlPaint();
 }
+// the strip's y in the full view: above the tallest words card of the feed, from the feed's bottom - the same for every video;
+// the picture of every slide ends there (--fd-cut)
+function ctlPlace() {
+  const c = document.getElementById('fd-strip');
+  if (!c || !FD || isClean()) return;
+  const fr = FD.el.getBoundingClientRect();
+  let tall = 0;
+  for (const s of FD.slides) { const i = s.querySelector('.fd-info'); if (i) tall = Math.max(tall, i.offsetHeight); }
+  if (!tall) return;
+  const y = Math.round(fr.bottom - 16 - tall - 10 - c.offsetHeight);
+  c.style.top = y + 'px';
+  FD.el.style.setProperty('--fd-cut', (y - fr.top) + 'px');
+}
 function ctlPaint() {
-  const c = document.getElementById('fd-ctl');
+  const c = document.getElementById('fd-strip');
   if (!c || !FD) return;
-  // its place: the video's bottom-left corner, just above the words (measured in the full view, kept as it is in the clean one -
-  // the control never moves when the view changes)
-  // one fixed y for every video: above the tallest words block of the feed (so no title ever reaches it), from the feed's bottom
-  if (!isClean()) {
-    const fb = FD.el.getBoundingClientRect().bottom;
-    let tall = 0;
-    // (the sound pill comes and goes on one slide: its row is counted as always there - 38px + the 10px gap)
-    for (const s of FD.slides) { const i = s.querySelector('.fd-info'), t = s.querySelector('.fd-tools'); if (i) tall = Math.max(tall, i.offsetHeight - (t ? t.offsetHeight + (t.offsetHeight ? 10 : 0) : 0)); }
-    if (tall) c.style.top = Math.round(fb - 16 - tall - 48 - 50) + 'px';
-  }
-  const vd = cur(), playing = vd && !vd.paused;
-  const pp = c.querySelector('[data-c="pp"]'), view = c.querySelector('[data-c="view"]');
+  ctlPlace();
+  const vd = cur(), playing = vd && !vd.paused, muted = !vd || vd.muted;
+  const pp = c.querySelector('[data-c="pp"]'), view = c.querySelector('[data-c="view"]'), snd = c.querySelector('[data-c="snd"]');
   pp.innerHTML = playing ? ICON_PAUSE : ICON_PLAY; pp.setAttribute('aria-label', playing ? FT.pause : FT.play);
   view.innerHTML = isClean() ? ICON_SHRINK : ICON_FULL; view.setAttribute('aria-label', isClean() ? T.shell.cleanOff : T.shell.clean);
+  snd.classList.toggle('muted', muted);
+  c.classList.toggle('is-muted', muted && !isClean());   // (the time steps aside for "לחצו לשמיעה" - the line keeps its room)
+  snd.innerHTML = muted ? `${ICON_SOUND_OFF}${isClean() ? '' : `<span>${esc(FT.sound)}</span>`}` : ICON_SND;
+  snd.setAttribute('aria-label', muted ? FT.sound : T.shell.mute);
+  stripTime();
+}
+function stripTime() {
+  const c = document.getElementById('fd-strip'), vd = cur();
+  if (!c || !vd) return;
+  const d = vd.duration || 0, t = vd.currentTime || 0, p = d ? (t / d) * 100 : 0;
+  c.querySelector('.fs-fill').style.width = p + '%';
+  c.querySelector('.fs-knob').style.left = p + '%';
+  c.querySelector('.fs-time').textContent = `${mmss(t)} / ${d ? mmss(d) : '-:--'}`;
 }
 function togglePlay() {
   const vd = cur();

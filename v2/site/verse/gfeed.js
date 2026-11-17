@@ -18,7 +18,8 @@ const G = () => T.gfeed;
 let GF = null;
 const svg = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON_GRID = svg('<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>');
-const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.3-7.2c.6-.4.6-1.4 0-1.8L8.6 3.9C7.9 3.5 7 4 7 4.8z"/></svg>';
+// the play mark pointing the way the app reads (right to left) - one and the same button on every game's slide
+const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 4.8v14.4c0 .8-.9 1.3-1.6.9L4.1 12.9c-.6-.4-.6-1.4 0-1.8l11.3-7.2c.7-.4 1.6.1 1.6.9z"/></svg>';
 // covers whose words (a title, the logo) are the picture: shown whole, never cropped at the sides. A game can say so itself
 // (game.json "cover_text": true - build.py, content.js and catalog.js pass it on); until that server change is live these, looked at one by one (2026-11-17)
 const COVER_TEXT = new Set(['hani-games-yosef', 'hani-games-pilai', 'verse-fly']);

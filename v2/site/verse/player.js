@@ -281,8 +281,6 @@ export function openGame(id, q = {}) {
     if (frame || !P) return;
     box.innerHTML = `<iframe src="${esc(src)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>`;
     frame = $('iframe', box);
-    let first = true;
-    frame.addEventListener('load', () => { if (first) { first = false; return; } if (P && !P.replacing) P.frameNav = (P.frameNav || 0) + 1; if (P) P.replacing = false; });
   };
   const gate = () => {
     box.innerHTML = `<div class="vg-gate">${g.img ? `<img src="${esc(g.img)}" alt="">` : ''}<h3>${esc(T.rec.gateTitle)}</h3><p>${esc(T.rec.gateSub)}</p>
@@ -324,7 +322,13 @@ export function openGame(id, q = {}) {
   const again = () => { if (!frame) return; P.replacing = true; try { frame.contentWindow.location.replace(src); } catch (x) { P.replacing = false; frame.src = src; } };
   P.onMsg = (e) => {
     if (!P || !frame || e.source !== frame.contentWindow || !e.data) return;
-    if (e.data.verse === 'hello') tell();
+    if (e.data.verse === 'hello') {
+      // each page the frame shows says hello as it starts: after the first, a page that came by a history step of its own
+      // (not our in-place reload) is counted - the way back steps over it (close)
+      if (P.hellos) { if (!P.replacing) P.frameNav = (P.frameNav || 0) + 1; }
+      P.hellos = (P.hellos || 0) + 1; P.replacing = false;
+      tell();
+    }
     else if (e.data.verse === 'back') close();   // the game's own "back" (VerseGame.back): to the slide it came from
     else if (e.data.verse === 'score') { P.liked = true; if (g.record) onScore(g, Number(e.data.value), { reopen: again }); }
     // Shlomiverse Online (net/index.js - loaded only when a game asks): rooms, the lobby, the game's moves

@@ -35,7 +35,7 @@ const quickEnd = qs.get('end') === '1';   // ?end=1: one tap and you are at the 
 function start() {
   document.body.innerHTML = '';
   const end = (what) => (s) => {
-    document.body.innerHTML = `<div class="again"><b>${what}</b><small>${s.score} נקודות · ${s.time} שניות · ${s.stars} כוכבים · ${s.shot} פיצוצים · ${s.shields} מגנים · ניסיון ${s.tries}</small><button>שוב</button><button class="verse-only back" data-verse-back>למשחקים</button></div>`;
+    document.body.innerHTML = `<div class="again"><b>${what}</b><small>${s.score} נקודות · ${s.time} שניות · ${s.stars} כוכבים · ${s.shot} פיצוצים · ${s.shields} מגנים · ניסיון ${s.tries}</small><button>שוב</button><span data-verse-back-btn></span></div>`;
     document.querySelector('.again button').onclick = start;
     window.FLY_RESULT = { what, ...s };
   };

@@ -17,7 +17,7 @@ principles - apply them to whatever the game is.
 - Start screen: the game's cover art as the hero, the title, one line of what it is, ONE big main button ("שחקו"),
   a quieter "איך משחקים", the record, and a small footer (back to the hub, sound). Not a stack of equal buttons.
   He called a plain menu "terrible" - the start screen is the game's shop window. In the verse it also holds the way
-  back to the games ("חזרה למשחקים", `class="verse-only" data-verse-back`) - only there; exits during play go back to
+  back to the games - the verse's own button, `<span data-verse-back-btn></span>` (game-frame.js draws it, never style your own) - only there; exits during play go back to
   this start screen. Never a floating button, never a reserved top strip.
 - Phone upright is the main layout; the computer layout is the same game with more room, not a different design.
 - **The game area IS the screen** (his rule, 12 Nov 2026: "don't waste place on areas which are not the game - I saw

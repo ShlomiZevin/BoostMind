@@ -19,6 +19,8 @@
 // "verse-only" (shown only inside the verse) + data-verse-back, or a call to window.VerseGame.back(); it returns to the feed at
 // the same game. VerseGame.inVerse says the game runs inside the verse. Exits inside the game (pause menu, home) keep going to
 // the game's own menu. A link marked data-verse-back (an existing "לכל המשחקים") does the same instead of leaving.
+// The button itself is the verse's, the same in every game (his rule): a game places <span data-verse-back-btn></span> in its
+// main menu and this script draws it there - an orange pill with the planet and "חזרה למשחקים", scoped styles, only in the verse.
 // (?autostart=1 - pressing the start button for the game - is kept inert: nothing passes it since his call to drop it.)
 (() => {
   const root = document.documentElement;
@@ -33,7 +35,13 @@
   window.VerseGame.back = () => { parent.postMessage({ verse: 'back' }, '*'); };
   window.VerseFrame.score = (n) => { if (window.VerseFrame.inVerse && Number(n) > 0) parent.postMessage({ verse: 'score', value: Number(n) }, '*'); };
   const css = document.createElement('style');
-  css.textContent = 'html.in-verse .verse-hide{display:none!important}html:not(.in-verse) .verse-only{display:none!important}';
+  css.textContent = 'html.in-verse .verse-hide{display:none!important}html:not(.in-verse) .verse-only{display:none!important}'
+    + 'html:not(.in-verse) [data-verse-back-btn]{display:none!important}'
+    + '[data-verse-back-btn]{display:inline-flex;justify-content:center}'
+    + '.vxgb-btn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 22px 0 18px;border-radius:999px;'
+    + 'background:#ff6a1f;color:#fff;font:800 16px/1 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;direction:rtl;white-space:nowrap;cursor:pointer;'
+    + 'box-shadow:0 6px 18px rgba(255,106,31,.38),inset 0 1px 0 rgba(255,255,255,.25);-webkit-tap-highlight-color:transparent}'
+    + '.vxgb-btn:active{transform:scale(.97)}.vxgb-btn img{width:26px;height:26px;object-fit:contain;flex:none}';
   document.head.appendChild(css);
   const set = (top) => {
     top = Math.max(0, Math.round(Number(top) || 0));
@@ -74,6 +82,13 @@
     if (document.readyState === 'loading') addEventListener('DOMContentLoaded', () => setTimeout(tryStart, 50)); else setTimeout(tryStart, 50);
   }
   parent.postMessage({ verse: 'hello' }, '*');
+  // the verse's own back button, drawn into every placeholder the game put in its menu
+  const drawBack = () => document.querySelectorAll('[data-verse-back-btn]:not([data-drawn])').forEach((s) => {
+    s.setAttribute('data-drawn', '');
+    s.innerHTML = '<button type="button" class="vxgb-btn" data-verse-back><img src="/verse/logo-160.png" alt=""><span>חזרה למשחקים</span></button>';
+  });
+  const watch = () => { drawBack(); new MutationObserver(drawBack).observe(document.body, { childList: true, subtree: true }); };   // (screens a game draws later too)
+  if (document.readyState === 'loading') addEventListener('DOMContentLoaded', watch); else watch();
 
   // a button marked data-verse-back: the game's own click runs, then back to the games feed
   document.addEventListener('click', (e) => {

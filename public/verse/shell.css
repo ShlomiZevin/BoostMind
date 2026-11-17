@@ -805,3 +805,42 @@ html:not(.fd-clean) .fd-hint { display: none; }
 .fd-ctl { direction: ltr; }
 /* the swipe hint on a soft dark bed */
 .fd-hint { padding: 6px 16px 8px; border-radius: 16px; background: rgba(0, 0, 0, .45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* =================== the play strip (mockups r10): one fixed strip for the feed =================== */
+.fd-ctl { display: none !important; }
+html.fd-clean .fd-s { height: 100%; }   /* clean: exactly one video, edge to edge */
+/* the full view: every slide's picture ends at the strip (--fd-cut, set by feed.js), the card below on the dark */
+html:not(.fd-clean) .fd-media, html:not(.fd-clean) .fd-poster { bottom: auto; height: var(--fd-cut, 100%); }
+html:not(.fd-clean) .fd-shade { background: linear-gradient(to bottom, rgba(0, 0, 0, .22), transparent 14%); }
+html:not(.fd-clean) .fd-info::before { display: none; }
+.fd-strip { position: fixed; z-index: 5; left: 10px; right: 10px; height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 12px; box-sizing: border-box;
+  border-radius: 14px; background: #141419; border: 1px solid rgba(255, 255, 255, .12); color: #fff; }
+html:not(.feed-on) .fd-strip { display: none; }
+.fd-strip button { flex: none; display: grid; place-items: center; height: 34px; min-width: 34px; padding: 0; border: 0; background: none; color: #fff; cursor: pointer; font: inherit; }
+.fd-strip button svg { width: 22px; height: 22px; }
+.fd-strip .fs-pp svg { width: 24px; height: 24px; }
+.fs-bar { flex: 1; min-width: 0; height: 30px; position: relative; direction: ltr; cursor: pointer; touch-action: none; }
+.fs-bar::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; border-radius: 4px; background: rgba(255, 255, 255, .22); }
+.fs-fill { position: absolute; left: 0; top: 50%; height: 4px; margin-top: -2px; border-radius: 4px; background: var(--accent, #ff6a1f); width: 0; }
+.fs-knob { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--accent, #ff6a1f); box-shadow: 0 0 0 3px rgba(255, 106, 31, .25); left: 0; }
+.fs-time { flex: none; font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, .85); direction: ltr; font-variant-numeric: tabular-nums; }
+.fs-snd.muted { gap: 6px; display: inline-flex; align-items: center; padding: 0 10px; border-radius: 99px; border: 1.5px solid var(--accent, #ff6a1f) !important; color: #fff; font-weight: 800; font-size: 13px; }
+.fs-snd.muted svg { color: var(--accent, #ff6a1f); width: 20px; height: 20px; }
+.fd-strip .fs-det { display: none; }
+html.fd-clean .fd-strip .fs-det { display: grid; }
+html.fd-clean .fd-strip { top: auto !important; bottom: calc(10px + env(safe-area-inset-bottom)); background: rgba(12, 12, 14, .55); border-color: rgba(255, 255, 255, .16);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+html.fd-clean .fd-hint { bottom: calc(66px + env(safe-area-inset-bottom)); }
+@media (max-width: 370px) { .fd-strip { gap: 6px; padding: 0 8px; } .fs-time { font-size: 12px; } .fs-snd.muted span { font-size: 12px; } }
+/* a short phone: the picture is short - the column's buttons small, icons only */
+@media (max-height: 700px) {
+  .fd-rail, .gf-s .gf-rail { top: 10px; gap: 6px; }
+  .fd-rail button, .gf-s .gf-rail button { width: 40px; height: 40px; }
+  .fd-rail b, .gf-s .gf-rail b { display: none; }
+  .fd-rail .fd-ic svg { width: 20px; height: 20px; }
+}
+/* the games feed's play: one fixed shape for every slide (no game's own art or text length changes it) */
+.gf-s .gf-play { box-sizing: border-box; width: min(calc(100% - 8px), 360px) !important; height: 58px !important; flex: none; font-size: 1.7rem; gap: 12px; padding: 0 24px; white-space: nowrap; }
+.gf-s .gf-play svg { width: 26px; height: 26px; }
+.fd-strip.is-muted .fs-time { display: none; }
+.fs-bar { min-width: 90px; }

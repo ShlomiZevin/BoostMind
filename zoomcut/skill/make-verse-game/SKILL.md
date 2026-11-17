@@ -224,10 +224,11 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
      `--verse-top` is only the safe area there, so the game starts from the top. Keep using `var(--safe-t)`.
    - **The game opens on its own start screen** (his call after trying autostart: "a huge mess") - cover, "שחקו",
      "איך משחקים", levels, all of it, as on its own address.
-   - **The way back to the games lives ONLY on that start screen**: one button in the game's own style, `class="verse-only"
-     data-verse-back` (or `window.VerseGame.back()`, shown only when `VerseGame.inVerse`) - it returns to the feed at this game.
-     An existing "לכל המשחקים" link there just gets `data-verse-back`. Exits inside the game (the pause menu, a home icon)
-     go back to the GAME's own start screen, never to the feed.
+   - **The way back to the games lives ONLY on that start screen, and it is the verse's button, not yours**: put
+     `<span data-verse-back-btn></span>` in the main menu (poster / "שחקו" / "איך משחקים") and game-frame.js draws the same
+     orange "חזרה למשחקים" pill with the planet in every game, only inside the verse - never style your own. It returns to
+     the feed at this game. Exits inside the game (the pause menu, a home icon) go back to the GAME's own start screen.
+   - The feed's "לשחק" is the app's (one button for every game) - the game's own "שחקו" is on its start screen.
    **Daily records - every game with a score, no exceptions** (his ask, 3 Nov 2026): the verse keeps a table per game
    that starts fresh each Israeli day - the home's "שיאי היום", the "שיאים" button on the game's page, a celebration
    when a player takes first place and a push to the one who lost it (verse/records.js + the `score` op). The game
