@@ -6,7 +6,7 @@
 // Layers.tsx: <EffectWrap p={p} f={frame} below={(lag) => the layers below the top effect, drawn `lag` frames back} />
 import React, { useEffect, useRef } from 'react';
 import { AbsoluteFill } from 'remotion';
-import { effectCss, glitchPlan } from './effect_curve.js';
+import { effectCss, glitchPlan, pixelBlock } from './effect_curve.js';
 import type { LayersProps } from '../Layers';
 
 function Grain({ f, opacity }: { f: number; opacity: number }) {
@@ -31,8 +31,18 @@ const STATIC = 'repeating-linear-gradient(90deg, #fff 0 3px, #777 3px 5px, #111 
 export const EffectWrap: React.FC<{ p: LayersProps; f: number; below: (lag: number) => React.ReactNode }> = ({ p, f, below }) => {
   const c = effectCss(p.project, f), s = c.s, H = p.project.canvas.h;
   const gp = s.glitch > 0.002 ? glitchPlan(f, s.glitch, p.project.canvas.w, H) : null;
+  // pixelate: the pixel at the centre of every block spread over the block (film_fx._pixel samples the same pixels)
+  const b = s.pixel > 0.002 ? pixelBlock(s.pixel, p.project.canvas.w) : 0, hb = Math.floor(b / 2);
   return <AbsoluteFill>
-    <AbsoluteFill style={{ transformOrigin: c.transformOrigin, transform: c.transform, filter: c.filter }}>
+    {b > 0 && <svg width="0" height="0" style={{ position: 'absolute' }}>
+      <filter id="zc_px" x="0" y="0" width={p.project.canvas.w} height={H} filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+        <feFlood x={hb} y={hb} width="1" height="1" floodColor="#000" />
+        <feComposite x="0" y="0" width={b} height={b} />
+        <feTile result="dots" />
+        <feComposite in="SourceGraphic" in2="dots" operator="in" />
+        <feMorphology operator="dilate" radius={b / 2} />
+      </filter></svg>}
+    <AbsoluteFill style={{ transformOrigin: c.transformOrigin, transform: c.transform, filter: c.filter + (b > 0 ? ' url(#zc_px)' : '') }}>
       {below(0)}
       {s.ghost > 0.002 && <AbsoluteFill style={{ opacity: s.ghost, pointerEvents: 'none' }}>{below(c.lag)}</AbsoluteFill>}
       {gp && <>

@@ -14,6 +14,7 @@ import { tabProject } from '../common';
 import { viewLayer, characters, rowColors, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 import { groupOf, edgeOps, splitOps, removeOps, isTakeItem } from './group';
 import { splitAt as socialAt } from '../../src/layers/version.js';
+import { signalLostOps } from '../../src/layers/ending.js';
 import { pinned } from '../../src/layers/ops.js';
 
 export type Sel = { layer: string; item?: string } | null;
@@ -628,25 +629,20 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const socialEndHere = () => {
     const f = Math.round(frame);
     if (f < 1 || f >= total) return;
-    const ops: any[] = [{ op: 'project', set: { split: { at: f } } }];
+    const ops: any[] = [{ op: 'project', set: { split: { ...project.split, at: f } } }];
     if (split != null) for (const l of project.layers) if (l.only === 'social') for (const it of l.items || []) ops.push({ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, it.from + f - split) } });
     send(ops, { label: 'socials end' });
   };
   const dropSplit = () => send([{ op: 'project', set: { split: null } }], { label: 'no socials end' });
-  // the ending to start from: a dark card with the words (every part a layer he changes - the words, the colours, a
-  // picture or a sound of his own instead); 3 s from the split
+  // the ending to start from: "signal lost" (his concept, 2026-11-17 - render/src/layers/ending.js): two glitches and a
+  // glitch sound on the last moments before the cut, then the picture freezes, breaks into blocks and goes dark under
+  // "the connection with the Shlomiverse was cut" - every part a layer he changes (Socials only)
   const addEnding = () => {
     if (split == null) return;
-    const W = project.canvas.w, H = project.canvas.h, dur = Math.round(3 * fps), top = project.layers.length - project.layers.slice().reverse().findIndex((l: any) => l.kind !== 'audio');
-    send([
-      { op: 'layer.add', index: top, layer: { id: 'ending.bg', kind: 'shape', name: 'Ending - card', group: 'Socials ending', only: 'social', props: { fill: '#0b0b10', radius: 0 },
-        items: [{ id: 'e1', from: split, dur, box: { x: 0, y: 0, w: W, h: H } }] } },
-      { op: 'layer.add', index: top + 1, layer: { id: 'ending.text', kind: 'text', name: 'Ending - words', group: 'Socials ending', only: 'social',
-        props: { style: 'plain', size: 92, color: '#ffffff', weight: 900, align: 'center', dir: 'rtl', lineHeight: 1.15 },
-        items: [{ id: 'e1', from: split, dur, text: 'ההמשך מאחורי ה־OAF', box: { x: W / 2, y: H * 0.42, w: W - 160, anchor: 'c' } },
-          { id: 'e2', from: split, dur, text: 'ובקטע מפתיע: זה חינם.\nshlomiverse.com', size: 52, color: '#ff4fa3', box: { x: W / 2, y: H * 0.58, w: W - 160, anchor: 'c' } }] } },
-    ], { label: 'socials ending' });
-    onSel({ layer: 'ending.text', item: 'e1' });
+    const ops = signalLostOps(project);
+    if (!ops.length) return;
+    send(ops, { label: 'socials ending' });
+    onSel({ layer: 'ending.words', item: 'w2' });
   };
   const dragSplit = (e: React.MouseEvent) => {
     if (split == null) return;
@@ -654,7 +650,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     const x0 = e.clientX, s0 = split;
     let last = s0;
     const at = (m: MouseEvent) => Math.max(1, Math.min(total - 1, Math.round(s0 + ((m.clientX - x0) / pps) * fps)));
-    const opsFor = (f: number) => [{ op: 'project', set: { split: { at: f } } }, ...project.layers.filter((l: any) => l.only === 'social')
+    const opsFor = (f: number) => [{ op: 'project', set: { split: { ...project.split, at: f } } }, ...project.layers.filter((l: any) => l.only === 'social')
       .flatMap((l: any) => (l.items || []).map((it: any) => ({ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, it.from + f - s0) } })))];
     const mv = (m: MouseEvent) => { const f = at(m); if (f === last) return; last = f; send(opsFor(f), { commit: false }); };
     const up = () => {
@@ -803,7 +799,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
           <button className={version === 'verse' ? 'on' : ''} onClick={() => onVersion('verse')}>Shlomiverse</button>
           <button className={version === 'social' ? 'on' : ''} onClick={() => onVersion('social')}>Socials</button></div>}
         {split != null && !hasEnding && <button className="btn" style={{ height: 26, padding: '0 9px', fontSize: 12 }} onClick={addEnding}
-          title="The socials' ending card from the split: a dark card with the words - every part a layer you change (Socials only)">+ Ending</button>}
+          title="The socials' ending - signal lost: two glitches before the cut, then the picture freezes and breaks up under 'the connection with the Shlomiverse was cut' - every part a layer you change (Socials only)">+ Ending</button>}
         <div className="vsep" />
         <Find project={project} fps={fps} onGo={(h) => { onSel({ layer: h.layer, item: h.item }); onSeek(h.at); }} />
         <div className="grow" />

@@ -419,12 +419,14 @@ Update setup, a clip with its own settings -> Use row's. ~66 px, ~94 with a setu
 His ask: the cliffhanger / the ending only on the Shlomiverse; the socials get a version that stops with a hard cut and
 a funny card ("OAF" - never the word OnlyFans). In the editor:
 - Timeline bar: **✂ Socials end here** (at the playhead; again = move it), **Shlomiverse | Socials** (which version plays -
-  edits always go to the one project), **+ Ending** (a dark card + words, layers marked Socials only, 3 s from the split).
+  edits always go to the one project), **+ Ending** (the "signal lost" ending - layers.md -> split; every part a layer
+  marked Socials only; Inspector -> Video -> "Under the ending: the picture freezes").
 - Ruler: a purple **✂ Socials end** marker (drag to move - the ending's layers move with it; × removes it) and a striped
   "Only on the Shlomiverse" stretch after it. In Socials view the lanes past the cut are darkened.
 - A layer's chip "socials" / "verse"; Inspector -> **shows in** (Both / Socials only / Shlomiverse only) on any layer
   once the video has a split; the Video section shows the socials end (Remove).
 - The Publish window says when the socials get the `.social` file. Tested 2026-11-17 on `_test-social` (10 s, split at
   4 s + a 3 s ending): 10.0 s and 7.0 s files, the tone stops on the cut frame.
-- The ending's look (a designed card + a sound) waits for his pick (Backstage plan `oaf-ending`).
+- The ending's look: his concept 2026-11-17 (Backstage plan `oaf-ending` comments) = "signal lost" - the demo is the hidden
+  copy `_signal-lost-demo` of not-the-question (delete it once he has seen it).
 

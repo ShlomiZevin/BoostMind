@@ -27,18 +27,25 @@ export function versionOf(p, v = 'verse') {
     return { ...p, layers: p.layers.filter((l) => l.only !== 'social') };
   }
   let end = at;
+  for (const l of p.layers || []) if (l.only === 'social' && !l.hidden) for (const it of l.items || []) if (!it.hidden) end = Math.max(end, it.from + it.dur);
+  // split.freeze (the "signal lost" ending, his concept 2026-11-17): the picture freezes on its last frame under the
+  // ending, like a call whose connection dropped - every picture / word on screen at the cut holds until the ending ends
+  // (a clip = a held frame: rate 0 at the frame it was on); the sound still stops dead at the cut
+  const freeze = !!p.split?.freeze && end > at, fps = p.canvas?.fps || 30;
   const layers = [];
   for (const l of p.layers || []) {
     if (l.only === 'verse') continue;
-    if (l.only === 'social') {
-      layers.push(l);
-      if (!l.hidden) for (const it of l.items || []) if (!it.hidden) end = Math.max(end, it.from + it.dur);
-      continue;
-    }
+    if (l.only === 'social') { layers.push(l); continue; }
     const items = [];
     for (const it of l.items || []) {
       if (it.from >= at) continue;
-      items.push(it.from + it.dur > at ? hardEnd(it, at) : it);
+      if (it.from + it.dur <= at) { items.push(it); continue; }
+      if (!freeze || l.kind === 'audio') { items.push(hardEnd(it, at)); continue; }
+      if (l.kind === 'video' || l.kind === 'backdrop') {
+        items.push(hardEnd(it, at));
+        const r = it.rate ?? 1;
+        items.push({ ...it, id: `${it.id}~freeze`, from: at, dur: end - at, rate: 0, in: (+it.in || 0) + ((at - 1 - it.from) / fps) * r, fade_in: 0, fade_out: 0, pin: undefined, freeze: true });
+      } else items.push(hardEnd(it, end));
     }
     layers.push({ ...l, items });
   }

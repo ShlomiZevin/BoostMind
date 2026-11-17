@@ -56,10 +56,11 @@ type StyleProps = { it: any; text: string; fonts: Record<string, string>; t: num
 export const TEXT_STYLES: Record<string, { label: string; animated?: boolean; render: React.FC<StyleProps> }> = {
   // the TikTok hook / a label: a box with the text (theme light / dark / gold, opacity, size)
   pov: { label: 'Text box (POV / label)', render: ({ it, text, fonts }) => <div style={boxStyle(it, fontOf(it, fonts))}>{text}</div> },
-  // just the letters: size, color, weight, font, align
+  // just the letters: size, color, weight, font, align (+ glow: a colour - a soft light around the letters)
   plain: { label: 'Plain text', render: ({ it, text, fonts }) => (
     <div style={{ ...fontOf(it, fonts, it.weight ?? 600), fontSize: it.size || 30, color: it.color || '#fff', direction: it.dir || 'rtl',
       textAlign: it.align || 'center', whiteSpace: 'pre-line', lineHeight: it.lineHeight ?? 1.25, letterSpacing: it.letterSpacing,
+      ...(it.glow ? { textShadow: `0 0 ${Math.round((it.size || 30) * 0.35)}px ${it.glow}, 0 0 ${Math.round((it.size || 30) * 0.1)}px ${it.glow}` } : {}),
       ...(it.stroke ? { WebkitTextStroke: `${it.stroke}px ${it.strokeColor || '#000'}`, paintOrder: 'stroke fill' } as any : {}) }}>{text}</div>) },
   // a video-call name tag with a microphone (size 32 big tile, 26 small)
   tag: { label: 'Name tag', render: ({ it, text }) => {

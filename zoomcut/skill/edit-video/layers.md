@@ -101,7 +101,8 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   anchor: `tl` (default) `t` `c` `b` `tr` `br` `bl` - `t` / `c` / `b` centre on x, `w` = the wrapping width.
 - props / item: `style` and its knobs:
   - `pov` - a box with the text (the TikTok hook / a label): `theme` light | dark | gold, `opacity`, `size`, `font`.
-  - `plain` - just the letters: `size`, `color`, `weight`, `font`, `align`, `dir`, `stroke`, `strokeColor`, `lineHeight`.
+  - `plain` - just the letters: `size`, `color`, `weight`, `font`, `align`, `dir`, `stroke`, `strokeColor`, `lineHeight`,
+    `letterSpacing`, `glow` (a colour: a soft light around the letters).
   - `tag` - a call name tag with a microphone: `size` (32 big, 26 small).
   - `toast` - a notice box with an icon: `size`, `icon` ("none" to drop it).
   - `pill` - a solid pill (the red "removed" stamp, a button): `bg`, `color`, `size`, `radius`.
@@ -176,7 +177,7 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 
 ### effect - film effects on everything below
 - One effect layer = one filter: props `filter` = `grade` (movie colour) | `dark` | `vignette` | `grain` | `zoom`
-  (slow zoom in) | `drift` (handheld) | `ghost` (trail; `ghost_lag` s) | `flicker` | `glitch` (a digital screen breaking up: RGB split, torn bands, static lines - short items on jump cuts; the plan per frame is effect_curve.js glitchPlan, the export applies the same plan) | `hits` | `black`, `amount`
+  (slow zoom in) | `drift` (handheld) | `ghost` (trail; `ghost_lag` s) | `flicker` | `glitch` (a digital screen breaking up: RGB split, torn bands, static lines - short items on jump cuts; the plan per frame is effect_curve.js glitchPlan, the export applies the same plan) | `pixel` (Pixelate: square blocks, 4 + 76 x amount px at 1080 wide - the signal-lost ending; effect_curve.js pixelBlock, editor = an SVG filter, export film_fx._pixel, the same pixels: `node tools/effects_parity.mjs <png> signal`) | `hits` | `black`, `amount`
   (0-1), optional `center [x, y]`.
 - Items = when it plays; it fades in / out at the item's ends (`fade_in` default 1.5 s, `fade_out` 0.6 s). A `hits`
   item is an impact at its start (`kick`, `shake`, `flash`); a `black` item is black.
@@ -323,6 +324,21 @@ His ask: "videos like in OnlyFans - the highlight, the ending, the cliffhanger o
   `{"op": "project", "set": {"split": null}}`, `{"op": "layer.update", "id": "ending.text", "set": {"only": "social"}}`.
 - A script marks the stop with the line `[עד כאן ברשתות]` (the MCP's writing guide tells his GPT to) - set `at` at the
   start of the line after it.
+- `split.freeze: true` - under the ending the picture freezes on its last frame (every clip on screen at the cut = a held
+  frame, rate 0; texts / subtitles / pictures on screen hold too); the sound still stops dead at the cut.
+- **The ending = "signal lost"** (his concept, 2026-11-17 - "the Shlomiverse is a parallel universe of real people ...
+  suddenly a reception problem, the connection with the Shlomiverse universe was cut - for the full ending you're welcome
+  to fly over for a visit ... two glitches, a ~100 ms sound, then a slide as if the reception was lost"). One recipe:
+  `render/src/layers/ending.js` `signalLostOps(project)` (the Timeline's **+ Ending** sends it; a session sends the same
+  ops through the API). Two glitches on the last 0.36 s BEFORE the cut (`ending.glitch`, with `ending.sound` - each glitch
+  sound ducks every voice to -40 dB, the signal breaking up), then the frozen picture breaks into blocks and goes dark
+  (`ending.pixel`, `ending.dark`), the Shlomiverse planet flickers (`ending.logo`), "● בעיית קליטה" / "הקשר עם יקום
+  שלומיוורס נותק" / "לסיום המלא - מוזמנים לטוס לביקור" (`ending.words`), the shlomiverse.com pill (`ending.link`), a faint
+  static (`ending.static`) - 2.6 s, all in REAL seconds (laid out at the project's speed). Files:
+  `episodes/_assets/socials-ending/` (the shared pool). First made on `not-the-question` (the call drops as Daniel asks
+  "זימון? למה אתה צריך לשלוח—"; his removal and "Ofer, stay on the line" only on the Shlomiverse).
+- The socials' file is joined where the versions part: the earliest socials-only item (the glitches) or the cut - that
+  part is rendered alone and mixed at the full video's own gain (the level never jumps at the join).
 
 ## Changing a project: ops
 

@@ -16,6 +16,7 @@ export const FILTERS = {
   ghost: { label: 'Ghost trail', def: 0.35 },
   flicker: { label: 'Light flicker', def: 0.3 },
   glitch: { label: 'Screen glitch', def: 0.7 },  // a digital screen breaking up: RGB split, torn bands, static lines
+  pixel: { label: 'Pixelate', def: 0.6 },     // the picture in big square blocks - a stream losing its signal (the socials' "signal lost" ending)
   hits: { label: 'Hits', def: 1 },         // items = impacts: kick (zoom punch), shake, flash
   black: { label: 'Black', def: 1 },       // items = cut to black
 };
@@ -91,6 +92,10 @@ export function glitchPlan(f, a, W, H) {
   for (let i = 0; i < 3; i++) lines.push({ y: Math.floor(r(f * 11.7 + i * 4.3 + 7) * H), h: Math.max(2, Math.round((1 + 3 * r(f * 13.1 + i + 8)) * k)), o: +(a * (0.35 + 0.4 * r(f * 17.3 + i + 9))).toFixed(3) });
   return { split: Math.round(a * 18 * (0.4 + 0.6 * r(f * 1.37 + 2)) * k), bands, lines };
 }
+
+/** The pixelate effect's block (px) at strength a on a W-wide frame - effects.tsx (an SVG filter: the pixel at each block's
+ *  centre, spread over the block) and film_fx.py (_pixel: the same sampling) draw the same blocks. */
+export const pixelBlock = (a, W) => Math.max(2, Math.round((4 + 76 * a) * W / 1080));
 
 /** Per-frame curve for the export, frames [f0, f1) - with the glitch's plan where it plays. */
 export function effectCurve(project, f0, f1) {

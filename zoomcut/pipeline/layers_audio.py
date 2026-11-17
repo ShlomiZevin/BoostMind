@@ -260,6 +260,9 @@ def _own_pace(ep, project, own, n, sp):
     return out
 
 
+LAST_GAIN = [None]  # the gain the last mix used - the socials' ending is mixed at the full video's gain (export_layers.social_cut)
+
+
 def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
     """All audio layers -> out_wav (stereo, -14 LUFS). stems_dir: also one file per layer for the editor."""
     fps = project["canvas"]["fps"]
@@ -280,7 +283,9 @@ def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
             buf += tracks[l["id"]] * float((l.get("props") or {}).get("volume", 1.0))
     raw = out_wav.replace(".wav", ".raw.wav")
     audio._write_mono(raw, buf)
-    if np.abs(buf).max() < 1e-6:  # silence (no audio layers yet)
+    if project.get("_gain_db") is not None:  # a part joined to a whole video (the socials' ending): the whole's own gain
+        gain_db = float(project["_gain_db"])
+    elif np.abs(buf).max() < 1e-6:  # silence (no audio layers yet)
         gain_db = 0.0
     else:
         r = audio.run_capture([FFMPEG, "-hide_banner", "-i", raw, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"])
@@ -333,6 +338,7 @@ def mix(ep, project, out_wav, stems_dir=None, speed=1.0):
                     sources[f"{l['id']}|{aid}|{v}"] = {"file": name, "v": int(os.path.getmtime(p) * 1000)}
         save_json(os.path.join(stems_dir, "stems.json"), {"gain_db": round(gain_db, 2), "stems": index, "sources": sources, "levels": levels})
     log(f"  · sound mixed ({total:.1f}s, {len(tracks)} audio layers, {gain_db:+.1f} dB to -14 LUFS)")
+    LAST_GAIN[0] = gain_db
     return out_wav
 
 

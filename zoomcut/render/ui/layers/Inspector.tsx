@@ -106,6 +106,10 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
           ? <span className="ins-val">{mmss(split / fps / (project.speed || 1))} · then only on the Shlomiverse <button className="btn ghost" style={{ height: 22, padding: '0 6px', fontSize: 11 }}
               title="One version again (the ending's layers stay - delete them or mark them Both)" onClick={() => send([{ op: 'project', set: { split: null } }], { label: 'no socials end' })}>Remove</button></span>
           : <span className="ins-val" style={{ color: 'var(--faint)' }}>none - "✂ Socials end here" on the timeline bar</span>}</Row>
+        {split != null && <Row label="Under the ending"><label className="ins-val" style={{ display: 'flex', gap: 6, alignItems: 'center', cursor: 'pointer' }}
+          title="The picture freezes on its last frame under the socials' ending (like a call whose connection dropped) - off: it ends at the cut">
+          <input type="checkbox" checked={!!project.split?.freeze} onChange={(e) => send([{ op: 'project', set: { split: { ...project.split, freeze: e.target.checked } } }], { label: 'freeze under the ending' })} />
+          the picture freezes (signal lost)</label></Row>}
         <Row label="Background"><input type="color" className="ins-color" value={project.canvas.color || '#000000'}
           onChange={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }], { commit: false })}
           onBlur={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }])} /></Row>

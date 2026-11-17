@@ -66,6 +66,8 @@ class FxFrame:
             x = cv2.transform(x, M)
         if s.get("gp"):  # the screen glitch - the editor's own plan for this frame (effect_curve.js glitchPlan)
             x = _glitch(x, s["gp"], f)
+        if s.get("pixel", 0) > 2e-3:  # pixelate (effect_curve.js pixelBlock - the editor's SVG filter samples the same pixels)
+            x = _pixel(x, s["pixel"], w)
         if s.get("vig", 0) > 1e-3:
             x *= 1 - s["vig"] * self.vshape
         if s.get("grain", 0) > 1e-3 and self.noise:
@@ -77,6 +79,16 @@ class FxFrame:
         if s["black"]:
             x[:] = 0
         return (np.clip(x, 0, 1) * 255).astype(np.uint8)
+
+
+def _pixel(x, a, w):
+    """The picture in square blocks, each the colour of the pixel at its centre (effects.tsx: feTile dots + dilate)."""
+    b = max(2, int(round((4 + 76 * a) * w / 1080)))
+    h, ww = x.shape[:2]
+    y = np.repeat(np.repeat(x[b // 2::b, b // 2::b], b, axis=0), b, axis=1)
+    if y.shape[0] < h or y.shape[1] < ww:
+        y = np.pad(y, ((0, max(0, h - y.shape[0])), (0, max(0, ww - y.shape[1])), (0, 0)), mode="edge")
+    return np.ascontiguousarray(y[:h, :ww])
 
 
 def _glitch(x, gp, f):

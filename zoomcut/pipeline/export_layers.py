@@ -602,21 +602,29 @@ def export(ep, quick=False, test=False, project=None, out=None):
 
 
 def social_cut(ep, full, final, quick, test):
-    """The socials' version: the full file up to the split (a hard cut - picture and sound stop on the same frame), then
-    the ending rendered alone, joined in one encode."""
+    """The socials' version: the full file up to where the two versions part (the split - a hard cut, picture and sound
+    stop on the same frame - or earlier, where the ending's first socials-only item starts: the "signal lost" glitches
+    play over the last moments before the cut), then that part rendered alone, joined in one encode. The part's sound is
+    mixed at the full video's own gain, so the level never jumps at the join."""
     t0 = time.time()
     at, fps, speed = split_at(full), full["canvas"]["fps"], float(full.get("speed") or 1)
+    gain = layers_audio.LAST_GAIN[0]
     social = version_of(full, "social")
-    cut_s = at / fps / speed
+    own = [it["from"] for l in social["layers"] if l.get("only") == "social" and not l.get("hidden") for it in l.get("items", []) if not it.get("hidden")]
+    w0 = max(0, int(min([at] + own)))
+    cut_s = w0 / fps / speed
     suffix = ".test" if test else ".draft" if quick else ""
     dest = ep.p("out", f"{ep.id}.social{suffix}.mp4")
-    log(f"▶ the socials' version: up to {cut_s:.2f}s, then its ending ({(int(social['duration']) - at) / fps / speed:.1f}s)")
+    log(f"▶ the socials' version: the full video up to {cut_s:.2f}s, then its own part ({(int(social['duration']) - w0) / fps / speed:.1f}s - the cut at {at / fps / speed:.2f}s)")
     crf, preset = ("30", "ultrafast") if test else ("24", "ultrafast") if quick else ("17", "medium")
     abr = "96k" if test else "192k"
     tmp = dest[:-4] + ".tmp.mp4"
     if int(social["duration"]) > at:
         card = ep.p("out", f"{ep.id}.ending{suffix}.mp4")
-        export(ep, quick, test, project=version_of(social, "window", at, int(social["duration"])), out=card)
+        part = version_of(social, "window", w0, int(social["duration"]))
+        if gain is not None:
+            part["_gain_db"] = gain
+        export(ep, quick, test, project=part, out=card)
         fc = (f"[0:v]trim=end={cut_s:.4f},setpts=PTS-STARTPTS[v0];[0:a]atrim=end={cut_s:.4f},asetpts=PTS-STARTPTS[a0];"
               f"[1:v]setpts=PTS-STARTPTS[v1];[1:a]asetpts=PTS-STARTPTS[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]")
         run([FFMPEG, "-y", "-v", "error", "-i", final, "-i", card, "-filter_complex", fc, "-map", "[v]", "-map", "[a]",
