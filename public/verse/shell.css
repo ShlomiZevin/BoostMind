@@ -846,3 +846,15 @@ html.fd-clean .fd-hint { bottom: calc(66px + env(safe-area-inset-bottom)); }
 .fs-bar { min-width: 90px; }
 /* a narrow phone while muted: the sound control orange without its words, so the line keeps its room */
 @media (max-width: 380px) { .fs-snd.muted span { display: none; } .fs-snd.muted { padding: 0 8px; } }
+/* the strip, round 2 (his notes on r10): a full-width row of the card's own surface - strip + card one block under the picture;
+   a tape left to right; muted = the icon alone on orange; the time always beside the line */
+html:not(.fd-clean) .fd-s { background: #111115; }
+.fd-strip { left: 0; right: 0; border-radius: 0; border: 0; border-top: 1px solid rgba(255, 255, 255, .08); background: #111115; direction: ltr; gap: 12px; padding: 0 14px; height: 46px; }
+.fd-strip.is-muted .fs-time { display: inline; }
+.fs-bar { min-width: 60px; }
+.fs-snd.muted { width: 36px; height: 30px; padding: 0 !important; border: 0 !important; border-radius: 99px; background: var(--accent, #ff6a1f); color: #fff; }
+.fs-snd.muted svg { color: #fff !important; width: 20px; height: 20px; }
+.fs-snd.muted span { display: none !important; }
+html.fd-clean .fd-strip { left: 10px; right: 10px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(12, 12, 14, .55); transition: opacity .35s, transform .35s; }
+html.fd-clean .fd-strip.away { opacity: 0; transform: translateY(14px); pointer-events: none; }
+@media (max-width: 370px) { .fd-strip { gap: 9px; padding: 0 10px; } .fs-time { font-size: 12px; } }

@@ -299,15 +299,18 @@ function ctlMount() {
   let c = document.getElementById('fd-strip');
   if (!c) {
     c = Object.assign(document.createElement('div'), { id: 'fd-strip', className: 'fd-strip' });
+    // laid out as a tape, left to right like every player (not mirrored for RTL): play, time, the line, sound, the views
     c.innerHTML = `<button class="fs-pp" data-c="pp"></button>
-      <div class="fs-bar" data-c="seek"><i class="fs-fill"></i><b class="fs-knob"></b></div>
       <span class="fs-time"></span>
+      <div class="fs-bar" data-c="seek"><i class="fs-fill"></i><b class="fs-knob"></b></div>
       <button class="fs-snd" data-c="snd"></button>
       <button class="fs-view" data-c="view"></button>
       <button class="fs-det" data-c="detach" aria-label="${esc(T.shell.detach)}">${ICON_DETACH}</button>`;
     c.addEventListener('click', (e) => {
       const b = e.target.closest('[data-c]');
       if (!b || !FD || b.dataset.c === 'seek') return;
+      e.stopPropagation();
+      peek();   // (clean view: a tap on the strip keeps it showing a little longer)
       if (b.dataset.c === 'pp') togglePlay();
       else if (b.dataset.c === 'snd') { const vd = cur(); if (vd && vd.muted) unmute(); else mute(); }
       else if (b.dataset.c === 'view') clean(!isClean());
@@ -317,7 +320,7 @@ function ctlMount() {
     const bar = c.querySelector('.fs-bar');
     const seekTo = (x) => { const vd = cur(), r = bar.getBoundingClientRect(); if (!vd || !vd.duration) return; vd.currentTime = Math.min(1, Math.max(0, (x - r.left) / r.width)) * vd.duration; stripTime(); };
     let drag = false;
-    bar.addEventListener('pointerdown', (e) => { drag = true; bar.setPointerCapture(e.pointerId); seekTo(e.clientX); });
+    bar.addEventListener('pointerdown', (e) => { e.stopPropagation(); peek(); drag = true; bar.setPointerCapture(e.pointerId); seekTo(e.clientX); });
     bar.addEventListener('pointermove', (e) => { if (drag) seekTo(e.clientX); });
     bar.addEventListener('pointerup', () => { drag = false; });
     document.body.append(c);
@@ -349,8 +352,7 @@ function ctlPaint() {
   pp.innerHTML = playing ? ICON_PAUSE : ICON_PLAY; pp.setAttribute('aria-label', playing ? FT.pause : FT.play);
   view.innerHTML = isClean() ? ICON_SHRINK : ICON_FULL; view.setAttribute('aria-label', isClean() ? T.shell.cleanOff : T.shell.clean);
   snd.classList.toggle('muted', muted);
-  c.classList.toggle('is-muted', muted && !isClean());   // (the time steps aside for "לחצו לשמיעה" - the line keeps its room)
-  snd.innerHTML = muted ? `${ICON_SOUND_OFF}${isClean() ? '' : `<span>${esc(FT.sound)}</span>`}` : ICON_SND;
+  snd.innerHTML = muted ? ICON_SOUND_OFF : ICON_SND;   // muted: the icon alone on orange (no words - the line keeps its room)
   snd.setAttribute('aria-label', muted ? FT.sound : T.shell.mute);
   stripTime();
 }
@@ -380,6 +382,14 @@ function hint(on = true) {
   if (on) hint.t = setTimeout(() => h.classList.remove('on'), 2200);
   if (isClean()) hint.idle = setTimeout(() => { if (isClean()) { h.classList.add('on', 'quiet'); hint.t = setTimeout(() => h.classList.remove('on', 'quiet'), 2600); } }, 9000);
 }
+// the clean view's strip shows for ~3 s (on entering, on a tap), then steps aside
+function peek(on = true) {
+  const c = document.getElementById('fd-strip');
+  if (!c) return;
+  clearTimeout(peek.t);
+  c.classList.remove('away');
+  if (on && isClean()) peek.t = setTimeout(() => { if (isClean()) c.classList.add('away'); }, 3000);
+}
 function clean(on) {
   if (!FD) return;
   const html = document.documentElement;
@@ -387,6 +397,7 @@ function clean(on) {
   html.classList.toggle('fd-clean', on);
   if (on) track('feed', 'clean:' + FD.list[FD.idx].id);
   ctlPaint();
+  peek(on);
   resnap(true);
   hint(on);
 }
@@ -454,7 +465,8 @@ async function onClick(e) {
   const v = FD.list[FD.idx], ctx = FD.ctx, vd = cur();
   if (!b) {
     // a tap on the video: sound first (while muted), then play / pause - with the soft big sign for a moment (clean mode too)
-    if (vd.muted && !document.documentElement.classList.contains('fd-clean')) { unmute(); return; }
+    if (isClean()) { peek(); return; }   // the clean view: a tap only brings the strip back (its play button pauses)
+    if (vd.muted) { unmute(); return; }
     togglePlay();
     return;
   }
