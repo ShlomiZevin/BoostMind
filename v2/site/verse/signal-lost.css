@@ -4,7 +4,7 @@
 .sl [hidden] { display: none !important; }
 .sl-cv { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
 .sl-dark { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); opacity: 0; }
-.sl-card { position: absolute; inset: 0; pointer-events: auto; }
+.sl-card { position: absolute; inset: 0; }   /* (taps go through to the page - a swipe still moves the feed; only the button takes them) */
 .sl-frame { position: absolute; left: 50%; top: 50%; width: calc(1080 * var(--u)); height: calc(1920 * var(--u)); transform: translate(-50%, -50%); }   /* the studio's 1080 x 1920 */
 .sl-frame > * { position: absolute; left: 50%; transform: translate(-50%, -50%); }
 /* the error box: a dark dialog with a glowing orange edge */
@@ -18,7 +18,7 @@
 .sl-title { top: calc(1046 * var(--u)); width: calc(960 * var(--u)); text-align: center; color: #fff; font-size: calc(96 * var(--u)); font-weight: 900; line-height: 1.12;
   text-shadow: 0 0 calc(34 * var(--u)) rgba(255, 106, 31, 0.55), 0 0 calc(10 * var(--u)) rgba(255, 106, 31, 0.55); }
 .sl-line { top: calc(1258 * var(--u)); width: calc(940 * var(--u)); text-align: center; color: rgba(255, 255, 255, 0.92); font-size: calc(54 * var(--u)); font-weight: 700; line-height: 1.15; }
-.sl-btn { top: calc(1411 * var(--u)); padding: calc(18 * var(--u)) calc(44 * var(--u)); border: 0; border-radius: 999px; background: #ff6a1f; color: #fff; white-space: nowrap;
+.sl-btn { pointer-events: auto; top: calc(1411 * var(--u)); padding: calc(18 * var(--u)) calc(44 * var(--u)); border: 0; border-radius: 999px; background: #ff6a1f; color: #fff; white-space: nowrap;
   font: inherit; font-size: calc(50 * var(--u)); font-weight: 800; cursor: pointer; box-shadow: 0 0 calc(40 * var(--u)) rgba(255, 106, 31, 0.45); }
 .sl-btn:disabled { opacity: 0.75; cursor: default; }
 .sl-btn:focus-visible { outline: calc(6 * var(--u)) solid #fff; outline-offset: calc(6 * var(--u)); }
@@ -26,9 +26,12 @@
 .sl-toast { position: absolute; top: calc(140 * var(--u)); left: 50%; transform: translateX(-50%); padding: calc(14 * var(--u)) calc(34 * var(--u)); border-radius: 999px;
   background: rgba(16, 13, 12, 0.86); border: calc(3 * var(--u)) solid rgba(255, 106, 31, 0.6); color: #fff; font-size: calc(44 * var(--u)); font-weight: 800; white-space: nowrap; }
 /* at the start: "seen it on the socials? jump to where it dropped" */
-.sl-jump { position: absolute; bottom: calc(300 * var(--u)); left: 50%; transform: translateX(-50%); pointer-events: auto; display: flex; align-items: center; gap: calc(14 * var(--u));
+.sl-jump { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); pointer-events: auto; display: flex; align-items: center; gap: calc(14 * var(--u));
   padding: calc(18 * var(--u)) calc(36 * var(--u)); border-radius: 999px; border: calc(3 * var(--u)) solid rgba(255, 106, 31, 0.7); background: rgba(16, 13, 12, 0.78);
   color: #fff; font: inherit; font-size: calc(42 * var(--u)); font-weight: 800; white-space: nowrap; cursor: pointer; backdrop-filter: blur(6px); }
 .sl:has(.sl-card:not([hidden])) .sl-jump { display: none; }
 .sl-jump i { font-style: normal; color: #ff6a1f; font-size: 1.3em; line-height: 1; }
 @media (prefers-reduced-motion: reduce) { .sl-card * { animation: none !important; } }
+/* the hosts while the signal is lost: their words and buttons step aside (the feed's rail stays) */
+.fd-s.sl-on .fd-info, .fd-s.sl-on .fd-big, .fd-s.sl-on .fd-shade { opacity: 0; pointer-events: none; transition: opacity .25s; }
+.vp.sl-on .vp-ui, .vp.sl-on .vp-big, .vp.sl-on .vp-dim, .vp.sl-on .vp-sound { opacity: 0 !important; pointer-events: none !important; transition: opacity .25s; }

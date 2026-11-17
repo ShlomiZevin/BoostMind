@@ -94,6 +94,8 @@ export function openPlayer(id, q = {}) {
   video.addEventListener('contextmenu', (e) => e.preventDefault());
   P = { el, v, video, lead, off: [fit(el)], hideT: 0 };
   opened();
+  // the locked version (signal-lost.js): a video with a socials ending drops its signal there for a signed-out viewer
+  if (v.drop) import('./signal-lost.js').then(({ lockedVersion }) => { if (P && P.video === video) { const g = lockedVersion({ video, stage: $('.vp-stage', el), drop: v.drop, host: el }); P.off.push(() => g.destroy()); } });
 
   // live counts under the video
   P.off.push(F.onSnapshot(F.doc(db, 'videoStats', id), (s) => { const d = s.data() || {}; P && (P.stats = d, $('[data-count-c]', el).textContent = d.comments ? String(d.comments) : ''); }, () => {}));

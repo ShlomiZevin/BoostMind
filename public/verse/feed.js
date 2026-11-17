@@ -171,6 +171,7 @@ export function unmount() {
   FD.statOff?.();
   FD.off.forEach((u) => u && u());
   FD.ctx?.cm?.close('away');
+  FD.gate?.destroy();
   FD.pool.forEach((vd) => { vd.pause(); vd.removeAttribute('src'); try { vd.load(); } catch (e) { /* gone */ } vd.remove(); });
   FD.el.removeEventListener('click', onClick);
   FD = null;
@@ -217,6 +218,10 @@ function activate(i) {
   }
   try { sessionStorage.setItem('vx-feed-at', v.id); } catch (e) { /* private mode */ }   // the videos tab comes back to this one
   FD.ctx = { el: FD.slides[i], v, video: vd, lead: castOf(v)[0] || null, stats: null, cm: null };
+  // the locked version (signal-lost.js, his concept 2026-11-17): a video with a socials ending drops its signal at the same
+  // moment for a signed-out viewer - signing in brings it back
+  FD.gate?.destroy(); FD.gate = null;
+  if (v.drop) { const s = FD.slides[i]; import('./signal-lost.js').then(({ lockedVersion }) => { if (FD && FD.idx === i && cur() === vd) FD.gate = lockedVersion({ video: vd, stage: $('.fd-media', s), drop: v.drop, host: s }); }); }
   // the comment count of the video on screen, live
   FD.statOff?.();
   const ctx = FD.ctx;

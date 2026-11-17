@@ -16,6 +16,8 @@
 // The glitch is the studio's own plan for each frame (effect_curve.js glitchPlan, copied below), the blocks its
 // pixelBlock - so the site, the editor and the exported socials file show the same glitch.
 
+import { signedIn, needFan, onState } from './state.js';
+
 const FPS = 30;
 function glitchPlan(f, a, W, H) {   // = zoomcut/render/src/layers/effect_curve.js glitchPlan
   const r = (s) => { const x = Math.sin(s * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
@@ -211,4 +213,17 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
       video.removeEventListener('play', onPlay); video.removeEventListener('seeked', onSeeked); video.removeEventListener('timeupdate', run); video.removeEventListener('play', unlock); },
     get state() { return state; },
   };
+}
+
+// ---- the site's door (feed.js activate, player.js openPlayer): the verse's own sign-in, the css once, and the host gets
+// the class sl-on while the signal is lost (its own words and buttons step aside - signal-lost.css) ----
+let cssIn = false;
+export function lockedVersion({ video, stage, drop, host }) {
+  if (!cssIn) { cssIn = true; const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/verse/signal-lost.css?v=2'; document.head.append(l); }
+  const g = signalLost({ video, stage, drop, signedIn, signIn: () => needFan('ending'),
+    assets: { logo: '/verse/logo-512.png', glitch1: '/verse/sfx/signal-glitch-1.mp3', glitch2: '/verse/sfx/signal-glitch-2.mp3', hiss: '/verse/sfx/signal-static.mp3' } });
+  const mark = (e) => host?.classList.toggle('sl-on', e.detail === 'lost');
+  stage.addEventListener('signal-lost', mark);
+  const off = onState(() => g.check());
+  return { destroy() { off?.(); stage.removeEventListener('signal-lost', mark); host?.classList.remove('sl-on'); g.destroy(); } };
 }
