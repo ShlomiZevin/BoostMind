@@ -501,7 +501,7 @@ async function samples() {
   if (stories[0]) await add('סטורי חדש', { ...P, kind: 'story', events: [ev('story', stories[0].id)] });
   await add('כמה דברים באותו יום', { ...P, kind: 'digest', events: [games[0] && ev('game', games[0].id), games[1] && ev('game', games[1].id), ...videos.slice(0, 3).map((v) => ev('video', v.id)),
     ...stories.map((d) => ev('story', d.id))].filter(Boolean) });
-  const sampleIdea = { ideaId: 'sample', text: 'מה עם דמות נוספת - הדתי מחמד, זה שמנדבים אותו להדליק נרות חנוכה ושואלים אותו על ההכשרים?', videoId: videos[0]?.id };
+  const sampleIdea = { ideaId: 'sample', text: 'מה עם תושב נוסף - הדתי מחמד, זה שמנדבים אותו להדליק נרות חנוכה ושואלים אותו על ההכשרים?', videoId: videos[0]?.id };
   for (const [status, label] of [['liked', 'רעיון: השלומיוורס אהב'], ['making', 'רעיון: בעבודה'], ['live', 'רעיון: עלה לאוויר']]) {
     out.push({ key: 'idea:' + status, label, kind: 'idea', ...ideaRender({ ...sampleIdea, status }, 'ישראל') });
   }
