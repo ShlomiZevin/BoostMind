@@ -323,6 +323,16 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ta button[data-done]:hover, .ta button[data-sdone]:hover { color: var(--green); } .ta button[data-park]:hover, .ta button[data-shide]:hover { color: var(--red); } }
 .ta button.on { color: var(--amber); } .ta button.on svg { fill: currentColor; }
 .ta svg { width: 17px; height: 17px; }
+.trow.today { background: color-mix(in srgb, var(--amber) 13%, var(--card)); border-color: color-mix(in srgb, var(--amber) 60%, var(--line)); border-inline-start: 5px solid var(--amber); }
+.todaymark { display: inline-flex; align-items: center; gap: 3px; color: var(--ink); background: color-mix(in srgb, var(--amber) 32%, transparent); border-radius: 6px; padding: 0 6px; font-size: 12px; font-weight: 800; vertical-align: 1px; margin-inline-end: 6px; }
+.todaymark svg { width: 12px; height: 12px; color: var(--amber); }
+.pchip.today.on { color: var(--ink); background: color-mix(in srgb, var(--amber) 30%, transparent); border-color: var(--amber); }
+.chips button .n { margin-inline-start: 5px; font-size: 12px; opacity: .8; }
+.today-v .hello h1 svg { width: 26px; height: 26px; color: var(--amber); vertical-align: -3px; }
+.done-today { display: flex; flex-direction: column; gap: 6px; }
+.done-today .dt { display: flex; align-items: center; gap: 8px; color: var(--ink3); text-decoration: line-through; font-size: 14px; cursor: pointer; padding: 4px 6px; }
+.done-today .dt svg { width: 15px; height: 15px; color: var(--green); flex: none; }
+.tabs b.tb-today { background: var(--amber) !important; }
 .trow.sw-done { box-shadow: inset -6px 0 0 var(--green); } .trow.sw-off { box-shadow: inset 6px 0 0 var(--red); }
 .swipehint { display: none; text-align: center; margin-top: 14px; }
 #toast.act { pointer-events: auto; display: flex; align-items: center; gap: 14px; }
@@ -386,7 +396,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .tabs button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11.5px; color: var(--ink3); font-weight: 600; padding: 4px 0; position: relative; }
   .tabs button.on { color: var(--brand); }
   .tabs button svg { width: 23px; height: 23px; }
-  .tabs .gap { flex: 1; }
+  .tabs .gap { flex: 0 0 66px; } .tabs button { min-width: 0; } .tabs { box-sizing: border-box; max-width: 100vw; }
   .tabs b { position: absolute; top: 0; left: calc(50% - 20px); background: var(--red); color: #fff; font-size: 10.5px; min-width: 17px; height: 17px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px; }
   .fab { display: grid; place-items: center; position: fixed; bottom: calc(6px + var(--safeB)); left: 50%; transform: translateX(-50%); width: 60px; height: 60px; border-radius: 50%; background: var(--brand); color: #fff; box-shadow: 0 8px 24px rgba(37,99,235,.45); z-index: 16; }
   .fab svg { width: 28px; height: 28px; stroke-width: 2.4; }
@@ -544,6 +554,9 @@ function sstate(s) {
   if (st === 'working' && Date.now() - s.u > 6 * H) st = 'idle';
   return st || 'new';
 }
+// "for today" (his ask 2026-11-17): the day he marked it, in Israel - tomorrow it is a plain item again
+const ilDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const isToday = (it) => !!it && it.today === ilDay() && it.status !== 'done' && it.status !== 'parked';
 const forMe = (i) => i.status === 'waiting' || ((i.type === 'task' || i.type === 'reminder') && i.status === 'open');
 const kindOf = (it) => it.status === 'waiting' ? 'askItem' : it.type === 'task' ? 'task' : it.type === 'reminder' ? 'remind' : it.type === 'wait' ? 'wait'
   : it.type === 'idea' ? 'idea' : it.type === 'job' || it.status === 'active' ? 'job' : 'note';
@@ -576,13 +589,15 @@ function counts() {
 // ---------- the side + tabs ----------
 function renderChrome() {
   const c = counts(), fresh = newEntries(), waitN = fresh.length, freshAsk = fresh.filter((e) => e.s).length;
+  const nT = S.items.filter(isToday).length;
   $('#nav').innerHTML = [
-    ['home', 'home', 'השולחן', waitN, true], ['archive', 'archive', 'ארכיון'],
+    ['today', 'sun', 'היום', nT], ['home', 'home', 'השולחן', waitN, true], ['archive', 'archive', 'ארכיון'],
   ].map(([v, i, t, n, hot]) => `<button class="${S.view === v ? 'on' : ''}" data-view="${v}">${ic(i)}${t}${n ? `<span class="n ${hot && n ? 'hot' : ''}">${n}</span>` : ''}</button>`).join('');
   const qf = [['waiting', 'מחכה לך', waitN, 'alert', true], ['active', 'בטיפול', c.active.length, 'play'], ['open', 'פתוחים', c.open.length, 'dot'], ['pin', 'מסומנים בכוכב', c.pinned.length, 'star']];
   const cur = S.view === 'items' ? (S.f.pin ? 'pin' : S.f.status) : '';
   $('#projs').innerHTML = projects().slice(0, 8).map(([p, n]) => `<button class="${S.view === 'items' && S.f.project === p ? 'on' : ''}" data-proj="${esc(p)}"><i class="dot" style="background:${projColor(p)}"></i>${esc(projName(p))}<span class="n">${n}</span></button>`).join('') || '<div class="hint" style="padding:0 11px">עוד אין</div>';
   $('#tabs').innerHTML = `
+    <button class="${S.view === 'today' ? 'on' : ''}" data-view="today">${ic('sun')}היום${nT ? `<b class="tb-today">${nT}</b>` : ''}</button>
     <button class="${S.view === 'home' ? 'on' : ''}" data-view="home">${ic('home')}השולחן${waitN ? `<b>${waitN}</b>` : ''}</button>
     <span class="gap"></span>
     <button class="${S.view === 'archive' ? 'on' : ''}" data-view="archive">${ic('archive')}ארכיון</button>
@@ -596,7 +611,7 @@ function itemRow(it) {
   return `<div class="row ${S.open?.id === it.id ? 'sel' : ''}" data-item="${it.id}">
     <i class="bar" style="background:${t.color}"></i>
     <button class="star ${it.pin ? 'on' : ''}" data-pin="${it.id}" title="כוכב">${ic('star')}</button>
-    <div class="main"><div class="ttl ${it.status === 'done' ? 'done' : ''}">${esc(it.text)}</div>${it.body ? `<div class="sub">${esc(it.body.slice(0, 160))}</div>` : ''}</div>
+    <div class="main"><div class="ttl ${it.status === 'done' ? 'done' : ''}">${isToday(it) ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${esc(it.text)}</div>${it.body ? `<div class="sub">${esc(it.body.slice(0, 160))}</div>` : ''}</div>
     <div class="meta">${typeChip(it.type)}${projTag(it.project)}${statusChip(it.status)}${h ? `<span class="who">${ic('bot')}<span>${esc(sname(h))}</span></span>` : ''}${it.due ? `<span class="chip st-open">${ic('clock')}${esc(it.due.slice(5).split('-').reverse().join('/'))}</span>` : ''}<span class="ago">${ago(it.u)}</span></div>
   </div>`;
 }
@@ -612,7 +627,7 @@ const sortSess = (a, b) => { const r = (s) => ({ needs: 0, stuck: 1, working: 3,
 
 // The home = ONE list of everything on his table (his ask, 2026-11-04: "one list, but each kind its own look").
 // Order: what needs him -> starred -> to-dos -> waiting for someone -> running -> ideas -> notes.
-const TABLE_CHIPS = [['all', 'הכל'], ['tasks', 'משימות'], ['ideas', 'רעיונות'], ['notes', 'הערות']];
+const TABLE_CHIPS = [['all', 'הכל'], ['today', 'להיום'], ['session', 'בקשות מסשנים'], ['tasks', 'משימות'], ['ideas', 'רעיונות'], ['notes', 'הערות']];
 
 // "new for him" = something that needs him, or that a session wrote for him, that he hasn't opened since it changed.
 // Only these count on the badges; his own items never do.
@@ -651,9 +666,10 @@ function tableEntries() {
   const match = (e) => (!proj || (e.s ? e.s.project : e.it.project) === proj)
     && (!q || (e.s ? [e.s.name, e.s.first, e.s.ask, e.s.question, e.s.summary, e.s.project] : [e.it.text, e.it.body, e.it.project, (e.it.log || []).map((l) => l.text).join(' ')]).join(' ').toLowerCase().includes(q));
   const chip = S.hf || 'all';
-  const keep = { all: () => true, tasks: (e) => ['task', 'remind', 'wait', 'askItem'].includes(e.k), ideas: (e) => e.k === 'idea', notes: (e) => e.k === 'note',
+  const keep = { all: () => true, today: (e) => isToday(e.it), session: (e) => e.it?.type === 'session', tasks: (e) => ['task', 'remind', 'wait', 'askItem'].includes(e.k), ideas: (e) => e.k === 'idea', notes: (e) => e.k === 'note',
     agents: (e) => e.s || e.k === 'job' }[chip];
-  return out.filter((e) => keep(e) && match(e)).sort((a, b) => b.t - a.t);   // newest update first (his rule)
+  // for today on top (highlighted), then newest update first (his rule)
+  return out.filter((e) => keep(e) && match(e)).sort((a, b) => isToday(b.it) - isToday(a.it) || b.t - a.t);
 }
 function dueChip(d) {
   if (!d) return '';
@@ -682,12 +698,34 @@ function tableRow(e) {
     : e.k === 'task' || e.k === 'remind' ? dueChip(it.due)
     : e.k === 'wait' ? `<span class="tag violet">${ic('hourglass')}ממתין</span>`
     : e.k === 'job' ? `<span class="tag green"><i class="live"></i>${hs[0] ? 'בטיפול' : 'רץ'}</span>` : '';
-  return `<div class="trow k-${e.k} ${isNew(e) ? 'new' : ''}" data-item="${it.id}" data-tid="i:${it.id}">
+  const td = isToday(it);
+  return `<div class="trow k-${e.k} ${td ? 'today' : ''} ${isNew(e) ? 'new' : ''}" data-item="${it.id}" data-tid="i:${it.id}">
     <span class="tk">${e.k === 'task' ? `<button class="tick" data-done="${it.id}" title="בוצע">${ic('check')}</button>` : tic}<em>${esc(t.name)}</em></span>
-    <div class="tm"><b>${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
+    <div class="tm"><b>${td ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
     <div class="te">${end}<small>${ago(it.u)}</small></div>
-    <div class="ta">${e.k !== 'task' ? `<button data-done="${it.id}" title="בוצע">${ic('check')}</button>` : ''}<button data-pin="${it.id}" class="${it.pin ? 'on' : ''}" title="סמן בכוכב">${ic('star')}</button><button data-park="${it.id}" title="הורד מהשולחן">${ic('x')}</button></div>
+    <div class="ta">${e.k !== 'task' ? `<button data-done="${it.id}" title="בוצע">${ic('check')}</button>` : ''}<button data-today="${it.id}" class="${td ? 'on' : ''}" title="להיום">${ic('sun')}</button><button data-pin="${it.id}" class="${it.pin ? 'on' : ''}" title="סמן בכוכב">${ic('star')}</button><button data-park="${it.id}" title="הורד מהשולחן">${ic('x')}</button></div>
   </div>`;
+}
+// היום (his ask 2026-11-17: "the today view is the most important - only the today things that I marked"): only what he
+// marked for today, highlighted, the ones that need him first; a box adds a to-do straight onto today
+function viewToday() {
+  const keep = S.hf; S.hf = 'today'; const list = tableEntries(); S.hf = keep;
+  list.sort((a, b) => a.rank - b.rank || b.t - a.t);
+  const day = ilDay(), done = S.items.filter((i) => i.today === day && i.status === 'done');
+  const nice = new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  return `<div class="wrap home today-v">
+    <div class="hello"><h1>${ic('sun')} היום</h1><p>${esc(nice)} · ${list.length ? `${list.length} להיום` : 'עוד לא סימנת כלום להיום'}${done.length ? ` · ${done.length} בוצעו` : ''}</p></div>
+    <form class="qc" id="tdf"><input id="td" autocomplete="off" placeholder="להוסיף משהו להיום"><button class="qmic" title="הוסף">${ic('plus')}</button></form>
+    <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>אין עדיין כלום להיום</b>פתח פריט בשולחן ולחץ "להיום" (או ${ic('sun')} בשורה), והוא יופיע כאן</div>`}</div>
+    ${done.length ? `<div class="lbl" style="margin-top:18px">בוצעו היום</div><div class="done-today">${done.map((i) => `<div class="dt" data-item="${i.id}">${ic('check')}<span>${esc(i.text)}</span></div>`).join('')}</div>` : ''}
+  </div>`;
+}
+async function addToday(text) {
+  text = text.trim(); if (!text) return;
+  const temp = { id: 'tmp' + Date.now(), text, body: '', type: 'task', status: 'open', today: ilDay(), by: 'שלומי', u: Date.now(), c: Date.now(), log: [] };
+  S.items.unshift(temp); render();
+  try { const r = await api('add', { item: { text, type: 'task', today: ilDay() } }); Object.assign(temp, r.item); render(); }
+  catch (e) { S.items = S.items.filter((i) => i !== temp); render(); toast('לא נשמר - ' + e.message); }
 }
 function viewHome() {
   const all = (() => { const keep = S.hf; S.hf = 'all'; const l = tableEntries(); S.hf = keep; return l; })();
@@ -695,12 +733,13 @@ function viewHome() {
   const hr = new Date().getHours();
   const hi = hr < 5 ? 'לילה טוב' : hr < 12 ? 'בוקר טוב' : hr < 17 ? 'צהריים טובים' : hr < 21 ? 'ערב טוב' : 'לילה טוב';
   const fresh = all.filter(isNew);
+  const nToday = all.filter((e) => isToday(e.it)).length, nSess = all.filter((e) => e.it?.type === 'session').length;
   const need = all.filter((e) => e.rank === 0 || e.k === 'task' || e.k === 'remind').length, run = all.filter((e) => e.k === 'run' || e.k === 'job').length;
   return `<div class="wrap home">
-    <div class="hello"><h1>${hi}, שלומי</h1><p>${need ? `${need} מחכים לך` : 'שום דבר לא מחכה לך'}${run ? ` · ${run} רצים עכשיו` : ''}</p>${fresh.length ? `<p class="newline"><span class="newdot"></span>${fresh.length === 1 ? 'נוסף לך משהו שעוד לא פתחת' : `נוספו לך ${fresh.length} דברים שעוד לא פתחת`} · <button class="seenall" data-act="seenall">סמן הכל כנקרא</button></p>` : ''}</div>
+    <div class="hello"><h1>${hi}, שלומי</h1><p>${nToday ? `${nToday} להיום · ` : ''}${need ? `${need} מחכים לך` : 'שום דבר לא מחכה לך'}${run ? ` · ${run} רצים עכשיו` : ''}</p>${fresh.length ? `<p class="newline"><span class="newdot"></span>${fresh.length === 1 ? 'נוסף לך משהו שעוד לא פתחת' : `נוספו לך ${fresh.length} דברים שעוד לא פתחת`} · <button class="seenall" data-act="seenall">סמן הכל כנקרא</button></p>` : ''}</div>
     ${pushInvite()}
     <form class="qc" id="qcf"><input id="qc" autocomplete="off" placeholder="מה עובר לך בראש? כתוב או דבר, וה-AI יסדר"><button type="button" class="qmic" data-act="recscreen" title="להקליט - וה-AI יסדר">${ic('mic')}</button></form>
-    <div class="chips">${S.f.project ? `<button class="on" data-proj="${esc(S.f.project)}">${esc(projName(S.f.project))} ${ic('x')}</button>` : ''}${S.f.q ? `<button class="on" data-act="clearq">"${esc(S.f.q)}" ${ic('x')}</button>` : ''}${TABLE_CHIPS.map(([k, t]) => `<button class="${(S.hf || 'all') === k ? 'on' : ''}" data-hf="${k}">${t}</button>`).join('')}</div>
+    <div class="chips">${S.f.project ? `<button class="on" data-proj="${esc(S.f.project)}">${esc(projName(S.f.project))} ${ic('x')}</button>` : ''}${S.f.q ? `<button class="on" data-act="clearq">"${esc(S.f.q)}" ${ic('x')}</button>` : ''}${TABLE_CHIPS.map(([k, t]) => { const n = k === 'today' ? nToday : k === 'session' ? nSess : 0; return (k === 'session' && !n && S.hf !== k) ? '' : `<button class="${(S.hf || 'all') === k ? 'on' : ''}" data-hf="${k}">${k === 'today' ? ic('sun') + ' ' : ''}${t}${n ? `<span class="n">${n}</span>` : ''}</button>`; }).join('')}</div>
     <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>${all.length ? 'אין כאן כלום' : 'השולחן ריק'}</b>${all.length ? '' : 'כתוב למעלה מה עובר לך בראש'}</div>`}</div>
     <div class="hint swipehint">בטלפון: החלק ימינה - בוצע, שמאלה - הורד מהשולחן</div>
   </div>`;
@@ -846,9 +885,10 @@ function viewSessions() {
 function render() {
   if (!S.loaded) return;
   renderChrome();
+  const td = $('#td'); if (td && document.activeElement === td && td.value) { renderChrome(); renderPanel(); return; }   // he is typing a to-do for today
   const qc = $('#qc'); if (qc && (document.activeElement === qc && qc.value || qc.disabled || (rec && rec.btn.closest('.qc')) || $('.qc .mic[data-busy]'))) { renderChrome(); renderPanel(); return; }
   const v = $('#view'), top = v.scrollTop;
-  v.innerHTML = S.view === 'items' ? viewItems() : S.view === 'sessions' ? viewSessions() : S.view === 'archive' ? viewArchive() : viewHome();
+  v.innerHTML = S.view === 'items' ? viewItems() : S.view === 'sessions' ? viewSessions() : S.view === 'archive' ? viewArchive() : S.view === 'today' ? viewToday() : viewHome();
   v.scrollTop = top;
   renderPanel();
 }
@@ -880,6 +920,7 @@ function itemPanel(it) {
         <button class="pchip chip st-${it.status}" data-pick="status" style="padding:5px 10px">${STATUS[it.status]}${ic('chev', 'dn')}</button>
         <input class="proj-in" id="pp" list="projlist" placeholder="פרויקט" value="${esc(it.project || '')}">
         <button class="pchip plain star ${it.pin ? 'on' : ''}" data-pin="${it.id}">${ic('star')}כוכב</button>
+        <button class="pchip plain today ${isToday(it) ? 'on' : ''}" data-today="${it.id}">${ic('sun')}להיום</button>
         <span class="pchip plain">${ic('clock')}${it.due ? esc(it.due.split('-').reverse().join('/')) : 'תאריך'}<input type="date" data-field="due" value="${esc(it.due || '')}"></span>
       </div>
       <div class="picker hidden" id="picker"></div>
@@ -1150,6 +1191,7 @@ document.addEventListener('click', (e) => {
   const d = t.dataset;
   if (t.classList.contains('scrim') && e.target !== t) return;
   if (t.closest('.trow')?.dataset.swiped) return;
+  if (d.today) { e.stopPropagation(); const it = itemById(d.today), on = isToday(it); setItem(d.today, { today: on ? '' : ilDay() }, on ? 'הוסר מהיום' : 'סומן להיום'); return; }
   if (d.pin) { e.stopPropagation(); const it = itemById(d.pin); setItem(d.pin, { pin: !it.pin }, it.pin ? '' : 'סומן בכוכב'); return; }
   if (d.done) { offTable('i', d.done, 'done'); return; }
   if (d.park) { offTable('i', d.park, 'parked'); return; }
@@ -1221,7 +1263,7 @@ document.addEventListener('click', (e) => {
 function confirmDelete(btn) { if (btn.dataset.armed) return true; btn.dataset.armed = '1'; btn.classList.add('ok'); btn.style.background = 'var(--red)'; btn.style.color = '#fff'; setTimeout(() => { delete btn.dataset.armed; btn.style.background = ''; btn.style.color = ''; btn.classList.remove('ok'); }, 2500); toast('לחץ שוב כדי למחוק'); return false; }
 function readTypes() { document.querySelectorAll('[data-tn]').forEach((i) => { settings.types[i.dataset.tn].name = i.value; }); document.querySelectorAll('[data-tc]').forEach((i) => { settings.types[i.dataset.tc].color = i.value; }); }
 
-document.addEventListener('submit', (e) => { if (e.target.id === 'qcf') { e.preventDefault(); quickAdd(); } });
+document.addEventListener('submit', (e) => { if (e.target.id === 'qcf') { e.preventDefault(); quickAdd(); } if (e.target.id === 'tdf') { e.preventDefault(); const v = $('#td').value; $('#td').value = ''; addToday(v); } });
 document.addEventListener('change', (e) => {
   const t = e.target;
   if (t.id === 'fproj') { S.f.project = t.value; render(); return; }
@@ -1298,7 +1340,7 @@ async function pushOff() {
   if (sub) { await api('push_off', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
   LS('push', 0); toast('ההתראות כבויות במכשיר הזה'); pushDraw();
 }
-const PUSH_LABELS = [['ask', 'פנייה מהאתר (עסקית, סרטון אישי, בקשה מהארכיון)'], ['remind', 'תזכורות ומשימות שהגיע היום שלהן (ב-9 בבוקר)']];
+const PUSH_LABELS = [['ask', 'פנייה מהאתר (עסקית, סרטון אישי, בקשה מהארכיון)'], ['session', 'סשן צריך ממך משהו (בקשה מסשן)'], ['remind', 'תזכורות ומשימות שהגיע היום שלהן (ב-9 בבוקר)']];
 async function pushDraw() {
   const el = $('#pushsec'); if (!el) return;
   const st = !pushOk() ? (isIOS && !isApp() ? 'needapp' : 'nosupport') : Notification.permission === 'denied' ? 'denied' : (await pushSub().catch(() => null)) ? 'on' : 'off';
@@ -1320,7 +1362,9 @@ function boot() {
   const h = location.hash.slice(1);
   if (h === 'rec') recScreen();
   if (h === 'archive') S.view = h;
+  if (h === 'today') S.view = h;
   load().then(() => {
+    if (!h && S.view === 'home' && S.items.some(isToday)) go('today');   // the day starts on היום when something is marked
     if (h.startsWith('s=')) openSess(decodeURIComponent(h.slice(2)));
     else if (/^[a-z0-9]{6}$/.test(h) && itemById(h)) openItem(h);
   });

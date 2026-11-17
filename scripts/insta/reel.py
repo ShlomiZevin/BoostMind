@@ -2,6 +2,7 @@
 
   zoomcut/.venv/Scripts/python scripts/insta/reel.py <media-id>          # every step that isn't done yet
   zoomcut/.venv/Scripts/python scripts/insta/reel.py <media-id> --redo subs
+  zoomcut/.venv/Scripts/python scripts/insta/reel.py <media-id> --twin-only   # free: download + words + "already in the verse?" only
 
 Steps (each writes into scripts/insta/work/<media-id>/ and is skipped when its file exists):
   fetch      video.mp4 (the Instagram key's media_url), audio.wav, f1..f4.jpg + strip.jpg
@@ -327,6 +328,8 @@ def main():
              ('ear', 'ear.json', lambda: ear(d, cost['fetch']['seconds'])), ('fix', 'words.json', lambda: fix(d)),
              ('who', 'who.json', lambda: who(d, m)),
              ('subs', 'web.mp4', lambda: subs(d))]
+    if '--twin-only' in args:   # only "is it in the verse already?" - the free steps, nothing paid (archive badges)
+        steps = steps[:3]
     for name, done, fn in steps:
         if os.path.exists(os.path.join(d, done)) and name not in redo and name in cost:
             continue

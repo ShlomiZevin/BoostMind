@@ -30,7 +30,8 @@ const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuu
 const PUSH = db.collection('mind_push');
 // what buzzes his phone - he turns each on / off in the page's settings (config.push)
 // ask = a site form opened a task waiting for him; remind = 9 am reminders. (Session pings are gone, 2026-11-12.)
-const PUSH_KINDS = { ask: true, remind: true };
+// session = a session asks him for something (type 'session' - his ask 2026-11-17: "if you need anything from me, tell me on Mind")
+const PUSH_KINDS = { ask: true, remind: true, session: true };
 
 const STATUSES = ['open', 'active', 'waiting', 'done', 'parked'];
 const STATUS_HE = { open: 'פתוח', active: 'בטיפול', waiting: 'מחכה לך', done: 'בוצע', parked: 'בהקפאה' };
@@ -41,7 +42,11 @@ const DEFAULT_TYPES = [
   { id: 'job', name: "ג'וב רץ", color: '#10b981', icon: 'gear' },
   { id: 'thought', name: 'מחשבה', color: '#8b5cf6', icon: 'brain' },
   { id: 'wait', name: 'מחכה למישהו', color: '#f97316', icon: 'hourglass' },
+  { id: 'session', name: 'בקשה מסשן', color: '#06b6d4', icon: 'bot' },   // a session needs something from him (2026-11-17)
 ];
+// "for today" (his ask 2026-11-17): an item marked for today keeps the day it was marked - tomorrow it is just an item again
+const ilDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const todayVal = (v) => (v === true || v === 'yes' ? ilDay() : /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : '');
 const LOG_MAX = 80;
 
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
@@ -97,7 +102,7 @@ async function addItem(f, by) {
     text: oneLine(f.text, 300), body: clip(f.body, 8000),
     type: types.has(f.type) ? f.type : 'idea',
     status: STATUSES.includes(f.status) ? f.status : 'open',
-    project: oneLine(f.project, 60), pin: !!f.pin, due: /^\d{4}-\d{2}-\d{2}$/.test(f.due || '') ? f.due : '',
+    project: oneLine(f.project, 60), pin: !!f.pin, due: /^\d{4}-\d{2}-\d{2}$/.test(f.due || '') ? f.due : '', today: todayVal(f.today),
     tags: Array.isArray(f.tags) ? f.tags.map((t) => oneLine(t, 30)).filter(Boolean).slice(0, 10) : [],
     sessions: f.session ? [oneLine(f.session, 80)] : [], by: oneLine(by, 80) || 'שלומי', c: now, u: now,
     log: [logEntry(by, f.note || 'נוצר', { st: STATUSES.includes(f.status) ? f.status : 'open', ...(f.session ? { s: oneLine(f.session, 80) } : {}) })],
@@ -105,6 +110,7 @@ async function addItem(f, by) {
   if (!item.text) throw new Error('text is empty');
   await ITEMS.doc(id).set(item);
   if (f.session) await linkSession(f.session, id);
+  if (item.type === 'session' && by !== 'שלומי') await pushMe('session', { title: 'סשן צריך אותך: ' + item.text, body: f.note || item.body, url: '/mind/#' + id, tag: 'i:' + id });
   return { id, ...item };
 }
 
@@ -121,6 +127,7 @@ async function updateItem(id, f, by, quiet) {
     if (f.project != null) ch.project = oneLine(f.project, 60);
     if (f.pin != null) ch.pin = !!f.pin;
     if (f.due != null) ch.due = /^\d{4}-\d{2}-\d{2}$/.test(f.due) ? f.due : '';
+    if (f.today != null) ch.today = todayVal(f.today);
     if (Array.isArray(f.tags)) ch.tags = f.tags.map((t) => oneLine(t, 30)).filter(Boolean).slice(0, 10);
     if (f.status != null && STATUSES.includes(f.status) && f.status !== it.status) { ch.status = f.status; said.push(STATUS_HE[f.status]); }
     if (f.session) { const s = oneLine(f.session, 80); if (!(it.sessions || []).includes(s)) ch.sessions = [...(it.sessions || []), s].slice(-10); }
@@ -175,9 +182,10 @@ async function pushMe(kind, { title, body, url, tag }, why) {
 }
 // ---------- the MCP door ----------
 // A session writes here ONLY when Shlomi tells it to ("למוח", "רשום במוח", "add to mind", "send this to mind").
-const ASKED = ' Only when Shlomi explicitly asks you to put something in Mind - never on your own initiative, never to report your work.';
+const ASKED = ' Only when Shlomi explicitly asks you to put something in Mind - never on your own initiative, never to report your work.'
+  + " The one other use: when he told this session to tell him in Mind what it needs from him, write each need as type 'session' (status 'waiting') - a decision, an answer, an approval, something only he can do - a clear title, and in body what you need, why, and which session / project / path; mark it done once he answered.";
 const ago = (t) => { const m = Math.round((Date.now() - t) / 6e4); return m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
-const itemLine = (i, types) => `#${i.id} [${types[i.type] || i.type}] [${i.status}]${i.pin ? ' [pinned]' : ''}${i.project ? ' {' + i.project + '}' : ''} ${i.text}${i.due ? ' (due ' + i.due + ')' : ''}  - by ${i.by || '?'}, updated ${ago(i.u)}`;
+const itemLine = (i, types) => `#${i.id} [${types[i.type] || i.type}] [${i.status}]${i.pin ? ' [pinned]' : ''}${i.today === ilDay() ? ' [for today]' : ''}${i.project ? ' {' + i.project + '}' : ''} ${i.text}${i.due ? ' (due ' + i.due + ')' : ''}  - by ${i.by || '?'}, updated ${ago(i.u)}`;
 
 const TOOLS = [
   { name: 'mind_overview', description: "Shlomi's notebook in one read: what waits for him, reminders, open ideas / tasks / notes by project. Read it when he asks what's open / what's in Mind / what's on his plate.",
@@ -186,9 +194,9 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { status: { type: 'string', enum: STATUSES }, type: { type: 'string' }, project: { type: 'string' }, query: { type: 'string', description: 'words to search in title/body/tags' }, include_done: { type: 'boolean' }, limit: { type: 'number' } } } },
   { name: 'mind_get_item', description: 'One item with its body and full timeline (his notes on it included).', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
   { name: 'mind_add_item', description: "Put something in Shlomi's notebook: an idea, a to-do, a note, a reminder, or something from this session he wants to keep." + ASKED + ' Title short, in his words (Hebrew if he wrote Hebrew); details, paths and links in body.',
-    inputSchema: { type: 'object', properties: { text: { type: 'string', description: 'short title' }, body: { type: 'string', description: 'details: what, where (paths/urls), why' }, type: { type: 'string', description: 'type id: idea | task | reminder | thought | wait, or one of his own (see mind_overview)' }, status: { type: 'string', enum: STATUSES }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string', description: 'YYYY-MM-DD' }, tags: { type: 'array', items: { type: 'string' } }, note: { type: 'string', description: 'first timeline line' } }, required: ['text'] } },
+    inputSchema: { type: 'object', properties: { text: { type: 'string', description: 'short title' }, body: { type: 'string', description: 'details: what, where (paths/urls), why' }, type: { type: 'string', description: 'type id: idea | task | reminder | thought | wait | session (a session needs something from him), or one of his own (see mind_overview)' }, status: { type: 'string', enum: STATUSES }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string', description: 'YYYY-MM-DD' }, today: { type: 'boolean', description: 'mark it for today (highlighted on his page today)' }, tags: { type: 'array', items: { type: 'string' } }, note: { type: 'string', description: 'first timeline line' } }, required: ['text'] } },
   { name: 'mind_update_item', description: 'Change one of his items or add a note to its timeline (mark it done, add what you found).' + ASKED,
-    inputSchema: { type: 'object', properties: { id: { type: 'string' }, status: { type: 'string', enum: STATUSES }, note: { type: 'string' }, text: { type: 'string' }, body: { type: 'string' }, type: { type: 'string' }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string' }, tags: { type: 'array', items: { type: 'string' } } }, required: ['id'] } },
+    inputSchema: { type: 'object', properties: { id: { type: 'string' }, status: { type: 'string', enum: STATUSES }, note: { type: 'string' }, text: { type: 'string' }, body: { type: 'string' }, type: { type: 'string' }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string' }, today: { type: 'boolean', description: 'true = for today, false = not' }, tags: { type: 'array', items: { type: 'string' } } }, required: ['id'] } },
 ];
 
 async function callTool(name, a = {}) {
@@ -204,6 +212,7 @@ async function callTool(name, a = {}) {
       for (const i of items.filter((x) => !forMe(x))) (byProject[i.project || '(no project)'] ||= []).push(i);
       return [
         `Types: ${cfg.types.map((t) => t.id + '=' + t.name).join(', ')}`, '',
+        ...(() => { const t = items.filter((i) => i.today === ilDay()); return t.length ? [`## For today (${t.length})`, ...t.map((i) => itemLine(i, types)), ''] : []; })(),
         `## Waiting for Shlomi / his to-dos (${waiting.length})`, ...waiting.map((i) => itemLine(i, types)), '',
         '## Open items by project', ...Object.entries(byProject).flatMap(([p, l]) => [`### ${p} (${l.length})`, ...l.slice(0, 40).map((i) => itemLine(i, types))]),
       ].join('\n');
