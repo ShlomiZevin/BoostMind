@@ -328,6 +328,9 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .todaymark svg { width: 12px; height: 12px; color: var(--amber); }
 .pchip.today.on { color: var(--ink); background: color-mix(in srgb, var(--amber) 30%, transparent); border-color: var(--amber); }
 .chips button .n { margin-inline-start: 5px; font-size: 12px; opacity: .8; }
+.today-v .qc { margin: 6px 0 22px; }
+.today-v .table { gap: 12px; }
+.today-v .trow { border-inline-start: 4px solid var(--amber); padding-block: 15px; }
 .today-v .hello h1 svg { width: 26px; height: 26px; color: var(--amber); vertical-align: -3px; }
 .done-today { display: flex; flex-direction: column; gap: 6px; }
 .done-today .dt { display: flex; align-items: center; gap: 8px; color: var(--ink3); text-decoration: line-through; font-size: 14px; cursor: pointer; padding: 4px 6px; }
@@ -698,7 +701,7 @@ function tableRow(e) {
     : e.k === 'task' || e.k === 'remind' ? dueChip(it.due)
     : e.k === 'wait' ? `<span class="tag violet">${ic('hourglass')}ממתין</span>`
     : e.k === 'job' ? `<span class="tag green"><i class="live"></i>${hs[0] ? 'בטיפול' : 'רץ'}</span>` : '';
-  const td = isToday(it);
+  const td = isToday(it) && S.view !== 'today';   // inside היום every row is for today - no mark, no highlight (his note 2026-11-17)
   return `<div class="trow k-${e.k} ${td ? 'today' : ''} ${isNew(e) ? 'new' : ''}" data-item="${it.id}" data-tid="i:${it.id}">
     <span class="tk">${e.k === 'task' ? `<button class="tick" data-done="${it.id}" title="בוצע">${ic('check')}</button>` : tic}<em>${esc(t.name)}</em></span>
     <div class="tm"><b>${td ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
