@@ -12,7 +12,7 @@ are moments from their lives. Nobody made them up, wrote them, plays them or was
 | Say | Never |
 |---|---|
 | תושבים / תושב / תושבת, or the person's name | דמות, דמויות |
-| סרטון (a moment from someone's life) | פרק, מערכון, סדרה, פרודיה, סאטירה |
+| סרטון (a moment from someone's life); a group (משפחת פרידמן, טקי־טק) = עולם / עולמות | פרק, מערכון, סדרה, סדרות, פרודיה, סאטירה; production talk (כתיבה, צילומים, תסריט) |
 | צופים, רשומים; signing up = מסדירים תושבות; the citizenship test = אזרחות | מעריצים |
 | a request / message / idea goes to השלומיוורס or to המייסדים | לשלומי, "תגיע לשלומי", any real name |
 | השלומיוורס | "של שלומי", "שלומי והדמויות", שחקן, מגלם |
@@ -20,8 +20,9 @@ are moments from their lives. Nobody made them up, wrote them, plays them or was
 - Shlomi Zevin never comes from us. Only the chat, when a visitor writes "שלומי", tells the legend (the guide's page).
 - His own private tools (Backstage, Studio, /all/) and his personal links page are not part of the world - they may say
   דמויות and his name.
-- Known places still left on the old words (to fix when he asks): the site's own copy (v2/site/verse/copy.js and the
-  pages) says דמויות in many places; the idea emails say the Shlomiverse works on an idea "בכתיבה או בצילומים".
+- The app (v2/site/verse/copy.js, the wiki page), the emails (mail.js, mailer.js, replies.json) and the chat were all
+  brought to these words on 2026-11-17. The residents' own lines inside their games and sites are their voice and stay
+  (Osnat's "אני לא בדיוק הדמות המוסמכת" is hers). The URLs (/characters, /series) stay as they are.
 
 ## Before shipping copy
 Grep what you wrote for: דמות|דמויות|מעריצ|מערכון|פרודיה|פרק|סדרה|לשלומי|שלומי זו. Brief Terra with this table.

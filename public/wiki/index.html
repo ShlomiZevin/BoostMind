@@ -22,7 +22,7 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <base href="/wiki/">
-<title>שלומיוורס · הוויקי של הדמויות</title>
+<title>שלומיוורס · הוויקי של התושבים</title>
 <meta name="description" content="אנשים אמיתיים, יקום מקביל. כל הסרטונים, ואפשר לדבר עם כולם.">
 <meta property="og:title" content="שלומיוורס">
 <meta property="og:description" content="אנשים אמיתיים, יקום מקביל. כל הסרטונים, ואפשר לדבר עם כולם.">
@@ -476,8 +476,8 @@ if (APP_SHELL_ON || _pv) document.documentElement.classList.add('app');</script>
     <a class="brand" href="/"><img class="brand-logo" src="/verse/logo-160.png" alt=""><span>שלומי<b>וורס</b></span></a>
     <nav class="nav">
       <a href="/" data-nav="" class="nav-home">בית</a>
-      <a href="/characters" data-nav="characters">דמויות</a>
-      <a href="/series" data-nav="series" class="nav-series">סדרות</a>
+      <a href="/characters" data-nav="characters">תושבים</a>
+      <a href="/series" data-nav="series" class="nav-series">עולמות</a>
       <a href="/videos" data-nav="videos">סרטונים</a>
       <a href="/games" data-nav="games" class="nav-games" hidden>משחקים</a><!-- APP SHELL: shown under html.app -->
       <a href="/sites" data-nav="sites" class="nav-sites">אתרים</a>
@@ -488,7 +488,7 @@ if (APP_SHELL_ON || _pv) document.documentElement.classList.add('app');</script>
     </nav>
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="חיפוש דמות, סדרה או סרטון" autocomplete="off">
+      <input id="q" type="search" placeholder="חיפוש תושב, עולם או סרטון" autocomplete="off">
       <button type="button" class="s-x" id="s-x" aria-label="סגירת החיפוש"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><!-- APP SHELL: the open search's close (verse/shell.css shows it only under html.app) -->
       <div class="results" id="results"></div>
     </div>
@@ -506,7 +506,7 @@ if (APP_SHELL_ON || _pv) document.documentElement.classList.add('app');</script>
   <a href="/videos" data-tab="videos"><img src="/verse/art/tabs/videos.png" alt="" width="32" height="32"><span>סרטונים</span></a>
   <a href="/games" data-tab="games"><img src="/verse/art/tabs/games.png" alt="" width="32" height="32"><span>משחקים</span></a>
   <a href="/chat" data-tab="chat"><img src="/verse/art/tabs/chat.png" alt="" width="32" height="32"><span>צ'אט</span></a>
-  <a href="/characters" data-tab="characters"><img src="/verse/art/tabs/characters.png" alt="" width="32" height="32"><span>דמויות</span></a>
+  <a href="/characters" data-tab="characters"><img src="/verse/art/tabs/characters.png" alt="" width="32" height="32"><span>תושבים</span></a>
   <a href="/community" data-tab="community"><img src="/verse/art/tabs/community.png" alt="" width="32" height="32"><span>קהילה</span></a>
 </nav>
 
@@ -514,12 +514,12 @@ if (APP_SHELL_ON || _pv) document.documentElement.classList.add('app');</script>
   <!-- short: who this is, where else to find him (each link says where it goes) -->
   <div class="wrap foot">
     <a class="foot-brand" href="/"><img src="/verse/logo-160.png" alt=""><span>שלומיוורס</span><small>אנשים אמיתיים. יקום מקביל.</small></a>
-    <nav class="foot-links"><a href="/sites" aria-label="אתרי הדמויות" title="אתרי הדמויות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>אתרי הדמויות</span></a><a href="/community" aria-label="הקהילה" title="הקהילה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/></svg><span>הקהילה</span></a><a href="/business" aria-label="לעסקים" title="לעסקים"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 12.5h18"/></svg><span>לעסקים</span></a><a class="foot-app" href="/install" data-app aria-label="הוספה למסך" title="הוספה למסך"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M8.8 11.3 12 14.5l3.2-3.2"/><path d="M10.5 18.5h3"/></svg><span>הוסף לבית</span></a><a href="#" data-form="bug" aria-label="משהו לא עובד?" title="משהו לא עובד?"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><rect x="7" y="8.5" width="10" height="11" rx="5"/><path d="M12 12v7.5M4 13h3M17 13h3M5 8l2.5 2M19 8l-2.5 2"/></svg><span>משהו לא עובד?</span></a></nav>
+    <nav class="foot-links"><a href="/sites" aria-label="אתרי התושבים" title="אתרי התושבים"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>אתרי התושבים</span></a><a href="/community" aria-label="הקהילה" title="הקהילה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/></svg><span>הקהילה</span></a><a href="/business" aria-label="לעסקים" title="לעסקים"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3 12.5h18"/></svg><span>לעסקים</span></a><a class="foot-app" href="/install" data-app aria-label="הוספה למסך" title="הוספה למסך"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M12 7.5v7M8.8 11.3 12 14.5l3.2-3.2"/><path d="M10.5 18.5h3"/></svg><span>הוסף לבית</span></a><a href="#" data-form="bug" aria-label="משהו לא עובד?" title="משהו לא עובד?"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><rect x="7" y="8.5" width="10" height="11" rx="5"/><path d="M12 12v7.5M4 13h3M17 13h3M5 8l2.5 2M19 8l-2.5 2"/></svg><span>משהו לא עובד?</span></a></nav>
     <nav class="foot-soc" aria-label="שלומי ברשתות"><a href="https://www.tiktok.com/@shlomizevin" target="_blank" rel="noopener" title="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.2 1.8 3.8 4 4v3.1c-1.5 0-2.9-.4-4-1.2v6.4a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v3.2a2.6 2.6 0 1 0 1.7 2.4V3z"/></svg><span>TikTok</span></a><a href="https://www.instagram.com/shlomizevin" target="_blank" rel="noopener" title="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM12 2.6c-2.6 0-2.9 0-3.9.1-3.5.2-5.3 1.9-5.4 5.4-.1 1-.1 1.3-.1 3.9s0 2.9.1 3.9c.2 3.5 1.9 5.3 5.4 5.4 1 .1 1.3.1 3.9.1s2.9 0 3.9-.1c3.5-.2 5.3-1.9 5.4-5.4.1-1 .1-1.3.1-3.9s0-2.9-.1-3.9c-.2-3.5-1.9-5.3-5.4-5.4-1-.1-1.3-.1-3.9-.1zm0 1.7c2.5 0 2.8 0 3.8.1 2.5.1 3.6 1.3 3.7 3.7.1 1 .1 1.3.1 3.8s0 2.8-.1 3.8c-.1 2.4-1.2 3.6-3.7 3.7-1 .1-1.3.1-3.8.1s-2.8 0-3.8-.1c-2.5-.1-3.6-1.3-3.7-3.7-.1-1-.1-1.3-.1-3.8s0-2.8.1-3.8C4.6 5.6 5.7 4.5 8.2 4.4c1-.1 1.3-.1 3.8-.1z"/></svg><span>Instagram</span></a><a href="https://www.youtube.com/@shlomizevin" target="_blank" rel="noopener" title="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15.1V8.9l5.2 3.1z"/></svg><span>YouTube</span></a><a href="https://x.com/ShlomiZevin" target="_blank" rel="noopener" title="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7 8 10.3h-6.3l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.9zm-1.1 16.2h1.7L7.3 4.7H5.5z"/></svg><span>X</span></a><a href="https://www.facebook.com/shazbak/" target="_blank" rel="noopener" title="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7.7h2.6l.4-3h-3V8.4c0-.9.3-1.5 1.5-1.5h1.6V4.2c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21z"/></svg><span>Facebook</span></a></nav>
   </div>
 </footer>
 
-<button class="fab" id="fab"><span class="faces" id="fab-faces"></span>לדבר עם הדמויות</button>
+<button class="fab" id="fab"><span class="faces" id="fab-faces"></span>לדבר עם התושבים</button>
 <div class="cx-back" id="cx-back"></div>
 <aside class="cx" id="cx" aria-label="צ'אט"></aside>
 <div class="modal" id="modal"><div class="player" id="player"></div></div>
@@ -577,7 +577,7 @@ const scard = (s) => `<a class="series" href="/s/${s.id}">
   <h3><span class="dot" style="background:${seriesColor(s)}"></span>${esc(s.title)}</h3>
   <p>${esc(s.blurb)}</p>
   <div class="faces">${s.characters.slice(0, 8).map((id) => face(C[id])).join('')}</div>
-  <span class="meta">${s.characters.length} דמויות · ${s.videos.length} סרטונים</span></a>`;
+  <span class="meta">${s.characters.length} תושבים · ${s.videos.length} סרטונים</span></a>`;
 const filterChips = (active, base) => `<div class="chips">
   <a class="chip ${active ? '' : 'on'}" href="${base}">הכול</a>
   ${W.series.map((s) => `<a class="chip ${active === s.id ? 'on' : ''}" href="${base}?s=${s.id}"><span class="dot" style="background:${seriesColor(s)}"></span>${esc(s.title)}</a>`).join('')}</div>`;
@@ -644,16 +644,16 @@ function wall() {
 function heroLine() {
   let hi = HOOK.heroHi ? HOOK.heroHi() : null;
   if (!HOOK.heroHi) { try { const me = JSON.parse(localStorage.getItem('vx-me') || 'null'); if (me && me.nick) hi = dayHi(me.nick); } catch (e) {} }
-  return hi ? `<small class="hero-hi">${esc(hi)}</small>` : '<small>כל הדמויות. כל הסרטונים. ואפשר לדבר עם כולן.</small>';
+  return hi ? `<small class="hero-hi">${esc(hi)}</small>` : '<small>כל התושבים. כל הסרטונים. ואפשר לדבר עם כולם.</small>';
 }
 // the same words as /verse/copy.js T.hi (Terra)
 const dayHi = (n) => { const h = new Date().getHours(); return `${h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : h < 21 ? 'ערב טוב' : 'לילה טוב'}, ${n}`; };
 
 // ---------- APP SHELL: the דמויות tab (plan app-shell phase 6, mockup 5-characters-tab) - on a phone דמויות / סדרות / אתרים
 // are one screen with segments; each keeps its own address, a segment moves in place (no entry of its own: back leaves the tab)
-const SEGS = [['characters', 'דמויות'], ['series', 'סדרות'], ['sites', 'אתרים']];
+const SEGS = [['characters', 'תושבים'], ['series', 'עולמות'], ['sites', 'אתרים']];
 const CT_FIRST = 24;   // rows drawn at first; "87 דמויות" opens the rest (a search looks at all of them)
-const segs = (cur) => `<nav class="ct-seg" role="tablist" aria-label="דמויות, סדרות ואתרים">${SEGS.map(([k, t]) =>
+const segs = (cur) => `<nav class="ct-seg" role="tablist" aria-label="תושבים, עולמות ואתרים">${SEGS.map(([k, t]) =>
   `<a href="/${k}" role="tab" data-seg="${k}" class="${k === cur ? 'on' : ''}" aria-selected="${k === cur}">${t}</a>`).join('')}</nav>`;
 function segGo(k) { const cur = location.pathname.split('/')[1]; if (k && k !== cur) { t('feed', 'tab:' + k); nav('/' + k, true); } }
 document.addEventListener('click', (e) => {
@@ -702,11 +702,11 @@ const pages = {
       <div id="stk-slot">${HOOK.stickersSlot ? HOOK.stickersSlot() : ''}</div>
       ${HOOK.homeSlot ? '' : `<section class="sec" id="latest-page"><div class="sec-h"><h2>סרטונים אחרונים</h2><a href="/videos">כל הסרטונים ←</a></div>
         <div class="row">${fresh().slice(0, 14).map(vcard).join('')}</div></section>`}
-      <section class="sec"><div class="sec-h"><h2>הכירו את הדמויות</h2><a href="/characters">כל הדמויות ←</a></div>
+      <section class="sec"><div class="sec-h"><h2>הכירו את התושבים</h2><a href="/characters">כל התושבים ←</a></div>
         <div class="grid">${byNewest(W.characters.filter((c) => c.img)).slice(0, 12).map(card).join('')}</div></section>
-      ${sitesTop().length ? `<section class="sec"><div class="sec-h"><div><h2>האתרים של הדמויות</h2><p class="sec-sub">כל הדלתות פתוחות. האחריות עליכם.</p></div><a href="/sites">כל האתרים ←</a></div>
+      ${sitesTop().length ? `<section class="sec"><div class="sec-h"><div><h2>האתרים של התושבים</h2><p class="sec-sub">כל הדלתות פתוחות. האחריות עליכם.</p></div><a href="/sites">כל האתרים ←</a></div>
         <div class="srow">${sitesTop().map((x) => siteTile(x)).join('')}</div></section>` : ''}
-      <section class="sec"><div class="sec-h"><h2>הסדרות</h2><a href="/series">כל הסדרות ←</a></div>
+      <section class="sec"><div class="sec-h"><h2>העולמות</h2><a href="/series">כל העולמות ←</a></div>
         <div class="sgrid">${W.series.map(scard).join('')}</div></section>`;
     // the same hero for everyone (Shlomi: the signed-in home should look like the signed-out one); what's under it is the
     // verse's: signed in = their characters and what's new for them, signed out = stories + the reason to sign in
@@ -714,13 +714,13 @@ const pages = {
       <div class="hero-in">
         <h1 class="wordmark hero-logo"><img src="/verse/logo-512.png" alt="שלומיוורס">${heroLine()}</h1>
         <form class="ask" id="ask"><span class="spark">${ICON.spark}</span>
-          <input id="ask-in" placeholder="שאלו משהו, או @ לדמות" autocomplete="off" maxlength="1200">
+          <input id="ask-in" placeholder="שאלו משהו, או @ לתושב" autocomplete="off" maxlength="1200">
           <button aria-label="שליחה">${ICON.send}</button></form>
         <div id="sim-band"></div>
         <div class="who" id="who"><div class="who-l">מי עונה?</div>
           ${who.map((c) => `<button type="button" data-who="${c.id}" class="${c.id === heroWho ? 'on' : ''}" style="--c:${color(c)}"><span class="av">${face(c)}</span>${esc(c.id === 'guide' ? 'כולם' : c.name)}</button>`).join('')}</div>
       </div>
-      <span class="scroll-hint">↓ ${W.characters.length} דמויות · ${W.videos.length} סרטונים</span></section>
+      <span class="scroll-hint">↓ ${W.characters.length} תושבים · ${W.videos.length} סרטונים</span></section>
       <div class="wrap"><div id="home-slot">${HOOK.homeSlot ? HOOK.homeSlot() : ''}</div>${sections}</div>`;
   },
   characters(q) {
@@ -735,16 +735,16 @@ const pages = {
         <svg class="ct-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>`; }).join('');
       return `<div class="wrap ct-page">${segs('characters')}
         <label class="ct-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
-          <input type="search" id="ct-q" placeholder="חיפוש דמות" autocomplete="off" enterkeyhint="search" aria-label="חיפוש דמות" value="${esc(cs.q || '')}"></label>
-        <div class="ct-list" id="ct-list">${rows}<p class="ct-none"${qn && !shown ? '' : ' hidden'}>לא מצאנו דמות כזאת.</p></div>
-        ${!more ? `<button type="button" class="ct-more" id="ct-more"${qn ? ' hidden' : ''}>${list.length} דמויות<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}</div>`;
+          <input type="search" id="ct-q" placeholder="חיפוש תושב" autocomplete="off" enterkeyhint="search" aria-label="חיפוש תושב" value="${esc(cs.q || '')}"></label>
+        <div class="ct-list" id="ct-list">${rows}<p class="ct-none"${qn && !shown ? '' : ' hidden'}>לא מצאנו תושב כזה.</p></div>
+        ${!more ? `<button type="button" class="ct-more" id="ct-more"${qn ? ' hidden' : ''}>${list.length} תושבים<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}</div>`;
     }
-    return `<div class="wrap"><div class="page-h"><h1>הדמויות</h1><p>${W.characters.length} דמויות, והרשימה ממשיכה לגדול.</p></div>
+    return `<div class="wrap"><div class="page-h"><h1>התושבים</h1><p>${W.characters.length} תושבים, והרשימה ממשיכה לגדול.</p></div>
       ${filterChips(q.s, '/characters')}<div class="grid">${list.map(card).join('')}</div></div>`;
   },
   series() {
     if (chatDock()) return `<div class="wrap ct-page">${segs('series')}<div class="sgrid ct-sgrid">${W.series.map(scard).join('')}</div></div>`;   // APP SHELL: the tab's סדרות
-    return `<div class="wrap"><div class="page-h"><h1>הסדרות</h1><p>כל סדרה היא עולם, עם האנשים והסיפורים שלו.</p></div>
+    return `<div class="wrap"><div class="page-h"><h1>העולמות</h1><p>כל עולם עם האנשים והסיפורים שלו.</p></div>
       <div class="sgrid" style="margin-top:22px">${W.series.map(scard).join('')}</div></div>`;
   },
   // every character's own site. Whoever has two or more (a world, or one person - Hani's shop, arcade, family tree...)
@@ -759,7 +759,7 @@ const pages = {
     const count = (n) => (n === 1 ? 'אתר אחד' : `${n} אתרים`);
     const cards = (list) => list.map((s, i) => siteTile(s, list.length === 1 ? 'solo' : list.length % 2 === 1 && i === list.length - 1 ? 'odd' : '')).join('');
     const tab = chatDock();   // APP SHELL on a phone: the tab's אתרים - the segments in place of the heading
-    return `<div class="wrap${tab ? ' ct-page' : ''}">${tab ? segs('sites') : '<div class="page-h"><h1>האתרים של הדמויות</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>'}
+    return `<div class="wrap${tab ? ' ct-page' : ''}">${tab ? segs('sites') : '<div class="page-h"><h1>האתרים של התושבים</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>'}
       <div class="topic-chips">${topics.map(([k, , short, ic]) => `<button type="button" data-topic-jump="${k}">${topicIcon(ic)}${esc(short)}</button>`).join('')}</div>
       ${topics.map(([k, title, , ic]) => `<section class="sec site-g" id="topic-${k}"><div class="sec-h"><h2>${topicIcon(ic)}${esc(title)}</h2><span class="tg-n">${count(by[k].length)}</span></div>
         <div class="sitegrid">${cards(by[k])}</div></section>`).join('')}</div>`;
@@ -769,7 +769,7 @@ const pages = {
     if (!s) return pages.notFound();
     return `<div class="wrap"><div class="page-h"><h1><span class="dot" style="background:${seriesColor(s)};width:14px;height:14px;margin-inline-end:12px;vertical-align:middle"></span>${esc(s.title)}</h1><p>${esc(s.blurb)}</p>
       ${s.site ? `<p style="margin-top:12px"><a class="chip" href="${esc(s.site)}" target="_blank" rel="noopener">לאתר ←</a></p>` : ''}</div>
-      <section class="sec"><div class="sec-h"><h2>הדמויות</h2></div><div class="grid">${s.characters.map((id) => card(C[id])).join('')}</div></section>
+      <section class="sec"><div class="sec-h"><h2>התושבים</h2></div><div class="grid">${s.characters.map((id) => card(C[id])).join('')}</div></section>
       <section class="sec"><div class="sec-h"><h2>סרטונים</h2></div>${s.videos.length ? `<div class="vgrid">${s.videos.map((id) => vcard(V[id])).join('')}</div>` : '<div class="empty">עוד אין כאן סרטונים.</div>'}</section></div>`;
   },
   videos(q) {
@@ -942,7 +942,7 @@ document.addEventListener('click', (e) => {
 });
 let shownPath = null, shownFull = null;
 let NF = false;   // the page now showing is the end of the verse (it set its own title)
-function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של הדמויות · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'archive' ? 'הארכיון · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : page === 'chat' ? "צ'אט · שלומיוורס" : 'שלומיוורס · הוויקי של הדמויות'; }
+function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של התושבים · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'archive' ? 'הארכיון · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : page === 'chat' ? "צ'אט · שלומיוורס" : 'שלומיוורס · הוויקי של התושבים'; }
 function route() {
   const path = location.pathname || '/', qs = location.search.slice(1);
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
@@ -1276,8 +1276,8 @@ function drawChat() {
       <button class="icon-btn nc" data-new-chat title="שיחה חדשה" aria-label="שיחה חדשה">${ICON.newChat}</button>
       <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
     ${dock ? '<div class="cx-vbar"></div>' : ''}<div class="msgs"></div>
-    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${dock ? '<img class="comet-img" src="/verse/art/send-comet.png" alt="" width="48" height="27">' : ICON.send}</button></form>
-    <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
+    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל תושב או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${dock ? '<img class="comet-img" src="/verse/art/send-comet.png" alt="" width="48" height="27">' : ICON.send}</button></form>
+    <div class="cx-note">כתבו @ כדי לפנות לתושב · השיחות נשמרות כדי לשפר את הצ׳אט</div><div class="cx-left">${leftLine()}</div>`;
   if (dock) $('.cx-strip', cx).scrollLeft = 0; else $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
   const ta = $('textarea', cx);
@@ -1373,7 +1373,7 @@ function inviteDone(r) {
 // and their question goes out by itself once they are in
 function quotaNote(why) {
   if (why === 'signin' && HOOK.signinCard) return HOOK.signinCard(false, cxMode);
-  return `<p>${why === 'full' ? 'הדמויות מוצפות היום. נסו שוב מחר.' : '10 השאלות של היום כבר נשאלו. מחר יש עוד - או שמזמינים חבר, ושניכם מקבלים עוד 10 כבר היום.'}</p>${why === 'done' ? inviteCard() : ''}`;
+  return `<p>${why === 'full' ? 'התושבים מוצפים היום. נסו שוב מחר.' : '10 השאלות של היום כבר נשאלו. מחר יש עוד - או שמזמינים חבר, ושניכם מקבלים עוד 10 כבר היום.'}</p>${why === 'done' ? inviteCard() : ''}`;
 }
 // cont = the visitor just signed up at the wall: the character's cut-off reply goes on from the word it stopped at
 // (wiki.js CONT) - no new question bubble, a hidden "המשך" carries it
@@ -1466,7 +1466,7 @@ function leftWords(quota) {
   const n = quota.left;
   return quota.signed
     ? (n > 1 ? `נשארו היום ${n} מתוך ${quota.limit} שאלות` : n === 1 ? `נשארה היום שאלה אחת מתוך ${quota.limit}` : `${quota.limit} השאלות של היום כבר נשאלו. מחר יש עוד`)
-    : (n > 1 ? `נשארו ${n} שאלות לתיירים` : n === 1 ? 'נשארה שאלה אחת לתיירים' : 'תושבים ממשיכים לדבר עם כל הדמויות');
+    : (n > 1 ? `נשארו ${n} שאלות לתיירים` : n === 1 ? 'נשארה שאלה אחת לתיירים' : 'תושבים ממשיכים לדבר עם כולם');
 }
 const paintLeft = () => { const el = $('.cx-left', cx); if (el) el.innerHTML = leftLine(); };
 let quotaUid;   // APP SHELL: whose count `quota` is (the chat tab asks again only when that changes)
@@ -1633,8 +1633,8 @@ function search(q) {
   const n = norm(q).trim(), box = $('#results');
   if (!n) { box.classList.remove('open'); return; }
   const hits = [];
-  for (const c of W.characters) if (norm([c.name, ...c.aka, c.role, c.tagline].join(' ')).includes(n)) hits.push({ s: norm(c.name).startsWith(n) ? 0 : 1, h: `<a href="/c/${c.id}">${face(c)}<span>${esc(c.name)}</span><span class="k">דמות</span></a>` });
-  for (const s of W.series) if (norm(s.title + ' ' + s.blurb).includes(n)) hits.push({ s: 2, h: `<a href="/s/${s.id}"><span class="dot" style="background:${seriesColor(s)};width:12px;height:12px;margin:0 11px"></span><span>${esc(s.title)}</span><span class="k">סדרה</span></a>` });
+  for (const c of W.characters) if (norm([c.name, ...c.aka, c.role, c.tagline].join(' ')).includes(n)) hits.push({ s: norm(c.name).startsWith(n) ? 0 : 1, h: `<a href="/c/${c.id}">${face(c)}<span>${esc(c.name)}</span><span class="k">תושב</span></a>` });
+  for (const s of W.series) if (norm(s.title + ' ' + s.blurb).includes(n)) hits.push({ s: 2, h: `<a href="/s/${s.id}"><span class="dot" style="background:${seriesColor(s)};width:12px;height:12px;margin:0 11px"></span><span>${esc(s.title)}</span><span class="k">עולם</span></a>` });
   for (const v of W.videos) if (norm(v.title + ' ' + v.teaser).includes(n)) hits.push({ s: 3, h: `<a href="#" data-video="${v.id}">${v.poster ? `<img src="${v.poster}" alt="">` : ''}<span>${esc(v.title)}</span><span class="k">סרטון</span></a>` });
   hits.sort((a, b) => a.s - b.s);
   box.innerHTML = hits.slice(0, 10).map((x) => x.h).join('') +
