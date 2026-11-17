@@ -44,9 +44,13 @@
 <script>try { const t = localStorage.getItem('wiki-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 // opened straight onto a game or a video (a refresh, a shared link, a push): the home stays hidden until that page is up
 if (/^\/(play|v)\//.test(location.pathname)) { document.documentElement.classList.add('opening'); setTimeout(() => document.documentElement.classList.remove('opening'), 8000); }</script>
-<script>/* APP SHELL (gates.js APP_SHELL, verse/shell.js): html.app before the first paint - a test browser (vx-preview) or the last answer */
-try { var _a = new URLSearchParams(location.search).get('app'); if (_a === '1') localStorage.setItem('vx-preview', '1'); if (_a === '0') { localStorage.removeItem('vx-preview'); localStorage.removeItem('vx-app'); } } catch (e) {}   /* ?app=1 / ?app=0: his phone tries the shell on the preview */
-try { if (localStorage.getItem('vx-preview') === '1' || localStorage.getItem('vx-app') === '1') document.documentElement.classList.add('app'); } catch (e) {}</script>
+<script>/* APP SHELL (gates.js APP_SHELL, verse/shell.js): html.app before the first paint. RELEASED 2026-11-17 (his "release it as the
+   official version"): on for everyone - APP_SHELL_ON mirrors gates.js APP_SHELL (flip both together). The ?app=1 switch is gone (it set
+   vx-preview, which also opens his-eyes-only gates); a sessions' test browser still has vx-preview. The class is added outside the try,
+   so private mode gets it too */
+var APP_SHELL_ON = true, _pv = false;
+try { _pv = localStorage.getItem('vx-preview') === '1' || localStorage.getItem('vx-app') === '1'; } catch (e) {}
+if (APP_SHELL_ON || _pv) document.documentElement.classList.add('app');</script>
 <style>html.opening, html.opening body { background: #000; } html.opening body > :not(.vp) { visibility: hidden; }</style>
 <!-- the Shlomiverse as an app on the home screen + push (v2: /manifest.webmanifest, /sw.js, /verse/) -->
 <link rel="manifest" href="/manifest.webmanifest">

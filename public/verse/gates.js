@@ -17,9 +17,9 @@ const ABOUT_OPEN = true;   // "מה סיפרתם לנו" on the אני page (pla
 // OPENED 2026-11-08 with ציפציפ + ח24 themselves (his "open both sites and put it on the Shlomiverse home page")
 const TZ_HOME = true;
 // the app shell (plan app-shell, mockups Documents/shlomiverse-v2-design/app-shell): the bottom tab bar, the slim top bar, the
-// videos feed (verse/shell.js, shell.css, feed.js). Off for everyone; his account and the sessions' test browsers (vx-preview)
-// see it. The wiki page sets html.app early from vx-preview / the last answer (vx-app), shell.js keeps it right
-const APP_SHELL = false;
+// videos feed (verse/shell.js, shell.css, feed.js). RELEASED for everyone 2026-11-17 (his "release it as the official version",
+// events log). The wiki page's early script has APP_SHELL_ON - flip both together; shell.js keeps html.app right
+const APP_SHELL = true;
 const HIM = new Set(['rJLlCV393shl7njhzWZmoaE15Yp2']);   // shlomi@boostart.io
 // a test browser sees what he sees (localStorage vx-preview = 1) - only for the sessions' phone checks and screenshots
 const peek = () => { try { return localStorage.getItem('vx-preview') === '1'; } catch (e) { return false; } };
