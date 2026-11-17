@@ -5,6 +5,7 @@
 //   node ~/.mind/mind.mjs get id=abc123                   one item with its timeline
 //   node ~/.mind/mind.mjs add text="..." type=idea project=Aspect body="..."      (only when he asks)
 //   node ~/.mind/mind.mjs update id=abc123 status=done note="..."                (only when he asks)
+//   node ~/.mind/mind.mjs attach id=abc123 file=C:/path/mockup.jpg caption="..."  a picture on an item (for him to approve)
 // Arguments: key=value pairs, or one JSON object. Hebrew: pass it as a JSON file's content, never typed in the console.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -20,8 +21,14 @@ else for (const a of rest) {
   const k = a.slice(0, i), v = a.slice(i + 1);
   args[k] = v === 'true' ? true : v === 'false' ? false : k === 'tags' ? v.split(',').map((s) => s.trim()).filter(Boolean) : k === 'limit' ? +v : v;
 }
-const TOOL = { overview: 'mind_overview', list: 'mind_list_items', get: 'mind_get_item', add: 'mind_add_item', update: 'mind_update_item' }[cmd];
-if (!TOOL) { console.error('commands: overview | list | get | add | update'); process.exit(1); }
+const TOOL = { overview: 'mind_overview', list: 'mind_list_items', get: 'mind_get_item', add: 'mind_add_item', update: 'mind_update_item', attach: 'mind_attach_image' }[cmd];
+if (!TOOL) { console.error('commands: overview | list | get | add | update | attach'); process.exit(1); }
+if (cmd === 'attach') {   // the file -> base64 (jpg / png / webp / gif, up to 7 MB)
+  if (!args.file || !fs.existsSync(args.file)) { console.error('attach: file=<path to the picture> is missing'); process.exit(1); }
+  args.image_base64 = fs.readFileSync(args.file).toString('base64');
+  args.name = args.name || path.basename(args.file);
+  delete args.file;
+}
 
 const r = await fetch(cfg.url.replace(/\/+$/, '') + '/mcp', { method: 'POST',
   headers: { authorization: 'Bearer ' + cfg.key, 'content-type': 'application/json' },

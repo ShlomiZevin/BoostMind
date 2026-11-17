@@ -180,6 +180,49 @@ async function pushMe(kind, { title, body, url, tag }, why) {
     return sent;
   } catch (e) { if (why) why.push(e.message); console.error('mind push', e.message); return 0; }
 }
+// ---------- pictures on an item (his ask 2026-11-17: "sessions send me images to approve") ----------
+// item.images = [{ path, name, caption, by, t }] - the files in the private bucket shlomiverse-studio/mind/<item>/, shown
+// to his page through signed links (made once, kept for 5 hours - the page polls)
+const IMG_BUCKET = 'shlomiverse-studio';
+const IMG_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
+const signed = new Map();
+async function imgUrl(path) {
+  const c = signed.get(path);
+  if (c && c.exp > Date.now() + 3600e3) return c.url;
+  const exp = Date.now() + 6 * 3600e3;
+  const [url] = await admin.storage().bucket(IMG_BUCKET).file(path).getSignedUrl({ action: 'read', expires: exp });   // signBlob: the functions' account holds Token Creator on itself
+  signed.set(path, { url, exp });
+  return url;
+}
+async function withUrls(items) {
+  await Promise.all(items.filter((i) => i.images?.length).map(async (i) => {
+    i.images = await Promise.all(i.images.map(async (m) => ({ ...m, url: await imgUrl(m.path).catch(() => null) })));
+  }));
+  return items;
+}
+async function attachImage(id, f, by) {
+  const ref = ITEMS.doc(oneLine(id, 20).replace(/^#/, ''));
+  const snap = await ref.get();
+  if (!snap.exists) throw new Error('no item ' + id);
+  const b64 = String(f.image_base64 || f.b64 || '').replace(/^data:[^,]*,/, '');
+  const buf = Buffer.from(b64, 'base64');
+  if (buf.length < 100) throw new Error('image_base64 is empty');
+  if (buf.length > 7 * 1024 * 1024) throw new Error('image over 7 MB - send a smaller copy (jpg, ~2000 px)');
+  const sig = buf.subarray(0, 12).toString('hex');
+  const type = sig.startsWith('89504e47') ? 'image/png' : sig.startsWith('ffd8') ? 'image/jpeg' : sig.startsWith('47494638') ? 'image/gif' : sig.slice(16, 24) === '57454250' ? 'image/webp' : '';
+  if (!type) throw new Error('not an image (jpg / png / webp / gif)');
+  const it = snap.data();
+  if ((it.images || []).length >= 20) throw new Error('20 pictures is the most on one item');
+  const name = (oneLine(f.name, 60).replace(/\.[a-z0-9]+$/i, '').replace(/[^\w.-]+/g, '-') || 'image') + '.' + IMG_TYPES[type];
+  const path = `mind/${ref.id}/${Date.now()}-${name}`;
+  await admin.storage().bucket(IMG_BUCKET).file(path).save(buf, { contentType: type, resumable: false, metadata: { cacheControl: 'private, max-age=3600' } });
+  const img = { path, name, caption: clip(f.caption, 300), by: oneLine(by, 80) || 'שלומי', t: Date.now() };
+  const ch = { images: [...(it.images || []), img], u: Date.now(), log: [...(it.log || []), logEntry(by, 'צירף תמונה' + (img.caption ? ': ' + img.caption : ''))].slice(-LOG_MAX) };
+  await ref.update(ch);
+  if (by !== 'שלומי' && (it.type === 'session' || it.status === 'waiting')) await pushMe(it.type === 'session' ? 'session' : 'ask', { title: 'תמונה בשבילך: ' + it.text, body: img.caption, url: '/mind/#' + ref.id, tag: 'i:' + ref.id });
+  return { id: ref.id, ...it, ...ch };
+}
+
 // ---------- the MCP door ----------
 // A session writes here ONLY when Shlomi tells it to ("למוח", "רשום במוח", "add to mind", "send this to mind").
 const ASKED = ' Only when Shlomi explicitly asks you to put something in Mind - never on your own initiative, never to report your work.'
@@ -195,6 +238,8 @@ const TOOLS = [
   { name: 'mind_get_item', description: 'One item with its body and full timeline (his notes on it included).', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
   { name: 'mind_add_item', description: "Put something in Shlomi's notebook: an idea, a to-do, a note, a reminder, or something from this session he wants to keep." + ASKED + ' Title short, in his words (Hebrew if he wrote Hebrew); details, paths and links in body.',
     inputSchema: { type: 'object', properties: { text: { type: 'string', description: 'short title' }, body: { type: 'string', description: 'details: what, where (paths/urls), why' }, type: { type: 'string', description: 'type id: idea | task | reminder | thought | wait | session (a session needs something from him), or one of his own (see mind_overview)' }, status: { type: 'string', enum: STATUSES }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string', description: 'YYYY-MM-DD' }, today: { type: 'boolean', description: 'mark it for today (highlighted on his page today)' }, tags: { type: 'array', items: { type: 'string' } }, note: { type: 'string', description: 'first timeline line' } }, required: ['text'] } },
+  { name: 'mind_attach_image', description: 'Attach a picture to one of his items (a mockup / design / screenshot for him to approve or look at). Use it on an item you were told to write - typically a session request: add the item first, then attach. He answers on the item\'s timeline (read it with mind_get_item). From a file on disk the CLI is easier: node ~/.mind/mind.mjs attach id=<id> file=<path> caption=<text>.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' }, image_base64: { type: 'string', description: 'the picture, base64 (jpg / png / webp / gif, up to 7 MB)' }, name: { type: 'string', description: 'file name' }, caption: { type: 'string', description: 'what it is / what to approve (Hebrew if he writes Hebrew)' } }, required: ['id', 'image_base64'] } },
   { name: 'mind_update_item', description: 'Change one of his items or add a note to its timeline (mark it done, add what you found).' + ASKED,
     inputSchema: { type: 'object', properties: { id: { type: 'string' }, status: { type: 'string', enum: STATUSES }, note: { type: 'string' }, text: { type: 'string' }, body: { type: 'string' }, type: { type: 'string' }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string' }, today: { type: 'boolean', description: 'true = for today, false = not' }, tags: { type: 'array', items: { type: 'string' } } }, required: ['id'] } },
 ];
@@ -225,12 +270,17 @@ async function callTool(name, a = {}) {
       const d = await ITEMS.doc(oneLine(a.id, 20).replace(/^#/, '')).get();
       if (!d.exists) throw new Error('no item ' + a.id);
       const i = shapeItem(d);
-      return [itemLine(i, types), i.body ? '\n' + i.body : '', i.tags?.length ? 'tags: ' + i.tags.join(', ') : '', '\nTimeline:',
+      return [itemLine(i, types), i.body ? '\n' + i.body : '', i.tags?.length ? 'tags: ' + i.tags.join(', ') : '',
+        ...(i.images?.length ? ['\nPictures:', ...i.images.map((m, n) => `${n + 1}. ${m.name}${m.caption ? ' - ' + m.caption : ''} (by ${m.by})`)] : []), '\nTimeline:',
         ...(i.log || []).map((l) => `- ${new Date(l.t).toISOString().slice(0, 16).replace('T', ' ')} ${l.by}${l.st ? ' [' + l.st + ']' : ''}: ${l.text}`)].filter(Boolean).join('\n');
     }
     case 'mind_add_item': {
       const it = await addItem({ ...a, session: '' }, by);
       return `Added #${it.id}: ${it.text} [${it.type}/${it.status}]. Shlomi sees it at https://shlomiverse.com/mind/#${it.id}`;
+    }
+    case 'mind_attach_image': {
+      const it = await attachImage(a.id, a, by);
+      return `Attached to #${it.id} (${it.images.length} picture${it.images.length > 1 ? 's' : ''}): ${it.text}`;
     }
     case 'mind_update_item': {
       const it = await updateItem(a.id, { ...a, session: '' }, by, true);
@@ -265,10 +315,18 @@ async function pageOp(b) {
   switch (b.op) {
     case 'all': {
       const [items, cfg] = await Promise.all([listItems({ includeDone: true, limit: 1500 }), config()]);
-      return { items, sessions: [], config: cfg, now: Date.now() };
+      return { items: await withUrls(items), sessions: [], config: cfg, now: Date.now() };
     }
     case 'add': return { item: await addItem(b.item || {}, 'שלומי') };
-    case 'update': return { item: await updateItem(b.id, b.item || {}, 'שלומי') };
+    case 'update': return { item: (await withUrls([await updateItem(b.id, b.item || {}, 'שלומי')]))[0] };
+    case 'attach': return { item: (await withUrls([await attachImage(b.id, b, 'שלומי')]))[0] };
+    case 'unattach': {   // he takes a picture off an item (the file goes too)
+      const ref = ITEMS.doc(oneLine(b.id, 20)), it = (await ref.get()).data();
+      if (!it) throw new Error('no item');
+      const keep = (it.images || []).filter((m) => m.path !== b.path);
+      if (keep.length !== (it.images || []).length) { await admin.storage().bucket(IMG_BUCKET).file(String(b.path)).delete().catch(() => {}); await ref.update({ images: keep, u: Date.now() }); }
+      return { item: (await withUrls([{ id: ref.id, ...it, images: keep }]))[0] };
+    }
     case 'delete': await ITEMS.doc(oneLine(b.id, 20)).delete(); return { ok: true };
     case 'config': {
       const c = {};

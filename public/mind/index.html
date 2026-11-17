@@ -328,6 +328,18 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .todaymark svg { width: 12px; height: 12px; color: var(--amber); }
 .pchip.today.on { color: var(--ink); background: color-mix(in srgb, var(--amber) 30%, transparent); border-color: var(--amber); }
 .chips button .n { margin-inline-start: 5px; font-size: 12px; opacity: .8; }
+.pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0 4px; }
+.pic { position: relative; margin: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--card2); }
+.pic img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; cursor: zoom-in; }
+.pic figcaption { font-size: 13px; color: var(--ink2); padding: 6px 9px 8px; line-height: 1.35; }
+.pic .pdel { position: absolute; top: 6px; left: 6px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; }
+.pic .pdel svg { width: 14px; height: 14px; }
+.pchip.addpic { position: relative; overflow: hidden; } .pchip.addpic input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.tthumb { width: 44px; height: 44px; border-radius: 9px; object-fit: cover; flex: none; border: 1px solid var(--line); }
+.lightbox { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.92); display: grid; place-items: center; padding: 16px; cursor: zoom-out; }
+.lightbox img { max-width: 100%; max-height: 82vh; border-radius: 8px; }
+.lightbox p { color: #fff; text-align: center; margin: 12px 0 0; font-size: 15px; }
+.btn.approve { background: var(--green); color: #fff; border-color: var(--green); }
 .today-v .qc { margin: 6px 0 22px; }
 .today-v .table { gap: 12px; }
 .today-v .trow { border-inline-start: 4px solid var(--amber); padding-block: 15px; }
@@ -705,6 +717,7 @@ function tableRow(e) {
   return `<div class="trow k-${e.k} ${td ? 'today' : ''} ${isNew(e) ? 'new' : ''}" data-item="${it.id}" data-tid="i:${it.id}">
     <span class="tk">${e.k === 'task' ? `<button class="tick" data-done="${it.id}" title="בוצע">${ic('check')}</button>` : tic}<em>${esc(t.name)}</em></span>
     <div class="tm"><b>${td ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
+    ${it.images?.[0]?.url ? `<img class="tthumb" src="${esc(it.images[0].url)}" alt="" loading="lazy">` : ''}
     <div class="te">${end}<small>${ago(it.u)}</small></div>
     <div class="ta">${e.k !== 'task' ? `<button data-done="${it.id}" title="בוצע">${ic('check')}</button>` : ''}<button data-today="${it.id}" class="${td ? 'on' : ''}" title="להיום">${ic('sun')}</button><button data-pin="${it.id}" class="${it.pin ? 'on' : ''}" title="סמן בכוכב">${ic('star')}</button><button data-park="${it.id}" title="הורד מהשולחן">${ic('x')}</button></div>
   </div>`;
@@ -914,6 +927,7 @@ function itemPanel(it) {
   return `<div class="ph">
       <button class="btn icon" data-act="close" title="סגור">${ic('x')}</button><span class="sp"></span>
       <button class="btn icon" data-act="recscreen" title="דבר על זה - וה-AI יעדכן">${ic('mic')}</button>
+      ${it.type === 'session' && it.status !== 'done' ? `<button class="btn approve" data-act="approve" title="מאשר - הסשן יקרא את זה">${ic('check')}מאשר</button>` : ''}
       ${it.status !== 'done' ? `<button class="btn ok" data-set="status:done">${ic('check')}בוצע</button>` : `<button class="btn" data-set="status:open">פתח מחדש</button>`}
     </div>
     <div class="pb">
@@ -925,7 +939,9 @@ function itemPanel(it) {
         <button class="pchip plain star ${it.pin ? 'on' : ''}" data-pin="${it.id}">${ic('star')}כוכב</button>
         <button class="pchip plain today ${isToday(it) ? 'on' : ''}" data-today="${it.id}">${ic('sun')}להיום</button>
         <span class="pchip plain">${ic('clock')}${it.due ? esc(it.due.split('-').reverse().join('/')) : 'תאריך'}<input type="date" data-field="due" value="${esc(it.due || '')}"></span>
+        <span class="pchip plain addpic">${ic('plus')}תמונה<input type="file" accept="image/*" multiple data-addpic="${it.id}"></span>
       </div>
+      ${(it.images || []).length ? `<div class="pics">${it.images.map((m) => `<figure class="pic">${m.url ? `<img src="${esc(m.url)}" alt="" loading="lazy" data-zoom="${esc(m.url)}" data-cap="${esc(m.caption || '')}">` : '<div class="empty">לא נטען</div>'}${m.caption ? `<figcaption>${esc(m.caption)}</figcaption>` : ''}<button class="pdel" data-unpic="${esc(m.path)}" title="הסר תמונה">${ic('x')}</button></figure>`).join('')}</div>` : ''}
       <div class="picker hidden" id="picker"></div>
       <textarea class="body-in" id="pbody" placeholder="פרטים, קישורים, מה בדיוק...">${esc(it.body || '')}</textarea>
       ${hs.length ? `<div class="lbl">מטופל על ידי</div><div class="sess" style="padding:0">${hs.map(sessCard).join('')}</div>` : ''}
@@ -1246,6 +1262,7 @@ document.addEventListener('click', (e) => {
     case 'settings': settings(); break;
     case 'clearq': S.f.q = ''; $('#q').value = ''; render(); break;
     case 'clearf': S.f = { ...S.f, type: '', project: '', q: '' }; $('#q').value = ''; render(); break;
+    case 'approve': { const id = S.open.id; setItem(id, { status: 'done', note: 'אושר' }, 'אושר - הסשן יקרא את זה'); break; }
     case 'note': { if (rec) { stopMic(false); break; } const ta = $('#pnote'); addNote(S.open.id, ta.value); ta.value = ''; grow(ta); break; }
     case 'delete': { const id = S.open.id, it = itemById(id); if (!it || !confirmDelete(t)) break; S.items = S.items.filter((x) => x.id !== id); closePanel(); render(); api('delete', { id }).then(() => toast('נמחק')); break; }
     case 'hide': setSess(S.open.id, { hidden: true }); closePanel(); toast('הוסתר'); break;
@@ -1267,7 +1284,44 @@ function confirmDelete(btn) { if (btn.dataset.armed) return true; btn.dataset.ar
 function readTypes() { document.querySelectorAll('[data-tn]').forEach((i) => { settings.types[i.dataset.tn].name = i.value; }); document.querySelectorAll('[data-tc]').forEach((i) => { settings.types[i.dataset.tc].color = i.value; }); }
 
 document.addEventListener('submit', (e) => { if (e.target.id === 'qcf') { e.preventDefault(); quickAdd(); } if (e.target.id === 'tdf') { e.preventDefault(); const v = $('#td').value; $('#td').value = ''; addToday(v); } });
+// pictures he adds from the phone / computer: made smaller first (a phone photo is ~4000 px), then onto the item
+async function addPics(id, files) {
+  for (const f of [...files].slice(0, 10)) {
+    toast('מעלה תמונה…');
+    try {
+      const b64 = await shrink(f);
+      const r = await api('attach', { id, b64, name: f.name });
+      const it = itemById(id); if (it) Object.assign(it, r.item);
+      render(); toast('התמונה נוספה');
+    } catch (e) { toast('לא עלתה - ' + e.message); }
+  }
+}
+function shrink(f) {
+  return new Promise((ok, fail) => {
+    const img = new Image(), u = URL.createObjectURL(f);
+    img.onload = () => {
+      const k = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+      ok(c.toDataURL('image/jpeg', 0.86).split(',')[1]);
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); fail(new Error('לא תמונה')); };
+    img.src = u;
+  });
+}
+document.addEventListener('click', (e) => {
+  const z = e.target.closest('[data-zoom]');
+  if (z) { e.stopPropagation(); document.body.insertAdjacentHTML('beforeend', `<div class="lightbox" data-lb><div><img src="${esc(z.dataset.zoom)}" alt="">${z.dataset.cap ? `<p>${esc(z.dataset.cap)}</p>` : ''}</div></div>`); return; }
+  const lb = e.target.closest('[data-lb]'); if (lb) { lb.remove(); return; }
+  const un = e.target.closest('[data-unpic]');
+  if (un && S.open?.kind === 'item') {
+    e.stopPropagation(); if (!confirm('להסיר את התמונה?')) return;
+    const id = S.open.id;
+    api('unattach', { id, path: un.dataset.unpic }).then((r) => { const it = itemById(id); if (it) Object.assign(it, r.item); render(); toast('הוסרה'); }).catch((er) => toast('לא הוסרה - ' + er.message));
+  }
+}, true);
 document.addEventListener('change', (e) => {
+  if (e.target.dataset?.addpic) { addPics(e.target.dataset.addpic, e.target.files); e.target.value = ''; return; }
   const t = e.target;
   if (t.id === 'fproj') { S.f.project = t.value; render(); return; }
   if (t.id === 'cauto') { LS('auto', t.checked); return; }
