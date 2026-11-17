@@ -136,6 +136,9 @@ new MutationObserver((list) => {
 }).observe(document.body, { childList: true });
 phone.addEventListener?.('change', () => requestAnimationFrame(tbChanged));
 
+// the send comet lights only for real text - a field of spaces stays dim (sending ignores it)
+document.addEventListener('input', (e) => { const ta = e.target; if (ta.tagName === 'TEXTAREA' && ta.closest('.cx .composer')) ta.closest('.composer').classList.toggle('blank', !ta.value.trim()); }, true);
+
 applyFlag();
 onState(applyFlag);
 paint();

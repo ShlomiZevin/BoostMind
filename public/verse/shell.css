@@ -528,7 +528,7 @@ html.app .gpage, html.app .vg-page { position: relative; }
   /* the send (his pick, r3/2 option 3): the planet as an orange line, no block behind it; bright when there is something to send */
   html.app .cx.dock .composer button { width: 58px; height: 54px; border-radius: 50%; background: transparent; box-shadow: none; color: #ff7a2e; display: grid; place-items: center; padding: 0; }
   html.app .cx.dock .composer button svg.comet2 { display: block; width: 52px; height: 34px; transform: none; filter: drop-shadow(0 0 6px rgba(255, 106, 31, .65)); transition: transform .18s ease, opacity .18s, filter .18s; }
-  html.app .cx.dock .composer:has(textarea:placeholder-shown) button svg.comet2 { opacity: .45; filter: none; }
+  html.app .cx.dock .composer:has(textarea:placeholder-shown) button svg.comet2, html.app .cx.dock .composer.blank button svg.comet2 { opacity: .45; filter: none; }   /* .blank = only spaces (shell.js) */
   html.app .cx.dock .composer button:active svg.comet2 { transform: translateX(-6px); }
   html.app .cx.dock .composer button:disabled { opacity: 1; }
   html.app .cx.dock .composer button:disabled svg.comet2 { opacity: .35; filter: none; }
