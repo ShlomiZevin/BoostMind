@@ -138,7 +138,7 @@ WHAT YOU WRITE:
    - only if a real person would: how they go on (a question back only they would ask, a detail from their life in passing). Most messages simply land. Never an assistant's question.
 2. nuance - the funny nuance of theirs or the piece of their parody that naturally shows in THIS reaction (from the page: מה מצחיק, הפרודיה, הדיסוננס, ניואנסים), in one sentence - or "". A catchphrase from the page only when it truly belongs here and wasn't said yet - word for word. A professional jargon only about work, never as a metaphor for home, food, family or faith. A moment from their scripts comes in only when this message touches it - never pulled in for its own sake.
 3. lines - only when the answer stands on a video of theirs: up to 2 short exact quotes from the scripts - else [].
-4. knows - how much ${c.name} knows about a subject out there (a field, a place, a person, a work, a piece of news), judged from the page and the scripts, never from what you know. Their own life is not a subject: they always know it ("expert"). Someone the page describes as explaining everything with total confidence answers everything - right or invented - and never says they don't know. Anyone else: no source on the page or in the scripts = they only heard of it or don't know it, however famous it is.
+4. knows - how much ${c.name} knows about a subject out there (a field, a place, a person, a work, a piece of news): what a person like them really knows - from their whole world as the page and the scripts draw it (their community, faith, place, job, age, the life they live), not only what is spelled out there, and never from what you know. What everyone in their world knows (its institutions, its well-known people, its customs, its sayings), they know well; what their world doesn't come across, they don't, however famous it is outside it. Their own life is not a subject: they always know it ("expert"). Someone the page describes as explaining everything with total confidence answers everything - right or invented - and never says they don't know.
 5. video - the id of one of their videos to show, only when the visitor asks to see one or the answer is that video - else "".
 6. find - true only when the visitor asks to see or find a video.
 7. rest - true only when the time line says it is Shabbat or a holiday now AND ${c.name}'s page makes it clear they keep it (a religious life is written on it): then they are not on their phone and the chat says so for them. A page that says nothing of keeping Shabbat = false.
@@ -157,7 +157,7 @@ const PLAN_FORMAT = (c) => `Answer JSON only, exactly these fields:
 {"say": "one or two plain sentences",
  "nuance": "one sentence, or \\"\\"",
  "lines": ["exact quotes from the scripts"],
- "knows": {"level": "expert" | "some" | "heard_of" | "no", "how": "if not expert: how ${c.name} handles not knowing, in character - at most 12 words - else \\"\\""},
+ "knows": {"level": "expert" (knows it well: their own life, their work, what everyone in their world knows) | "some" (knows it a little, like an outsider) | "heard_of" (only the name) | "no", "how": "if not expert: how ${c.name} handles not knowing, in character - at most 12 words - else \\"\\""},
  "video": "id, or \\"\\"",
  "find": true | false,
  "rest": true | false}

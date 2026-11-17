@@ -530,6 +530,13 @@ exports.wikiChat = onRequest({
       }
     }
     if (!u) u = await stream(key, mode, turns, (t) => { reply += t; res.write(t); }, opts);
+    // the sign-in card is the server's, never left to the writer (his note 2026-11-17: answers stopped mid-sentence with no
+    // invitation - the writer cut at the limit but left out [[signin]], so the page showed nothing and the next answer was cut
+    // again): the wall always carries it; the last free answer carries it whenever it was cut (a found video is answered whole)
+    if (!reply.includes('[[signin]]') && (ok.grace === 'signin' || (ok.grace === 'soft' && /[—–-]\s*$/.test(reply)))) {
+      const tag = (reply.endsWith('\n') ? '\n' : '\n\n') + '[[signin]]';
+      reply += tag; res.write(tag);
+    }
     if (ok.grace === 'soft' && !reply.includes('[[signin]]')) await putOff(req, who);
     await keep(req.body, mode, turns, reply, u, who, extra).catch((e) => console.error('keep failed', e.message));
     console.log('wikiChat', mode, turns.length, 'in', u.input_tokens, 'cached', u.input_tokens_details?.cached_tokens, 'out', u.output_tokens);
