@@ -910,6 +910,43 @@ async function refreshAll() {
   scrollTo(0, y);
 }
 
+// ---------- fresh by itself (his ask 2026-11-17: "I always need to refresh it... when something is new I don't see it") ----------
+// Coming back to the page (the tab / the home-screen app shown again, the window focused) = everything this page has loaded
+// comes again, quietly, while the old screen stays usable; while it is open, the light parts (the menu's numbers, plans,
+// requests, characters + this tab's own data, never the heavy stats) every 60 s. The screen is drawn again only when
+// something really changed and he isn't in the middle of something (typing, a window open, a plan's comments) - otherwise
+// only the menu's numbers move, and the rest catches up the next time.
+const HEAVY = new Set(['S', 'W', 'EV', 'CH']);
+let freshBusy = false, lastFresh = Date.now();
+const busyHere = () => {
+  const a = document.activeElement;
+  if (a && (['TEXTAREA', 'SELECT', 'IFRAME'].includes(a.tagName) || (a.tagName === 'INPUT' && !['button', 'checkbox', 'radio'].includes(a.type)) || a.isContentEditable)) return true;
+  return !!document.querySelector('.ask-back, .sheet-back, .sheet');
+};
+const sigOf = () => { try { return JSON.stringify([L, PL, SEEN, CR, CN, EVS, PLAN && [PLAN.version, PLAN.status, (PLAN.comments || []).length]]); } catch (e) { return String(Date.now()); } };
+async function quietRefresh(all) {
+  if (freshBusy || refreshing || document.hidden || !key) return;
+  freshBusy = true;
+  try {
+    const keys = [...HAVE].filter((k) => all || !HEAVY.has(k));
+    const before = sigOf();
+    await reload(keys);
+    if (planId) PLAN = await api('plan', { id: planId }).catch(() => PLAN);
+    lastFresh = Date.now();
+    if (all || sigOf() !== before) {
+      if (busyHere()) reBadge();
+      else { const y = scrollY; draw(); scrollTo(0, y); }
+    }
+  } catch (e) {}
+  freshBusy = false;
+}
+// back after 20 s or more away = everything again; the 60 s beat = the light parts
+const back = () => { if (!document.hidden && Date.now() - lastFresh > 20e3) quietRefresh(true); };
+document.addEventListener('visibilitychange', back);
+addEventListener('focus', back);
+addEventListener('pageshow', (e) => { if (e.persisted) quietRefresh(true); });
+setInterval(() => quietRefresh(false), 60e3);
+
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
 const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chars', 'דמויות', 'cast'], ['chats', 'שיחות', 'comment'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['tz', 'ציפציפ', 'spark'], ['costs', 'הוצאות', 'dollar']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
