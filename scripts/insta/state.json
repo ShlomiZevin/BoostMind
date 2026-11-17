@@ -2189,5 +2189,130 @@
    "esther"
   ],
   "wiki_id": "ig-18030510134486260"
+ },
+ "18097896095446130": {
+  "status": "skip",
+  "why": "2026-11-17: game promo (אז אנחנו מסונכרנים), not in the verse - the old twin to security-1 was wrong (one short line)"
+ },
+ "18157654669455134": {
+  "status": "twin",
+  "episode": "haredit-3",
+  "score": 0.4
+ },
+ "17904295164671211": {
+  "status": "twin",
+  "episode": "demokratovich-nechama",
+  "score": 0.54
+ },
+ "17992683834059635": {
+  "status": "twin",
+  "episode": "haredit-1",
+  "score": 0.45
+ },
+ "18086404511702014": {
+  "status": "twin",
+  "episode": "dorit-1",
+  "score": 0.72
+ },
+ "18127296125486204": {
+  "status": "twin",
+  "episode": "demokratovich-yamim-noraim",
+  "score": 0.33
+ },
+ "18103710194329244": {
+  "status": "twin",
+  "episode": "demokratovich-shut",
+  "score": 0.55
+ },
+ "18637367347039009": {
+  "status": "twin",
+  "episode": "tadar-6",
+  "score": 0.74
+ },
+ "17965776393180526": {
+  "status": "twin",
+  "episode": "gilad-joins",
+  "score": 0.66
+ },
+ "18573442597073777": {
+  "status": "twin",
+  "episode": "crypto-1",
+  "score": 0.44
+ },
+ "17961873159239654": {
+  "status": "twin",
+  "episode": "tadar-5",
+  "score": 0.68
+ },
+ "18127924006854197": {
+  "status": "twin",
+  "episode": "yuval-1",
+  "score": 0.53
+ },
+ "17954468085290499": {
+  "status": "twin",
+  "episode": "gym-1",
+  "score": 0.33
+ },
+ "18088624085277486": {
+  "status": "twin",
+  "episode": "tadar-4",
+  "score": 0.71
+ },
+ "18034229135835935": {
+  "status": "twin",
+  "episode": "security-1",
+  "score": 0.73
+ },
+ "17866696221678932": {
+  "status": "twin",
+  "episode": "news-1",
+  "score": 0.77
+ },
+ "18098740334535619": {
+  "status": "twin",
+  "episode": "ronit-joins",
+  "score": 0.59
+ },
+ "18132144841811206": {
+  "status": "twin",
+  "episode": "tadar-3",
+  "score": 0.78
+ },
+ "18342475981258769": {
+  "status": "twin",
+  "episode": "hani-milon"
+ },
+ "18057941123602761": {
+  "status": "twin",
+  "episode": "gym-2"
+ },
+ "17874406014601607": {
+  "status": "twin",
+  "episode": "yosef-mokir-shabbat"
+ },
+ "18099726620434114": {
+  "status": "twin",
+  "episode": "zot-hani-karaoke"
+ },
+ "18207066682375255": {
+  "status": "twin",
+  "episode": "hani-games-promo"
+ },
+ "18099328718652169": {
+  "status": "twin",
+  "episode": "haredit-2"
+ },
+ "18223189195338353": {
+  "status": "twin",
+  "episode": "demokratovich-songs-he"
+ },
+ "18071748782495962": {
+  "status": "twin",
+  "episode": "genz-1"
+ },
+ "18096418589695952": {
+  "status": "twin",
+  "episode": "balabusta-teaser"
  }
 }

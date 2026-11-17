@@ -54,9 +54,19 @@ with ThreadPoolExecutor(12) as ex:
     made = sum(1 for ok in ex.map(safe, media) if ok)
 print('new covers:', made)
 
-# what is already in the verse: imported reels (reels.json) and reels the editor already made (state: twin -> episode)
-reels = {r['ig']: r for r in load(os.path.join(ROOT, 'scripts', 'wiki', 'reels.json'), [])}
-state = load(os.path.join(HERE, 'state.json'), {})
+# what is already in the verse = the live catalog (2026-11-17: a studio video was asked for from the archive because only
+# this computer's import record counted): an ig-<media id> record, or any record whose `ig` link has the post's shortcode
+# (studio videos get theirs from the studio's publish / the twin match). Hidden videos don't count.
+cat_path = os.path.join(WORK, 'catalog_ig.json')
+subprocess.run(['node', os.path.join(HERE, 'catalog_ig.mjs'), cat_path], check=True, cwd=ROOT)
+by_id, by_code = {}, {}
+for v in load(cat_path, []):
+    if v['hidden']:
+        continue
+    if v['id'].startswith('ig-'):
+        by_id[v['id'][3:]] = v
+    if v.get('ig'):
+        by_code[v['ig'].rstrip('/').split('/')[-1]] = v
 chars = {}
 try:
     out = os.path.join(WORK, 'chars.json')
@@ -69,9 +79,8 @@ except Exception as e:
 
 items = []
 for m in media:
-    r, st = reels.get(m['id']), state.get(m['id'], {})
-    vid = r['id'] if r else (st.get('episode') if st.get('status') == 'twin' else None)
-    cast = (r or {}).get('cast') or st.get('cast') or []
+    hit = by_id.get(m['id']) or by_code.get(m['permalink'].rstrip('/').split('/')[-1])
+    vid, cast = (hit['id'], hit['cast']) if hit else (None, [])
     items.append({'id': m['id'], 'd': m['timestamp'][:10], 'l': m.get('like_count') or 0, 'c': m.get('comments_count') or 0,
                   'cap': (m.get('caption') or '').strip()[:400], 'p': m['permalink'].rstrip('/').split('/')[-1],
                   'h': list(dict.fromkeys(re.findall(r'#(\w+)', m.get('caption') or ''))),   # from the FULL caption
