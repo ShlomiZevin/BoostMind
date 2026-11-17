@@ -552,6 +552,16 @@ const ops = {
     // back removes it
     const note = clip(String(d.note || '').trim(), 300);
     const noteRef = ref.collection('notes').doc(uid);
+    // already in the verse (its own import, or a studio video whose record carries this post's link - his note 2026-11-17: a
+    // studio reel was asked for from the archive): no wish - the page hears where it is; an open wish for it closes (and tells)
+    if (d.on !== false) {
+      const vid = await videoOfPost(ig, permalink);
+      if (vid) {
+        const w = (await ref.get()).data();
+        if (w && !w.done) await wishFound(ig, vid).catch((e) => console.error('wish in verse', e.message));
+        return { ok: true, n: w?.n || 0, mine: false, done: true, videoId: vid };
+      }
+    }
     if (d.on !== false && note) {
       const m = await moderate(note);
       if (!m.ok) fail('invalid-argument', 'text_bad');
@@ -971,11 +981,30 @@ async function wishToMind(ig, uid, note) {
   await updateItem(it.id, { status: 'waiting', note: said }, 'הארכיון');   // waiting = his phone buzzes
 }
 
+// which video a post is in the verse as: ig-<id> (imported), or a studio video whose catalog record carries the post's link
+// (`ig`, the permalink - insta-to-verse writes it, 2026-11-17), matched by the post's shortcode
+const igCode = (u) => (String(u || '').match(/instagram\.com\/(?:[\w.]+\/)?(?:reels?|p|tv)\/([\w-]+)/) || [])[1] || '';
+let igMap = null, igMapAt = 0;
+async function videoOfPost(ig, permalink) {
+  if ((await _canon()).videos[`ig-${ig}`]) return `ig-${ig}`;
+  let code = igCode(permalink);
+  if (!code) { const p = await igPost(ig); code = p?.p || ''; }
+  if (!code) return null;
+  if (!igMap || Date.now() - igMapAt > 5 * 60e3) {
+    const m = {};
+    (await db.collection('catalogVideos').select('ig', 'hidden').get()).docs.forEach((x) => { const c = igCode(x.data().ig); if (c && !x.data().hidden) m[c] = x.id; });
+    igMap = m; igMapAt = Date.now();
+  }
+  return igMap[code] || null;
+}
 async function wishSweep() {
-  const open = await db.collection('wishes').where('done', '==', false).select().get();
+  const open = await db.collection('wishes').where('done', '==', false).select('permalink').get();
   if (open.empty) return;
-  const videos = (await _canon()).videos;
-  for (const d of open.docs) if (videos[`ig-${d.id}`]) console.log('wish found', d.id, JSON.stringify(await wishFound(d.id).catch((e) => ({ error: e.message }))));
+  igMap = null;   // fresh links every sweep
+  for (const d of open.docs) {
+    const vid = await videoOfPost(d.id, d.data().permalink).catch(() => null);
+    if (vid) console.log('wish found', d.id, vid, JSON.stringify(await wishFound(d.id, vid).catch((e) => ({ error: e.message }))));
+  }
 }
 
 // ---------- Shlomi's page ----------
