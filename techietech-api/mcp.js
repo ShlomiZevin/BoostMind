@@ -6,6 +6,11 @@
 // write scripts"): update_character_sheet (the record's sheet = Backstage → דמויות, through the content door - logged in
 // catalogLog, marked as changed in Backstage, the full sheet before kept in Firestore sheetEdits, undo_sheet_change brings it
 // back) and the writing guide (scriptcraft.js: get_writing_guide / update_writing_guide). ChatGPT asks him before any write.
+// New residents (his ask, 2026-11-17: "I'll add characters from my GPT session, with their profile pictures"): get_new_character_guide
+// (the structure + a real example + the picture house style), create_character (page + sheet + relations both ways, through the
+// content door), update_character_details, create_series, set_character_picture (ChatGPT hands the image through
+// _meta openai/fileParams -> {download_url}, or image_url; cropped 4:5 -> wiki/img/c/<id>.jpg, the old one and the original kept in
+// shlomiverse-private/portraits/<id>/). Fallback when ChatGPT can't pass the image: his upload page /mcp/<key>/upload/<id>.
 //
 // Address: https://shlomiverse.com/mcp/<VERSE_MCP_KEY> (firebase.json rewrite -> verseMcp). The key in the path is the lock
 // (ChatGPT's connectors take a URL with "no authentication"); a wrong path gets 404. The URL is his - don't post it.
@@ -212,6 +217,212 @@ TOOLS.push(
       clear_lessons: { type: 'boolean', description: 'rewrite only: the lessons are now inside the text' } }, ['action', 'text']) },
 );
 
+// ---- new residents and their pictures (his ask, 2026-11-17: "I'm going to add characters to the verse from my GPT session - it
+// should create the profile with the same structure as all the rest, send the profile image and update profile images") ----
+const RELATION = S({ character: str('The other character: id or name (must already exist)'), relation: str('Hebrew: who the other one is to THIS character, e.g. "אחיה הגדול - מתקשר כל ערב"'),
+  back: str('Hebrew: who THIS character is to the other one (written on the other one\'s page - links go both ways)') }, ['character', 'relation', 'back']);
+const SHEET = S({ person: str('מי זה - who they are, as a real person (a paragraph)'), speech: str('איך מדבר - how they talk'), funny: str('מה מצחיק - what is funny about them'),
+  parody: str('הפרודיה - what in real life they mirror'), dissonance: str('הדיסוננס - their core contradiction'),
+  nuances: { type: 'array', items: { type: 'string' }, description: 'ניואנסים - small real-life details, one per item' },
+  catchphrases: { type: 'array', items: { type: 'string' }, description: 'קאצ\'פרייז - only real recurring lines (can be empty)' } }, ['person', 'speech', 'funny', 'parody', 'dissonance']);
+const DETAILS = {
+  name: str('Hebrew full name as people call them, e.g. "רבקי שטיין"'), name_en: str('English name, e.g. "Rivki Stein"'),
+  role: str('Hebrew: what they do / who they are in one line, e.g. "גננת בבית שמש"'), tagline: str('Hebrew: 3-6 words under the name on their page'),
+  bio: str('Hebrew: the page\'s bio - 2-4 sentences, third person, as a real person (their job, family, one telling habit)'),
+  look: str('Hebrew: how they look (clothes, hair, glasses...) - also the base of their picture'),
+  aka: { type: 'array', items: { type: 'string' }, description: 'Every name / nickname people may search them by, Hebrew and English' },
+  ask: { type: 'array', items: { type: 'string' }, maxItems: 4, description: 'Hebrew: 3 short questions a visitor would ask them in the chat (the chat\'s starters)' },
+  color: str('Their colour on the site, hex like "#1f3a5f"'),
+  love: { type: 'integer', minimum: 1, maximum: 10, description: 'How loveable (1-10)' }, viral: { type: 'integer', minimum: 1, maximum: 10, description: 'How viral right now (1-10)' },
+};
+const IMAGE = { type: 'object', additionalProperties: true, description: 'The picture from this conversation (an image you generated or one Shlomi attached)',
+  properties: { download_url: { type: 'string' }, file_id: { type: 'string' }, mime_type: { type: 'string' }, file_name: { type: 'string' } } };
+TOOLS.push(
+  { name: 'get_new_character_guide', title: 'How a new character is built', annotations: RO,
+    description: 'READ THIS FIRST before create_character or making a character\'s picture: the exact structure every Shlomiverse character has (with a real example), the rules for each field, the series to choose from, and the house style of profile pictures.',
+    inputSchema: S({}) },
+  { name: 'create_character', title: 'Create a new character', annotations: W,
+    description: 'Add a new character (resident) to the Shlomiverse - same structure as every other one: page details + the character sheet (the one truth the site\'s chat answers from) + relations both ways. Read get_new_character_guide first. ONLY when Shlomi asks, after showing him the whole profile. Live on the site and in the chat at once; then set_character_picture.',
+    inputSchema: S({ id: str('English id for the address shlomiverse.com/c/<id>: lowercase letters, digits and -, e.g. "rivki-stein"'),
+      series: str('The series / world they belong to - id or name from list_series (a new one: create_series first)'), ...DETAILS, sheet: SHEET,
+      relations: { type: 'array', items: RELATION, description: 'Family / work ties to existing characters - written on both pages' } },
+      ['id', 'series', 'name', 'name_en', 'role', 'tagline', 'bio', 'look', 'aka', 'ask', 'sheet']) },
+  { name: 'update_character_details', title: 'Update a character\'s page details', annotations: W,
+    description: 'Change a character\'s page details (name, role, tagline, bio, look, nicknames, chat starters, colour, loveable / viral) or add relations - ONLY when Shlomi asks, after showing him the change. A list you send (aka, ask) replaces the whole list. The sheet itself: update_character_sheet.',
+    inputSchema: S({ character: str('The character id, name or nickname'), why: str('One line: why (shown in the log)'), ...DETAILS,
+      add_relations: { type: 'array', items: RELATION, description: 'New ties to existing characters - written on both pages' } }, ['character', 'why']) },
+  { name: 'create_series', title: 'Create a new series / world', annotations: W,
+    description: 'A new series (world) for new characters - ONLY when Shlomi asks and no existing series fits (list_series first).',
+    inputSchema: S({ id: str('English id: lowercase letters, digits and -'), title: str('Hebrew title as shown on the site'), blurb: str('Hebrew: one or two sentences - what this world is'),
+      brief: str('Hebrew: the writer\'s picture of this world (who, where, the tone)') }, ['id', 'title', 'blurb']) },
+  { name: 'set_character_picture', title: 'Set a character\'s profile picture', annotations: W,
+    _meta: { 'openai/fileParams': ['image'] },
+    description: 'Put a picture as a character\'s profile picture (new or replacing the old one - the old one is kept). Pass the image from this conversation in `image` (generated or attached), or a public https link in `image_url`. Follow the house style in get_new_character_guide. ONLY when Shlomi approves the picture. Cropped 4:5 from the top - the face high and centred. If it cannot get the picture it returns an upload link for Shlomi.',
+    inputSchema: S({ character: str('The character id, name or nickname'), image: IMAGE, image_url: str('Instead of image: a public https link to the picture') }, ['character']) },
+);
+const ENID = /^[a-z0-9][a-z0-9-]{1,40}$/;
+async function seriesRec(b, q) {
+  const w = findWorld(b, q || '');
+  const id = w ? w.id : String(q || '').trim();
+  const r = await content.get('series', id);
+  if (r.error) fail(`No series "${q}". The series:\n${b.worlds.map((x) => `- ${x.id} | ${x.title}`).join('\n')}\n(a new one: create_series)`);
+  return r;
+}
+const pick = (a) => Object.fromEntries(Object.keys(DETAILS).filter((k) => a[k] !== undefined && a[k] !== '' && !(Array.isArray(a[k]) && !a[k].length)).map((k) => [k, typeof a[k] === 'string' ? a[k].trim() : a[k]]));
+// relations both ways: [{character, relation, back}] -> this one's list + a line on each other one's record
+async function tie(b, id, name, rels, mine) {
+  const out = [...mine], done = [];
+  for (const r of rels || []) {
+    const o = findCharacter(b, r.character || '') || fail(`No character "${r.character}" to tie to - try list_characters`);
+    if (o.id === id) continue;
+    if (!out.some((x) => x.id === o.id)) out.push({ id: o.id, relation: String(r.relation || '').trim() });
+    const rec = await content.get('character', o.id), theirs = Array.isArray(rec.relations) ? rec.relations : [];
+    if (!theirs.some((x) => x.id === id)) {
+      const w = await content.put({ kind: 'character', id: o.id, relations: [...theirs, { id, relation: String(r.back || '').trim() }] }, `${BY}: tie to ${id}`);
+      if (w.error) fail(`Could not write the tie on ${o.name}'s page: ${w.error}`);
+    }
+    done.push(`${o.name} (${o.id})`);
+  }
+  return { list: out, done };
+}
+async function createCharacter(b, a) {
+  const id = String(a.id || '').trim().toLowerCase();
+  if (!ENID.test(id)) fail('id: lowercase English letters, digits and - only (2-41 chars), e.g. "rivki-stein"');
+  if (!(await content.get('character', id)).error) fail(`There is already a character "${id}" - pick another id, or update_character_details / update_character_sheet for that one.`);
+  const same = findCharacter(b, a.name || '');
+  if (same && norm(same.name) === norm(a.name)) fail(`${same.name} already exists (id ${same.id}). If this is someone else, give the full name; to change that one use update_character_details.`);
+  const s = await seriesRec(b, a.series);
+  const sh = a.sheet || {};
+  for (const f of SHEET_TEXT) if (!String(sh[f] || '').trim()) fail(`The sheet needs ${f} - see get_new_character_guide`);
+  const sheet = Object.fromEntries([...SHEET_TEXT.map((f) => [f, String(sh[f]).trim()]), ...SHEET_LIST.map((f) => [f, (Array.isArray(sh[f]) ? sh[f] : []).map((x) => String(x).trim()).filter(Boolean)])]);
+  const order = Math.max(0, ...b.characters.map((c) => +c.order || 0)) + 1;
+  const rec = { kind: 'character', id, ...pick(a), series: s.id, world: s.world || s.title, sheet, order };
+  const r = await content.put(rec, `${BY}: new character`);
+  if (r.error) fail(`Not created: ${r.error} ${r.detail || ''}`);
+  const t = await tie(b, id, a.name, a.relations, []);
+  if (t.list.length) await content.put({ kind: 'character', id, relations: t.list }, `${BY}: relations`);
+  await afterWrite();
+  return `Created ${a.name} (${id}) in ${s.title} - live now: ${SITE}/c/${id} (the chat knows them from their sheet).${t.done.length ? `\nTied both ways to: ${t.done.join(', ')}` : ''}\nNo picture yet - next: set_character_picture (house style in get_new_character_guide).`;
+}
+async function updateDetails(b, a) {
+  const c = findCharacter(b, a.character || '') || fail(`No character "${a.character}" - try list_characters`);
+  const set = pick(a), rec = await content.get('character', c.id);
+  let tied = [];
+  if (a.add_relations?.length) { const t = await tie(b, c.id, c.name, a.add_relations, Array.isArray(rec.relations) ? rec.relations : []); set.relations = t.list; tied = t.done; }
+  if (!Object.keys(set).length) fail('Nothing to change - send the fields to change');
+  const r = await content.put({ kind: 'character', id: c.id, ...set }, `${BY}: ${String(a.why || '').slice(0, 100)}`);
+  if (r.error) fail(`Not saved: ${r.error} ${r.detail || ''}`);
+  await afterWrite();
+  return r.changed.length ? `Saved on ${c.name}'s page: ${r.changed.join(', ')}.${tied.length ? ` Tied both ways to: ${tied.join(', ')}.` : ''} ${SITE}/c/${c.id}` : `Nothing changed - ${c.name}'s page already says that.`;
+}
+async function createSeries(b, a) {
+  const id = String(a.id || '').trim().toLowerCase();
+  if (!ENID.test(id)) fail('id: lowercase English letters, digits and - only');
+  if (!(await content.get('series', id)).error || findWorld(b, a.title || '')?.title === a.title) fail(`Series "${a.id}" / "${a.title}" already exists - see list_series`);
+  const r = await content.put({ kind: 'series', id, title: a.title.trim(), blurb: a.blurb.trim(), brief: String(a.brief || '').trim(), world: a.title.trim(), name: a.title.trim(),
+    order: Math.max(0, ...b.worlds.map((w) => +w.order || 0)) + 1 }, `${BY}: new series`);
+  if (r.error) fail(`Not created: ${r.error} ${r.detail || ''}`);
+  await afterWrite();
+  return `Created the series ${a.title} (${id}): ${SITE}/s/${id} - now create_character with series "${id}". (It shows on the site once it has characters.)`;
+}
+
+// ---- pictures ----
+// the same crop as content.mjs portrait / build.py: 4:5 from the top (faces sit high), 480x600 JPEG - gs://shlomiverse-media/wiki/img/c/<id>.jpg.
+// The picture it replaces and the original that came in are kept in the private bucket (portraits/<id>/...)
+const MEDIA = 'shlomiverse-media', PRIV = 'shlomiverse-private';
+async function savePortrait(id, buf, by) {
+  const sharp = require('sharp');
+  const img = sharp(buf, { failOn: 'none' }).rotate(), m = await img.metadata();
+  if (!m.width || !m.height) fail('That is not a picture I can read (PNG, JPEG or WebP).');
+  if (m.width < 300 || m.height < 300) fail(`The picture is too small (${m.width}x${m.height}) - at least 300 px each side, ideally 1024.`);
+  const w = m.width, h = m.height, box = w / h > 0.8 ? { left: Math.floor((w - Math.floor(h * 0.8)) / 2), top: 0, width: Math.floor(h * 0.8), height: h } : { left: 0, top: 0, width: w, height: Math.floor(w / 0.8) };
+  const jpg = await sharp(buf, { failOn: 'none' }).rotate().extract(box).resize(480, 600, { kernel: 'lanczos3' }).flatten({ background: '#ffffff' }).jpeg({ quality: 84, mozjpeg: true }).toBuffer();
+  const live = admin.storage().bucket(MEDIA).file(`wiki/img/c/${id}.jpg`), stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const [had] = await live.exists();
+  if (had) await live.copy(admin.storage().bucket(PRIV).file(`portraits/${id}/before-${stamp}.jpg`));
+  await admin.storage().bucket(PRIV).file(`portraits/${id}/in-${stamp}.${(m.format || 'img').replace('jpeg', 'jpg')}`).save(buf, { contentType: `image/${m.format || 'png'}` });
+  await live.save(jpg, { contentType: 'image/jpeg', metadata: { cacheControl: 'public, max-age=31536000', metadata: { by, mtime: String(Date.now()) } } });
+  await admin.firestore().collection('catalogLog').add({ kind: 'character', id, op: 'portrait', fields: ['portrait'], before: { portrait: had ? `kept: portraits/${id}/before-${stamp}.jpg` : 'none' }, by, t: FieldValue.serverTimestamp() });
+  await afterWrite();
+  return { had, size: `${w}x${h}` };
+}
+const uploadLink = (key, id) => `${SITE}/mcp/${key}/upload/${encodeURIComponent(id)}`;
+async function setPicture(b, a, key) {
+  const c = findCharacter(b, a.character || '') || fail(`No character "${a.character}" - try list_characters`);
+  const img = a.image, url = (img && typeof img === 'object' ? img.download_url || img.url : typeof img === 'string' && /^https?:/.test(img) ? img : '') || a.image_url || '';
+  const manual = `Shlomi can upload it himself on this page (from the phone too): ${uploadLink(key, c.id)}`;
+  if (!/^https:\/\//.test(url)) fail(`I did not receive the picture itself${img ? ' (only a reference, without a link to download)' : ''}. ${manual}`);
+  let buf;
+  try {
+    const r = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(30000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    buf = Buffer.from(await r.arrayBuffer());
+  } catch (e) { fail(`Could not download the picture (${e.message}). ${manual}`); }
+  if (buf.length > 20e6) fail('The picture is over 20 MB.');
+  const s = await savePortrait(c.id, buf, BY);
+  return `${s.had ? 'Replaced' : 'Set'} ${c.name}'s profile picture (${s.size} -> 480x600, cropped 4:5 from the top)${s.had ? '; the old one is kept' : ''}. Live: ${SITE}/c/${c.id}`;
+}
+function newCharacterGuide(b) {
+  const ex = b.byId.hani, exJson = ex ? JSON.stringify({ id: ex.id, series: ex.series || 'techytech', name: ex.name, name_en: ex.name_en, role: ex.role, tagline: ex.tagline, bio: ex.bio,
+    look: ex.look, aka: (ex.aka || []).slice(0, 5), ask: ex.ask, color: ex.color, love: ex.love, viral: ex.viral, sheet: ex.sheet,
+    relations: [{ character: 'yotam', relation: 'המילה שלו קובעת בשבילה - "תבדוק קודם עם יותם"', back: 'חנה מהצוות שלו - בודקת איתו כל החלטה' }] }, null, 1) : '';
+  return `# How a new Shlomiverse character is built
+
+Every character is one record - the same structure for all of them. create_character writes it; the site page
+(${SITE}/c/<id>) and the site's chat are made from it at once. All text in Hebrew except id and name_en.
+
+The Shlomiverse is real: they are real people with a job, a family, habits - never "a character", "a sketch" or "Shlomi's".
+Shlomi plays every one of them himself in his videos.
+
+## The fields
+- id - the address, English: lowercase letters, digits and -, e.g. "rivki-stein". Never changes.
+- series - the world they live in (list below). A new world only if none fits: create_series first.
+- name - Hebrew, as people call them. name_en - English.
+- role - what they do, one line ("מפתחת Backend בטקי-טק"). tagline - 3-6 words under the name.
+- bio - the page's text: 2-4 sentences, third person, a real person: job, family, one telling habit. No "דמות", no jokes explained.
+- look - how they look; their picture is built from it.
+- aka - every name and nickname people may search (Hebrew + English).
+- ask - 3 short questions a visitor would ask them in the chat ("אפשר לשלוח לך בוואטסאפ?").
+- color - a hex colour for their page. love / viral - 1-10 (a new character: what Shlomi says, else leave out).
+- sheet - THE most important part: the one truth about them; the chat answers only from it:
+  person (מי זה - a paragraph: who they are), speech (איך מדבר), funny (מה מצחיק - where the comedy comes from),
+  parody (הפרודיה - what in real life it mirrors), dissonance (הדיסוננס - the core contradiction),
+  nuances (ניואנסים - small concrete real-life details, one per item), catchphrases (only lines they really repeat; may be empty).
+- relations - ties to existing characters: relation = who the other is to them, back = who they are to the other
+  (written on the other one's page too - family links always go both ways).
+
+Their life (one event per video) and their videos are added by themselves when a video with them is published.
+
+## A real example (Hani / Hana)
+${exJson}
+
+## The series
+${b.worlds.map((w) => `- ${w.id} | ${w.title} | ${w.blurb || ''}`).join('\n')}
+
+## The profile picture - house style (every resident looks like this)
+Photoreal studio headshot: head and shoulders, centred, eyes open looking into the camera, soft even light, plain light-grey
+seamless background (a setting of their role is fine when it says who they are - a teacher's chalkboard). A believable real
+person - nothing looks like a costume or a filter. When Shlomi gives a frame of himself playing them: keep his face and the
+character's look (hair, glasses, beard, clothes) and make it a real person; a woman he plays gets a smooth clean-shaven
+feminine face. A profile = who they ARE, not a moment from a video: no gestures, no props in the face, no text in the picture.
+Real age. Portrait or square, the face in the upper middle (it is cropped 4:5 from the top to 480x600).
+Show Shlomi the picture first; set_character_picture only after he approves it.
+
+## Order of work
+1. Talk with Shlomi until the profile is right; show it to him whole. 2. create_character. 3. Make the picture, he approves.
+4. set_character_picture. Changing later: update_character_details (page) / update_character_sheet (sheet) / set_character_picture.`;
+}
+function uploadPage(name, id) {
+  const e = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>תמונת פרופיל - ${e(name)}</title><style>body{margin:0;background:#0f0f12;color:#f5f4f1;font:16px/1.5 system-ui,Arial,sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px;box-sizing:border-box}
+.c{max-width:360px;width:100%;text-align:center}h1{font-size:22px;margin:0 0 6px}p{color:#aaa;margin:0 0 18px}label{display:block;background:#ff6a1f;color:#fff;border-radius:14px;padding:16px;font-weight:700;cursor:pointer}
+input{display:none}img{width:240px;height:300px;object-fit:cover;border-radius:16px;margin:18px auto 0;display:none}#s{margin-top:14px;min-height:24px}</style></head><body><div class="c">
+<h1>${e(name)}</h1><p>תמונת פרופיל חדשה. נחתכת 4:5 מלמעלה; הישנה נשמרת.</p><label>בחירת תמונה<input id="f" type="file" accept="image/*"></label><img id="v" alt=""><div id="s"></div></div>
+<script>f.onchange=async()=>{const x=f.files[0];if(!x)return;s.textContent='מעלה…';try{const r=await fetch(location.pathname,{method:'POST',headers:{'content-type':x.type||'application/octet-stream'},body:x});const j=await r.json();
+if(!r.ok)throw new Error(j.error||r.status);v.src=j.img+'&t='+Date.now();v.style.display='block';s.textContent='עלתה. היא באתר.';}catch(err){s.textContent='לא עלתה: '+err.message;}};</script></body></html>`;
+}
+
 const fail = (msg) => { const e = new Error(msg); e.user = true; throw e; };
 // his open Backstage notes on a character (charnotes.js) - read with the character
 async function openNotes(id) {
@@ -271,7 +482,7 @@ async function undoSheet(b, a) {
   return `Undone - ${c.name}'s sheet is back as it was before: ${(e.changes || []).join('; ')}`;
 }
 
-async function run(b, name, a = {}) {
+async function run(b, name, a = {}, key = '') {
   switch (name) {
     case 'about': return aboutText(b);
     case 'get_writing_guide': return craft.text(await craft.get());
@@ -281,6 +492,11 @@ async function run(b, name, a = {}) {
       return a.action === 'add_lesson' ? `Lesson saved - it is part of the writing guide now (${r.lessons} lessons). Every GPT that writes through this server reads it.` : `The writing guide is re-written (version ${r.v}; the one before is kept).`;
     }
     case 'update_character_sheet': return editSheet(b, a);
+    case 'get_new_character_guide': return newCharacterGuide(b);
+    case 'create_character': return createCharacter(b, a);
+    case 'update_character_details': return updateDetails(b, a);
+    case 'create_series': return createSeries(b, a);
+    case 'set_character_picture': return setPicture(b, a, key);
     case 'undo_sheet_change': return undoSheet(b, a);
     case 'list_characters': {
       const w = a.series ? findWorld(b, a.series) || fail(`No series "${a.series}" - see list_series`) : null;
@@ -322,8 +538,8 @@ async function run(b, name, a = {}) {
 
 // ---- MCP over HTTP (stateless JSON-RPC) ----
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide.';
-async function answer(msg) {
+const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide; a new character -> read get_new_character_guide, then create_character and set_character_picture.';
+async function answer(msg, key = '') {
   const { id, method, params = {} } = msg || {};
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
   const err = (code, message) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message } });
@@ -331,7 +547,7 @@ async function answer(msg) {
   if (id === undefined || id === null) return null;   // a notification (initialized, cancelled): nothing to answer
   if (method === 'initialize') {
     const v = VERSIONS.includes(params.protocolVersion) ? params.protocolVersion : VERSIONS[0];
-    return ok({ protocolVersion: v, capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'shlomiverse', title: 'Shlomiverse', version: '1.1.0' }, instructions: INSTRUCTIONS });
+    return ok({ protocolVersion: v, capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'shlomiverse', title: 'Shlomiverse', version: '1.2.0' }, instructions: INSTRUCTIONS });
   }
   if (method === 'ping') return ok({});
   if (method === 'tools/list') return ok({ tools: TOOLS });
@@ -339,7 +555,7 @@ async function answer(msg) {
   if (method === 'prompts/list') return ok({ prompts: [] });
   if (method === 'tools/call') {
     try {
-      const out = await run(await load(), params.name, params.arguments || {});
+      const out = await run(await load(), params.name, params.arguments || {}, key);
       if (out && out.json) return ok({ content: [{ type: 'text', text: JSON.stringify(out.json) }], structuredContent: out.json });
       return ok({ content: [{ type: 'text', text: out }] });
     } catch (e) {
@@ -351,8 +567,9 @@ async function answer(msg) {
 }
 
 exports.verseMcp = onRequest({ region: 'europe-west1', secrets: [KEY], memory: '512MiB', timeoutSeconds: 120, maxInstances: 3, cors: true }, async (req, res) => {
-  const parts = req.path.split('/').filter(Boolean);   // /mcp/<key> through shlomiverse.com, /<key> on the function's own URL
-  const key = parts[parts.length - 1] || '';
+  const parts = req.path.split('/').filter(Boolean);   // /mcp/<key>[/upload/<id>] through shlomiverse.com, /<key>... on the function's own URL
+  if (parts[0] === 'mcp') parts.shift();
+  const key = parts[0] || '', rest = parts.slice(1);
   const want = KEY.value().trim();
   // his key is short (his choice, 2026-11-10), so wrong guesses are limited: 20 an hour per address, then nothing answers
   const ip = req.ip || '?', now = Date.now(), tries = (wrong.get(ip) || []).filter((t) => now - t < 3600e3);
@@ -361,15 +578,27 @@ exports.verseMcp = onRequest({ region: 'europe-west1', secrets: [KEY], memory: '
     wrong.set(ip, [...tries, now]);
     return res.status(404).send('Not found');
   }
+  // the picture upload page (set_character_picture's fallback, his phone): GET = the page, POST = the picture's bytes
+  if (rest[0] === 'upload' && rest[1]) {
+    const b = await load(), c = b.byId[decodeURIComponent(rest[1])];
+    if (!c) return res.status(404).send('No such character');
+    if (req.method === 'GET') return res.set('Cache-Control', 'no-store').type('html').send(uploadPage(c.name, c.id));
+    if (req.method !== 'POST') return res.status(405).send('');
+    try {
+      await savePortrait(c.id, req.rawBody || Buffer.alloc(0), 'upload page (his MCP link)');
+      const f = (await admin.storage().bucket(MEDIA).file(`wiki/img/c/${c.id}.jpg`).getMetadata())[0];
+      return res.json({ ok: true, img: `https://storage.googleapis.com/${MEDIA}/wiki/img/c/${c.id}.jpg?v=${Buffer.from(f.md5Hash, 'base64').toString('hex').slice(0, 8)}` });
+    } catch (e) { if (!e.user) console.error('verseMcp upload', e); return res.status(400).json({ error: e.user ? e.message : 'failed' }); }
+  }
   if (req.method === 'GET') return res.status(405).set('Allow', 'POST').send('This MCP server answers POST (streamable HTTP, no SSE stream).');
   if (req.method === 'DELETE') return res.status(204).send('');
   if (req.method !== 'POST') return res.status(405).send('');
   const body = req.body;
   if (Array.isArray(body)) {
-    const outs = (await Promise.all(body.map(answer))).filter(Boolean);
+    const outs = (await Promise.all(body.map((m) => answer(m, key)))).filter(Boolean);
     return outs.length ? res.json(outs) : res.status(202).send('');
   }
-  const out = await answer(body);
+  const out = await answer(body, key);
   if (!out) return res.status(202).send('');
   res.json(out);
 });
