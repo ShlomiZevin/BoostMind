@@ -116,7 +116,11 @@ op `wish`, the 2.0 session's backend: `wishes/<ig>`). Marks are open to every re
    `zoomcut/.venv/Scripts/python scripts/insta/to_wiki.py <media-id> <character-id>[,...] [--title "..."] [--teaser "..."]`
    uploads web.mp4 + poster.jpg, then writes the record (`ig-<id>`, cast, the reel's real date + post time,
    `archive: true`, the permalink, the transcript, and `onScreen` = who.json's burned-in text - the chat and Terra
-   read it before the speech, the only words a music-only meme has; never append it to the transcript). The site and the chat have it at once. Terra on the server writes
+   read it before the speech, the only words a music-only meme has; never append it to the transcript). **Check it against
+   strip.jpg first** - Terra misreads it often (2026-11-17, Ido: "הפונקציות האנושיות" came out "הפרויקטים האנליטיים");
+   fix who.json `on_screen_text` before publishing (it is stored in `catalogTranscripts/<id>`, not on the video record).
+   When people describe a character by his reels' caption and the chat can't find him, the caption missing from his older
+   reels (`onScreen` came in 2026-11) is the first suspect. The site and the chat have it at once. Terra on the server writes
    the title / teaser / the chat's card unless you pass them - **his own words always go in `--title`**. `--dry` first
    shows the record and writes nothing. It also records the reel in `scripts/wiki/reels.json` - our import record (the
    duplicate check in reel.py), it no longer feeds the site.
