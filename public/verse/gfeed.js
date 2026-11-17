@@ -18,6 +18,10 @@ const ICON_UP = svg('<path d="m6 13 6-6 6 6"/><path d="m6 19 6-6 6 6"/>', 2.6);
 const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.3-7.2c.6-.4.6-1.4 0-1.8L8.6 3.9C7.9 3.5 7 4 7 4.8z"/></svg>';
 const fmt = (v) => (Math.round(v * 100) / 100).toLocaleString('en-US');
 const lead = (g) => (g.chars || []).find((id) => C[id]) || null;
+// covers whose words (a title, the logo) are the picture: shown whole, never cropped at the sides. A game can say so itself
+// (game.json "cover_text": true, once build.py passes it on); until then these, looked at one by one (2026-11-17)
+const COVER_TEXT = new Set(['hani-games-yosef', 'hani-games-pilai', 'verse-fly']);
+const wordy = (g) => (g.cover_text != null ? !!g.cover_text : COVER_TEXT.has(g.id));
 // one short line, as on the mockup: the first sentence; still long - cut at a clause (" – ", ":", ",") or a word, never mid-word
 const MAX = 66;
 function shortLine(t) {
@@ -50,7 +54,7 @@ document.addEventListener('click', (e) => {
 function slide(g, i, all) {
   const o = lead(g), last = i === all.length - 1;
   return `<section class="gf-s" data-i="${i}" data-id="${esc(g.id)}" aria-label="${esc(g.title)}">
-    <div class="gf-art">${g.img ? `<img class="gf-bg" src="${esc(g.img)}" alt="" aria-hidden="true" ${i > 1 ? 'loading="lazy"' : ''}><img class="gf-main" src="${esc(g.img)}" alt="" ${i > 1 ? 'loading="lazy"' : ''}>` : ''}</div>
+    <div class="gf-art"${wordy(g) ? ' data-words="1"' : ''}>${g.img ? `<img class="gf-bg" src="${esc(g.img)}" alt="" aria-hidden="true" ${i > 1 ? 'loading="lazy"' : ''}><img class="gf-main" src="${esc(g.img)}" alt="" ${i > 1 ? 'loading="lazy"' : ''}>` : ''}</div>
     <div class="gf-body">
       <h2 class="gf-t">${esc(g.title)}</h2>
       ${g.tagline ? `<p class="gf-tag">${esc(shortLine(g.tagline))}</p>` : ''}
@@ -97,10 +101,12 @@ function onClick(e) {
   const g = e.target.closest('[data-gf-grid]');
   if (g) { e.preventDefault(); e.stopPropagation(); nav('/games?view=grid', true); }
 }
+// the art fills the top of the slide edge to edge (cover, mockup 3); a cover of which less than 60% of the width would show
+// there, or one whose words would be cut, is shown whole over its own blur
 function fit(img) {
-  const art = img.parentNode, h = art.clientHeight - 36;
+  const art = img.parentNode, H = art.clientHeight, h = H - 36;
   if (!art.clientWidth || h <= 0) return;
-  const ia = img.naturalWidth / img.naturalHeight, on = art.clientWidth / h / ia < 0.8;   // less than 80% of its width would show
+  const ia = img.naturalWidth / img.naturalHeight, on = !!art.dataset.words || art.clientWidth / H / ia < 0.6;
   art.classList.toggle('fit', on);
   if (on) art.style.setProperty('--gt', Math.max(0, h - art.clientWidth / ia) + 'px');   // where the picture starts: its top edge melts into the blur
 }
