@@ -42,7 +42,8 @@ function shortLine(t) {
 const ICON_FEED = svg('<rect x="6.5" y="3" width="11" height="18" rx="2.5"/><path d="M9.5 17.5h5"/>');
 export function feedToggle(kind, on) {
   const A = T.shell, a = (k, href, t, ic) => `<a href="${href}" class="${on === k ? 'on' : ''}" aria-label="${esc(t)}" ${on === k ? 'aria-current="true"' : ''}>${ic}</a>`;
-  return `<div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed, ICON_FEED)}${a('grid', '/' + kind + '?view=grid', A.grid, ICON_GRID)}</div>`;
+  // (on its own thin strip under the top bar - nothing over the video; the feed starts below it)
+  return `<div class="tg-strip"><div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed, ICON_FEED)}${a('grid', '/' + kind + '?view=grid', A.grid, ICON_GRID)}</div></div>`;
 }
 export const gamesToggle = (on) => feedToggle('games', on);
 // the switch moves in place (no entry of its own: back from the grid leaves the tab, as from the feed)

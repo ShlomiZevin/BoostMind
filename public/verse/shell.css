@@ -533,3 +533,22 @@ html.app .gpage, html.app .vg-page { position: relative; }
   html.app .cx.dock .composer button:disabled { opacity: 1; }
   html.app .cx.dock .composer button:disabled svg.comet2 { opacity: .35; filter: none; }
 }
+
+/* round 3, the switch's own strip: a thin, slightly see-through strip in the bar's tone under the top bar, the two-icon pill
+   at its start - on the videos and games tabs, feed and grid; the feeds start below it, so nothing sits on the video */
+.tg-strip { display: flex; align-items: center; justify-content: flex-end; height: 40px; padding-inline: 12px; box-sizing: border-box;
+  background: rgba(22, 22, 28, .86); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, .08); }
+.tg-strip .gf-tg { position: static !important; margin: 0 !important; padding: 2px; box-shadow: none; }
+.tg-strip .gf-tg a, html.gf-on .tg-strip .gf-tg a, html.feed-on .tg-strip .gf-tg a { width: 34px; height: 28px; }
+.tg-strip .gf-tg svg { width: 18px; height: 18px; }
+html.gf-on .tg-strip, html.feed-on .tg-strip { position: fixed; top: var(--th); inset-inline: 0; z-index: 4; }
+html.gf-on .gf, html.feed-on .fd { top: calc(var(--th) + 40px); }
+.gpage > .tg-strip, .vg-page > .tg-strip { position: sticky; top: var(--th); z-index: 5; margin-inline: -16px; }
+.vg-page { padding-top: 0 !important; }
+/* a short phone (the feed is 40px shorter under the strip): the column of round buttons from the top, icons only, the title on one line */
+@media (max-height: 680px) {
+  .fd-rail { top: 12px; transform: none; gap: 6px; }
+  .fd-rail button { width: 44px; height: 44px; }
+  .fd-rail b { display: none; }
+  .fd-t { -webkit-line-clamp: 1; }
+}
