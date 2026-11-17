@@ -127,7 +127,7 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
   no name). Items on screen at once with the same box stack in one column.
 
 ### shape - rectangles (borders, highlights, flashes)
-- item: `box`; props / item: `fill`, `stroke`, `width`, `radius`.
+- item: `box` ({x, y, w, h} - the top-left corner); props / item: `fill`, `stroke`, `width`, `radius`, `shadow` (a CSS box-shadow - a glow or a drop shadow, e.g. the signal-lost error box).
 
 ### audio - a sound track
 - item: `asset` (a sound, or a video whose sound to use), `in` (s), `from`, `dur`, `gain`, `fade_in` (default
@@ -332,7 +332,9 @@ His ask: "videos like in OnlyFans - the highlight, the ending, the cliffhanger o
   `render/src/layers/ending.js` `signalLostOps(project)` (the Timeline's **+ Ending** sends it; a session sends the same
   ops through the API). Two glitches on the last 0.36 s BEFORE the cut (`ending.glitch`, with `ending.sound` - each glitch
   sound ducks every voice to -40 dB, the signal breaking up), then the frozen picture breaks into blocks and goes dark
-  (`ending.pixel`, `ending.dark`), the Shlomiverse planet flickers (`ending.logo`), "● בעיית קליטה" / "הקשר עם יקום
+  (`ending.pixel`, `ending.dark`), and over it an error message (his note: "it looks like an error message"): a dark
+  box with a glowing orange edge (`ending.panel`, a shape), the Shlomiverse planet flickering (`ending.logo`), a "no
+  signal" icon (`ending.icon`) beside "בעיית קליטה" / "הקשר עם יקום
   שלומיוורס נותק" / "לסיום המלא - מוזמנים לטוס לביקור" (`ending.words`), the shlomiverse.com pill (`ending.link`), a faint
   static (`ending.static`) - 2.6 s, all in REAL seconds (laid out at the project's speed). Files:
   `episodes/_assets/socials-ending/` (the shared pool). First made on `not-the-question` (the call drops as Daniel asks

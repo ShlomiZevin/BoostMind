@@ -10,8 +10,11 @@
 //                                     file there - export_layers.social_cut)
 //   ending.pixel   effect / pixel     after the cut the picture (frozen on its last frame - split.freeze) breaks into
 //   ending.dark    effect / dark      big blocks and goes dark, like a call whose connection dropped
+//   ending.panel   shape              the card is an error message (his note, 2026-11-17: "make it look like an error
+//                                     message"): a dark dialog with a glowing orange edge, over the broken picture
 //   ending.logo    image              the Shlomiverse planet, flickering like a weak signal
-//   ending.words   text               "● בעיית קליטה" / "הקשר עם יקום שלומיוורס נותק" / "לסיום המלא - מוזמנים לטוס לביקור"
+//   ending.icon    image              "no signal": rising bars, only the first lit, and a cross - beside "בעיית קליטה"
+//   ending.words   text               "בעיית קליטה" / "הקשר עם יקום שלומיוורס נותק" / "לסיום המלא - מוזמנים לטוס לביקור"
 //   ending.link    text / pill        shlomiverse.com
 //   ending.sound   audio              a glitch sound on each glitch (~100 ms; the voices drop out under it) - the cut is dead
 //   ending.static  audio              a faint hiss of static under the card
@@ -21,6 +24,7 @@
 const DIR = '../_assets/socials-ending/';
 export const ENDING_ASSETS = {
   'm.verse-logo.png': { kind: 'image', src: DIR + 'verse-logo.png', w: 508, h: 431, label: 'Shlomiverse logo' },
+  'm.no-signal.png': { kind: 'image', src: DIR + 'no-signal.png', w: 300, h: 192, label: 'no signal icon' },
   's.signal-glitch-1.mp3': { kind: 'audio', src: DIR + 'signal-glitch-1.mp3', duration: 0.6, label: 'signal glitch 1' },
   's.signal-glitch-2.mp3': { kind: 'audio', src: DIR + 'signal-glitch-2.mp3', duration: 0.48, label: 'signal glitch 2' },
   's.signal-static.mp3': { kind: 'audio', src: DIR + 'signal-static.mp3', duration: 4, label: 'static after the signal is lost' },
@@ -61,15 +65,23 @@ export function signalLostOps(project) {
   add({ id: 'ending.dark', kind: 'effect', name: 'Ending - dark', props: { filter: 'dark', amount: 1 },
     items: [{ id: 'd1', from: at, dur: card, fade_in: ts(0.3), fade_out: 0 }] }, i++);
   const rest = card - (on - at);
+  const pop = flick([[0, 0], [0.03, 1], [0.06, 0.35], [0.09, 1]]);  // (the dialog pops up the way a broken screen shows it)
+  const top = Math.round(H * 0.222), bottom = Math.round(H * 0.8);
+  add({ id: 'ending.panel', kind: 'shape', name: 'Ending - error box', props: { fill: 'rgba(16,13,12,0.86)', stroke: 'rgba(255,106,31,0.6)', width: Math.round(3 * k),
+    radius: Math.round(40 * k), shadow: `0 0 ${Math.round(70 * k)}px rgba(255,106,31,0.28), 0 ${Math.round(30 * k)}px ${Math.round(90 * k)}px rgba(0,0,0,0.65)` },
+    items: [{ id: 'b1', from: on, dur: rest, box: { x: Math.round(90 * k), y: top, w: Math.round(900 * k), h: bottom - top }, anim: { opacity: pop } }] }, i++);
   add({ id: 'ending.logo', kind: 'image', name: 'Ending - planet', props: {},
     items: [{ id: 'l1', from: on, dur: rest, asset: 'm.verse-logo.png', box: { x: W / 2, y: H * 0.33, w: Math.round(400 * k), anchor: 'c' },
       anim: { opacity: flick([[0, 0], [0.04, 1], [0.08, 0.15], [0.12, 1], [1.1, 1], [1.13, 0.35], [1.17, 1], [1.95, 1], [1.98, 0.5], [2.02, 1]]) } }] }, i++);
   const txt = { style: 'plain', font: 'font.assistant', color: '#ffffff', weight: 800, align: 'center', dir: 'rtl', lineHeight: 1.12 };
+  const blink = flick([[0, 0], [0.05, 1], [0.6, 1], [0.62, 0.25], [0.95, 0.25], [0.97, 1], [1.5, 1], [1.52, 0.25], [1.85, 0.25], [1.87, 1]]);
+  const labW = 269 * k, icW = Math.round(96 * k), icGap = 20 * k, pair = labW + icGap + icW;  // (the label's width in Assistant 800, measured)
+  add({ id: 'ending.icon', kind: 'image', name: 'Ending - no signal', props: {},
+    items: [{ id: 'i1', from: on, dur: rest, asset: 'm.no-signal.png', box: { x: Math.round(W / 2 + pair / 2 - icW / 2), y: Math.round(H * 0.452), w: icW, anchor: 'c' }, anim: { opacity: blink } }] }, i++);
   add({ id: 'ending.words', kind: 'text', name: 'Ending - words', props: txt,
     items: [
-      { id: 'w1', from: on, dur: rest, text: '● בעיית קליטה', size: Math.round(48 * k), color: '#ff6a1f', letterSpacing: '0.04em',
-        box: { x: W / 2, y: H * 0.455, w: W - 160 * k, anchor: 'c' },
-        anim: { opacity: flick([[0, 0], [0.05, 1], [0.6, 1], [0.62, 0.25], [0.95, 0.25], [0.97, 1], [1.5, 1], [1.52, 0.25], [1.85, 0.25], [1.87, 1]]) } },
+      { id: 'w1', from: on, dur: rest, text: 'בעיית קליטה', size: Math.round(48 * k), color: '#ff6a1f', letterSpacing: '0.04em',
+        box: { x: Math.round(W / 2 - (icGap + icW) / 2), y: H * 0.455, w: W - 260 * k, anchor: 'c' }, anim: { opacity: blink } },
       { id: 'w2', from: on, dur: rest, text: 'הקשר עם יקום\nשלומיוורס נותק', size: Math.round(96 * k), weight: 900, glow: 'rgba(255,106,31,0.55)',
         box: { x: W / 2, y: H * 0.545, w: W - 120 * k, anchor: 'c' },
         anim: { opacity: flick([[0, 0], [0.08, 0], [0.11, 1], [0.15, 0.3], [0.19, 1]]) } },

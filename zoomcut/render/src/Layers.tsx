@@ -71,6 +71,7 @@ function Graphic({ p, layer, it, f, fonts }: { p: LayersProps; layer: any; it: a
     return <div data-l={layer.id} data-i={it.id} style={{ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h, boxSizing: 'border-box', borderRadius: props.radius ?? 0,
       background: props.fill || 'transparent', border: props.stroke ? `${props.width ?? 2}px solid ${props.stroke}` : undefined, opacity: op,
       pointerEvents: props.fill ? undefined : 'none',  // an outline only (tile edges, a highlight): a click goes to what's inside it
+      boxShadow: props.shadow || undefined,  // (a glow / a drop shadow - CSS box-shadow; the export draws this same composition)
       transform: animTransform(it, t) }} />;
   }
   if (layer.kind === 'text') {
