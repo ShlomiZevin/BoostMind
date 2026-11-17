@@ -5,14 +5,13 @@
 // row with the game's characters (a face = the same card as on a video), and one big play button - straight into play (the
 // game layer opens in its own full screen, player.js HOOK.playFromFeed). A game card on a phone opens here, at that game
 // (/games?at=<id>). Analytics: 'feed' tab:games / game:<id>.
-import { db, F } from './fb.js';
 import { T } from './copy.js';
 import { I, esc, av, track } from './ui.js';
 import { st, onState, save } from './state.js';
 import { openComments, share } from './player.js';
 import { openBoard, TROPHY } from './records.js';
 import { castSheet } from './cast.js';
-import { ICON_COMMENT, ICON_SHARE } from './feed.js';   // the same column as the videos feed: the same icons
+import { ICON_COMMENT, ICON_SHARE, railBtn, placeRail, paintSave, paintCounts, statsNear, statsOff } from './feed.js';   // the same column as the videos feed
 
 const G = () => T.gfeed;
 let GF = null;
@@ -60,12 +59,6 @@ function slide(g, i) {
   const cast = (g.chars || []).filter((id) => C[id]);
   return `<section class="gf-s" data-i="${i}" data-id="${esc(g.id)}" aria-label="${esc(g.title)}">
     <div class="gf-art"${wordy(g) ? ' data-words="1"' : ''}>${g.img ? `<img class="gf-bg" src="${esc(g.img)}" alt="" aria-hidden="true" ${i > 1 ? 'loading="lazy"' : ''}><img class="gf-main" src="${esc(g.img)}" alt="" ${i > 1 ? 'loading="lazy"' : ''}>` : ''}</div>
-    <div class="fd-rail gf-rail">
-      <button data-g="comments"><span class="fd-ic">${ICON_COMMENT}</span><b data-cc>${esc(T.feed.comments)}</b></button>
-      ${g.record ? `<button data-g="records"><span class="fd-ic">${TROPHY}</span><b>${esc(T.rec.rail)}</b></button>` : ''}
-      <button data-g="save"><span class="fd-ic" data-sv>${I.save}</span><b data-svl>${esc(T.feed.save)}</b></button>
-      <button data-g="share"><span class="fd-ic">${ICON_SHARE}</span><b>${esc(T.feed.share)}</b></button>
-    </div>
     <div class="gf-body">
       <h2 class="gf-t">${esc(g.title)}</h2>
       ${g.tagline ? `<p class="gf-tag">${esc(shortLine(g.tagline))}</p>` : ''}
@@ -89,7 +82,7 @@ function mount(list, start) {
   const el = document.getElementById('gf');
   if (!el || GF) return;
   document.documentElement.classList.add('gf-on');
-  GF = { el, list, cur: -1, ctx: null, statOff: null, off: [] };
+  GF = { el, list, cur: -1, ctx: null, off: [] };
   // a game asked for (?at=): that game; back to the feed without one: where it was
   const fy = history.state && history.state.fy;
   if (start >= 0) el.scrollTop = start * el.clientHeight; else if (fy) el.scrollTop = fy;
@@ -98,10 +91,17 @@ function mount(list, start) {
   }, { root: el, threshold: [0.6] });
   el.querySelectorAll('.gf-s').forEach((s) => GF.io.observe(s));
   el.addEventListener('click', onClick);
+  // ONE rail for the feed, fixed while the games swipe under it (his rule 2026-11-17) - it follows the game on screen
+  const r = Object.assign(document.createElement('div'), { id: 'gf-rail', className: 'fd-rail gf-rail fd-fixed' });
+  r.innerHTML = railBtn('comments', 'data-g', ICON_COMMENT, T.feed.comments, 'comments') + railBtn('records', 'data-g', TROPHY, T.rec.rail)
+    + railBtn('save', 'data-g', I.save, T.feed.save) + railBtn('share', 'data-g', ICON_SHARE, T.feed.share);
+  r.addEventListener('click', railClick);
+  document.body.append(r);
+  GF.rail = r;
   // a cover whose words are the picture: the whole of it over a blurred copy of itself (every other cover fills the frame)
   el.querySelectorAll('.gf-main').forEach((img) => { if (img.complete && img.naturalWidth) fit(img); else img.addEventListener('load', () => fit(img), { once: true }); });
   const top = (i) => { const s = el.querySelector(`.gf-s[data-i="${i}"]`); return s ? s.offsetTop : 0; };
-  GF.rs = () => { el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img)); if (GF.cur >= 0) requestAnimationFrame(() => { if (GF) el.scrollTop = top(GF.cur); }); };
+  GF.rs = () => { el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img)); placeGf(); if (GF.cur >= 0) requestAnimationFrame(() => { if (GF) el.scrollTop = top(GF.cur); }); };
   // as the videos feed: the height changes (a phone's toolbar) - back onto the game showing; a scroll that stops between two - onto the nearest
   GF.ro = new ResizeObserver(() => GF && GF.rs());
   GF.ro.observe(el);
@@ -112,7 +112,7 @@ function mount(list, start) {
   addEventListener('resize', GF.rs);
   addEventListener('vx-tb', GF.rs);
   GF.off.push(onState(paintSaves));
-  paintSaves();
+  placeGf();
   track('feed', 'tab:games');
 }
 // the game on screen: its comment count live; the address follows it (/games?at=<id> - back and a reload land on it)
@@ -121,19 +121,40 @@ function activate(i) {
   GF.cur = i;
   const g = GF.list[i], s = GF.el.querySelector(`.gf-s[data-i="${i}"]`);
   GF.ctx = { el: s, v: gv(g), video: null, lead: (g.chars || []).find((id) => C[id]) || null, stats: null, cm: null };
-  GF.statOff?.();
-  const ctx = GF.ctx;
-  GF.statOff = F.onSnapshot(F.doc(db, 'videoStats', g.id), (d) => { const x = d.data() || {}; ctx.stats = x; const b = s.querySelector('[data-cc]'); if (b) b.textContent = x.comments ? String(x.comments) : T.feed.comments; }, () => {});
+  const rec = GF.rail.querySelector('[data-g="records"]'), n = !g.record;
+  if (rec.hidden !== n) { rec.hidden = n; placeGf(); }   // a game without records: the rail without that button
+  statsNear(GF, [i - 1, i, i + 1].map((k) => GF.list[k] && GF.list[k].id).filter(Boolean), (id) => { if (GF && GF.list[GF.cur].id === id) paintRail(); });
+  paintRail();
   if (location.pathname === '/games' && !/[?&]view=/.test(location.search)) history.replaceState(history.state, '', '/games?at=' + encodeURIComponent(g.id));
 }
-function paintSaves() {
-  if (!GF) return;
-  GF.el.querySelectorAll('.gf-s').forEach((s) => {
-    const on = st.saves.has(s.dataset.id), ic = s.querySelector('[data-sv]');
-    if (!ic || (ic.classList.contains('on') === on && ic.dataset.p)) return;
-    ic.dataset.p = 1; ic.classList.toggle('on', on); ic.innerHTML = on ? I.saved : I.save;
-    s.querySelector('[data-svl]').textContent = on ? T.feed.saved : T.feed.save;
-  });
+function paintSaves() { if (GF && GF.cur >= 0) paintSave(GF.rail, st.saves.has(GF.list[GF.cur].id)); }
+function paintRail() {
+  if (!GF || GF.cur < 0) return;
+  const d = GF.stats && GF.stats.get(GF.list[GF.cur].id);
+  if (d && GF.ctx) GF.ctx.stats = d;
+  paintCounts(GF.rail, d || {});
+  paintSaves();
+}
+// the rail ends ~12px above the highest top of any slide's words (the art's bottom less the title's overlap) - the same y for every game
+function placeGf() {
+  if (!GF || !GF.rail) return;
+  const fr = GF.el.getBoundingClientRect();
+  let low = Infinity;
+  GF.el.querySelectorAll('.gf-body').forEach((b) => { low = Math.min(low, b.offsetTop); });
+  if (!fr.height || low === Infinity) return;
+  placeRail(GF.rail, fr.top + 12, fr.top + low - 12);
+}
+function railClick(e) {
+  const b = e.target.closest('[data-g]');
+  if (!b || !GF || GF.cur < 0) return;
+  e.stopPropagation();
+  const g = GF.list[GF.cur];
+  switch (b.dataset.g) {
+    case 'comments': openComments({}, GF.ctx); break;
+    case 'records': openBoard(g, { onAgain: () => play(g.id) }); break;
+    case 'save': save(g.id, 'saveGame'); break;
+    case 'share': share(gv(g)); break;
+  }
 }
 // a link that asked for more (a "someone took your first place" push: ?records=1; a comment: ?c=<id>): opened on the slide
 function linkOpen(g, q) {
@@ -154,15 +175,6 @@ function onClick(e) {
   const chip = e.target.closest('.fd-chip');
   if (chip) { e.preventDefault(); e.stopPropagation(); castSheet(chip.getAttribute('href').split('/').pop(), { v: gv(g), video: null, from: 'games' }); return; }
   if (e.target.closest('[data-gf-play]')) { e.preventDefault(); e.stopPropagation(); play(g.id); return; }
-  const b = e.target.closest('[data-g]');
-  if (!b) return;
-  if (+s.dataset.i !== GF.cur) activate(+s.dataset.i);
-  switch (b.dataset.g) {
-    case 'comments': openComments({}, GF.ctx); break;
-    case 'records': openBoard(g, { onAgain: () => play(g.id) }); break;
-    case 'save': save(g.id, 'saveGame'); break;
-    case 'share': share(gv(g)); break;
-  }
 }
 // the art fills the top of the slide edge to edge, cropped; only a cover whose words are the picture is shown whole over its blur
 function fit(img) {
@@ -175,7 +187,8 @@ function fit(img) {
 export function unmount() {
   if (!GF) return;
   GF.io?.disconnect();
-  GF.statOff?.();
+  statsOff(GF);
+  GF.rail?.remove();
   GF.off.forEach((u) => u && u());
   GF.ctx?.cm?.close('away');
   removeEventListener('resize', GF.rs); removeEventListener('vx-tb', GF.rs);

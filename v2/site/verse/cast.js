@@ -7,7 +7,8 @@
 //   the chat (/chat?with=<id>, its own history entry), with "חזרה לסרטון" (HOOK.videoReturn) back to the same second.
 import { T } from './copy.js';
 import { esc, av, sheet, track } from './ui.js';
-import { remember } from './player.js';
+import { remember, paintFollow } from './player.js';
+import { onState } from './state.js';
 
 const A = () => T.shell;
 const svg = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -45,10 +46,14 @@ export function castSheet(id, vctx) {
   const h = sheet(`<div class="cs-card">
       <button class="cs-x" data-vx-close aria-label="${esc(A().close)}">${ICON_X}</button>
       <div class="cs-top">${av({ char: id, ring: true, cls: 'cs-face' })}
-        <div class="cs-t"><h2>${esc(c.name)}</h2>${c.tagline || c.role ? `<p>${esc(c.tagline || c.role)}</p>` : ''}${facts ? `<div class="cs-facts">${facts}</div>` : ''}</div></div>
+        <div class="cs-t"><h2>${esc(c.name)}</h2>${c.tagline || c.role ? `<p>${esc(c.tagline || c.role)}</p>` : ''}${facts ? `<div class="cs-facts">${facts}</div>` : ''}
+          <button class="vx-pill cs-follow" data-follow="${esc(id)}"></button></div></div>
       <div class="cs-acts"><button class="vx-btn main" data-cs-talk>${ICON_TALK}<span>${esc(A().talkTo(shortName(c)))}</span></button>
         <a class="vx-btn ghost" href="/c/${esc(id)}" data-cs-page>${ICON_PAGE}<span>${esc(A().pageOf(shortName(c)))}</span></a></div>
-    </div>`, { cls: 'cs-sheet', onClose: (why) => { if (was && why !== 'talk' && why !== 'page') resumeLater(vd); } });
+    </div>`, { cls: 'cs-sheet', onClose: (why) => { offF(); if (was && why !== 'talk' && why !== 'page') resumeLater(vd); } });
+  // follow, right here (the feed's card has no follow button since r11): it doesn't leave the video, so no heads-up
+  paintFollow(h.el);
+  const offF = onState(() => paintFollow(h.el));
   fitButtons(h.el, id);
   h.el.addEventListener('click', (e) => {
     const game = vctx && vctx.from === 'games';   // from a game slide nothing plays - no heads-up, straight there

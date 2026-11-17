@@ -858,3 +858,45 @@ html:not(.fd-clean) .fd-s { background: #111115; }
 html.fd-clean .fd-strip { left: 10px; right: 10px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(12, 12, 14, .55); transition: opacity .35s, transform .35s; }
 html.fd-clean .fd-strip.away { opacity: 0; transform: translateY(14px); pointer-events: none; }
 @media (max-width: 370px) { .fd-strip { gap: 9px; padding: 0 10px; } .fs-time { font-size: 12px; } }
+
+/* =================== the frame (his final layout, mockup r11): the controls are fixed, only the content scrolls ===================
+   top bar / tab bar / the rail (one, fixed) / the play strip (one, fixed at the feed's bottom, above the tab bar); a slide = the
+   picture + the slim card (title, "בכיכוב:"), sized to end exactly at the strip */
+html:not(.fd-clean) .fd { bottom: calc(var(--tb) + 46px); }
+html:not(.fd-clean) .fd-ui { top: var(--fd-cut, 60%); bottom: 0; justify-content: flex-start; padding: 12px 12px 0; }
+html:not(.fd-clean) .fd-line { display: none; }
+.fd-info { gap: 10px; }
+/* the rail: one column, fixed; feed.js / gfeed.js place it (its box ends ~12px above the pictures' bottom, the buttons at its
+   bottom, one even gap, 46-56px); a label under every icon, the count under the label */
+.fd-rail.fd-fixed { position: fixed; z-index: 5; inset-inline-start: 10px; transform: none; margin: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--rg, 8px); pointer-events: none; }
+.fd-rail.fd-fixed button { position: relative; pointer-events: auto; width: var(--rb, 56px); height: var(--rb, 56px); flex: none; }
+.fd-rail.fd-fixed b { display: block !important; font-size: 10.5px; }
+.fd-rail.fd-fixed .fd-ic svg { width: 21px; height: 21px; }
+.fd-rail.fd-fixed button:has(.fd-n:not(:empty)) { height: calc(var(--rb, 56px) + 12px); border-radius: 99px; }
+.fd-n { display: block; font-style: normal; font-size: 10.5px; font-weight: 800; line-height: 1.05; color: rgba(255, 255, 255, .9); direction: ltr; }
+.fd-n:empty { display: none; }
+html:not(.feed-on) #fd-rail, html.fd-clean #fd-rail, html:not(.gf-on) #gf-rail { display: none !important; }
+@media (max-height: 700px) { .fd-rail.fd-fixed b { font-size: 10px; } }
+/* the strip: fixed at the feed's bottom in BOTH views (it never moves); a tape left to right - play, the time, a long orange
+   line, the round mute, the small view button; thin dividers between the groups */
+.fd-strip, html.fd-clean .fd-strip { top: auto !important; bottom: var(--tb); left: 0; right: 0; height: 46px; border-radius: 0; gap: 6px; padding: 0 8px; }
+html.fd-clean .fd-strip { border: 0; border-top: 1px solid rgba(255, 255, 255, .1); background: rgba(12, 12, 14, .55); }
+html.fd-clean .fd-hint { bottom: calc(var(--tb) + 58px); }
+.fd-strip .fs-pp { width: 28px; min-width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .55); }
+.fd-strip .fs-pp svg { width: 15px; height: 15px; }
+.fs-time { font-size: 11px; letter-spacing: -.03em; }
+.fd-strip .fs-snd, .fs-snd.muted { position: relative; width: 28px; min-width: 28px; height: 28px; padding: 0 !important; border-radius: 50%; margin-inline-start: 4px;
+  background: none; border: 1.5px solid rgba(255, 255, 255, .55) !important; color: #fff; }
+.fs-snd.muted { border-color: var(--accent, #ff6a1f) !important; background: rgba(255, 106, 31, .12); }
+.fs-snd.muted svg { color: var(--accent, #ff6a1f) !important; }
+.fd-strip .fs-view, .fd-strip .fs-det { position: relative; width: 30px; min-width: 30px; height: 26px; border-radius: 8px; border: 1.5px solid rgba(255, 255, 255, .45); margin-inline-start: 4px; }
+.fd-strip .fs-snd::before, .fd-strip .fs-view::before { content: ''; position: absolute; left: -6px; top: 50%; width: 1px; height: 20px; margin-top: -10px; background: rgba(255, 255, 255, .16); }
+.fd-strip .fs-snd svg, .fd-strip .fs-view svg, .fd-strip .fs-det svg { width: 17px; height: 17px; }
+.fs-bar { min-width: 60px; }
+@media (max-width: 370px) { .fs-t2 { display: none; } }
+.fd-strip .fs-det { margin-inline-start: 4px; }
+.fd-strip .fs-det::before { display: none; }
+/* the cast card's follow: under the name, it doesn't leave the video */
+.cs-follow { margin-top: 10px; height: 36px; padding: 0 16px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+.cs-follow svg { width: 16px; height: 16px; }
+.cs-follow:not(.on) { background: var(--accent, #ff6a1f); border-color: var(--accent, #ff6a1f); color: #fff; }

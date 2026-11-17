@@ -8,11 +8,10 @@
 // The grid stays at /videos?view=grid (and on a computer).
 import { db, F } from './fb.js';
 import { T } from './copy.js';
-import { I, $, esc, av, abs, sheet, track } from './ui.js';
-import { st, onState, follow, save } from './state.js';
-import { openComments, stickerMenu, share, download, remember, followBtn, paintFollow, watched } from './player.js';
-import { castSheet, talkFromVideo } from './cast.js';   // round 2: a face = a card over the video; "לדבר" = the heads-up, then the chat
-import { offerPush } from './push.js';
+import { I, $, esc, av, abs, track } from './ui.js';
+import { st, onState, save } from './state.js';
+import { openComments, stickerMenu, share, download, remember, watched } from './player.js';
+import { castSheet } from './cast.js';   // round 2: a face = a card over the video; "לדבר" = the heads-up, then the chat
 import { videoDone } from './status.js';
 
 const FT = T.feed;
@@ -26,7 +25,6 @@ const castOf = (v) => {
   const guess = W.characters.map((x) => x.id).find((id) => v.id.split(/[-_]/).includes(id));   // as the player does
   return guess ? [guess] : [];
 };
-const gender = (id) => (typeof GENDER !== 'undefined' && GENDER[id]) || 'm';
 // the column's comment bubble and share arrow as drawn on mockup 2 (the rest are ui.js's own)
 const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 export const ICON_COMMENT = svg('<path d="M6 4.5h12a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-7.5L6 21v-3.5a2.5 2.5 0 0 1-2.5-2.5V7A2.5 2.5 0 0 1 6 4.5z"/>');
@@ -42,51 +40,53 @@ function slide(v, i) {
     <div class="fd-shade"></div>
     <div class="fd-big" aria-hidden="true">${I.play}</div>
     <div class="fd-ui">
-      <div class="fd-rail">
-        <button data-f="comments" aria-label="${esc(FT.comments)}"><span class="fd-ic">${ICON_COMMENT}</span><b data-cc>${esc(FT.comments)}</b></button>
-        <button data-f="sticker"><span class="fd-ic">${I.sticker}</span><b>${esc(FT.sticker)}</b></button>
-        <button data-f="save"><span class="fd-ic" data-sv>${I.save}</span><b data-svl>${esc(FT.save)}</b></button>
-        <button data-f="share"><span class="fd-ic">${ICON_SHARE}</span><b>${esc(FT.share)}</b></button>
-        <button data-f="dl"><span class="fd-ic">${I.download}</span><b>${esc(FT.dl)}</b></button>
-      </div>
       <div class="fd-info">
         <h2 class="fd-t">${esc(v.title)}</h2>
-        ${cast.length ? `<div class="fd-cast"><span class="fd-cl">${esc(FT.cast)}</span><div class="fd-chips">${cast.map((id) => `<a class="fd-chip" href="/c/${id}">${av({ char: id })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></div>
-        <div class="fd-acts"><button class="fd-follow" data-f="follow"></button><button class="fd-talk" data-f="talk">${I.comment}<span>${esc(cast.length > 1 ? FT.talkAll : FT.talk1[gender(cast[0])])}</span></button></div>` : ''}
+        ${cast.length ? `<div class="fd-cast"><span class="fd-cl">${esc(FT.cast)}</span><div class="fd-chips">${cast.map((id) => `<a class="fd-chip" href="/c/${id}">${av({ char: id })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></div>` : ''}
       </div>
     </div>
     <div class="fd-line"><i></i></div>
   </section>`;
 }
 
-// the follow button's words: one character - "לעקוב אחריו / אחריה", several - "לעקוב אחרי הדמויות"; followed = a check
-function paintFollows() {
-  if (!FD) return;
-  FD.el.querySelectorAll('.fd-s').forEach((s) => {
-    const b = $('.fd-follow', s);
-    if (!b) return;
-    const cast = castOf(FD.list[+s.dataset.i]);
-    const all = cast.every((id) => st.follows.has(id));
-    b.classList.toggle('on', all);
-    b.innerHTML = all ? `${I.check}<span>${esc(cast.length > 1 ? FT.followingAll : T.following)}</span>`
-      : `${I.plus}<span>${esc(cast.length > 1 ? FT.followAll : FT.follow1[gender(cast[0])])}</span>`;
-  });
+// ---------- the rail (his rule 2026-11-17): ONE column for the feed, fixed while the videos swipe under it - its counts and
+// states follow the video on screen. The counts of the video before and after are already listening, so a swipe never flickers ----------
+const nfmt = (n) => (n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n)) : '');
+export const railBtn = (key, attr, ic, label, n) => `<button ${attr}="${key}"><span class="fd-ic"${key === 'save' ? ' data-sv' : ''}>${ic}</span><b${key === 'save' ? ' data-svl' : ''}>${esc(label)}</b>${n ? `<i class="fd-n" data-n="${n}"></i>` : ''}</button>`;
+// the rail's place: its bottom ~12px above the picture's bottom, the buttons as big as the room allows (46-56px), one even gap
+export function placeRail(rail, top, bottom) {
+  const vis = [...rail.children].filter((b) => !b.hidden), n = vis.length || 1, g = innerHeight < 700 ? 6 : 8;
+  const extra = vis.filter((b) => b.querySelector('[data-n]')).length * 12;   // a button with a count grows by its line
+  const size = Math.max(46, Math.min(56, Math.floor((bottom - top - extra - (n - 1) * g) / n)));
+  rail.style.setProperty('--rb', size + 'px'); rail.style.setProperty('--rg', g + 'px');
+  // the box from the top room to the bottom line, the buttons at its bottom: a count arriving never moves the rail's end
+  rail.style.top = Math.round(top) + 'px'; rail.style.height = Math.max(0, Math.round(bottom - top)) + 'px';
 }
-function paintSaves() {
-  if (!FD) return;
-  FD.el.querySelectorAll('.fd-s').forEach((s) => {
-    const on = st.saves.has(s.dataset.id);
-    const ic = $('[data-sv]', s);
-    if (ic.classList.contains('on') === on && ic.dataset.p) return;
-    ic.dataset.p = 1;
-    ic.classList.toggle('on', on);
-    ic.innerHTML = on ? I.saved : I.save;
-    $('[data-svl]', s).textContent = on ? FT.saved : FT.save;
-  });
+export function paintSave(rail, on) {
+  const ic = rail && rail.querySelector('[data-sv]');
+  if (!ic || (ic.classList.contains('on') === on && ic.dataset.p)) return;
+  ic.dataset.p = 1; ic.classList.toggle('on', on); ic.innerHTML = on ? I.saved : I.save;
+  rail.querySelector('[data-svl]').textContent = on ? FT.saved : FT.save;
 }
-function paintCount(s, n) {
-  const b = s && $('[data-cc]', s);
-  if (b) b.textContent = n ? (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n)) : FT.comments;
+export function paintCounts(rail, d) {
+  if (!rail) return;
+  rail.querySelectorAll('[data-n]').forEach((x) => { x.textContent = nfmt((d || {})[x.dataset.n] || 0); });
+}
+// videoStats/<id> of the item on screen and its two neighbours, live; cache = Map id -> stats
+export function statsNear(S, ids, onData) {
+  S.subs = S.subs || new Map(); S.stats = S.stats || new Map();
+  for (const [id, off] of S.subs) if (!ids.includes(id)) { off(); S.subs.delete(id); }
+  for (const id of ids) if (id && !S.subs.has(id)) S.subs.set(id, F.onSnapshot(F.doc(db, 'videoStats', id), (x) => { S.stats.set(id, x.data() || {}); onData(id); }, () => {}));
+}
+export const statsOff = (S) => { if (S && S.subs) { S.subs.forEach((off) => off()); S.subs.clear(); } };
+const fdRail = () => document.getElementById('fd-rail');
+function paintSaves() { if (FD && FD.idx >= 0) paintSave(fdRail(), st.saves.has(FD.list[FD.idx].id)); }
+function paintRail() {
+  if (!FD || FD.idx < 0) return;
+  const id = FD.list[FD.idx].id, d = FD.stats && FD.stats.get(id);
+  if (FD.ctx && d) FD.ctx.stats = d;
+  paintCounts(fdRail(), d || {});
+  paintSaves();
 }
 
 export function videosFeed(q) {
@@ -168,18 +168,17 @@ function mount(list, start) {
   addEventListener('resize', rs);
   addEventListener('vx-tb', rs);
   FD.off.push(() => { document.removeEventListener('visibilitychange', vis); removeEventListener('resize', rs); removeEventListener('vx-tb', rs); });
-  FD.off.push(onState(() => { paintSaves(); paintFollows(); }));
-  paintSaves(); paintFollows();
+  FD.off.push(onState(paintSaves));
   track('feed', list[start].id);
 }
 
 export function unmount() {
   if (!FD) return;
   document.documentElement.classList.remove('fd-clean');
-  document.getElementById('fd-strip')?.remove(); document.getElementById('fd-hint')?.remove();
+  document.getElementById('fd-strip')?.remove(); document.getElementById('fd-hint')?.remove(); fdRail()?.remove();
   clearTimeout(hint.t); clearTimeout(hint.idle);
   FD.io?.disconnect(); FD.mo?.disconnect();
-  FD.statOff?.();
+  statsOff(FD);
   FD.off.forEach((u) => u && u());
   FD.ctx?.cm?.close('away');
   FD.gate?.destroy();
@@ -234,9 +233,8 @@ function activate(i) {
   FD.gate?.destroy(); FD.gate = null;
   if (v.drop) { const s = FD.slides[i]; import('./signal-lost.js').then(({ lockedVersion }) => { if (FD && FD.idx === i && cur() === vd) FD.gate = lockedVersion({ video: vd, stage: $('.fd-media', s), drop: v.drop, host: s }); }); }
   // the comment count of the video on screen, live
-  FD.statOff?.();
-  const ctx = FD.ctx;
-  FD.statOff = F.onSnapshot(F.doc(db, 'videoStats', v.id), (s) => { const d = s.data() || {}; ctx.stats = d; paintCount(ctx.el, d.comments || 0); }, () => {});
+  statsNear(FD, [i - 1, i, i + 1].map((k) => FD.list[k] && FD.list[k].id).filter(Boolean), (id) => { if (FD && FD.list[FD.idx].id === id) paintRail(); });
+  paintRail();
   if (location.pathname === '/videos') history.replaceState(history.state, '', '/videos?at=' + encodeURIComponent(v.id));
   if (!blocked()) play();
   paintSound();
@@ -301,7 +299,7 @@ function ctlMount() {
     c = Object.assign(document.createElement('div'), { id: 'fd-strip', className: 'fd-strip' });
     // laid out as a tape, left to right like every player (not mirrored for RTL): play, time, the line, sound, the views
     c.innerHTML = `<button class="fs-pp" data-c="pp"></button>
-      <span class="fs-time"></span>
+      <span class="fs-time"><span class="fs-t1"></span><span class="fs-t2"></span></span>
       <div class="fs-bar" data-c="seek"><i class="fs-fill"></i><b class="fs-knob"></b></div>
       <button class="fs-snd" data-c="snd"></button>
       <button class="fs-view" data-c="view"></button>
@@ -324,24 +322,30 @@ function ctlMount() {
     bar.addEventListener('pointermove', (e) => { if (drag) seekTo(e.clientX); });
     bar.addEventListener('pointerup', () => { drag = false; });
     document.body.append(c);
+    const r = Object.assign(document.createElement('div'), { id: 'fd-rail', className: 'fd-rail fd-fixed' });
+    r.innerHTML = railBtn('comments', 'data-f', ICON_COMMENT, FT.comments, 'comments') + railBtn('sticker', 'data-f', I.sticker, FT.sticker, 'stickers')
+      + railBtn('save', 'data-f', I.save, FT.save) + railBtn('share', 'data-f', ICON_SHARE, FT.share) + railBtn('dl', 'data-f', I.download, FT.dl);
+    r.addEventListener('click', railClick);
+    document.body.append(r);
+    paintRail();
     const h = Object.assign(document.createElement('div'), { id: 'fd-hint', className: 'fd-hint' });
     h.innerHTML = `${ICON_UP}<span>${esc(T.shell.swipeNext)}</span>`;
     document.body.append(h);
   }
   ctlPaint();
 }
-// the strip's y in the full view: above the tallest words card of the feed, from the feed's bottom - the same for every video;
-// the picture of every slide ends there (--fd-cut)
+// the frame (his final layout, mockup r11): the strip is fixed at the feed's bottom (css), the slides end at it; every slide's
+// picture ends at the same y - the feed's height less its tallest card (--fd-cut) - and the fixed rail ends ~12px above that
 function ctlPlace() {
-  const c = document.getElementById('fd-strip');
-  if (!c || !FD || isClean()) return;
+  const r = fdRail();
+  if (!FD || isClean()) return;
   const fr = FD.el.getBoundingClientRect();
   let tall = 0;
   for (const s of FD.slides) { const i = s.querySelector('.fd-info'); if (i) tall = Math.max(tall, i.offsetHeight); }
-  if (!tall) return;
-  const y = Math.round(fr.bottom - 16 - tall - 10 - c.offsetHeight);
-  c.style.top = y + 'px';
-  FD.el.style.setProperty('--fd-cut', (y - fr.top) + 'px');
+  if (!tall || !fr.height) return;
+  const cut = Math.round(fr.height - tall - 22);
+  FD.el.style.setProperty('--fd-cut', cut + 'px');
+  if (r) placeRail(r, fr.top + 12, fr.top + cut - 12);
 }
 function ctlPaint() {
   const c = document.getElementById('fd-strip');
@@ -362,7 +366,8 @@ function stripTime() {
   const d = vd.duration || 0, t = vd.currentTime || 0, p = d ? (t / d) * 100 : 0;
   c.querySelector('.fs-fill').style.width = p + '%';
   c.querySelector('.fs-knob').style.left = p + '%';
-  c.querySelector('.fs-time').textContent = `${mmss(t)} / ${d ? mmss(d) : '-:--'}`;
+  c.querySelector('.fs-t1').textContent = mmss(t);
+  c.querySelector('.fs-t2').textContent = ` / ${d ? mmss(d) : '-:--'}`;   // (the narrowest phones: the second only - the line keeps its room)
 }
 function togglePlay() {
   const vd = cur();
@@ -432,59 +437,30 @@ function full(vd, v) {
   else if (!p && vd.webkitEnterFullscreen) vd.webkitEnterFullscreen();
   if (vd.paused) vd.play().catch(() => {});
 }
-// the people on the video: one = straight to them; several = a short list first
-function pick(kind) {
-  const cast = castOf(FD.list[FD.idx]);
-  const h = sheet(`<div class="fd-pick"><h2 class="vx-h">${esc(kind === 'follow' ? FT.pickFollow : FT.pickTalk)}</h2>
-    <div class="fd-pl">${cast.map((id) => `<div class="fd-pr">${av({ char: id, ring: true })}<b>${esc(C[id].name)}</b>
-      ${kind === 'follow' ? followBtn(id, 'pill') : `<button class="vx-pill fd-tt" data-talk-to="${id}">${I.comment}${esc(FT.talkTo)}</button>`}</div>`).join('')}</div></div>`, { cls: 'fd-sheet' });
-  if (kind === 'follow') {
-    paintFollow(h.el);
-    const off = onState(() => paintFollow(h.el));
-    h.el.addEventListener('click', () => setTimeout(() => paintFollow(h.el), 0));
-    const close = h.close;
-    h.close = (w) => { off(); close(w); };
-  } else {
-    h.el.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-talk-to]');
-      if (!b) return;
-      h.close('talk');
-      talkFromVideo(b.dataset.talkTo, vctx());
-    });
-  }
-}
-
-async function onClick(e) {
+function onClick(e) {
   if (!FD) return;
   const s = e.target.closest('.fd-s');
   if (!s || +s.dataset.i !== FD.idx) return;
   const chip = e.target.closest('.fd-chip');
-  if (chip) { e.preventDefault(); castSheet(chip.getAttribute('href').split('/').pop(), vctx()); return; }   // a face: their card, the video waits
-  if (e.target.closest('a')) return;
+  // a face: their card (follow, talk, their page - the heads-up before leaving), the video waits
+  if (chip) { e.preventDefault(); castSheet(chip.getAttribute('href').split('/').pop(), vctx()); return; }
+  if (e.target.closest('a, button')) return;
+  // a tap on the video: sound first (while muted), then play / pause - with the soft big sign for a moment
+  if (isClean()) { peek(); return; }   // the clean view: a tap only brings the strip back (its play button pauses)
+  if (cur().muted) { unmute(); return; }
+  togglePlay();
+}
+// the fixed rail's buttons act on the video on screen
+function railClick(e) {
   const b = e.target.closest('[data-f]');
-  const v = FD.list[FD.idx], ctx = FD.ctx, vd = cur();
-  if (!b) {
-    // a tap on the video: sound first (while muted), then play / pause - with the soft big sign for a moment (clean mode too)
-    if (isClean()) { peek(); return; }   // the clean view: a tap only brings the strip back (its play button pauses)
-    if (vd.muted) { unmute(); return; }
-    togglePlay();
-    return;
-  }
-  const cast = castOf(v);
+  if (!b || !FD || FD.idx < 0) return;
+  e.stopPropagation();
+  const v = FD.list[FD.idx], ctx = FD.ctx;
   switch (b.dataset.f) {
-    case 'sound': unmute(); break;
     case 'comments': openComments({}, ctx); break;
     case 'sticker': stickerMenu(ctx); break;   // make one / the fans' stickers of this video
     case 'save': save(v.id); break;
     case 'share': share(v); break;
     case 'dl': download(v); break;
-    case 'follow':
-      if (cast.length > 1) pick('follow');
-      else if (cast[0]) { const on = !st.follows.has(cast[0]); if ((await follow(cast[0], on)) && on) offerPush(cast[0]); }
-      break;
-    case 'talk':
-      if (cast.length > 1) pick('talk');
-      else if (cast[0]) talkFromVideo(cast[0], vctx());
-      break;
   }
 }
