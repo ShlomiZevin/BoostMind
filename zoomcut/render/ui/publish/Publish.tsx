@@ -49,7 +49,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
   const [sends, setSends] = useState<Record<string, any>>({});  // Telegram / Email going out now (the share endpoint)
   const [err, setErr] = useState('');
   const [duration, setDuration] = useState(0);
-  const [file, setFile] = useState<{ name: string; size: number; exported: number; stale: boolean } | null>(null);
+  const [file, setFile] = useState<{ name: string; size: number; exported: number; stale: boolean; social?: boolean } | null>(null);
   const [draft, setDraft] = useState<{ exported: number } | null>(null);  // a Quick check - shown, never published
   const [published, setPublished] = useState<Record<string, { at: number; url: string | null }>>({});  // where it's already up
   // who's in it on the Shlomiverse (every video there is on at least one character's page - his rule, 2026-11-05)
@@ -256,6 +256,7 @@ export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
           </div>
           : <div className="pb-file">{file && !exportFirst ?`Sends the export from ${when(file.exported)} as is` : file && isStale ? 'You changed the video since the last export - it exports again first'
             : draft && !file ? 'This is a quick test - the button makes the full-quality export first' : 'It exports the video first, then sends'}</div>}
+          {file?.social && <div className="pb-file" style={{ color: '#c9a3ff' }}>✂ The socials get the version that stops at the socials end (+ its ending) - the Shlomiverse gets the whole video</div>}
           {running ? <button className="pb-go ghost" onClick={onClose}>Sending… you can close this</button>
             : started && !n ? <button className="pb-go" onClick={onClose}>Done</button>
             : <button className="pb-go" onClick={go}>{n ? `${exportFirst ? 'Export & send' : 'Send'} to ${n}` : exportFirst ? 'Just export' : 'Pick where it goes'}</button>}

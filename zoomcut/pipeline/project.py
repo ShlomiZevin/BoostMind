@@ -240,6 +240,8 @@ def merge(old, new):
     if m and old.get("notes"):  # his notes for Claude stay on the moment they are about
         out["notes"] = [{**n, "at": round(m(n["at"])), **({"end": max(round(m(n["at"])) + 1, round(m(n["end"])))} if isinstance(n.get("end"), (int, float)) else {})}
                         if isinstance(n.get("at"), (int, float)) else n for n in old["notes"]]  # (a range note: its end too)
+    if m and isinstance((old.get("split") or {}).get("at"), (int, float)):  # the socials' end stays on its moment too
+        out["split"] = {**old["split"], "at": max(1, round(m(old["split"]["at"])))}
     olds ={l["id"]: l for l in old.get("layers", [])}
     news = {l["id"]: l for l in new.get("layers", [])}
     layers = []

@@ -309,6 +309,21 @@ hear the last one after the picture moved on). Live like everything else - his d
 (a hook shown the whole video) - only while it still reaches the end: a `span` clip shortened by hand keeps its own end
 (ops.js `pinned`, 2026-11-11). A clip in a group (`link`) never keeps a pin - its group moves it.
 
+### split - the ending only on the Shlomiverse (2026-11-17)
+His ask: "videos like in OnlyFans - the highlight, the ending, the cliffhanger only on the Shlomiverse ... a very hard cut".
+- `project.split = {"at": <frame>}`: the **socials' version** stops at `at` - a hard cut (picture and sound end on the
+  same frame, nothing fades) - then plays its own ending; the **Shlomiverse's version** is the whole video.
+- `layer.only = "social"`: the layer is only in the socials' version - the ending card (picture / words / sound), placed
+  from `at` like any layer. `layer.only = "verse"`: only in the Shlomiverse's. No `only` = both.
+- One function decides what each version plays: `render/src/layers/version.js` (`versionOf`, `windowOf`) - the
+  editor's Shlomiverse / Socials switch and the export (`tools/version.mjs`). A rebuild moves `at` with its moment.
+- Export: `out/<id>.mp4` (the whole video - the Shlomiverse, verse.mjs) + `out/<id>.social.mp4` (.social.test /
+  .social.draft): only the ending is rendered, then joined to the first part in one encode. Publish sends the socials
+  the `.social` file; Telegram / email get both. Ops: `{"op": "project", "set": {"split": {"at": 450}}}`,
+  `{"op": "project", "set": {"split": null}}`, `{"op": "layer.update", "id": "ending.text", "set": {"only": "social"}}`.
+- A script marks the stop with the line `[עד כאן ברשתות]` (the MCP's writing guide tells his GPT to) - set `at` at the
+  start of the line after it.
+
 ## Changing a project: ops
 
 `POST /api/p/<id>/ops  {"rev": 12, "ops": [ ... ]}` - all or nothing; `rev` = the one you read (409 if it moved).

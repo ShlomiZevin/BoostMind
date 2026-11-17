@@ -188,3 +188,23 @@
 .ctxm button:hover:not(:disabled) { background: var(--panel-3); }
 .ctxm button:disabled { color: var(--faint); cursor: default; }
 .ctxm kbd { margin-left: auto; color: var(--faint); font: inherit; font-size: 11px; }
+/* the socials' end (render/src/layers/version.js, 2026-11-17): the split on the ruler, the stretch only the Shlomiverse
+   has, the Shlomiverse / Socials switch, a layer's "socials" / "verse" chip */
+.ltl-vband { position: absolute; top: 0; bottom: 0; pointer-events: none; z-index: 1;
+  background: repeating-linear-gradient(135deg, rgba(185, 120, 255, 0.16) 0 6px, transparent 6px 12px); }
+.ltl-vband span { position: absolute; left: 8px; bottom: 2px; font-size: 10px; font-weight: 700; color: #c9a3ff; white-space: nowrap; }
+.ltl-split { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid #b978ff; z-index: 5; cursor: ew-resize; }
+.ltl-split::before { content: ''; position: absolute; top: 0; bottom: 0; left: -6px; width: 12px; }  /* (an easier target) */
+.ltl-split span { position: absolute; top: 2px; left: 0; display: flex; align-items: center; gap: 4px; padding: 0 2px 0 6px; height: 16px;
+  font-size: 10px; font-weight: 700; color: #fff; background: #8b4fd8; border-radius: 0 4px 4px 0; white-space: nowrap; user-select: none; }
+.ltl-split b { display: grid; place-items: center; width: 14px; height: 14px; border-radius: 3px; cursor: pointer; font-weight: 700; opacity: 0.75; }
+.ltl-split b:hover { opacity: 1; background: rgba(0, 0, 0, 0.3); }
+.ltl-splitb.on { color: #c9a3ff; }
+.ltl-ver { display: inline-flex; border: 1px solid var(--edge-2); border-radius: 6px; overflow: hidden; height: 26px; }
+.ltl-ver button { border: 0; background: transparent; color: var(--dim); font-size: 12px; padding: 0 9px; cursor: pointer; }
+.ltl-ver button + button { border-left: 1px solid var(--edge-2); }
+.ltl-ver button.on { background: #8b4fd8; color: #fff; }
+.ltl-only { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 4px; border-radius: 3px; flex: none; }
+.ltl-only.social { background: #8b4fd8; color: #fff; }
+.ltl-only.verse { background: rgba(185, 120, 255, 0.18); color: #c9a3ff; }
+.ltl-cutoff { position: absolute; top: 0; bottom: 0; right: 0; background: rgba(0, 0, 0, 0.55); border-left: 2px solid #b978ff; pointer-events: none; z-index: 4; }

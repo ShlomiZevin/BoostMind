@@ -14,7 +14,10 @@ video layers (with their backdrops) a VIDEO run.
   4. mux, the project's speed, checks.
 Gentle on the machine (his PC blue-screens under full load): few pieces at once, few threads, below-normal priority.
 --quick: half size, the fastest encoder - a draft to check the edit (out/<id>.draft.mp4).
---test: the phone check - about a third of the size, small and fast, to Telegram (out/<id>.test.mp4; never published)."""
+--test: the phone check - about a third of the size, small and fast, to Telegram (out/<id>.test.mp4; never published).
+A project with a split (project.split, render/src/layers/version.js - the ending only on the Shlomiverse, 2026-11-17)
+gets a second file: out/<id>.social.mp4 (.social.test / .social.draft) = the full video up to the split, a hard cut,
+then the socials' own ending - only the ending is rendered (a few seconds), then joined to the first part."""
 import argparse
 import json
 import math
@@ -53,6 +56,29 @@ def flatten_view(project):
     if r.returncode:
         raise RuntimeError("could not read the What-we-see strip: " + r.stderr[-600:])
     return json.loads(r.stdout)
+def version_of(project, *what):
+    """render/src/layers/version.js through tools/version.mjs: 'verse' / 'social' / 'window', a, b - the same function
+    the editor's Verse / Socials switch plays."""
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as fh:
+        json.dump(project, fh, ensure_ascii=False)
+    try:
+        r = subprocess.run(["node", os.path.join(ROOT, "tools", "version.mjs"), fh.name, *map(str, what)], capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
+    finally:
+        os.remove(fh.name)
+    if r.returncode:
+        raise RuntimeError("could not make the video's version: " + r.stderr[-600:])
+    return json.loads(r.stdout)
+
+
+def split_at(project):
+    try:
+        at = int(round(float((project.get("split") or {}).get("at"))))
+    except (TypeError, ValueError):
+        return None
+    return at if 0 < at < int(project["duration"]) else None
+
+
 def animated_styles():
     """The text / subtitle styles that move every frame by themselves - read from the registry (`animated: true` in
     render/src/layers/styles*.tsx, tools/animated_styles.mjs), cached until a style file changes."""
@@ -452,23 +478,28 @@ def at_fps(project, factor):
     return p
 
 
-def export(ep, quick=False, test=False):
+def export(ep, quick=False, test=False, project=None, out=None):
+    """project / out: a part rendered on its own (the socials' ending) - no split handling, into that file."""
     t_start = time.time()
-    project = projectlib.load(ep)
-    if not project:
-        sys.exit("✖ no project.json")
+    part = project is not None
+    full = None
+    if not part:
+        full = projectlib.load(ep)
+        if not full:
+            sys.exit("✖ no project.json")
+        project = version_of(full, "verse")  # (the whole video - without the socials-only ending)
+        suffix = ".test" if test else ".draft" if quick else ""
+        for stale in ([ep.p("out", f"{ep.id}{suffix}.mp4")] if test or quick else []) + [ep.p("out", f"{ep.id}.social{suffix}.mp4")]:
+            if os.path.exists(stale):  # (an old check video / an old socials' cut never stays looking like this one's)
+                os.remove(stale)
     project = flatten_view(project)
-    if test or quick:  # (an old check video never stays looking like this one's - a failed run leaves nothing behind)
-        stale = ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4")
-        if os.path.exists(stale):
-            os.remove(stale)
     if test:  # the phone test: half the frames (15 a second) - half the drawing, compositing and encoding
         project = at_fps(project, 2)
     fps, total = project["canvas"]["fps"], int(project["duration"])
     speed = float(project.get("speed") or 1)
     scale = 0.35 if test else 0.5 if quick else 1.0  # (test: 378x672 - reads well on a phone, a few MB)
     small = quick or test
-    log(f"▶ export {ep.id}{' (phone test)' if test else ' (quick check)' if quick else ''}: {total} frames, {len(project['layers'])} layers, speed x{speed}")
+    log(f"▶ export {ep.id}{' - the socials ending' if part else ''}{' (phone test)' if test else ' (quick check)' if quick else ''}: {total} frames, {len(project['layers'])} layers, speed x{speed}")
     # film effects (pipeline/film_fx.py): every effect layer acts on what is below the top-most effect layer; the
     # layers above it are drawn on the effected picture
     top = film_fx.top_effect(project)
@@ -542,7 +573,7 @@ def export(ep, quick=False, test=False):
                 sys.exit("✖ the sound graph failed twice - this export's sound would not be what the editor plays; nothing was sent. Export again.")
             log("⚠ the sound graph failed - this check video has the older mix (not exactly what the editor plays)")
     os.makedirs(ep.p("out"), exist_ok=True)
-    final = ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4" if quick else f"{ep.id}.mp4")
+    final = out or ep.p("out", f"{ep.id}.test.mp4" if test else f"{ep.id}.draft.mp4" if quick else f"{ep.id}.mp4")
     abr = "96k" if test else "192k"
     tmp = final[:-4] + ".tmp.mp4"
     if fast > 1:  # the picture is sped up already: only the sound (voices keep their pitch)
@@ -557,13 +588,48 @@ def export(ep, quick=False, test=False):
              "-c:a", "aac", "-b:a", abr, "-shortest", "-movflags", "+faststart", tmp])
     os.replace(tmp, final)
     dur, lufs, problems = check(final, project, speed, small)
+    if part:  # (an ending with no sound of its own is fine - it's a card)
+        problems = [x for x in problems if not x.startswith("loudness")]
     if problems:
         log("⚠ problems: " + "; ".join(problems))
     log(f"✔ {final}  ({dur:.1f}s, {lufs} LUFS, {time.time() - t_start:.0f}s)")
     for g in gdirs:  # the drawn frames are only for this export
         for d in g.values():
             shutil.rmtree(d, ignore_errors=True)
+    if not part and split_at(full) is not None:
+        social_cut(ep, full, final, quick, test)
     return final
+
+
+def social_cut(ep, full, final, quick, test):
+    """The socials' version: the full file up to the split (a hard cut - picture and sound stop on the same frame), then
+    the ending rendered alone, joined in one encode."""
+    t0 = time.time()
+    at, fps, speed = split_at(full), full["canvas"]["fps"], float(full.get("speed") or 1)
+    social = version_of(full, "social")
+    cut_s = at / fps / speed
+    suffix = ".test" if test else ".draft" if quick else ""
+    dest = ep.p("out", f"{ep.id}.social{suffix}.mp4")
+    log(f"▶ the socials' version: up to {cut_s:.2f}s, then its ending ({(int(social['duration']) - at) / fps / speed:.1f}s)")
+    crf, preset = ("30", "ultrafast") if test else ("24", "ultrafast") if quick else ("17", "medium")
+    abr = "96k" if test else "192k"
+    tmp = dest[:-4] + ".tmp.mp4"
+    if int(social["duration"]) > at:
+        card = ep.p("out", f"{ep.id}.ending{suffix}.mp4")
+        export(ep, quick, test, project=version_of(social, "window", at, int(social["duration"])), out=card)
+        fc = (f"[0:v]trim=end={cut_s:.4f},setpts=PTS-STARTPTS[v0];[0:a]atrim=end={cut_s:.4f},asetpts=PTS-STARTPTS[a0];"
+              f"[1:v]setpts=PTS-STARTPTS[v1];[1:a]asetpts=PTS-STARTPTS[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]")
+        run([FFMPEG, "-y", "-v", "error", "-i", final, "-i", card, "-filter_complex", fc, "-map", "[v]", "-map", "[a]",
+             "-c:v", "libx264", "-threads", str(X264_THREADS), "-preset", preset, "-crf", crf, "-pix_fmt", "yuv420p",
+             "-c:a", "aac", "-b:a", abr, "-movflags", "+faststart", tmp])
+        os.remove(card)
+    else:  # (no ending made yet: the cut alone)
+        run([FFMPEG, "-y", "-v", "error", "-i", final, "-t", f"{cut_s:.4f}", "-c:v", "libx264", "-threads", str(X264_THREADS),
+             "-preset", preset, "-crf", crf, "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", abr, "-movflags", "+faststart", tmp])
+    os.replace(tmp, dest)
+    info = ffprobe(dest)
+    log(f"✔ {dest}  ({float(info['format']['duration']):.1f}s, {time.time() - t0:.0f}s) - the socials' version")
+    return dest
 
 
 if __name__ == "__main__":

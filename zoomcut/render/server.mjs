@@ -742,6 +742,16 @@ Exported by Shlomiverse Studio. Full-quality master: ${master}` });
       await sendTelegram({ file, caption: test ? `📱 TEST · ${title}` : draft ? `🧪 ${title} — draft` : `🎬 ${title}`, log });
       log('✓ Sent to your Telegram');
     }
+    // a project with a split (the ending only on the Shlomiverse, 2026-11-17): the socials' version too, right after
+    const cut = master.replace(/(\.test|\.draft)?\.mp4$/, (_m, s) => `.social${s || ''}.mp4`);
+    if (fs.existsSync(cut)) {
+      const f2 = await sizedCopy(cut, channel, log);
+      if (channel === 'email') await sendEmail({ file: f2, to, subject: `✂ ${title} — the socials' version (ends at the cut)`, text: `${title}
+
+The socials' version: up to the cut, then its ending. The whole video is the one before.` });
+      else await sendTelegram({ file: f2, caption: `✂ ${title} — the socials' version`, log });
+      log(`✓ + the socials' version`);
+    }
     job.ok = true;
   })().catch((e) => { job.ok = false; job.error = e.message; log('failed: ' + e.message); })
     .finally(() => {  // (ended: the editor shows the latest send) - and it goes into the Jobs history

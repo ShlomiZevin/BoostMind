@@ -87,6 +87,13 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
   const fps = project.canvas.fps, W = project.canvas.w, H = project.canvas.h;
   const layer = sel && project.layers.find((l: any) => l.id === sel.layer);
   const item = layer && sel?.item ? (layer.items || []).find((i: any) => i.id === sel.item) : null;
+  // which version a layer is in (the ending only on the Shlomiverse - render/src/layers/version.js, 2026-11-17): shown
+  // once the video has a socials' end, or on a layer that already is in one version only
+  const split = Number.isFinite(+project.split?.at) && +project.split.at > 0 ? +project.split.at : null;
+  const onlyCard = layer && layer.kind !== 'view' && (split != null || layer.only) ? <div className="card">
+    <div className="row2"><label>shows in</label><select className="field" value={layer.only || ''} title="The socials' version stops at the socials end and plays its ending (the layers marked Socials only); the Shlomiverse's is the whole video"
+      onChange={(e) => send([{ op: 'layer.update', id: layer.id, set: { only: e.target.value || null } }], { label: 'shows in' })}>
+      <option value="">Both versions</option><option value="social">Socials only (the ending)</option><option value="verse">Shlomiverse only</option></select></div></div> : null;
   if (!layer) {
     const addLayer = (layer: any) => { send([{ op: 'layer.add', layer, index: project.layers.length - project.layers.slice().reverse().findIndex((l: any) => l.kind !== 'audio') }], { label: 'add layer' }); onSel({ layer: layer.id, item: layer.items?.[0]?.id }); };
     return <div className="insp"><div className="ins">
@@ -95,6 +102,10 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
           onBlur={(e) => e.target.value !== project.title && send([{ op: 'project', set: { title: e.target.value } }])} /></Row>
         <Row label="Speed" wide><SpeedPick speed={project.speed || 1} onSpeed={(v) => send(projectSpeedOps(project, v), { label: 'speed' })} /></Row>
         <Row label="Length"><span className="ins-val">{mmss(project.duration / fps / (project.speed || 1))}{project.speed && project.speed !== 1 ? ` · ${mmss(project.duration / fps)} at 1×` : ''}</span></Row>
+        <Row label="Socials end">{split != null
+          ? <span className="ins-val">{mmss(split / fps / (project.speed || 1))} · then only on the Shlomiverse <button className="btn ghost" style={{ height: 22, padding: '0 6px', fontSize: 11 }}
+              title="One version again (the ending's layers stay - delete them or mark them Both)" onClick={() => send([{ op: 'project', set: { split: null } }], { label: 'no socials end' })}>Remove</button></span>
+          : <span className="ins-val" style={{ color: 'var(--faint)' }}>none - "✂ Socials end here" on the timeline bar</span>}</Row>
         <Row label="Background"><input type="color" className="ins-color" value={project.canvas.color || '#000000'}
           onChange={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }], { commit: false })}
           onBlur={(e) => send([{ op: 'project', set: { canvas: { color: e.target.value } } }])} /></Row>
@@ -126,7 +137,7 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
   }
   const P = INSPECTORS[layer.kind];
   if (P) return <div className="insp"><P project={project} layer={layer} item={item} send={send} fps={fps} frame={frame} urls={urls} pickAsset={pickAsset} build={build}
-    close={() => onSel(null)} openClip={onOpen && item && layer.kind !== 'subtitles' ? () => onOpen({ layer: layer.id, item: item.id }) : undefined} />{extra}</div>;
+    close={() => onSel(null)} openClip={onOpen && item && layer.kind !== 'subtitles' ? () => onOpen({ layer: layer.id, item: item.id }) : undefined} />{onlyCard}{extra}</div>;
   const setLayer = (k: string, v: any, commit = true) => send([{ op: 'layer.update', id: layer.id, props: { [k]: v } }], { commit, label: k });
   const setItem = (k: string, v: any, commit = true) => send([{ op: 'item.update', layer: layer.id, id: item.id, set: { [k]: v } }], { commit, label: k });
   const props = { ...(DEFAULTS[layer.kind] || {}), ...(layer.props || {}) };
@@ -157,6 +168,7 @@ export function Inspector({ project, sel, send, frame, onSel, extra, urls, pickA
       </div>
       {layer.owner === 'builder' && <div className="help">Its items come from the analysis; what you change here stays when it runs again.</div>}
     </div>
+    {onlyCard}
     {extra}
   </div>;
 }

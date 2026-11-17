@@ -235,6 +235,13 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   const epFile = (id) => path.join(epDir(id), 'episode.json');  // (read only: the title)
   const pubFile = (id) => path.join(epDir(id), 'publish.json');
   const master = (id) => path.join(epDir(id), 'out', `${id}.mp4`);
+  // the socials get the socials' version when the project has one (project.split - the ending only on the Shlomiverse,
+  // his ask 2026-11-17): out/<id>.social.mp4, made by the same export (an export deletes the old one first, so one that is
+  // there is this export's). The Shlomiverse - site() / verse.mjs - always gets the whole video, master().
+  const forSocials = (id) => {
+    const s = path.join(epDir(id), 'out', `${id}.social.mp4`);
+    return readJson(path.join(epDir(id), 'project.json'), {})?.split?.at > 0 && fs.existsSync(s) ? s : master(id);
+  };
   // where the video is already up: { platform: { at, url } } - publish.json's `published`, plus what came before it
   // (the Jobs history and the last run), so videos published before 2026-11-01 show theirs too
   function publishedOf(id) {
@@ -252,7 +259,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0] || path.join(epDir(id), 'out', `${id}.draft.mp4`);
   function run(id, post, dry = false) {
     if (runs[id]?.running) return runs[id];
-    const file = master(id);
+    const file = forSocials(id);
     post = { ...post, platforms: ORDER.filter((p) => post.platforms.includes(p)), name: readJson(epFile(id), {}).title || id, published: publishedOf(id) };  // (Instagram before Facebook's reminder; the video's name for messages)
     const r = (runs[id] = { running: true, started: Date.now(), items: Object.fromEntries(post.platforms.map((p) => [p, { state: 'waiting', log: [] }])) });
     (async () => {
@@ -398,9 +405,9 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   });
   // the project's post (what he last chose) + the run now / the last results
   app.get('/api/ep/:id/publish', async (q, res) => {
-    const e = readJson(epFile(q.params.id), {}), f = master(q.params.id), pj = readJson(pubFile(q.params.id), null);
+    const e = readJson(epFile(q.params.id), {}), f = forSocials(q.params.id), pj = readJson(pubFile(q.params.id), null);
     let file = null;  // what would go out: the file, its size and when it was exported (the window shows it before he clicks)
-    try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id) }; } catch {}
+    try { const st = fs.statSync(f); file = { name: path.basename(f), size: st.size, exported: st.mtimeMs, stale: !!isStale(q.params.id), social: f !== master(q.params.id) }; } catch {}
     let draft = null;  // a Quick check (half size) - shown in the window, never published
     try { draft = { exported: fs.statSync(draftOf(q.params.id)).mtimeMs }; } catch {}
     res.json({ post: pj, run: runs[q.params.id] || null, published: publishedOf(q.params.id), title: e.title || q.params.id, file, draft,
@@ -408,7 +415,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   });
   // the video the window shows: the full export, else the Quick check draft
   app.get('/api/ep/:id/publish/video', (q, res) => {
-    const f = [master(q.params.id), draftOf(q.params.id)].find((x) => fs.existsSync(x));
+    const f = [forSocials(q.params.id), draftOf(q.params.id)].find((x) => fs.existsSync(x));
     if (!f) return res.status(404).end();
     res.sendFile(f);
   });

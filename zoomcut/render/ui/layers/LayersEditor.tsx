@@ -9,6 +9,7 @@ import { clockFrame, soundDiag, soundClock, soundJump } from '../../src/layers/A
 import { useLayered, build, fmtT } from './api';
 import { apply, pinned } from '../../src/layers/ops.js';
 import { tempoOf } from '../../src/layers/clock.js';
+import { versionOf, splitAt } from '../../src/layers/version.js';
 import { Timeline, Sel } from './Timeline';
 import { ask } from './ask';
 import { Media } from './Media';
@@ -173,7 +174,14 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
   }, [!!project]);
 
   const fps = project?.canvas.fps || 30;
-  const total = project?.duration || 1;
+  // which version plays (the ending only on the Shlomiverse, his ask 2026-11-17 - render/src/layers/version.js): the
+  // Shlomiverse's = the whole video; the socials' = up to the split, a hard cut, its own ending. Edits always go to the
+  // one project - only what plays changes
+  const [version, setVersion] = useState<'verse' | 'social'>('verse');
+  const ver = project && splitAt(project) != null ? version : 'verse';
+  const shown = useMemo(() => project && versionOf(project, ver), [project, ver]);
+  const total = shown?.duration || 1;
+  useEffect(() => { if (frame > total - 1) { const g = Math.max(0, total - 1); player.current?.seekTo(g); setFrame(g); } }, [total]);
   const speed = project?.speed || 1;
   const seek = (f: number) => { const g = Math.max(0, Math.min(total - 1, Math.round(f))); soundJump(g); player.current?.seekTo(g); setFrame(g); };
   // picking an item never moves the playhead - it stays where he is (his note, 2026-11-10: a click to drag a long clip
@@ -228,8 +236,8 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     else saveNote({ ...noteOpen!.note, x, y });
   };
 
-  const inputProps = useMemo(() => project && ({ project, urls: L.view!.urls, mode: 'full' as const, playing, playbackRate: speed, gainDb: (L.view as any).gainDb ?? 0 }),
-    [project, L.view?.urls, (L.view as any)?.gainDb, playing, speed]);
+  const inputProps = useMemo(() => shown && ({ project: shown, urls: L.view!.urls, mode: 'full' as const, playing, playbackRate: speed, gainDb: (L.view as any).gainDb ?? 0 }),
+    [shown, L.view?.urls, (L.view as any)?.gainDb, playing, speed]);
 
   // keys: space play, arrows step / jump, Ctrl+Z / Ctrl+Shift+Z, Delete the picked item
   useEffect(() => {
@@ -514,7 +522,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
           <div className="monitor">
             <div ref={frameEl} style={{ position: 'relative', aspectRatio: `${project.canvas.w}/${project.canvas.h}` }}
               className={`frame ${noteOpen ? 'note-pick' : ''}`}
-              onClick={(e) => { if (noteOpen) { noteSpot(e); return; } const s = frameEl.current && pickAt(project, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else toggle(); }}>
+              onClick={(e) => { if (noteOpen) { noteSpot(e); return; } const s = frameEl.current && pickAt(shown, frame, frameEl.current, e.clientX, e.clientY); if (s) { setSel(s); setLine(null); } else toggle(); }}>
               {!noteOpen && <Handles project={project} sel={sel} frame={frame} host={frameEl.current} send={L.send} onPick={setSel} />}
               <NoteSpots notes={notes.filter((n) => inView(noteView, n))} frame={frame} fps={fps} canvas={project.canvas} open={noteOpen?.note || null} />
               {inputProps && <Player ref={player} component={Layers as any} inputProps={inputProps} durationInFrames={total} fps={fps}
@@ -549,7 +557,7 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
         </div>
       </div>
       <div className="split" onMouseDown={startSplit} />
-      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} onOpen={openClip} playing={playing} notes={notes} onNote={openNote} noteDraft={noteOpen?.isNew ? noteOpen.note : null} noteView={noteView} onNoteView={setNoteView}
+      <Timeline project={project} frame={frame} sel={sel} onSel={pickItem} onSeek={seek} send={L.send} onItemEdit={onItemEdit} onItemPreview={onItemPreview} onSolo={playOnly} soloKey={soloKey} onOpen={openClip} playing={playing} notes={notes} onNote={openNote} noteDraft={noteOpen?.isNew ? noteOpen.note : null} version={ver} onVersion={setVersion} noteView={noteView} onNoteView={setNoteView}
         canUndo={L.canUndo} canRedo={L.canRedo} onUndo={L.undo} onRedo={L.redo} />
       {openedView()}
       {noteOpen && <NoteWindow note={noteOpen.note} isNew={noteOpen.isNew} fps={fps} speed={speed} onSave={saveNote} onSeek={seek}

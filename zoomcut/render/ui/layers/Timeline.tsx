@@ -13,6 +13,7 @@ import { tempoOf, paceK } from '../../src/layers/clock.js';
 import { tabProject } from '../common';
 import { viewLayer, characters, rowColors, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 import { groupOf, edgeOps, splitOps, removeOps, isTakeItem } from './group';
+import { splitAt as socialAt } from '../../src/layers/version.js';
 import { pinned } from '../../src/layers/ops.js';
 
 export type Sel = { layer: string; item?: string } | null;
@@ -27,6 +28,7 @@ type Props = {
   playing?: boolean;  // (stopped: the quick notes wait, faint, beside the playhead on the ruler)
   onOpen?: (s: Sel) => void;  // open the clip's own file in a window (▶ above the block, on hover)
   notes?: Note[]; onNote?: (n: Note | null, at?: number, end?: number) => void; noteView?: NoteView; onNoteView?: (v: NoteView) => void; noteDraft?: Note | null;  // notes for Claude: a flag each on the ruler (null = a new one at the playhead)
+  version?: 'verse' | 'social'; onVersion?: (v: 'verse' | 'social') => void;  // which version plays (render/src/layers/version.js)
 };
 
 const TH = 30;  // lane height
@@ -87,7 +89,7 @@ const blockText = (l: any, it: any, project: any) => {
   return a ? a.label || String(a.src).split('/').pop() : '';
 };
 
-export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, playing, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, noteView = 'active', onNoteView, noteDraft }: Props) {
+export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit, onItemPreview, onSolo, soloKey, onOpen, playing, canUndo, canRedo, onUndo, onRedo, notes = [], onNote, noteView = 'active', onNoteView, noteDraft, version = 'verse', onVersion }: Props) {
   const fps = project.canvas.fps, total = project.duration;
   const [pps, setPps] = useState(() => +(localStorage.getItem('zc-ly-pps') || 60));  // pixels per second
   useEffect(() => { try { localStorage.setItem('zc-ly-pps', String(pps)); } catch {} }, [pps]);
@@ -618,6 +620,51 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     }
     send(ops, { label: 'end here' });
   };
+  // the socials' end (his ask, 2026-11-17: "mark where it finishes for the social, and it continues only on the verse"):
+  // project.split.at - the socials' version stops there with a hard cut and plays its own ending (the layers marked
+  // "Socials only"); the rest is only on the Shlomiverse. Export makes both files (render/src/layers/version.js)
+  const split = socialAt(project);
+  const hasEnding = project.layers.some((l: any) => l.only === 'social');
+  const socialEndHere = () => {
+    const f = Math.round(frame);
+    if (f < 1 || f >= total) return;
+    const ops: any[] = [{ op: 'project', set: { split: { at: f } } }];
+    if (split != null) for (const l of project.layers) if (l.only === 'social') for (const it of l.items || []) ops.push({ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, it.from + f - split) } });
+    send(ops, { label: 'socials end' });
+  };
+  const dropSplit = () => send([{ op: 'project', set: { split: null } }], { label: 'no socials end' });
+  // the ending to start from: a dark card with the words (every part a layer he changes - the words, the colours, a
+  // picture or a sound of his own instead); 3 s from the split
+  const addEnding = () => {
+    if (split == null) return;
+    const W = project.canvas.w, H = project.canvas.h, dur = Math.round(3 * fps), top = project.layers.length - project.layers.slice().reverse().findIndex((l: any) => l.kind !== 'audio');
+    send([
+      { op: 'layer.add', index: top, layer: { id: 'ending.bg', kind: 'shape', name: 'Ending - card', group: 'Socials ending', only: 'social', props: { fill: '#0b0b10', radius: 0 },
+        items: [{ id: 'e1', from: split, dur, box: { x: 0, y: 0, w: W, h: H } }] } },
+      { op: 'layer.add', index: top + 1, layer: { id: 'ending.text', kind: 'text', name: 'Ending - words', group: 'Socials ending', only: 'social',
+        props: { style: 'plain', size: 92, color: '#ffffff', weight: 900, align: 'center', dir: 'rtl', lineHeight: 1.15 },
+        items: [{ id: 'e1', from: split, dur, text: 'ההמשך מאחורי ה־OAF', box: { x: W / 2, y: H * 0.42, w: W - 160, anchor: 'c' } },
+          { id: 'e2', from: split, dur, text: 'ובקטע מפתיע: זה חינם.\nshlomiverse.com', size: 52, color: '#ff4fa3', box: { x: W / 2, y: H * 0.58, w: W - 160, anchor: 'c' } }] } },
+    ], { label: 'socials ending' });
+    onSel({ layer: 'ending.text', item: 'e1' });
+  };
+  const dragSplit = (e: React.MouseEvent) => {
+    if (split == null) return;
+    e.stopPropagation(); e.preventDefault();
+    const x0 = e.clientX, s0 = split;
+    let last = s0;
+    const at = (m: MouseEvent) => Math.max(1, Math.min(total - 1, Math.round(s0 + ((m.clientX - x0) / pps) * fps)));
+    const opsFor = (f: number) => [{ op: 'project', set: { split: { at: f } } }, ...project.layers.filter((l: any) => l.only === 'social')
+      .flatMap((l: any) => (l.items || []).map((it: any) => ({ op: 'item.update', layer: l.id, id: it.id, set: { from: Math.max(0, it.from + f - s0) } })))];
+    const mv = (m: MouseEvent) => { const f = at(m); if (f === last) return; last = f; send(opsFor(f), { commit: false }); };
+    const up = () => {
+      removeEventListener('mousemove', mv); removeEventListener('mouseup', up); document.body.style.cursor = '';
+      if (last === s0) { send([], { commit: false }); return; }
+      send(opsFor(last), { label: 'socials end' });
+    };
+    document.body.style.cursor = 'ew-resize';
+    addEventListener('mousemove', mv); addEventListener('mouseup', up);
+  };
   // the end's handle on the ruler: drag the video's length left / right - live, one undoable change; nothing is
   // deleted (what runs past the end just isn't in the video); "pin" items follow (ops.js repin)
   const dragEnd = (e: React.MouseEvent) => {
@@ -750,6 +797,14 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
           </>;
         })()}
         <div className="vsep" />
+        <button className={`btn ${split != null ? 'ltl-splitb on' : 'ltl-splitb'}`} style={{ height: 26, padding: '0 9px', fontSize: 12 }} disabled={frame < 1 || frame >= total - 1} onClick={socialEndHere}
+          title="The socials' version ends at the playhead - a hard cut, then its own ending; the rest of the video is only on the Shlomiverse. Export makes both files">✂ {split != null ? 'Move socials end here' : 'Socials end here'}</button>
+        {split != null && onVersion && <div className="ltl-ver" title="Which version plays - edits always go to the one video">
+          <button className={version === 'verse' ? 'on' : ''} onClick={() => onVersion('verse')}>Shlomiverse</button>
+          <button className={version === 'social' ? 'on' : ''} onClick={() => onVersion('social')}>Socials</button></div>}
+        {split != null && !hasEnding && <button className="btn" style={{ height: 26, padding: '0 9px', fontSize: 12 }} onClick={addEnding}
+          title="The socials' ending card from the split: a dark card with the words - every part a layer you change (Socials only)">+ Ending</button>}
+        <div className="vsep" />
         <Find project={project} fps={fps} onGo={(h) => { onSel({ layer: h.layer, item: h.item }); onSeek(h.at); }} />
         <div className="grow" />
         <button className="btn ghost" style={{ height: 26, padding: '0 9px', fontSize: 12 }} title="The whole video in view"
@@ -783,6 +838,11 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                 return r && <div className="ltl-nband draft" style={{ left: px(Math.min(r.a, r.b)), width: Math.max(2, Math.abs(px(r.b) - px(r.a))) }}>
                   <span>{fmtT(Math.min(r.a, r.b) / fps / (+project.speed || 1))} – {fmtT(Math.max(r.a, r.b) / fps / (+project.speed || 1))}</span></div>;
               })()}
+              {split != null && <>
+                <div className="ltl-vband" style={{ left: px(split), width: Math.max(0, px(total) - px(split)) }}><span>Only on the Shlomiverse</span></div>
+                <div className="ltl-split" style={{ left: px(split) }} onMouseDown={dragSplit} title="The socials end here (a hard cut, then its ending) - drag to move it; Ctrl+Z undoes">
+                  <span>✂ Socials end<b title="No socials end - one version again" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); dropSplit(); }}>×</b></span></div>
+              </>}
               <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
             </div>
           </div>
@@ -846,6 +906,7 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                     onClick={() => { if (lmoved.current) { lmoved.current = false; return; } onSel({ layer: l.id }); }} title={`${KIND_LABEL[l.kind]} · ${l.id} - drag it up or down to move the layer`}>
                     <span className="dot" style={{ background: KIND_COLOR[l.kind] }} />
                     <span className="nm" dir="auto">{l.name || l.id}</span>
+                    {l.only && <span className={`ltl-only ${l.only}`} title={l.only === 'social' ? 'Only in the socials\' version (its ending)' : 'Only in the Shlomiverse\'s version'}>{l.only === 'social' ? 'socials' : 'verse'}</span>}
                     {l.kind === 'audio' && <span className={`ltl-db ${(l.props?.volume ?? 1) !== 1 ? 'vset' : ''}`}>{dbTxt(vtip?.k === l.id ? vtip.g : l.props?.volume ?? 1)}</span>}
                     <button className="btn ghost icon ltl-del" style={{ width: 22, height: 22 }} title="Delete this layer (Ctrl+Z brings it back)"
                       onClick={(e) => { e.stopPropagation(); removeLayer(l); }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
@@ -858,9 +919,10 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
                       <i style={{ width: `${(Math.min(2, (vtip?.k === l.id ? vtip.g : l.props?.volume) ?? 1) / 2) * 100}%` }} />
                     </div>}
                   </div>
-                  <div className="ltl-track" style={{ width, opacity: l.hidden || l.muted ? 0.45 : 1 }}
+                  <div className="ltl-track" style={{ width, opacity: l.hidden || l.muted || (split != null && l.only && l.only !== version) ? 0.45 : 1 }}
                     onMouseDown={(e) => { if (e.target === e.currentTarget && e.button === 0) { onSel({ layer: l.id }); seekAt(e); } }}
                     onContextMenu={(e) => { if (e.target !== e.currentTarget || l.kind === 'view') return; e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, layer: l.id, at: frameAt(e) }); }}>
+                    {version === 'social' && split != null && l.only !== 'social' && <div className="ltl-cutoff" style={{ left: px(split) }} title="Not in the socials' version - it stops at the socials end" />}
                     {l.kind === 'backdrop' && (() => {
                       const t = project.layers.find((x: any) => x.id === l.props?.target);
                       const span = t?.items?.length ? [Math.min(...t.items.map((i: any) => i.from)), Math.max(...t.items.map((i: any) => i.from + i.dur))] : [0, total];
