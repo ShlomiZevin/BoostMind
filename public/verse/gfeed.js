@@ -37,11 +37,12 @@ function shortLine(t) {
   return x.slice(0, sp > 0 ? sp : MAX).replace(/[,:;–-]\s*$/, '').trim() + '…';
 }
 
-// the feed / grid switch - "פיד" | "רשת" (round 2: the same on the games and the videos tab; on the grid pages too - wiki games()
-// / videos() ask HOOK.gamesToggle / HOOK.feedToggle)
+// the feed / grid switch: the small two-icon pill in the content's top corner (his choice: the first games switch) - the same
+// on the games and the videos tab, in both views (wiki games() / videos() ask HOOK.gamesToggle / HOOK.feedToggle)
+const ICON_FEED = svg('<rect x="6.5" y="3" width="11" height="18" rx="2.5"/><path d="M9.5 17.5h5"/>');
 export function feedToggle(kind, on) {
-  const A = T.shell, a = (k, href, t) => `<a href="${href}" class="${on === k ? 'on' : ''}" ${on === k ? 'aria-current="true"' : ''}>${esc(t)}</a>`;
-  return `<div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed)}${a('grid', '/' + kind + '?view=grid', A.grid)}</div>`;
+  const A = T.shell, a = (k, href, t, ic) => `<a href="${href}" class="${on === k ? 'on' : ''}" aria-label="${esc(t)}" ${on === k ? 'aria-current="true"' : ''}>${ic}</a>`;
+  return `<div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed, ICON_FEED)}${a('grid', '/' + kind + '?view=grid', A.grid, ICON_GRID)}</div>`;
 }
 export const gamesToggle = (on) => feedToggle('games', on);
 // the switch moves in place (no entry of its own: back from the grid leaves the tab, as from the feed)

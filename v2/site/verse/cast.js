@@ -10,7 +10,6 @@ import { esc, av, sheet, track } from './ui.js';
 import { remember } from './player.js';
 
 const A = () => T.shell;
-const LEAVE_N = 'vx-leave-n';
 const svg = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON_TALK = svg('<path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/>');
 const ICON_PAGE = svg('<path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>');
@@ -53,28 +52,33 @@ export function castSheet(id, vctx) {
   fitButtons(h.el, id);
   h.el.addEventListener('click', (e) => {
     if (e.target.closest('[data-cs-talk]')) { h.close('talk'); talkFromVideo(id, vctx); }
-    else if (e.target.closest('[data-cs-page]')) h.close('page');   // the link itself goes on (the router waits for the sheet's back)
+    else if (e.target.closest('[data-cs-page]')) { e.preventDefault(); e.stopPropagation(); h.close('page'); leaveVideo('page', id, vctx); }   // the heads-up first
   });
   track('feed', 'cast:' + id);
 }
 
-export function talkFromVideo(id, vctx) {
+export const talkFromVideo = (id, vctx) => leaveVideo('chat', id, vctx);
+// leaving the video for the chat or the character's page: a short heads-up EVERY time (his note: when it stopped showing he
+// thought it was broken) - "עוברים לצ'אט / לדף של X", the video waits; the way there is an entry of its own over the video,
+// so back (or "חזרה לסרטון" in the chat) lands on the same video at the same second
+export function leaveVideo(kind, id, vctx) {
   const c = C[id];
   if (!c) return;
   const v = vctx && vctx.v, vd = vctx && vctx.video;
   if (vd) { vd.pause(); if (v && vd.duration) remember(v.id, vd.currentTime, vd.duration); }   // the second it stopped at
   if (v) HOOK.videoReturn = { v: v.id, t: vd ? vd.currentTime : 0, poster: v.poster || '', title: v.title || '', url: vctx.from === 'feed' ? '/videos?at=' + encodeURIComponent(v.id) : '/v/' + v.id, label: A().backToVideo, fresh: true };
-  let n = 0;
-  try { n = +localStorage.getItem(LEAVE_N) || 0; } catch (e) { /* private mode */ }
-  track('feed', 'talk:' + id);
-  if (n >= 2) { openChat(id); return; }
-  try { localStorage.setItem(LEAVE_N, String(n + 1)); } catch (e) { /* private mode */ }
+  track('feed', (kind === 'page' ? 'page:' : 'talk:') + id);
+  const page = kind === 'page';
   const h = sheet(`<div class="lv-card">
-      <div class="lv-top">${av({ char: id, ring: true, cls: 'lv-face' })}<div class="lv-t"><h2>${esc(A().leaveTitle(c.name))}</h2><p>${esc(A().leaveLine)}</p></div></div>
-      <div class="lv-acts"><button class="vx-btn main" data-lv-go>${esc(A().leaveGo)}</button><button class="vx-btn ghost" data-lv-stay>${esc(A().leaveStay)}</button></div>
+      <div class="lv-top">${av({ char: id, ring: true, cls: 'lv-face' })}<div class="lv-t"><h2>${esc(page ? A().leaveTitlePage(c.name) : A().leaveTitle(c.name))}</h2><p>${esc(A().leaveLine)}</p></div></div>
+      <div class="lv-acts"><button class="vx-btn main" data-lv-go>${esc(page ? A().leaveGoPage : A().leaveGo)}</button><button class="vx-btn ghost" data-lv-stay>${esc(A().leaveStay)}</button></div>
     </div>`, { cls: 'lv-sheet', onClose: (why) => { if (why !== 'go') { HOOK.videoReturn = null; resumeLater(vd); } } });
   h.el.addEventListener('click', (e) => {
-    if (e.target.closest('[data-lv-go]')) { h.close('go'); openChat(id); }
-    else if (e.target.closest('[data-lv-stay]')) h.close('stay');
+    if (e.target.closest('[data-lv-go]')) {
+      h.close('go');
+      if (!page) { openChat(id); return; }
+      if (HOOK.videoReturn) HOOK.videoReturn.fresh = false;
+      nav('/c/' + id, false, { fromVideo: 1 });
+    } else if (e.target.closest('[data-lv-stay]')) h.close('stay');
   });
 }

@@ -5,7 +5,6 @@
 // citizenship journeys. Behind gates.js APP_SHELL: html.app (set early by the wiki page, kept right here) turns all of it on.
 import { onState } from './state.js';
 import { appShell } from './gates.js';
-import { T } from './copy.js';
 
 const html = document.documentElement;
 const bar = document.getElementById('tabbar');
@@ -55,22 +54,9 @@ function paint() {
   });
 }
 addEventListener('popstate', () => requestAnimationFrame(paint));
-const GRID = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>';
-function gridButton() {
-  const feed = html.classList.contains('app') && phone.matches && location.pathname === '/videos' && !/[?&]view=/.test(location.search);
-  let b = document.getElementById('tb-grid');
-  if (!feed) { b?.remove(); return; }
-  if (b) return;
-  b = Object.assign(document.createElement('a'), { id: 'tb-grid', className: 'icon-btn tb-grid', href: '/videos?view=grid', innerHTML: GRID });
-  b.setAttribute('aria-label', T.shell.grid);
-  b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); try { window.track && window.track('feed', 'tab:videos-grid'); } catch (x) { /* never breaks */ } nav('/videos?view=grid', true); });
-  const top = document.getElementById('vx-top');
-  top?.parentNode.insertBefore(b, top);
-}
 export function shellAfterRoute() {
   dispatchEvent(new Event('vx-route'));   // a moment held for a calm page (install.js whenCalm) looks again
   if (!LAYER.test(location.pathname)) lastBase = location.pathname + location.search;
-  gridButton();
   paint();
 }
 

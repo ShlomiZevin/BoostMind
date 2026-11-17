@@ -591,7 +591,7 @@ export const T = {
     cmyTitle: 'הקהילה', cmyLine: 'בקשות, רעיונות, סרטון אישי ובאגים',
     nVideos: (n) => (n === 1 ? 'סרטון אחד' : `${n} סרטונים`), nGames: (n) => (n === 1 ? 'משחק אחד' : `${n} משחקים`),
     talkTo: (n) => `לדבר עם ${n}`, pageOf: (n) => `לדף של ${n}`, pageGeneric: 'לדף הדמות', close: 'סגירה',
-    leaveTitle: (n) => `עוברים לצ'אט עם ${n}`, leaveLine: 'הסרטון יחכה לכם בדיוק איפה שעצרתם', leaveGo: "לצ'אט", leaveStay: 'להישאר בסרטון',
+    leaveTitle: (n) => `עוברים לצ'אט עם ${n}`, leaveTitlePage: (n) => `עוברים לדף של ${n}`, leaveGoPage: 'לדף', leaveLine: 'הסרטון יחכה לכם בדיוק איפה שעצרתם', leaveGo: "לצ'אט", leaveStay: 'להישאר בסרטון',
     backToVideo: 'חזרה לסרטון', fold: 'לקפל את שורת הדמויות', unfold: 'לפתוח את שורת הדמויות',
   },
 };

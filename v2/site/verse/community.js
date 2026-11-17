@@ -9,6 +9,7 @@ import { storyFaces } from './stories.js';
 import { waCard } from './player.js';
 import { st, onState, needFan, signedIn, signInSheet } from './state.js';
 import { appShell } from './gates.js';
+import { playsOf } from './plays.js';
 
 // ---------- the ideas, live ----------
 let ideas = [], myVotes = new Set(), sort = 'top', focusIdea = null, offVotes = null;
@@ -55,9 +56,17 @@ function ideaLine(x) {
 }
 
 // ---------- the community page (#/community) ----------
+// APP SHELL (his note: the faces on top shouldn't be fixed): the five most watched characters - every view of their videos
+// (videoStats/_plays, the counts the site already loads for the cards; plays.js) - the most loved in the middle, the next
+// ones beside it. Before the counts arrive: the most videos, as before
+function lovedFaces() {
+  const score = (c) => (c.videos || []).reduce((n, id) => n + playsOf(id), 0) || (c.videos || []).length / 1000;
+  const p = W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).map((c) => [c, score(c)]).sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, 5);
+  return [p[3], p[1], p[0], p[2], p[4]].filter(Boolean);   // the 3rd face is the big one
+}
 export function communityPage(q = {}) {
   if (q.idea) { focusIdea = q.idea; setTimeout(() => document.getElementById('idea-' + q.idea)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120); }
-  const top = W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0)).slice(0, 5);
+  const top = appShell() ? lovedFaces() : W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0)).slice(0, 5);
   const list = sorted();
   return `<div class="cmy">
     <section class="cmy-hero"><div class="cmy-faces">${top.map((c) => `<img src="${esc(c.img)}" alt="${esc(c.name)}">`).join('')}</div>
