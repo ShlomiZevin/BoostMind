@@ -798,7 +798,9 @@ export async function openSticker(ctx = null) {   // ctx: as openComments
   if (!ctx) setUi(true);
   const frame = grabFrame(video);   // first, so the sign-in sheet can show this very moment as the sticker
   if (!frame) { toast(T.errGeneric); return; }
-  if (!(await needFan('sticker', lead, { img: frame }))) return;
+  // visitors may open the maker and write their line too (his rule 2026-11-17) - the account is asked for when the sticker is
+  // made (the server makes it for an account: its daily quota, its name on it)
+  if (!phoneApp() && !(await needFan('sticker', lead, { img: frame }))) return;
   const at = video.currentTime;
   const el = document.createElement('div');
   el.className = 'st';
@@ -829,6 +831,7 @@ export async function openSticker(ctx = null) {   // ctx: as openComments
   const make = async () => {
     const text = input.value.trim();
     if (!text) { input.focus(); return; }
+    if (!(await needFan('sticker', lead, { img: frame }))) return;   // (a visitor: here, with this very moment on the sign-in sheet)
     row.innerHTML = '';
     art.classList.add('working');
     art.querySelector('.made')?.remove();

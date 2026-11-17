@@ -52,7 +52,14 @@
   addEventListener('message', (e) => { const d = e.data; if (d && d.verse === 'frame' && e.source === parent) set(d.top); });
   if (new URLSearchParams(location.search).get('autostart') === '1') {
     root.classList.add('verse-autostart');
-    css.textContent += 'html.verse-autostart body{opacity:0!important;pointer-events:none!important}';
+    // while it waits: the game hidden (no taps land), a small orange spinner on the game's own background, so it never looks frozen
+    css.textContent += 'html.verse-autostart body{opacity:0!important;pointer-events:none!important}'
+      + 'html.verse-autostart::before{content:"";position:fixed;inset:0;z-index:2147483646;background:var(--verse-bg,#0b0b0e)}'
+      + 'html.verse-autostart::after{content:"";position:fixed;z-index:2147483647;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;'
+      + 'border:3px solid rgba(255,106,31,.25);border-top-color:#ff6a1f;animation:verse-spin .8s linear infinite}'
+      + '@keyframes verse-spin{to{transform:rotate(360deg)}}';
+    const paintBg = () => { if (!document.body) return; const c = getComputedStyle(document.body).backgroundColor; if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') root.style.setProperty('--verse-bg', c); };
+    if (document.readyState === 'loading') addEventListener('DOMContentLoaded', paintBg); else paintBg();
     const shown = (b) => { if (!b || b.disabled || b.offsetParent === null) return false; for (let n = b; n && n !== document.body; n = n.parentElement) { const c = getComputedStyle(n); if (c.visibility === 'hidden' || c.opacity === '0' || c.display === 'none') return false; } return true; };
     const t0 = Date.now();
     const tryStart = () => {
@@ -65,7 +72,7 @@
         setTimeout(() => { if (shown(b) && Date.now() - t0 < 15000) tryStart(); else root.classList.remove('verse-autostart'); }, 350);
         return;
       }
-      if (Date.now() - t0 > 15000 || (document.readyState === 'complete' && !b && !root.hasAttribute('data-verse-wait') && Date.now() - t0 > 1200)) { root.classList.remove('verse-autostart'); return; }   // nothing to press: the game as it is
+      if (Date.now() - t0 > 15000 || (document.readyState === 'complete' && !b && !root.hasAttribute('data-verse-wait') && Date.now() - t0 > 300)) { root.classList.remove('verse-autostart'); return; }   // nothing to press: the game as it is
       setTimeout(tryStart, 120);
     };
     if (document.readyState === 'loading') addEventListener('DOMContentLoaded', () => setTimeout(tryStart, 50)); else setTimeout(tryStart, 50);
