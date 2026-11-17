@@ -9,7 +9,7 @@ import { esc, track, toast, brand } from './ui.js';
 import { st, onState, needFan, signedIn, follow, cachedMe } from './state.js';
 import { LOCAL } from './fb.js';
 import { isCitizen, writeBar, wireWrite } from './citizen.js';
-import { simOpen, czOpen } from './gates.js';
+import { simOpen, czOpen, appShell } from './gates.js';
 import { putAbout } from './about.js';
 
 const API = LOCAL ? '/api/verseSim' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseSim';
@@ -84,6 +84,13 @@ export function mountBand() {
   // then flipped to the small one (or vanished, test done) - his note 2026-11-08
   if (!st.ready && cachedMe()) { el.innerHTML = ''; return; }
   const h = visitHost(), c = C[h], o = openCached(h);
+  // APP SHELL round 2 (his note 3, mockup r2/1-home): a thin one-line strip - a small face, the question, a small "לסיווג"
+  if (appShell()) {
+    el.innerHTML = `<a class="sim-strip" href="/simulation?host=${h}&from=home" data-sim-band><span class="sim-strip-face"><img src="${esc(img(h))}" alt="${esc(c.name)}"></span>
+      <b>${esc(T.app.simStrip)}</b><span class="sim-strip-go">${esc(S().go)}</span></a>`;
+    if (!el.dataset.seen) { el.dataset.seen = '1'; track('sim_band', h); }
+    return;
+  }
   el.innerHTML = `<a class="sim-band ${signedIn() ? 'small' : ''}" href="/simulation?host=${h}&from=home" data-sim-band>
     <i class="sim-g g1"></i><i class="sim-g g2"></i><i class="sim-g g3"></i>
     <span class="sim-band-face"><img src="${esc(img(h))}" alt="${esc(c.name)}"></span>

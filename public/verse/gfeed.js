@@ -13,7 +13,6 @@ import { dayIL } from './records.js';
 const G = () => T.gfeed;
 let GF = null;
 const svg = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const ICON_FEED = svg('<rect x="6.5" y="3" width="11" height="18" rx="2.5"/><path d="M9.5 17.5h5"/>');
 const ICON_GRID = svg('<rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>');
 const ICON_UP = svg('<path d="m6 13 6-6 6 6"/><path d="m6 19 6-6 6 6"/>', 2.6);
 const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.3-7.2c.6-.4.6-1.4 0-1.8L8.6 3.9C7.9 3.5 7 4 7 4.8z"/></svg>';
@@ -38,18 +37,19 @@ function shortLine(t) {
   return x.slice(0, sp > 0 ? sp : MAX).replace(/[,:;–-]\s*$/, '').trim() + '…';
 }
 
-// the feed / grid switch (also on the grid page: wiki games() asks HOOK.gamesToggle)
-export function gamesToggle(on) {
-  return `<div class="gf-tg" role="group" aria-label="${esc(G().view)}">
-    <a href="/games" class="${on === 'feed' ? 'on' : ''}" aria-label="${esc(G().viewFeed)}" ${on === 'feed' ? 'aria-current="true"' : ''}>${ICON_FEED}</a>
-    <a href="/games?view=grid" class="${on === 'grid' ? 'on' : ''}" aria-label="${esc(G().viewGrid)}" ${on === 'grid' ? 'aria-current="true"' : ''}>${ICON_GRID}</a></div>`;
+// the feed / grid switch - "פיד" | "רשת" (round 2: the same on the games and the videos tab; on the grid pages too - wiki games()
+// / videos() ask HOOK.gamesToggle / HOOK.feedToggle)
+export function feedToggle(kind, on) {
+  const A = T.app, a = (k, href, t) => `<a href="${href}" class="${on === k ? 'on' : ''}" ${on === k ? 'aria-current="true"' : ''}>${esc(t)}</a>`;
+  return `<div class="gf-tg gf-tg-${kind}" role="group" aria-label="${esc(A.view)}">${a('feed', '/' + kind, A.feed)}${a('grid', '/' + kind + '?view=grid', A.grid)}</div>`;
 }
+export const gamesToggle = (on) => feedToggle('games', on);
 // the switch moves in place (no entry of its own: back from the grid leaves the tab, as from the feed)
 document.addEventListener('click', (e) => {
   const a = e.target.closest('.gf-tg a');
   if (!a || e.button || e.metaKey || e.ctrlKey) return;
   e.preventDefault();
-  if (!a.classList.contains('on')) { track('feed', 'tab:games-' + (a.search ? 'grid' : 'feed')); nav(a.getAttribute('href'), true); }
+  if (!a.classList.contains('on')) { track('feed', 'tab:' + a.pathname.slice(1) + '-' + (a.search ? 'grid' : 'feed')); nav(a.getAttribute('href'), true); }
 }, true);
 
 function slide(g, i, all) {

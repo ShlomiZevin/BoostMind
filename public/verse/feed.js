@@ -10,14 +10,15 @@ import { db, F } from './fb.js';
 import { T } from './copy.js';
 import { I, $, esc, av, abs, sheet, track } from './ui.js';
 import { st, onState, follow, save } from './state.js';
-import { openComments, openSticker, share, download, remember, followBtn, paintFollow } from './player.js';
+import { openComments, openSticker, share, download, remember, followBtn, paintFollow, watched } from './player.js';
+import { castSheet, talkFromVideo } from './cast.js';   // round 2: a face = a card over the video; "לדבר" = the heads-up, then the chat
 import { offerPush } from './push.js';
 import { videoDone } from './status.js';
 
 const FT = T.feed;
 const SOUND = 'vx-feed-sound';
 let soundOn = (() => { try { return sessionStorage.getItem(SOUND) === '1'; } catch (e) { return false; } })();
-let FD = null;
+let FD = null, mountAt = null;
 
 const castOf = (v) => {
   const c = v.cast.filter((id) => C[id]);
@@ -94,8 +95,9 @@ export function videosFeed(q) {
   if (!list.length) return null;
   let start = q.at ? list.findIndex((v) => v.id === q.at) : 0;
   if (start < 0) start = 0;
+  mountAt = q.at || null;
   queueMicrotask(() => mount(list, start));   // once the router has put it on the page
-  return `<div class="fd" id="fd" role="feed" aria-label="${esc(FT.title)}">${list.map(slide).join('')}</div>`;
+  return `${HOOK.feedToggle ? HOOK.feedToggle('videos', 'feed') : ''}<div class="fd" id="fd" role="feed" aria-label="${esc(FT.title)}">${list.map(slide).join('')}</div>`;
 }
 
 function makeVideo() {
@@ -114,7 +116,7 @@ function mount(list, start) {
   if (!el || FD) return;
   document.documentElement.classList.add('feed-on');
   const slides = [...el.querySelectorAll('.fd-s')];
-  FD = { el, list, slides, idx: -1, pool: [makeVideo(), makeVideo(), makeVideo()], off: [], done: new Set(), userPaused: false, ctx: null, statOff: null, lastSave: 0 };
+  FD = { el, list, slides, at: mountAt, idx: -1, pool: [makeVideo(), makeVideo(), makeVideo()], off: [], done: new Set(), userPaused: false, ctx: null, statOff: null, lastSave: 0 };
   const { pool } = FD;
 
   pool.forEach((vd) => {
@@ -140,6 +142,8 @@ function mount(list, start) {
   slides.forEach((s) => FD.io.observe(s));
 
   el.scrollTop = start * el.clientHeight;
+  // back to the feed on a video it was showing (the back button, the tab, "חזרה לסרטון"): that video from the second it stopped at
+  if (FD.list[start] && FD.list[start].id === FD.at) FD.resumeAt = FD.at;
   activate(start);
 
   el.addEventListener('click', onClick);
@@ -176,6 +180,7 @@ export function feedAfterRoute(page) {
 }
 
 const cur = () => (FD && FD.idx >= 0 ? FD.pool[FD.idx % 3] : null);
+const vctx = () => ({ v: FD.list[FD.idx], video: cur(), from: 'feed' });
 function load(i, preload) {
   const s = FD.slides[i], v = FD.list[i];
   if (!s || !v) return;
@@ -203,6 +208,12 @@ function activate(i) {
   FD.slides[i].classList.remove('paused');
   if (prev !== vd || vd.currentTime > 0.5) { try { vd.currentTime = 0; } catch (e) { /* not loaded yet */ } }
   const v = FD.list[i];
+  if (FD.resumeAt === v.id) {
+    FD.resumeAt = null;
+    const w = watched()[v.id], seek = () => { try { vd.currentTime = w.t; } catch (e) { /* gone */ } };
+    if (w && w.t > 1 && (!w.d || w.t < w.d - 2)) { if (vd.readyState >= 1) seek(); else vd.addEventListener('loadedmetadata', seek, { once: true }); }
+  }
+  try { sessionStorage.setItem('vx-feed-at', v.id); } catch (e) { /* private mode */ }   // the videos tab comes back to this one
   FD.ctx = { el: FD.slides[i], v, video: vd, lead: castOf(v)[0] || null, stats: null, cm: null };
   // the comment count of the video on screen, live
   FD.statOff?.();
@@ -268,7 +279,7 @@ function pick(kind) {
       const b = e.target.closest('[data-talk-to]');
       if (!b) return;
       h.close('talk');
-      openChat(b.dataset.talkTo);
+      talkFromVideo(b.dataset.talkTo, vctx());
     });
   }
 }
@@ -277,7 +288,9 @@ async function onClick(e) {
   if (!FD) return;
   const s = e.target.closest('.fd-s');
   if (!s || +s.dataset.i !== FD.idx) return;
-  if (e.target.closest('a')) return;   // a face: the character's page (the router)
+  const chip = e.target.closest('.fd-chip');
+  if (chip) { e.preventDefault(); castSheet(chip.getAttribute('href').split('/').pop(), vctx()); return; }   // a face: their card, the video waits
+  if (e.target.closest('a')) return;
   const b = e.target.closest('[data-f]');
   const v = FD.list[FD.idx], ctx = FD.ctx, vd = cur();
   if (!b) {
@@ -300,7 +313,7 @@ async function onClick(e) {
       break;
     case 'talk':
       if (cast.length > 1) pick('talk');
-      else if (cast[0]) openChat(cast[0]);
+      else if (cast[0]) talkFromVideo(cast[0], vctx());
       break;
   }
 }

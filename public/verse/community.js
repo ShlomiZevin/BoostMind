@@ -8,6 +8,7 @@ import { I, esc, av, ago, sheet, toast, track, LIKE, ofc, abs, catchphrase, bran
 import { storyFaces } from './stories.js';
 import { waCard } from './player.js';
 import { st, onState, needFan, signedIn, signInSheet } from './state.js';
+import { appShell } from './gates.js';
 
 // ---------- the ideas, live ----------
 let ideas = [], myVotes = new Set(), sort = 'top', focusIdea = null, offVotes = null;
@@ -60,7 +61,7 @@ export function communityPage(q = {}) {
   const list = sorted();
   return `<div class="cmy">
     <section class="cmy-hero"><div class="cmy-faces">${top.map((c) => `<img src="${esc(c.img)}" alt="${esc(c.name)}">`).join('')}</div>
-      <h1>${esc(T.cmTitle)}</h1><p>${esc(T.cmSub)}</p></section>
+      ${appShell() ? `<h1>${esc(T.app.cmyTitle)}</h1><p>${esc(T.app.cmyLine)}</p>` : `<h1>${esc(T.cmTitle)}</h1><p>${esc(T.cmSub)}</p>`}</section>
     <section class="cmy-band cx-band">
       <div class="cmy-ideas-h"><div><h2>${esc(T.cmDo)}</h2><p>${esc(T.cmDoSub)}</p></div></div>
       <div class="cxg">${['personal', 'sticker', 'pack', 'chat', 'request', 'bug'].map((k) => cxCard(k, cxArt())).join('')}</div>

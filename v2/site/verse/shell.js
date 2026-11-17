@@ -36,6 +36,7 @@ function tabOf(path = location.pathname) {
   if (p === 'videos') return 'videos';
   if (p === 'games') return 'games';
   if (p === 'chat') return 'chat';
+  if (p === 'community') return 'community';
   if (['characters', 'c', 'series', 's', 'sites'].includes(p)) return 'characters';
   return '';
 }
@@ -78,7 +79,10 @@ if (bar) bar.addEventListener('click', (e) => {
     paint();
     return;
   }
-  nav(a.getAttribute('href'), inPlace);   // the chat tab: /chat = the last conversation (the keyboard waits for a tap)
+  // the videos tab comes back to the video it was on (round 2 - he lost his place: the feed began again from the top)
+  let href = a.getAttribute('href');
+  if (tab === 'videos') { try { const at = sessionStorage.getItem('vx-feed-at'); if (at) href = '/videos?at=' + encodeURIComponent(at); } catch (x) { /* private mode */ } }
+  nav(href, inPlace);   // the chat tab: /chat = the last conversation (the keyboard waits for a tap)
 });
 
 // ---------- the chat opens / closes: its tab lights up ----------

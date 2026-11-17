@@ -501,6 +501,7 @@ try { if (localStorage.getItem('vx-preview') === '1' || localStorage.getItem('vx
   <a href="/games" data-tab="games"><img src="/verse/art/tabs/games.png" alt="" width="32" height="32"><span>משחקים</span></a>
   <a href="/chat" data-tab="chat"><img src="/verse/art/tabs/chat.png" alt="" width="32" height="32"><span>צ'אט</span></a>
   <a href="/characters" data-tab="characters"><img src="/verse/art/tabs/characters.png" alt="" width="32" height="32"><span>דמויות</span></a>
+  <a href="/community" data-tab="community"><img src="/verse/art/tabs/community.png" alt="" width="32" height="32"><span>קהילה</span></a>
 </nav>
 
 <footer>
@@ -534,6 +535,8 @@ const ICON = {
   planet: '<img class="pl" src="/verse/logo-160.png" alt="">',
   person: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.2-7 8.5-7s7.7 2.6 8.5 7z"/></svg>',
   out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7 7 17M8 7h9v9"/></svg>',
+  // APP SHELL round 2: the chat's send - a small planet flying, its trail behind it (mockup r2/4-chat)
+  comet: '<svg class="comet" viewBox="0 0 44 30" aria-hidden="true"><defs><radialGradient id="cmt" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#ffd2a8"/><stop offset=".55" stop-color="#ff8a3a"/><stop offset="1" stop-color="#e1500a"/></radialGradient></defs><g fill="none" stroke="#fff3e6" stroke-linecap="round" stroke-width="2.4"><path d="M3 11h10M6 16h9M3 21h10" opacity=".9"/></g><circle cx="28" cy="15.5" r="8.5" fill="url(#cmt)" stroke="#fff3e6" stroke-width="1.4"/><ellipse cx="28" cy="15.5" rx="14" ry="4.2" fill="none" stroke="#fff3e6" stroke-width="2.2" transform="rotate(-18 28 15.5)" stroke-dasharray="30 6"/></svg>',
 };
 let W, C = {}, S = {}, V = {};
 const GUIDE = { id: 'guide', name: 'שלומיוורס', tagline: 'מכיר את כולם, מוצא כל סרטון', color: '#ff6a1f' };
@@ -644,8 +647,6 @@ const SEGS = [['characters', 'דמויות'], ['series', 'סדרות'], ['sites'
 const CT_FIRST = 24;   // rows drawn at first; "87 דמויות" opens the rest (a search looks at all of them)
 const segs = (cur) => `<nav class="ct-seg" role="tablist" aria-label="דמויות, סדרות ואתרים">${SEGS.map(([k, t]) =>
   `<a href="/${k}" role="tab" data-seg="${k}" class="${k === cur ? 'on' : ''}" aria-selected="${k === cur}">${t}</a>`).join('')}</nav>`;
-// the old top nav's קהילה, for everyone (visitors have no account menu, and the footer stays on the home): a calm link at the end
-const commLink = () => `<a class="ct-comm" href="/community"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.3c2 .7 3.5 2.6 4 5.2"/></svg><span>הקהילה</span></a>`;
 function segGo(k) { const cur = location.pathname.split('/')[1]; if (k && k !== cur) { t('feed', 'tab:' + k); nav('/' + k, true); } }
 document.addEventListener('click', (e) => {
   const a = e.target.closest('.ct-seg a[data-seg]');
@@ -727,13 +728,13 @@ const pages = {
         <label class="ct-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
           <input type="search" id="ct-q" placeholder="חיפוש דמות" autocomplete="off" enterkeyhint="search" aria-label="חיפוש דמות" value="${esc(cs.q || '')}"></label>
         <div class="ct-list" id="ct-list">${rows}<p class="ct-none"${qn && !shown ? '' : ' hidden'}>לא מצאנו דמות כזאת.</p></div>
-        ${!more ? `<button type="button" class="ct-more" id="ct-more"${qn ? ' hidden' : ''}>${list.length} דמויות<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}${commLink()}</div>`;
+        ${!more ? `<button type="button" class="ct-more" id="ct-more"${qn ? ' hidden' : ''}>${list.length} דמויות<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}</div>`;
     }
     return `<div class="wrap"><div class="page-h"><h1>הדמויות</h1><p>${W.characters.length} דמויות, והרשימה ממשיכה לגדול.</p></div>
       ${filterChips(q.s, '/characters')}<div class="grid">${list.map(card).join('')}</div></div>`;
   },
   series() {
-    if (chatDock()) return `<div class="wrap ct-page">${segs('series')}<div class="sgrid ct-sgrid">${W.series.map(scard).join('')}</div>${commLink()}</div>`;   // APP SHELL: the tab's סדרות
+    if (chatDock()) return `<div class="wrap ct-page">${segs('series')}<div class="sgrid ct-sgrid">${W.series.map(scard).join('')}</div></div>`;   // APP SHELL: the tab's סדרות
     return `<div class="wrap"><div class="page-h"><h1>הסדרות</h1><p>כל סדרה היא עולם, עם האנשים והסיפורים שלו.</p></div>
       <div class="sgrid" style="margin-top:22px">${W.series.map(scard).join('')}</div></div>`;
   },
@@ -752,7 +753,7 @@ const pages = {
     return `<div class="wrap${tab ? ' ct-page' : ''}">${tab ? segs('sites') : '<div class="page-h"><h1>האתרים של הדמויות</h1><p>אתרים, חנויות, קבוצות וטפסים שאפשר למלא, אם זה באמת מה שרוצים.</p></div>'}
       <div class="topic-chips">${topics.map(([k, , short, ic]) => `<button type="button" data-topic-jump="${k}">${topicIcon(ic)}${esc(short)}</button>`).join('')}</div>
       ${topics.map(([k, title, , ic]) => `<section class="sec site-g" id="topic-${k}"><div class="sec-h"><h2>${topicIcon(ic)}${esc(title)}</h2><span class="tg-n">${count(by[k].length)}</span></div>
-        <div class="sitegrid">${cards(by[k])}</div></section>`).join('')}${tab ? commLink() : ''}</div>`;
+        <div class="sitegrid">${cards(by[k])}</div></section>`).join('')}</div>`;
   },
   s(q, id) {
     const s = S[id];
@@ -769,6 +770,12 @@ const pages = {
       if (f) return f;
     }
     const list = W.videos.filter((v) => !q.s || v.series === q.s);
+    // APP SHELL round 2 (mockup r2/5-videos-grid): the grid on a phone - the feed / grid switch, the archive, the videos
+    const A = HOOK.T && HOOK.T.app;
+    if (chatDock() && A && HOOK.feedToggle) return `<div class="wrap vg-page">${HOOK.feedToggle('videos', 'grid')}
+      <a class="arc-card" href="/archive"><span class="arc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="5" rx="1.5"/><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4"/></svg></span>
+        <span class="arc-t"><b>${esc(A.arcTitle)}</b><small>${esc(A.arcLine)}</small></span><svg class="arc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>
+      <div class="vgrid">${list.map(vcard).join('')}</div></div>`;
     return `<div class="wrap"><div class="page-h"><h1>הסרטונים</h1><p>מהחדש לישן.</p></div>
       ${filterChips(q.s, '/videos')}<div class="vgrid">${list.map(vcard).join('')}</div></div>`;
   },
@@ -938,10 +945,12 @@ function route() {
   // They lie over whatever page was open (the home page when they are opened from outside: the links page, a push, a shared link)
   // a video / game that isn't there: the end of the verse, as its own page (not a layer over the home)
   const did = decodeURIComponent(id || '');
+  if ((page === 'v' || page === 'videos') && HOOK.videoReturn && !HOOK.videoReturn.fresh) HOOK.videoReturn = null;   // APP SHELL: back on the video
   const missing = (page === 'v' && !V[did]) || (page === 'play' && !(W.games || []).some((g) => g.id === did));
   if (missing) page = 'notFound';
   if (page === 'v' || page === 'story' || page === 'play') {
     if (!$('#app').innerHTML) { shownPath = '/'; document.body.classList.add('at-home'); $('#app').innerHTML = pages.home(q); if (HOOK.afterRoute) HOOK.afterRoute(''); bindHero(); }
+    if (cx.classList.contains('dock')) undockChat();   // APP SHELL: a layer over the chat tab - the chat docks again when back on /chat
     if (page === 'v') { if (HOOK.openPlayer) HOOK.openPlayer(decodeURIComponent(id || ''), q); else openVideo(id); }
     else if (page === 'play') { if (HOOK.openGame) HOOK.openGame(decodeURIComponent(id || ''), q); }   // the social layer routes again once it loads
     else if (HOOK.openStory) HOOK.openStory(decodeURIComponent(id || ''), q);
@@ -1234,14 +1243,15 @@ function drawChat() {
   let strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
   const dock = cx.classList.contains('dock');
   if (dock) strip = [w, ...strip.filter((c) => c.id !== w.id)];   // APP SHELL tab: the one talking is the first card (mockup 4)
+  cx.classList.toggle('cs-min', dock && csMin());   // round 2: the row folded to one line (who you talk to), remembered here
   // no suggested questions (his call 2026-11-12: "let the people talk whatever they want") - every message is the visitor's own
-  cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}${dock ? `<span class="cs-nm"><b>${esc(c.name)}</b></span>` : ''}</button>`).join('')}</div>
+  cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}${dock ? `<span class="cs-nm"><b>${esc(c.name)}</b></span>` : ''}</button>`).join('')}</div>${dock ? `<button type="button" class="cs-fold" data-cs-fold aria-label="${esc(HOOK.T ? (csMin() ? HOOK.T.app.unfold : HOOK.T.app.fold) : '')}" aria-expanded="${!csMin()}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}
     <div class="cx-head">${cxMode === 'guide' ? `<span class="av">${face(w)}</span><span><b>${esc(w.name)}</b>`
       : `<a class="av" href="/c/${w.id}" aria-label="לעמוד של ${esc(w.name)}">${face(w)}</a><span><a class="nm" href="/c/${w.id}"><b>${esc(w.name)}</b></a>`}<small>${esc(w.tagline || w.role || '')}</small></span>
       <button class="icon-btn nc" data-new-chat title="שיחה חדשה" aria-label="שיחה חדשה">${ICON.newChat}</button>
       <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
     <div class="msgs"></div>
-    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${ICON.send}</button></form>
+    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${dock ? ICON.comet : ICON.send}</button></form>
     <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
   if (dock) $('.cx-strip', cx).scrollLeft = 0; else $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
@@ -1262,13 +1272,33 @@ function writeTo(c) {
   const short = (c.aka || []).filter(ok).sort((a, b) => a.length - b.length)[0];
   return short ? 'כתבו ל' + short + '…' : 'כתבו הודעה…';
 }
+const csMin = () => { try { return localStorage.getItem('vx-cs-min') === '1'; } catch (e) { return false; } };
+document.addEventListener('click', (e) => {
+  // APP SHELL round 2: fold / open the chat tab's row of faces; "חזרה לסרטון" - back to the video it came from (its own entry
+  // under the chat when the chat came from it, else the video's address)
+  if (e.target.closest('[data-cs-fold]')) {
+    const on = !csMin();
+    try { if (on) localStorage.setItem('vx-cs-min', '1'); else localStorage.removeItem('vx-cs-min'); } catch (x) { /* private mode */ }
+    cx.classList.toggle('cs-min', on);
+    const b = e.target.closest('[data-cs-fold]'); b.setAttribute('aria-expanded', String(!on)); if (HOOK.T) b.setAttribute('aria-label', on ? HOOK.T.app.unfold : HOOK.T.app.fold);
+    if (!on) $('.cx-strip', cx).scrollLeft = 0;
+    return;
+  }
+  if (e.target.closest('[data-back-video]')) {
+    const r = HOOK.videoReturn;
+    HOOK.videoReturn = null;
+    if (history.state && history.state.fromVideo) goBack(1, true); else if (r) nav(r.url);
+  }
+});
 const drafts = {};
 let LIVE = null;   // the answer being written now ({mode, el}) - drawn again into the list whenever the chat is drawn again
 function drawMsgs() {
   const msgs = $('.msgs', cx), t = threads[cxMode];
   msgs.innerHTML = (cxMode === 'guide' ? `<div class="m bot"><p>${esc(greet(cxMode))}</p></div>` : '') +
     t.map((m) => m.role === 'note' ? `<div class="m note">${esc(m.content)}</div>` : `<div class="m ${m.role === 'user' ? 'me' : 'bot'}">${m.role === 'user' ? `<p>${links(atTags(esc(m.content), true))}</p>` : renderText(m.content)}</div>`).join('');
-  if (LIVE && LIVE.mode === cxMode) msgs.appendChild(LIVE.el);   // (left and came back while it streamed: the same bubble, still filling)
+  if (LIVE && LIVE.mode === cxMode) msgs.appendChild(LIVE.el);
+  const r = cx.classList.contains('dock') && HOOK.videoReturn;   // APP SHELL round 2: back to the video it came from, at the same second
+  if (r && !r.fresh) msgs.insertAdjacentHTML('afterbegin', `<button type="button" class="cx-v" data-back-video>${r.poster ? `<span class="cx-v-pic"><img src="${esc(r.poster)}" alt=""><i>${ICON.play}</i></span>` : ''}<span>${esc(r.label || "")}</span><svg class="cx-v-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.5"/><path d="m10 9 5 3-5 3z" fill="currentColor"/></svg></button>`);   // (left and came back while it streamed: the same bubble, still filling)
   msgs.scrollTop = msgs.scrollHeight;
 }
 // the anonymous ids the analytics already use, so the dashboard can show a conversation as one thread;
@@ -1412,7 +1442,9 @@ let chatAsk = null, cxReg = null;
 function openChat(mode, text, noFocus) {   // noFocus: APP SHELL - opened from the tab bar, the keyboard waits for a tap
   if (chatDock()) {
     chatAsk = text || null;
-    const m = mode && (mode === 'guide' || C[mode]) ? mode : 'guide', s = history.state || {};
+    const m = mode && (mode === 'guide' || C[mode]) ? mode : 'guide', s = history.state || {}, r = HOOK.videoReturn;
+    // from a video (round 2): an entry of its own over the video, so back - or "חזרה לסרטון" - lands on it again
+    if (r && r.fresh) { r.fresh = false; nav('/chat?with=' + m, false, { fromVideo: 1 }); return; }
     nav('/chat?with=' + m, cx.classList.contains('dock') || !!s.vxl || !!(s.vxo && s.ul));   // over a layer / already on the tab: in its place
     return;
   }

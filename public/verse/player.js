@@ -10,6 +10,8 @@ import { openBoard, onScore, TROPHY } from './records.js';
 import { appMoment } from './install.js';
 import { offerPush } from './push.js';
 import { videoDone, ask3Moment } from './status.js';
+import { appShell } from './gates.js';
+import { castSheet } from './cast.js';   // APP SHELL round 2: the face in the head = their card over the video
 
 let P = null;   // the open player
 let backTo = '/';
@@ -162,6 +164,7 @@ export function openPlayer(id, q = {}) {
     else if (b.matches('[data-dl]')) download(v);
     else if (b.matches('[data-sticker]')) openSticker();
     else if (b.matches('[data-ep]') && b.dataset.ep) nav('/v/' + b.dataset.ep, true);
+    else if (b.matches('.vp-who') && appShell() && P && P.video) { e.preventDefault(); castSheet(P.lead, { v: P.v, video: P.video, from: 'player' }); }   // APP SHELL: the video stays
     else if (b.matches('.vp-who')) { /* the link closes the player through the router */ }
   });
   // swipe up / down: the next / previous episode
@@ -669,7 +672,7 @@ function stickerCard(s, myStamps) {
     <button class="stamp ${myStamps.has(s.id) ? 'on' : ''}" data-stamp="${s.id}" title="${esc(stampText(s.char))}">${LIKE}<b>${n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : n || ''}</b></button></div>`;
 }
 function stickerTab(stickers, myStamps) {
-  return `<button class="vx-btn main block" data-make style="margin:6px 0 14px">${I.sticker}${esc(T.sticker)}</button>
+  return `${appShell() ? '' : `<button class="vx-btn main block" data-make style="margin:6px 0 14px">${I.sticker}${esc(T.sticker)}</button>`}
     ${stickers.length ? `<div class="stg">${stickers.map((s) => stickerCard(s, myStamps)).join('')}</div>` : `<div class="cm-empty">${esc(T.stFansEmpty)}</div>`}`;
 }
 async function stampIt(b, stickers, myStamps, redraw) {

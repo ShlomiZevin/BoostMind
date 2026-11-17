@@ -406,7 +406,7 @@ export const T = {
   bizTopics: ['באנר באתר', 'סרטון ייעודי', 'שיתוף פעולה', 'אחר'], bizSend: 'שליחה', bizBadEmail: 'צריך אימייל כדי שנוכל לחזור אליכם',
   bizDone: 'קיבלנו, תודה!', bizDoneSub: 'נחזור אליכם במייל בהקדם.',
   savedTitle: 'שמורים', savedSub: 'הסרטונים ששמרתם לאחר כך', savedEmpty: 'עוד לא שמרתם סרטונים. בכל סרטון יש כפתור "שמירה", והוא יחכה לכם כאן.',
-  mmMine: 'שלי', mmSettings: 'הגדרות', mmCommunity: 'הקהילה', mmFollows: 'הדמויות שלי', mmSaved: 'שמורים', mmStickers: 'הסטיקרים שלי', mmPhone: 'התראות לטלפון',
+  mmMine: 'שלי', mmSettings: 'הגדרות', mmFollows: 'הדמויות שלי', mmSaved: 'שמורים', mmStickers: 'הסטיקרים שלי', mmPhone: 'התראות לטלפון',
   mmProfileSub: 'הדמויות, השמורים והסטיקרים שלכם', allLink: 'הכל',
   myCharsSub: 'הדמויות שאתם עוקבים אחריהן. מה שקורה להן מגיע אליכם.', myStickersSub: 'כל סטיקר כאן אפשר לקחת לוואטסאפ', myStickerDraft: 'טיוטה',
   yvMine: 'הדמויות שלכם', yvMore: 'עוד דמויות', yvSuggest: 'אולי תכירו', yvStart: 'בחרו את הדמויות שלכם', yvStickers: 'הסטיקרים של הצופים',
@@ -583,4 +583,15 @@ export const T = {
   // APP SHELL: the games feed (verse/gfeed.js, mockup app-shell/3-games-feed) - one game per screen, the grid at ?view=grid
   gfeed: { title: 'משחקים', play: 'לשחק', best: 'השיא היום:', more: 'יש עוד משחקים - החליקו למעלה', last: 'ראיתם את כולם', grid: 'לכל המשחקים',
     viewFeed: 'משחק אחד במסך', viewGrid: 'כל המשחקים ברשת', view: 'תצוגה' },
+  // APP SHELL round 2 (his 13 notes, mockups app-shell/r2)
+  app: {
+    feed: 'פיד', grid: 'רשת', view: 'תצוגה',
+    simStrip: 'באיזו סימולציה אתם חיים?',
+    arcTitle: 'הארכיון', arcLine: 'כל הסרטונים הישנים, לפי תאריך',
+    cmyTitle: 'הקהילה', cmyLine: 'בקשות, רעיונות, סרטון אישי ובאגים',
+    nVideos: (n) => (n === 1 ? 'סרטון אחד' : `${n} סרטונים`), nGames: (n) => (n === 1 ? 'משחק אחד' : `${n} משחקים`),
+    talkTo: (n) => `לדבר עם ${n}`, pageOf: (n) => `לדף של ${n}`, close: 'סגירה',
+    leaveTitle: (n) => `עוברים לצ'אט עם ${n}`, leaveLine: 'הסרטון יחכה לכם בדיוק איפה שעצרתם', leaveGo: "לצ'אט", leaveStay: 'להישאר בסרטון',
+    backToVideo: 'חזרה לסרטון', fold: 'לקפל את שורת הדמויות', unfold: 'לפתוח את שורת הדמויות',
+  },
 };

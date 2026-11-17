@@ -19,7 +19,7 @@ import { adSlot } from './ads.js';
 import { citizenPage } from './citizen.js';
 import { shellAfterRoute } from './shell.js';   // APP SHELL: the tab bar, the slim top bar (gates.js APP_SHELL)
 import { videosFeed, feedAfterRoute } from './feed.js';   // APP SHELL: the videos feed on phones
-import { gamesFeed, gamesToggle, gfeedAfterRoute } from './gfeed.js';   // APP SHELL: the games feed on phones
+import { gamesFeed, gamesToggle, feedToggle, gfeedAfterRoute } from './gfeed.js';   // APP SHELL: the games feed on phones
 appBoot();
 
 Object.assign(HOOK, {
@@ -27,7 +27,8 @@ Object.assign(HOOK, {
   openGame,
   openStory,
   videosFeed,   // APP SHELL: /videos on a phone (the wiki page asks only under html.app)
-  gamesFeed, gamesToggle,   // APP SHELL: /games on a phone, and its feed / grid switch
+  gamesFeed, gamesToggle, feedToggle,   // APP SHELL: /games on a phone, and the feed / grid switch (games, videos)
+  T,   // APP SHELL round 2: the copy, for the few words the wiki page draws itself (the videos grid, the chat's row)
   closeOverlays: () => {
     const a = closePlayer(), b = closeStory();
     // back onto the home kept from under a video / game opened straight from a link: its records were never filled in

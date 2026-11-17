@@ -348,3 +348,110 @@ html:has(.ct-page), html:has(.ct-page) body { overscroll-behavior-x: none; }   /
   html.app { scroll-padding-top: calc(var(--th) + 8px); scroll-padding-bottom: calc(var(--tb) + 12px); }   /* a scroll to an element (a focused field) keeps it clear of both bars */
 }
 @media (max-width: 600px) { html.app .foot-links a[href="/community"] { display: flex; } html.app .foot-links { gap: 6px; flex-wrap: wrap; max-width: 100%; } html.app .foot-links a { min-width: 52px; } }   /* the old bottom nav had קהילה; the tab bar doesn't - five links: tighter, and wrap rather than push the page sideways at 360 */
+
+/* =================== APP SHELL round 2 (his 13 notes, mockups app-shell/r2) =================== */
+@media (max-width: 760px) {
+  /* the bars: each its own strip - a tone lighter than the page, a hairline towards it, a soft shadow (mockup r2/1-home) */
+  html.app .top, html.app .top.solid, html.app body:not(.at-home) .top { background: #16161c; border-bottom: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 6px 18px rgba(0, 0, 0, .38); }
+  html.app .tabbar { background: #16161c; border-top: 1px solid rgba(255, 255, 255, .11); box-shadow: 0 -8px 22px rgba(0, 0, 0, .42); padding-top: 4px; }
+  /* smaller icons with air above them; the tabs not showing grey and quiet, the one showing in full colour */
+  html.app .tabbar a { gap: 3px; font-size: 12.5px; justify-content: center; color: #77757f; }
+  html.app .tabbar img { width: 30px; height: 30px; filter: grayscale(1) brightness(.92); opacity: .55; }
+  html.app .tabbar a.on { color: var(--accent, #ff6a1f); }
+  html.app .tabbar a.on img { filter: drop-shadow(0 0 6px rgba(255, 106, 31, .5)); opacity: 1; transform: scale(1.06); }
+  html.app .tabbar a.on::before { width: 44px; }
+
+  /* the simulation as one thin line on the home (his note 3) */
+  html.app .sim-strip { display: flex; align-items: center; gap: 10px; height: 54px; margin-top: 2px; padding-inline: 7px 8px; border-radius: 99px; color: #fff; text-decoration: none;
+    background: linear-gradient(90deg, #2a1544, #3b1a63 60%, #2d1650); border: 1.5px solid rgba(176, 102, 255, .6); box-shadow: 0 0 18px rgba(150, 80, 255, .25); }
+  html.app .sim-strip-face { width: 40px; height: 40px; flex: none; border-radius: 50%; padding: 2px; background: linear-gradient(135deg, #ff6a1f, #b066ff, #3fd0ff); }
+  html.app .sim-strip-face img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; border: 2px solid #2a1544; box-sizing: border-box; }
+  html.app .sim-strip b { flex: 1; min-width: 0; font-size: clamp(13px, 3.7vw, 15.5px); letter-spacing: -.01em; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html.app .sim-strip-go { flex: none; height: 34px; padding: 0 12px; display: grid; place-items: center; border-radius: 99px; background: var(--accent, #ff6a1f); font-weight: 800; font-size: .95rem; box-shadow: 0 4px 12px rgba(255, 106, 31, .35); }
+
+  /* ---------- the chat tab, round 2 (mockup r2/4-chat): a slim row of round faces that folds to one line ---------- */
+  html.app .cx.dock .cx-strip { gap: 10px; padding: 10px 12px; padding-inline-end: 58px; align-items: center; }
+  html.app .cx.dock .cx-strip button, html.app .cx.dock .cx-strip button:has(.gmark) { width: 52px !important; height: 52px; aspect-ratio: auto; border-radius: 50% !important; border: 2px solid rgba(255, 255, 255, .14) !important; flex: none; }
+  html.app .cx.dock .cx-strip button.on, html.app .cx.dock .cx-strip button.on:has(.gmark) { border: 2.5px solid #ff6a1f !important; box-shadow: 0 0 12px rgba(255, 106, 31, .5) !important; }
+  html.app .cx.dock .cx-strip button > img, html.app .cx.dock .cx-strip button > .ph, html.app .cx.dock .cx-strip button > .gmark { height: 100%; }
+  html.app .cx.dock .cx-strip .cs-nm { display: none; }
+  html.app .cx.dock .cs-fold { position: absolute; top: 0; inset-inline-end: 0; width: 56px; height: 72px; display: grid; place-items: center; z-index: 2; color: #fff;
+    background: linear-gradient(to left, #0b0b0e 62%, rgba(11, 11, 14, 0)); border: 0; cursor: pointer; }
+  html.app .cx.dock .cs-fold svg { width: 24px; height: 24px; transition: transform .2s; }
+  /* folded: who you talk to, on one line */
+  html.app .cx.dock.cs-min .cx-strip { overflow: hidden; padding-block: 8px; }
+  html.app .cx.dock.cs-min .cx-strip button:not(:first-child) { display: none; }
+  html.app .cx.dock.cs-min .cx-strip button:first-child { width: auto !important; height: 40px; border: 0 !important; box-shadow: none !important; border-radius: 99px !important; overflow: visible; display: flex; align-items: center; gap: 10px; background: none !important; }
+  html.app .cx.dock.cs-min .cx-strip button:first-child > img, html.app .cx.dock.cs-min .cx-strip button:first-child > .gmark { position: static; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff6a1f; box-sizing: border-box; }
+  html.app .cx.dock.cs-min .cx-strip button:first-child .cs-nm { display: block; position: static; height: auto; background: none; padding: 0; }
+  html.app .cx.dock.cs-min .cx-strip button:first-child .cs-nm b { font-size: 1.05rem; font-weight: 800; -webkit-line-clamp: 1; }
+  html.app .cx.dock.cs-min .cs-fold { height: 56px; }
+  html.app .cx.dock.cs-min .cs-fold svg { transform: rotate(180deg); }
+
+  /* bubbles as on the mockup: yours on the right, plain; the character's on the left beside its face */
+  html.app .cx.dock .m.me { align-self: flex-start; margin-inline: 0; max-width: 84%; background: linear-gradient(180deg, #c45a1d, #a8481a); border: 1px solid rgba(255, 140, 70, .75); }
+  html.app .cx.dock .m.me::before, html.app .cx.dock .m.me:not(.wait)::after { display: none; }
+  html.app .cx.dock .m.bot { align-self: flex-end; margin-inline: 0 56px; }
+  html.app .cx.dock .m.bot::before { inset-inline-start: auto; inset-inline-end: -56px; border: 2px solid rgba(255, 255, 255, .22); box-shadow: none; }
+  html.app .cx.dock .m.bot:not(.wait)::after { inset-inline-start: auto; inset-inline-end: -6px; border-right: 0; border-left: 1px solid rgba(255, 255, 255, .14); }
+
+  /* back to the video at the same second */
+  html.app .cx.dock .cx-v { align-self: center; display: inline-flex; align-items: center; gap: 12px; padding: 6px 14px 6px 6px; border-radius: 16px; background: #15151b; border: 1px solid rgba(255, 255, 255, .16);
+    color: #fff; font: inherit; font-weight: 700; font-size: 1rem; cursor: pointer; margin-bottom: 2px; }
+  html.app .cx.dock .cx-v-pic { position: relative; width: 52px; height: 36px; border-radius: 9px; overflow: hidden; flex: none; background: #222; }
+  html.app .cx.dock .cx-v-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  html.app .cx.dock .cx-v-pic i { position: absolute; inset: 0; display: grid; place-items: center; }
+  html.app .cx.dock .cx-v-pic i svg { width: 18px; height: 18px; fill: #fff; padding: 3px; border-radius: 50%; background: rgba(0, 0, 0, .55); border: 1.5px solid #fff; box-sizing: content-box; }
+  html.app .cx.dock .cx-v-ic { width: 22px; height: 22px; color: var(--accent, #ff6a1f); flex: none; }
+
+  /* the send button: our own comet, no paper plane */
+  html.app .cx.dock .composer button::before { display: none; }
+  html.app .cx.dock .composer button svg.comet { display: block; width: 44px; height: 30px; transform: none; }
+  html.app .cx.dock .composer button { width: 64px; background: linear-gradient(180deg, #ff7a2e, #f0560c); }
+
+  /* the cast card over the video (his note 4, mockup r2/2-character-card) */
+  .cs-sheet .cs-card, .lv-sheet .lv-card { position: relative; padding: 4px 18px 18px; color: #fff; }
+  .cs-x { position: absolute; top: 2px; inset-inline-end: 16px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0;
+    background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .2); color: #fff; cursor: pointer; }
+  .cs-x svg { width: 20px; height: 20px; }
+  .cs-top { display: flex; align-items: center; gap: 16px; margin-top: 22px; }
+  .cs-top .cs-face { width: 90px; height: 90px; flex: none; border-width: 3px; }
+  .cs-t { flex: 1; min-width: 0; }
+  .cs-t h2 { margin: 0; font-size: 1.7rem; font-weight: 900; line-height: 1.15; }
+  .cs-t p { margin: 4px 0 0; color: rgba(255, 255, 255, .82); font-size: .98rem; line-height: 1.4; }
+  .cs-facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .cs-fact { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; white-space: nowrap; flex: none; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .22); font-weight: 700; font-size: .95rem; }
+  .cs-fact svg { width: 20px; height: 20px; color: #fff; }
+  .cs-acts, .lv-acts { display: flex; gap: 10px; margin-top: 20px; }
+  .cs-acts .vx-btn, .lv-acts .vx-btn { flex: 1 1 0; min-width: 0; height: 52px; padding: 0 10px; gap: 6px; border-radius: 99px; font-size: 1rem; font-weight: 800; justify-content: center; white-space: nowrap; }
+  .cs-acts .vx-btn span { overflow: hidden; text-overflow: ellipsis; }
+  .cs-acts .vx-btn svg { width: 22px; height: 22px; flex: none; }
+  .cs-acts .ghost, .lv-acts .ghost { background: transparent; border: 1.5px solid rgba(255, 255, 255, .85); color: #fff; box-shadow: none; }
+  /* the heads-up before the chat (his notes 5 + 7, mockup r2/3-leave-heads-up) */
+  .lv-top { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+  .lv-top .lv-face { width: 76px; height: 76px; flex: none; }
+  .lv-t h2 { margin: 0; font-size: 1.32rem; font-weight: 900; }
+  .lv-t p { margin: 4px 0 0; color: rgba(255, 255, 255, .78); font-size: .98rem; }
+
+  /* the videos grid (his notes 8 + 13, mockup r2/5-videos-grid): the switch, the archive, three columns */
+  .vg-page { padding-top: 12px; }
+  .vg-page .vgrid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .vg-page .vid .t { font-size: .84rem; }
+  .vg-page .vid .cast { display: none; }
+  .arc-card { display: flex; align-items: center; gap: 14px; margin: 14px 0 12px; padding: 12px 14px; border-radius: 18px; color: #fff; text-decoration: none;
+    background: #15151b; border: 1px solid rgba(255, 255, 255, .13); }
+  .arc-ic { width: 52px; height: 52px; flex: none; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 106, 31, .16); color: var(--accent, #ff6a1f); }
+  .arc-ic svg { width: 26px; height: 26px; }
+  .arc-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .arc-t b { font-size: 1.3rem; font-weight: 900; }
+  .arc-t small { color: rgba(255, 255, 255, .72); font-size: .95rem; }
+  .arc-chev { width: 24px; height: 24px; color: var(--accent, #ff6a1f); flex: none; }
+  html.app .cmy .cx-band > .cmy-ideas-h { display: none; }   /* the community tab: its title says it, the cards follow (mockup r2/6) */
+}
+/* the feed / grid switch as words (games and videos) - centred on the grid pages, at the corner over a feed */
+.gf-tg { gap: 0; padding: 3px; border-radius: 99px; }
+.gf-tg a { width: auto; height: 34px; padding: 0 20px; border-radius: 99px; font-size: .98rem; font-weight: 800; color: rgba(255, 255, 255, .78); text-decoration: none; }
+.gf-tg a.on { background: var(--accent, #ff6a1f); color: #fff; box-shadow: 0 4px 12px rgba(255, 106, 31, .35); }
+.gpage > .gf-tg, .vg-page > .gf-tg { position: static; display: flex; width: max-content; margin: 2px auto 0; }
+html.feed-on .gf-tg { position: fixed; z-index: 3; top: calc(var(--th) + 10px); inset-inline-end: 12px; }
+html.gf-on .gf-tg a, html.feed-on .gf-tg a { height: 30px; padding: 0 14px; font-size: .9rem; }
