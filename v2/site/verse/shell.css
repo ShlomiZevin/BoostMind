@@ -900,3 +900,46 @@ html.fd-clean .fd-hint { bottom: calc(var(--tb) + 58px); }
 .cs-follow { margin-top: 10px; height: 36px; padding: 0 16px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
 .cs-follow svg { width: 16px; height: 16px; }
 .cs-follow:not(.on) { background: var(--accent, #ff6a1f); border-color: var(--accent, #ff6a1f); color: #fff; }
+/* clean mode (his note): the tab bar steps aside, so the strip goes to the very bottom (above the home-indicator area) and the
+   video fills down to it - no band of video under the strip */
+html.fd-clean .fd { bottom: calc(46px + env(safe-area-inset-bottom)); }
+html.fd-clean .fd-strip { bottom: env(safe-area-inset-bottom); }
+html.fd-clean .fd-hint { bottom: calc(58px + env(safe-area-inset-bottom)); }
+
+/* =================== the lighter feed (his choice: mockup r12, variant A) ===================
+   the video fills the feed between the bars; the title + "בכיכוב:" and the fixed strip sit on its bottom over a soft gradient
+   (no card); the fixed rail as thin see-through circles. The rail and the strip stay fixed, the video and its words scroll */
+html:not(.fd-clean) .fd { bottom: var(--tb); }
+html:not(.fd-clean) .fd-s { background: #000; }
+html:not(.fd-clean) .fd-media, html:not(.fd-clean) .fd-poster { bottom: 0; height: 100%; }
+html:not(.fd-clean) .fd-shade { display: block; background: linear-gradient(to top, rgba(0, 0, 0, .86) 0, rgba(0, 0, 0, .72) 14%, rgba(0, 0, 0, .42) 30%, rgba(0, 0, 0, .12) 44%, transparent 54%),
+  linear-gradient(to bottom, rgba(0, 0, 0, .25), transparent 12%); }
+html:not(.fd-clean) .fd-ui { top: auto; bottom: 46px; justify-content: flex-end; padding: 0 12px 4px; }
+.fd-info { gap: 9px; }
+.fd-t { font-size: 1.02rem; font-weight: 700; line-height: 1.35; text-align: center; text-shadow: 0 1px 8px rgba(0, 0, 0, .75); padding-inline: 8px; }
+.fd-cl { font-size: .9rem; }
+.fd-chip { height: 36px; padding-inline: 3px 13px; font-size: .92rem; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .3);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: none; }
+.fd-chip .vx-av { width: 30px; height: 30px; }
+/* the strip on the video: no bar of its own, icons only (white; the mute orange), a soft shadow under each */
+.fd-strip, html:not(.fd-clean) .fd-strip { background: transparent; border: 0; }
+.fd-strip button, .fd-strip .fs-pp, .fd-strip .fs-snd, .fs-snd.muted, .fd-strip .fs-view, .fd-strip .fs-det {
+  display: grid !important; place-items: center; width: 34px; min-width: 34px; height: 34px; padding: 0 !important; margin-inline-start: 0;
+  border: 0 !important; border-radius: 50%; background: none !important; color: #fff; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .7)); }
+.fd-strip .fs-snd::before, .fd-strip .fs-view::before { display: none; }
+.fd-strip .fs-pp svg { width: 20px; height: 20px; }
+.fd-strip .fs-snd svg, .fd-strip .fs-view svg, .fd-strip .fs-det svg { width: 22px; height: 22px; }
+.fs-snd.muted svg { color: var(--accent, #ff6a1f) !important; }
+.fs-time { color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
+.fs-bar::before { height: 3px; margin-top: -1.5px; background: rgba(255, 255, 255, .35); }
+.fs-fill { height: 3px; margin-top: -1.5px; }
+.fs-knob { width: 12px; height: 12px; margin: -6px 0 0 -6px; box-shadow: none; }
+.fd-strip { gap: 6px; padding: 0 8px; }
+/* the rail: thin see-through circles, white icons and words with a soft shadow (the games feed too) */
+.fd-rail.fd-fixed button { background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .32); box-shadow: none;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.fd-rail.fd-fixed .fd-ic svg, .fd-rail.fd-fixed b, .fd-rail.fd-fixed .fd-n { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .65)); }
+.fd-rail.fd-fixed b, .fd-rail.fd-fixed .fd-n { text-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+/* clean mode as it was: only the strip, at the very bottom, see-through */
+html.fd-clean .fd-strip { background: rgba(12, 12, 14, .45); }
+html:not(.fd-clean) .fd-strip .fs-det { display: none !important; }   /* "full screen" belongs to the clean view only */

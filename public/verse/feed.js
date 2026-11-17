@@ -334,18 +334,16 @@ function ctlMount() {
   }
   ctlPaint();
 }
-// the frame (his final layout, mockup r11): the strip is fixed at the feed's bottom (css), the slides end at it; every slide's
-// picture ends at the same y - the feed's height less its tallest card (--fd-cut) - and the fixed rail ends ~12px above that
+// the frame (mockup r12-A, the lighter feed): the video fills the feed (top bar to tab bar); the title + chips and the fixed strip
+// sit on its bottom over a soft gradient; the fixed rail ends ~12px above the tallest words block of the feed (one y for all)
 function ctlPlace() {
   const r = fdRail();
-  if (!FD || isClean()) return;
+  if (!FD || isClean() || !r) return;
   const fr = FD.el.getBoundingClientRect();
   let tall = 0;
   for (const s of FD.slides) { const i = s.querySelector('.fd-info'); if (i) tall = Math.max(tall, i.offsetHeight); }
   if (!tall || !fr.height) return;
-  const cut = Math.round(fr.height - tall - 22);
-  FD.el.style.setProperty('--fd-cut', cut + 'px');
-  if (r) placeRail(r, fr.top + 12, fr.top + cut - 12);
+  placeRail(r, fr.top + 12, fr.bottom - 50 - tall - 14);
 }
 function ctlPaint() {
   const c = document.getElementById('fd-strip');
