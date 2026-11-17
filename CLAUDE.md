@@ -126,7 +126,9 @@ Firebase console -> Realtime Database -> Usage. First games: the meetings hub's 
 He reads the stats as "before / after" a change: Backstage → סקירה shows a marker on every day chart and an "אירועים" card (7 days
 before vs 7 days from). **Anything that could move the numbers is logged the day it goes live**: a release or a visible change, a mail
 to everyone, a new game, a marketing push, an outage. `node scripts/stats/event.mjs add --day YYYY-MM-DD --kind
-release|mail|content|marketing|incident|other --title-file t.txt [--note-file n.txt] [--link URL]` (Hebrew through files; `list`, `del <id>`).
+release|mail|content|marketing|incident|other --title-file t.txt [--note-file n.txt] [--link URL] [--at HH:MM] [--counts video,view]` (Hebrew through files; `list`, `edit <id>`, `del <id>`).
+`--at` = the time it went live (Backstage's "since the event" button starts there); `--counts` = numbers your change counts differently
+from now on (a new player counting plays its own way) - Backstage then won't compare them across it.
 Data: Firestore `siteEvents` (techietech-api/siteevents.js, verseOwner ops `events`/`eventAdd`/`eventEdit`/`eventDel`).
 
 ## Deploy

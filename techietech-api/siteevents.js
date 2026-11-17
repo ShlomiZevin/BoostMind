@@ -2,7 +2,9 @@
 // we can check stats until then and from then"). A dated list of what happened - a release, a mail to everyone, a new
 // game, a marketing push, an outage - that Backstage draws on every day chart and compares before / after.
 // Private: Firestore `siteEvents` (no client rule = nobody reads it), one doc each:
-//   { day: 'YYYY-MM-DD' (Israel), title, kind, note?, link?, by: 'owner' | 'session' | 'auto', t }
+//   { day: 'YYYY-MM-DD' (Israel), title, kind, note?, link?, at?: 'HH:MM' (when that day it went live - Backstage's "since
+//     the event" starts there; none = the time it was logged, if logged that day), counts?: [metric keys counted differently
+//     from this event on - e.g. a new player counts video plays its own way], by: 'owner' | 'session' | 'auto', t }
 // Called only from verseOwner (his key): ops events, eventAdd, eventEdit, eventDel. Sessions: scripts/stats/event.mjs.
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
@@ -27,6 +29,11 @@ function clean(b, part) {
     const l = String(b.link ?? '').trim();
     if (l && (!/^https?:\/\/\S+$/.test(l) || l.length > 500)) return { error: 'link' };
     out.link = l;
+  }
+  if (!part || b.at !== undefined) { const a = String(b.at ?? '').trim(); if (a && !/^([01]\d|2[0-3]):[0-5]\d$/.test(a)) return { error: 'at' }; out.at = a; }
+  if (!part || b.counts !== undefined) {
+    const c = Array.isArray(b.counts) ? b.counts : String(b.counts ?? '').split(',');
+    out.counts = [...new Set(c.map((x) => String(x).trim()).filter((x) => /^[a-z_]{1,30}$/.test(x)))].slice(0, 12);
   }
   if (!part && b.by !== undefined) { if (!BY.includes(b.by)) return { error: 'by' }; out.by = b.by; }
   return { ok: out };

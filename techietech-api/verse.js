@@ -1319,6 +1319,17 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (op === 'people') return res.json({ people: await peopleList() });
     // ---------- his one admin page (2026-11-01: Backstage + the stats page, "a really admin, super powerful tool") ----------
     // the per-day counters (analytics.js) for the range and the one before it (the trend), the newest events, every account
+    // the per-hour counters of a few days (Backstage's "since the event": the release day from its hour, against the same
+    // hours of the week before) - only the counters the overview shows, at most 60 days
+    if (op === 'hours') {
+      const ok = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || ''));
+      if (!ok(b.from) || !ok(b.to) || b.from > b.to || Date.parse(b.to) - Date.parse(b.from) > 60 * 864e5) return res.status(400).json({ error: 'days' });
+      const KEYS = ['visitors', 'new_visitors', 'chat_message', 'chat_open', 'video', 'download', 'view', 'game_start', 'sign_in', 'comment', 'site'];
+      const q = await db.collection('analytics_days').where('d', '>=', b.from).where('d', '<=', b.to).get();
+      const hours = {};
+      for (const x of q.docs) { const { d, h = {} } = x.data(); hours[d] = Object.fromEntries(KEYS.filter((k) => h[k]).map((k) => [k, h[k]])); }
+      return res.json({ hours });
+    }
     if (op === 'stats') {
       const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 180);
       const from = dayIL(new Date(Date.now() - Math.max(2 * days - 1, 84) * 864e5));   // the forecast learns from 12 weeks

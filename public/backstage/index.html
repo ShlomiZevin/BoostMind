@@ -448,6 +448,11 @@
   .ev-f textarea { min-height: 80px; font-size: 1rem; }
   .ev-err { color: #ff8a8a; font-size: .88rem; min-height: 1.3em; margin-top: 8px; }
   .ev-acts { display: flex; gap: 8px; margin-top: 14px; } .ev-acts .btn { flex: 1; justify-content: center; }
+  .ev-since { width: 100%; margin-top: 12px; justify-content: center; }
+  .top > div:first-child { min-width: 0; max-width: 100%; }
+  .since-pill { display: flex; align-items: center; gap: 6px; max-width: 100%; margin-top: 8px; padding: 7px 12px; border-radius: 999px; background: rgba(255,106,31,.14); color: #ffb38a; border: 1px solid rgba(255,106,31,.35); font-weight: 700; font-size: .85rem; }
+  .since-pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .since-pill svg { width: 14px; height: 14px; flex: none; }
+  .trend.diff { color: var(--faint); font-weight: 600; }
   .ev-note { color: var(--dim); white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 8px; }
   .ev-link { color: #ff9a5c; font-size: .88rem; word-break: break-all; }
   .ev-h3 { font-size: 1.05rem; font-weight: 900; margin: 14px 0 2px; }
@@ -1486,7 +1491,52 @@ function days(n) {   // the last n days, oldest first, empty ones included
   return Array.from({ length: n }, (_, i) => { const d = dayBack(n - 1 - i); return have[d] || { d, n: {} }; });
 }
 // the chosen period: range = days back from today; 0 = yesterday alone (his ask 2026-11-03: a yesterday button next to today)
-const period = () => range === 0 ? days(2).slice(0, 1) : days(range);
+// "since the event" (his ask 2026-11-17: "I want to see only after it starts"): a tap in an event's sheet turns all of סקירה
+// to the time from that event on - its day from the hour it went live (the event's `at`, else when it was logged that day),
+// every day after it, today so far - and compares each number with the SAME hours of the 7 days before it. The release
+// day's hours come from the per-hour counters (op hours); a metric an event marks as counted differently (`counts`) is
+// shown without a comparison across it.
+let since = null, HRS = {};
+const HK = { visitors: 'visitors', new_visitors: 'new_visitors', chat_message: 'chat_message', chat_open: 'chat_open', video: 'video', download: 'download', view: 'view', game_start: 'game_start', sign_in: 'sign_in', comment: 'comment', site: 'site' };
+const evFrom = (e) => { if (/^\d\d:\d\d$/.test(e.at || '')) return dayStart(e.day) + (+e.at.slice(0, 2)) * 3600e3 + (+e.at.slice(3)) * 6e4; return e.t && dayIL(e.t) === e.day ? e.t : dayStart(e.day); };
+const hrOf = (ms) => (ms - dayStart(dayIL(ms))) / 3600e3;
+const dayGap = (a, b) => Math.round((dayStart(b) - dayStart(a)) / 864e5);
+// a counter's hours a..b (a part of an hour counts by its share) on one day
+const hsum = (d, k, a, b) => { const h = HRS[d]?.[k] || {}; let s = 0; for (let i = Math.floor(a); i < Math.ceil(b); i++) s += (h[i] || 0) * Math.max(0, Math.min(b, i + 1) - Math.max(a, i)); return s; };
+async function sinceOn(id) {
+  const e = EVS.find((x) => x.id === id); if (!e) return;
+  const from = evFrom(e), fromDay = dayIL(from), today = dayIL();
+  try { HRS = (await api('hours', { from: dayAdd(fromDay, -7), to: today })).hours || {}; } catch (x) { HRS = {}; }
+  const counts = new Set(EVS.filter((x) => x.day >= dayAdd(fromDay, -7) && x.day <= today).flatMap((x) => x.counts || []));
+  since = { id, title: e.title, day: fromDay, from, h0: hrOf(from), counts };
+  drillDay = null; closeSheet(); go('overview');
+}
+function sinceDays() {   // the event's day (from its hour) .. today
+  const have = Object.fromEntries(S.days.map((d) => [d.d, d])), n = dayGap(since.day, dayIL());
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const day = dayAdd(since.day, i), d = have[day] || { d: day, n: {} };
+    if (i || since.h0 < 0.01 || !HRS[day]) return d;
+    const n2 = { ...d.n }; for (const k of Object.values(HK)) if (k !== 'visitors' && k !== 'new_visitors') n2[k] = Math.round(hsum(day, k, since.h0, 24));
+    return { ...d, n: n2, visitors: Math.round(hsum(day, 'visitors', since.h0, 24)), new_visitors: Math.round(hsum(day, 'new_visitors', since.h0, 24)), _from: since.from };
+  });
+}
+// what the same hours brought on the 7 days before the event, on average - the "before" of every number in this mode
+function sinceBefore(m) {
+  const today = dayIL(), nowH = hrOf(Date.now()), k = HK[m], n = dayGap(since.day, today);
+  const base = Array.from({ length: 7 }, (_, i) => dayAdd(since.day, i - 7));
+  if (k && base.every((d) => HRS[d])) {
+    let tot = 0;
+    for (let i = 0; i <= n; i++) {
+      const a = i ? 0 : since.h0, b = i === n ? nowH : 24;
+      tot += base.reduce((s2, d) => s2 + hsum(d, k, a, b), 0) / 7;
+    }
+    return tot;
+  }
+  // no per-hour counter (sign-ups, passports, a site's views): the week's daily average times the time that has passed
+  const have = Object.fromEntries(S.days.map((d) => [d.d, d]));
+  return base.reduce((s2, d) => s2 + (METRICS[m][2](have[d] || { d, n: {} }) || 0), 0) / 7 * ((Date.now() - since.from) / 864e5);
+}
+const period = () => since ? sinceDays() : range === 0 ? days(2).slice(0, 1) : days(range);
 const sum = (list, f) => list.reduce((a, d) => a + (f(d) || 0), 0);
 function byPrefix(list, ev) { const out = {}; for (const d of list) for (const [k, v] of Object.entries(d.n || {})) if (k.startsWith(ev + '|')) out[k.slice(ev.length + 1)] = (out[k.slice(ev.length + 1)] || 0) + v; return out; }
 function merge(list, field) { const out = {}; for (const d of list) for (const [k, v] of Object.entries(d[field] || {})) out[k] = (out[k] || 0) + v; return out; }
@@ -1494,7 +1544,7 @@ const accounts = () => S.people.filter((p) => p.google);
 const joinedOn = (d) => accounts().filter((p) => p.created && dayIL(p.created) === d);
 // every metric the page knows, as a value of one day
 // the citizenship journey (stats op `journey`, his ask 2026-11-08): when each resident set out for a passport (s) and got the number (c)
-const czOn = (d, k) => (S.journey || []).filter((j) => j[k] && dayIL(j[k]) === d).length;
+const czOn = (d, k, from) => (S.journey || []).filter((j) => j[k] && dayIL(j[k]) === d && (!from || j[k] >= from)).length;
 const czAll = (k) => (S.journey || []).filter((j) => j[k]).length;
 // ציפציפ and החרדות (stats op `tz`, his ask 2026-11-08): the residents' posts / replies, their stamps, the articles that went up
 const tzIn = (list, arr) => { const ds = new Set(list.map((d) => d.d)); return (arr || []).filter((t) => t && ds.has(dayIL(t))).length; };
@@ -1505,9 +1555,9 @@ const tzNote = (m, list) => { const T = S.tz || {};
 const METRICS = {
   visitors: ['מבקרים', 'people', (d) => d.visitors || 0],
   new_visitors: ['מבקרים חדשים', 'people', (d) => d.new_visitors || 0],
-  joined: ['נרשמו', 'join', (d) => joinedOn(d.d).length],
-  cz_start: ['יצאו לדרכון', 'plan', (d) => czOn(d.d, 's')],
-  cz_done: ['נהיו אזרחים', 'check', (d) => czOn(d.d, 'c')],
+  joined: ['נרשמו', 'join', (d) => joinedOn(d.d).filter((p) => !d._from || p.created >= d._from).length],
+  cz_start: ['יצאו לדרכון', 'plan', (d) => czOn(d.d, 's', d._from)],
+  cz_done: ['נהיו אזרחים', 'check', (d) => czOn(d.d, 'c', d._from)],
   tz_view: ['צפיות בציפציפ', 'spark', (d) => d.site?.tziftzif || 0],
   ch_view: ['צפיות בחרדות', 'live', (d) => d.site?.charadot || 0],
   chat_message: ['הודעות לדמויות', 'comment', (d) => d.n?.chat_message || 0],
@@ -1523,6 +1573,13 @@ const METRICS = {
 const mval = (m, list) => sum(list, METRICS[m][2]);
 // the change against the period before it, as "+12%" (a day: against yesterday)
 function trend(m) {
+  if (since) {
+    if (since.counts.has(m)) return { t: 'נספר אחרת', c: 'diff', diff: true };
+    const now = mval(m, period()), before = sinceBefore(m);
+    if (before < 0.5) return now ? { t: 'חדש', c: 'up' } : { t: '', c: '' };
+    const p = Math.round((now - before) / before * 100);
+    return { t: `${p > 0 ? '+' : ''}${p}%`, c: p > 0 ? 'up' : p < 0 ? 'down' : '', since: true, before };
+  }
   const f = FC(m);
   if (f && f.yAt != null) {   // today: against yesterday by this same hour, not yesterday's whole day
     const now = mval(m, period());
@@ -1544,7 +1601,7 @@ const RANGES = [[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 
 // ---------- how today will end (the stats op's forecast - techietech-api/forecast.js learns, from every day it has,
 // how much of a day has usually come by each hour; his ask 2026-11-06: "today always looks smaller than yesterday") ----------
 const FCAST = (m) => (S.forecast?.day === dayIL() ? S.forecast.metrics?.[m] || null : null);
-const FC = (m) => (range === 1 ? FCAST(m) : null);
+const FC = (m) => (range === 1 && !since ? FCAST(m) : null);
 const about = (v) => fmt(Math.round(v));
 const fcLine = (m) => { const f = FC(m); return f ? `<span class="fc">צפי לסוף היום: כ-${about(f.proj)}</span>` : ''; };
 const ghostOf = (m) => { const f = FCAST(m); return f ? { [dayIL()]: f.proj } : null; };
@@ -1579,7 +1636,7 @@ function hourChart(el, f) {
     <path d="${path(today)}" fill="none" stroke="#ff6a1f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${X(t)}" cy="${Y(f.sofar)}" r="4.5" fill="#ff6a1f"/><circle cx="${X(24) + 3}" cy="${Y(f.proj)}" r="4" fill="#0f0f12" stroke="#ff6a1f" stroke-width="2"/></svg>`;
 }
-const rangeSeg = (opts = RANGES) => `<div class="rng">${opts.map(([v, l]) => `<button data-range="${v}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const rangeSeg = (opts = RANGES) => `<div class="rng">${opts.map(([v, l, real = v]) => `<button data-range="${real}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 // what one chat answer cost on average (from the tokens wiki.js keeps on each answer) - the cost of a period is estimated from it
 const PRICE = (u) => (((u[0] || 0) - (u[1] || 0)) * 2 + (u[1] || 0) * 0.2 + (u[2] || 0) * 12) / 1e6;
 // one answer's cost: the chain (wiki-deep.js) logs its exact cost (usd, every step on its own model); older answers - tokens at Terra's price
@@ -1614,7 +1671,7 @@ function timeKpi() {
 function kpi(m, extra) {
   const list = period(), v = mval(m, list), tr = trend(m), [label, icon] = METRICS[m];
   return `<button class="k" data-metric="${m}"><span class="kh">${IC[icon]}${label}${IC.chev.replace('<svg', '<svg class="chev"')}</span>
-    <b>${extra ?? fmt(v)}</b>${extra == null ? fcLine(m) : ''}${m === 'cz_start' ? `<span class="fc">סה״כ ${fmt(czAll('s'))} יצאו</span>` : m === 'cz_done' ? `<span class="fc">סה״כ ${fmt(czAll('c'))} אזרחים</span>` : tzNote(m, list) ? `<span class="fc">${tzNote(m, list)}</span>` : ''}<span class="kf"><span class="trend ${tr.c}">${tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${tr.same ? 'מאתמול באותה שעה' : range === 1 ? 'מאתמול' : range === 0 ? 'משלשום' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
+    <b>${extra ?? fmt(v)}</b>${extra == null ? fcLine(m) : ''}${m === 'cz_start' ? `<span class="fc">סה״כ ${fmt(czAll('s'))} יצאו</span>` : m === 'cz_done' ? `<span class="fc">סה״כ ${fmt(czAll('c'))} אזרחים</span>` : tzNote(m, list) ? `<span class="fc">${tzNote(m, list)}</span>` : ''}<span class="kf"><span class="trend ${tr.c}">${tr.diff ? `${tr.t}<span class="tw"> מאז ${dm(since.day)}</span>` : tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${tr.since ? `מול כ-${fmt(Math.round(tr.before))} באותן שעות לפני` : tr.same ? 'מאתמול באותה שעה' : range === 1 ? 'מאתמול' : range === 0 ? 'משלשום' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
 }
 function overview() {
   const list = period(), msgs = mval('chat_message', list);
@@ -1631,11 +1688,12 @@ function overview() {
     ...L.comments.filter((c) => !c.hidden && !c.char).slice(0, 4).map((c) => ({ t: c.t, face: fanFace(c), h: `תגובה · ${esc(c.nick)}`, p: `"${esc(c.text)}"`, go: 'content' })),
   ].filter((x) => x.t).sort((a, b) => b.t - a.t).slice(0, 6);
   const row = (x) => `<button class="row" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
-  const n = range, chartList = days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
+  const n = range, chartList = since ? days(dayGap(since.day, dayIL()) + 8) : days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
   const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'download', 'game_start', 'sign_in', 'tz_view', 'ch_view'];
   $('#pane').innerHTML = `
-    <div class="top"><div><h1>${hi()}, שלומי</h1><p>מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}</p></div>
-      <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']])}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
+    <div class="top"><div><h1>${hi()}, שלומי</h1><p>${since ? `מאז ${dm(since.day)} ${hhmm(since.from)} · כל מספר מול אותן שעות ב-7 הימים שלפני` : `מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}`}</p>
+      ${since ? `<button class="since-pill" data-sinceoff title="חזרה לתקופות הרגילות">${IC.x}<span>מאז: ${esc(since.title)}</span></button>` : ''}</div>
+      <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']].map(([v, l]) => [since ? NaN : v, l, v]))}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
     <div class="kgrid">${kpi('visitors')}${timeKpi()}${ALL.slice(1).map((m) => kpi(m)).join('')}
       <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer).toFixed(2)}</b>
         <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה${FC('chat_message') ? ` · צפי $${(FC('chat_message').proj * avgAnswer).toFixed(2)}` : ''}</small>${spark('chat_message')}</span></button></div>
@@ -1652,7 +1710,7 @@ function overview() {
       <div class="kgrid" style="margin:4px 0 0">${ALL.map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div>
       ${evsOn(sel.d).length ? `<div class="rows" style="margin-top:8px">${evsOn(sel.d).map(evRow).join('')}</div>` : ''}</div>` : ''}
     ${evCard()}
-    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
+    ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : since ? `מאז ${dm(since.day)}` : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
     <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>
     <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>
     <div class="card sim-st ab-st" id="ab-st" style="margin-top:14px"></div>
@@ -2270,13 +2328,14 @@ function evCompare(e) {
     const p = Math.round((b - a) / a * 100);
     return `<bdi dir="ltr" class="${p > 0 ? 'up' : p < 0 ? 'down' : 'same'}">${p > 0 ? '+' : ''}${p}%</bdi>`;
   };
-  const row = (label, a, b, show = num) => `<div class="r"><span>${label}</span><b>${show(a)}</b><b>${show(b)}</b>${chg(a, b)}</div>`;
+  const diff = new Set(e.counts || []);
+  const row = (label, a, b, show = num, m) => `<div class="r"><span>${label}</span><b>${show(a)}</b><b>${show(b)}</b>${m && diff.has(m) ? '<span class="same">נספר אחרת</span>' : chg(a, b)}</div>`;
   const tb = before.length ? timeStats(before) : null, ta = timeStats(after);
   return `<p class="hint">${avg ? `ממוצע ליום · ${before.length} ימים לפני, ${after.length} ימים ממנו` : 'סך הכול בכל שבוע'}</p>
     <div class="ev-ba"><div class="r h"><span></span><span>לפני</span><span>${avg ? 'ממנו' : '7 ימים ממנו'}</span><span>שינוי</span></div>
       ${['visitors', 'new_visitors'].map((m) => row(METRICS[m][0], one(METRICS[m][2], before), one(METRICS[m][2], after))).join('')}
       ${row('זמן באתר (חציון)', tb ? tb.med : null, ta ? ta.med : null, (v) => (v == null ? '—' : dur(v)))}
-      ${['joined', 'chat_message', 'video', 'game_start'].map((m) => row(METRICS[m][0], one(METRICS[m][2], before), one(METRICS[m][2], after))).join('')}</div>`;
+      ${['joined', 'chat_message', 'video', 'game_start'].map((m) => row(METRICS[m][0], one(METRICS[m][2], before), one(METRICS[m][2], after), num, m)).join('')}</div>`;
 }
 function evOpen(id) {
   const e = EVS.find((x) => x.id === id);
@@ -2284,6 +2343,7 @@ function evOpen(id) {
   sheet(`<div class="sh-h"><div class="t"><b>${esc(e.title)}</b><small>${esc(dayName(e.day))} · ${(EV_KIND[e.kind] || EV_KIND.other)[0]}</small></div><button class="x" data-close aria-label="סגירה">${IC.x}</button></div>
     <div class="sh-b">${e.note ? `<p class="ev-note">${esc(e.note)}</p>` : ''}${e.link ? `<p><a class="ev-link" href="${esc(e.link)}" target="_blank" rel="noopener" dir="ltr">${esc(e.link)}</a></p>` : ''}
       <h3 class="ev-h3">לפני ואחרי</h3>${evCompare(e)}
+      <button class="btn main ev-since" data-since="${esc(e.id)}">${IC.stats}כל הסקירה מאז האירוע${e.day === dayIL() ? ' (גם היום)' : ''}</button>
       <div class="ev-acts"><button class="btn" data-evdel="${esc(e.id)}">מחיקה</button><button class="btn" data-close>סגירה</button></div></div>`, 'ev-sheet');
 }
 function evNew() {
@@ -2311,11 +2371,13 @@ async function evSave(b) {
 }
 // clicks of this part (before the page's own handler sees them)
 document.addEventListener('click', async (e) => {
-  const b = e.target.closest('[data-evopen], [data-evadd], [data-evall], [data-evsave], [data-evdel]');
+  const b = e.target.closest('[data-evopen], [data-evadd], [data-evall], [data-evsave], [data-evdel], [data-since], [data-sinceoff]');
   if (!b) return;
   e.stopImmediatePropagation();
   const d = b.dataset;
   if (d.evopen) evOpen(d.evopen);
+  else if (d.since) { b.disabled = true; await sinceOn(d.since); }
+  else if (d.sinceoff !== undefined) { since = null; overview(); }
   else if (d.evadd !== undefined) evNew();
   else if (d.evall !== undefined) { evAll = !evAll; $('#ev-st').outerHTML = evCard(); }
   else if (d.evsave !== undefined) await evSave(b);
@@ -2977,7 +3039,7 @@ document.addEventListener('click', async (e) => {
   if (b.dataset.pchat) { openThread(b.dataset.pchat, window._personChats); return; }
   if (b.dataset.chat) { openThread(b.dataset.chat); return; }
   if (b.dataset.tab) { closeSheet(); go(b.dataset.tab); }
-  else if (b.dataset.range) { range = +b.dataset.range; drillDay = null; overview(); }
+  else if (b.dataset.range) { since = null; range = +b.dataset.range; drillDay = null; overview(); }
   else if (b.dataset.metric) { metric = b.dataset.metric; drillDay = null; if (tab !== 'overview') go('overview'); else overview(); $('#ov-metric')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   else if (b.dataset.undrill !== undefined) { drillDay = null; overview(); }
   else if (b.dataset.chrange) { b.disabled = true; chShown = 60; await loadChats(b.dataset.chrange).catch(() => {}); chats(); }
