@@ -2370,11 +2370,33 @@ function evCompare(e) {
       ${row('זמן באתר (חציון)', tb ? tb.med : null, ta ? ta.med : null, (v) => (v == null ? '—' : dur(v)))}
       ${['joined', 'chat_message', 'video', 'game_start'].map((m) => row(METRICS[m][0], one(METRICS[m][2], before), one(METRICS[m][2], after), num, m)).join('')}</div>`;
 }
+// the event's own day split at its minute (his ask 2026-11-17: "today, before the release and after"): time on site of the visits
+// that started before it against those that started after it (op visits) - a part of a day against a part, so only per-visit numbers
+const evDayHas = (e) => { const f = evFrom(e); return f > dayStart(e.day) && f < Date.now() && Date.now() - f < 13 * 864e5; };
+const hhmmOf = (ms) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(ms);
+async function evDaySplit(e) {
+  const f = evFrom(e), d0 = dayStart(e.day), d1 = Math.min(d0 + 864e5, Date.now());
+  let tv = null; try { tv = (await api('visits', { wins: [[d0, d1]] })).visits; } catch (x) { tv = null; }
+  const box = $('#ev-day-ba'); if (!box) return;
+  if (!tv) { box.innerHTML = '<p class="hint">לא הצלחתי לספור, נסו שוב</p>'; return; }
+  const part = (a, z) => tv.filter(([st]) => st >= a && st < z).map((v) => v[1]);
+  const A = part(d0, f), B = part(f, d1), ta = timeOf(A), tb = timeOf(B);
+  const chg = (a, b) => { if (!a || b == null) return '<span class="same">—</span>'; const p = Math.round((b - a) / a * 100); return `<bdi dir="ltr" class="${p > 0 ? 'up' : p < 0 ? 'down' : 'same'}">${p > 0 ? '+' : ''}${p}%</bdi>`; };
+  const row = (label, a, b, show) => `<div class="r"><span>${label}</span><b>${a == null ? '—' : show(a)}</b><b>${b == null ? '—' : show(b)}</b>${chg(a, b)}</div>`;
+  const over = (l) => (l.length ? l.filter((x) => x > 60).length / l.length * 100 : null);
+  box.innerHTML = `<p class="hint">לפני = <bdi dir="ltr">00:00–${hhmmOf(f)}</bdi>, אחרי = <bdi dir="ltr">${hhmmOf(f)}–${hhmmOf(d1 - 1)}</bdi>. כל ביקור לפי השעה שהתחיל.</p>
+    <div class="ev-ba"><div class="r h"><span></span><span>לפני</span><span>אחרי</span><span>שינוי</span></div>
+      ${row('זמן באתר (חציון)', ta?.med, tb?.med, dur)}${row('זמן באתר (ממוצע)', ta?.avg, tb?.avg, dur)}
+      ${row('ביקורים מעל דקה', over(A), over(B), (v) => `${Math.round(v)}%`)}
+      <div class="r"><span>ביקורים</span><b>${fmt(A.length)}</b><b>${fmt(B.length)}</b><span class="same"></span></div></div>`;
+}
 function evOpen(id) {
   const e = EVS.find((x) => x.id === id);
   if (!e) return;
+  if (evDayHas(e)) setTimeout(() => evDaySplit(e), 0);
   sheet(`<div class="sh-h"><div class="t"><b>${esc(e.title)}</b><small>${esc(dayName(e.day))} · ${(EV_KIND[e.kind] || EV_KIND.other)[0]}</small></div><button class="x" data-close aria-label="סגירה">${IC.x}</button></div>
     <div class="sh-b">${e.note ? `<p class="ev-note">${esc(e.note)}</p>` : ''}${e.link ? `<p><a class="ev-link" href="${esc(e.link)}" target="_blank" rel="noopener" dir="ltr">${esc(e.link)}</a></p>` : ''}
+      ${evDayHas(e) ? `<h3 class="ev-h3">באותו יום: לפני ${hhmmOf(evFrom(e))} ואחרי</h3><div id="ev-day-ba"><p class="hint">סופר את הביקורים…</p></div>` : ''}
       <h3 class="ev-h3">לפני ואחרי</h3>${evCompare(e)}
       <button class="btn main ev-since" data-since="${esc(e.id)}">${IC.stats}כל הסקירה מאז האירוע${e.day === dayIL() ? ' (גם היום)' : ''}</button>
       <div class="ev-acts"><button class="btn" data-evdel="${esc(e.id)}">מחיקה</button><button class="btn" data-close>סגירה</button></div></div>`, 'ev-sheet');
