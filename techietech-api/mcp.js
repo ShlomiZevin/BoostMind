@@ -1,18 +1,27 @@
 // The Shlomiverse as an MCP server (his ask, 2026-11-10: "I want my ChatGPT web to reach the Shlomiverse and read about the
 // characters and everything - I write a lot of scripts with it"). Read-only: every character's full writer's profile, the
 // series, every video with its transcript, the sites and the games - the same composed brain the chat reads
-// (gs://shlomiverse-private/wiki-brain.json, written by content.js / catalog.js from the records). Nothing here writes.
+// (gs://shlomiverse-private/wiki-brain.json, written by content.js / catalog.js from the records).
+// Writes (his ask, 2026-11-17: "from the MCP I can update the nuance about the characters ... and update the skill of how we
+// write scripts"): update_character_sheet (the record's sheet = Backstage → דמויות, through the content door - logged in
+// catalogLog, marked as changed in Backstage, the full sheet before kept in Firestore sheetEdits, undo_sheet_change brings it
+// back) and the writing guide (scriptcraft.js: get_writing_guide / update_writing_guide). ChatGPT asks him before any write.
 //
 // Address: https://shlomiverse.com/mcp/<VERSE_MCP_KEY> (firebase.json rewrite -> verseMcp). The key in the path is the lock
 // (ChatGPT's connectors take a URL with "no authentication"); a wrong path gets 404. The URL is his - don't post it.
 // Protocol: MCP streamable HTTP, stateless - every POST is one JSON-RPC message answered as JSON (no sessions, no SSE).
 // Tools: search + fetch in the shape ChatGPT's connectors / deep research expect, and named tools for a writing session
-// (about, list_characters, get_character, list_series, list_videos, get_video, sites_and_games). Free: no AI call inside.
+// (about, get_writing_guide, list_characters, get_character, list_series, list_videos, get_video, sites_and_games; writes:
+// update_character_sheet, undo_sheet_change, update_writing_guide). Free: no AI call inside.
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
+const { FieldValue } = require('firebase-admin/firestore');
+const content = require('./content');
+const craft = require('./scriptcraft');
 
 if (!admin.apps.length) admin.initializeApp();
+const BY = 'mcp (ChatGPT)';
 const KEY = defineSecret('VERSE_MCP_KEY');
 const wrong = new Map();   // address -> times of wrong keys (maxInstances 3, so at most 60 guesses an hour)
 const SITE = 'https://shlomiverse.com';
@@ -100,7 +109,7 @@ function search(b, query, kinds, limit = 10) {
 // ---- what a tool returns, as readable text ----
 // a profile field can be a list, a string or an object (written by hand over time) - any shape reads
 const list = (a) => (!a ? '' : typeof a === 'string' ? a : Array.isArray(a) ? a.map((x) => `- ${typeof x === 'string' ? x : JSON.stringify(x)}`).join('\n') : JSON.stringify(a, null, 1));
-function characterText(b, c) {
+function characterText(b, c, notes = []) {
   const w = worldOf(b, c);
   const vids = (c.videos || []).map((id) => b.vById[id]).filter(Boolean).sort((x, y) => String(y.date || '').localeCompare(String(x.date || '')));
   const parts = [`# ${c.name}${c.name_en ? ` (${c.name_en})` : ''} - id: ${c.id}`, `Page: ${SITE}/c/${c.id}`,
@@ -127,6 +136,9 @@ function characterText(b, c) {
   }
   sec('Relations', (Array.isArray(c.relations) ? c.relations : []).map((r) => `- ${nameOf(b, r.id)} (id ${r.id}): ${r.relation || ''}`).join('\n'));
   if (!sh) sec('Videos (newest first - get_video for the full transcript)', vids.map((v) => `- ${v.id} | ${v.date || ''} | ${v.title}${v.card ? ` - ${v.card}` : ''}`).join('\n'));
+  // his own notes on this character in Backstage that no session has folded into the sheet yet - his raw thinking, worth
+  // knowing while writing (the sheet stays the truth)
+  sec('Shlomi\'s open notes on this character (Backstage, not yet in the sheet - his raw thoughts)', notes.map((n) => `- ${n.label ? `[${n.label}] ` : ''}${n.text}`).join('\n'));
   return parts.filter(Boolean).join('\n');
 }
 function videoText(b, v) {
@@ -148,7 +160,8 @@ The characters are written as real people - each with a job, a family, a way of 
 and they live on: their own sites (shops, companies, services), games, stories, and a chat where visitors talk to each of them.
 Everything is in Hebrew. ${b.characters.length} characters, ${b.worlds.length} series, ${b.videos.length} videos, ${(b.sites || []).length} sites, ${(b.games || []).length} games.
 
-How to use this server for writing: get_character gives a character's sheet - who they are, how they talk, what is funny about
+How to use this server for writing: FIRST read get_writing_guide - how we write scripts here (the craft, and the lessons
+learned in earlier sessions). get_character gives a character's sheet - who they are, how they talk, what is funny about
 them, the parody, the dissonance, nuances, catchphrases, and their life (one event per video) - plus family and relations; get_video gives a video's full transcript; list_series /
 list_characters / list_videos give the map; search finds anything by words (Hebrew or English).
 
@@ -166,6 +179,7 @@ const TOOLS = [
   { name: 'fetch', title: 'Read one item in full', description: 'Read one search result in full by its id: "character:<id>", "video:<id>", "series:<id>", "site:<id>", "game:<id>", or "about".',
     inputSchema: S({ id: str('An id from search, e.g. "character:hani" or "video:haredit-1"') }, ['id']) },
   { name: 'about', title: 'About the Shlomiverse', description: 'What the Shlomiverse is, its series and how to use these tools. Start here.', inputSchema: S({}) },
+  { name: 'get_writing_guide', title: 'How we write scripts', description: 'The Shlomiverse\'s script-writing guide: how we craft a script (realism and day-to-day nuance, each character\'s parody and catchphrases, copying the mechanics of scripts that worked, the format) plus the lessons learned in earlier writing sessions. Read it before writing any script, and follow it.', inputSchema: S({}) },
   { name: 'list_characters', title: 'List characters', description: 'Every character (id, name, world, role, tagline), optionally only one series.',
     inputSchema: S({ series: str('Optional: a series id or name, e.g. "techytech" or "טקי-טק"') }) },
   { name: 'get_character', title: 'Character profile', description: 'A character\'s sheet - who they are, how they talk, what is funny about them, the parody, the dissonance, nuances, catchphrases, how loveable / how viral now, and their life one event per video - plus relations and look. Read it before writing a script for them.',
@@ -177,17 +191,103 @@ const TOOLS = [
   { name: 'get_video', title: 'Video with transcript', description: 'A video: date, cast, what happens, and its full transcript.', inputSchema: S({ id: str('The video id') }, ['id']) },
   { name: 'sites_and_games', title: 'Sites and games', description: 'The characters\' own sites (shops, companies, services) and their games.', inputSchema: S({}) },
 ].map((t) => ({ ...t, annotations: RO }));
+// the writes (his ask, 2026-11-17) - only when Shlomi asks for them; show him exactly what will change first
+const W = { readOnlyHint: false, openWorldHint: false, destructiveHint: false, idempotentHint: false };
+const SHEET_TEXT = ['person', 'speech', 'funny', 'parody', 'dissonance'], SHEET_LIST = ['nuances', 'catchphrases'];
+TOOLS.push(
+  { name: 'update_character_sheet', title: 'Update a character\'s sheet', annotations: W,
+    description: 'Write what was learned about a character into their sheet (Backstage → דמויות - the one truth about them, also used by the site\'s chat). ONLY when Shlomi asks ("update the character", "put what we learned in Backstage"), and only after showing him exactly what will change. Fields: person (מי זה), speech (איך מדבר), funny (מה מצחיק), parody (הפרודיה), dissonance (הדיסוננס) - text: action replace (the whole new text) or append (adds a sentence); nuances (ניואנסים), catchphrases (קאצ\'פרייז) - lists: action add, remove (an existing item) or edit (old -> text). Hebrew, in the sheet\'s own style. Every change is logged and can be undone with undo_sheet_change.',
+    inputSchema: S({ character: str('The character id, name or nickname'), why: str('One line: what was learned in this session (shown to Shlomi in the log)'),
+      changes: { type: 'array', minItems: 1, maxItems: 12, description: 'The changes, applied in order',
+        items: S({ field: { type: 'string', enum: [...SHEET_TEXT, ...SHEET_LIST] }, action: { type: 'string', enum: ['replace', 'append', 'add', 'remove', 'edit'] },
+          text: str('The new text / the item to add or remove / the edited item'), old: str('For edit: the existing list item to change') }, ['field', 'action', 'text']) } },
+      ['character', 'why', 'changes']) },
+  { name: 'undo_sheet_change', title: 'Undo the last sheet change', annotations: W,
+    description: 'Put a character\'s sheet back as it was before the last update_character_sheet - when Shlomi says a change was wrong.',
+    inputSchema: S({ character: str('The character id, name or nickname') }, ['character']) },
+  { name: 'update_writing_guide', title: 'Update how we write scripts', annotations: W,
+    description: 'Save what a writing session learned about HOW we write scripts (not about one character - that goes to update_character_sheet). ONLY when Shlomi asks ("we learned something, update the guide"). action add_lesson = one clear lesson in his words (the usual way); action rewrite = the WHOLE guide re-written (only when he asks to reorganise it - read get_writing_guide first, keep everything that still holds; clear_lessons when the lessons were folded into the text). Every version is kept.',
+    inputSchema: S({ action: { type: 'string', enum: ['add_lesson', 'rewrite'] }, text: str('The lesson, or the whole new guide (markdown, Hebrew)'),
+      characters: str('Optional: which characters / series the lesson came from'), why: str('What was learned and why (required for rewrite)'),
+      clear_lessons: { type: 'boolean', description: 'rewrite only: the lessons are now inside the text' } }, ['action', 'text']) },
+);
 
 const fail = (msg) => { const e = new Error(msg); e.user = true; throw e; };
-function run(b, name, a = {}) {
+// his open Backstage notes on a character (charnotes.js) - read with the character
+async function openNotes(id) {
+  try {
+    const s = await admin.firestore().collection('charNotes').where('char', '==', id).get();
+    return s.docs.map((d) => d.data()).filter((n) => !n.done && n.by !== 'claude').sort((x, y) => (x.t?.toMillis?.() || 0) - (y.t?.toMillis?.() || 0));
+  } catch (e) { console.error('verseMcp notes', e.message); return []; }
+}
+const sameText = (x, y) => norm(x).replace(/\s+/g, ' ').trim() === norm(y).replace(/\s+/g, ' ').trim();
+const findItem = (arr, t) => { const i = arr.findIndex((x) => sameText(x, t)); return i >= 0 ? i : arr.findIndex((x) => norm(t).trim().length > 3 && norm(x).includes(norm(t).trim())); };
+async function afterWrite() { await require('./catalog').compose(admin); checked = 0; }   // the site, the chat and this server read the new sheet
+
+async function editSheet(b, a) {
+  const c = findCharacter(b, a.character || '') || fail(`No character "${a.character}" - try list_characters`);
+  const rec = await content.get('character', c.id);
+  if (rec.error) fail(`Could not read ${c.name}'s record (${rec.error})`);
+  const before = JSON.parse(JSON.stringify(rec.sheet || {})), sheet = JSON.parse(JSON.stringify(rec.sheet || {}));
+  const done = [];
+  for (const ch of a.changes || []) {
+    const f = ch.field, t = String(ch.text || '').trim();
+    if (!t) fail(`Empty text for ${f}`);
+    if (SHEET_TEXT.includes(f)) {
+      if (ch.action === 'replace') sheet[f] = t;
+      else if (ch.action === 'append') sheet[f] = `${String(sheet[f] || '').trim()} ${t}`.trim();
+      else fail(`${f} is a text: action replace or append`);
+    } else if (SHEET_LIST.includes(f)) {
+      const arr = sheet[f] = Array.isArray(sheet[f]) ? sheet[f] : sheet[f] ? [String(sheet[f])] : [];
+      if (ch.action === 'add') { if (arr.some((x) => sameText(x, t))) fail(`"${t}" is already in ${f}`); arr.push(t); }
+      else if (ch.action === 'remove' || ch.action === 'edit') {
+        const key = ch.action === 'remove' ? t : String(ch.old || '');
+        const i = key ? findItem(arr, key) : -1;
+        if (i < 0) fail(`No item like "${key}" in ${c.name}'s ${f}. The items now:\n${arr.map((x) => `- ${x}`).join('\n')}`);
+        if (ch.action === 'remove') arr.splice(i, 1); else arr[i] = t;
+      } else fail(`${f} is a list: action add, remove or edit`);
+    } else fail(`Unknown field ${f}`);
+    done.push(`${f}: ${ch.action}${ch.action === 'edit' ? ` "${ch.old}" ->` : ''} "${t}"`);
+  }
+  if (JSON.stringify(sheet) === JSON.stringify(before)) return `Nothing changed in ${c.name}'s sheet.`;
+  const why = String(a.why || '').slice(0, 500);
+  await admin.firestore().collection('sheetEdits').add({ char: c.id, before, after: sheet, why, changes: done, by: BY, undone: false, t: FieldValue.serverTimestamp() });
+  const r = await content.put({ kind: 'character', id: c.id, sheet }, `${BY}: ${why}`.slice(0, 120));
+  if (r.error) fail(`Not saved: ${r.error} ${r.detail || ''}`);
+  await afterWrite();
+  return `Saved to ${c.name}'s sheet (Backstage → דמויות shows it as changed; the site's chat answers from it now):\n${done.map((x) => `- ${x}`).join('\n')}\nUndo: undo_sheet_change.`;
+}
+async function undoSheet(b, a) {
+  const c = findCharacter(b, a.character || '') || fail(`No character "${a.character}"`);
+  const s = await admin.firestore().collection('sheetEdits').where('char', '==', c.id).get();
+  const last = s.docs.filter((d) => !d.data().undone).sort((x, y) => (y.data().t?.toMillis?.() || 0) - (x.data().t?.toMillis?.() || 0))[0];
+  if (!last) fail(`No change to ${c.name}'s sheet made from here to undo.`);
+  const e = last.data(), rec = await content.get('character', c.id);
+  if (JSON.stringify(rec.sheet || {}) !== JSON.stringify(e.after)) fail(`${c.name}'s sheet was changed again since (in Backstage or by a session) - not undoing over it. Tell Shlomi which part to fix and use update_character_sheet.`);
+  const r = await content.put({ kind: 'character', id: c.id, sheet: e.before }, `${BY}: undo`);
+  if (r.error) fail(`Not undone: ${r.error}`);
+  await last.ref.update({ undone: true, undoneAt: FieldValue.serverTimestamp() });
+  await afterWrite();
+  return `Undone - ${c.name}'s sheet is back as it was before: ${(e.changes || []).join('; ')}`;
+}
+
+async function run(b, name, a = {}) {
   switch (name) {
     case 'about': return aboutText(b);
+    case 'get_writing_guide': return craft.text(await craft.get());
+    case 'update_writing_guide': {
+      const r = await craft.change(a, BY);
+      if (r.error) fail(r.error);
+      return a.action === 'add_lesson' ? `Lesson saved - it is part of the writing guide now (${r.lessons} lessons). Every GPT that writes through this server reads it.` : `The writing guide is re-written (version ${r.v}; the one before is kept).`;
+    }
+    case 'update_character_sheet': return editSheet(b, a);
+    case 'undo_sheet_change': return undoSheet(b, a);
     case 'list_characters': {
       const w = a.series ? findWorld(b, a.series) || fail(`No series "${a.series}" - see list_series`) : null;
       const cs = w ? castOf(b, w) : b.characters;
       return `${cs.length} characters${w ? ` in ${w.title}` : ''} (id | name | world | role | tagline):\n` + cs.map((c) => [c.id, c.name, c.world || '', c.role || '', c.tagline || ''].join(' | ')).join('\n');
     }
-    case 'get_character': return characterText(b, findCharacter(b, a.character || '') || fail(`No character "${a.character}" - try search or list_characters`));
+    case 'get_character': { const c = findCharacter(b, a.character || '') || fail(`No character "${a.character}" - try search or list_characters`); return characterText(b, c, await openNotes(c.id)); }
     case 'list_series': return aboutText(b).split('## Series\n')[1];
     case 'get_series': return worldText(b, findWorld(b, a.series || '') || fail(`No series "${a.series}" - see list_series`));
     case 'list_videos': {
@@ -209,7 +309,7 @@ function run(b, name, a = {}) {
       if (id === 'about') return { json: { id, title: 'The Shlomiverse', text: aboutText(b), url: SITE } };
       const [kind, ...rest] = id.split(':'), key = rest.join(':');
       const item = (title, text, url) => ({ json: { id, title, text, url, metadata: { kind } } });
-      if (kind === 'character') { const c = findCharacter(b, key) || fail(`No ${id}`); return item(c.name, characterText(b, c), `${SITE}/c/${c.id}`); }
+      if (kind === 'character') { const c = findCharacter(b, key) || fail(`No ${id}`); return item(c.name, characterText(b, c, await openNotes(c.id)), `${SITE}/c/${c.id}`); }
       if (kind === 'video') { const v = b.vById[key] || fail(`No ${id}`); return item(v.title, videoText(b, v), `${SITE}/v/${v.id}`); }
       if (kind === 'series') { const w = findWorld(b, key) || fail(`No ${id}`); return item(w.title, worldText(b, w), `${SITE}/s/${w.id}`); }
       if (kind === 'site') { const s = (b.sites || []).find((x) => x.id === key) || fail(`No ${id}`); return item(s.title, `${s.title}\n${pub(s.url)}\n${s.about || ''}\nWhose: ${(s.whose || []).map((x) => nameOf(b, x)).join(', ')}`, pub(s.url)); }
@@ -222,7 +322,7 @@ function run(b, name, a = {}) {
 
 // ---- MCP over HTTP (stateless JSON-RPC) ----
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Read-only. Before writing for a character, read their sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and, when useful, the transcripts of their videos with get_video. Content is in Hebrew.';
+const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide.';
 async function answer(msg) {
   const { id, method, params = {} } = msg || {};
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
@@ -231,7 +331,7 @@ async function answer(msg) {
   if (id === undefined || id === null) return null;   // a notification (initialized, cancelled): nothing to answer
   if (method === 'initialize') {
     const v = VERSIONS.includes(params.protocolVersion) ? params.protocolVersion : VERSIONS[0];
-    return ok({ protocolVersion: v, capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'shlomiverse', title: 'Shlomiverse', version: '1.0.0' }, instructions: INSTRUCTIONS });
+    return ok({ protocolVersion: v, capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'shlomiverse', title: 'Shlomiverse', version: '1.1.0' }, instructions: INSTRUCTIONS });
   }
   if (method === 'ping') return ok({});
   if (method === 'tools/list') return ok({ tools: TOOLS });
@@ -239,7 +339,7 @@ async function answer(msg) {
   if (method === 'prompts/list') return ok({ prompts: [] });
   if (method === 'tools/call') {
     try {
-      const out = run(await load(), params.name, params.arguments || {});
+      const out = await run(await load(), params.name, params.arguments || {});
       if (out && out.json) return ok({ content: [{ type: 'text', text: JSON.stringify(out.json) }], structuredContent: out.json });
       return ok({ content: [{ type: 'text', text: out }] });
     } catch (e) {
@@ -250,7 +350,7 @@ async function answer(msg) {
   return err(-32601, `Method not found: ${method}`);
 }
 
-exports.verseMcp = onRequest({ region: 'europe-west1', secrets: [KEY], memory: '512MiB', timeoutSeconds: 60, maxInstances: 3, cors: true }, async (req, res) => {
+exports.verseMcp = onRequest({ region: 'europe-west1', secrets: [KEY], memory: '512MiB', timeoutSeconds: 120, maxInstances: 3, cors: true }, async (req, res) => {
   const parts = req.path.split('/').filter(Boolean);   // /mcp/<key> through shlomiverse.com, /<key> on the function's own URL
   const key = parts[parts.length - 1] || '';
   const want = KEY.value().trim();

@@ -1,10 +1,10 @@
-// pictures straight from OpenAI (gpt-image-2.5 flare / sunburst) - Shlomi's rule from 30 Oct 2026, no Leonardo.
+// pictures straight from OpenAI (gpt-image-2.6 flare / sunburst (2.5 until 2026-11-17)) - Shlomi's rule from 30 Oct 2026, no Leonardo.
 //   node tools/oai-image.js --prompt-file p.txt --out art/x.png [--model flare|sunburst] [--size 1536x1024] [--quality medium] [--ref a.jpg --ref b.png] [--transparent]
 // with --ref the pictures go to /v1/images/edits as references (style, the same character); without - /v1/images/generations.
 const fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), arg = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const refs = args.flatMap((a, i) => a === '--ref' ? [args[i + 1]] : []);
-const MODELS = { flare: 'gpt-image-2.5-flare', sunburst: 'gpt-image-2.5-sunburst' };
+const MODELS = { flare: 'gpt-image-2.6-flare', sunburst: 'gpt-image-2.6-sunburst' };
 const model = MODELS[arg('model', 'flare')] || arg('model'), size = arg('size', '1536x1024'), quality = arg('quality', 'medium');
 const prompt = arg('prompt-file') ? fs.readFileSync(arg('prompt-file'), 'utf8') : arg('prompt');
 // the key: the Shlomiverse design key (scripts/design.env) before anything in the environment, so Backstage -> הוצאות

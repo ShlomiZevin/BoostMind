@@ -25,7 +25,7 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
   borrow another project's key, never print one):
   - pictures: `node tools/leonardo.mjs image <prompt.txt> <out.jpg> [flare|sunburst] [HIGH|MEDIUM] [WxH]`;
     a character from their portrait: `node tools/leonardo.mjs portrait <ref.png> <prompt.txt> <out.jpg> sunburst HIGH`
-    (both call OpenAI GPT Image 2.5 directly). Several references at once (a character + a style + a layout):
+    (both call OpenAI GPT Image 2.6 directly). Several references at once (a character + a style + a layout):
     `zoomcut/skill/marketing-stories/tools/oai-image.js --ref a --ref b ...` (it takes the design key,
     `scripts/design.env`, by itself - Backstage counts it), then `tools/library_add.mjs` on the result.
   - sound effects: `node tools/leonardo.mjs sfx <prompt.txt> <out.mp3> <secs>` (ElevenLabs directly);
@@ -47,9 +47,9 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
   installed Chrome (`C:/Program Files/Google/Chrome/Application/chrome.exe`, `--use-angle=swiftshader` for WebGL).
 
 ## The makers - always these
-- **Every picture = OpenAI GPT Image 2.5, one of exactly two models** (super important - his rule):
-  - **`gpt-image-2.5-flare`** (`flare`) - the default: scenes, props, backgrounds, icons, the concept picture.
-  - **`gpt-image-2.5-sunburst`** (`sunburst`) - the most exact: the characters and their poses, the cover, the title
+- **Every picture = OpenAI GPT Image 2.6, one of exactly two models** (super important - his rule):
+  - **`gpt-image-2.6-flare`** (`flare`) - the default: scenes, props, backgrounds, icons, the concept picture.
+  - **`gpt-image-2.6-sunburst`** (`sunburst`) - the most exact: the characters and their poses, the cover, the title
     art, the hero and the story picture - at HIGH quality.
   - No other image model, ever (no DALL-E, no gpt-image-1, no Flux). Called directly: game art, the concept picture, the cover, the title art, the share picture, story
   pictures. Never Leonardo (only if OpenAI refuses or fails), never shapes drawn in code for what the player looks at.

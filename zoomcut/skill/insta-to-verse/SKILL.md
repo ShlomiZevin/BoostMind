@@ -42,7 +42,7 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
   name / world / background). Never invent a name. "אמא של יוסי" never goes on the wiki (his rule).
 - **Batches as he asks** ("do 10 more"); report the cost per batch.
 - **Telegram only when you need something from him** (an unknown character, a name) - never for reports or FYI (his words, 2026-10-31).
-- Profile pictures: OpenAI direct, GPT Image 2.5 flare (or sunburst), **LOW**, MEDIUM at most, never HIGH / Leonardo.
+- Profile pictures: OpenAI direct, GPT Image 2.6 flare (or sunburst), **LOW**, MEDIUM at most, never HIGH / Leonardo.
 
 ## The archive page - what he (and later everyone) marks to bring (2026-11-10)
 **shlomiverse.com/archive** (a page inside the verse: `v2/site/verse/archive.js` -> `public/verse/archive.js`, the 2.0

@@ -19,7 +19,7 @@ It starts Firebase's emulators (sign-in, Firestore, functions, storage) as proje
 boostmind-b052c. Sign-in is the emulator's pretend Google screen (any name). Local data is kept in `v2/.emu/` between
 runs. Needs the portable Java in `%USERPROFILE%\.local\jre21` (the Firestore and Storage emulators are Java programs).
 The OpenAI key comes from `zoomcut/.env` at start (character replies, moderation, stickers cost real money: a sticker is
-one gpt-image-2.5 call at medium). Analytics stay local (a stub `t.js`).
+one gpt-image-2.6 call at medium). Analytics stay local (a stub `t.js`).
 
 ## What is where
 

@@ -1,5 +1,5 @@
 // Sketch pictures and sounds: backgrounds, portraits from a reference photo, sound effects, looping beds, AI video.
-// Pictures go to OpenAI and sounds to ElevenLabs DIRECTLY - the same models Leonardo resells (GPT Image 2.5 flare /
+// Pictures go to OpenAI and sounds to ElevenLabs DIRECTLY - GPT Image 2.6 flare / sunburst on OpenAI (since 2026-11-17; Leonardo resells 2.5 flare /
 // sunburst; ElevenLabs sound effects), 30-67% cheaper for pictures and ~4x for sound (measured 2026-10-30, his ask:
 // "move Shlomiverse Studio off Leonardo"). Leonardo only when the direct call refuses or fails, or its key is missing, and
 // for `video` (seedance - neither OpenAI nor ElevenLabs makes video). The file keeps its name so every command still works.
@@ -26,7 +26,8 @@ const ENV = new URL('../.env', import.meta.url);
 const envKey = (name) => { try { return fs.readFileSync(ENV, 'utf8').split(/\r?\n/).find((l) => l.startsWith(name + '='))?.slice(name.length + 1).trim().replace(/^["']|["']$/g, '') || null; } catch { return null; } };
 const KEY = envKey('LEONARDO_API_KEY'), OPENAI = envKey('OPENAI_API_KEY'), ELEVEN = envKey('ELEVENLABS_API_KEY');
 const needLeonardo = () => { if (!KEY) { console.error('LEONARDO_API_KEY missing in zoomcut/.env - the editor uses its own key only'); process.exit(1); } };
-const MODEL = { flare: 'openai/gpt-image-2.5-flare', sunburst: 'openai/gpt-image-2.5-sunburst' };
+const MODEL = { flare: 'openai/gpt-image-2.5-flare', sunburst: 'openai/gpt-image-2.5-sunburst' };   // Leonardo's ids (the fallback only)
+const OPENAI_VER = '2.6';   // OpenAI direct: gpt-image-2.6-flare / -sunburst (his ask 2026-11-17: move to the newest; same price as 2.5)
 const headers = () => ({ authorization: `Bearer ${KEY}`, accept: 'application/json', 'content-type': 'application/json' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -81,7 +82,7 @@ async function collect(id, re, out) {
 
 
 // ---- direct: OpenAI pictures, ElevenLabs sounds -------------------------------------------------------------------
-// OpenAI's list price for GPT Image 2.5 (flare and sunburst alike), $ per 1M tokens
+// OpenAI's list price for GPT Image 2.6 (flare and sunburst alike - the same as 2.5), $ per 1M tokens
 const OPENAI_PRICE = { text: 5, image: 8, out: 30 };
 // OpenAI has no reference-strength dial - the prompt carries it (tested 2026-10-30: faces held at every level)
 const HOLD = (st) => {
@@ -92,7 +93,7 @@ const HOLD = (st) => {
 };
 async function openaiImage({ prompt, model, w, h, quality, refs, out }) {
   const r16 = (x) => Math.max(16, Math.round(x / 16) * 16);
-  const fields = { model: 'gpt-image-2.5-' + model, prompt, size: `${r16(w)}x${r16(h)}`, quality: String(quality).toLowerCase(), n: 1 };
+  const fields = { model: `gpt-image-${OPENAI_VER}-` + model, prompt, size: `${r16(w)}x${r16(h)}`, quality: String(quality).toLowerCase(), n: 1 };
   const png = /\.png$/i.test(out);
   fields.output_format = png ? 'png' : 'jpeg';
   if (!png) fields.output_compression = 92;
@@ -159,7 +160,7 @@ if (cmd === 'balance') {
   const prompt = fs.readFileSync(promptFile, 'utf8').trim();
   const refs = ref ? ref.split(',') : [];
   const d = await direct('OpenAI', OPENAI, () => openaiImage({ prompt: refs.length ? `${prompt}\n\n${HOLD(strength)}` : prompt,
-    model: MODEL[model] ? model : String(model).replace(/^.*gpt-image-2\.5-/, ''), w: dims[0], h: dims[1], quality, refs, out }));
+    model: MODEL[model] ? model : String(model).replace(/^.*gpt-image-2\.\d-/, ''), w: dims[0], h: dims[1], quality, refs, out }));
   if (d) { console.log(`OK -> ${out}  ${(d.bytes / 1024).toFixed(0)} kB  $${d.usd.toFixed(4)}  (OpenAI direct)`); await toLibrary(out, promptFile); process.exit(0); }
   needLeonardo();
   const parameters = { prompt, quantity: 1, width: dims[0], height: dims[1], quality, prompt_enhance: 'OFF' };

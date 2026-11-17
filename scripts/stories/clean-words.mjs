@@ -1,5 +1,5 @@
 // Take the words out of parts of a story picture, so they can be real boxes instead (zoomcut/skill/verse-story):
-// GPT Image 2.5 (OpenAI direct, MEDIUM) repaints ONLY the given areas as the scene behind the words; everything outside
+// GPT Image 2.6 (OpenAI direct, MEDIUM) repaints ONLY the given areas as the scene behind the words; everything outside
 // them is the original's own pixels, put back afterwards (a soft edge), so faces and the rest never change.
 //   node scripts/stories/clean-words.mjs <in.jpg|png> <out.jpg> "x1,y1,x2,y2" ["x1,y1,x2,y2" ...]   (areas in % of the picture)
 //   optional: --hint "what is behind the words, e.g. the white lace of the wedding dress"
@@ -35,7 +35,7 @@ const prompt = `Remove every written word, letter and text panel inside the mask
 what is naturally behind them${hint ? ' (' + hint + ')' : ''}: the same scene, light, colours, texture and style, seamless with
 the rest. No text, no letters, no signs, no new objects, no people. Change nothing outside the masked areas.`;
 const form = new FormData();
-form.append('model', 'gpt-image-2.5-sunburst'); form.append('prompt', prompt); form.append('size', size);
+form.append('model', 'gpt-image-2.6-sunburst'); form.append('prompt', prompt); form.append('size', size);
 form.append('quality', 'medium'); form.append('n', '1'); form.append('output_format', 'png');
 form.append('image[]', new Blob([fs.readFileSync(path.join(tmp, 'in.png'))], { type: 'image/png' }), 'in.png');
 form.append('mask', new Blob([fs.readFileSync(path.join(tmp, 'in-mask.png'))], { type: 'image/png' }), 'mask.png');

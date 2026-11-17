@@ -1,6 +1,6 @@
 // Piko (פיקו, shlomiverse.com/piko/) - Shlomi's own picture + video maker (2026-11-06, his ask: "something like
 // Leonardo, but my own - Leonardo costs x2-x4 what the models cost"):
-//   pictures  OpenAI GPT Image 2.5 flare / sunburst, with up to 16 reference images (he usually works from references)
+//   pictures  OpenAI GPT Image 2.6 flare / sunburst (2.5 until 2026-11-17), with up to 16 reference images (he usually works from references)
 //   videos    Seedance 2.0 Mini through EvoLink - a start frame, sometimes an end frame. EvoLink takes real faces (ByteDance's
 //             own API refuses them) at ~$0.11 per 6 s at 480p with sound; Leonardo charged $0.54 for the same clip (tested
 //             2026-11-06, memory reference_video_direct_prices)
@@ -44,7 +44,7 @@ const IMAGE = {
   qualities: ['low', 'medium', 'high'],
   maxRefs: 16,                                   // what /v1/images/edits takes
   maxCount: 4,                                   // pictures per request, made side by side (one job each)
-  price: { text: 5, image: 8, out: 30 },        // GPT Image 2.5 list price, $ per 1M tokens (the job's own cost line)
+  price: { text: 5, image: 8, out: 30 },        // GPT Image 2.6 list price (= 2.5), $ per 1M tokens (the job's own cost line)
 };
 // two Seedance 2.0 models (his call, 2026-11-08, after a face test: same photo + prompt on both, ArcFace similarity to the
 // photo 0.63 Mini vs 0.80 Fast): mini = the cheap draft (faces may drift a little), fast = keeps faces as in the photo, ~3x the price
@@ -192,7 +192,7 @@ async function forVideo(prompt, { start, end }) {
 
 async function image(job, refs) {
   const p = job.params;
-  const fields = { model: 'gpt-image-2.5-' + p.model, prompt: job.promptEn || job.prompt, size: IMAGE.sizes[p.size], quality: p.quality, n: 1, output_format: 'jpeg', output_compression: 92 };
+  const fields = { model: 'gpt-image-2.6-' + p.model, prompt: job.promptEn || job.prompt, size: IMAGE.sizes[p.size], quality: p.quality, n: 1, output_format: 'jpeg', output_compression: 92 };
   const auth = { authorization: `Bearer ${OPENAI.value()}` };
   let r;
   if (refs.length) {

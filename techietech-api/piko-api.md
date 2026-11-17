@@ -1,6 +1,6 @@
 # Piko API
 
-The server behind Piko (shlomiverse.com/piko/): pictures from GPT Image 2.5 (with reference images) and videos from
+The server behind Piko (shlomiverse.com/piko/): pictures from GPT Image 2.6 (with reference images) and videos from
 Seedance 2.0 Mini or Fast (a start frame, an end frame, both or neither, with sound). Shlomi's app and his other tools
 (startdoing.co.il) use this same API. Code: `piko.js`.
 

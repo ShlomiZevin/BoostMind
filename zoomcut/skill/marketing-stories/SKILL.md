@@ -1,6 +1,6 @@
 ---
 name: marketing-stories
-description: Make the launch marketing for a new game / product of Shlomi's (Hani's playhouse "המשחקייה של חני", Plaxzy, any brand) - Instagram stories and posts designed by GPT image 2.5 (sunburst / flare) from REAL photos of the people + the product's own art, a fast launch teaser video (model-designed frames with the host as the hook, trailer voice-over, a tiny story hook, a radio-ad disclaimer, a 'how do you get there' end frame) and optionally a silent chapter video for a song. Use whenever he says marketing, promo, stories, סטוריז, posts, פוסטים, teaser, טיזר, launch, "tell people the game is up", or hands over a promo HANDOFF.
+description: Make the launch marketing for a new game / product of Shlomi's (Hani's playhouse "המשחקייה של חני", Plaxzy, any brand) - Instagram stories and posts designed by GPT image 2.6 (sunburst / flare) from REAL photos of the people + the product's own art, a fast launch teaser video (model-designed frames with the host as the hook, trailer voice-over, a tiny story hook, a radio-ad disclaimer, a 'how do you get there' end frame) and optionally a silent chapter video for a song. Use whenever he says marketing, promo, stories, סטוריז, posts, פוסטים, teaser, טיזר, launch, "tell people the game is up", or hands over a promo HANDOFF.
 ---
 
 # marketing-stories - launch marketing from real people + real product art
@@ -29,7 +29,7 @@ is ever tagged in bulk again (his words: "so we won't get another time these thi
 
 ## What wins (each line cost a round)
 - **Let the image model DESIGN the story - don't stamp cut-outs on a template.** My hand-made HTML layout (photos
-  pasted around text boxes) was "a mess, no logic". The fix: give gpt-image-2.5 all the pictures + the exact text and
+  pasted around text boxes) was "a mess, no logic". The fix: give gpt-image-2.6 all the pictures + the exact text and
   say what the story is FOR; it composes the scene and the Hebrew typography together. Sunburst and flare both do
   good Hebrew.
 - **Real people, from real photos.** If you have no realistic photo of a person, ask him first. A picture he pastes in

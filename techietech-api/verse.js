@@ -223,7 +223,7 @@ Transparent background around the sticker. No watermark, no logo.`;
 
 async function makeSticker(frameB64, text) {
   const form = new FormData();
-  form.append('model', 'gpt-image-2.5-sunburst');
+  form.append('model', 'gpt-image-2.6-sunburst');
   form.append('prompt', STICKER_PROMPT(text));
   form.append('size', '1024x1024');
   form.append('quality', 'medium');

@@ -1,6 +1,6 @@
 # The layered editor - design
 
-Picked from three Leonardo mockups (GPT Image 2.5 flare, MEDIUM, 2026-10-22): the editor shell, the picture / voice /
+Picked from three Leonardo mockups (GPT Image 2.6 flare, MEDIUM, 2026-10-22): the editor shell, the picture / voice /
 clip panels, the text / subtitle / image panels. The same language as today's editor (editor.css "mockup B"), so old and
 new screens read as one product.
 

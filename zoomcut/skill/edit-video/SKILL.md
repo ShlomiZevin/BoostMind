@@ -860,9 +860,11 @@ faces from references held). Leonardo only as the fallback - the tool says why a
 an error or a missing key - and for `video`; `--leonardo` forces it. OpenAI has no reference-strength dial: the
 strength (0.5 / 0.6 / 0.8) becomes a sentence in the prompt ("keep exactly the face, pose and position"...). Each
 result line says which side made it and what it cost. **Key: his official Leonardo account's key in `zoomcut/.env` (`LEONARDO_API_KEY`, set 2026-10-26 - he: "this should be the official API key we are using for our editor to run everything"); the script reads ONLY it - no fallback; the aspect project runs on its own Leonardo key and the two never cross (his ask, 2026-10-27). Never another key.**
-- **Models - only these two** (his taste, 2026-10-20: "I'm loving more the sunburst and flare models"):
-  `flare` = `openai/gpt-image-2.5-flare` - photoreal people, portraits from his frames, sets, event photos;
-  `sunburst` = `openai/gpt-image-2.5-sunburst` - logos / emblems, products, die-cut stickers, flat graphics.
+- **Models - only these two** (his taste, 2026-10-20: "I'm loving more the sunburst and flare models"), **version 2.6 since
+  2026-11-17** (his ask: "if there are 2.6, move to them" - same price per token as 2.5; `tools/leonardo.mjs` OPENAI_VER;
+  Leonardo's fallback still has only 2.5). A newer version on the key = `GET /v1/models` with the design key, then move:
+  `flare` = `openai/gpt-image-2.6-flare` - photoreal people, portraits from his frames, sets, event photos;
+  `sunburst` = `openai/gpt-image-2.6-sunburst` - logos / emblems, products, die-cut stickers, flat graphics.
 - **Cheap (his rule):** MEDIUM and the smallest size that works - 1024x1024, 1536x1024 for a wide one. Never HIGH /
   HD / 2x unless he asks. Direct on OpenAI (2026-10-30): 1024x1024 MEDIUM $0.013, 1024x1536 $0.010, a portrait from
   a reference $0.019 (Leonardo charged $0.021 / $0.030 / $0.033).
@@ -915,7 +917,7 @@ own site, the wiki, the chat agent - tested).
   - Before you build it, find its characters on the page (`GET /api/characters`).
   - **A new character gets a profile first:** `POST /api/characters/<id> {patch: {...}}` with name, world, role and brief
     from the script, a portrait from his frame, the look and the voice preset.
-  - **The profile picture is made on OpenAI directly with GPT Image 2.5 flare (or sunburst)** - his rule, 2026-10-31:
+  - **The profile picture is made on OpenAI directly with GPT Image 2.6 flare (or sunburst)** - his rule, 2026-10-31:
     `node zoomcut/tools/leonardo.mjs portrait <his-frame.jpg> <prompt.txt> <out.jpg> flare LOW 0.6 1024x1024`
     (`OPENAI_API_KEY` in `zoomcut/.env`; LOW is enough, MEDIUM at most, never HIGH; ~$0.01 LOW / $0.019 MEDIUM).
     Never Leonardo for it (the tool only falls back there by itself on an OpenAI error - say so if it does).

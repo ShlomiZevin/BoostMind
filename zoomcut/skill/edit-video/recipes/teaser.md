@@ -23,7 +23,7 @@ growing out of space until it lands exactly on the logo frame (`source/frame-log
   lands there, starting where the track is already full (balabusta: sv-music 1.3-15.3 s at tempo 0.859 -> hit at 16.3).
 - **The green "הסכמות" card** after "רק בשלומיוורס" (his ask - like the green card before a film trailer, made Haredi:
   "מכתבי ברכה והסכמה", the video "נבדק ונמצא כשר למהדרין לכל בני הבית", five rabbis' approvals, "ועל זה באעה"ח"):
-  `_assets/shlomiverse/verse-haskamot.mp4` (4 s): a sefer's ornamented green page (gold arch + crown, made with GPT Image 2.5 WITHOUT any text - `source/haskamot/frame.png`, p-frame.txt), the exact words set on it in gold / cream by `source/haskamot/card.html` (shot.mjs -> PNG -> clip). Every word stays inside the plain green (y 300-1740, x 165-915 - measured from the frame), spread evenly; never on the ornaments (his note). The rabbis
+  `_assets/shlomiverse/verse-haskamot.mp4` (4 s): a sefer's ornamented green page (gold arch + crown, made with GPT Image 2.6 WITHOUT any text - `source/haskamot/frame.png`, p-frame.txt), the exact words set on it in gold / cream by `source/haskamot/card.html` (shot.mjs -> PNG -> clip). Every word stays inside the plain green (y 300-1740, x 165-915 - measured from the frame), spread evenly; never on the ornaments (his note). The rabbis
   and yeshivas are INVENTED (written with Terra - gpt-5.6-terra, his rule for Hebrew copy - checked not to be real people) - never put a real rabbi's name on it.
 - **The hand-over from the intro to the video** (his note: "looks like two different stuff"): a warm white flash
   (`verse.flash`, a #fff1dc shape peaking on the cut) - the logo fades into light and the first shot appears through it.
@@ -42,7 +42,7 @@ growing out of space until it lands exactly on the logo frame (`source/frame-log
 - `episodes/_assets` travels by the studio's cloud sync, not git (CLAUDE.md "The studio online").
 
 ## Making the teaser (what worked, his notes)
-1. **Layers from the still** with the image model (gpt-image-2.5 sunburst, `--ref` the still): the scene WITHOUT the hero
+1. **Layers from the still** with the image model (gpt-image-2.6 sunburst, `--ref` the still): the scene WITHOUT the hero
    and the words (a clean plate), the hero alone on flat green, the words alone on flat green; key the green
    (C:/workspace/hani-games/balabusta/teaser/build_layers.py). Every layer a full-canvas PNG in its place - they line up.
    Need the hero's full body (the camera climbs her)? A pass that completes her below, matched on a shared detail.
