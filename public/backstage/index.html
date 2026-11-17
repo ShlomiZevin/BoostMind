@@ -1063,8 +1063,10 @@ function chars() {
   if (!CR) { $('#pane').innerHTML = '<div class="empty">טוען את הדמויות…</div>'; crLoad(() => { if (tab === 'chars') chars(); }); return; }
   if (crId) return crView();
   const words = crQ.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const all = CR.chars.filter((c) => !c.hidden);
-  const hay = (c) => [c.name, c.name_en, c.world, c.role, c.tagline, ...Object.values(c.sheet || {}).flat(), ...(c.life || []).map((x) => x.e)].join(' ').toLowerCase();
+  const all = CR.chars.filter((c) => !c.hidden && c.id !== CR_GUIDE);
+  // the guide is found by any of these (his ask 2026-11-17: "המדריך, העולם, היקום, the verse, Shlomiverse - Hebrew, English")
+  const GUIDE_WORDS = 'המדריך מדריך המיתולוגיה מיתולוגיה העולם עולם היקום יקום השלומיוורס שלומיוורס הוורס ורס האגדה אגדה המייסדים guide the guide mythology world universe verse the verse shlomiverse legend founders';
+  const hay = (c) => [c.id === CR_GUIDE ? GUIDE_WORDS : '', c.name, c.name_en, c.world, c.role, c.tagline, ...Object.values(c.sheet || {}).flat(), ...(c.life || []).map((x) => x.e)].join(' ').toLowerCase();
   const seg = { all: () => true, news: crNew, open: (c) => crOpen(c.id) }[crSeg] || (() => true);
   const by = { love: (a, b) => (b.love || 0) - (a.love || 0), viral: (a, b) => (b.viral || 0) - (a.viral || 0), name: (a, b) => String(a.name).localeCompare(String(b.name), 'he') }[crSort];
   const list = all.filter((c) => seg(c) && words.every((w) => hay(c).includes(w))).sort(by);
@@ -1074,7 +1076,7 @@ function chars() {
       <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'עודכן מאז שראית', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))]].map(([k, l, c]) =>
         `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div>
       <div class="seg sm">${[['love', 'לפי אהוב'], ['viral', 'לפי ויראלי'], ['name', 'לפי שם']].map(([k, l]) => `<button data-crsort="${k}" class="${crSort === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>
-    ${(() => { const g = CR.chars.find((c) => c.id === CR_GUIDE); if (!g) return ''; const open = crOpen(g.id);
+    ${(() => { const g = CR.chars.find((c) => c.id === CR_GUIDE); if (!g || !seg(g) || !words.every((w) => hay(g).includes(w))) return ''; const open = crOpen(g.id);
       return `<div class="ch-list"><button class="item" data-cropen="${g.id}">${crFace(g)}<div class="body"><b>המדריך והמיתולוגיה</b><p>מי המדריך, איך הוא מדבר, והאגדות של השלומיוורס</p>
         <div class="ch-tags">${crNew(g) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}</div></div></button></div>`; })()}
     <div class="ch-list">${list.map((c) => { const open = crOpen(c.id);
