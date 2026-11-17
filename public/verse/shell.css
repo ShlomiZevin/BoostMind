@@ -943,3 +943,15 @@ html:not(.fd-clean) .fd-ui { top: auto; bottom: 46px; justify-content: flex-end;
 /* clean mode as it was: only the strip, at the very bottom, see-through */
 html.fd-clean .fd-strip { background: rgba(12, 12, 14, .45); }
 html:not(.fd-clean) .fd-strip .fs-det { display: none !important; }   /* "full screen" belongs to the clean view only */
+/* the bottom made strong (his note): the video's own bottom (a Zoom toolbar, name tags) never reads through the words or the strip -
+   ~.92 black behind the chips and the strip, ~.6 behind the title, clear from about the frame's middle up */
+html:not(.fd-clean) .fd-shade { background: linear-gradient(to top, rgba(0, 0, 0, .95) 0, rgba(0, 0, 0, .92) 100px, rgba(0, 0, 0, .78) 128px, rgba(0, 0, 0, .6) 160px, rgba(0, 0, 0, .3) 34%, transparent 55%),
+  linear-gradient(to bottom, rgba(0, 0, 0, .25), transparent 12%); }
+.fd-strip .fs-bar { margin-left: 4px; }   /* 10px between the time and the line */
+.fd-strip.at0 .fs-knob { opacity: 0; }
+/* stronger still where the strip and the chips sit: effectively solid dark */
+html:not(.fd-clean) .fd-shade { background: linear-gradient(to top, #000 0, #000 72px, rgba(0, 0, 0, .96) 112px, rgba(0, 0, 0, .8) 140px, rgba(0, 0, 0, .6) 166px, rgba(0, 0, 0, .3) 34%, transparent 55%),
+  linear-gradient(to bottom, rgba(0, 0, 0, .25), transparent 12%); }
+/* the line as on the mockup: the orange fill alone; the thumb shows only while seeking */
+.fd-strip .fs-knob { opacity: 0; transition: opacity .15s; }
+.fd-strip.seeking .fs-knob { opacity: 1; }

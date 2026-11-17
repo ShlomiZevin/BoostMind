@@ -57,7 +57,7 @@ export const railBtn = (key, attr, ic, label, n) => `<button ${attr}="${key}"><s
 export function placeRail(rail, top, bottom) {
   const vis = [...rail.children].filter((b) => !b.hidden), n = vis.length || 1, g = innerHeight < 700 ? 6 : 8;
   const extra = vis.filter((b) => b.querySelector('[data-n]')).length * 12;   // a button with a count grows by its line
-  const size = Math.max(46, Math.min(56, Math.floor((bottom - top - extra - (n - 1) * g) / n)));
+  const size = Math.max(46, Math.min(innerHeight < 700 ? 46 : 56, Math.floor((bottom - top - extra - (n - 1) * g) / n)));   // a short phone: the small size
   rail.style.setProperty('--rb', size + 'px'); rail.style.setProperty('--rg', g + 'px');
   // the box from the top room to the bottom line, the buttons at its bottom: a count arriving never moves the rail's end
   rail.style.top = Math.round(top) + 'px'; rail.style.height = Math.max(0, Math.round(bottom - top)) + 'px';
@@ -318,9 +318,10 @@ function ctlMount() {
     const bar = c.querySelector('.fs-bar');
     const seekTo = (x) => { const vd = cur(), r = bar.getBoundingClientRect(); if (!vd || !vd.duration) return; vd.currentTime = Math.min(1, Math.max(0, (x - r.left) / r.width)) * vd.duration; stripTime(); };
     let drag = false;
-    bar.addEventListener('pointerdown', (e) => { e.stopPropagation(); peek(); drag = true; bar.setPointerCapture(e.pointerId); seekTo(e.clientX); });
+    bar.addEventListener('pointerdown', (e) => { e.stopPropagation(); peek(); drag = true; c.classList.add('seeking'); bar.setPointerCapture(e.pointerId); seekTo(e.clientX); });
     bar.addEventListener('pointermove', (e) => { if (drag) seekTo(e.clientX); });
-    bar.addEventListener('pointerup', () => { drag = false; });
+    const stop = () => { drag = false; c.classList.remove('seeking'); };
+    bar.addEventListener('pointerup', stop); bar.addEventListener('pointercancel', stop);
     document.body.append(c);
     const r = Object.assign(document.createElement('div'), { id: 'fd-rail', className: 'fd-rail fd-fixed' });
     r.innerHTML = railBtn('comments', 'data-f', ICON_COMMENT, FT.comments, 'comments') + railBtn('sticker', 'data-f', I.sticker, FT.sticker, 'stickers')
@@ -343,7 +344,7 @@ function ctlPlace() {
   let tall = 0;
   for (const s of FD.slides) { const i = s.querySelector('.fd-info'); if (i) tall = Math.max(tall, i.offsetHeight); }
   if (!tall || !fr.height) return;
-  placeRail(r, fr.top + 12, fr.bottom - 50 - tall - 14);
+  placeRail(r, fr.top + 12, fr.bottom - 50 - tall - 24);   // its bottom ~24px above the tallest title's top, growing upward
 }
 function ctlPaint() {
   const c = document.getElementById('fd-strip');
