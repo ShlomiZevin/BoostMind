@@ -1009,6 +1009,7 @@ async function wishSweep() {
 
 // ---------- Shlomi's page ----------
 const wrongKey = new Map();
+let followCache = null;   // how many follow each character (the 'list' op)
 function ownerOk(req, res) {
   const auth = req.get('authorization') || '';
   if (!auth.startsWith('Key ')) { res.status(401).json({ error: 'key' }); return false; }
@@ -1300,8 +1301,13 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
         db.collection('wishes').where('done', '==', false).select('n', 'last').get(),   // archive marks - the menu's number on סרטונים
       ]);
       // how many follow each character (the new story window says how many a story reaches)
-      const followers = {};
-      (await db.collection('fans').select('follows').get()).docs.forEach((d) => (d.data().follows || []).forEach((c) => { followers[c] = (followers[c] || 0) + 1; }));
+      // (kept 10 minutes - Backstage asks every minute since it refreshes by itself, and this reads every resident)
+      if (!followCache || Date.now() - followCache.at > 10 * 60e3) {
+        const f = {};
+        (await db.collection('fans').select('follows').get()).docs.forEach((d) => (d.data().follows || []).forEach((c) => { f[c] = (f[c] || 0) + 1; }));
+        followCache = { at: Date.now(), f };
+      }
+      const followers = followCache.f;
       const rows = (s) => s.docs.map((d) => ({ id: d.id, ...d.data(), t: d.data().t?.toMillis?.() || null }));
       return res.json({ comments: rows(comments), stickers: rows(stickers), requests: rows(requests), stories: rows(stories),
         announced: Object.fromEntries(announced.docs.map((d) => [d.id, d.data().t?.toMillis?.() || 1])), fans: fans.data().count, ideas: rows(ideas),
