@@ -655,3 +655,35 @@ html.app .top .tb-tg { display: none; }
   html.app .cx.dock .cx-left .ql i { flex: none; width: 1px; height: 18px; background: rgba(255, 255, 255, .16); }
   html.app .cx.dock .cx-left .ql-in { padding: 0; border: 0; background: none; color: var(--accent, #ff6a1f); font: inherit; font-weight: 700; cursor: pointer; }
 }
+
+/* =================== after the release, round 1 =================== */
+@media (max-width: 760px) {
+  /* the top bar: the search by the logo (right), the selector by the bell (left), every item on one centre line */
+  html.app .top .wrap { align-items: center; }
+  html.app .top .search:not(.s-open) { margin-inline-start: 8px !important; height: 42px; align-self: center; }
+  html.app .top .search:not(.s-open) input { display: block; }
+  html.app .top .tb-tg { margin-inline-start: auto !important; margin-inline-end: 2px; height: 42px; align-self: center; }
+  html.app .top .tb-tg ~ .search:not(.s-open) { margin-inline-start: 8px !important; }
+  html.app .top .vx-top { margin-inline-start: auto !important; height: 42px; align-self: center; }
+  html.app .top .tb-tg + .vx-top { margin-inline-start: 4px !important; }
+  html.app .top .brand { align-self: center; height: 42px; display: flex; align-items: center; }
+  html.app .top .brand .brand-logo { margin-block: 0; display: block; }
+  /* the open search covers the whole bar and dims everything under it (nothing shows through sharp) */
+  html.app:has(.top .search.s-open) .top { z-index: 96; }
+  html.app .top .search.s-open { box-shadow: 0 0 0 100vmax rgba(5, 5, 8, .78); }
+  html.app .top .search.s-open::before { content: ''; position: fixed; inset: 0; z-index: -1; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); pointer-events: none; }
+  /* the "ask the chat" rows: a little more present - taller, an orange-tinted surface and border, the icon orange */
+  .vg-row:first-child, .vg-row[href^="/chat"] { min-height: 44px; font-size: 14px; font-weight: 600; background: rgba(255, 106, 31, .08); border-color: rgba(255, 106, 31, .38); }
+  .vg-row[href^="/chat"] svg { color: var(--accent, #ff6a1f); width: 22px; height: 22px; }
+  /* one green dot: on the face only */
+  html.app .cx.dock .cx-hd-t small::before { display: none; }
+  /* the videos feed: full screen at the video's bottom corner (in the row with the sound pill) */
+  .fd-tools { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-height: 0; }
+  .fd-tools .fd-sound { align-self: auto; }
+  .fd-full { width: 38px; height: 38px; flex: none; display: grid; place-items: center; padding: 0; border-radius: 50%; color: #fff; cursor: pointer;
+    background: rgba(12, 12, 14, .6); border: 1px solid rgba(255, 255, 255, .22); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  .fd-full svg { width: 20px; height: 20px; }
+}
+/* "בכיכוב:" in its own space; the faces fade only at their far end (nothing over the first chip) */
+.fd-chips { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px); mask-image: linear-gradient(to right, transparent, #000 28px); padding-inline-start: 2px; }
+.fd-cl { position: relative; z-index: 1; padding-inline-end: 2px; }

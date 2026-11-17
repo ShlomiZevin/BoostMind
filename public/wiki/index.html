@@ -957,6 +957,15 @@ function route() {
   // a video / game that isn't there: the end of the verse, as its own page (not a layer over the home)
   const did = decodeURIComponent(id || '');
   if ((page === 'v' || page === 'videos') && HOOK.videoReturn && !HOOK.videoReturn.fresh) HOOK.videoReturn = null;   // APP SHELL: back on the video
+  // APP SHELL on a phone (his rule: one video page): a video opens in the feed at that video - from a grid, the home, a
+  // character, search, a story, a link. In place of its own entry, so back goes where it came from. The player stays for
+  // what the feed doesn't hold (an old archive reel, a TikTok link) and for a comment / sticker link (it opens them)
+  const inFeed = (v) => v && v.src && !v.url && !v.archive;
+  if (page === 'v' && chatDock() && inFeed(V[did]) && !q.c && !q.sticker && !q.how) {
+    const s = { ...(history.state || {}) }; delete s.vxl; delete s.base;
+    history.replaceState(s, '', '/videos?at=' + encodeURIComponent(did));
+    route(); return;
+  }
   const missing = (page === 'v' && !V[did]) || (page === 'play' && !(W.games || []).some((g) => g.id === did));
   if (missing) page = 'notFound';
   if (page === 'v' || page === 'story' || page === 'play') {

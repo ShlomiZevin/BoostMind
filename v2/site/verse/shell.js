@@ -63,8 +63,8 @@ function barSwitch() {
   if (!kind || !html.classList.contains('app') || !phone.matches) { w?.remove(); return; }
   if (!w) {
     w = Object.assign(document.createElement('span'), { id: 'tb-tg', className: 'tb-tg' });
-    const brand = document.querySelector('.top .brand');
-    brand?.parentNode.insertBefore(w, brand.nextSibling);
+    const top = document.getElementById('vx-top');   // at the left end, beside the bell (his note: search by the logo, the selector by the bell)
+    top?.parentNode.insertBefore(w, top);
   }
   w.innerHTML = feedToggle(kind, /[?&]view=grid/.test(location.search) ? 'grid' : 'feed');
 }

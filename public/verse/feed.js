@@ -31,6 +31,7 @@ const gender = (id) => (typeof GENDER !== 'undefined' && GENDER[id]) || 'm';
 const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON_COMMENT = svg('<path d="M6 4.5h12a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-7.5L6 21v-3.5a2.5 2.5 0 0 1-2.5-2.5V7A2.5 2.5 0 0 1 6 4.5z"/>');
 const ICON_SHARE = svg('<path d="M14 5.5 20 11l-6 5.5"/><path d="M20 11h-7.5C8 11 4.5 14 4 19"/>');
+const ICON_FULL = svg('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>');
 const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/></svg>';
 
 function slide(v, i) {
@@ -49,7 +50,8 @@ function slide(v, i) {
         <button data-f="dl"><span class="fd-ic">${I.download}</span><b>${esc(FT.dl)}</b></button>
       </div>
       <div class="fd-info">
-        <button class="fd-sound" data-f="sound" hidden>${ICON_SOUND_OFF}<span>${esc(FT.sound)}</span></button>
+        <div class="fd-tools"><button class="fd-sound" data-f="sound" hidden>${ICON_SOUND_OFF}<span>${esc(FT.sound)}</span></button>
+          <button class="fd-full" data-f="full" aria-label="${esc(T.shell.full)}">${ICON_FULL}</button></div>
         <h2 class="fd-t">${esc(v.title)}</h2>
         ${cast.length ? `<div class="fd-cast"><span class="fd-cl">${esc(FT.cast)}</span><div class="fd-chips">${cast.map((id) => `<a class="fd-chip" href="/c/${id}">${av({ char: id })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></div>
         <div class="fd-acts"><button class="fd-follow" data-f="follow"></button><button class="fd-talk" data-f="talk">${I.comment}<span>${esc(cast.length > 1 ? FT.talkAll : FT.talk1[gender(cast[0])])}</span></button></div>` : ''}
@@ -262,6 +264,15 @@ function blockCheck() {
   else if (!FD.userPaused && vd.paused) play();
 }
 
+// full screen: the browser's own on the <video> (iPhone: webkitEnterFullscreen); leaving it (back, the exit) returns to the feed
+function full(vd, v) {
+  if (!vd) return;
+  track('feed', 'full:' + v.id);
+  const p = vd.requestFullscreen ? vd.requestFullscreen() : vd.webkitRequestFullscreen ? vd.webkitRequestFullscreen() : null;
+  if (p && p.catch) p.catch(() => { if (vd.webkitEnterFullscreen) vd.webkitEnterFullscreen(); });
+  else if (!p && vd.webkitEnterFullscreen) vd.webkitEnterFullscreen();
+  if (vd.paused) vd.play().catch(() => {});
+}
 // the people on the video: one = straight to them; several = a short list first
 function pick(kind) {
   const cast = castOf(FD.list[FD.idx]);
@@ -302,6 +313,7 @@ async function onClick(e) {
   const cast = castOf(v);
   switch (b.dataset.f) {
     case 'sound': unmute(); break;
+    case 'full': full(vd, v); break;
     case 'comments': openComments({}, ctx); break;
     case 'sticker': openSticker(ctx); break;
     case 'save': save(v.id); break;
