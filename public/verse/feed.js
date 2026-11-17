@@ -29,8 +29,8 @@ const castOf = (v) => {
 const gender = (id) => (typeof GENDER !== 'undefined' && GENDER[id]) || 'm';
 // the column's comment bubble and share arrow as drawn on mockup 2 (the rest are ui.js's own)
 const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const ICON_COMMENT = svg('<path d="M6 4.5h12a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-7.5L6 21v-3.5a2.5 2.5 0 0 1-2.5-2.5V7A2.5 2.5 0 0 1 6 4.5z"/>');
-const ICON_SHARE = svg('<path d="M14 5.5 20 11l-6 5.5"/><path d="M20 11h-7.5C8 11 4.5 14 4 19"/>');
+export const ICON_COMMENT = svg('<path d="M6 4.5h12a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-7.5L6 21v-3.5a2.5 2.5 0 0 1-2.5-2.5V7A2.5 2.5 0 0 1 6 4.5z"/>');
+export const ICON_SHARE = svg('<path d="M14 5.5 20 11l-6 5.5"/><path d="M20 11h-7.5C8 11 4.5 14 4 19"/>');
 const ICON_FULL = svg('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>');
 const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/></svg>';
 
@@ -167,6 +167,7 @@ function mount(list, start) {
 
 export function unmount() {
   if (!FD) return;
+  clean(false);
   FD.io?.disconnect(); FD.mo?.disconnect();
   FD.statOff?.();
   FD.off.forEach((u) => u && u());
@@ -269,6 +270,25 @@ function blockCheck() {
   else if (!FD.userPaused && vd.paused) play();
 }
 
+// clean mode (his two full screens): everything over the feed steps aside - the column, the words, the chips, both bars - and
+// the feed goes on, video after video. A tap on the video (or the faint shrink button) brings it back; the faint expand button
+// next to it is the browser's own full screen. Kept while swiping, until it is turned off or the feed is left
+const ICON_SHRINK = svg('<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>');
+function clean(on) {
+  if (!FD) return;
+  const html = document.documentElement;
+  html.classList.toggle('fd-clean', on);
+  let bar = document.getElementById('fd-cleanbar');
+  if (on && !bar) {
+    bar = Object.assign(document.createElement('div'), { id: 'fd-cleanbar', className: 'fd-cleanbar' });
+    bar.innerHTML = `<button data-c="off" aria-label="${esc(T.shell.cleanOff)}">${ICON_SHRINK}</button><button data-c="native" aria-label="${esc(T.shell.full)}">${ICON_FULL}</button>`;
+    bar.addEventListener('click', (e) => { const b = e.target.closest('[data-c]'); if (!b || !FD) return; if (b.dataset.c === 'off') clean(false); else full(cur(), FD.list[FD.idx]); });
+    document.body.append(bar);
+  }
+  if (!on) bar?.remove();
+  if (on) track('feed', 'clean:' + FD.list[FD.idx].id);
+  requestAnimationFrame(() => { if (FD && FD.idx >= 0) FD.el.scrollTop = FD.idx * FD.el.clientHeight; });
+}
 // full screen: the browser's own on the <video> (iPhone: webkitEnterFullscreen); leaving it (back, the exit) returns to the feed
 function full(vd, v) {
   if (!vd) return;
@@ -310,6 +330,7 @@ async function onClick(e) {
   const b = e.target.closest('[data-f]');
   const v = FD.list[FD.idx], ctx = FD.ctx, vd = cur();
   if (!b) {
+    if (document.documentElement.classList.contains('fd-clean')) { clean(false); return; }   // clean mode: a tap brings everything back
     // a tap on the video: sound first (while muted), then pause / play
     if (vd.muted) { unmute(); return; }
     if (vd.paused) { FD.userPaused = false; play(); } else { FD.userPaused = true; vd.pause(); }
@@ -318,7 +339,7 @@ async function onClick(e) {
   const cast = castOf(v);
   switch (b.dataset.f) {
     case 'sound': unmute(); break;
-    case 'full': full(vd, v); break;
+    case 'full': clean(true); break;   // the first step: the clean feed (still swiping); the native full screen is inside it
     case 'comments': openComments({}, ctx); break;
     case 'sticker': openSticker(ctx); break;
     case 'save': save(v.id); break;

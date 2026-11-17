@@ -16,7 +16,10 @@ principles - apply them to whatever the game is.
 ## Screens and layout
 - Start screen: the game's cover art as the hero, the title, one line of what it is, ONE big main button ("שחקו"),
   a quieter "איך משחקים", the record, and a small footer (back to the hub, sound). Not a stack of equal buttons.
-  He called a plain menu "terrible" - the start screen is the game's shop window.
+  He called a plain menu "terrible" - the start screen is the game's shop window. In the verse's games feed it is
+  skipped (autostart presses the main button), so nothing may live ONLY there except "איך משחקים" and the record.
+- The way back to the games: inside the game's own menu / toolbar (`data-verse-back`, shown in the verse) - never a
+  floating button, never a reserved top strip.
 - Phone upright is the main layout; the computer layout is the same game with more room, not a different design.
 - **The game area IS the screen** (his rule, 12 Nov 2026: "don't waste place on areas which are not the game - I saw
   it in games made for the verse"): the board / play field takes almost the whole phone; HUD, speech and controls are

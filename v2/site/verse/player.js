@@ -203,6 +203,7 @@ export function openPlayer(id, q = {}) {
 // cover and "התחברו כדי לשחק" stand in for it after that. A game with a daily record (game.json "record") gets the
 // "שיאים" button, and its score at game over goes on today's table (verse/records.js).
 const FREE = 'verse-free';
+const safeTop = () => { const d = Object.assign(document.createElement('div'), { style: 'position:fixed;top:0;height:0;padding-top:env(safe-area-inset-top)' }); document.body.append(d); const h = d.offsetHeight; d.remove(); return h; };
 const FULL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const SHRINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 export function openGame(id, q = {}) {
@@ -242,7 +243,7 @@ export function openGame(id, q = {}) {
   // cover, the title and the buttons); its exit goes back to the slide
   const ff = HOOK.playFromFeed === id;
   HOOK.playFromFeed = null;
-  if (ff) { el.classList.add('full', 'ff'); const x = $('.vg-exit', el); if (x) x.innerHTML = `${I.back}<span>${esc(T.shell.gBack)}</span>`; }
+  if (ff) el.classList.add('full', 'ff');   // (no floating button: the way back is in the game's own menu - game-frame.js VerseGame.back)
   document.body.append(el);
   lockScroll();
   P = { el, v, lead, off: [fit(el)], hideT: 0, hearted: false, uid: undefined };
@@ -273,9 +274,11 @@ export function openGame(id, q = {}) {
   // the game itself - or, signed out after the free game, its cover and the way in
   let frame = null;
   const box = $('.vg-game', el);
+  // from the games feed: the game skips its own start screen (game-frame.js ?autostart=1) - straight into play
+  const src = ff ? g.url + (g.url.includes('?') ? '&' : '?') + 'autostart=1' : g.url;
   const mount = () => {
     if (frame || !P) return;
-    box.innerHTML = `<iframe src="${esc(g.url)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>`;
+    box.innerHTML = `<iframe src="${esc(src)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>`;
     frame = $('iframe', box);
   };
   const gate = () => {
@@ -298,7 +301,9 @@ export function openGame(id, q = {}) {
   if (g.img) box.innerHTML = `<div class="vg-gate wait"><img src="${esc(g.img)}" alt=""></div>`;
   decide();
   const tell = () => {
-    const top = el.classList.contains('full') ? Math.ceil($('.vg-exit', el).getBoundingClientRect().bottom + 6) : 0;
+    // straight from the feed nothing floats over the game: it starts from the top, only the safe area kept (the home-screen app's
+    // status bar); the layer's own full screen keeps the strip for its exit pill
+    const top = el.classList.contains('ff') ? safeTop() : el.classList.contains('full') ? Math.ceil($('.vg-exit', el).getBoundingClientRect().bottom + 6) : 0;
     frame?.contentWindow?.postMessage({ verse: 'frame', top }, '*');
   };
   const full = async (on) => {
@@ -311,10 +316,11 @@ export function openGame(id, q = {}) {
   };
   P.onFs = () => { if (P && !document.fullscreenElement) P.el.classList.remove('full'); if (P) tell(); };
   document.addEventListener('fullscreenchange', P.onFs);
-  const again = () => { if (frame) frame.src = g.url; };
+  const again = () => { if (frame) frame.src = src; };
   P.onMsg = (e) => {
     if (!P || !frame || e.source !== frame.contentWindow || !e.data) return;
     if (e.data.verse === 'hello') tell();
+    else if (e.data.verse === 'back') close();   // the game's own "back" (VerseGame.back): to the slide it came from
     else if (e.data.verse === 'score') { P.liked = true; if (g.record) onScore(g, Number(e.data.value), { reopen: again }); }
     // Shlomiverse Online (net/index.js - loaded only when a game asks): rooms, the lobby, the game's moves
     else if (e.data.verse === 'net') { const ctx = { frame, g, q, el }; import('./net/index.js').then((m) => { if (P && P.el === el) { P.net = m; m.netMessage(e, ctx); } }); }

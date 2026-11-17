@@ -21,6 +21,7 @@
   .again { position: fixed; inset: 0; display: grid; place-content: center; gap: 14px; text-align: center; }
   .again b { font-size: 22px; } .again small { color: #c9b8a8; font-size: 14px; }
   .again button { height: 50px; padding: 0 28px; border-radius: 99px; border: 0; background: #ff6a1f; color: #fff; font: inherit; font-weight: 800; font-size: 18px; }
+  .again button.back { background: transparent; border: 1.5px solid rgba(255, 255, 255, .7); }
 </style>
 </head>
 <body>
@@ -34,7 +35,7 @@ const quickEnd = qs.get('end') === '1';   // ?end=1: one tap and you are at the 
 function start() {
   document.body.innerHTML = '';
   const end = (what) => (s) => {
-    document.body.innerHTML = `<div class="again"><b>${what}</b><small>${s.score} נקודות · ${s.time} שניות · ${s.stars} כוכבים · ${s.shot} פיצוצים · ${s.shields} מגנים · ניסיון ${s.tries}</small><button>שוב</button></div>`;
+    document.body.innerHTML = `<div class="again"><b>${what}</b><small>${s.score} נקודות · ${s.time} שניות · ${s.stars} כוכבים · ${s.shot} פיצוצים · ${s.shields} מגנים · ניסיון ${s.tries}</small><button>שוב</button><button class="verse-only back" data-verse-back>למשחקים</button></div>`;
     document.querySelector('.again button').onclick = start;
     window.FLY_RESULT = { what, ...s };
   };

@@ -696,6 +696,22 @@ html.app .top .tb-tg { display: none; }
 .gf-s .gf-tag { margin: -4px 0 0; max-width: none; }
 .gf-s .gf-cast { margin: 2px 0 0; }
 .gf-s .gf-play { align-self: center; margin-top: 4px; width: min(88%, 360px); }
-@media (max-height: 700px) { .gf-s .gf-rail button { width: 48px; height: 48px; } .gf-s .gf-rail { gap: 7px; } .gf-s .gf-rail b { font-size: 10.5px; } }
 /* the open search's layer: takes every tap on the page and the tab bar (shell: index.html .s-dim) - the dim itself is the search's shadow */
 .s-dim { position: fixed; inset: 0; z-index: 95; background: transparent; -webkit-tap-highlight-color: transparent; }
+
+/* the games feed's column is the videos feed's (same buttons, sizes, gaps, icons, labels) - only its place on the slide differs */
+/* clean mode (feed.js clean): only the video - the column, the words, both bars step aside; two faint buttons stay at the corner */
+html.fd-clean .fd { top: 0; bottom: 0; }
+html.fd-clean .fd-ui, html.fd-clean .fd-line, html.fd-clean .top, html.fd-clean .tabbar, html.fd-clean .fd-shade { display: none !important; }
+.fd-cleanbar { position: fixed; z-index: 5; left: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); display: flex; gap: 8px; }
+.fd-cleanbar button { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border-radius: 50%; color: #fff; cursor: pointer; opacity: .55;
+  background: rgba(12, 12, 14, .45); border: 1px solid rgba(255, 255, 255, .2); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.fd-cleanbar button:active { opacity: 1; }
+.fd-cleanbar svg { width: 19px; height: 19px; }
+/* a game straight from the feed: no floating pill (the way back is in the game's own menu) */
+.vg.ff .vg-exit { display: none !important; }
+@media (max-width: 760px) {
+  /* the green dot: only on the header's face, small, a thin dark ring, inside the avatar's corner (never clipped) */
+  html.app .cx.dock .cx-hd-face::after { width: 9px; height: 9px; bottom: 1px; left: 1px; border-width: 1.5px; }
+  html.app .cx.dock .m.bot::before { background: #222 var(--face) 50% 18% / cover no-repeat; }
+}

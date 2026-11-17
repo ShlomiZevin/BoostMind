@@ -15,22 +15,34 @@
 // keeps the day's table, shows it on the home and on the game page, and celebrates a new record.
 // Every play goes through the verse (sign-in, records): a game opened on its own address forwards to its page there.
 // ?solo=1 (or ?notrack=1, or localhost) keeps it on its own - for testing.
+// The way back to the games (his call 2026-11-17: inside every game's own menu, no floating button): window.VerseGame.back()
+// returns to the games feed, at the same game - VerseGame.inVerse says the game runs inside the verse (show the button only
+// then; on its own address the game keeps its own behaviour). An existing home / menu / exit button just gets the attribute
+// data-verse-back (its own click still runs first - a score it reports is kept); a new one: class "verse-only" + data-verse-back.
+// ?autostart=1 (the games feed's "לשחק" - his "just full screen play"): the game's own start screen is skipped - this script
+// presses its start button for it, as soon as it is ready (the page stays hidden until then, so the start screen never
+// flashes). The start button: [data-verse-start], else the verse template's #playBtn (or #playB / #bPlay). A game whose first
+// screen is a choice (a mode, an app) has no such button and opens as it is; <html data-verse-noautostart> opts a game out;
+// <html data-verse-wait> waits for the game to mark its start button data-verse-start when it is ready. "איך משחקים" stays in the game's pause menu.
 (() => {
   const root = document.documentElement;
   window.VerseFrame = { inVerse: false, top: 0, score() {} };
+  window.VerseGame = { inVerse: false, back() {} };
   if (window.top === window) {
     const q = new URLSearchParams(location.search), parts = location.pathname.split('/').filter(Boolean);
     const solo = q.has('solo') || q.has('notrack') || /^(localhost|127\.)/.test(location.hostname);
     if (!solo && parts.length >= 2 && /-games$/.test(parts[0])) location.replace(`/play/${parts[0]}-${parts[1]}`);
     return;
   }
+  window.VerseGame.back = () => { parent.postMessage({ verse: 'back' }, '*'); };
   window.VerseFrame.score = (n) => { if (window.VerseFrame.inVerse && Number(n) > 0) parent.postMessage({ verse: 'score', value: Number(n) }, '*'); };
   const css = document.createElement('style');
-  css.textContent = 'html.in-verse .verse-hide{display:none!important}';
+  css.textContent = 'html.in-verse .verse-hide{display:none!important}html:not(.in-verse) .verse-only{display:none!important}';
   document.head.appendChild(css);
   const set = (top) => {
     top = Math.max(0, Math.round(Number(top) || 0));
     window.VerseFrame.inVerse = true;
+    window.VerseGame.inVerse = true;
     window.VerseFrame.top = top;
     root.classList.add('in-verse');
     root.classList.toggle('verse-full', top > 0);
@@ -38,8 +50,32 @@
     dispatchEvent(new CustomEvent('verseframe', { detail: { top } }));
   };
   addEventListener('message', (e) => { const d = e.data; if (d && d.verse === 'frame' && e.source === parent) set(d.top); });
+  if (new URLSearchParams(location.search).get('autostart') === '1') {
+    root.classList.add('verse-autostart');
+    css.textContent += 'html.verse-autostart body{opacity:0!important}';
+    const shown = (b) => { if (!b || b.disabled || b.offsetParent === null) return false; for (let n = b; n && n !== document.body; n = n.parentElement) { const c = getComputedStyle(n); if (c.visibility === 'hidden' || c.opacity === '0' || c.display === 'none') return false; } return true; };
+    const t0 = Date.now();
+    const tryStart = () => {
+      if (root.hasAttribute('data-verse-noautostart')) { root.classList.remove('verse-autostart'); return; }   // a game whose #playBtn is something else (Yosef's book)
+      // <html data-verse-wait>: the game marks its start button data-verse-start itself once it is ready (its data loaded)
+      const b = document.querySelector('[data-verse-start]') || (root.hasAttribute('data-verse-wait') ? null : ['#playBtn', '#playB', '#bPlay'].map((s) => document.querySelector(s)).find(Boolean));
+      if (b && shown(b)) {
+        b.click();
+        // pressed before the game listened (its script still loading): once more, a moment later
+        setTimeout(() => { if (shown(b) && Date.now() - t0 < 15000) tryStart(); else root.classList.remove('verse-autostart'); }, 350);
+        return;
+      }
+      if (Date.now() - t0 > 15000 || (document.readyState === 'complete' && !b && !root.hasAttribute('data-verse-wait') && Date.now() - t0 > 1200)) { root.classList.remove('verse-autostart'); return; }   // nothing to press: the game as it is
+      setTimeout(tryStart, 120);
+    };
+    if (document.readyState === 'loading') addEventListener('DOMContentLoaded', () => setTimeout(tryStart, 50)); else setTimeout(tryStart, 50);
+  }
   parent.postMessage({ verse: 'hello' }, '*');
 
+  // a button marked data-verse-back: the game's own click runs, then back to the games feed
+  document.addEventListener('click', (e) => {
+    if (window.VerseGame.inVerse && e.target.closest && e.target.closest('[data-verse-back]')) setTimeout(window.VerseGame.back, 0);
+  });
   const home = new URL('./', location.href).pathname;   // the game's own folder
   const hub = new URL('../', location.href).pathname;   // its hub (/hani-games/)
   document.addEventListener('click', (e) => {

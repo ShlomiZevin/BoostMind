@@ -218,6 +218,16 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
    verse's games page), so plain links are fine; still write `target="_top"` on links to the verse. Things the page
    already has - share, like, follow, "back to the site" - get class `verse-hide` (hidden in the verse, shown on the
    game's own address). Test it: open #/play/<id>, press "מסך מלא", start the game - the HUD sits under the pill.
+   **Played from the games feed** (his rules, 17 Nov 2026 - the app's games tab is a feed like the videos; its column
+   has the comments, today's records, save and share, so the game never draws those):
+   - **No floating button and no reserved strip**: "לשחק" opens the game in its own full screen with nothing over it -
+     `--verse-top` is only the safe area there, so the game starts from the top. Keep using `var(--safe-t)`.
+   - **The way back lives in the game's own menu / toolbar**: `window.VerseGame.back()` returns to the feed at this game;
+     show it only when `VerseGame.inVerse`. An existing home / menu / exit button just gets `data-verse-back` (its own
+     click still runs first - a score it reports is kept); a new one gets `class="verse-only" data-verse-back`.
+   - **Autostart**: the feed opens the game with `?autostart=1` and game-frame.js presses its start button - give the
+     start button `id="playBtn"` (the template's) or `data-verse-start`. The first play still opens the tutorial by
+     itself, and "איך משחקים" stays reachable (the pause menu, or the start screen it goes back to).
    **Daily records - every game with a score, no exceptions** (his ask, 3 Nov 2026): the verse keeps a table per game
    that starts fresh each Israeli day - the home's "שיאי היום", the "שיאים" button on the game's page, a celebration
    when a player takes first place and a push to the one who lost it (verse/records.js + the `score` op). The game

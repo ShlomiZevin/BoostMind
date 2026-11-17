@@ -12,6 +12,7 @@ import { st, onState, save } from './state.js';
 import { openComments, share } from './player.js';
 import { openBoard, TROPHY } from './records.js';
 import { castSheet } from './cast.js';
+import { ICON_COMMENT, ICON_SHARE } from './feed.js';   // the same column as the videos feed: the same icons
 
 const G = () => T.gfeed;
 let GF = null;
@@ -59,10 +60,10 @@ function slide(g, i) {
   return `<section class="gf-s" data-i="${i}" data-id="${esc(g.id)}" aria-label="${esc(g.title)}">
     <div class="gf-art"${wordy(g) ? ' data-words="1"' : ''}>${g.img ? `<img class="gf-bg" src="${esc(g.img)}" alt="" aria-hidden="true" ${i > 1 ? 'loading="lazy"' : ''}><img class="gf-main" src="${esc(g.img)}" alt="" ${i > 1 ? 'loading="lazy"' : ''}>` : ''}</div>
     <div class="fd-rail gf-rail">
-      <button data-g="comments"><span class="fd-ic">${I.comment}</span><b data-cc>${esc(T.feed.comments)}</b></button>
+      <button data-g="comments"><span class="fd-ic">${ICON_COMMENT}</span><b data-cc>${esc(T.feed.comments)}</b></button>
       ${g.record ? `<button data-g="records"><span class="fd-ic">${TROPHY}</span><b>${esc(T.rec.rail)}</b></button>` : ''}
       <button data-g="save"><span class="fd-ic" data-sv>${I.save}</span><b data-svl>${esc(T.feed.save)}</b></button>
-      <button data-g="share"><span class="fd-ic">${I.share}</span><b>${esc(T.feed.share)}</b></button>
+      <button data-g="share"><span class="fd-ic">${ICON_SHARE}</span><b>${esc(T.feed.share)}</b></button>
     </div>
     <div class="gf-body">
       <h2 class="gf-t">${esc(g.title)}</h2>
