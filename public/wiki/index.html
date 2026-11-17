@@ -774,11 +774,11 @@ const pages = {
       if (f) return f;
     }
     const list = W.videos.filter((v) => !q.s || v.series === q.s);
-    // APP SHELL round 2 (mockup r2/5-videos-grid): the grid on a phone - the feed / grid switch, the archive, the videos
+    // APP SHELL (mockups r2/5, r4/3): the grid on a phone - the feed / grid switch, two slim rows (ask the chat; the full archive), the videos
     const A = HOOK.T && HOOK.T.shell;
     if (chatDock() && A && HOOK.feedToggle) return `<div class="wrap vg-page">${HOOK.feedToggle('videos', 'grid')}
-      <a class="arc-card" href="/archive"><span class="arc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="5" rx="1.5"/><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4"/></svg></span>
-        <span class="arc-t"><b>${esc(A.arcTitle)}</b><small>${esc(A.arcLine)}</small></span><svg class="arc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>
+      <a class="vg-row" href="/chat?with=guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke-width="2.6"/></svg><span>${esc(A.gridAsk)}</span></a>
+      <a class="vg-row" href="/archive"><span>${esc(A.gridArc)}</span><svg class="vg-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></a>
       <div class="vgrid">${list.map(vcard).join('')}</div></div>`;
     return `<div class="wrap"><div class="page-h"><h1>הסרטונים</h1><p>מהחדש לישן.</p></div>
       ${filterChips(q.s, '/videos')}<div class="vgrid">${list.map(vcard).join('')}</div></div>`;
@@ -1247,15 +1247,20 @@ function drawChat() {
   let strip = [GUIDE, ...W.characters.filter((c) => c.img), ...W.characters.filter((c) => !c.img)];
   const dock = cx.classList.contains('dock');
   if (dock) strip = [w, ...strip.filter((c) => c.id !== w.id)];   // APP SHELL tab: the one talking is the first card (mockup 4)
-  cx.classList.toggle('cs-min', dock && csMin());   // round 2: the row folded to one line (who you talk to), remembered here
+  // round 4 (mockups r4/2a, 2b): one slim line - who you talk to, their line, "החלפת דמות"; the faces open in a thin strip under it
+  cx.classList.toggle('cs-open', dock && csOpen());
+  const ST = HOOK.T ? HOOK.T.shell : {};
+  const hd = dock ? `<button type="button" class="cx-hd" data-cs-fold aria-expanded="${csOpen()}"><span class="cx-hd-face">${face(w)}</span>
+      <span class="cx-hd-t"><b>${esc(w.name)}</b><small>${esc(w.tagline || w.role || '')}</small></span><span class="cx-hd-sep"></span>
+      <span class="cx-hd-go"><span>${esc(csOpen() ? ST.closeStrip || '' : ST.switchChar || '')}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button>` : '';
   // no suggested questions (his call 2026-11-12: "let the people talk whatever they want") - every message is the visitor's own
-  cx.innerHTML = `<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}${dock ? `<span class="cs-nm"><b>${esc(c.name)}</b></span>` : ''}</button>`).join('')}</div>${dock ? `<button type="button" class="cs-fold" data-cs-fold aria-label="${esc(HOOK.T ? (csMin() ? HOOK.T.shell.unfold : HOOK.T.shell.fold) : '')}" aria-expanded="${!csMin()}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}
+  cx.innerHTML = `${hd}<div class="cx-strip">${strip.map((c) => `<button data-switch="${c.id}" class="${c.id === cxMode ? 'on' : ''}" style="--c:${color(c)}" title="${esc(c.name)}">${face(c)}${dock ? `<span class="cs-nm"><b>${esc(c.name)}</b></span>` : ''}</button>`).join('')}</div>
     <div class="cx-head">${cxMode === 'guide' ? `<span class="av">${face(w)}</span><span><b>${esc(w.name)}</b>`
       : `<a class="av" href="/c/${w.id}" aria-label="לעמוד של ${esc(w.name)}">${face(w)}</a><span><a class="nm" href="/c/${w.id}"><b>${esc(w.name)}</b></a>`}<small>${esc(w.tagline || w.role || '')}</small></span>
       <button class="icon-btn nc" data-new-chat title="שיחה חדשה" aria-label="שיחה חדשה">${ICON.newChat}</button>
       <button class="icon-btn x" data-close-chat aria-label="סגירה">${ICON.x}</button></div>
     ${dock ? '<div class="cx-vbar"></div>' : ''}<div class="msgs"></div>
-    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${dock ? ICON.cometLine : ICON.send}</button></form>
+    <form class="composer"><textarea rows="1" placeholder="${cxMode === 'guide' ? 'שאלו על כל דמות או סרטון…' : dock ? esc(writeTo(w)) : 'כתבו ל' + esc(w.name) + '…'}" maxlength="1200"></textarea><button type="submit" aria-label="שליחה">${dock ? '<img class="comet-img" src="/verse/art/send-comet.png" alt="" width="49" height="28">' : ICON.send}</button></form>
     <div class="cx-note">כתבו @ כדי לפנות לדמות · השיחות נשמרות כדי לשפר את הדמויות</div><div class="cx-left">${leftLine()}</div>`;
   if (dock) $('.cx-strip', cx).scrollLeft = 0; else $('.cx-strip .on', cx)?.scrollIntoView({ inline: 'center', block: 'nearest' });
   drawMsgs();
@@ -1276,17 +1281,25 @@ function writeTo(c) {
   const short = (c.aka || []).filter(ok).sort((a, b) => a.length - b.length)[0];
   return short ? 'כתבו ל' + short + '…' : 'כתבו הודעה…';
 }
-const csMin = () => { try { return localStorage.getItem('vx-cs-min') === '1'; } catch (e) { return false; } };
+const csOpen = () => { try { return localStorage.getItem('vx-cs-open') === '1'; } catch (e) { return false; } };
+const setCsOpen = (on) => { try { if (on) localStorage.setItem('vx-cs-open', '1'); else localStorage.removeItem('vx-cs-open'); } catch (x) { /* private mode */ } };
 document.addEventListener('click', (e) => {
   // APP SHELL round 2: fold / open the chat tab's row of faces; "חזרה לסרטון" - back to the video it came from (its own entry
   // under the chat when the chat came from it, else the video's address)
   if (e.target.closest('[data-cs-fold]')) {
-    const on = !csMin();
-    try { if (on) localStorage.setItem('vx-cs-min', '1'); else localStorage.removeItem('vx-cs-min'); } catch (x) { /* private mode */ }
-    cx.classList.toggle('cs-min', on);
-    const b = e.target.closest('[data-cs-fold]'); b.setAttribute('aria-expanded', String(!on)); if (HOOK.T) b.setAttribute('aria-label', on ? HOOK.T.shell.unfold : HOOK.T.shell.fold);
-    if (!on) $('.cx-strip', cx).scrollLeft = 0;
+    const on = !csOpen();
+    setCsOpen(on);
+    cx.classList.toggle('cs-open', on);
+    const b = e.target.closest('[data-cs-fold]'); b.setAttribute('aria-expanded', String(on));
+    if (HOOK.T) $('.cx-hd-go span', b).textContent = on ? HOOK.T.shell.closeStrip : HOOK.T.shell.switchChar;
+    if (on) $('.cx-strip', cx).scrollLeft = 0;
     return;
+  }
+  // a face picked in the open strip: that character, and the strip folds away
+  if (e.target.closest('#cx.dock .cx-strip [data-switch]')) {
+    setCsOpen(false); cx.classList.remove('cs-open');
+    const g = $('.cx-hd-go span', cx); if (g && HOOK.T) g.textContent = HOOK.T.shell.switchChar;
+    $('.cx-hd', cx)?.setAttribute('aria-expanded', 'false');
   }
   if (e.target.closest('[data-back-video]')) {
     const r = HOOK.videoReturn;
