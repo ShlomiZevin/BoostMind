@@ -222,14 +222,12 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
    has the comments, today's records, save and share, so the game never draws those):
    - **No floating button and no reserved strip**: "לשחק" opens the game in its own full screen with nothing over it -
      `--verse-top` is only the safe area there, so the game starts from the top. Keep using `var(--safe-t)`.
-   - **The way back lives in the game's own menu / toolbar**: `window.VerseGame.back()` returns to the feed at this game;
-     show it only when `VerseGame.inVerse`. An existing home / menu / exit button just gets `data-verse-back` (its own
-     click still runs first - a score it reports is kept); a new one gets `class="verse-only" data-verse-back`.
-   - **Autostart**: the feed opens the game with `?autostart=1` and game-frame.js presses its start button - give the
-     start button `id="playBtn"` (the template's) or `data-verse-start`. A game whose menu appears only after its assets / data
-     load: `<html data-verse-wait>` and set `data-verse-start` on the start button once ready (else autostart presses it
-     too early); a game with no start screen to skip (a book, a mode picker): `<html data-verse-noautostart>`. The first play still opens the tutorial by
-     itself, and "איך משחקים" stays reachable (the pause menu, or the start screen it goes back to).
+   - **The game opens on its own start screen** (his call after trying autostart: "a huge mess") - cover, "שחקו",
+     "איך משחקים", levels, all of it, as on its own address.
+   - **The way back to the games lives ONLY on that start screen**: one button in the game's own style, `class="verse-only"
+     data-verse-back` (or `window.VerseGame.back()`, shown only when `VerseGame.inVerse`) - it returns to the feed at this game.
+     An existing "לכל המשחקים" link there just gets `data-verse-back`. Exits inside the game (the pause menu, a home icon)
+     go back to the GAME's own start screen, never to the feed.
    **Daily records - every game with a score, no exceptions** (his ask, 3 Nov 2026): the verse keeps a table per game
    that starts fresh each Israeli day - the home's "שיאי היום", the "שיאים" button on the game's page, a celebration
    when a player takes first place and a push to the one who lost it (verse/records.js + the `score` op). The game

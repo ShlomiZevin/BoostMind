@@ -274,8 +274,9 @@ export function openGame(id, q = {}) {
   // the game itself - or, signed out after the free game, its cover and the way in
   let frame = null;
   const box = $('.vg-game', el);
-  // from the games feed: the game skips its own start screen (game-frame.js ?autostart=1) - straight into play
-  const src = ff ? g.url + (g.url.includes('?') ? '&' : '?') + 'autostart=1' : g.url;
+  // (his call 2026-11-17, after trying it: the game opens on its OWN start screen - no autostart; game-frame.js keeps the
+  // ?autostart=1 path inert, nothing passes it)
+  const src = g.url;
   const mount = () => {
     if (frame || !P) return;
     box.innerHTML = `<iframe src="${esc(src)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>`;

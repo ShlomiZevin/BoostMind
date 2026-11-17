@@ -15,15 +15,11 @@
 // keeps the day's table, shows it on the home and on the game page, and celebrates a new record.
 // Every play goes through the verse (sign-in, records): a game opened on its own address forwards to its page there.
 // ?solo=1 (or ?notrack=1, or localhost) keeps it on its own - for testing.
-// The way back to the games (his call 2026-11-17: inside every game's own menu, no floating button): window.VerseGame.back()
-// returns to the games feed, at the same game - VerseGame.inVerse says the game runs inside the verse (show the button only
-// then; on its own address the game keeps its own behaviour). An existing home / menu / exit button just gets the attribute
-// data-verse-back (its own click still runs first - a score it reports is kept); a new one: class "verse-only" + data-verse-back.
-// ?autostart=1 (the games feed's "לשחק" - his "just full screen play"): the game's own start screen is skipped - this script
-// presses its start button for it, as soon as it is ready (the page stays hidden until then, so the start screen never
-// flashes). The start button: [data-verse-start], else the verse template's #playBtn (or #playB / #bPlay). A game whose first
-// screen is a choice (a mode, an app) has no such button and opens as it is; <html data-verse-noautostart> opts a game out;
-// <html data-verse-wait> waits for the game to mark its start button data-verse-start when it is ready. "איך משחקים" stays in the game's pause menu.
+// The way back to the games feed (his call 2026-11-17): ONE button on the game's own main menu / start screen - class
+// "verse-only" (shown only inside the verse) + data-verse-back, or a call to window.VerseGame.back(); it returns to the feed at
+// the same game. VerseGame.inVerse says the game runs inside the verse. Exits inside the game (pause menu, home) keep going to
+// the game's own menu. A link marked data-verse-back (an existing "לכל המשחקים") does the same instead of leaving.
+// (?autostart=1 - pressing the start button for the game - is kept inert: nothing passes it since his call to drop it.)
 (() => {
   const root = document.documentElement;
   window.VerseFrame = { inVerse: false, top: 0, score() {} };
@@ -89,6 +85,7 @@
     if (!window.VerseFrame.inVerse || e.defaultPrevented) return;
     const a = e.target.closest && e.target.closest('a[href]');
     if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
+    if (a.closest('[data-verse-back]')) { e.preventDefault(); return; }   // the way back to the games feed (VerseGame.back, below)
     const url = new URL(a.getAttribute('href'), location.href);
     if (url.origin === location.origin && url.pathname.startsWith(home) && url.pathname !== hub) return;   // inside the game
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return;

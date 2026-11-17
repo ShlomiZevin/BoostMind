@@ -50,8 +50,7 @@ function slide(v, i) {
         <button data-f="dl"><span class="fd-ic">${I.download}</span><b>${esc(FT.dl)}</b></button>
       </div>
       <div class="fd-info">
-        <div class="fd-tools"><button class="fd-sound" data-f="sound" hidden>${ICON_SOUND_OFF}<span>${esc(FT.sound)}</span></button>
-          <button class="fd-full" data-f="full" aria-label="${esc(T.shell.full)}">${ICON_FULL}</button></div>
+        <div class="fd-tools"><button class="fd-sound" data-f="sound" hidden>${ICON_SOUND_OFF}<span>${esc(FT.sound)}</span></button></div>
         <h2 class="fd-t">${esc(v.title)}</h2>
         ${cast.length ? `<div class="fd-cast"><span class="fd-cl">${esc(FT.cast)}</span><div class="fd-chips">${cast.map((id) => `<a class="fd-chip" href="/c/${id}">${av({ char: id })}<span>${esc(C[id].name)}</span></a>`).join('')}</div></div>
         <div class="fd-acts"><button class="fd-follow" data-f="follow"></button><button class="fd-talk" data-f="talk">${I.comment}<span>${esc(cast.length > 1 ? FT.talkAll : FT.talk1[gender(cast[0])])}</span></button></div>` : ''}
@@ -132,8 +131,8 @@ function mount(list, start) {
       if (Date.now() - FD.lastSave > 3000) { FD.lastSave = Date.now(); remember(v.id, t, d); }
       if (t / d >= 0.8 && !FD.done.has(v.id)) { FD.done.add(v.id); videoDone(v.id, castOf(v)[0] || null); }   // finished counts toward the tourist's 3
     });
-    vd.addEventListener('play', () => { if (vd === cur()) FD.slides[FD.idx].classList.remove('paused'); });
-    vd.addEventListener('pause', () => { if (FD && vd === cur() && FD.userPaused) FD.slides[FD.idx].classList.add('paused'); });
+    vd.addEventListener('play', () => { if (vd === cur()) { FD.slides[FD.idx].classList.remove('paused'); ctlPaint(); } });
+    vd.addEventListener('pause', () => { if (FD && vd === cur()) { if (FD.userPaused) FD.slides[FD.idx].classList.add('paused'); ctlPaint(); } });
     vd.addEventListener('volumechange', () => { if (FD && vd === cur()) paintSound(); });
   });
 
@@ -143,7 +142,7 @@ function mount(list, start) {
   }, { root: el, threshold: [0.7] });
   slides.forEach((s) => FD.io.observe(s));
 
-  el.scrollTop = start * el.clientHeight;
+  el.scrollTop = slideTop(start);
   // back to the feed on a video it was showing (the back button, the tab, "חזרה לסרטון"): that video from the second it stopped at
   if (FD.list[start] && FD.list[start].id === FD.at) FD.resumeAt = FD.at;
   activate(start);
@@ -156,7 +155,16 @@ function mount(list, start) {
   if (cx) FD.mo.observe(cx, { attributes: true, attributeFilter: ['class'] });
   const vis = () => blockCheck();
   document.addEventListener('visibilitychange', vis);
-  const rs = () => { if (FD && FD.idx >= 0) FD.el.scrollTop = FD.idx * FD.el.clientHeight; };
+  const rs = () => resnap();
+  // the feed's own height changes (a phone's toolbar, clean mode, the keyboard): back onto the slide showing
+  FD.ro = new ResizeObserver(() => resnap());
+  FD.ro.observe(el);
+  // a scroll that ends between two videos (WebKit sometimes stops mid-way): onto the nearest one
+  const ended = () => { clearTimeout(FD.endT); FD.endT = setTimeout(settle, 140); };
+  el.addEventListener('scroll', ended, { passive: true });
+  if ('onscrollend' in window) el.addEventListener('scrollend', settle);
+  FD.off.push(() => { FD.ro?.disconnect(); el.removeEventListener('scroll', ended); el.removeEventListener('scrollend', settle); clearTimeout(FD.endT); });
+  ctlMount();
   addEventListener('resize', rs);
   addEventListener('vx-tb', rs);
   FD.off.push(() => { document.removeEventListener('visibilitychange', vis); removeEventListener('resize', rs); removeEventListener('vx-tb', rs); });
@@ -167,7 +175,9 @@ function mount(list, start) {
 
 export function unmount() {
   if (!FD) return;
-  clean(false);
+  document.documentElement.classList.remove('fd-clean');
+  document.getElementById('fd-ctl')?.remove(); document.getElementById('fd-hint')?.remove();
+  clearTimeout(hint.t); clearTimeout(hint.idle);
   FD.io?.disconnect(); FD.mo?.disconnect();
   FD.statOff?.();
   FD.off.forEach((u) => u && u());
@@ -230,6 +240,8 @@ function activate(i) {
   if (location.pathname === '/videos') history.replaceState(history.state, '', '/videos?at=' + encodeURIComponent(v.id));
   if (!blocked()) play();
   paintSound();
+  ctlPaint();
+  if (isClean()) hint();   // a new video in clean mode: the swipe hint again for a moment
 }
 function play() {
   const vd = cur();
@@ -270,28 +282,96 @@ function blockCheck() {
   else if (!FD.userPaused && vd.paused) play();
 }
 
-// clean mode (his two full screens): everything over the feed steps aside - the column, the words, the chips, both bars - and
-// the feed goes on, video after video. A tap on the video (or the faint shrink button) brings it back; the faint expand button
-// next to it is the browser's own full screen. Kept while swiping, until it is turned off or the feed is left
+// ---------- the three ways to watch (his notes + mockup app-shell/r9): "מלא" (the feed with everything), "נקי" (only the
+// video, still swiping: a tap = play / pause, a thin line, a hint that the next one is a swipe away, the next video's edge
+// peeking) and "מסך מלא" (the phone's own player). ONE fixed control at the top-left corner, the same place in both feed
+// modes: play / pause, the view switch (expand / shrink), and in clean mode the detach (the phone's own full screen) ----------
 const ICON_SHRINK = svg('<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>');
+const ICON_DETACH = svg('<path d="M14 4h6v6M20 4l-8 8"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>');
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>';
+const ICON_UP = svg('<path d="m6 15 6-6 6 6"/>', 2.4);
+const isClean = () => document.documentElement.classList.contains('fd-clean');
+function ctlMount() {
+  let c = document.getElementById('fd-ctl');
+  if (!c) {
+    c = Object.assign(document.createElement('div'), { id: 'fd-ctl', className: 'fd-ctl' });
+    c.innerHTML = `<button data-c="pp"></button><button data-c="view"></button><button data-c="detach" aria-label="${esc(T.shell.detach)}">${ICON_DETACH}</button>`;
+    c.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-c]');
+      if (!b || !FD) return;
+      if (b.dataset.c === 'pp') togglePlay();
+      else if (b.dataset.c === 'view') clean(!isClean());
+      else full(cur(), FD.list[FD.idx]);
+    });
+    document.body.append(c);
+    const h = Object.assign(document.createElement('div'), { id: 'fd-hint', className: 'fd-hint' });
+    h.innerHTML = `${ICON_UP}<span>${esc(T.shell.swipeNext)}</span>`;
+    document.body.append(h);
+  }
+  ctlPaint();
+}
+function ctlPaint() {
+  const c = document.getElementById('fd-ctl');
+  if (!c || !FD) return;
+  const vd = cur(), playing = vd && !vd.paused;
+  const pp = c.querySelector('[data-c="pp"]'), view = c.querySelector('[data-c="view"]');
+  pp.innerHTML = playing ? ICON_PAUSE : ICON_PLAY; pp.setAttribute('aria-label', playing ? FT.pause : FT.play);
+  view.innerHTML = isClean() ? ICON_SHRINK : ICON_FULL; view.setAttribute('aria-label', isClean() ? T.shell.cleanOff : T.shell.clean);
+}
+function togglePlay() {
+  const vd = cur();
+  if (!vd || !FD) return;
+  if (vd.paused) { FD.userPaused = false; play(); } else { FD.userPaused = true; vd.pause(); }
+  const s = FD.slides[FD.idx];
+  s.classList.remove('flash'); void s.offsetWidth; s.classList.add('flash');   // the soft big sign, for a moment
+  s.querySelector('.fd-big').innerHTML = vd.paused ? I.play : ICON_PAUSE;
+  setTimeout(ctlPaint, 0);
+}
+// the hint: on entering clean mode and on each new video for ~2 s; after a while without a swipe, quietly again
+function hint(on = true) {
+  const h = document.getElementById('fd-hint');
+  if (!h) return;
+  clearTimeout(hint.t); clearTimeout(hint.idle);
+  h.classList.toggle('on', on && isClean());
+  if (on) hint.t = setTimeout(() => h.classList.remove('on'), 2200);
+  if (isClean()) hint.idle = setTimeout(() => { if (isClean()) { h.classList.add('on', 'quiet'); hint.t = setTimeout(() => h.classList.remove('on', 'quiet'), 2600); } }, 9000);
+}
 function clean(on) {
   if (!FD) return;
   const html = document.documentElement;
+  if (html.classList.contains('fd-clean') === on) { ctlPaint(); return; }
   html.classList.toggle('fd-clean', on);
-  let bar = document.getElementById('fd-cleanbar');
-  if (on && !bar) {
-    bar = Object.assign(document.createElement('div'), { id: 'fd-cleanbar', className: 'fd-cleanbar' });
-    bar.innerHTML = `<button data-c="off" aria-label="${esc(T.shell.cleanOff)}">${ICON_SHRINK}</button><button data-c="native" aria-label="${esc(T.shell.full)}">${ICON_FULL}</button>`;
-    bar.addEventListener('click', (e) => { const b = e.target.closest('[data-c]'); if (!b || !FD) return; if (b.dataset.c === 'off') clean(false); else full(cur(), FD.list[FD.idx]); });
-    document.body.append(bar);
-  }
-  if (!on) bar?.remove();
   if (on) track('feed', 'clean:' + FD.list[FD.idx].id);
-  requestAnimationFrame(() => { if (FD && FD.idx >= 0) FD.el.scrollTop = FD.idx * FD.el.clientHeight; });
+  ctlPaint();
+  resnap(true);
+  hint(on);
+}
+// ---------- snapping that holds: by the slide's own top (works with clean mode's shorter slides), after layout settles ----------
+const slideTop = (i) => (FD && FD.slides[i] ? FD.slides[i].offsetTop : 0);
+function resnap(hard) {
+  if (!FD || FD.idx < 0) return;
+  const idx = FD.idx, el = FD.el;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!FD || FD.el !== el) return;
+    if (hard) el.style.scrollSnapType = 'none';
+    el.scrollTop = slideTop(idx);
+    if (hard) requestAnimationFrame(() => { el.style.scrollSnapType = ''; });
+  }));
+}
+function settle() {
+  if (!FD) return;
+  const el = FD.el, y = el.scrollTop;
+  let best = 0, d = Infinity;
+  FD.slides.forEach((s, k) => { const dd = Math.abs(s.offsetTop - y); if (dd < d) { d = dd; best = k; } });
+  if (d > 2) el.scrollTo({ top: FD.slides[best].offsetTop, behavior: 'smooth' });
 }
 // full screen: the browser's own on the <video> (iPhone: webkitEnterFullscreen); leaving it (back, the exit) returns to the feed
 function full(vd, v) {
   if (!vd) return;
+  const back = () => { if (!document.fullscreenElement && !document.webkitFullscreenElement) { document.removeEventListener('fullscreenchange', back); resnap(true); } };
+  document.addEventListener('fullscreenchange', back);
+  vd.addEventListener('webkitendfullscreen', () => resnap(true), { once: true });
   track('feed', 'full:' + v.id);
   const p = vd.requestFullscreen ? vd.requestFullscreen() : vd.webkitRequestFullscreen ? vd.webkitRequestFullscreen() : null;
   if (p && p.catch) p.catch(() => { if (vd.webkitEnterFullscreen) vd.webkitEnterFullscreen(); });
@@ -330,16 +410,14 @@ async function onClick(e) {
   const b = e.target.closest('[data-f]');
   const v = FD.list[FD.idx], ctx = FD.ctx, vd = cur();
   if (!b) {
-    if (document.documentElement.classList.contains('fd-clean')) { clean(false); return; }   // clean mode: a tap brings everything back
-    // a tap on the video: sound first (while muted), then pause / play
-    if (vd.muted) { unmute(); return; }
-    if (vd.paused) { FD.userPaused = false; play(); } else { FD.userPaused = true; vd.pause(); }
+    // a tap on the video: sound first (while muted), then play / pause - with the soft big sign for a moment (clean mode too)
+    if (vd.muted && !document.documentElement.classList.contains('fd-clean')) { unmute(); return; }
+    togglePlay();
     return;
   }
   const cast = castOf(v);
   switch (b.dataset.f) {
     case 'sound': unmute(); break;
-    case 'full': clean(true); break;   // the first step: the clean feed (still swiping); the native full screen is inside it
     case 'comments': openComments({}, ctx); break;
     case 'sticker': stickerMenu(ctx); break;   // make one / the fans' stickers of this video
     case 'save': save(v.id); break;

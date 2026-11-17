@@ -966,6 +966,14 @@ function route() {
     history.replaceState(s, '', '/videos?at=' + encodeURIComponent(did));
     route(); return;
   }
+  // the same for a game (his rule: ONE game page - the games feed's slide): a /play/ link on a phone lands on that slide (its
+  // records / a comment opened when the link asks); only the slide's "לשחק" goes into the game (HOOK.playFromFeed)
+  if (page === 'play' && chatDock() && (W.games || []).some((g) => g.id === did) && (typeof HOOK === 'undefined' || HOOK.playFromFeed !== did)) {
+    const s = { ...(history.state || {}) }; delete s.vxl; delete s.base;
+    const extra = q.records ? '&records=1' : q.c ? '&c=' + encodeURIComponent(q.c) : '';
+    history.replaceState(s, '', '/games?at=' + encodeURIComponent(did) + extra);
+    route(); return;
+  }
   const missing = (page === 'v' && !V[did]) || (page === 'play' && !(W.games || []).some((g) => g.id === did));
   if (missing) page = 'notFound';
   if (page === 'v' || page === 'story' || page === 'play') {

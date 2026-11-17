@@ -773,3 +773,31 @@ html.fd-clean .fd-ui, html.fd-clean .fd-line, html.fd-clean .top, html.fd-clean 
 .stc img, .stc2 img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
 /* clean mode's two faint buttons at the top corner (the video's own bottom UI stays clear) */
 .fd-cleanbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
+
+/* =================== the three ways to watch (mockup r9) + one rail position =================== */
+/* both feeds' columns start at the same height, at the same edge */
+.fd-rail, .gf-s .gf-rail { top: clamp(64px, 14%, 120px); transform: none; inset-inline-start: 10px; }
+/* ONE fixed control at the top-left corner, the same place in "מלא" and "נקי": play / pause, the view switch, (clean) detach */
+.fd-ctl { position: fixed; z-index: 6; top: calc(var(--th) + 10px); left: 12px; display: flex; gap: 8px; }
+html:not(.feed-on) .fd-ctl, html:not(.feed-on) .fd-hint { display: none; }
+.fd-ctl button { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border-radius: 50%; color: #fff; cursor: pointer;
+  background: rgba(12, 12, 14, .5); border: 1px solid rgba(255, 255, 255, .22); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.fd-ctl button svg { width: 18px; height: 18px; }
+html:not(.fd-clean) .fd-ctl [data-c="detach"] { display: none; }
+html.fd-clean .fd-ctl button { opacity: .6; }
+.fd-cleanbar { display: none !important; }
+/* clean: only the video; the thin line stays; the next video's edge peeks at the bottom */
+html.fd-clean .fd-line { display: block !important; }
+html.fd-clean .fd-s { height: calc(100% - 44px); }
+html.fd-clean .fd-s.paused .fd-big { opacity: .85; }
+.fd-s.flash .fd-big { animation: fd-flash .75s ease both; }
+@keyframes fd-flash { 0% { opacity: 0; transform: scale(.85); } 25% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.06); } }
+.fd-s.paused.flash .fd-big { animation: none; opacity: .85; }
+/* the hint: a small up-chevron and "החליקו לסרטון הבא" just above the peeking edge */
+.fd-hint { position: fixed; z-index: 6; left: 50%; bottom: calc(52px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0;
+  color: #fff; font-weight: 700; font-size: 15px; text-shadow: 0 1px 8px rgba(0, 0, 0, .75); pointer-events: none; opacity: 0; transition: opacity .45s; white-space: nowrap; }
+.fd-hint svg { width: 26px; height: 26px; animation: gf-up 1.6s ease-in-out infinite; }
+html:not(.fd-clean) .fd-hint { display: none; }
+.fd-hint.on { opacity: 1; }
+.fd-hint.on.quiet { opacity: .55; }
+.fd-hint.quiet span { display: none; }

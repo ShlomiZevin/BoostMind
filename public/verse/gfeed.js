@@ -79,7 +79,7 @@ export function gamesFeed(q = {}) {
   const list = W.games || [];
   if (!list.length) return null;
   const start = q.at ? list.findIndex((g) => g.id === q.at) : -1;
-  queueMicrotask(() => mount(list, start));   // once the router has put it on the page
+  queueMicrotask(() => { mount(list, start); if (start >= 0) linkOpen(list[start], q); });   // once the router has put it on the page
   return `<div class="gf" id="gf" role="feed" aria-label="${esc(G().title)}">${list.map(slide).join('')}</div>`;
 }
 
@@ -99,7 +99,15 @@ function mount(list, start) {
   el.addEventListener('click', onClick);
   // a cover whose words are the picture: the whole of it over a blurred copy of itself (every other cover fills the frame)
   el.querySelectorAll('.gf-main').forEach((img) => { if (img.complete && img.naturalWidth) fit(img); else img.addEventListener('load', () => fit(img), { once: true }); });
-  GF.rs = () => { el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img)); if (GF.cur >= 0) el.scrollTop = GF.cur * el.clientHeight; };
+  const top = (i) => { const s = el.querySelector(`.gf-s[data-i="${i}"]`); return s ? s.offsetTop : 0; };
+  GF.rs = () => { el.querySelectorAll('.gf-main').forEach((img) => img.naturalWidth && fit(img)); if (GF.cur >= 0) requestAnimationFrame(() => { if (GF) el.scrollTop = top(GF.cur); }); };
+  // as the videos feed: the height changes (a phone's toolbar) - back onto the game showing; a scroll that stops between two - onto the nearest
+  GF.ro = new ResizeObserver(() => GF && GF.rs());
+  GF.ro.observe(el);
+  const settle = () => { if (!GF) return; const y = el.scrollTop, h = el.clientHeight || 1, i = Math.round(y / h), t = top(i); if (Math.abs(t - y) > 2) el.scrollTo({ top: t, behavior: 'smooth' }); };
+  const ended = () => { clearTimeout(GF.endT); GF.endT = setTimeout(settle, 140); };
+  el.addEventListener('scroll', ended, { passive: true });
+  GF.off.push(() => { GF.ro?.disconnect(); el.removeEventListener('scroll', ended); clearTimeout(GF.endT); });
   addEventListener('resize', GF.rs);
   addEventListener('vx-tb', GF.rs);
   GF.off.push(onState(paintSaves));
@@ -125,6 +133,17 @@ function paintSaves() {
     ic.dataset.p = 1; ic.classList.toggle('on', on); ic.innerHTML = on ? I.saved : I.save;
     s.querySelector('[data-svl]').textContent = on ? T.feed.saved : T.feed.save;
   });
+}
+// a link that asked for more (a "someone took your first place" push: ?records=1; a comment: ?c=<id>): opened on the slide
+function linkOpen(g, q) {
+  if (!GF || !g) return;
+  setTimeout(() => {
+    if (!GF) return;
+    activate(GF.list.indexOf(g));
+    if (q.records && g.record) openBoard(g, { onAgain: () => play(g.id) });
+    else if (q.c) openComments({ focus: q.c }, GF.ctx);
+    if (q.records || q.c) history.replaceState(history.state, '', '/games?at=' + encodeURIComponent(g.id));
+  }, 450);
 }
 const play = (id) => { HOOK.playFromFeed = id; track('feed', 'game:' + id); nav('/play/' + id); };
 function onClick(e) {
