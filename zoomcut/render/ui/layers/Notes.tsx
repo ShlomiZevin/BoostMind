@@ -33,13 +33,13 @@ export const newNote = (at: number, end?: number): Note => ({ id: 'n' + Date.now
 /** when a note is about: "0:12.3" or "0:12.3 – 0:15.1" (as he sees it, at the project's speed) */
 export const noteWhen = (n: Note, fps: number, speed = 1) => fmtT(n.at / fps / speed) + (n.end != null ? ` – ${fmtT(n.end / fps / speed)}` : '');
 
-const PinIc = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v13l-7 5-7-5z" /></svg>;
+export const PinIc = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v13l-7 5-7-5z" /></svg>;
 
-/** The notes on the ruler: a flag each (yellow open, green fixed, grey checked); a range note also a band to its end.
- *  Click opens it; drag the flag / the band moves it along, a band's edge changes its start / end. */
-export function NotePins({ notes, view = 'active', px, pps, fps, total, onOpen, send, onSeek }: { notes: Note[]; view?: NoteView; px: (f: number) => number; pps: number; fps: number; total: number;
+/** Dragging a note on the ruler (RulerMarks.tsx draws them): its flag / its band moves it along, a band's edge changes its
+ *  start / end; a press without a move opens it. */
+export function noteDrag({ notes, pps, fps, total, onOpen, send, onSeek }: { notes: Note[]; pps: number; fps: number; total: number;
   onOpen: (n: Note) => void; send: Send; onSeek?: (f: number) => void }) {
-  const down = (e: React.MouseEvent, n: Note, side: 'm' | 'l' | 'r' = 'm') => {
+  return (e: React.MouseEvent, n: Note, side: 'm' | 'l' | 'r' = 'm') => {
     e.stopPropagation(); e.preventDefault();
     const x0 = e.clientX, len = n.end != null ? n.end - n.at : 0, tr = (e.currentTarget as HTMLElement).closest('.ltl-track');
     let moved = false, next = n;
@@ -63,16 +63,8 @@ export function NotePins({ notes, view = 'active', px, pps, fps, total, onOpen, 
     };
     addEventListener('mousemove', mv); addEventListener('mouseup', up);
   };
-  const tip = (n: Note) => `${{ open: 'Open', fixed: 'Fixed - check it', checked: 'Checked' }[noteState(n)]} note ${n.end != null ? 'from' : 'at'} ${noteWhen(n, fps)}: ${n.text}${n.reply ? `\nClaude: ${n.reply}` : ''}`;
-  return <>{notes.filter((n) => inView(view, n)).map((n) => (
-    <React.Fragment key={n.id}>
-      {n.end != null && <div className={`ltl-nband ${noteState(n)}`} style={{ left: px(n.at), width: Math.max(2, px(n.end) - px(n.at)) }} onMouseDown={(e) => down(e, n)}
-        title={tip(n) + '\n(click to open, drag to move, drag an edge to change the start / end)'}>
-        <i className="l" onMouseDown={(e) => down(e, n, 'l')} /><i className="r" onMouseDown={(e) => down(e, n, 'r')} /></div>}
-      <div data-note={n.id} className={`ltl-note ${noteState(n)}`} style={{ left: px(n.at) }} onMouseDown={(e) => down(e, n)}
-        title={tip(n) + '\n(click to open, drag to move)'}><PinIc /></div>
-    </React.Fragment>))}</>;
 }
+export const noteStateWord = (n: Note) => ({ open: 'Open', fixed: 'Fixed - check it', checked: 'Checked' }[noteState(n)]);
 
 /** The spots on the picture: a ring where a note points, while the playhead is at it (the open one always). */
 export function NoteSpots({ notes, frame, fps, canvas, open }: { notes: Note[]; frame: number; fps: number; canvas: { w: number; h: number }; open: Note | null }) {
@@ -93,7 +85,7 @@ export function NoteWindow({ note, isNew, fps, speed, onSave, onDelete, onClose,
   const [pos, setPos] = useState<{ left: number; bottom: number; arrow: number } | null>(null);
   useLayoutEffect(() => {  // (where its flag is - or the playhead, for a new one - on the ruler)
     const place = () => {
-      const flag = document.querySelector(`[data-note="${CSS.escape(note.id)}"]`) || document.querySelector('.ltl .playhead');
+      const id = CSS.escape(note.id), flag = document.querySelector(`[data-note="${id}"], [data-notes~="${id}"]`) || document.querySelector('.ltl .playhead');  // (a flag in a group: the group's chip)
       const ruler = document.querySelector('.ltl-ruler');
       if (!flag || !ruler) return setPos(null);
       const x = flag.getBoundingClientRect().left + flag.getBoundingClientRect().width / 2, top = ruler.getBoundingClientRect().top;

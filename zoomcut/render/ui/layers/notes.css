@@ -1,14 +1,14 @@
 /* notes for Claude (Notes.tsx): flags on the ruler, a ring on the picture, the note's window over the Media panel */
-.ltl-note { position: absolute; top: 2px; transform: translateX(-50%); z-index: 4; width: 18px; height: 20px; display: flex; align-items: center;
+.ltl-note { position: absolute; top: 16px; transform: translateX(-50%); z-index: 6; width: 18px; height: 18px; display: flex; align-items: center;
   justify-content: center; color: #f0b44c; cursor: pointer; border-radius: 4px; }
 .ltl-note:hover { background: rgba(240, 180, 76, 0.16); }
 .ltl-note.fixed { color: var(--ok, #4cc38a); }
 .ltl-note.checked { color: var(--faint); }
 /* a range note (his ask, 2026-11-10): a slim bar along the ruler's bottom from its flag to its end - under the quick
    buttons (they sit in the middle), on top of them where they meet, so it can always be clicked; its ends = start / end */
-.ltl-nband { position: absolute; top: 23px; height: 6px; z-index: 6; border-radius: 3px; cursor: grab; color: #f0b44c;
+.ltl-nband { position: absolute; top: 37px; height: 4px; z-index: 6; border-radius: 3px; cursor: grab; color: #f0b44c;
   background: color-mix(in srgb, currentColor 55%, transparent); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
-.ltl-nband::before { content: ''; position: absolute; left: 0; right: 0; top: -4px; bottom: -1px; }  /* (an easier target than 6 px) */
+.ltl-nband::before { content: ''; position: absolute; left: 0; right: 0; top: -1px; bottom: -1px; }  /* (an easier target than 6 px) */
 .ltl-nband.fixed { color: var(--ok, #4cc38a); }
 .ltl-nband.checked { color: var(--faint); }
 .ltl-nband:hover { background: currentColor; }
@@ -18,12 +18,14 @@
 .ltl-nband:hover i::after { opacity: 1; }
 /* the quick buttons step aside for range work (his note, 2026-11-10): over a range bar, Shift held (about to mark),
    while marking / dragging a note */
-.ltl-track:has(.ltl-nband:hover) :is(.ltl-qn, .ltl-qp), .ltl-track:has(.ltl-nband.draft) :is(.ltl-qn, .ltl-qp), .ltl-track.shift :is(.ltl-qn, .ltl-qp), .ltl-track.ranging :is(.ltl-qn, .ltl-qp) { display: none !important; }
+.ltl-track:has(.rmk:hover) .ltl-qn, .ltl-track:has(.ltl-nband:hover) :is(.ltl-qn, .ltl-qp), .ltl-track:has(.ltl-nband.draft) :is(.ltl-qn, .ltl-qp), .ltl-track.shift :is(.ltl-qn, .ltl-qp), .ltl-track.ranging :is(.ltl-qn, .ltl-qp) { display: none !important; }
 /* marking a range (Shift+drag on the ruler / dragging from its note button): the stretch while the mouse moves */
 .ltl-nband.draft { pointer-events: none; z-index: 7; background: repeating-linear-gradient(90deg, #f0b44c 0 6px, transparent 6px 10px); }
 .ltl-nband.draft span { position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px;
   padding: 1px 6px; border-radius: 4px; background: #f0b44c; color: #1a1716; font-weight: 600; }
-.ltl-note::after { content: ''; position: absolute; left: 50%; top: 17px; width: 1px; height: 8px; background: currentColor; opacity: 0.7; }
+.ltl-note::after { content: ''; position: absolute; left: 50%; top: 15px; width: 1px; height: 3px; background: currentColor; opacity: 0.7; }
+/* a range bar under the mouse: its whole stretch lights up on the ruler */
+.ltl-nband:hover::after { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 40px; background: currentColor; opacity: 0.1; pointer-events: none; }
 
 .note-spot { position: absolute; z-index: 6; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; pointer-events: none;
   border: 3px solid #f0b44c; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55); }
@@ -51,18 +53,23 @@
 /* quick notes on the ruler (his ask, 2026-11-03): hover the ruler - a line where the mouse is and the two ready-made
    notes as small buttons beside it (Tighten the cut, Cut the silence); one click = the note, at the line. The line
    stops following once the mouse is on the buttons (Timeline.tsx qnMove / --qx) */
-.ltl-qn { position: absolute; top: 0; bottom: 0; left: var(--qx, -100px); z-index: 5; display: none; align-items: center; gap: 3px; padding-left: 6px; pointer-events: none; }
+.ltl-qn { position: absolute; top: 0; bottom: 0; left: var(--qx, -100px); z-index: 8; display: none; align-items: flex-start; padding-top: 15px; gap: 3px; padding-left: 6px; pointer-events: none; }
 .ltl-ruler .ltl-track:hover .ltl-qn { display: flex; }
 .ltl-qn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--warn, #f0b44c); opacity: 0.8; pointer-events: none; }
-.ltl-qn button { pointer-events: none; opacity: 0.45; transition: opacity .1s; height: 22px; padding: 0 7px 0 5px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(240, 180, 76, 0.45); border-radius: 5px;
+.ltl-qn button { pointer-events: none; opacity: 0.45; transition: opacity .1s; height: 20px; padding: 0 7px 0 5px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(240, 180, 76, 0.45); border-radius: 5px;
   background: rgba(20, 18, 17, 0.94); color: var(--warn, #f0b44c); cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .ltl-qn button:hover { background: var(--warn, #f0b44c); color: #1a1716; }
 /* (while the mouse moves the buttons are faint and can't be hit; a short rest locks them, solid, where the line is) */
 .ltl-track.qn-lock .ltl-qn button { pointer-events: auto; opacity: 1; }
 /* stopped (Space): the same two buttons wait beside the playhead, faint; over them = solid, a click = the note at the
    playhead. (The hover line hides while the mouse is on them.) */
-.ltl-qp { position: absolute; top: 0; bottom: 0; z-index: 5; display: flex; align-items: center; gap: 3px; padding-left: 5px; pointer-events: none; }
-.ltl-qp button { pointer-events: auto; height: 22px; padding: 0 7px 0 5px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(240, 180, 76, 0.45);
+.ltl-qp { position: absolute; height: 20px; z-index: 7; display: flex; align-items: center; gap: 3px; pointer-events: none; }
+/* (stopped: ONE small note chip beside the playhead - never over a mark; hover = all three with their words) */
+.ltl-qp button > span { display: none; }
+.ltl-qp button + button { display: none; }
+.ltl-qp:hover { z-index: 9; }
+.ltl-qp:hover button { display: flex; } .ltl-qp:hover button > span { display: inline; }
+.ltl-qp button { pointer-events: auto; height: 20px; padding: 0 5px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(240, 180, 76, 0.45);
   border-radius: 5px; background: rgba(20, 18, 17, 0.94); color: var(--warn, #f0b44c); cursor: pointer; font-size: 11px; font-weight: 600; white-space: nowrap; opacity: 0.4; transition: opacity .1s, background .1s; }
 .ltl-qp:hover button { opacity: 1; }
 .ltl-qp button:hover { background: var(--warn, #f0b44c); color: #1a1716; }

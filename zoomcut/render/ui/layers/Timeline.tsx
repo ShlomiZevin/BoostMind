@@ -7,13 +7,14 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { KIND_COLOR, KIND_LABEL, Send, fmtT } from './api';
 import './timeline.css';
 import { ask } from './ask';
-import { Note, NotePins, PRESETS, saveNotes, newNote, NoteView, NOTE_VIEWS, inView, noteState } from './Notes';
+import { Note, PRESETS, saveNotes, newNote, NoteView, NOTE_VIEWS, inView, noteState } from './Notes';
 import { Find } from './Find';
 import { tempoOf, paceK } from '../../src/layers/clock.js';
 import { tabProject } from '../common';
 import { viewLayer, characters, rowColors, soundOffset, snapFrames, noPicture, moveCut, splitAt } from './dialogue';
 import { groupOf, edgeOps, splitOps, removeOps, isTakeItem } from './group';
 import { splitAt as socialAt } from '../../src/layers/version.js';
+import { RulerMarks, barRows, rulerHeight, barTop } from './RulerMarks';
 import { signalLostOps } from '../../src/layers/ending.js';
 import { pinned } from '../../src/layers/ops.js';
 
@@ -599,6 +600,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const step = pps >= 120 ? 1 : pps >= 50 ? 2 : pps >= 20 ? 5 : 10;
   const ticks = [];
   for (let s = 0; s <= total / fps; s += step) ticks.push(s);
+  // the ruler: times, the marks row, and a row per stack of range notes (RulerMarks.tsx)
+  const rulerH = rulerHeight(Math.max(barRows(onNote ? notes : [], noteView, px).rows, rangeDraft || noteDraft?.end != null ? 1 : 0));
   const toggle = (l: any, key: 'hidden' | 'muted') => send([{ op: 'layer.update', id: l.id, set: { [key]: !l[key] } }], { label: key });
   // the whole layer (its name's trash, or Delete with the layer picked) - asked once; Ctrl+Z brings it back
   const removeLayer = async (l: any) => {
@@ -811,35 +814,29 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       <div className="ltl" ref={lanes} style={{ ['--th' as any]: `${TH}px`, ['--nw' as any]: `${NW}px` }}
         onMouseMove={hoverMove} onMouseLeave={() => { hov.current = null; }}>
         <div className="ltl-in" style={{ width: NW + width }}>
-          <div className="ltl-row ltl-ruler">
+          <div className="ltl-row ltl-ruler" style={{ height: rulerH }}>
             <div className="ltl-name" />
             <div className="ltl-track" style={{ width }} onMouseDown={(e) => (onNote && e.shiftKey ? (e.preventDefault(), markRange(e)) : seekAt(e))} onMouseMove={onNote ? qnMove : undefined} onMouseLeave={onNote ? qnLeave : undefined}
               title={onNote ? 'Click / drag = move the playhead · Shift+drag = mark a stretch and write a note on it' : undefined}>
               {ticks.map((s) => <div key={s} className="tick" style={{ left: s * pps }}><span>{fmtT(s).replace(/\.\d$/, '')}</span></div>)}
-              {onNote && <NotePins notes={notes} view={noteView} px={px} pps={pps} fps={fps} total={total} onOpen={onNote} send={send} onSeek={onSeek} />}
               {onNote && <div className="ltl-qn" onMouseDown={(e) => e.stopPropagation()}>
                 <button title="A note for Claude right here (at the line) - write what to fix. Press and drag along the ruler = a note on that stretch"
                   onMouseDown={(e) => markRange(e, qnAt.current)} onClick={() => { if (!rangeDragged.current) onNote(null, qnAt.current); rangeDragged.current = false; }}>{QN_IC.note}<span>{QN_WORD.note}</span></button>
                 {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude right here (at the line)`}
                   onClick={() => quickNote(pr.kind)}>{QN_IC[pr.kind]}<span>{QN_WORD[pr.kind]}</span></button>)}
               </div>}
-              {onNote && !playing && <div className="ltl-qp" style={{ left: px(frame) }} onMouseDown={(e) => e.stopPropagation()}>
-                <button title="A note for Claude here, at the playhead - write what to fix. Press and drag along the ruler = a note on that stretch"
-                  onMouseDown={(e) => markRange(e, frame)} onClick={() => { if (!rangeDragged.current) onNote(null); rangeDragged.current = false; }}>{QN_IC.note}<span>{QN_WORD.note}</span></button>
-                {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
-                  onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}<span>{QN_WORD[pr.kind]}</span></button>)}
-              </div>}
               {(() => {  // (and it stays while he writes the new note - his ask, 2026-11-11: "see the chosen area ... during I'm writing"; Cancel drops it)
                 const r = rangeDraft || (noteDraft?.end != null ? { a: noteDraft.at, b: noteDraft.end } : null);
-                return r && <div className="ltl-nband draft" style={{ left: px(Math.min(r.a, r.b)), width: Math.max(2, Math.abs(px(r.b) - px(r.a))) }}>
+                return r && <div className="ltl-nband draft" style={{ left: px(Math.min(r.a, r.b)), width: Math.max(2, Math.abs(px(r.b) - px(r.a))), top: barTop(0) }}>
                   <span>{fmtT(Math.min(r.a, r.b) / fps / (+project.speed || 1))} – {fmtT(Math.max(r.a, r.b) / fps / (+project.speed || 1))}</span></div>;
               })()}
-              {split != null && <>
-                <div className="ltl-vband" style={{ left: px(split), width: Math.max(0, px(total) - px(split)) }}><span>Only on the Shlomiverse</span></div>
-                <div className="ltl-split" style={{ left: px(split) }} onMouseDown={dragSplit} title="The socials end here (a hard cut, then its ending) - drag to move it; Ctrl+Z undoes">
-                  <span>✂ Socials end<b title="No socials end - one version again" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); dropSplit(); }}>×</b></span></div>
-              </>}
-              <div className="ltl-endh" style={{ left: px(total) }} onMouseDown={dragEnd} title="The video's end - drag it left or right (nothing is deleted; Ctrl+Z undoes)">End</div>
+              <RulerMarks notes={notes} view={noteView} split={split} total={total} width={width} fps={fps} speed={+project.speed || 1} pps={pps} px={px} send={send}
+                onOpenNote={onNote ? (n) => onNote(n) : undefined} onSeek={onSeek} onSplitDown={dragSplit} onDropSplit={dropSplit} onEndDown={dragEnd}
+                quick={onNote && !playing ? { at: frame, node: <>
+                  <button title="A note for Claude here, at the playhead - write what to fix. Press and drag along the ruler = a note on that stretch"
+                    onMouseDown={(e) => markRange(e, frame)} onClick={() => { if (!rangeDragged.current) onNote(null); rangeDragged.current = false; }}>{QN_IC.note}<span>{QN_WORD.note}</span></button>
+                  {PRESETS.map((pr) => <button key={pr.kind} title={`${pr.label} - a note for Claude here, at the playhead`}
+                    onClick={() => quickNote(pr.kind, frame)}>{QN_IC[pr.kind]}<span>{QN_WORD[pr.kind]}</span></button>)}</> } : null} />
             </div>
           </div>
           {view && (() => {

@@ -200,6 +200,15 @@ One format, one composition, one editor, one export. The format and the API: `la
   them (solid) so the mouse can reach them; one click = that note at the line, no window. Stopped (Space) = the same two
   buttons wait faint beside the playhead; a click = the note at the playhead. A click elsewhere on the ruler still moves
   the playhead. (Timeline.tsx `qnMove` / `quickNote`, notes.css `.ltl-qn` / `.ltl-qp`.) Same `kind`s as the chips.
+- **The ruler's marks never cover each other (2026-11-17, his ask: "the flag where the social lives is hiding other
+  stuff ... make it not a mess"):** `ui/layers/RulerMarks.tsx` lays out everything on the ruler in one pass. Top to
+  bottom: the times, then one row of small chips (a note's flag, ✂ the socials end, End), then the range bars, each in
+  the first free row (the ruler grows a row per stack). A chip's words open on hover (the note's text and Claude's
+  reply, "Socials end · 1:45.1 ×"). Marks that would touch become one chip with coloured dots and a count; hovering it
+  lists them (click = open the note / go there), and zooming in pulls them apart. The socials end and the video's end
+  keep a thin line across the ruler that drags, grouped or not. "Only on the Shlomiverse" shows only where it fits.
+  Stopped = ONE small note chip beside the playhead, pushed past any mark; hover = all three buttons. Never put a new
+  mark on the ruler outside RulerMarks.
 - **Keep things (2026-11-04, his ask):** video panel -> Person (cut-out on) -> "Keep things too…" opens a window
   (`inspect/keep.tsx` + keep.css): a frame of the take at the playhead (a Moment slider for another), tap / paint on the
   thing - SAM 2 outlines it in green at once (`render/actions/keep.mjs` keeps one `tools/sam/keep.py serve` helper loaded,
