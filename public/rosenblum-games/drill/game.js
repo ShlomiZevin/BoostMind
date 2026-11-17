@@ -929,5 +929,5 @@ window.DRILL = {
   get sndLog() { return audio.log; },
 };
 
-ready.then(() => { menu(); requestAnimationFrame(frame); document.getElementById('bPlay')?.setAttribute('data-verse-start', ''); });   // the verse's autostart may press it now (game-frame.js, data-verse-wait)
+ready.then(() => { menu(); requestAnimationFrame(frame); });
 })();

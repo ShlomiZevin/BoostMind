@@ -801,3 +801,7 @@ html:not(.fd-clean) .fd-hint { display: none; }
 .fd-hint.on { opacity: 1; }
 .fd-hint.on.quiet { opacity: .55; }
 .fd-hint.quiet span { display: none; }
+/* the watch control: left to right always (play / pause, expand / shrink, then detach in the clean view) - nothing moves */
+.fd-ctl { direction: ltr; }
+/* the swipe hint on a soft dark bed */
+.fd-hint { padding: 6px 16px 8px; border-radius: 16px; background: rgba(0, 0, 0, .45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }

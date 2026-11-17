@@ -351,7 +351,6 @@ function frame(t) {
 // ───────────────────────── boot ─────────────────────────
 fetch('assets/stories.json', { cache: 'no-store' }).then((r) => r.json()).then((j) => {
   STORIES = j; layout(); showBest(); requestAnimationFrame(frame);
-  $('playBtn').setAttribute('data-verse-start', '');   // the verse's autostart may press it now (game-frame.js, data-verse-wait)
   for (const s of STORIES) for (const c of s.cards) { const i = new Image(); i.src = `assets/cards/${c.img}.jpg`; }
 }).catch(() => { $('bestStart').textContent = 'לא הצלחנו לטעון. נסו לרענן.'; });
 

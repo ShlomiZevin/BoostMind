@@ -880,11 +880,11 @@ window.vxOverlay = (close) => {
   return o;
 };
 // a layer's close: back to the page under it when we opened it, else to that page in place (as before without the shell)
-function navBack(fallback) {
+function navBack(fallback, extra = 0) {   // extra: history entries a game's frame added inside the layer (stepped over too)
   if (!appOn()) { nav(fallback); return; }
   const s = history.state || {};
-  if (s.vxl) { goBack(1, true); return; }
-  if (s.vxo && s.ul) { goBack(s.vxo + 1, true); return; }
+  if (s.vxl) { goBack(1 + extra, true); return; }
+  if (s.vxo && s.ul) { goBack(s.vxo + 1 + extra, true); return; }
   nav(fallback, true);
 }
 window.navBack = navBack;

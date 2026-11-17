@@ -281,6 +281,8 @@ export function openGame(id, q = {}) {
     if (frame || !P) return;
     box.innerHTML = `<iframe src="${esc(src)}" title="${esc(g.title)}" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>`;
     frame = $('iframe', box);
+    let first = true;
+    frame.addEventListener('load', () => { if (first) { first = false; return; } if (P && !P.replacing) P.frameNav = (P.frameNav || 0) + 1; if (P) P.replacing = false; });
   };
   const gate = () => {
     box.innerHTML = `<div class="vg-gate">${g.img ? `<img src="${esc(g.img)}" alt="">` : ''}<h3>${esc(T.rec.gateTitle)}</h3><p>${esc(T.rec.gateSub)}</p>
@@ -317,7 +319,9 @@ export function openGame(id, q = {}) {
   };
   P.onFs = () => { if (P && !document.fullscreenElement) P.el.classList.remove('full'); if (P) tell(); };
   document.addEventListener('fullscreenchange', P.onFs);
-  const again = () => { if (frame) frame.src = src; };
+  // a fresh round: reloaded in place (location.replace) - setting src would add a history entry inside the frame, and the
+  // way back (the game's "חזרה למשחקים", the phone's back) would then step inside the game instead of leaving the layer
+  const again = () => { if (!frame) return; P.replacing = true; try { frame.contentWindow.location.replace(src); } catch (x) { P.replacing = false; frame.src = src; } };
   P.onMsg = (e) => {
     if (!P || !frame || e.source !== frame.contentWindow || !e.data) return;
     if (e.data.verse === 'hello') tell();
@@ -443,7 +447,11 @@ export async function download(v) {
     h.close();
   };
 }
-function close() { navBack(backTo); }   // APP SHELL: back to the page under it when the site opened it (wiki navBack); else nav(backTo) as before
+function close() {
+  // a game's frame that navigated inside the layer (a reload, a link of its own) left history entries of its own: the back
+  // step goes over them too, so it really leaves the layer
+  navBack(backTo, (P && P.frameNav) || 0);
+}   // APP SHELL: back to the page under it when the site opened it (wiki navBack); else nav(backTo) as before
 function destroy() {
   if (!P) return;
   // a video watched (to its end, or 20 s) or a game played: once the layer is gone, a good moment to offer the home screen

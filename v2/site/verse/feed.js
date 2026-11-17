@@ -314,6 +314,12 @@ function ctlMount() {
 function ctlPaint() {
   const c = document.getElementById('fd-ctl');
   if (!c || !FD) return;
+  // its place: the video's bottom-left corner, just above the words (measured in the full view, kept as it is in the clean one -
+  // the control never moves when the view changes)
+  if (!isClean()) {
+    const info = FD.slides[FD.idx] && FD.slides[FD.idx].querySelector('.fd-info');
+    if (info && info.offsetHeight) c.style.top = Math.round(info.getBoundingClientRect().top - 48) + 'px';
+  }
   const vd = cur(), playing = vd && !vd.paused;
   const pp = c.querySelector('[data-c="pp"]'), view = c.querySelector('[data-c="view"]');
   pp.innerHTML = playing ? ICON_PAUSE : ICON_PLAY; pp.setAttribute('aria-label', playing ? FT.pause : FT.play);

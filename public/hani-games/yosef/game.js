@@ -104,7 +104,12 @@ function showPage(i, dir = 0) {
 $('nextBtn').onclick = () => showPage(page + 1, 1);
 $('prevBtn').onclick = () => showPage(page - 1, -1);
 $('readBtn').onclick = () => { ctx(); if (!voice.paused) voice.pause(); else read(); };
-$('homeBtn').onclick = () => { hush(); location.href = '../'; };
+// inside the verse the house goes back to the book's cover (its main menu - the way back to the games is there); on its own address, to the hub
+$('homeBtn').onclick = () => {
+  hush();
+  if (window.VerseGame && VerseGame.inVerse) { voice.pause(); $('start').classList.add('on'); if (page > 0 || done.size) { $('goBtn').querySelector('span').textContent = 'מַמְשִׁיכִים לִקְרֹא'; $('restartBtn').style.display = ''; } return; }
+  location.href = '../';
+};
 function paintSnd() { $('sndBtn').classList.toggle('off', !SND.on); $('readBtn').classList.toggle('off', !SND.on); }
 $('sndBtn').onclick = () => {
   SND.on = !SND.on; store.set(KEY.snd, SND.on ? '1' : '0'); ctx();
