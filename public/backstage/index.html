@@ -935,16 +935,19 @@ const badges = () => !L ? { plans: (PL.plans || []).filter((p) => !planOld(p)).l
   // = exactly the "מחכה לך" list (his note 2026-11-08: the tab said 3, the list 2 - a replaced plan he never opened was counted)
   plans: (PL.plans || []).filter((p) => !planOld(p)).length,
   chars: crBadge(),   // characters with something new for him since he last opened them (a session's answer, a changed field)
+  // archive marks waiting to be brought (his ask 2026-11-17: "this should be a notification on my backstage") - a resident
+  // marked a post on /archive/ since he last opened סרטונים; opening it clears the number, a new mark brings it back
+  videos: (L.wishes || []).filter((w) => (w.last || 0) > seen('videos')).length,
 });
 function draw() {
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
   if (['comments', 'stickers'].includes(tab)) contentSeg = tab;
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'overview', data: 'overview' }[tab] || 'overview';
   const miss = (NEED[tab] || []).filter((k) => !HAVE.has(k));
-  if (!miss.length && (tab === 'requests' || tab === 'content' || tab === 'ideas')) markSeen(tab);
+  if (!miss.length && (tab === 'requests' || tab === 'content' || tab === 'ideas' || tab === 'videos')) markSeen(tab);
   const badge = badges();
   const phoneTab = ['chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
-  const moreBadge = badge.requests + badge.ideas + badge.content + badge.chars;
+  const moreBadge = badge.requests + badge.ideas + badge.content + badge.chars + (badge.videos || 0);
   $('#app').innerHTML = `<div class="app">
     <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
       <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
@@ -966,7 +969,7 @@ function draw() {
 const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
 // the tab marks again without drawing the page (a plan he just opened stops counting)
 function reBadge() {
-  const b = badges(), more = b.requests + b.ideas + b.content + b.chars;
+  const b = badges(), more = b.requests + b.ideas + b.content + b.chars + (b.videos || 0);
   const set = (btn, n) => { if (!btn) return; let em = btn.querySelector('em'); if (!n) { if (em) em.remove(); return; } if (!em) { em = document.createElement('em'); btn.append(em); } em.textContent = n; };
   document.querySelectorAll('.nav button[data-tab]').forEach((btn) => set(btn, b[btn.dataset.tab]));
   set(document.querySelector('.tabbar button[data-tab="more"]'), more);

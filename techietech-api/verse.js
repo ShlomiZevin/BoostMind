@@ -963,7 +963,7 @@ async function wishToMind(ig, uid, note) {
   const day = post?.d ? post.d.split('-').reverse().map(Number).join('.') : '';
   const text = `בקשה מהארכיון: ${cap || 'פוסט ' + (day || ig)}${w.n > 1 ? ` (${w.n} ביקשו)` : ''}`;
   const body = [`${(w.n || 1) === 1 ? 'תושב אחד ביקש' : `${w.n} תושבים ביקשו`} להביא את הפוסט${day ? ` מ-${day}` : ''} לשלומיוורס.`, post?.p ? `הפוסט: https://www.instagram.com/reel/${post.p}/` : (w.permalink ? `הפוסט: ${w.permalink}` : ''),
-    `כל הבקשות: https://shlomiverse.com/backstage/ (סרטונים)`, `להביא אותו: סשן insta-to-verse, ig ${ig} - כשהוא עולה, מי שביקש מקבל הודעה והמשימה נסגרת לבד.`].filter(Boolean).join('\n');
+    `כל הבקשות: https://shlomiverse.com/backstage/#videos`, `להביא אותו: סשן insta-to-verse, ig ${ig} - כשהוא עולה, מי שביקש מקבל הודעה והמשימה נסגרת לבד.`].filter(Boolean).join('\n');
   const said = `${who} ביקש/ה${note ? `: "${oneLine(note, 200)}"` : ''}`;
   if (w.mind) { try { return await updateItem(w.mind, { text, body, status: 'waiting', note: said }, 'הארכיון'); } catch (e) { /* the task was deleted - open a new one */ } }
   const it = await addItem({ text, body, type: 'task', project: 'BoostMind', tags: ['archive'], note: said }, 'הארכיון');
@@ -1235,7 +1235,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       if (/^plan:[\w-]{1,80}$/.test(k)) { await db.collection('owner').doc('seen').set({ [k]: Math.max(1, Math.floor(Number(b.v) || 1)) }, { merge: true }); return res.json({ ok: true }); }
       // a character he opened in דמויות: what changed in it after this stops being marked new (charnotes.js)
       if (/^char:[a-z0-9-]{1,60}$/.test(k)) { await db.collection('owner').doc('seen').set({ [k]: Date.now() }, { merge: true }); return res.json({ ok: true }); }
-      if (!['requests', 'ideas', 'content', 'plans'].includes(k)) return res.status(400).json({ error: 'k' });
+      if (!['requests', 'ideas', 'content', 'plans', 'videos'].includes(k)) return res.status(400).json({ error: 'k' });
       await db.collection('owner').doc('seen').set({ [k]: Date.now() }, { merge: true });
       return res.json({ ok: true });
     }
@@ -1257,7 +1257,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     if (op === 'seenMap') { const d = await db.collection('owner').doc('seen').get(); return res.json({ seen: d.exists ? d.data() : {} }); }
     if (op === 'list') {
       const week = Timestamp.fromMillis(Date.now() - 7 * 864e5);
-      const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto, seen] = await Promise.all([
+      const [comments, stickers, requests, stories, announced, fans, ideas, fansWeek, auto, seen, wishes] = await Promise.all([
         db.collection('comments').orderBy('t', 'desc').limit(120).get(),
         db.collection('stickers').where('status', '==', 'live').orderBy('t', 'desc').limit(60).get(),
         db.collection('requests').orderBy('t', 'desc').limit(60).get(),
@@ -1268,6 +1268,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
         db.collection('fans').where('created', '>=', week).count().get(),
         db.collection('verseMeta').doc('autoAnnounce').get(),
         db.collection('owner').doc('seen').get(),
+        db.collection('wishes').where('done', '==', false).select('n', 'last').get(),   // archive marks - the menu's number on סרטונים
       ]);
       // how many follow each character (the new story window says how many a story reaches)
       const followers = {};
@@ -1275,7 +1276,8 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       const rows = (s) => s.docs.map((d) => ({ id: d.id, ...d.data(), t: d.data().t?.toMillis?.() || null }));
       return res.json({ comments: rows(comments), stickers: rows(stickers), requests: rows(requests), stories: rows(stories),
         announced: Object.fromEntries(announced.docs.map((d) => [d.id, d.data().t?.toMillis?.() || 1])), fans: fans.data().count, ideas: rows(ideas),
-        fansWeek: fansWeek.data().count, autoSince: auto.exists ? auto.data().since?.toMillis?.() || null : null, followers, seen: seen.exists ? seen.data() : {} });
+        fansWeek: fansWeek.data().count, autoSince: auto.exists ? auto.data().since?.toMillis?.() || null : null, followers, seen: seen.exists ? seen.data() : {},
+        wishes: wishes.docs.map((d) => ({ ig: d.id, n: d.data().n || 0, last: d.data().last?.toMillis?.() || null })).filter((w) => w.n > 0) });
     }
     // everyone with an account (his ask, 2026-11-01): the verse's fans and whoever signed in on a character's site to
     // send something - from Firebase Auth itself, so nobody is missing, with where they came from
