@@ -27,7 +27,7 @@ const BUCKET = 'shlomiverse-studio';
 // once); Terra answers only when Claude refuses or fails, so the gardener never gets an error for it
 const CLAUDE = 'claude-opus-5-5';
 const EFFORT = 'medium';
-const MODEL = 'gpt-5.6-terra';
+const MODEL = 'gpt-6.1-terra';
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
 const PER_DAY = 60;            // asks a day per gardener - far above a real day in the garden, a wall if a link leaks
 

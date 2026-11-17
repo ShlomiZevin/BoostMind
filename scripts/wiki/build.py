@@ -381,7 +381,7 @@ def site_topics(sites):
                       'line, at most 45 characters, in the site\'s own voice (as the site itself would say it, serious, no '
                       'explaining the joke, no emoji) - what you get there.\n' + json.dumps(items, ensure_ascii=False) +
                       '\nAnswer JSON only: {"<id>": {"topic": "<key>", "tagline": "<line>"}, ...}')
-            body = json.dumps({'model': 'gpt-5.6-terra', 'input': prompt, 'reasoning': {'effort': 'low'},
+            body = json.dumps({'model': 'gpt-6.1-terra', 'input': prompt, 'reasoning': {'effort': 'low'},
                                'text': {'format': {'type': 'json_object'}}}).encode()
             req = urllib.request.Request('https://api.openai.com/v1/responses', data=body, headers={
                 'Authorization': 'Bearer ' + env['OPENAI_API_KEY'].strip().strip('"\''), 'Content-Type': 'application/json'})

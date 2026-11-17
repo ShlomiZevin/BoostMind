@@ -27,7 +27,7 @@ new screens read as one product.
   -> shaping -> "On screen" (whole video, how it comes in). At the bottom of every panel two buttons, **Timing** (start,
   length, source, speed, fades, split, delete) and **Lane** (name, shown, heard, locked, delete) - each opens a window
   (`Win`), never more rows in the panel. Esc closes only the window.
-- **The sound panel** was designed with an OpenAI UX consult (gpt-5.6-terra): Loudness (this clip, whole lane, fades,
+- **The sound panel** was designed with an OpenAI UX consult (gpt-6.1-terra): Loudness (this clip, whole lane, fades,
   heard), Voice (clean the noise, voice style, keep the speech even, hold to hear the original; More = clearer words,
   room, rumble, warmth, boxy, s sounds, quiet parts, speaker echo), Fun sound (sounds like, higher / lower; This clip /
   Whole lane switch in its heading). It knows the lane: music and sound effects have no Voice group and show "Lower

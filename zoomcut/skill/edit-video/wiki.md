@@ -121,7 +121,7 @@ The steps it runs, for when one fails:
 1. **Web copy + poster:** `sh scripts/wiki/encode.sh <episode-id>` (720p, ~10 MB, into `public/wiki/v/`).
 2. **Fan copy** (the title and one-line teaser people see; a new character also gets a tagline, bio and 3 questions):
    `python scripts/wiki/copy_brief.py --only-missing`, then
-   `node ~/.claude/skills/openai-leonardo/scripts/openai.js --in scripts/wiki/work/copy-brief.txt --out scripts/wiki/work/copy-answer.md --model gpt-5.6-terra` (from the repo: it takes the design key, which Backstage counts),
+   `node ~/.claude/skills/openai-leonardo/scripts/openai.js --in scripts/wiki/work/copy-brief.txt --out scripts/wiki/work/copy-answer.md --model gpt-6.1-terra` (from the repo: it takes the design key, which Backstage counts),
    read the answer, then `python scripts/wiki/merge_copy.py`. **Terra, never SOL** (his call - for everything, 2026-11-14). The copy lives in
    `scripts/wiki/copy.json` - fix a line there by hand any time.
 3. **Build:** `python scripts/wiki/build.py` - it lists anything still MISSING (an encode, a copy line).
@@ -146,7 +146,7 @@ redesign. (`scripts/wiki/clips.json` - a link-only TikTok/Instagram video - is t
   here yet. Never frame the current cast as the core; a new character = a profile in the studio, then build.
 
 ## The chat (each character in their own voice)
-- `techietech-api/wiki.js` - OpenAI **gpt-5.6-terra** (his choice over Claude), key in Secret Manager as
+- `techietech-api/wiki.js` - OpenAI **gpt-6.1-terra** (his choice over Claude), key in Secret Manager as
   `WIKI_OPENAI_KEY` (the project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it).
 - It knows the brain (full profiles + transcripts) the server composes from the database records (since 2026-11-05),
   read from gs://shlomiverse-private/wiki-brain.json every 3 minutes - **push.cjs after every build**, no redeploy (the bundled

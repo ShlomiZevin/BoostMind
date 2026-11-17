@@ -1,6 +1,6 @@
 ---
 name: openai-leonardo
-description: The OpenAI helper - ask Terra (GPT-5.6 Terra - the only model he uses) for wording, Hebrew copy, naming, positioning or a second opinion, and generate real images with Leonardo AI. Use whenever the user says "ask Terra", "consult Terra", "תתייעץ עם טרה" (an old "consult SOL" / "שאל את סול" also means Terra now), asks for a second opinion from OpenAI/GPT, wants Hebrew copy or naming polished, or asks for images, illustrations, artwork, backgrounds, hero shots, posters, icons or slide visuals to be generated — including for a deck, a brochure, a landing page or a React project. Also use before writing marketing or presentation copy in Hebrew.
+description: The OpenAI helper - ask Terra (GPT-6.1 Terra - the only model he uses) for wording, Hebrew copy, naming, positioning or a second opinion, and generate real images with Leonardo AI. Use whenever the user says "ask Terra", "consult Terra", "תתייעץ עם טרה" (an old "consult SOL" / "שאל את סול" also means Terra now), asks for a second opinion from OpenAI/GPT, wants Hebrew copy or naming polished, or asks for images, illustrations, artwork, backgrounds, hero shots, posters, icons or slide visuals to be generated — including for a deck, a brochure, a landing page or a React project. Also use before writing marketing or presentation copy in Hebrew.
 ---
 
 # OpenAI + Leonardo (was "SOL + Leonardo" / sol.js until 2026-11-06)
@@ -35,7 +35,7 @@ Terra for anything."). `openai.js` defaults to Terra and switches a `--model gpt
 
 ```bash
 node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md
-node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md --model gpt-5.6-terra --effort high
+node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md --model gpt-6.1-terra --effort high
 node ~/.claude/skills/openai-leonardo/scripts/openai.js --models      # what this key can actually reach
 node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md --image home.png --image ideas.png   # Terra looks at screenshots (design critique)
 ```
@@ -45,7 +45,7 @@ Then read `answer.md` with the **Read** tool.
 ### Which model
 | model | for |
 |---|---|
-| `gpt-5.6-terra` | **the only one - default and everything**: wording, naming, Hebrew copy, positioning, second opinions, analysis, critique. |
+| `gpt-6.1-terra` | **the only one - default and everything**: wording, naming, Hebrew copy, positioning, second opinions, analysis, critique. |
 | `gpt-5.6-sol` | **never** (his rule, 2026-11-14 - too expensive, overcomplicates). |
 | others (luna, pro) | not used unless he asks for one by name. |
 

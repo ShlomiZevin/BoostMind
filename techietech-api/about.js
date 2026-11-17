@@ -25,7 +25,7 @@ const FIELDS = {
 const BY = ['miriam', 'demokratovich', 'yotam', 'me', 'sim'];
 const clip = (s, n) => String(s ?? '').slice(0, n);
 const short = (s, n) => { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
-const MODEL = 'gpt-5.6-terra';
+const MODEL = 'gpt-6.1-terra';
 
 // the characters and the worlds (series), from the same brain as the chat (gs://shlomiverse-private/wiki-brain.json, looked at
 // every 3 minutes) - the ids a fav / world answer may hold, and the worlds the simulation's world question offers

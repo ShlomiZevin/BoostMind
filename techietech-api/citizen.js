@@ -19,7 +19,7 @@ const about = require('./about');
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
 const KEY = defineSecret('VERSE_SITE_OPENAI_KEY');
-const MODEL = 'gpt-5.6-terra';
+const MODEL = 'gpt-6.1-terra';
 const FOUNDING = 1000;
 const OWNER_EMAIL = 'shlomi@boostart.io';
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];

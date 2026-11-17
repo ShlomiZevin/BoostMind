@@ -60,7 +60,7 @@ ${String(words || '').slice(0, 6000) || '(אין תמליל)'}
 
 החזר JSON בלבד: {"title": "כותרת קצרה ומושכת", "teaser": "משפט אחד שגורם ללחוץ, בלי לספיילר את הפאנץ'", "card": "משפט אחד על מה שקורה, ואז 'נושאים:' ורשימה של כל נושא, מקום, חפץ, אירוע ורעיון שמוזכרים, גם בדרך אגב, עד 18"}`;
   const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + key, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-5.6-terra', input: prompt, reasoning: { effort: 'low' }, text: { format: { type: 'json_object' } } }) });
+    body: JSON.stringify({ model: 'gpt-6.1-terra', input: prompt, reasoning: { effort: 'low' }, text: { format: { type: 'json_object' } } }) });
   const j = await r.json();
   if (!r.ok) throw new Error('terra ' + r.status + ' ' + JSON.stringify(j).slice(0, 200));
   const txt = (j.output || []).flatMap((o) => o.content || []).find((c) => c.type === 'output_text')?.text || '{}';
@@ -83,7 +83,7 @@ ${list}
 
 החזר JSON בלבד: {"cast": ["<id>", ...]} - רק ids מהרשימה, הדמות הראשית ראשונה, רק מי שבאמת מופיע או מדבר בסרטון (לא מי שרק מוזכר). אם אין אף דמות מהרשימה - רשימה ריקה.`;
   const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + key, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-5.6-terra', input: prompt, reasoning: { effort: 'low' }, text: { format: { type: 'json_object' } } }) });
+    body: JSON.stringify({ model: 'gpt-6.1-terra', input: prompt, reasoning: { effort: 'low' }, text: { format: { type: 'json_object' } } }) });
   const j = await r.json();
   if (!r.ok) throw new Error('terra ' + r.status);
   const ids = new Set(chars.map((c) => c.id));

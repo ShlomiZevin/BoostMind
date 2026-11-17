@@ -36,7 +36,7 @@ async function oldWay(mode, turns) {
   const system = w._test.RULES + '\n\n' + w._test.canon(brain);
   const res = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST', headers: { authorization: `Bearer ${KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-5.6-terra', instructions: system, input: [{ role: 'developer', content: w._test.modeText(mode, cur.byId, false) }, ...turns],
+    body: JSON.stringify({ model: 'gpt-6.1-terra', instructions: system, input: [{ role: 'developer', content: w._test.modeText(mode, cur.byId, false) }, ...turns],
       reasoning: { effort: 'low' }, max_output_tokens: 2500, store: false }),
   });
   const r = await res.json();

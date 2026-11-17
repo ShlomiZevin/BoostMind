@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const WORK = path.join(ROOT, 'scripts', 'characters', 'work');
-const MODEL = 'gpt-5.6-terra', PRICE = { in: 2, out: 12 };   // $ per 1M tokens
+const MODEL = 'gpt-6.1-terra', PRICE = { in: 2, out: 12 };   // $ per 1M tokens
 const args = process.argv.slice(2), has = (f) => args.includes(f), ids = args.filter((a) => !a.startsWith('--'));
 fs.mkdirSync(WORK, { recursive: true });
 

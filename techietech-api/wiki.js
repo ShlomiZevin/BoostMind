@@ -37,7 +37,7 @@ const OPENAI_API_KEY = defineSecret('WIKI_OPENAI_KEY');
 // false = Terra directs (also what happens by itself if Sonnet refuses or fails).
 const DIRECTOR_SONNET = true;
 const ANTHROPIC_KEY = DIRECTOR_SONNET ? defineSecret('VERSE_ANTHROPIC_KEY') : null;
-const MODEL = 'gpt-5.6-terra';
+const MODEL = 'gpt-6.1-terra';
 const MAX_TURNS = 16;
 const MAX_CHARS = 1200;
 

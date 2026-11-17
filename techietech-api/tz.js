@@ -47,7 +47,7 @@ const chKey = () => (LOCAL ? process.env.VERSE_OPENAI_KEY : CH_KEY.value());
 const anKey = () => (LOCAL ? process.env.VERSE_ANTHROPIC_KEY || null : AN_KEY.value());
 const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';   // as in verse.js
 const HIM = 'rJLlCV393shl7njhzWZmoaE15Yp2';   // his account - reports reach his phone
-const MODEL = 'gpt-5.6-terra';
+const MODEL = 'gpt-6.1-terra';
 const IMG_MODEL = 'gpt-image-2.6-flare';
 const MEDIA = 'shlomiverse-media';
 const OWNER = 'shlomi@boostart.io';

@@ -16,8 +16,8 @@ const PRICE = { in: 2, cached: 0.2, out: 12 };   // Terra, $ per 1M tokens
 const SONNET = 'claude-sonnet-5-5', SONNET_PRICE = { in: 2, cached: 0.1, out: 10 };
 const STEPS = {
   // effort: how long a step thinks before it writes
-  direct: { model: 'gpt-5.6-terra', couples: 99, effort: process.env.DIRECT_EFFORT || 'low' },      // -> Sonnet when there is an Anthropic key
-  talk: { model: 'gpt-5.6-terra', couples: 99, effort: 'low' },
+  direct: { model: 'gpt-6.1-terra', couples: 99, effort: process.env.DIRECT_EFFORT || 'low' },      // -> Sonnet when there is an Anthropic key
+  talk: { model: 'gpt-6.1-terra', couples: 99, effort: 'low' },
 };
 const cost = (u, P = PRICE) => ((u.input_tokens - (u.input_tokens_details?.cached_tokens || 0)) * P.in + (u.input_tokens_details?.cached_tokens || 0) * P.cached + u.output_tokens * P.out) / 1e6;
 const last = (turns, couples) => turns.slice(-(couples * 2 + 1));   // the visitor's new message + that many couples before it
@@ -260,7 +260,7 @@ You know this only a little, like an educated outsider - no details an expert wo
   const usage = { input_tokens: sum((u) => u.input_tokens), input_tokens_details: { cached_tokens: sum((u) => u.input_tokens_details?.cached_tokens) }, output_tokens: sum((u) => u.output_tokens) };
   return { text: t.out, steps, convo, usage, cost: total, ms: Date.now() - t0, first: talkAt + (t.first || 0), plan: D,
     // think: what the steps decided - kept on the log (Backstage → שיחות → חשיבה; a session discussing his comments)
-    log: { think: thinkOf(D), usd: Math.round(total * 1e6) / 1e6, steps: steps.map((s) => ({ step: s.step, model: s.model || 'gpt-5.6-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) } };
+    log: { think: thinkOf(D), usd: Math.round(total * 1e6) / 1e6, steps: steps.map((s) => ({ step: s.step, model: s.model || 'gpt-6.1-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) } };
 }
 
 // a short copy of the director's notes for the log (a Firestore doc stays small); v: 3 = the short notes (2026-11-15; v 2 = the
@@ -311,7 +311,7 @@ ${PLAN_FORMAT(c)}`;
     const total = steps.reduce((a, s) => a + (s.cost || 0), 0);
     const sum = (f) => steps.reduce((a, s) => a + (f(s.usage || {}) || 0), 0);
     return { text, plan: D, cost: total, u: [sum((u) => u.input_tokens), sum((u) => u.input_tokens_details?.cached_tokens), sum((u) => u.output_tokens)],
-      think: thinkOf(D), steps: steps.map((s) => ({ step: s.step, model: s.model || 'gpt-5.6-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) };
+      think: thinkOf(D), steps: steps.map((s) => ({ step: s.step, model: s.model || 'gpt-6.1-terra', ms: s.ms || 0, usd: Math.round((s.cost || 0) * 1e6) / 1e6 })) };
   };
   if (!D.say || /^\s*SKIP\b/i.test(D.say) || (holyNow(at) && D.rest === true)) return done('');
   const notes = [`What you post (the director's notes - true; say it in your own words and voice): ${D.say}`,

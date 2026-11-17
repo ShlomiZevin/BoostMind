@@ -95,7 +95,7 @@ Run the stories in parallel (`&` ... `wait`). Up to ~5 references work well.
   --prompt-file face.txt` (the mask = a PNG the poster's size, transparent over the head only; the prompt starts
   "Repaint only the masked area..." and ends "Everything outside the mask stays exactly the same"). A too-small hand or a
   childish face gets the same treatment. Put the result next to the frames in one picture and LOOK before you send.
-- **The words come from Terra** (`gpt-5.6-terra`, `openai-leonardo` skill) - ask for several short options, pick.
+- **The words come from Terra** (`gpt-6.1-terra`, `openai-leonardo` skill) - ask for several short options, pick.
 - **Never stretch a picture to 9:16** - crop it or have the model paint it at 1088x1920 (Osnat, 9 Nov: "it's stretched").
   And he wants the story READY TO POST - the picture with its words, the brand and the link box - not a bare picture.
 - **Send it to his Telegram ONCE, as one file** (a document, full quality). Never the same picture twice - photo + file

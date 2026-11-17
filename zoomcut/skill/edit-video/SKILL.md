@@ -782,7 +782,7 @@ Never print a key, never write one into a file in the repo, never ask him for on
     it runs the live wiki chat (`techietech-api/wiki.js`, `defineSecret('WIKI_OPENAI_KEY')`). In a local script:
     `KEY=$(gcloud secrets versions access latest --secret=WIKI_OPENAI_KEY --project=boostmind-b052c)` into a variable,
     never echoed. The project's `OPENAI_API_KEY` secret belongs to something else - never overwrite it.
-  - Models: `gpt-5.6-terra` - for everything (never `gpt-5.6-sol`: "too expensive and sometimes overcomplicates"); `node ~/.claude/skills/openai-leonardo/scripts/openai.js --models` (from the repo) lists them.
+  - Models: `gpt-6.1-terra` - for everything (never `gpt-5.6-sol`: "too expensive and sometimes overcomplicates"); `node ~/.claude/skills/openai-leonardo/scripts/openai.js --models` (from the repo) lists them.
 - **Pictures and sound effects** (`tools/leonardo.mjs`): `OPENAI_API_KEY` (pictures, direct), `ELEVENLABS_API_KEY`
   (sounds, direct) and `LEONARDO_API_KEY` (the fallback + video) - all in `zoomcut/.env`, the editor's own keys; the
   tool reads only that file. A missing OpenAI key = it says so and goes to Leonardo - never borrow another project's.

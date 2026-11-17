@@ -8,7 +8,7 @@
  *
  * Usage:
  *   node scripts/landing-copy-review.mjs
- *   node scripts/landing-copy-review.mjs --model gpt-5.6-terra
+ *   node scripts/landing-copy-review.mjs --model gpt-6.1-terra
  *   node scripts/landing-copy-review.mjs --apply scripts/landing-review.out.json   # judge the text as it shipped
  *
  * Key source: aspect/aspect-agent-server/.env (MARKETING.md §4).

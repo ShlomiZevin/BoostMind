@@ -129,7 +129,7 @@ def new_characters(cids):
         run([sys.executable, 'scripts/wiki/copy_brief.py', '--only-missing'])
         work = tempfile.mkdtemp()  # openai.js reads ./.env first - a project folder's key is revoked
         run(['node', SOL, '--in', os.path.join(HERE, 'work', 'copy-brief.txt'), '--out', os.path.join(HERE, 'work', 'copy-answer.md'),
-             '--model', 'gpt-5.6-terra', '--env', KEYS], cwd=work)
+             '--model', 'gpt-6.1-terra', '--env', KEYS], cwd=work)
         run([sys.executable, 'scripts/wiki/merge_copy.py'])
         say(f'  · copy by Terra for {", ".join(need)}')
     out = run([sys.executable, 'scripts/wiki/build.py'])
@@ -171,7 +171,7 @@ def main():
         run([sys.executable, 'scripts/wiki/copy_brief.py', '--only-missing'])
         work = tempfile.mkdtemp()  # openai.js reads ./.env first - a project folder's key is revoked
         run(['node', SOL, '--in', os.path.join(HERE, 'work', 'copy-brief.txt'), '--out', os.path.join(HERE, 'work', 'copy-answer.md'),
-             '--model', 'gpt-5.6-terra', '--env', KEYS], cwd=work)
+             '--model', 'gpt-6.1-terra', '--env', KEYS], cwd=work)
         run([sys.executable, 'scripts/wiki/merge_copy.py'])
         say(f'  · fan copy by Terra for {", ".join(need)}')
 

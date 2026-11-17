@@ -1221,7 +1221,7 @@ async function askData(q) {
   const r = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST', headers: { authorization: `Bearer ${siteKey()}`, 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'gpt-5.6-terra', reasoning: { effort: 'medium' }, max_output_tokens: 4000, store: false,
+      model: 'gpt-6.1-terra', reasoning: { effort: 'medium' }, max_output_tokens: 4000, store: false,
       instructions: `You are the data analyst of Shlomi's admin page for שלומיוורס (his comedy universe site: videos, characters people chat with, games, character sites). Answer his question from the DATA only, in Hebrew, short and exact: first one line with the answer and the key number(s), then - only if it helps - a small markdown table (at most 12 rows) or 2-4 short bullet lines. Compute carefully (sum, compare periods, percentages). Dates are Israel time. If the data can't answer it, say exactly what is missing. Never invent numbers. No preamble.`,
       input: [{ role: 'user', content: `DATA:\n${JSON.stringify(pack)}\n\nQUESTION: ${q}` }],
     }),

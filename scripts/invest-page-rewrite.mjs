@@ -10,7 +10,7 @@
  *
  * Usage:
  *   node scripts/invest-page-rewrite.mjs
- *   node scripts/invest-page-rewrite.mjs --model gpt-5.6-terra
+ *   node scripts/invest-page-rewrite.mjs --model gpt-6.1-terra
  *
  * Key source: aspect/aspect-agent-server/.env (MARKETING.md §4).
  */

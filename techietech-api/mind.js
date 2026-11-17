@@ -317,7 +317,7 @@ async function pageOp(b) {
           type: { type: 'string', enum: ['', ...cfg.types.map((t) => t.id)] }, project: { type: 'string' },
           status: { type: 'string', enum: ['', ...STATUSES] }, pin: { type: 'string', enum: ['', 'yes', 'no'] }, due: { type: 'string' } } } } } };
       const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + OPENAI.value(), 'content-type': 'application/json' },
-        body: JSON.stringify({ model: 'gpt-5.6-terra', reasoning: { effort: 'none' }, max_output_tokens: 4000, store: false,
+        body: JSON.stringify({ model: 'gpt-6.1-terra', reasoning: { effort: 'none' }, max_output_tokens: 4000, store: false,
           text: { format: { type: 'json_schema', name: 'mind_actions', schema, strict: true } },
           instructions: `You run Shlomi's personal second brain from what he said or typed (often a voice note, Hebrew, maybe messy). He is a CTO of two companies and makes comedy videos; he works with many AI coding sessions.
 He can tell you anything: new things to remember, or changes to things already on his table ("סיימתי את X", "תעביר את Y למחר", "תוסיף ל-Z ש...", "תמחק את", "זה כבר לא רלוונטי", "תסמן בכוכב", "תהפוך את זה לתזכורת"). Return the actions that do what he asked.

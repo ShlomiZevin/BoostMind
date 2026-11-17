@@ -11,7 +11,7 @@
  *
  * Usage:
  *   node openai.js --in brief.txt --out answer.md
- *   node openai.js --in brief.txt --out answer.md --model gpt-5.6-terra
+ *   node openai.js --in brief.txt --out answer.md --model gpt-6.1-terra
  *   node openai.js --prompt "short ascii question" --out answer.md
  *   node openai.js --models          # list what this key can actually reach
  */
@@ -71,8 +71,9 @@ async function main() {
 
   if (has('--models')) return listModels(key);
 
-  let model = arg('--model', 'gpt-5.6-terra');
-  if (/sol/i.test(model)) { console.error(`(${model} -> gpt-5.6-terra: Terra for everything, never SOL - his rule, 2026-11-14)`); model = 'gpt-5.6-terra'; }
+  let model = arg('--model', 'gpt-6.1-terra');
+  if (/5\.6-terra/.test(model)) model = 'gpt-6.1-terra';   // (the older Terra - his call 2026-11-17: "use the newer one")
+  if (/sol/i.test(model)) { console.error(`(${model} -> gpt-6.1-terra: Terra for everything, never SOL - his rule, 2026-11-14)`); model = 'gpt-6.1-terra'; }
   const inFile = arg('--in');
   const outFile = arg('--out');
   const systemFile = arg('--system');

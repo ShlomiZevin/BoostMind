@@ -10,7 +10,7 @@
  *
  * Usage:
  *   node scripts/invest-copy-review.mjs                 # default gpt-5.6-sol
- *   node scripts/invest-copy-review.mjs --model gpt-5.6-terra
+ *   node scripts/invest-copy-review.mjs --model gpt-6.1-terra
  *   node scripts/invest-copy-review.mjs --out scripts/invest-review.out.json
  *   node scripts/invest-copy-review.mjs --apply scripts/invest-review.out.json   # judge the text as it shipped
  *

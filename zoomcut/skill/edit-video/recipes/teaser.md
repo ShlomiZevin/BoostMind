@@ -24,7 +24,7 @@ growing out of space until it lands exactly on the logo frame (`source/frame-log
 - **The green "הסכמות" card** after "רק בשלומיוורס" (his ask - like the green card before a film trailer, made Haredi:
   "מכתבי ברכה והסכמה", the video "נבדק ונמצא כשר למהדרין לכל בני הבית", five rabbis' approvals, "ועל זה באעה"ח"):
   `_assets/shlomiverse/verse-haskamot.mp4` (4 s): a sefer's ornamented green page (gold arch + crown, made with GPT Image 2.6 WITHOUT any text - `source/haskamot/frame.png`, p-frame.txt), the exact words set on it in gold / cream by `source/haskamot/card.html` (shot.mjs -> PNG -> clip). Every word stays inside the plain green (y 300-1740, x 165-915 - measured from the frame), spread evenly; never on the ornaments (his note). The rabbis
-  and yeshivas are INVENTED (written with Terra - gpt-5.6-terra, his rule for Hebrew copy - checked not to be real people) - never put a real rabbi's name on it.
+  and yeshivas are INVENTED (written with Terra - gpt-6.1-terra, his rule for Hebrew copy - checked not to be real people) - never put a real rabbi's name on it.
 - **The hand-over from the intro to the video** (his note: "looks like two different stuff"): a warm white flash
   (`verse.flash`, a #fff1dc shape peaking on the cut) - the logo fades into light and the first shot appears through it.
   The intro's sound = one deep cinematic hit on the logo's lock (`source/px-kick-hit.mp3`) + a soft shimmer; the music

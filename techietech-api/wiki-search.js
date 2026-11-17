@@ -6,7 +6,7 @@
 // Embeddings were measured first and lost: on Hebrew they ranked the right video 4th-126th ("חתונה" found the wedding video
 // at 50-126 with text-embedding-3-small / -large), where reading the cards finds it - so no vector store, no Pinecone.
 // When the index passes ~1,000 videos (~70K tokens), filter it first (by world / date / words) before this call.
-const MODEL = 'gpt-5.6-terra', MAX = 6;
+const MODEL = 'gpt-6.1-terra', MAX = 6;
 
 let cache = { md5: null, text: '' };
 const indexOf = (cur) => {

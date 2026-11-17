@@ -20,7 +20,7 @@ const about = require('./about');
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
 const KEY = defineSecret('VERSE_SITE_OPENAI_KEY');   // the site's own OpenAI key (Backstage → הוצאות shows its spend; the chat has WIKI_OPENAI_KEY)
-const MODEL = 'gpt-5.6-terra';
+const MODEL = 'gpt-6.1-terra';
 const IMG_MODEL = 'gpt-image-2.6-flare';
 const STEPS = 7;
 const MEDIA = 'shlomiverse-media';

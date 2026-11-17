@@ -11,7 +11,7 @@
  *
  * Usage:
  *   node scripts/cv-phrase-review.mjs                 # default model gpt-5.6-sol
- *   node scripts/cv-phrase-review.mjs --model gpt-5.6-terra
+ *   node scripts/cv-phrase-review.mjs --model gpt-6.1-terra
  *   node scripts/cv-phrase-review.mjs --list-models   # print ALL matches, never a head
  *
  * Env: OPENAI_API_KEY (+ optional OPENAI_ORG_ID / OPENAI_PROJECT_ID) in ./.env
