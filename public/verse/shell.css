@@ -687,3 +687,13 @@ html.app .top .tb-tg { display: none; }
 /* "בכיכוב:" in its own space; the faces fade only at their far end (nothing over the first chip) */
 .fd-chips { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px); mask-image: linear-gradient(to right, transparent, #000 28px); padding-inline-start: 2px; }
 .fd-cl { position: relative; z-index: 1; padding-inline-end: 2px; }
+
+/* the games feed as the videos feed (mockup r6/1): the same round column over the cover, the title and line at the start,
+   the cast row, one big play */
+.gf-s .gf-rail { position: absolute; z-index: 2; top: 14px; inset-inline-start: 10px; transform: none; }
+.gf-s .gf-body { align-items: stretch; text-align: start; gap: 10px; padding: 0 14px 14px; }
+.gf-s .gf-t { font-size: clamp(1.75rem, 8vw, 2.2rem); }
+.gf-s .gf-tag { margin: -4px 0 0; max-width: none; }
+.gf-s .gf-cast { margin: 2px 0 0; }
+.gf-s .gf-play { align-self: center; margin-top: 4px; width: min(88%, 360px); }
+@media (max-height: 700px) { .gf-s .gf-rail button { width: 48px; height: 48px; } .gf-s .gf-rail { gap: 7px; } .gf-s .gf-rail b { font-size: 10.5px; } }

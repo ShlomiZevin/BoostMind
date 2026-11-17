@@ -236,6 +236,11 @@ export function openGame(id, q = {}) {
       </div>
     </div>
     <button class="vg-exit" data-exit>${face}<span>${esc(T.gExit)}</span>${SHRINK}</button>`;
+  // from the games feed's "לשחק": straight into play - the game in its own full screen (the slide already showed the
+  // cover, the title and the buttons); its exit goes back to the slide
+  const ff = HOOK.playFromFeed === id;
+  HOOK.playFromFeed = null;
+  if (ff) { el.classList.add('full', 'ff'); const x = $('.vg-exit', el); if (x) x.innerHTML = `${I.back}<span>${esc(T.shell.gBack)}</span>`; }
   document.body.append(el);
   lockScroll();
   P = { el, v, lead, off: [fit(el)], hideT: 0, hearted: false, uid: undefined };
@@ -318,7 +323,7 @@ export function openGame(id, q = {}) {
     if (!b) return;
     if (b.matches('[data-close]')) { e.preventDefault(); close(); }
     else if (b.matches('[data-full]')) full(true);
-    else if (b.matches('[data-exit]')) full(false);
+    else if (b.matches('[data-exit]')) { if (el.classList.contains('ff')) close(); else full(false); }
     else if (b.matches('[data-heart]')) heart();
     else if (b.matches('[data-records]')) openBoard(g, { onAgain: again });
     else if (b.matches('[data-gate]')) { if (await needFan('play')) mount(); }
@@ -328,7 +333,7 @@ export function openGame(id, q = {}) {
   });
   P.key = (e) => {
     if (document.querySelector('.vx-sheet, .st, input:focus, textarea:focus')) return;
-    if (e.key === 'Escape' && !document.fullscreenElement) { if (el.classList.contains('full')) full(false); else close(); }
+    if (e.key === 'Escape' && !document.fullscreenElement) { if (el.classList.contains('full') && !el.classList.contains('ff')) full(false); else close(); }
   };
   document.addEventListener('keydown', P.key);
   deepLinks(q);

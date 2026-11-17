@@ -51,8 +51,9 @@ export function castSheet(id, vctx) {
     </div>`, { cls: 'cs-sheet', onClose: (why) => { if (was && why !== 'talk' && why !== 'page') resumeLater(vd); } });
   fitButtons(h.el, id);
   h.el.addEventListener('click', (e) => {
-    if (e.target.closest('[data-cs-talk]')) { h.close('talk'); talkFromVideo(id, vctx); }
-    else if (e.target.closest('[data-cs-page]')) { e.preventDefault(); e.stopPropagation(); h.close('page'); leaveVideo('page', id, vctx); }   // the heads-up first
+    const game = vctx && vctx.from === 'games';   // from a game slide nothing plays - no heads-up, straight there
+    if (e.target.closest('[data-cs-talk]')) { h.close('talk'); if (game) openChat(id); else talkFromVideo(id, vctx); }
+    else if (e.target.closest('[data-cs-page]')) { if (game) { h.close('page'); return; } e.preventDefault(); e.stopPropagation(); h.close('page'); leaveVideo('page', id, vctx); }   // the heads-up first
   });
   track('feed', 'cast:' + id);
 }
