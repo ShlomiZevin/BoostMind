@@ -1330,6 +1330,23 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       for (const x of q.docs) { const { d, h = {} } = x.data(); hours[d] = Object.fromEntries(KEYS.filter((k) => h[k]).map((k) => [k, h[k]])); }
       return res.json({ hours });
     }
+    // each visit's length with the moment it started (the "time" events, analytics.js) - "since the event" cuts time on site at
+    // the event's minute; the day docs only hold whole-day sums. wins = up to 3 [fromMs, toMs], 20 days at most together
+    if (op === 'visits') {
+      const wins = (Array.isArray(b.wins) ? b.wins : []).slice(0, 3).map(([a, z]) => [+a, +z]).filter(([a, z]) => a > 0 && z > a);
+      if (!wins.length || wins.reduce((s, [a, z]) => s + z - a, 0) > 20 * 864e5) return res.status(400).json({ error: 'wins' });
+      const by = new Map();
+      for (const [a, z] of wins) {
+        const q = await db.collection('analytics_events').where('t', '>=', new Date(a)).where('t', '<', new Date(z)).select('e', 't', 's', 'x', 'm').get();
+        for (const x of q.docs) {
+          const e = x.data(); if (e.e !== 'time' || !e.s) continue;
+          const tot = Math.max(0, parseInt(String(e.x || '').split(':')[0], 10) || 0), at = e.t.toMillis(), v = by.get(e.s);
+          const start = at - tot * 1000;    // the beacon goes when the visit ends (or the tab hides); its total runs from the start
+          if (!v) by.set(e.s, [start, tot, e.m ? 1 : 0]); else { v[0] = Math.min(v[0], start); v[1] = Math.max(v[1], tot); }
+        }
+      }
+      return res.json({ visits: [...by.values()] });
+    }
     if (op === 'stats') {
       const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 180);
       const from = dayIL(new Date(Date.now() - Math.max(2 * days - 1, 84) * 864e5));   // the forecast learns from 12 weeks

@@ -1515,8 +1515,14 @@ async function sinceOn(id) {
   const from = evFrom(e), fromDay = dayIL(from), today = dayIL();
   try { HRS = (await api('hours', { from: dayAdd(fromDay, -7), to: today })).hours || {}; } catch (x) { HRS = {}; }
   const counts = new Set(EVS.filter((x) => x.day >= dayAdd(fromDay, -7) && x.day <= today).flatMap((x) => x.counts || []));
-  since = { id, title: e.title, day: fromDay, from, h0: hrOf(from), counts };
+  since = { id, title: e.title, day: fromDay, from, h0: hrOf(from), counts, tv: Date.now() - from < 13 * 864e5 ? 'wait' : null };
   drillDay = null; closeSheet(); go('overview');
+  // time on site: the day docs hold whole-day sums only, so the visits themselves (op visits, a few seconds) - those that started
+  // after the event against those that started in the same hours of the 7 days before; the card fills in when they come
+  if (since.tv !== 'wait') return;
+  let tv = null;
+  try { tv = (await api('visits', { wins: [[dayStart(dayAdd(fromDay, -7)), dayStart(fromDay)], [from, Date.now()]] })).visits || null; } catch (x) { tv = null; }
+  if (since?.id === id) { since.tv = tv; if (tab === 'overview') draw(); }
 }
 function sinceDays() {   // the event's day (from its hour) .. today
   const have = Object.fromEntries(S.days.map((d) => [d.d, d])), n = dayGap(since.day, dayIL());
@@ -1670,7 +1676,27 @@ function timeStats(list) {
   return { med, avg: s / n, n };
 }
 const dur = (s) => (s < 60 ? `${Math.round(s)} שנ׳` : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')} דק׳`);
+// a list of visit lengths -> the same median / average the day buckets give (exact here)
+function timeOf(secs) {
+  if (!secs.length) return null;
+  const t = [...secs].sort((x, y) => x - y), m = t.length >> 1;
+  return { med: t.length % 2 ? t[m] : (t[m - 1] + t[m]) / 2, avg: t.reduce((x, y) => x + y, 0) / t.length, n: t.length };
+}
+// "since the event": visits that started after it, against visits that started in the same hours of the 7 days before
+function sinceTime() {
+  const tv = since.tv, nowH = hrOf(Date.now()), one = dayGap(since.day, dayIL()) === 0;
+  const before = tv.filter(([st]) => st < dayStart(since.day) && (!one || (hrOf(st) >= since.h0 && hrOf(st) < nowH))).map((v) => v[1]);
+  return { after: timeOf(tv.filter(([st]) => st >= since.from).map((v) => v[1])), before: timeOf(before), perDay: before.length / 7 };
+}
 function timeKpi() {
+  if (since && since.tv === 'wait') return `<div class="k"><span class="kh">${IC.stats}זמן באתר</span><b>…</b><span class="kf"><small class="note">סופר את הביקורים מאז האירוע</small></span></div>`;
+  if (since && since.tv) {
+    const { after: a, before: p, perDay } = sinceTime();
+    const pc = (x, y) => (y ? `${x >= y ? '+' : ''}${Math.round((x / y - 1) * 100)}%` : '');
+    return `<div class="k"><span class="kh">${IC.stats}זמן באתר</span><b>${a ? dur(a.med) : '—'}</b>
+      <span class="kf"><small class="note">${a ? `חציון לביקור${p ? ` (לפני ${dur(p.med)})` : ''} · ממוצע ${dur(a.avg)}${p ? ` (לפני ${dur(p.avg)})` : ''} · ${fmt(a.n)} ביקורים` : 'אין עוד ביקורים מאז'}</small>
+      ${a && p ? `<span class="trend ${a.med >= p.med ? 'up' : 'down'}"><bdi dir="ltr">${pc(a.med, p.med)}</bdi><span class="tw"> מול חציון ${dur(p.med)} · ממוצע ${dur(p.avg)} · כ-${fmt(Math.round(perDay))} ביקורים ביום באותן שעות לפני</span></span>` : ''}</span></div>`;
+  }
   const ts = timeStats(period());
   return `<div class="k"><span class="kh">${IC.stats}זמן באתר</span><b>${ts ? dur(ts.med) : '—'}</b>
     <span class="kf"><small class="note">${ts ? `חציון לביקור · ממוצע ${dur(ts.avg)} · ${fmt(ts.n)} ביקורים` : 'נמדד מ-2.11, בקרוב כאן'}</small></span></div>`;
