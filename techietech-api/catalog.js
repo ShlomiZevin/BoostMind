@@ -26,6 +26,7 @@ function siteVideo(v) {
   o.date = v.date || '';
   if (v.archive) o.archive = true;
   if (v.ig) o.ig = v.ig;
+  if (v.drop && v.drop.at > 0) o.drop = v.drop;   // the socials version's drop - the site's locked version (publish.js cleanDrop)
   return o;
 }
 

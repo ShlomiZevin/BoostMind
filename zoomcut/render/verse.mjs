@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import * as verseDb from './verse_db.mjs';
+import { dropOf } from './src/layers/version.js';
 
 export const VERSE_API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/versePublish';
 
@@ -128,7 +129,11 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
   // the Instagram post it became (the Send window keeps it in publish.json) - the archive shows it as "in the verse" and
   // nobody can ask for it from there again (his note 2026-11-17: a studio reel was requested from the archive)
   const igUrl = (readJson(path.join(dir, 'publish.json'), {}).published?.instagram?.url) || '';
-  const out = await api({ op: 'video', id, ...(/^https:\/\/(www\.)?instagram\.com\//.test(igUrl) ? { ig: igUrl } : {}), ...(cast.length ? { cast } : {}), transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
+  // the socials version's drop (project.split - version.js dropOf): the site plays the same "signal lost" there for a
+  // signed-out viewer; a layered project without a split sends null (clears an old one)
+  const pj = readJson(path.join(dir, 'project.json'), null), drop = pj?.layers ? dropOf(pj) : undefined;
+  if (drop) log(`  · the socials version drops at ${drop.at.toFixed(1)} s - signed out on the Shlomiverse, the signal drops there too`);
+  const out = await api({ op: 'video', id, ...(drop !== undefined ? { drop } : {}), ...(/^https:\/\/(www\.)?instagram\.com\//.test(igUrl) ? { ig: igUrl } : {}), ...(cast.length ? { cast } : {}), transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
   if (dryRun) { log(`✔ dry run: "${out.video?.title || ''}" - cast ${out.castBy || '?'}: ${(out.video?.cast || []).join(', ') || 'nobody'} - nothing written`); return out; }
   const live = await api({ op: 'get', id });
   if (!live.live) throw new Error(`written, but ${id} is hidden on the site (/backstage/ סרטונים shows it)`);

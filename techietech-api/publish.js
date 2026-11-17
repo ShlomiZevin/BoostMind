@@ -5,7 +5,7 @@
 //   (not "Bearer": Google's front door takes a Bearer for a Google identity token and refuses it before it gets here)
 //   {op: 'uploadUrl', id, kind: 'video' | 'poster', contentType}   -> {uri}: PUT the whole file there (same content type)
 //                                                                     - wiki/v/<id>.mp4 / wiki/v/<id>.jpg
-//   {op: 'video', id, title?, teaser?, cast?, series?, date?, t?, transcript?, onScreen?, archive?, ig?, url?, card?, dryRun?}
+//   {op: 'video', id, title?, teaser?, cast?, series?, date?, t?, transcript?, onScreen?, archive?, ig?, url?, card?, drop?, dryRun?}
 //        (onScreen: the words burned into the video - feeds the title / card and the chat, kept like the transcript)
 //        the record, by id, again and again: a field not sent keeps its value, nothing is ever blanked. Its files must be
 //        in the bucket (or `url` for a video that lives elsewhere). No title / teaser = Terra writes them from the words;
@@ -94,6 +94,18 @@ ${list}
 // the characters (for a video's series, names and the AI's cast pick) - from the records
 async function base() { return { characters: (await db.collection('catalogCharacters').get()).docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => !c.hidden) }; }
 
+// drop: where a video's socials version "loses reception" (the studio's split - zoomcut version.js dropOf), seconds in the
+// full file: {at, glitches: [[start, end, amount], ...]}. On the site a signed-out viewer gets the same drop there with a
+// sign-in button (v2/site/verse/signal-lost.js - his "you have the right to do it on our verse", 2026-11-17). null clears it.
+function cleanDrop(d) {
+  const at = +d?.at;
+  if (!d || !(at > 0)) return null;
+  const n = (x) => +(+x).toFixed(3);
+  const glitches = (Array.isArray(d.glitches) ? d.glitches : []).slice(0, 6).filter((g) => Array.isArray(g) && +g[0] >= 0 && +g[1] > +g[0] && +g[1] <= at + 0.01)
+    .map((g) => [n(g[0]), n(g[1]), Math.max(0, Math.min(1, +(g[2] ?? 1)))]);
+  return { at: n(at), glitches };
+}
+
 async function video(b) {
   const ref = db.collection('catalogVideos').doc(b.id), was = (await ref.get()).data() || null;
   const src = b.url ? null : await mediaUrl(admin, `v/${b.id}.mp4`), poster = await mediaUrl(admin, `v/${b.id}.jpg`);
@@ -110,6 +122,7 @@ async function video(b) {
     src: src || was?.src || null, poster: poster || was?.poster || b.poster || null,
     ...(b.url || was?.url ? { url: b.url || was.url } : {}), ...(b.archive || was?.archive ? { archive: true } : {}), ...(b.ig || was?.ig ? { ig: b.ig || was.ig } : {}),
     card: b.card || was?.card || '', hidden: was?.hidden || false, source: b.source || was?.source || 'publish', seq: was?.seq || 0,
+    drop: b.drop !== undefined ? cleanDrop(b.drop) : was?.drop || null,
   };
   const tw = (await db.collection('catalogTranscripts').doc(b.id).get()).data() || {};
   const words = b.transcript != null ? String(b.transcript) : tw.text || '', onScreen = b.onScreen != null ? String(b.onScreen) : tw.onScreen || '';

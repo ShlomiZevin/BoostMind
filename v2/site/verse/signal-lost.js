@@ -39,12 +39,12 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
   const root = document.createElement('div');
   root.className = 'sl';
   root.innerHTML = `<canvas class="sl-cv"></canvas><div class="sl-dark"></div>
-    <div class="sl-card" hidden><div class="sl-box"></div>
+    <div class="sl-card" hidden><div class="sl-frame"><div class="sl-box"></div>
       <img class="sl-logo" alt="" src="${assets.logo || ''}">
       <div class="sl-label">${NO_SIGNAL}<span>${T.label}</span></div>
       <div class="sl-title">${T.title}</div>
       <div class="sl-line">${T.line}</div>
-      <button class="sl-btn" type="button">${T.btn}</button></div>
+      <button class="sl-btn" type="button">${T.btn}</button></div></div>
     <div class="sl-toast" hidden>${T.back}</div>
     <button class="sl-jump" type="button" hidden>${T.jump}<i>‹</i></button>`;
   stage.append(root);
@@ -56,7 +56,7 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
   // the card's units: the stage's width / 1080 (laid out like the studio's 1080 x 1920 ending)
   const size = () => {
     const w = stage.clientWidth, h = stage.clientHeight;
-    root.style.setProperty('--u', `${w / 1080}px`);
+    root.style.setProperty('--u', `${Math.min(w / 1080, h / 1920)}px`);   // (the card's 1080 x 1920 frame fits inside, centred)
     for (const c of [cv, off, comp]) { c.width = Math.max(2, Math.round(w)); c.height = Math.max(2, Math.round(h)); }
     if (state === 'lost') drawStill(1);
   };
@@ -78,7 +78,7 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
     for (const k of ['glitch1', 'glitch2', 'hiss']) if (assets[k]) fetch(assets[k]).then((r) => r.arrayBuffer()).then((b) => ac.decodeAudioData(b)).then((d) => { bufs[k] = d; }).catch(() => {});
   };
   const sfx = (k, from, len, gain = 1, fade = 0) => {
-    if (!ac || !bufs[k]) return null;
+    if (!ac || !bufs[k] || (inGlitch >= 0 ? wasMuted : video.muted)) return null;   // (a muted video stays silent - the feed until a tap)
     const s = ac.createBufferSource(), g = ac.createGain(), t = ac.currentTime;
     s.buffer = bufs[k]; s.connect(g); g.connect(ac.destination);
     g.gain.setValueAtTime(fade ? 0 : gain, t); if (fade) g.gain.linearRampToValueAtTime(gain, t + fade);
@@ -122,9 +122,10 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
   };
 
   let hiss = null;
+  const tell = () => stage.dispatchEvent(new CustomEvent('signal-lost', { detail: state, bubbles: true }));   // 'lost' / 'play'
   function lose() {
     if (state === 'lost' || signedIn()) return;
-    state = 'lost'; lostAt = performance.now();
+    state = 'lost'; lostAt = performance.now(); tell();
     video.pause();
     const freeze = () => {
       still.width = cv.width; still.height = cv.height; drawVideo(still);
@@ -157,7 +158,7 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
     card.animate([{ opacity: 1 }, { opacity: 0.2, offset: 0.25 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }], { duration: 260, fill: 'forwards' }).onfinish = () => { card.hidden = true; card.getAnimations().forEach((a) => a.cancel()); };
     dark.style.transition = 'opacity .35s linear'; dark.style.opacity = '0';
     ramp(320, (k) => drawStill(1 - k), () => {
-      cv.style.opacity = '0'; state = 'play';
+      cv.style.opacity = '0'; state = 'play'; tell();
       toast.hidden = false; toast.animate([{ opacity: 0, transform: 'translate(-50%,-6px)' }, { opacity: 1, transform: 'translate(-50%,0)', offset: 0.15 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 1800 }).onfinish = () => { toast.hidden = true; };
       video.currentTime = Math.min(video.duration || at, at);
       video.play().catch(() => {});
