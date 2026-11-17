@@ -24,7 +24,7 @@ const EVENTS = new Set([
   'tz_post', 'tz_resident', 'tz_stamp', 'tz_share', 'tz_report', 'tz_compose', 'tz_reply', 'ch_front', 'ch_article',   // ציפציפ + ח24 (public/tziftzif, public/charadot): x = post / resident / article id
   'tz_home', 'cz_rights',   // the home's 'עכשיו בחרדות' (x = which link) and the passport's speaking-rights rows (x = tz / ch)
   'cookie_show', 'cookie_ok', 'cookie_prefs', 'cookie_row', 'cookie_save',   // the cookie notice (verse/cookie.js): x = character / character:row
-  'feed',          // /new, the feed being tested (verse/feed.js)   x = video:<id> / game:<id> / talk:<char> / at:<id> / comments:<id> / tab:<t> / sound / tut:<kind>
+  'feed',          // the app shell (shell.js, feed.js, gfeed.js)   x = <video id> / game:<id> / talk:<char> / at:<id> / comments:<id> / tab:<t> (a feed opened) / bar:<tab> (a bottom-tab tap) / sound:<id> / tut:<kind>
   'view',          // a page or a wiki screen was opened          x = page / route
   'character',     // a character's page or card was opened        x = character id
   'chat_open',     // a chat window opened                         x = character id or 'guide'

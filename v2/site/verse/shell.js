@@ -64,7 +64,7 @@ if (bar) bar.addEventListener('click', (e) => {
   if (!a || !html.classList.contains('app')) return;
   e.preventDefault();   // the page's own link handler stands down
   const tab = a.dataset.tab, layer = LAYER.test(location.pathname);
-  try { window.track && window.track('tab', tab); } catch (x) { /* analytics never breaks a tap */ }
+  try { window.track && window.track('feed', 'bar:' + tab); } catch (x) { /* analytics never breaks a tap */ }
   closeSheets();
   if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   // a layer the site opened (its entry marked) is replaced by the tab - back from the tab doesn't open it again

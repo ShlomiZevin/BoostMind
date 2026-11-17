@@ -238,7 +238,7 @@ function unmute() {
   // iPhone lets a video play with sound only after a tap on THAT element: the other two are let in now, inside this tap
   FD.pool.forEach((x) => { if (x !== vd && x.src) { x.muted = false; x.play().catch(() => {}); x.pause(); } });
   paintSound();
-  track('feed_sound', FD.list[FD.idx].id);
+  track('feed', 'sound:' + FD.list[FD.idx].id);
 }
 
 const blocked = () => document.hidden || !!document.querySelector('.vp, .sv, .st, .nk, .vx-sheet, .vx-card, #cx.open');
