@@ -347,4 +347,4 @@ html:has(.ct-page), html:has(.ct-page) body { overscroll-behavior-x: none; }   /
   html.app body > footer { padding-bottom: calc(var(--tb) + 24px) !important; }   /* the home's footer: its links clear of the tab bar */
   html.app { scroll-padding-top: calc(var(--th) + 8px); scroll-padding-bottom: calc(var(--tb) + 12px); }   /* a scroll to an element (a focused field) keeps it clear of both bars */
 }
-@media (max-width: 600px) { html.app .foot-links a[href="/community"] { display: flex; } }   /* the old bottom nav had קהילה; the tab bar doesn't */
+@media (max-width: 600px) { html.app .foot-links a[href="/community"] { display: flex; } html.app .foot-links { gap: 6px; flex-wrap: wrap; max-width: 100%; } html.app .foot-links a { min-width: 52px; } }   /* the old bottom nav had קהילה; the tab bar doesn't - five links: tighter, and wrap rather than push the page sideways at 360 */
