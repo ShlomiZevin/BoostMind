@@ -22,7 +22,7 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <base href="/wiki/">
-<title>שלומיוורס · הוויקי של התושבים</title>
+<title>שלומיוורס · יקום מקביל בשידור חי</title>
 <meta name="description" content="אנשים אמיתיים, יקום מקביל. כל הסרטונים, ואפשר לדבר עם כולם.">
 <meta property="og:title" content="שלומיוורס">
 <meta property="og:description" content="אנשים אמיתיים, יקום מקביל. כל הסרטונים, ואפשר לדבר עם כולם.">
@@ -942,7 +942,7 @@ document.addEventListener('click', (e) => {
 });
 let shownPath = null, shownFull = null;
 let NF = false;   // the page now showing is the end of the verse (it set its own title)
-function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של התושבים · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'archive' ? 'הארכיון · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : page === 'chat' ? "צ'אט · שלומיוורס" : 'שלומיוורס · הוויקי של התושבים'; }
+function titleOf(page, id) { const c = page === 'c' && C[id]; return c ? `${c.name} · שלומיוורס` : page === 'sites' ? 'האתרים של התושבים · שלומיוורס' : page === 'records' ? 'שיאי היום · שלומיוורס' : page === 'archive' ? 'הארכיון · שלומיוורס' : page === 'games' ? `${GT.title} · שלומיוורס` : page === 'chat' ? "צ'אט · שלומיוורס" : 'שלומיוורס · יקום מקביל בשידור חי'; }
 function route() {
   const path = location.pathname || '/', qs = location.search.slice(1);
   const q = Object.fromEntries(new URLSearchParams(qs || ''));
