@@ -165,3 +165,18 @@ on her kosher phone. Character: `characters/hani` (profile + Techy-Tech team car
 - **Sounds that last through a moment** (the shower, a TV, a bed): start with the scene and end on the line that
   stops them (here "שיחכה") - never one short clip that ends on its own (his note: "we need to hear the water, then
   shut down after Hani said to").
+
+## The stranger behind the camera - פסיכופת גינה at night (night-guy-reels, 2026-11-18)
+He films these as if the stranger he talks to is holding the phone (POV, low angle, a city park / street at night).
+Her lines are NOT a stand-in - they are the final voice (his ask: "real, not a mockup placeholder"):
+- **ElevenLabs, Hebrew-native voices only** (his words: "only voice models working good with Hebrew"). The account's
+  Hebrew women: **Danit** (`s0T0DT6EAPeX57MQpn3I`, natural Israeli, casual - the default) and Zina
+  (`Tbj9UQjXon5RB9MPEyc2`, softer / breathy - the alternative). `eleven_v4`, `language_code he`, stability 0.3, a tag
+  per line (`[casual, polite, a little guarded]`, `[hesitant, uneasy]`); transcribe every take (one Danit take said
+  its line twice - drop those).
+- **She sounds a bit far, he is the clear one** (his words: "you hear the guy more clearly and the girl in the
+  background with the sound of the park"): her row = the Someone in the background setup with the room cut for open
+  air (room 0.12, roomSize 0.4, lowcut 160, presence -3, volume 0.8) + a night-park ambience row under the whole
+  video (`_assets/night-guy/reels/park-night-a.mp3`, a 30 s loop, volume 0.5).
+- End card: the פסיכופת גינה poster (`_assets/night-guy/poster/` - the garden-gnome statue / gnome-hat versions,
+  HTML + shoot.mjs, title in Rubik Wet Paint).
