@@ -186,6 +186,13 @@ Her lines are NOT a stand-in - they are the final voice (his ask: "real, not a m
 - **Her lines need room, not a pause** - when his take has no gap for her answer, take HIS reaction word out of the
   voice only and let the picture run on under her (his "כן" after "שאלה?", his first "נכון"); a quiet far voice under
   his next words is masked (checked by transcribing a rough mix of the stems at the row volumes).
+- **His reaction words stay** (his round-2 note: "it's okay to overlap, don't remove... it's okay she'll be a bit quiet,
+  he is the main thing"): she lands ON his words, quiet; never take his words out to make room for her.
+- **The ending = cut dead in the middle of his last word, no poster** ("cut suddenly in the middle of the sentence, just
+  before the last syllable of כיסא - after the כ and the ס"): find the syllable edge with a 5 ms spectral scan (the
+  "ס" hiss = energy above 4.5 kHz over 200-1500 Hz; it ended 14.115 s, the vowel began 14.12 s), floor the frame so
+  no vowel is heard, no voice handle past it, every row (music, park) ends on that frame with no fade, the subtitle
+  shows the cut word ("הכי…").
 - Under the whole video: a night-park ambience row (`_assets/night-guy/reels/park-night-a.mp3`, 30 s loop, volume 0.7).
 - End card: the פסיכופת גינה poster (`_assets/night-guy/poster/` - the garden-gnome statue / gnome-hat versions,
   HTML + shoot.mjs, title in Rubik Wet Paint).
