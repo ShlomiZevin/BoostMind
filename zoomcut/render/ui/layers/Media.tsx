@@ -143,7 +143,8 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
       })}
       {peek && project.assets?.[peek] && (() => {
         const a = project.assets[peek];
-        return <VideoPeek kind={a.kind} src={a.kind === 'image' ? urls[peek] : `/api/p/${ep}/asset?a=${encodeURIComponent(peek)}`} name={a.label || a.src.split('/').pop()} onClose={() => setPeek(null)}
+        return <VideoPeek kind={a.kind} src={a.kind === 'image' ? urls[peek] : `/api/p/${ep}/asset?a=${encodeURIComponent(peek)}`}
+          audio={a.kind === 'video' && a.audio ? `/api/p/${ep}/asset-sound?a=${encodeURIComponent(peek)}` : undefined} name={a.label || a.src.split('/').pop()} onClose={() => setPeek(null)}
           sub={[a.duration ? a.duration.toFixed(1) + ' s' : '', a.w ? `${a.w}×${a.h}` : '', used.has(peek) ? 'in use' : ''].filter(Boolean).join(' · ')}
           actions={<button className="btn" onClick={() => { place(peek, a); setPeek(null); }}>{used.has(peek) ? '+ Timeline again' : '+ Timeline'}</button>}>
           <Marks id={peek} a={a} send={send} /></VideoPeek>;

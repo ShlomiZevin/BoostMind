@@ -1129,6 +1129,25 @@ app.get('/api/p/:id/asset', (q, res) => {
   if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) return res.status(404).end();
   res.sendFile(f);
 });
+// ...and its sound, when the picture file has none: a Zoom take's clip is picture only (its voice is a.audio, a separate
+// wav), so Media's big window plays that wav in step with the picture (VideoPeek `audio`). 404 = the file already has
+// its own sound (one camera, imports) or there is no separate one - the window then plays the file as it is.
+const hasSound = new Map();  // file|mtime -> true/false (ffprobe once per file)
+app.get('/api/p/:id/asset-sound', (q, res) => {
+  const a = readProject(q.params.id)?.assets?.[String(q.query.a || '')];
+  if (!a?.src || !a.audio) return res.status(404).end();
+  const d = epDir(q.params.id), f = localPath(path.resolve(d, a.src)), w = localPath(path.resolve(d, a.audio));
+  if (!fs.existsSync(w) || fs.statSync(w).isDirectory()) return res.status(404).end();
+  if (fs.existsSync(f)) {
+    const k = f + '|' + fs.statSync(f).mtimeMs;
+    if (!hasSound.has(k)) {
+      let out = ''; try { out = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', f], { windowsHide: true, encoding: 'utf8' }); } catch {}
+      hasSound.set(k, !!out.trim());
+    }
+    if (hasSound.get(k)) return res.status(404).end();
+  }
+  res.sendFile(w);
+});
 const projectView = (q, id) => {
   const d = epDir(id), project = readProject(id);
   if (!project) return null;

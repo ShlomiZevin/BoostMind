@@ -60,7 +60,11 @@ One format, one composition, one editor, one export. The format and the API: `la
   change too (a video's length re-cut from the take, a line fix, a caption, an Inspector action): the project before
   it is kept and the difference goes on the undo list as one step (api.ts diffOps / record)), Media (assets, upload, + timeline; a file's
   picture opens it big - VideoPeek: plays / shows it, Use / Don't use + a note, + Timeline - the list itself never
-  changes layout, more options go in that window), Inspector
+  changes layout, more options go in that window; **always with its sound** (his ask, 2026-11-18 - "I need to see
+  the media ... and I can't because the sound is not there"): a Zoom take's clip is picture only (its voice is the
+  asset's `audio` wav), so the window plays that wav in step with the picture (`/api/p/<id>/asset-sound?a=` - 404
+  when the file has its own sound; VideoPeek `audio`). Any new kind of picture-only asset gets an `audio` field so it
+  plays with sound here too - never a silent window), Inspector
   (project panel, `inspect/*` per kind by boostmind-31, a plain fallback for the rest), api.ts (ops, undo, saves in
   order with `rev`).
 - **Groups (2026-11-11, his ask):** clips sharing a `link` are one group - moved, stretched, cut (S / Ctrl-click

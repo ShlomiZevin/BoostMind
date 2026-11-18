@@ -4,8 +4,9 @@
 import React, { useEffect } from 'react';
 import './peek.css';
 
-export function VideoPeek({ src, name, sub, kind = 'video', start, end, text, onClose, children, actions }: {
+export function VideoPeek({ src, audio, name, sub, kind = 'video', start, end, text, onClose, children, actions }: {
   src: string; name: string; sub?: string; kind?: string; onClose: () => void;
+  audio?: string;                // a video whose file has no sound of its own (a Zoom take's clip): its sound, played in step
   start?: number; end?: number;  // (a timeline clip: its piece of the file - it starts there and stops once at its end)
   text?: string;                 // kind 'text': words, shown big
   children?: React.ReactNode;  // under the file: its marks / pickers
@@ -33,13 +34,30 @@ export function VideoPeek({ src, name, sub, kind = 'video', start, end, text, on
     const m = e.currentTarget;
     if (end != null && !stopped.current && m.currentTime >= end) { stopped.current = true; m.pause(); }
   };
+  // the picture's sound from its own file (a Zoom take = picture only + a wav): the sound follows the video - play,
+  // pause, seek, speed, volume; re-aligned when it drifts. The server answers 404 when the file has its own sound.
+  const snd = React.useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    const v = media.current, a = snd.current;
+    if (!audio || kind !== 'video' || !v || !a) return;
+    const align = () => { if (Math.abs(a.currentTime - v.currentTime) > 0.12) a.currentTime = v.currentTime; };
+    const go = () => { if (a.error) return; align(); a.playbackRate = v.playbackRate; if (!v.paused) a.play().catch(() => {}); };
+    const stop = () => a.pause();
+    const vol = () => { a.volume = v.volume; a.muted = v.muted; };
+    const on: [string, () => void][] = [['play', go], ['playing', go], ['pause', stop], ['waiting', stop], ['ended', stop],
+      ['seeked', go], ['ratechange', go], ['volumechange', vol], ['timeupdate', () => { if (!v.paused) align(); }]];
+    for (const [e, f] of on) v.addEventListener(e, f);
+    a.addEventListener('canplay', go, { once: true });
+    return () => { for (const [e, f] of on) v.removeEventListener(e, f); a.pause(); };
+  }, [audio, kind]);
   return (
     <div className="vp" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className={`vp-box vp-${kind}`}>
         {kind === 'image' ? <div className="vp-media"><img src={src} alt="" /></div>
           : kind === 'text' ? <div className="vp-words he" dir="auto">{text}</div>
           : kind === 'audio' ? <div className="vp-snd"><div className="vp-ic">♪</div><audio ref={media as any} src={src} controls autoPlay onLoadedMetadata={piece} onTimeUpdate={atEnd} /></div>
-          : <div className="vp-media"><video ref={media as any} src={src} controls autoPlay playsInline onLoadedMetadata={piece} onTimeUpdate={atEnd} /></div>}
+          : <div className="vp-media"><video ref={media as any} src={src} controls autoPlay playsInline onLoadedMetadata={piece} onTimeUpdate={atEnd} />
+            {audio && <audio ref={snd} src={audio} preload="auto" hidden />}</div>}
         <div className="vp-side">
           <div className="vp-n"><div className="vp-name he">{name}</div>{sub && <div className="vp-sub">{sub}</div>}</div>
           {children}
