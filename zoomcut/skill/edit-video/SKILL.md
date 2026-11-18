@@ -135,7 +135,8 @@ layers a builder made; the editor and the export don't know or care which builde
    the ending is only on the Shlomiverse. When a video has a natural cliffhanger (the answer, the reveal, the punch
    still to come), tell him in one line where you'd drop it. On his word: put the playhead there -> **✂ Socials end
    here** -> **+ Ending** (two glitches + sound, the picture freezes into blocks and goes dark, then the error box
-   "בעיית קליטה / הקשר עם יקום שלומיוורס נותק / לסיום המלא – מוזמנים לטוס לביקור / shlomiverse.com"). Every part is a
+   "בעיית קליטה / הקשר עם יקום שלומיוורס נותק / לסיום המלא – מוזמנים לטוס לביקור / shlomiverse.com"; his rule, 2026-11-18:
+   the pill people type says `shlomiverse.com/videos`, a tappable link - caption, stories - is `shlomiverse.com/v/<id>`). Every part is a
    layer he can change; never build it by hand. The drop may cut in the middle of a sentence. The best drops are
    funny inside the scene (a call dropping just as someone says "stay on the line"). The script may mark the place
    already: a line `[עד כאן ברשתות]`. Check the Socials view in the editor (the timeline's Shlomiverse / Socials
