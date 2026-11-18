@@ -8,6 +8,12 @@ world is, the founders' legend) is on the guide's page: Backstage → דמויו
 A real world - a planet of its own, a parallel universe. The people in it are real and live their own lives; the videos
 are moments from their lives. Nobody made them up, wrote them, plays them or was inspired by someone for them.
 
+**Every video is a live broadcast** (his framing, 2026-11-18): something happening right now in the verse, broadcast
+from there. The socials catch the broadcast only until the reception drops (the "signal lost" ending - the edit-video
+skill, rule 9); inside the Shlomiverse the broadcast goes on. Words for it: שידור, קליטה, הקשר עם יקום שלומיוורס, "השידור
+ממשיך בשלומיוורס", "הקליטה חזרה" - never נעול, פרימיום, המשך יבוא, a paywall's words. No LIVE / "שידור חי" tag in the
+app for now (his call).
+
 ## The words
 | Say | Never |
 |---|---|

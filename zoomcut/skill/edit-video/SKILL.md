@@ -133,8 +133,17 @@ layers a builder made; the editor and the export don't know or care which builde
    funny inside the scene (a call dropping just as someone says "stay on the line"). The script may mark the place
    already: a line `[עד כאן ברשתות]`. Check the Socials view in the editor (the timeline's Shlomiverse / Socials
    switch); the export makes both files. Recipe: `layers.md` -> split -> "The ending = signal lost". **On the
-   Shlomiverse** (BETA, not live yet): a signed-out viewer gets the same drop over the full video, with a sign-in
-   button that brings the reception back (`v2/site/verse/signal-lost.js`, timing from `version.js` `dropOf`).
+   Shlomiverse** (live since 2026-11-17): a signed-out viewer gets the same drop over the full video, with a sign-in
+   button that brings the reception back ("השידור ממשיך בשלומיוורס"; `v2/site/verse/signal-lost.js`). The drop's
+   time travels by itself: publishing from the studio sends `version.js` `dropOf` -> the video's `drop` on the site.
+   **Why it works - every video is a live broadcast** (his framing, 2026-11-18: "each video is like we are
+   broadcasting something that happens live now in the verse - that is why our break-connection ending ... makes so
+   much sense"). The Shlomiverse is a real parallel world; a video is a broadcast from it, happening right now. The
+   socials pick up that broadcast until the reception drops; only inside the verse does the broadcast go on. So the
+   drop is never "the end of a teaser" - it is the signal from another world cutting out. Pick the drop, the glitch
+   sounds and any words with that in mind (קליטה, שידור, the connection - never "locked", "premium", "subscribe",
+   "continued"). No LIVE / "שידור חי" tag in the app for now (his call, 2026-11-18). The words: the
+   `shlomiverse-content` skill's `words.md`.
 
 ## USING THE TOOL RIGHT - what went wrong on gilad-joins (2026-10-22) and the rules from it
 The video came out great; the way I used the tool did not ("something in the tool you didn't use as supposed to").
