@@ -423,10 +423,10 @@
   .fc-leg i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-inline-end: 6px; }
   .fc-leg .l-today { background: #ff6a1f; } .fc-leg .l-proj { background: repeating-linear-gradient(90deg, #ff6a1f 0 4px, transparent 4px 7px); } .fc-leg .l-y { background: rgba(255,255,255,.35); }
   p.fc-how { margin: 8px 0 0; font-size: .78rem; color: var(--faint); }
-  .live .row { padding: 11px 2px; align-items: center; }
-  .live .row .vx-av, .live .row .ini { width: 40px; height: 40px; font-size: .9rem; }
-  .live .row .l1 b { font-weight: 700; font-size: .93rem; }
-  .live .dot { width: 9px; height: 9px; border-radius: 50%; background: #5fd58a; box-shadow: 0 0 0 4px rgba(95,213,138,.18); display: inline-block; }
+  .nowcard .row { padding: 11px 2px; align-items: center; }
+  .nowcard .row .vx-av, .nowcard .row .ini { width: 40px; height: 40px; font-size: .9rem; }
+  .nowcard .row .l1 b { font-weight: 700; font-size: .93rem; }
+  .nowcard .dot { width: 9px; height: 9px; border-radius: 50%; background: #5fd58a; box-shadow: 0 0 0 4px rgba(95,213,138,.18); display: inline-block; }
   .chart { position: relative; }
   .chart svg { width: 100%; height: 190px; display: block; }
   .chart g[data-d] { cursor: pointer; }
@@ -1733,7 +1733,7 @@ function overview() {
     <div class="cols">
       <div class="card"><div class="card-h"><h2>צריך את תשומת הלב שלך</h2></div>
         <div class="rows">${attn.map(row).join('') || '<div class="empty">הכול מטופל. שקט.</div>'}</div></div>
-      <div class="card live"><div class="card-h"><h2><span class="dot"></span> מה קורה עכשיו</h2><button data-tab="chats">לכל השיחות ${IC.back}</button></div>
+      <div class="card nowcard"><div class="card-h"><h2><span class="dot"></span> מה קורה עכשיו</h2><button data-tab="chats">לכל השיחות ${IC.back}</button></div>
         <div class="rows">${live.map(row).join('') || '<div class="empty">עוד שקט היום.</div>'}</div></div>
     </div>
     <div id="ov-metric" class="tool" style="margin-top:16px"><select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
