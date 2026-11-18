@@ -3144,16 +3144,16 @@ button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); 
   text-decoration: none; color: #fff; background: #120b08; box-shadow: 0 0 0 1.5px rgba(255, 122, 48, .9), 0 0 18px rgba(255, 106, 31, .32); -webkit-tap-highlight-color: transparent; }
 .live:active { transform: scale(.99); }
 .live-bg { position: absolute; inset: 0; z-index: -3; }
-.live-bg.poster i { position: absolute; top: -12%; bottom: -12%; left: -4%; width: 70%; background: var(--pic) 50% 30% / cover; animation: live-drift 14s ease-in-out infinite alternate; }
+.live-bg.poster i { position: absolute; top: -12%; bottom: -12%; left: -4%; width: 70%; background: var(--pic) 50% 30% / cover; animation: live-drift 7s ease-in-out infinite alternate; }
 .live-bg.frames i { position: absolute; left: 6%; width: 56%; top: 50%; aspect-ratio: 1.6; background-image: var(--pic); background-size: 100% 400%; opacity: 0;
-  transform: translateY(-50%) scale(1.03); animation: live-frame 12s linear infinite, live-zoom 12s linear infinite; }
+  transform: translateY(-50%) scale(1.02); animation: live-frame 8s linear infinite, live-kb1 8s ease-out infinite; }
 .live-bg i { -webkit-mask-image: linear-gradient(to right, #000 62%, transparent 100%); mask-image: linear-gradient(to right, #000 62%, transparent 100%); }
 .live-bg.frames i { max-width: 300px; }
 .live-bg.poster i { max-width: 320px; }
 .live-bg.frames i:nth-child(1) { background-position: 0 0; animation-delay: 0s; }
-.live-bg.frames i:nth-child(2) { background-position: 0 33.333%; animation-delay: -9s; }
-.live-bg.frames i:nth-child(3) { background-position: 0 66.667%; animation-delay: -6s; }
-.live-bg.frames i:nth-child(4) { background-position: 0 100%; animation-delay: -3s; }
+.live-bg.frames i:nth-child(2) { background-position: 0 33.333%; animation-delay: -6s; animation-name: live-frame, live-kb2; }
+.live-bg.frames i:nth-child(3) { background-position: 0 66.667%; animation-delay: -4s; animation-name: live-frame, live-kb3; }
+.live-bg.frames i:nth-child(4) { background-position: 0 100%; animation-delay: -2s; animation-name: live-frame, live-kb4; }
 .live-shade { position: absolute; inset: 0; z-index: -2; background: linear-gradient(to left, rgba(12, 7, 4, .95) 0%, rgba(12, 7, 4, .88) 34%, rgba(12, 7, 4, .4) 58%, rgba(12, 7, 4, .08) 80%, rgba(12, 7, 4, .2) 100%); }
 .live-scan { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 3px); }
 .live-glitch { position: absolute; inset-inline: 0; top: 30%; height: 5px; z-index: -1; pointer-events: none; opacity: 0; mix-blend-mode: screen;
@@ -3168,9 +3168,13 @@ button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); 
 .live-txt small { font-size: 12px; line-height: 1.2; color: rgba(255, 255, 255, .8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .live-go { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--accent, #ff6a1f); box-shadow: 0 4px 14px rgba(255, 106, 31, .5); }
 .live-go svg { width: 20px; height: 20px; color: #fff; margin-left: 3px; }
-@keyframes live-frame { 0% { opacity: 0; } 5% { opacity: 1; } 25% { opacity: 1; } 31% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes live-zoom { from { transform: translateY(-50%) scale(1.03); } to { transform: translateY(-50%) scale(1.1) translateX(2%); } }
-@keyframes live-drift { from { transform: scale(1) translateX(0); } to { transform: scale(1.1) translateX(-3%); } }
+@keyframes live-frame { 0% { opacity: 0; } 6% { opacity: 1; } 25% { opacity: 1; } 31% { opacity: 0; } 100% { opacity: 0; } }
+/* each picture grows and slides its own way while it is on (the first ~31% of the cycle), then waits unseen */
+@keyframes live-kb1 { 0% { transform: translateY(-50%) scale(1.02); } 31%, 100% { transform: translateY(-50%) scale(1.15) translateX(3%); } }
+@keyframes live-kb2 { 0% { transform: translateY(-48%) scale(1.14) translateX(2%); } 31%, 100% { transform: translateY(-52%) scale(1.03) translateX(-2%); } }
+@keyframes live-kb3 { 0% { transform: translateY(-53%) scale(1.03) translateX(-3%); } 31%, 100% { transform: translateY(-47%) scale(1.15) translateX(1%); } }
+@keyframes live-kb4 { 0% { transform: translateY(-50%) scale(1.12) translateX(-2%); } 31%, 100% { transform: translateY(-50%) scale(1.02) translateX(3%); } }
+@keyframes live-drift { from { transform: scale(1) translateX(0); } to { transform: scale(1.14) translateX(-4%); } }
 @keyframes live-glitch { 0% { opacity: 0; top: 30%; } 61% { opacity: .9; top: 64%; } 63% { opacity: 0; } 82% { opacity: .7; top: 22%; } 83% { opacity: 0; } }
 @keyframes live-blink { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) {

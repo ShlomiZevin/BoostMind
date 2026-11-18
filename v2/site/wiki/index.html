@@ -713,10 +713,10 @@ const pages = {
     return `<section class="hero">${wall()}
       <div class="hero-in">
         <h1 class="wordmark hero-logo"><img src="/verse/logo-512.png" alt="שלומיוורס">${heroLine()}</h1>
-        <div id="live-band"></div>
         <form class="ask" id="ask"><span class="spark">${ICON.spark}</span>
           <input id="ask-in" placeholder="שאלו משהו, או @ לתושב" autocomplete="off" maxlength="1200">
           <button aria-label="שליחה">${ICON.send}</button></form>
+        <div id="live-band"></div>
         <div id="sim-band"></div>
         <div class="who" id="who"><div class="who-l">מי עונה?</div>
           ${who.map((c) => `<button type="button" data-who="${c.id}" class="${c.id === heroWho ? 'on' : ''}" style="--c:${color(c)}"><span class="av">${face(c)}</span>${esc(c.id === 'guide' ? 'כולם' : c.name)}</button>`).join('')}</div>
