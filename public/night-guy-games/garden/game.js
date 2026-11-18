@@ -86,7 +86,7 @@ const PROP = {
   slide: { w: 2, h: 2, dw: 2.7 }, swings: { w: 3, h: 1, dw: 3.3 }, sandbox: { w: 2, h: 2, dw: 2.5 }, seesaw: { w: 3, h: 1, dw: 3.1 }, horse: { w: 1, h: 1, dw: 1.3 }, dome: { w: 2, h: 2, dw: 2.7 },
   pond: { w: 2, h: 2, dw: 2.8 }, statue: { w: 1, h: 1, dw: 1.35 }, pot: { w: 1, h: 1, dw: 1.25 }, topiary: { w: 1, h: 1, dw: 1.45 }, birdbath: { w: 1, h: 1, dw: 1.15 }, glamp: { w: 1, h: 1, dw: 0.75, light: 1 },
   palm: { w: 1, h: 1, dw: 2.0 }, tower: { w: 2, h: 2, dw: 2.5 }, icecream: { w: 1, h: 1, dw: 1.5 }, umbrella: { w: 2, h: 1, dw: 2.3 }, bluebin: { w: 1, h: 1, dw: 0.95 }, blamp: { w: 1, h: 1, dw: 0.75, light: 1 },
-  house: { w: 2, h: 2, dw: 3.7 },
+  house: { w: 2, h: 2, dw: 3.7, base: 0.22 },   // its yard is a diamond: the shadow sits under the yard's middle
 };
 for (const a of ARENAS) img('ground-' + a.id, `assets/ground-${a.id}.jpg`);
 for (const k of Object.keys(PROP)) img('prop-' + k, `assets/props/${k}.webp`);
@@ -194,7 +194,7 @@ function buildPark(seed, clearFrom) {
   owner = new Uint8Array(COLS * ROWS); zone = new Uint8Array(COLS * ROWS); block = new Uint8Array(COLS * ROWS); zoneCount = 0; blockCount = 0; props = [];
   const PR = rng(seed);
   // her house in a top corner, the restraining-order circle around it
-  const left = PR() < 0.5, hc = left ? 1 : COLS - 3, hr = 1;
+  const left = PR() < 0.5, hc = left ? 1 : COLS - 3, hr = 2;
   props.push({ k: 'house', c: hc, r: hr });
   for (let y = hr; y < hr + 2; y++) for (let x = hc; x < hc + 2; x++) block[idx(x, y)] = 1;
   zoneC = { c: hc + 1, r: hr + 1.2, R: 3.3 };
@@ -740,7 +740,8 @@ function draw(now) {
     items.push({ y: p.r + P.h - 0.55, f: () => {
       const im = IMG['prop-' + p.k]; if (!ok(im)) return;
       const cx = B.x + (p.c + P.w / 2) * t, by = B.y + (p.r + P.h) * t - t * 0.15, w = P.dw * t, h = w * im.naturalHeight / im.naturalWidth;
-      shadow(cx, by - t * 0.05, w * 0.8);
+      if (P.base) { ctx.save(); ctx.fillStyle = '#0008'; ctx.filter = 'blur(3px)'; ctx.beginPath(); ctx.ellipse(cx, by - h * P.base, w * 0.5, h * 0.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+      else shadow(cx, by - t * 0.05, w * 0.8);
       ctx.drawImage(im, cx - w / 2, by - h, w, h);
     } });
   }
