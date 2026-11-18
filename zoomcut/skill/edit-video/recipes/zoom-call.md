@@ -212,8 +212,9 @@ image layer: live in the editor, covering everything in the export. Any preset t
   `user`) - clean, rebuild, apply. the-consultant's `fx_apply.py` did freeze / broken voice / warning / camera-off /
   URL pill / Daniel's bad stretch in one call.
 - **The socials drop (signal-lost ending), his calls on the-consultant (2026-11-18):** earlier than the last minute -
-  "all are too late, people might not understand it": drop BEFORE the ending beats (here mid Amir's circular line, "אבל
-  כדי ש—", 1:34 of 1:53). The card's link pill = `shlomiverse.com/videos` (the phone feed, newest first - the video is
+  "all are too late, people might not understand it": he weighed mid Amir's circular line ("אבל כדי ש—", 1:34) and in the end chose the
+  silence right after Ronen's "מה בעצם אתם רוצים שהמערכת תעשה?" (frame 4005, 0.25 s after his last word) - "give them
+  almost everything, this is the first video I'm doing it". Moving a drop by op = move every `ending.*` item by the same delta. The card's link pill = `shlomiverse.com/videos` (the phone feed, newest first - the video is
   the first one there; Studio, 2026-11-18), his extra line under the words: "השידור ממשיך שם עכשיו. / ברצינות, פשוט
   תיכנסו." (+37 frames on the card so it reads), and the caption ends "השיחה נקטעה באמצע. ההמשך בשלומיוורס:
   shlomiverse.com/videos" + the hashtags.
