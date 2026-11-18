@@ -178,37 +178,47 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
     def on(spk, at):
         return [spk] + [x for x in present(at) if x != spk]
 
+    # his editing rule for Zoom calls (the-consultant, 2026-11-18 - "you cut away too fast ... whoever speaks stays on
+    # screen until the next person, who may start talking before he finishes"; "let Ofer finish his words on his own
+    # video, then switch"). Both off unless the project's preset timing turns them on:
+    #   hold_picture: a normal change of speaker switches the picture when the one talking FINISHES (his last word / his
+    #     cut-off), not when the next voice starts - the new voice is heard under him first (a J-cut); never later than
+    #     0.3 s before the new line ends
+    #   min_shot: seconds - nobody on screen shorter than that (_min_shots below)
+    hold = bool(tm.get("hold_picture"))
     shots = []
     on_screen = None
+    last = None  # the previous beat that was not an aside (who is talking on screen)
     for k, b in enumerate(beats):
         at = 0.0 if k == 0 else b.get("shot_at", b["start"])
         spk = b["speaker"]
+        if hold and k > 0 and last is not None and "shot_at" not in b and not b.get("aside") and not b.get("layout")                 and spk != on_screen and last["speaker"] == on_screen:
+            done = last["cut_t"] if last.get("interrupted") else last["end_t"]
+            at = max(b["start"], min(done, b["end_t"] - 0.3))
+        if not b.get("aside"):
+            last = b
         if b.get("aside"):  # a quick look at who said it, then back
-            shots.append({"t": b["start"], "layout": "speaker", "order": on(spk, b["start"])})
+            shots.append({"t": b["start"], "layout": "speaker", "order": on(spk, b["start"]), "until": b["end_t"]})
             if on_screen:
                 back = b["start"] + b.get("show", 0.9)
                 shots.append({"t": back, "layout": "speaker", "order": on(on_screen, back)})
             continue
+        until = b["cut_t"] if b.get("interrupted") else b["end_t"]  # (his voice stops - for min_shot: too late after this = no shot)
         if b.get("layout"):
             shots.append({"t": at, "layout": b["layout"], "order": on(spk, at)})
         elif k == 0 or spk != on_screen:
-            shots.append({"t": at, "layout": "speaker", "order": on(spk, at)})
+            shots.append({"t": at, "layout": "speaker", "order": on(spk, at), "until": until})
         elif shots and shots[-1]["layout"] != "speaker":  # back to auto after a forced layout
             shots.append({"t": at, "layout": "speaker", "order": on(spk, at)})
+        elif tm.get("min_shot"):  # (min_shot may drop a turn's shot - so every line offers his shot; repeats merge away)
+            shots.append({"t": b["start"], "layout": "speaker", "order": on(spk, b["start"]), "until": until})
         on_screen = spk
     for c, at in removed.items():
         rest = present(at + 0.01)
-        shots.append({"t": at, "layout": "gallery" if len(rest) != 1 else "speaker", "order": rest})
+        shots.append({"t": at, "layout": "gallery" if len(rest) != 1 else "speaker", "order": rest, "fixed": True})
 
     shots.sort(key=lambda s: s["t"])
-    merged = []
-    for s in shots:
-        if merged and abs(s["t"] - merged[-1]["t"]) < 1e-6:
-            merged[-1] = s
-        elif merged and s["layout"] == merged[-1]["layout"] and s["order"] == merged[-1]["order"]:
-            continue
-        else:
-            merged.append(s)
+    merged = _merge_shots(_min_shots(shots, float(tm["min_shot"])) if tm.get("min_shot") else shots)
     shots_f = []
     for i, s in enumerate(merged):
         end = merged[i + 1]["t"] if i + 1 < len(merged) else total
@@ -297,6 +307,41 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
     for cid, at in removed.items():
         mix.append({"sfx": "remove", "at": at})
     return props, mix, beats, missing, total
+
+
+def _merge_shots(shots):
+    """Sorted shots -> one per moment, none repeating the shot before it."""
+    merged = []
+    for s in shots:
+        if merged and abs(s["t"] - merged[-1]["t"]) < 1e-6:
+            merged[-1] = s
+        elif merged and s["layout"] == merged[-1]["layout"] and s["order"] == merged[-1]["order"]:
+            continue
+        else:
+            merged.append(s)
+    return merged
+
+
+def _min_shots(shots, min_shot):
+    """No shot shorter than min_shot seconds (his rule, 2026-11-18: "nobody under 1.5 s"): a shot that comes too soon
+    waits until the one before it has had min_shot. A "fixed" shot (someone removed from the call) never moves. A
+    waiting shot is dropped when its speaker would be done by then (`until` - never show someone after his words), or
+    when it can't get min_shot before the next fixed one (the shots after it wait / drop in turn)."""
+    out = []
+    for i, s in enumerate(shots):
+        s = dict(s)
+        if out and abs(s["t"] - out[-1]["t"]) < 1e-6 and not out[-1].get("moved"):  # (planned for the same moment: the later wins, as in _merge_shots)
+            out[-1] = s
+            continue
+        if out and s["layout"] == out[-1]["layout"] and s["order"] == out[-1]["order"]:
+            continue  # (already on screen)
+        if out and not s.get("fixed") and s["t"] - out[-1]["t"] < min_shot:
+            s["t"], s["moved"] = out[-1]["t"] + min_shot, True
+            nxt = next((x for x in shots[i + 1:]), None)
+            if (s.get("until") is not None and s["t"] > s["until"] - 0.3) or                     (nxt is not None and nxt.get("fixed") and nxt["t"] - s["t"] < min_shot):
+                continue
+        out.append(s)
+    return out
 
 
 def _quiet_span(quiet, clip, t, direction):

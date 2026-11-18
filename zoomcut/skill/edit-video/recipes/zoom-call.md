@@ -39,6 +39,20 @@ any number of people (5 = one big tile + 4 thumbnails, a 2x2 gallery after a rem
 - **"חד משמעית" jumps in 0.25 s earlier** than a normal handover (`eager_extra`), every time.
 - **Cut only when the speaker changes.** One speaker shot per turn; no reaction cuts mid-line, no gallery flashes
   (except after a removal: the remaining two in a gallery).
+- **Hold the speaker; nobody under 1.5 s** (his notes on the-consultant, 2026-11-18: "you cut away too fast - nobody
+  under 1.5 s. Whoever speaks stays on screen until the next person, who may start talking before he finishes"; "let
+  Ofer finish his words on his own video, then switch"). Episode `"timing": {"hold_picture": true, "min_shot": 1.5}`
+  (pipeline/plan.py step 2; off unless set, so older projects keep their cut). For new Zoom projects, set them from the
+  start.
+  - `hold_picture`: on a change of speaker the picture switches when the one talking finishes (his last word, or where
+    he is cut off), not when the next voice starts. The new voice is heard under him first (a J-cut), and the switch is
+    never later than 0.3 s before the new line ends. Asides, forced layouts and the removal attempt keep their own times.
+  - `min_shot`: no shot shorter than that. A shot that comes too soon waits, and it is dropped if its speaker would be
+    done by then (nobody is shown after their words). A removal never moves, so the attempt just before it may stay
+    short.
+  - In fast ping-pong, some quick lines are heard but not seen. That is the rule working. A line that must be seen gets
+    a `layout` in corrections, or a `shift`.
+  - Measured on the-consultant: shots under 1.5 s went from 18 to 1 (the removal attempt).
 - **Overlap every handover:** exec→exec 0.3 s; victim answers immediately (−0.08 s). **Ping-pong** (exec→exec, line
   ≤1.8 s) overlaps `quick_overlap` 0.4 s (max 40% of the previous line). Lines never start with dead air (0.1 s lead
   kept). Subtitles switch with the speaker.
