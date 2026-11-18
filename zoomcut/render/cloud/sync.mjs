@@ -176,7 +176,7 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
     const remote = await list(prefix);
     // (the cloud's copy changed since this computer last synced - the other computer's work: never overwritten or
     // deleted from here; his Sync brings it - and keeps this computer's copy beside it if both changed)
-    const newerThere = (rel) => { const r = remote[prefix + rel], st = state.files[rel]; return !!r && !(st && st.fp === fp(r)); };
+    const newerThere = (rel) => { const r = remote[prefix + rel], st = state.files[rel]; return !!r && !(st && st.fp === fp(r)) && r.meta?.host !== HOST; };  // (sent from this computer = never "the other computer's")
     const waiting = [];
     gone = gone.filter((rel) => !newerThere(rel));
     let up = 0, bytes = 0;
@@ -186,8 +186,11 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
       if (newerThere(rel)) { waiting.push(rel); return; }
       const md5 = await md5File(f);
       const o = await upload(f, prefix + rel, md5);
-      const now = fs.statSync(f);
-      if (now.size === l.size && Math.round(now.mtimeMs) === l.mtime) state.files[rel] = { ...l, fp: o.md5Hash || md5 };  // (changed while it went up: next round)
+      // what went up is recorded ALWAYS - with the size / time of the file as it was read. A file changed again while it
+      // went up (the sound maker rewriting a stem) then reads as "changed here" and goes up next round; never again as
+      // "the cloud has it newer" (2026-11-18: the-consultant's sfx.wav - this computer's own upload was taken for the
+      // other computer's work, and the editor said "changed on your other computer")
+      state.files[rel] = { ...l, fp: o.md5Hash || md5 };
       up++; bytes += l.size;
     });
     for (const rel of gone) { await remove(prefix + rel).catch(() => {}); delete state.files[rel]; }
@@ -256,7 +259,11 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
         for (const [name, r] of Object.entries(await list(prefix))) {
           const rel = name.slice(prefix.length); if (!rel || skip(rel)) continue;
           const st = state.files[rel];
-          if (st ? st.fp !== fp(r) : !(state.thinned || []).includes(rel) && !fs.existsSync(path.join(EPS, id, rel))) newer++;
+          const here = path.join(EPS, id, rel), ls = fs.existsSync(here) ? fs.statSync(here) : null;
+          if (ls && r.meta?.host === HOST) continue;  // (this computer sent it)
+          const t = +(r.meta?.mtime || 0);  // (the file here IS that copy - same size and time: e.g. an upload cut off before it was recorded)
+          if (ls && ls.size === r.size && t && Math.abs(t - ls.mtimeMs) < 2000) continue;
+          if (st ? st.fp !== fp(r) : !(state.thinned || []).includes(rel) && !ls) newer++;
         }
       } catch {}  // (no internet: he works on what is here)
       res.json({ ready: true, took: l.took, ...(newer ? { newer } : {}), ...(state.thinned?.length ? { thinned: state.thinned.length } : {}) });

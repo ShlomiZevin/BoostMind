@@ -46,7 +46,10 @@ MP4. **Load the `edit-video` skill** before working on any video - it holds the 
   since this computer last synced) is never overwritten or deleted from here - it waits for Sync, which keeps this
   computer's copy beside it ("(conflict <computer>)"). Never deletes locally; files vanishing all at once
   (project.json / episode.json, or >30% of them - a git pull, a cleared folder) are never deleted in the cloud, and
-  the menu offers that project from the cloud again. Projects thinned for space (thin.mjs, `thinned` in the sync
+  the menu offers that project from the cloud again. **Every upload carries `host`** (the computer that sent it), and what
+  went up is always recorded, even when the file changed again during the upload. Since 2026-11-18, this computer's own
+  upload is never "changed on your other computer". That false alarm came from a stem the sound maker rewrote mid-upload
+  (the-consultant's sfx.wav). The open check also skips a file the local one already matches (same size + mtime). Projects thinned for space (thin.mjs, `thinned` in the sync
   state) say so on open; Sync brings their files back.
 - **Shared folders** (`pool.mjs`) - `episodes/_assets` and the characters' pictures: a pool that only grows - UP at
   start, every 5 min and after a project goes up; DOWN only with a project's Sync. Nothing is ever deleted by it

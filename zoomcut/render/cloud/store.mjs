@@ -3,6 +3,7 @@
 // take of a few GB never sits in memory; every download is checked against the bucket's md5 before it replaces a file.
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { Readable } from 'node:stream';
@@ -109,7 +110,7 @@ export const same = async (file, r) => !!r && fs.statSync(file).size === r.size 
 // a file up (streamed - a resumable session, so any size goes in one PUT); its md5 is checked by the bucket
 export async function upload(file, name, md5) {
   const size = fs.statSync(file).size;
-  const meta = { name, md5Hash: md5 || await md5File(file), metadata: { mtime: String(Math.round(fs.statSync(file).mtimeMs)) } };
+  const meta = { name, md5Hash: md5 || await md5File(file), metadata: { mtime: String(Math.round(fs.statSync(file).mtimeMs)), host: process.env.ZC_HOST || os.hostname() } };  // (host: which computer sent it - sync.mjs never takes its own upload for the other computer's)
   const s = await check(await fetch(`${U}?uploadType=resumable`, { method: 'POST', headers: await auth({ 'content-type': 'application/json', 'x-upload-content-length': String(size) }), body: JSON.stringify(meta) }), 'start upload');
   const at = s.headers.get('location');
   const body = size ? Readable.toWeb(fs.createReadStream(file)) : '';
