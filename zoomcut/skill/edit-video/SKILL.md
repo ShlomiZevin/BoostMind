@@ -55,6 +55,13 @@ layers a builder made; the editor and the export don't know or care which builde
 
 ## READ FIRST - how we work (his rules; each one cost him a round)
 
+0. **Report the bottom line only** (his words, 2026-11-18: "I don't want these long summaries - what I did, what went
+   wrong, what I fixed. I just want the bottom line, and if you need something from me"). A hand-over is a few lines:
+   it's ready / where to look (a link), and the decision or thing you need from him. No lists of what you did, no
+   bugs you hit and fixed, no step-by-step. Example of the right size: "The first cut is ready in the editor
+   (F5). Ronen's site is live and in /all/. I need one decision: where the socials drop the connection - after his
+   question, or mid Ofer's answer?" Details only when he asks.
+
 1. **No templates. Only projects.** A new video is a new project. Learn from earlier projects and copy their look and
    feel (a Zoom grid, office backgrounds, the POV band, an end poster, a voice setting) - but it is a project, never a
    "template". Never say or show "template" to him. (2026-10-22: "We don't need templates. We just need projects.")
