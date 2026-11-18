@@ -12,33 +12,43 @@ if (!specFile || !out) { console.error('usage: chat-poster.cjs spec.json out.jpg
 const spec = JSON.parse(fs.readFileSync(specFile, 'utf8'));
 const img = (p) => { const f = path.isAbsolute(p) ? p : path.join(ROOT, p); return `data:image/${/\.png$/i.test(f) ? 'png' : 'jpeg'};base64,` + fs.readFileSync(f).toString('base64'); };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
-const face = img(spec.portrait), logo = img('public/verse/logo-512.png'), col = spec.color || '#1f3a5f';
+const face = img(spec.portrait), logo = img('public/verse/logo-512.png');
+// the verse's own look (v2/site/verse/verse.css + the app chat in shell.css): orange #ff6a1f for the visitor and the
+// rings, dark glass bubbles for the resident, Heebo, the planet logo; no emoji
+const ME = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a3a3ab'%3E%3Ccircle cx='12' cy='8.6' r='4.3'/%3E%3Cpath d='M3.6 22c.8-4.6 4.2-7.3 8.4-7.3s7.6 2.7 8.4 7.3z'/%3E%3C/svg%3E\")";
 const bubbles = spec.msgs.map((m) => m.who === 'c'
   ? `<div class="row c"><img class="av" src="${face}"><div class="b">${esc(m.t)}</div></div>`
-  : `<div class="row v"><div class="b">${esc(m.t)}</div></div>`).join('');
-const html = `<html dir="rtl"><head><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  : `<div class="row v"><div class="b">${esc(m.t)}</div><span class="av me"></span></div>`).join('');
+const html = `<html dir="rtl"><head><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:Heebo}
-body{background:radial-gradient(900px 700px at 50% 108%,rgba(255,120,30,.28),transparent 70%),radial-gradient(800px 600px at 50% -10%,${col}aa,transparent 70%),#0c0c13;color:#fff}
-.head{position:absolute;top:130px;right:70px;left:70px;display:flex;align-items:center;gap:30px}
-.head img{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 6px ${col},0 0 0 11px rgba(255,255,255,.85)}
-.head .n{font:900 62px/1.05 Heebo}
-.head .d{font:500 32px/1.3 Heebo;color:#c9c9d6;margin-top:8px}
-#chat{position:absolute;top:330px;bottom:450px;right:50px;left:50px;display:flex;flex-direction:column;justify-content:center;gap:var(--g)}
-.row{display:flex;align-items:flex-end;gap:16px}
-.row.v{justify-content:flex-end}
-.b{font-size:var(--fs);line-height:1.38;padding:.55em .8em;border-radius:1.05em;max-width:86%;box-shadow:0 8px 22px rgba(0,0,0,.35)}
-.c .b{background:${col};color:#fff;border-bottom-right-radius:.25em;font-weight:500}
-.v .b{background:#ecebf2;color:#15151f;border-bottom-left-radius:.25em;font-weight:500}
-.av{width:62px;height:62px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 3px ${col}}
-.foot{position:absolute;bottom:140px;right:0;left:0;display:flex;flex-direction:column;align-items:center}
-.foot img{width:190px}
-.foot .t{font:800 46px/1.2 Heebo;margin-top:6px}
-.foot .u{font:500 32px/1.3 Heebo;color:#ffb073;letter-spacing:1px;direction:ltr}
-</style></head><body>
-<div class="head"><img src="${face}"><div><div class="n">${esc(spec.name)}</div><div class="d">שיחה מהשלומיוורס · ${esc(spec.date)}</div></div></div>
+body{color:#fff;background:
+  radial-gradient(760px 760px at 108% -6%,rgba(255,106,31,.42),rgba(255,106,31,.10) 45%,transparent 70%),
+  radial-gradient(900px 520px at 50% 112%,rgba(255,106,31,.34),transparent 70%),
+  radial-gradient(1400px 900px at 50% 50%,#141418,#0b0b0e 75%)}
+.ring{position:absolute;width:1500px;height:420px;left:-210px;top:-150px;border-radius:50%;border:3px solid rgba(255,138,61,.22);transform:rotate(-14deg)}
+.head{position:absolute;top:130px;right:64px;left:64px;display:flex;align-items:center;gap:30px}
+.head .face{width:156px;height:156px;border-radius:50%;object-fit:cover;object-position:50% 18%;border:6px solid #ff6a1f;box-shadow:0 0 34px rgba(255,106,31,.55);box-sizing:border-box}
+.head .n{font:900 64px/1.05 Heebo}
+.head .d{display:inline-flex;align-items:center;gap:12px;margin-top:14px;height:50px;padding:0 22px;border-radius:999px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.14);font:700 28px/1 Heebo;color:rgba(255,255,255,.86)}
+.head .d i{width:12px;height:12px;border-radius:50%;background:#ff6a1f;box-shadow:0 0 10px #ff6a1f}
+.head .logo{width:190px;margin-inline-start:auto}
+#chat{position:absolute;top:350px;bottom:380px;right:50px;left:50px;display:flex;flex-direction:column;justify-content:center;gap:var(--g)}
+.row{display:flex;align-items:flex-start;gap:18px}
+.row.v{justify-content:flex-end;align-items:center}
+.b{font-size:var(--fs);line-height:1.42;padding:.5em .78em;border-radius:.62em;max-width:84%;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.c .b{background:#1f1f24;border:1.5px solid rgba(255,255,255,.14);font-weight:500}
+.v .b{background:#ff6a1f;font-weight:600;box-shadow:0 0 0 1px rgba(255,106,31,.22),0 10px 26px -8px rgba(255,106,31,.5)}
+.av{width:66px;height:66px;border-radius:50%;object-fit:cover;object-position:50% 18%;flex:none;border:3.5px solid #ff6a1f;box-shadow:0 0 14px rgba(255,106,31,.4);box-sizing:border-box}
+.av.me{width:60px;height:60px;border:2px solid rgba(255,255,255,.22);box-shadow:none;background:#3a3a41 ${ME} 50% 75% / 74% no-repeat}
+.foot{position:absolute;bottom:150px;right:0;left:0;display:flex;flex-direction:column;align-items:center;gap:18px}
+.foot .btn{display:inline-flex;align-items:center;height:104px;padding:0 56px;border-radius:999px;background:#ff6a1f;font:800 46px/1 Heebo;box-shadow:0 0 0 1px rgba(255,106,31,.22),0 14px 40px -10px rgba(255,106,31,.6)}
+.foot .u{font:700 34px/1 Heebo;letter-spacing:1px;direction:ltr;color:rgba(255,255,255,.75)}
+.foot .u b{color:#ff8a3d}
+</style></head><body><div class="ring"></div>
+<div class="head"><img class="face" src="${face}"><div><div class="n">${esc(spec.name)}</div><div class="d"><i></i>שיחה מהשלומיוורס · ${esc(spec.date)}</div></div><img class="logo" src="${logo}"></div>
 <div id="chat">${bubbles}</div>
-<div class="foot"><img src="${logo}"><div class="t">דברו עם ${esc(spec.first || spec.name)} בשלומיוורס</div><div class="u">shlomiverse.com</div></div>
+<div class="foot"><div class="btn">דברו עם ${esc(spec.first || spec.name)} בשלומיוורס</div><div class="u">shlomi<b>verse</b>.com</div></div>
 </body></html>`;
 (async () => {
   const exe = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((f) => fs.existsSync(f)) || process.env.CHROME_PATH;

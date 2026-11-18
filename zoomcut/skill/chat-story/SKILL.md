@@ -22,16 +22,18 @@ them. First one: three posters of Hani's chats. Reply in English; the posters ar
    { "name": "חנה פרידמן", "first": "חנה", "portrait": "public/techietech/team/hani.jpg", "color": "#1f3a5f",
      "date": "16.11.2026", "msgs": [ { "who": "v", "t": "..." }, { "who": "c", "t": "..." } ] }
    ```
-   `portrait` and `color` = the resident's record (`content.mjs get character <id>`). The letters shrink by themselves
+   `portrait` = the resident's record (`content.mjs get character <id>`). The letters shrink by themselves
    to fit; it prints the size - under 30px = too much text: shorten the answers (cut, never rewrite) or split into two
-   posters. Header = face + name + "שיחה מהשלומיוורס · date"; footer = the logo + "דברו עם <first> בשלומיוורס".
+   posters. **The verse's branding, never the resident's colour** (his rule, 2026-11-18): the app chat's own look - visitor
+   bubbles orange #ff6a1f with the plain face, the resident's dark glass #1f1f24 beside a face in an orange ring, Heebo,
+   the planet logo in the header, an orange pill "דברו עם <first> בשלומיוורס" + shlomiverse.com at the bottom.
 5. **Look** at every poster yourself at full size (nothing touching, nothing cut, Hebrew + English mixed lines right),
    then send him ONLY the clean posters (SendUserFile). He posts them himself; posting to the verse = the verse-story
    skill, only when he asks.
 
 ## Cleaning - what may go on a poster
-The conversations are real people's words. The chat box says "השיחות נשמרות כדי לשפר את הצ׳אט" - a story is a public use
-beyond that, so a poster carries nothing that points at a person:
+The conversations are real people's words. The chat box says so since 2026-11-18 ("...ושיחות טובות עשויות להופיע בסטורי, בלי שמות" - the cx-note in
+v2/site/wiki/index.html) - "without names" is the promise, so a poster carries nothing that points at a person:
 - **No name of the visitor** - not their message's signature ("אני שירלי"), not the resident calling them by name
   (Hani's "שירלי," / "ירדן,"), not the chat's handle. The visitor is just the grey bubble.
 - **Nothing about the visitor's life** - their health, family, work, where they live, a phone / mail / link, a photo.
@@ -44,6 +46,3 @@ beyond that, so a poster carries nothing that points at a person:
 - Keep the visitor's own spelling (their typos are part of the charm); cut the resident's sign-offs and the sign-in
   wall ("[[signin]]", an answer cut mid-word, the "המשך" that followed it) - never invent a word.
 
-## Pending (his call)
-- A line in the chat box that good conversations may appear in a story without names (now it says only "to improve
-  the chat"): v2/site/wiki/index.html `cx-note` + the app's chat - asked 2026-11-18.
