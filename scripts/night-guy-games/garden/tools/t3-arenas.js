@@ -2,7 +2,7 @@
 const path = require('path'), fs = require('fs');
 const { chromium } = require(path.join(process.env.USERPROFILE, 'plaxzy-creator/node_modules/playwright-core'));
 const URL = process.argv[2] || 'http://localhost:8771/night-guy-games/garden/?solo=1&notrack=1';
-const OUT = path.join(__dirname, 'shots'); fs.mkdirSync(OUT, { recursive: true });
+const OUT = process.env.SHOTS || path.join(__dirname, 'shots'); fs.mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
 (async () => {
