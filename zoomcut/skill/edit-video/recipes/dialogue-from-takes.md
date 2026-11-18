@@ -35,7 +35,8 @@ is HOW to get there. A worked builder: `dialogue-from-takes.example.py` (savta-1
 
 ## 3. The build (a script that writes ops - keep it in the scratchpad, rerun it each round while he hasn't touched the clips)
 - One list of lines in order: `who, take, a, b (take seconds), set`, placed after the one before with `over` (seconds
-  before it ends - 0.7 a normal turn, more for a tango), or `with_=(back, s)` = at an earlier line's start + s (parallel
+  of WORD overlap: 0.1 at playback speed - his number since 2026-11-18, SKILL.md "THE OVERLAP"; word edges, not clip
+  edges; more only for an interruption), or `with_=(back, s)` = at an earlier line's start + s (parallel
   talk, an off-screen voice dropped into a pause). `pieces` = a line cut into spans (silences ≥ 0.4 s out).
 - Each piece = a group: video + its set + voice (+ subtitles), one `link`, same from/dur.
 - An off-screen character (the son): its own voice row (group = his name, a little room on the voice, `tempo` 1.2 when
@@ -60,8 +61,8 @@ is HOW to get there. A worked builder: `dialogue-from-takes.example.py` (savta-1
 - the one-line report: length, lines, cut-aways, what you couldn't do.
 
 ## What cost extra rounds on savta-1 (13 rounds of notes) - get these right in the FIRST cut
-- **Turns back to back** -> he asked for overlap; then "more tango"; then "real life, not a play". Start at 0.7 s turns,
-  ~1.3 s in a back-and-forth, an off-screen voice laid over (tempo 1.2) - never a pause opened for anyone.
+- **Turns back to back** -> he asked for overlap; then "more tango"; then "real life, not a play". (Superseded 2026-11-18:
+  turns = 100 ms word-to-word overlap, SKILL.md "THE OVERLAP"; the old "0.7 s / 1.3 s" counted clip edges.) an off-screen voice laid over (tempo 1.2) - never a pause opened for anyone.
 - **His selfie start / stop showed 4 times** (a head padded to fit a voice, a tail extended to close a gap, a take's
   first second, a pre-roll added to close a gap). Look at the frames of every head and tail you use; ≤ 0.3 s / ≤ 0.2 s.
 - **The strip broke 3 times** (a frame pointing at a row with no clip = "stuck"; a 0.1 s flash; two of Lola's pieces in

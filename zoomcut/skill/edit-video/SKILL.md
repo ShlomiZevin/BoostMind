@@ -221,11 +221,21 @@ after every build (no strip frame without a clip, no overlap on a row, ≥1 s sh
 - **Cutting a silence in a dialogue project**: cut every row, the strip, the captions and his notes together (split
   clips that cross the cut, `in` moved); measure the WORD edges first - three cuts clipped a word ("לך" -> "לה",
   "בפוניבז'", the "ה" of "הסתכלתי"); a few frames given back fixes it. Moving something later = shift everything after.
-- **EVERY turn between two characters overlaps - both heard** (his words, savta-1, 2026-11-11: "an editing technique I
-  demand in every video ... when someone starts talking you always still hear the previous one ... I'll choose who to
-  show with the What we see"): the next line starts ~0.7 s before the other ends (own voice rows, full volume); never
-  back-to-back turns. The strip's first pick = whoever starts a sentence (≥0.7 s a shot); he changes it. Two talking in
-  parallel = a second subtitles row for the other one (higher, another colour) so both read.
+- **THE OVERLAP - 100 ms, word to word, at playback speed. Every dialogue, every kind of video** (decided by ear,
+  the-consultant 2026-11-18: five A/B samples of the same stretch at 0 / 100 / 200 / 300 / 400 ms - "even 0 was good,
+  but 100 was also good, so 100 - for our dialogue in general"; ~360 ms had been "too much - many times you don't hear the
+  speaker at all"). Measured from the LAST WORD of one speaker to the FIRST WORD of the next (speech energy in the takes'
+  wavs: > -30 dB, walked out to -42 dB), never from clip edges - the clips' own handles (voice starts ~0.25 s before its
+  first word, runs ~0.15 s after its last) are separate and stay. At project speed 1.25 that is 0.125 s on the timeline.
+  Exceptions: an interruption (the one cutting in starts while the other is clearly talking, ~0.2-0.7 s), a beat the
+  script wants, and a word that must land ("סטנדרט") = 0. After the build, measure every join and fix each one with a
+  `shift` on the next line (shift -= gap - target) - one rebuild brings them all to the number. Earlier wording ("~0.7 s
+  before the other ends", savta-1) measured clip edges; the 100 ms word-to-word number replaces it.
+  Still: never back-to-back with a gap, and both voices on their own rows. The strip's first pick = whoever starts a
+  sentence; he changes it. Two talking in parallel = a second subtitles row (higher, another colour) so both read.
+- **Showing him a choice = samples, not words** (same day, his "it was a great idea"): when a setting is a matter of
+  taste (an overlap, a pace, a level), render short A/B audio (or stills) of the SAME stretch at 3-5 values, send them
+  to his Telegram as files, and let him pick by ear. It ends the guessing rounds.
 - **A voice never changes its filter in the middle of a line** (his words, haredit-6, 2026-11-15, after I split voices by
   the picture: "it's not nice when you change the voice of one in the middle"): a line keeps the voice it started
   with - the mother starts full screen = her room voice all the way, even after the cut to Hani; the phone / speaker

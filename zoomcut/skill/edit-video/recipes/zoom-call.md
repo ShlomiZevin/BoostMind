@@ -197,3 +197,17 @@ image layer: live in the editor, covering everything in the export. Any preset t
   (filter `box.w > 900` - after a removal the small tiles are 518 wide), smaller (19) in a mid-size tile.
 - **A take's bad stretch** (Daniel's phone went black / fell, 1:55-2:05): contact-sheet the take at 1 fps, and move the
   listening tiles that land on it (`item.update ... in`) to a clean listening stretch.
+
+## The overlap, set once (2026-11-18 - SKILL.md "THE OVERLAP": 100 ms word to word at playback speed)
+- Zoom builder: trim lines to words + the 0.25 s voice lead (above), `timing` handover_overlap = quick_overlap = 0.30,
+  victim_answer -0.30 (lands near 0.1 s), then measure every join (last word end -> next first word, from the takes'
+  wavs) and correct each with `shift` on the next line: `shift -= gap - (-0.125)` (0.125 s on the timeline = 100 ms at
+  1.25x). Skip same-speaker joins, interruptions, the removal and a scripted beat. One rebuild: 33 of 33 joins at
+  -0.12/-0.13 on the-consultant. Then fix any person overlapping himself by trimming that line's lead (`in` + x,
+  `shift` + x - the words don't move).
+- With `hold_picture` + `min_shot 1.5` on (Studio, 2026-11-18): the speaker stays on screen until his words end;
+  turn both on in every Zoom project.
+- Hand effects on builder rows are lost / stuck by a rebuild: keep them in ONE scratchpad script computed from the
+  current timeline (line starts, the line-3 voice item, the tiles' boxes) with a `--clean` mode (remove mine, release
+  `user`) - clean, rebuild, apply. the-consultant's `fx_apply.py` did freeze / broken voice / warning / camera-off /
+  URL pill / Daniel's bad stretch in one call.
