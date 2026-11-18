@@ -588,6 +588,9 @@ export const T = {
   shell: {
     feed: 'פיד', grid: 'רשת', view: 'תצוגה',
     simStrip: 'באיזו סימולציה אתם חיים?',
+    liveTitle: 'השידור המלא רק בשלומיוורס',   // the home's live strip (livestrip.js, his OK 2026-11-18)
+    liveChip: 'שידור',
+    liveGo: 'לצפייה בשידור המלא',
     arcTitle: 'הארכיון', arcLine: 'כל הסרטונים הישנים, לפי תאריך',
     cmyTitle: 'הקהילה', cmyLine: 'בקשות, רעיונות, סרטון אישי ובאגים',
     nVideos: (n) => (n === 1 ? 'סרטון אחד' : `${n} סרטונים`), nGames: (n) => (n === 1 ? 'משחק אחד' : `${n} משחקים`),

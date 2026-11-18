@@ -3,7 +3,7 @@
 // each sponsor is one record in Firestore `ads/<id>` (scripts/verse/ads.mjs puts it - no code change for the next sponsor),
 // its pictures in the media bucket under ads/<id>/. The coupon code is never in the list: only a citizen (a passport) gets it,
 // through op=coupon - everyone else is sent to get a passport (his rule: the verse's perks are for citizens).
-//   GET  ?op=list                         -> { ads: [{ id, sponsor, href, wide, card, alt, places, coupon: {title, line, fine, logo} }] }
+//   GET  ?op=list                         -> { ads: [{ id, sponsor, href, wide, card, alt, places, look, coupon: {title, line, fine, logo} }] }
 //   GET  ?op=coupon&id=<id>  (Bearer)     -> { code } | { error: 'sign_in' | 'citizen' | 'gone' }
 const { onRequest } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
@@ -17,7 +17,7 @@ const OWNER = 'shlomi@boostart.io';
 function pub(id, a) {
   const c = a.coupon || null;
   return { id, sponsor: a.sponsor || '', href: a.href || '', wide: a.wide || '', card: a.card || a.wide || '', alt: a.alt || '', places: a.places || ['home'],
-    order: a.order || 0, coupon: c ? { title: c.title || '', line: c.line || '', fine: c.fine || '', logo: c.logo || '', pic: c.pic || '' } : null };
+    order: a.order || 0, look: a.look || '', coupon: c ? { title: c.title || '', line: c.line || '', fine: c.fine || '', logo: c.logo || '', pic: c.pic || '' } : null };
 }
 
 let cache = null, cacheAt = 0;   // one read a minute per instance is plenty - a new sponsor shows within a minute

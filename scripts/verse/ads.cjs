@@ -4,7 +4,7 @@
 //   node scripts/verse/ads.cjs put scripts/verse/ads/<id>.json   upload the pictures, write the record (live)
 //   node scripts/verse/ads.cjs off <id> | on <id>                take it down / put it back
 //   node scripts/verse/ads.cjs list                              what's up, where, and how many citizens took the coupon
-// json: { id, sponsor, href, alt, places: ["home", "c/<character>"], order, wide: <file ~7:1 strip>, card: <file 3:1 for phones>,
+// json: { id, sponsor, href, alt, look: "strip" (a thin ~6.4:1 banner, optional), places: ["home", "c/<character>"], order, wide: <file ~7:1 strip>, card: <file 3:1 for phones>,
 //         coupon: { code, title, line, fine, logo: <file>, pic: <file> } } - file paths are relative to the json, or ~/...
 const fs = require('fs');
 const path = require('path');
@@ -26,7 +26,7 @@ async function upload(id, name, file) {
   if (cmd === 'put') {
     const j = JSON.parse(fs.readFileSync(arg, 'utf8')), dir = path.dirname(arg), at = (f) => (f.startsWith('~/') ? path.join(require('os').homedir(), f.slice(2)) : path.resolve(dir, f));
     if (!/^[a-z0-9-]+$/.test(j.id || '')) throw new Error('id: lowercase letters, digits, -');
-    const rec = { sponsor: j.sponsor, href: j.href || '', alt: j.alt || '', places: j.places || ['home'], order: j.order || 0, live: true,
+    const rec = { sponsor: j.sponsor, href: j.href || '', alt: j.alt || '', places: j.places || ['home'], order: j.order || 0, look: j.look || '', live: true,
       wide: await upload(j.id, 'wide', at(j.wide)), card: await upload(j.id, 'card', at(j.card || j.wide)), t: admin.firestore.FieldValue.serverTimestamp() };
     if (j.coupon) {
       rec.coupon = { code: j.coupon.code, title: j.coupon.title || '', line: j.coupon.line || '', fine: j.coupon.fine || '',

@@ -14,6 +14,7 @@ import { startPlays } from './plays.js';
 import { archivePage, archiveCard } from './archive.js';
 import { appBoot } from './install.js';
 import { simPage, mountBand, quizCard } from './sim.js';
+import { mountLive } from './livestrip.js';
 import { mountTz } from './tzhome.js';
 import { adSlot } from './ads.js';
 import { citizenPage } from './citizen.js';
@@ -67,6 +68,7 @@ Object.assign(HOOK, {
     renderTop();
     paintFollow();
     if (page === 'notes') document.title = `${T.notesTitle} · שלומיוורס`;
+    if (!page) mountLive();   // the live strip: a drop video of the last 7 days (livestrip.js) - before the simulation band, which steps aside for it
     if (!page) mountBand();   // "אתם חיים בסימולציה?" under the question box (sim.js)
     if (!page) mountTz();   // "עכשיו בחרדות" under the stories (tzhome.js - only once ציפציפ answers)
     if (!page) recordsHome(); else if (page !== 'records' && !/^\/(v|story|play)\//.test(h)) recordsOff();   // "שיאי היום": the home's rows, and its own page
