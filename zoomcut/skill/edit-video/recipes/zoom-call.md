@@ -223,7 +223,7 @@ image layer: live in the editor, covering everything in the export. Any preset t
 - **The socials drop (signal-lost ending), his calls on the-consultant (2026-11-18):** earlier than the last minute -
   "all are too late, people might not understand it": he weighed mid Amir's circular line ("אבל כדי ש—", 1:34) and in the end chose the
   silence right after Ronen's "מה בעצם אתם רוצים שהמערכת תעשה?" (frame 4005, 0.25 s after his last word) - "give them
-  almost everything, this is the first video I'm doing it". Moving a drop by op = move every `ending.*` item by the same delta. The card's link pill = `shlomiverse.com/videos` (the phone feed, newest first - the video is
-  the first one there; Studio, 2026-11-18), his extra line under the words: "השידור ממשיך שם עכשיו. / ברצינות, פשוט
+  almost everything, this is the first video I'm doing it". Moving a drop by op = move every `ending.*` item by the same delta. The address (his rule, 2026-11-18): what people READ and type = `shlomiverse.com/videos` (the card's pill - the
+  phone feed, newest first); a link they can tap (the caption, stories) = the exact video, `shlomiverse.com/v/<id>`, his extra line under the words: "השידור ממשיך שם עכשיו. / ברצינות, פשוט
   תיכנסו." (+37 frames on the card so it reads), and the caption ends "השיחה נקטעה באמצע. ההמשך בשלומיוורס:
-  shlomiverse.com/videos" + the hashtags.
+  shlomiverse.com/v/<id>" + the hashtags.
