@@ -205,6 +205,28 @@ export function projectSpeedOps(p: any, speed: number) {
       ops.push(...o); cur = apply(cur, o);
     }
   }
+  // the socials ending keeps its REAL seconds (his rule, 2026-11-18: "if it's 2 sec and I put the video at x1.2 it should
+  // remain 2 sec"): every Socials-only clip is re-laid around the cut - start, length, fades and flicker keys, which are
+  // all timeline time
+  const at = p.split?.at;
+  if (Math.abs(P - speed) > 1e-4 && at != null) {
+    const k = speed / P, T = (t: number) => +(t * k).toFixed(3);
+    for (const ly of cur.layers || []) if (ly.only === 'social') for (const x of ly.items || []) {
+      const a = Math.round(at + (x.from - at) * k), b = Math.round(at + (x.from + x.dur - at) * k);
+      const set: any = { from: Math.max(0, a), dur: Math.max(1, b - a) };
+      if (ly.kind !== 'audio') {
+        if (x.fade_in) set.fade_in = T(x.fade_in);
+        if (x.fade_out) set.fade_out = T(x.fade_out);
+      }
+      if (x.anim && typeof x.anim === 'object') {
+        const anim: any = {};
+        for (const [key, v] of Object.entries(x.anim)) anim[key] = Array.isArray(v)
+          ? v.map((kv: any) => (Array.isArray(kv) && typeof kv[0] === 'number' ? [T(kv[0]), ...kv.slice(1)] : kv)) : v;
+        set.anim = anim;
+      }
+      ops.push({ op: 'item.update', layer: ly.id, id: x.id, set });
+    }
+  }
   ops.push({ op: 'project', set: { speed } });
   return ops;
 }

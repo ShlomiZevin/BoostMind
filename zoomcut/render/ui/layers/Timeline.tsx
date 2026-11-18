@@ -140,10 +140,11 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
   const [drag, setDrag] = useState<{ layer: string; item: string; d: number; side: string; to?: string | null; dy?: number } | null>(null);
 
   // something picked (on the video, in a panel): unfold its group, bring its lane and block into view
-  useEffect(() => {
+  // Only a NEW pick moves the view - folding / unfolding a group never does (2026-11-18, his bug: "I collapse it and I lose
+  // my place"). A pick inside a folded group unfolds it, then reveals it once the lanes are drawn.
+  const reveal = useRef(false);
+  const revealSel = () => {
     if (!sel) return;
-    const g = groups.find((x) => x.layers.some((l) => l.id === sel.layer));
-    if (g && closed[g.name]) { setClosed({ ...closed, [g.name]: false }); return; }
     const el = lanes.current; if (!el) return;
     const lane = el.querySelector(`[data-lane="${CSS.escape(sel.layer)}"]`) as HTMLElement | null;
     if (lane) {
@@ -152,7 +153,28 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
     }
     const it = sel.item && project.layers.find((l: any) => l.id === sel.layer)?.items?.find((i: any) => i.id === sel.item);
     if (it) { const x = px(it.from); if (x < el.scrollLeft || x > el.scrollLeft + el.clientWidth - NW - 60) el.scrollLeft = Math.max(0, x - 120); }
-  }, [sel?.layer, sel?.item, closed]);
+  };
+  useEffect(() => {
+    if (!sel) return;
+    const g = groups.find((x) => x.layers.some((l) => l.id === sel.layer));
+    if (g && closed[g.name]) { reveal.current = true; setClosed({ ...closed, [g.name]: false }); return; }
+    revealSel();
+  }, [sel?.layer, sel?.item]);
+  // folding by hand: the group's header stays exactly where it was under the mouse
+  const foldAnchor = useRef<{ name: string; y: number } | null>(null);
+  const fold = (name: string, e: React.MouseEvent) => {
+    const el = lanes.current, row = (e.currentTarget as HTMLElement).closest('.ltl-grp') as HTMLElement | null;
+    foldAnchor.current = el && row ? { name, y: row.offsetTop - el.scrollTop } : null;
+    setClosed({ ...closed, [name]: !closed[name] });
+  };
+  useLayoutEffect(() => {
+    const el = lanes.current;
+    if (reveal.current) { reveal.current = false; revealSel(); foldAnchor.current = null; return; }
+    const a = foldAnchor.current; foldAnchor.current = null;
+    if (!el || !a) return;
+    const row = el.querySelector(`[data-grp="${CSS.escape(a.name)}"]`) as HTMLElement | null;
+    if (row) el.scrollTop = Math.max(0, row.offsetTop - a.y);
+  }, [closed]);
 
   // keep the playhead in view while playing
   useEffect(() => {
@@ -885,8 +907,8 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
           })()}
           {groups.map((g) => (
             <React.Fragment key={g.name}>
-              <div className="ltl-row ltl-grp">
-                <div className="ltl-name" onClick={() => setClosed({ ...closed, [g.name]: !closed[g.name] })}>
+              <div className="ltl-row ltl-grp" data-grp={g.name}>
+                <div className="ltl-name" onClick={(e) => fold(g.name, e)}>
                   <span className="caret">{closed[g.name] ? '▸' : '▾'}</span>
                   {(() => { const c = g.layers.map((l) => colors[l.id]).find(Boolean); return c ? <span className="gdot" style={{ background: c }} /> : null; })()}
                   <span className="nm he" dir="auto" style={{ textAlign: 'left', unicodeBidi: 'plaintext' }}>{g.name}</span>
