@@ -15,7 +15,12 @@ const seen = new Set();
 const label = (a) => `<div class="ad-h"><span class="ad-by">בחסות ${esc(a.sponsor)}</span><button type="button" class="ad-tag" data-ad-info aria-label="מודעה ממומנת">${INFO}ממומן</button></div>`;
 const INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>';
 
+// a THIN banner (his OK 2026-11-18, mockup live-strip/4-ksa-banner): the size of a phone ad strip (~6.4:1), one picture, the
+// network's small mark in its corner instead of the label row - like Google's "Ad" mark. The record says look: "strip".
+const MARK = `<button type="button" class="ad-mark" data-ad-info aria-label="מודעה ממומנת">Verse Ads${INFO}</button>`;
 function banner(a) {
+  if (a.look === 'strip') return `<section class="ad ad-thin"><a class="ad-pic" href="${esc(a.href || '#')}" data-ad-open="${esc(a.id)}"><picture><source media="(min-width: 700px)" srcset="${esc(a.wide)}">
+      <img src="${esc(a.card)}" alt="${esc(a.alt)}" loading="lazy"></picture></a>${MARK}</section>`;
   return `<section class="ad">${label(a)}
     <a class="ad-pic" href="${esc(a.href || '#')}" data-ad-open="${esc(a.id)}"><picture><source media="(min-width: 700px)" srcset="${esc(a.wide)}">
       <img src="${esc(a.card)}" alt="${esc(a.alt)}" loading="lazy"></picture></a></section>`;
@@ -76,7 +81,8 @@ async function openCoupon(a) {
 }
 
 document.addEventListener('click', (e) => {
-  if (e.target.closest('[data-ad-info]')) { e.preventDefault(); toast('מודעה ממומנת. השלומיוורס קיבל עליה תשלום בעיגוליות.', 3200); return; }
+  const info = e.target.closest('[data-ad-info]');
+  if (info) { e.preventDefault(); toast(info.classList.contains('ad-mark') ? 'מודעה ממומנת ברשת Verse Ads' : 'מודעה ממומנת. השלומיוורס קיבל עליה תשלום בעיגוליות.', 3200); return; }
   const o = e.target.closest('[data-ad-open]');
   if (!o) return;
   const a = ads && ads.find((x) => x.id === o.dataset.adOpen);

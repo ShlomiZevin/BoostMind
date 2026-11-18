@@ -32,7 +32,10 @@ const pixelBlock = (a, W) => Math.max(2, Math.round((4 + 76 * a) * W / 1080));  
 
 const NO_SIGNAL = '<svg viewBox="0 0 100 64" aria-hidden="true"><rect x="0" y="42" width="15" height="22" rx="3" fill="#ff6a1f"/><rect x="20" y="29" width="15" height="35" rx="3" fill="#ff6a1f" opacity=".32"/><rect x="40" y="16" width="15" height="48" rx="3" fill="#ff6a1f" opacity=".32"/><rect x="60" y="3" width="15" height="61" rx="3" fill="#ff6a1f" opacity=".32"/><path d="M81 3l16 16M97 3L81 19" stroke="#ff6a1f" stroke-width="6" stroke-linecap="round"/></svg>';
 const WORDS = { label: 'בעיית קליטה', title: 'הקשר עם יקום<br>שלומיוורס נותק', line: 'השידור ממשיך בשלומיוורס', btn: 'מתחברים ומחזירים את הקליטה',
-  wait: 'מתחברים…', back: 'הקליטה חזרה', jump: 'ראיתם ברשתות? לרגע שהקליטה נפלה' };
+  wait: 'מתחברים…', back: 'הקליטה חזרה', jump: 'ראיתם ברשתות?', jump2: 'קפצו לרגע שהקליטה נפלה' };
+// the jump card's arrow is drawn (a text ‹ mirrors in RTL and pointed back - his note 2026-11-18); it points LEFT = forward in Hebrew
+const FWD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+const WAVE = '<svg viewBox="0 0 40 12" aria-hidden="true"><path d="M0 6h5l2-5 3 10 3-8 2 6 3-9 3 10 2-6 3 4 2-2h12" fill="none" stroke="#ff6a1f" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
 export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, words = {} }) {
   const T = { ...WORDS, ...words };
@@ -48,7 +51,8 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
       <div class="sl-line">${T.line}</div>
       <button class="sl-btn" type="button">${T.btn}</button></div></div>
     <div class="sl-toast" hidden>${T.back}</div>
-    <button class="sl-jump" type="button" hidden>${T.jump}<i>‹</i></button>`;
+    <button class="sl-jump" type="button" hidden><span class="sl-jt"><b>${T.jump}</b><small>${T.jump2}</small>
+      <span class="sl-jbar"><i class="sl-jnow"></i><i class="sl-jwave">${WAVE}</i><i class="sl-jmark"></i></span></span><span class="sl-jgo">${FWD}</span></button>`;
   stage.append(root);
   const cv = root.querySelector('.sl-cv'), ctx = cv.getContext('2d'), dark = root.querySelector('.sl-dark'), card = root.querySelector('.sl-card');
   const btn = root.querySelector('.sl-btn'), toast = root.querySelector('.sl-toast'), jump = root.querySelector('.sl-jump');
@@ -178,7 +182,16 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
 
   // "seen it on the socials? jump to where it dropped" - a few seconds before, so the drop comes again
   jump.addEventListener('click', (e) => { e.stopPropagation(); jump.hidden = true; video.currentTime = Math.max(0, at - 3.5); video.play().catch(() => {}); });
-  const jumpShow = () => { if (state === 'play' && video.currentTime < at - 8) { jump.hidden = false; clearTimeout(jumpShow.t); jumpShow.t = setTimeout(() => { jump.hidden = true; }, 9000); } };
+  // its little bar (mockup live-strip/5-jump-pill, option 2): where the video is now, and the drop marked on it
+  const jumpBar = () => { const d = video.duration; if (d > 0) { jump.style.setProperty('--drop', (Math.min(at, d) / d * 100).toFixed(2) + '%'); jump.style.setProperty('--now', (video.currentTime / d * 100).toFixed(2) + '%'); } };
+  // once per video per device, on its first start only, never for someone who already finished it (his note 2026-11-18: "it will be
+  // annoying if it's all the time") - shown = seen, tapped or not
+  const vidOf = () => (video.currentSrc || video.src || '').split('/').pop().split('?')[0].replace(/\.mp4$/i, '');   // (read late - the feed sets src after attaching)
+  const SEEN = 'sl-jump-seen';
+  const jumpSeen = (vid) => { try { return (JSON.parse(localStorage.getItem(SEEN)) || []).includes(vid) || (JSON.parse(localStorage.getItem('vx-done')) || []).some((x) => x && x.id === vid); } catch (e) { return false; } };
+  const jumpMark = (vid) => { try { const a = JSON.parse(localStorage.getItem(SEEN)) || []; if (!a.includes(vid)) localStorage.setItem(SEEN, JSON.stringify([...a, vid].slice(-200))); } catch (e) {} };
+  let jumpOffered = false;
+  const jumpShow = () => { const vid = vidOf(); if (jumpOffered || !vid || jumpSeen(vid)) return; if (state === 'play' && video.currentTime < at - 8) { jumpOffered = true; jumpMark(vid); jumpBar(); jump.hidden = false; clearTimeout(jumpShow.t); jumpShow.t = setTimeout(() => { jump.hidden = true; }, 9000); } };
 
   // the clock: every frame while it plays
   const tick = () => {
@@ -198,6 +211,7 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
       }
     }
     if (!jump.hidden && (state !== 'play' || t > at - 8)) jump.hidden = true;   // (only early in the video, never over the box)
+    if (!jump.hidden) jumpBar();
     if (!video.paused) raf = requestAnimationFrame(tick);
   };
   const run = () => { if (!raf) raf = requestAnimationFrame(tick); };
