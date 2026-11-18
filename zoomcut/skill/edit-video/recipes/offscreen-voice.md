@@ -186,6 +186,11 @@ Her lines are NOT a stand-in - they are the final voice (his ask: "real, not a m
 - **Her lines need room, not a pause** - when his take has no gap for her answer, take HIS reaction word out of the
   voice only and let the picture run on under her (his "כן" after "שאלה?", his first "נכון"); a quiet far voice under
   his next words is masked (checked by transcribing a rough mix of the stems at the row volumes).
+- **In the end he recorded her lines himself** (round 3: "the AI sounds too much AI - make it in the background, it's
+  okay it will be quiet and you can't hear well, use a filter"): his phone recording (one ear only - picked the live
+  channel, levelled), on her row with the LIVE `fx {filter: phone, room 0.35, roomSize 0.6}` at volume 0.4 (~10 dB
+  under him) - no baked chain needed; the same delivery voice-changed to Danit (ElevenLabs STS) on a muted row to
+  compare. No music bed on this character ("remove the bg music") - his park sound + the ambience row only.
 - **His reaction words stay** (his round-2 note: "it's okay to overlap, don't remove... it's okay she'll be a bit quiet,
   he is the main thing"): she lands ON his words, quiet; never take his words out to make room for her.
 - **The ending = cut dead in the middle of his last word, no poster** ("cut suddenly in the middle of the sentence, just
