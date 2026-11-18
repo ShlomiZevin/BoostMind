@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#140d24">
+<title>פסיכופת גינה – המשחק</title>
+<meta name="description" content="בלילה, בגינה, הוא ניגש לזרות עם שאלה קטנה ותמימה. סגרו שטחים בגינה, סגרו עליהן את השיחה לפני שהסיפור שלו נהיה מחריד – ותיזהרו מהניידות.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="פסיכופת גינה – המשחק">
+<meta property="og:description" content="סליחה, אפשר לשאול אותך משהו? סגרו שטחים בגינה בלילה, לפני שהסיפור שלו נגמר – ולפני שהמשטרה חותכת לכם את השובל.">
+<meta property="og:url" content="https://shlomiverse.com/night-guy-games/garden/">
+<meta property="og:image" content="https://shlomiverse.com/night-guy-games/garden/assets/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="night-guy-games" defer></script>
+<script src="/verse/game-frame.js"></script>
+<style>
+:root{
+  --ink:#140d24; --card:#f8f5ff; --gold:#facc15; --red:#ef4444; --green:#22c55e; --purple:#8b5cf6;
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:calc(env(safe-area-inset-bottom,0px) + var(--verse-bottom,0px));
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
+body{background:#140d24}
+[hidden]{display:none!important}
+button{font-family:inherit;border:0;cursor:pointer}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+/* HUD - one thin row */
+#hud{position:fixed;top:calc(var(--safe-t) + 6px);left:6px;right:6px;max-width:600px;margin:0 auto;display:none;align-items:center;gap:6px;z-index:3}
+#hud.on{display:flex}
+.ibtn{width:40px;height:40px;border-radius:13px;background:#140d24cc;display:grid;place-items:center;flex:none}
+.ibtn svg{width:22px;height:22px;fill:#fff}
+.box{height:40px;border-radius:13px;background:#140d24cc;color:#fff;display:flex;align-items:center;gap:6px;padding:0 10px;flex:none;font-weight:900}
+#pctBox{flex:1;position:relative;overflow:hidden;padding:0;justify-content:center;font-size:17px}
+#pctBar{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#6d28d9,#a855f7);transition:width .3s}
+#pctGoal{position:absolute;top:0;bottom:0;width:3px;background:#facc15}
+#pctTxt{position:relative;direction:rtl}
+#pctTxt small{font-size:12px;opacity:.85;font-weight:700}
+#scoreBox{font-size:17px}
+#livesBox{font-size:16px;letter-spacing:1px;color:#f87171}
+#nightBox{font-size:13px;color:#c4b5fd}
+
+/* his words - a strip at the bottom with his face */
+#strip{position:fixed;left:6px;right:6px;bottom:calc(var(--safe-b) + 6px);max-width:600px;margin:0 auto;display:none;align-items:center;gap:8px;z-index:3;pointer-events:none;background:#140d24e8;border:2px solid #8b5cf6aa;border-radius:16px;padding:6px 10px 6px 8px;min-height:58px}
+#strip.on{display:flex}
+#strip img{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;border:2px solid #a78bfa}
+#say{flex:1;color:#fff;font-size:15px;font-weight:700;line-height:1.3;transition:opacity .15s}
+#say.loud{color:#fecaca;font-weight:900}
+#say.reveal{color:#facc15;font-weight:900}
+#pips{display:flex;gap:4px;flex:none;direction:ltr}
+#pips i{width:9px;height:9px;border-radius:50%;background:#ffffff33}
+#pips i.on{background:#facc15}
+#pips i.last.on{background:#ef4444}
+
+/* effects */
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:6}
+.pop{position:absolute;font-weight:900;font-size:24px;color:#fff;text-shadow:0 3px 0 #140d24,0 0 12px #8b5cf6;white-space:nowrap;animation:pop 1s ease-out forwards}
+.pop.gold{text-shadow:0 3px 0 #a16207,0 0 14px #facc15;font-size:28px}
+.pop.bad{text-shadow:0 3px 0 #991b1b,0 0 12px #ef4444}
+@keyframes pop{0%{transform:translate(-50%,0) scale(.6);opacity:0}20%{transform:translate(-50%,-10px) scale(1.1);opacity:1}100%{transform:translate(-50%,-60px) scale(1);opacity:0}}
+.flash{position:fixed;inset:0;background:#ef444455;animation:flash .4s forwards}
+.flash.blue{background:#3b82f655}
+@keyframes flash{to{opacity:0}}
+.banner{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);text-align:center;color:#fff;font-weight:900;font-size:min(11vw,50px);line-height:1.05;text-shadow:0 3px 0 var(--ink),0 0 24px #000a;white-space:nowrap;animation:ban 1.4s ease-out forwards}
+.banner.count{font-size:min(24vw,110px);animation-duration:.9s}
+@keyframes ban{0%{transform:translate(-50%,-50%) scale(.4);opacity:0}15%{transform:translate(-50%,-50%) scale(1.08);opacity:1}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
+#turn{display:none;position:fixed;inset:0;z-index:20;background:#140d24;color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:900;font-size:22px;text-align:center;padding:16px}
+#turn svg{width:64px;height:64px;animation:turn 1.6s ease-in-out infinite}
+@keyframes turn{50%{transform:rotate(-90deg)}}
+body.turn #turn{display:flex}
+
+/* screens */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(var(--safe-t) + 14px) 16px calc(var(--safe-b) + 14px);background:linear-gradient(#140d24bb,#0d0818f2 50%,#0d0818fa);z-index:4;text-align:center}
+.screen.on{display:flex}
+#start{background:radial-gradient(ellipse at 50% 30%,#2a1850,#0d0818 70%)}
+.sub{color:#fff;font-size:16px;font-weight:700;max-width:390px;line-height:1.35;margin:0;text-shadow:0 1px 3px #0008}
+.big{min-width:220px;padding:15px 28px;border-radius:30px;font-size:24px;font-weight:900;color:var(--ink);background:linear-gradient(#fde047,#eab308);box-shadow:0 5px 0 #a16207}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 #a16207}
+.mid{min-width:200px;padding:11px 22px;border-radius:24px;font-size:18px;font-weight:700;color:var(--ink);background:#fff;box-shadow:0 4px 0 #b9a8dc;text-decoration:none;display:inline-block}
+.best{color:#fff;font-size:15px;font-weight:700;line-height:1.5}
+.best b{color:#facc15}
+.over-h{font-size:28px;font-weight:900;color:#fff;margin:0}
+.over-line{background:var(--card);border-radius:18px;padding:10px 16px;font-weight:700;max-width:340px;font-size:16px;line-height:1.35}
+.over-score{font-size:54px;font-weight:900;color:#facc15;text-shadow:0 3px 0 var(--ink);line-height:1}
+.over-score small{display:block;font-size:15px;color:#fff;text-shadow:none;margin-top:4px}
+.newrec{font-size:19px;font-weight:900;color:#fff;background:var(--green);padding:4px 14px;border-radius:14px;display:inline-block}
+.head{height:min(24vh,170px);object-fit:contain;filter:drop-shadow(0 8px 16px #0008)}
+.links a{color:#d8ccf5;font-weight:700;font-size:15px;text-decoration:none}
+.night-big{font-size:min(16vw,64px);font-weight:900;color:#facc15;text-shadow:0 4px 0 var(--ink);margin:0;line-height:1}
+.night-did{color:#d8ccf5;font-size:17px;font-weight:700;margin:0}
+.night-goal{color:#fff;font-size:18px;font-weight:900;margin:0}
+
+#start{gap:clamp(8px,2vh,18px)}
+#start .hero{width:min(94vw,560px,calc((100vh - 300px) * 1.905));aspect-ratio:1200/630;border-radius:20px;box-shadow:0 0 0 3px #a78bfa55,0 14px 40px #000a;object-fit:cover;background:#2a1850}
+.startBtns{display:flex;flex-direction:column;align-items:center;gap:10px}
+#playBtn{display:flex;align-items:center;justify-content:center;gap:10px;min-width:240px;font-size:28px;padding:15px 34px;animation:breathe 2.4s ease-in-out infinite}
+#playBtn svg{width:24px;height:24px;fill:var(--ink)}
+@keyframes breathe{50%{transform:scale(1.04)}}
+#howBtn{min-width:0;padding:9px 22px;font-size:16px;background:#ffffff1f;color:#fff;box-shadow:none;border:2px solid #ffffff55}
+.foot{display:flex;align-items:center;gap:14px}
+.foot a{color:#d8ccf5;font-weight:700;font-size:15px;text-decoration:none}
+.who{color:#a99cc9;font-size:13px;font-weight:700;margin:0}
+@media (max-height:620px){.who{display:none}#start .sub{font-size:14px}#playBtn{font-size:23px;padding:11px 26px}#start{gap:7px}}
+@media (max-height:460px){#start .sub{display:none}}
+
+/* tutorial */
+#tutDim{position:fixed;inset:0;display:none;pointer-events:none;z-index:7}
+#tutDim.on{display:block}
+#tutHole{position:absolute;border-radius:20px;box-shadow:0 0 0 200vmax #0d0818b0;border:3px solid #facc15;transition:all .3s}
+#tutCard{position:fixed;left:10px;right:10px;display:none;background:var(--card);border-radius:20px;padding:12px 14px 10px;box-shadow:0 8px 24px #0009;max-width:460px;margin:0 auto;border:3px solid var(--gold);z-index:8}
+#tutCard.on{display:block}
+#tutText{font-size:16px;font-weight:700;line-height:1.35;min-height:44px}
+#tutText .ok{color:#16a34a}
+#tutBar{height:6px;background:#e4dcf5;border-radius:3px;margin:9px 0 7px;overflow:hidden}
+#tutBar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+#tutRow{display:flex;align-items:center;gap:10px}
+#tutCount{flex:1;font-size:14px;color:#6b6280;font-weight:700}
+#tutSkip{background:none;color:#6b6280;font-size:15px;font-weight:700;padding:8px}
+#tutNext{padding:10px 26px;border-radius:20px;font-size:18px;font-weight:900;color:var(--ink);background:#facc15}
+#tutNext:disabled{background:#ddd6ea;color:#6b6280}
+.keyhint{font-size:12px;color:#94a3b8;font-weight:500}
+@media (hover:none){.keyhint{display:none}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="hud">
+  <button class="ibtn" id="pauseBtn" aria-label="עצירה"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+  <div class="box" id="livesBox">❤❤❤</div>
+  <div class="box" id="pctBox"><i id="pctBar"></i><i id="pctGoal"></i><span id="pctTxt">0%</span></div>
+  <div class="box" id="scoreBox">0</div>
+  <div class="box" id="nightBox">לילה 1</div>
+</div>
+<div id="strip"><img src="assets/face.jpg" alt=""><div id="say"></div><div id="pips"><i></i><i></i><i></i><i class="last"></i></div></div>
+<div id="fx"></div>
+<div id="turn"><svg viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>סובבו את הטלפון לאורך<br><small style="font-size:15px;font-weight:700;opacity:.8">״סליחה, אפשר לשאול אותך משהו? רק לאורך.״</small></div>
+
+<div class="screen on" id="start">
+  <img class="hero" src="assets/hero.jpg" alt="פסיכופת גינה">
+  <p class="sub">בלילה, בגינה, יש לו שאלה קטנה ותמימה לכל מי שעוברת.<br>סגרו שטחים – וסגרו עליהן את השיחה לפני שהסיפור נהיה מחריד.</p>
+  <div class="startBtns">
+    <button class="big" id="playBtn"><svg viewBox="0 0 24 24"><path d="M17 4v16L4 12z"/></svg>שחקו</button>
+    <button class="mid" id="howBtn">איך משחקים</button>
+    <span data-verse-back-btn></span>
+  </div>
+  <div class="best" id="bestStart"></div>
+  <div class="foot">
+    <a class="verse-hide" href="/c/night-guy" target="_top">פסיכופת גינה בשלומיוורס ←</a>
+    <button class="ibtn sndBtn" aria-label="צליל"></button>
+  </div>
+  <p class="who">פסיכופת גינה · יש לו שאלה קטנה</p>
+</div>
+
+<div class="screen" id="night">
+  <p class="night-did" id="nightDid"></p>
+  <p class="night-big" id="nightBig">לילה 2</p>
+  <p class="night-goal" id="nightGoal"></p>
+  <button class="big" id="nightBtn">ממשיכים</button>
+</div>
+
+<div class="screen" id="over">
+  <p class="over-h" id="overH">נתפסת!</p>
+  <img class="head" id="overImg" src="assets/guy-caught.webp" alt="">
+  <div class="over-line" id="overLine"></div>
+  <div class="over-score" id="overScore">0<small>נקודות</small></div>
+  <div id="overRec"></div>
+  <div class="best" id="bestOver"></div>
+  <button class="big" id="againBtn">עוד לילה</button>
+  <button class="mid" id="menuBtn">לתפריט</button>
+  <div class="links"><a href="/c/night-guy" target="_top">פסיכופת גינה בשלומיוורס ←</a></div>
+</div>
+
+<div class="screen" id="paused">
+  <p class="over-h">עצרנו</p>
+  <div class="over-line">״עצרנו? מעולה. אז תגידי, את אוהבת רילסים?״</div>
+  <button class="big" id="resumeBtn">ממשיכים</button>
+  <button class="mid" id="quitBtn">יציאה לתפריט</button>
+</div>
+
+<div id="tutDim"><div id="tutHole"></div></div>
+<div id="tutCard">
+  <div id="tutText"></div>
+  <div id="tutBar"><i></i></div>
+  <div id="tutRow">
+    <span id="tutCount"></span>
+    <button id="tutSkip">דלגו <span class="keyhint">(Esc)</span></button>
+    <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
+  </div>
+</div>
+<script src="game.js?v=1"></script>
+</body>
+</html>

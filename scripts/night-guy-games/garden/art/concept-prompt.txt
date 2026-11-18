@@ -1,0 +1,7 @@
+A finished mobile phone game screen (portrait, upright), seen from straight above: a city park at night - lawns, paths, benches, lamp posts with warm light pools, bushes, a small fountain.
+The player character is the man in the reference photo (bald, glasses, beard, black t-shirt), seen from above, small, walking on the grass and leaving a glowing trail line behind him.
+Part of the park is already "his": closed areas tinted a creepy dim purple, like a game of territory capture (Paper.io style).
+Several young women stroll on the paths (one with a phone, one with a protein shaker, one jogging, one with a dog); one of them is almost enclosed by his open trail loop, with a small speech bubble from him.
+Two small police cars with blue lights patrol the paths. One area is a red dashed circle around a small house at the edge of the park (a restraining-order zone).
+A simple game HUD at the top: territory percent and score; at the bottom a dark speech strip with his line in Hebrew: "סליחה, אפשר לשאול אותך משהו?"
+Painted, rich cartoon game art, funny and slightly creepy, moody night colors.

@@ -1,0 +1,4 @@
+The empty play map for a mobile game, portrait, in exactly the same art style and camera as the reference game screen: a city park at night seen from above (slightly angled top-down), filling the whole picture edge to edge.
+Grass lawns as the main surface (most of the area must be open grass the player walks on), a few curving paths, benches, warm lamp posts, a couple of fountains, flower beds and bushes, trees mostly around the edges.
+In the top-right corner: a small house with a fence and lit windows (it belongs to the map).
+No people, no animals, no cars, no text, no HUD, no trails, no purple areas - only the empty park.

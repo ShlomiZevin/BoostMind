@@ -1,0 +1,27 @@
+park|loop|12|quiet city park at night ambience, crickets, distant traffic hum, light breeze in trees, no voices
+trail|loop|6|soft low magical humming drone, subtle shimmering, seamless, for a glowing line being drawn
+claim-1|sfx|1.2|satisfying soft whoosh and magical chime when an area fills with color, mobile game reward
+claim-2|sfx|1.2|bright sparkly pop and rising chime, territory captured in a mobile game
+claim-3|sfx|1.2|deep soft whoomp with shimmer, a region fills in a puzzle game
+talk-1|sfx|1|a man's short friendly mumbling murmur, cartoon gibberish speech, one short phrase, no real words
+talk-2|sfx|1|a man's quick cheerful cartoon mumble, like a sim character talking, no real words
+talk-3|sfx|1|a man's soft curious cartoon mumble asking a question, no real words
+gasp-1|sfx|1|a young woman's short surprised gasp
+gasp-2|sfx|1|a young woman's uneasy 'uhh...' hesitant sound, short
+gasp-3|sfx|1|a young woman's shocked sharp inhale, short
+scream-1|sfx|1.5|a young woman's short startled scream, cartoonish, not gory
+scream-2|sfx|1.5|a young woman shrieks 'eek!' and runs away, cartoon comedy
+reveal-1|sfx|1.5|creepy comedic music sting, low strings dun dun dunnn
+reveal-2|sfx|1.5|eerie comedic horror sting, music box note bending down
+capture-1|sfx|1.5|happy cartoon success jingle, short, slightly mischievous
+capture-2|sfx|1.5|cheerful mobile game combo jingle, playful, short
+siren|sfx|2|a short police siren whoop, two wails
+caught-1|sfx|1|game over buzzer, comedic error sound
+caught-2|sfx|1|cartoon fail buzz with a short descending tone
+warn|sfx|1|short urgent alert beep beep, game warning
+night|sfx|3|short triumphant but sneaky fanfare, level complete in a mobile game
+over|sfx|3|sad comedic trombone wah wah wah, game over
+tick|sfx|0.5|short clean countdown tick
+go|sfx|1|bright countdown go whistle
+start|sfx|1.5|mischievous cartoon start jingle, short
+step|sfx|0.5|soft footstep on a gravel path

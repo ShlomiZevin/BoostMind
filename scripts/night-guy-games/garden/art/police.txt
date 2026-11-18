@@ -1,0 +1,1 @@
+A game sprite: a small police patrol car seen exactly from straight above (top-down), pointing up, lights on the roof, in the same art style as the cars in the reference game screen. No words on it. Transparent background, no shadow, no text.
