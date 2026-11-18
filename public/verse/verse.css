@@ -3143,7 +3143,7 @@ button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); 
 .live { position: relative; isolation: isolate; display: flex; align-items: center; gap: 10px; height: 72px; padding-inline: 12px 12px; border-radius: 16px; overflow: hidden;
   text-decoration: none; color: #fff; background: #120b08; box-shadow: 0 0 0 1.5px rgba(255, 122, 48, .9), 0 0 18px rgba(255, 106, 31, .32); -webkit-tap-highlight-color: transparent; }
 .live:active { transform: scale(.99); }
-.live-bg { position: absolute; inset: 0; z-index: -3; }
+.live-bg { position: absolute; inset: 0; z-index: -3; overflow: hidden; border-radius: inherit; clip-path: inset(0 round 16px); -webkit-clip-path: inset(0 round 16px); }   /* iPhone (WebKit) doesn't clip moving layers to a parent's rounded overflow - clip the picture layer itself (his iPhone, 2026-11-18) */
 .live-bg.poster i { position: absolute; top: -12%; bottom: -12%; left: -4%; width: 70%; background: var(--pic) 50% 30% / cover; animation: live-drift 7s ease-in-out infinite alternate; }
 .live-bg.frames i { position: absolute; left: 6%; width: 56%; top: 50%; aspect-ratio: 1.6; background-image: var(--pic); background-size: 100% 400%; opacity: 0;
   transform: translateY(-50%) scale(1.02); animation: live-frame 8s linear infinite, live-kb1 8s ease-out infinite; }
@@ -3156,7 +3156,7 @@ button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); 
 .live-bg.frames i:nth-child(4) { background-position: 0 100%; animation-delay: -2s; animation-name: live-frame, live-kb4; }
 .live-shade { position: absolute; inset: 0; z-index: -2; background: linear-gradient(to left, rgba(12, 7, 4, .95) 0%, rgba(12, 7, 4, .88) 34%, rgba(12, 7, 4, .4) 58%, rgba(12, 7, 4, .08) 80%, rgba(12, 7, 4, .2) 100%); }
 .live-scan { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 3px); }
-.live-glitch { position: absolute; inset-inline: 0; top: 30%; height: 5px; z-index: -1; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+.live-glitch { position: absolute; inset-inline: 4px; top: 30%; height: 5px; z-index: -1; pointer-events: none; opacity: 0; mix-blend-mode: screen;
   background: linear-gradient(90deg, transparent, rgba(255, 60, 90, .55) 18%, rgba(60, 200, 255, .55) 48%, rgba(255, 255, 255, .4) 66%, transparent); animation: live-glitch 5.5s steps(1) infinite; }
 .live-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .live-head { display: flex; align-items: center; gap: 6px; }
