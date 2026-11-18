@@ -31,7 +31,7 @@ function glitchPlan(f, a, W, H) {   // = zoomcut/render/src/layers/effect_curve.
 const pixelBlock = (a, W) => Math.max(2, Math.round((4 + 76 * a) * W / 1080));   // = effect_curve.js pixelBlock
 
 const NO_SIGNAL = '<svg viewBox="0 0 100 64" aria-hidden="true"><rect x="0" y="42" width="15" height="22" rx="3" fill="#ff6a1f"/><rect x="20" y="29" width="15" height="35" rx="3" fill="#ff6a1f" opacity=".32"/><rect x="40" y="16" width="15" height="48" rx="3" fill="#ff6a1f" opacity=".32"/><rect x="60" y="3" width="15" height="61" rx="3" fill="#ff6a1f" opacity=".32"/><path d="M81 3l16 16M97 3L81 19" stroke="#ff6a1f" stroke-width="6" stroke-linecap="round"/></svg>';
-const WORDS = { label: 'בעיית קליטה', title: 'הקשר עם יקום<br>שלומיוורס נותק', line: 'לסיום המלא – מתחברים לשלומיוורס', btn: 'מתחברים ומחזירים את הקליטה',
+const WORDS = { label: 'בעיית קליטה', title: 'הקשר עם יקום<br>שלומיוורס נותק', line: 'השידור ממשיך בשלומיוורס', btn: 'מתחברים ומחזירים את הקליטה',
   wait: 'מתחברים…', back: 'הקליטה חזרה', jump: 'ראיתם ברשתות? לרגע שהקליטה נפלה' };
 
 export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, words = {} }) {
