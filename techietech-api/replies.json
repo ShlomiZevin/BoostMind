@@ -125,6 +125,24 @@
     "signRole": "אבי בלונים ואירועים · סוגרים קשת, סוגרים פינה",
     "cta": { "label": "למה בלי הליום?", "href": "/avi-balloons/#nohelium" }
   },
+  "ksa": {
+    "char": "ronen",
+    "fromName": "רונן קפלן · KSA GROUP",
+    "site": "KSA GROUP",
+    "page": "/ksa/",
+    "subject": "תודה על פנייתך, {{first}} | KSA GROUP",
+    "preheader": "קיבלנו את פנייתך ונבחן את הצעד הנכון להמשך.",
+    "chip": "KSA GROUP · ADVISORY",
+    "title": "שלום {{first}},",
+    "paras": [
+      "תודה שפנית אלינו בנושא {{choice}}. הפרטים שהעברת התקבלו ויועברו לבחינת הצוות.",
+      "אנחנו מאמינים שתהליך משמעותי מתחיל בהבנה מדויקת של הצורך. בשיחה הראשונית נבקש להכיר את ההקשר הארגוני ואת המטרות שמניעות את הפנייה.",
+      "ניצור איתך קשר לתיאום המשך השיחה."
+    ],
+    "sign": "רונן קפלן",
+    "signRole": "Founder & Managing Partner",
+    "cta": { "label": "למידע נוסף על KSA GROUP", "href": "/ksa/" }
+  },
   "yotamverse": {
     "char": "yotam",
     "fromName": "יותם · YOTAMVERSE",

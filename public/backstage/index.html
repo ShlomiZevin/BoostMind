@@ -1658,7 +1658,7 @@ let avgAnswer = 0.024;
 
 // ---------- סקירה: status at a glance ----------
 const RQ = { site: ['מהאתרים', 'wh', '#7fb4ff'], business: ['עסקים', 'or', '#ff6a1f'], video: ['בקשת סרטון', 'wh', '#f5f4f1'], personal: ['סרטון אישי', 'or', '#ffb36b'], bug: ['משהו לא עובד', 'red', '#ff5a5a'], contact: ['פנייה', '', '#6f6c77'] };
-const SITES = { archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
+const SITES = { ksa: 'KSA GROUP', archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE', other: 'אתר אחר' };
 const whoOf = (r) => r.name || r.nick || (r.contact && !/\d{6}/.test(r.contact) ? r.contact.split('@')[0] : '') || 'צופה';
 // time on the site: each visit's length in buckets (the track function's TIME_EDGES), the seconds and the visits per day
 const TIME_EDGES = [5, 10, 20, 30, 45, 60, 90, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 2700, 3600];

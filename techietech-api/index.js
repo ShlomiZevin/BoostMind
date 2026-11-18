@@ -21,7 +21,7 @@ const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(w
 // Sending anything from a Shlomiverse site needs a Google account (his rule, 2026-11-01: he wants the email of everyone
 // who plays with his sites). The page signs in with the Shlomiverse's Firebase Auth (public/verse/site-signin.js) and
 // sends its ID token; the person is kept in siteUsers and the request in `requests` - both show in /backstage/.
-const SITE_NAMES = { archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
+const SITE_NAMES = { ksa: 'KSA GROUP', archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
   'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE' };
 async function signedIn(req) {
   const m = (req.get('authorization') || '').match(/^Bearer (.+)$/);
@@ -152,6 +152,7 @@ const SITES = {
   dorit: { from: 'דורית מרקורי - האתר', subject: (f) => `דורית מרקורי | הזמנה: ${f.choice || 'מפת לידה'} · ${f.name}`, choice: 'שירות', page: '/dorit/' },
   'ofnat-hani': { from: 'אופנת חני - האתר', subject: (f) => `אופנת חני | הזמנה לאיסוף: ${f.choice || 'פריט'} · ${f.name}`, choice: 'פריט', page: '/ofnat-hani/' },
   'avi-balloons': { from: 'אבי בלונים ואירועים - האתר', subject: (f) => `אבי בלונים | הצעת מחיר: ${f.choice || 'חבילה'} · ${f.name}`, choice: 'חבילה', page: '/avi-balloons/' },
+  ksa: { from: 'KSA GROUP - האתר', subject: (f) => `KSA GROUP | ${f.choice || 'פנייה'} · ${f.name}`, choice: 'נושא', page: '/ksa/' },
   'neve-tidhar': { from: 'המקיף נווה תדהר - המזכירות', subject: (f) => `המקיף נווה תדהר | פנייה למזכירות: ${f.choice || 'פנייה'} · ${f.name}`, choice: 'נושא', page: '/neve-tidhar/' },
 };
 exports.siteLead = onRequest({

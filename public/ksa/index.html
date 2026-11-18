@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KAPLAN STRATEGIC AI GROUP | AI Strategy · Enterprise Transformation · Advisory</title>
+<meta name="description" content="ייעוץ אסטרטגי ל-AI עבור הנהלות וארגוני Enterprise. מ-Discovery ומיפוי Use Cases ועד ארכיטקטורה, Governance ו-Scale.">
+<meta property="og:title" content="KAPLAN STRATEGIC AI GROUP">
+<meta property="og:description" content="ייעוץ אסטרטגי ל-AI עבור הנהלות וארגוני Enterprise. מ-Discovery ומיפוי Use Cases ועד ארכיטקטורה, Governance ו-Scale.">
+<meta property="og:image" content="https://shlomiverse.com/ksa/img/og.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0E1B2E">
+<link rel="icon" href="img/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Frank+Ruhl+Libre:wght@300;400;500;700&family=Heebo:wght@300;400;500;700&family=Montserrat:wght@500;600&family=Playfair+Display:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+:root { --navy:#0E1B2E; --navy2:#14263F; --ivory:#F7F3EC; --ivory2:#EFE8DC; --gold:#C9A96E; --gold2:#E2C893; --ink:#17202E; --mute:#5D6675; --line:rgba(201,169,110,.35); --lineD:rgba(14,27,46,.12); }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+html, body { overflow-x:hidden; }
+body { margin:0; background:var(--ivory); color:var(--ink); font-family:Heebo, Arial, sans-serif; font-weight:300; line-height:1.75; font-size:17px; }
+img { max-width:100%; display:block; }
+a { color:inherit; text-decoration:none; }
+.wrap { max-width:1180px; margin:0 auto; padding:0 24px; }
+.serif { font-family:"Frank Ruhl Libre", serif; }
+h1, h2, h3 { font-family:"Frank Ruhl Libre", serif; font-weight:400; line-height:1.25; margin:0; }
+h2 bdi, h3 bdi { font-family:"Cormorant Garamond", serif; }
+.eyebrow { display:flex; align-items:center; gap:14px; color:var(--gold); letter-spacing:.32em; text-transform:uppercase; font-size:.82rem; font-weight:600; margin-bottom:18px; font-family:"Cormorant Garamond", serif; }
+.eyebrow::after { content:""; width:48px; height:1px; background:var(--gold); }
+section { padding:110px 0; position:relative; }
+.dark { background:var(--navy); color:#E9E4DA; }
+.dark p { color:rgba(233,228,218,.78); }
+.sec-head { max-width:760px; margin-bottom:56px; }
+.sec-head h2 { font-size:clamp(1.9rem, 4vw, 2.9rem); }
+.sec-head p { color:var(--mute); font-size:1.08rem; margin:16px 0 0; }
+.dark .sec-head p { color:rgba(233,228,218,.72); }
+.btn { display:inline-flex; align-items:center; gap:10px; padding:15px 26px; border:1px solid var(--gold); color:var(--gold2); font-weight:500; transition:.25s; background:transparent; font-family:inherit; font-size:1rem; cursor:pointer; }
+.btn:hover { background:var(--gold); color:var(--navy); }
+.btn.solid { background:linear-gradient(135deg, var(--gold2), var(--gold)); color:var(--navy); border-color:transparent; }
+.btn.solid:hover { filter:brightness(1.06); }
+.btn:disabled { opacity:.6; cursor:wait; }
+.link { color:var(--gold2); border-bottom:1px solid var(--line); padding-bottom:3px; }
+/* header */
+header { position:fixed; inset:0 0 auto; z-index:20; transition:.3s; }
+header.on { background:rgba(14,27,46,.94); backdrop-filter:blur(10px); box-shadow:0 1px 0 var(--line); }
+.bar { display:flex; align-items:center; justify-content:space-between; height:84px; gap:24px; }
+.brand { display:flex; align-items:center; gap:14px; color:#F4EFE6; min-width:0; }
+.brand img { width:46px; height:46px; object-fit:contain; flex:none; }
+.brand span { font-family:"Cormorant Garamond", serif; letter-spacing:.24em; font-size:.98rem; font-weight:600; direction:ltr; white-space:nowrap; }
+nav.main { display:flex; gap:30px; font-size:.95rem; color:rgba(244,239,230,.82); }
+nav.main a:hover { color:var(--gold2); }
+.bar .btn { padding:11px 20px; font-size:.92rem; }
+.burger { display:none; background:none; border:0; width:44px; height:44px; color:#F4EFE6; cursor:pointer; flex:none; }
+.drawer { position:fixed; inset:0; background:var(--navy); z-index:30; display:none; flex-direction:column; padding:28px 24px; overflow-y:auto; }
+.drawer.on { display:flex; }
+.drawer .x { align-self:flex-start; background:none; border:0; color:#F4EFE6; font-size:2.2rem; cursor:pointer; line-height:1; }
+.drawer a { color:#F4EFE6; font-family:"Frank Ruhl Libre", serif; font-size:1.6rem; padding:14px 0; border-bottom:1px solid rgba(201,169,110,.18); }
+.drawer .btn { margin-top:28px; justify-content:center; font-family:Heebo, sans-serif; font-size:1.05rem; }
+/* hero */
+.hero { min-height:100vh; min-height:100svh; display:flex; align-items:center; background:radial-gradient(1200px 700px at 85% 20%, #1B3150 0%, var(--navy) 55%, #0A1422 100%); color:#F4EFE6; padding:140px 0 90px; overflow:hidden; }
+#net { position:absolute; inset:0; width:100%; height:100%; }
+.hero .wrap { position:relative; display:grid; grid-template-columns:1.25fr .75fr; gap:60px; align-items:center; width:100%; }
+.kicker { color:var(--gold); letter-spacing:.28em; font-size:.8rem; font-weight:600; margin-bottom:26px; font-family:"Cormorant Garamond", serif; }
+.hero h1 { font-size:clamp(2.3rem, 6vw, 4.6rem); font-weight:300; }
+.hero h1 em { font-style:normal; color:var(--gold2); }
+.hero .sub { font-size:1.16rem; color:rgba(244,239,230,.78); max-width:600px; margin:26px 0 38px; }
+.hero .ctas { display:flex; gap:22px; flex-wrap:wrap; align-items:center; }
+.tagline { margin-top:46px; font-family:"Cormorant Garamond", serif; letter-spacing:.18em; color:rgba(244,239,230,.6); font-size:.95rem; }
+.emblem { justify-self:center; width:min(340px, 80%); filter:drop-shadow(0 0 60px rgba(201,169,110,.25)); animation:float 9s ease-in-out infinite; }
+@keyframes float { 50% { transform:translateY(-12px); } }
+.scroll { position:absolute; bottom:28px; left:50%; width:1px; height:56px; background:linear-gradient(var(--gold), transparent); }
+/* stats + clients */
+.stats { padding:70px 0 40px; }
+.stats .row { display:grid; grid-template-columns:repeat(3, 1fr); border-top:1px solid var(--lineD); border-bottom:1px solid var(--lineD); }
+.stat { text-align:center; padding:38px 10px; }
+.stat + .stat { border-inline-start:1px solid var(--lineD); }
+.stat b { display:block; font-family:"Cormorant Garamond", serif; font-weight:500; font-size:clamp(3rem, 7vw, 4.8rem); line-height:1; color:var(--navy); direction:ltr; }
+.stat span { color:var(--mute); font-size:.98rem; }
+.clients { padding:44px 0 80px; overflow:hidden; }
+.clients p { text-align:center; color:var(--mute); font-size:.85rem; letter-spacing:.2em; margin:0 0 26px; font-family:"Cormorant Garamond", serif; text-transform:uppercase; font-weight:600; }
+.marq { display:flex; width:max-content; animation:marq 40s linear infinite; direction:ltr; }
+.marq:hover { animation-play-state:paused; }
+@keyframes marq { to { transform:translateX(-50%); } }
+.cl { display:inline-flex; align-items:center; gap:10px; margin:0 42px; color:#7C8492; white-space:nowrap; }
+.cl svg { width:20px; height:22px; }
+.cl b { font-weight:500; font-size:1.18rem; }
+.cl.mont b { font-family:Montserrat, sans-serif; letter-spacing:.22em; font-size:.95rem; font-weight:600; }
+.cl.corm b { font-family:"Cormorant Garamond", serif; letter-spacing:.12em; font-size:1.3rem; font-weight:600; }
+.cl.play b { font-family:"Playfair Display", serif; font-style:italic; font-size:1.2rem; }
+/* intro */
+.intro .wrap { display:grid; grid-template-columns:1fr 1fr; gap:70px; }
+.intro h2 { font-size:clamp(1.9rem, 4vw, 2.8rem); }
+.intro p { font-size:1.1rem; color:var(--mute); margin:0 0 18px; }
+.sig { margin-top:26px; display:flex; align-items:center; gap:14px; }
+.sig img { width:56px; height:56px; border-radius:50%; object-fit:cover; }
+.sig b { display:block; font-weight:500; color:var(--ink); } .sig small { color:var(--mute); }
+/* framework */
+.framework { background:linear-gradient(180deg, var(--navy) 0%, var(--navy2) 100%); overflow:hidden; }
+.framework h2 bdi { font-size:1.12em; font-weight:500; color:#F4EFE6; }
+.steps { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(4, 1fr); gap:28px; position:relative; }
+.steps::before { content:""; position:absolute; top:27px; right:6%; left:6%; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+.node { width:56px; height:56px; border-radius:50%; border:1px solid var(--gold); display:grid; place-items:center; background:var(--navy); margin-bottom:24px; position:relative; box-shadow:0 0 0 8px var(--navy2), 0 0 30px rgba(201,169,110,.25); }
+.node i { font-style:normal; font-family:"Cormorant Garamond", serif; color:var(--gold2); font-size:1.15rem; }
+.steps h3 { font-size:1.9rem; color:#F4EFE6; }
+.steps h3 bdi { font-weight:500; }
+.steps h3 small { display:block; font-family:Heebo, sans-serif; font-size:.9rem; color:var(--gold); margin-top:4px; }
+.steps p { font-size:.98rem; margin:12px 0 0; }
+.fw-note { margin-top:60px; padding-top:28px; border-top:1px solid rgba(201,169,110,.2); display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; align-items:center; }
+.fw-note span { font-family:"Cormorant Garamond", serif; letter-spacing:.2em; color:rgba(233,228,218,.55); font-size:.9rem; direction:ltr; }
+/* services */
+.grid3 { display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--lineD); border:1px solid var(--lineD); }
+.svc { background:var(--ivory); padding:38px 32px 34px; transition:.3s; position:relative; }
+.svc:hover { background:#fff; }
+.svc .ic { width:46px; height:46px; color:var(--gold); margin-bottom:22px; }
+.svc h3 { font-size:1.55rem; color:var(--navy); }
+.svc h3 bdi { font-weight:600; }
+.svc .he { color:var(--gold); font-size:.92rem; margin:2px 0 12px; font-weight:400; }
+.svc p { margin:0 0 14px; color:var(--mute); font-size:.98rem; }
+.svc ul { margin:0; padding:12px 0 0; list-style:none; border-top:1px solid var(--lineD); }
+.svc li { font-size:.92rem; color:var(--ink); padding:4px 0; display:flex; gap:10px; }
+.svc li::before { content:""; width:14px; height:1px; background:var(--gold); margin-top:14px; flex:none; }
+.svc.flag { background:var(--navy); }
+.svc.flag h3 { color:#F4EFE6; } .svc.flag p { color:rgba(233,228,218,.75); } .svc.flag li { color:#E9E4DA; } .svc.flag ul { border-color:rgba(201,169,110,.25); }
+.svc.flag::after { content:"FLAGSHIP"; position:absolute; top:22px; left:22px; font-family:"Cormorant Garamond", serif; letter-spacing:.25em; font-size:.72rem; color:var(--gold); border:1px solid var(--line); padding:3px 9px; font-weight:600; }
+/* discovery */
+.disc { background:var(--ivory2); }
+.disc .wrap { display:grid; grid-template-columns:1.05fr .95fr; gap:64px; align-items:start; }
+.photo { position:relative; z-index:0; }
+.photo img { width:100%; aspect-ratio:4/3; object-fit:cover; }
+.photo::after { content:""; position:absolute; inset:16px -16px -16px 16px; border:1px solid var(--gold); z-index:-1; }
+.disc dl { display:grid; grid-template-columns:1fr 1fr; margin:34px 0 0; border-top:1px solid var(--lineD); }
+.disc dl div { padding:18px 0; border-bottom:1px solid var(--lineD); }
+.disc dl div:nth-child(odd) { padding-inline-end:16px; }
+dt { font-size:.8rem; letter-spacing:.08em; color:var(--gold); font-weight:500; }
+dd { margin:4px 0 0; font-size:1rem; color:var(--ink); }
+.agenda { list-style:none; padding:0; margin:30px 0 0; }
+.agenda li { display:flex; gap:18px; padding:14px 0; border-bottom:1px solid var(--lineD); font-size:1.02rem; }
+.agenda span.n { font-family:"Cormorant Garamond", serif; color:var(--gold); font-size:1.2rem; width:28px; flex:none; }
+.outcome { margin-top:28px; padding:22px 24px; background:var(--navy); color:#E9E4DA; font-size:1rem; border-inline-start:3px solid var(--gold); }
+/* founder */
+.founder .wrap { display:grid; grid-template-columns:.85fr 1.15fr; gap:72px; align-items:center; }
+.portrait { position:relative; margin:0; z-index:0; }
+.portrait img { width:100%; aspect-ratio:2/3; object-fit:cover; object-position:top; }
+.portrait::before { content:""; position:absolute; inset:-18px 18px 18px -18px; border:1px solid var(--gold); z-index:-1; }
+.portrait figcaption { position:absolute; bottom:-20px; right:24px; background:var(--gold); color:var(--navy); padding:10px 18px; font-family:"Cormorant Garamond", serif; letter-spacing:.18em; font-weight:600; font-size:.85rem; }
+.founder h2 { font-size:clamp(2.2rem, 5vw, 3.4rem); color:#F4EFE6; }
+.quote { position:relative; font-family:"Frank Ruhl Libre", serif; font-size:clamp(1.25rem, 2.6vw, 1.7rem); line-height:1.55; color:#F4EFE6 !important; margin:34px 0 30px; padding-inline-start:44px; font-weight:300; }
+.quote::before { content:"\201D"; position:absolute; right:-4px; top:-22px; font-family:"Cormorant Garamond", serif; font-size:5rem; color:var(--gold); line-height:1; }
+.founder dl { display:grid; grid-template-columns:1fr 1fr; gap:18px 28px; margin:32px 0 0; padding-top:26px; border-top:1px solid rgba(201,169,110,.22); }
+.founder dd { color:#F4EFE6; }
+/* engagements */
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+.eng { padding:36px; border:1px solid var(--lineD); background:#fff; transition:.3s; }
+.eng:hover { border-color:var(--gold); transform:translateY(-3px); box-shadow:0 18px 40px rgba(14,27,46,.07); }
+.sector { font-size:.82rem; letter-spacing:.1em; color:var(--gold); font-weight:500; }
+.eng h3 { font-size:1.5rem; color:var(--navy); margin:8px 0 12px; }
+.eng p { color:var(--mute); margin:0 0 18px; font-size:.98rem; }
+.tags { display:flex; gap:8px; flex-wrap:wrap; }
+.tags bdi { font-family:Montserrat, sans-serif; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; border:1px solid var(--lineD); padding:5px 10px; color:var(--navy); }
+/* testimonials */
+.tqs { display:grid; grid-template-columns:repeat(3, 1fr); gap:28px; }
+.tq { margin:0; padding:34px 30px; border:1px solid rgba(201,169,110,.25); position:relative; }
+.tq::before { content:"\201D"; font-family:"Cormorant Garamond", serif; color:var(--gold); font-size:4rem; line-height:1; position:absolute; top:12px; right:24px; }
+.tq blockquote { margin:34px 0 22px; font-family:"Frank Ruhl Libre", serif; font-size:1.18rem; line-height:1.6; color:#F4EFE6; font-weight:300; }
+.tq figcaption { font-size:.88rem; color:var(--gold); }
+/* insights */
+.inss { display:grid; grid-template-columns:repeat(3, 1fr); gap:30px; }
+.ins { background:#fff; cursor:pointer; transition:.3s; border:1px solid var(--lineD); display:flex; flex-direction:column; }
+.ins:hover, .ins:focus-visible { transform:translateY(-4px); box-shadow:0 20px 44px rgba(14,27,46,.1); outline:none; }
+.ins img { aspect-ratio:3/2; object-fit:cover; width:100%; }
+.ins > div { padding:26px 26px 28px; display:flex; flex-direction:column; flex:1; }
+.meta { font-size:.8rem; color:var(--gold); letter-spacing:.05em; }
+.ins h3 { font-size:1.32rem; color:var(--navy); margin:10px 0; }
+.ins p { color:var(--mute); font-size:.95rem; margin:0 0 18px; flex:1; }
+.more { font-size:.9rem; color:var(--navy); font-weight:500; }
+/* faq */
+.faq .wrap { display:grid; grid-template-columns:.8fr 1.2fr; gap:70px; }
+details { border-bottom:1px solid var(--lineD); padding:6px 0; }
+summary { list-style:none; cursor:pointer; padding:18px 0; font-family:"Frank Ruhl Libre", serif; font-size:1.22rem; color:var(--navy); display:flex; justify-content:space-between; gap:20px; }
+summary::-webkit-details-marker { display:none; }
+summary::after { content:"+"; color:var(--gold); font-family:"Cormorant Garamond", serif; font-size:1.8rem; line-height:1; transition:.25s; flex:none; }
+details[open] summary::after { transform:rotate(45deg); }
+details p { margin:0 0 20px; color:var(--mute); }
+/* contact */
+.contact { background:radial-gradient(900px 500px at 15% 0%, #1B3150 0%, var(--navy) 60%); }
+.contact .wrap { display:grid; grid-template-columns:.9fr 1.1fr; gap:70px; }
+.contact h2 { font-size:clamp(2.2rem, 5vw, 3.4rem); color:#F4EFE6; }
+.contact .lead { font-size:1.12rem; margin:20px 0 34px; }
+.direct { display:flex; align-items:center; gap:16px; padding:20px 0; border-top:1px solid rgba(201,169,110,.2); }
+.direct img { width:64px; height:64px; border-radius:50%; object-fit:cover; border:1px solid var(--gold); flex:none; }
+.direct b { display:block; color:#F4EFE6; font-weight:500; } .direct small { color:rgba(233,228,218,.6); }
+form { background:rgba(255,255,255,.03); border:1px solid rgba(201,169,110,.25); padding:38px; position:relative; }
+.fgrid { display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; }
+.f { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.f.full { grid-column:1 / -1; }
+.f label { font-size:.82rem; color:var(--gold); }
+.f input, .f select, .f textarea { background:transparent; border:0; border-bottom:1px solid rgba(233,228,218,.25); color:#F4EFE6; font:inherit; font-size:1rem; padding:10px 0; border-radius:0; outline:none; transition:.2s; width:100%; }
+.f select option { color:var(--ink); }
+.f input:focus, .f select:focus, .f textarea:focus { border-color:var(--gold); }
+.f textarea { resize:vertical; min-height:96px; }
+.hp { position:absolute; left:-9999px; width:1px; height:1px; }
+.send { margin-top:28px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+.send small { color:rgba(233,228,218,.55); font-size:.82rem; }
+.err { color:#F2B8A0; font-size:.9rem; min-height:1.4em; margin-top:10px; }
+.done { text-align:center; padding:30px 10px; }
+.done img { width:70px; margin:0 auto 18px; }
+.done h3 { font-size:1.8rem; color:#F4EFE6; }
+/* footer */
+footer { background:#09121F; color:rgba(233,228,218,.6); padding:70px 0 34px; font-size:.92rem; }
+footer .top { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:40px; padding-bottom:40px; border-bottom:1px solid rgba(201,169,110,.15); }
+footer .flogo { width:230px; }
+footer h4 { font-family:"Cormorant Garamond", serif; letter-spacing:.24em; color:var(--gold); font-weight:600; margin:0 0 14px; font-size:.85rem; }
+footer ul { list-style:none; margin:0; padding:0; } footer li { padding:4px 0; }
+footer .offices li { font-family:"Cormorant Garamond", serif; font-size:1.15rem; color:#E9E4DA; letter-spacing:.06em; }
+footer .legal { display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; padding-top:24px; font-size:.82rem; }
+footer .legal span:last-child { font-family:"Cormorant Garamond", serif; letter-spacing:.14em; }
+/* article reader */
+.reader { position:fixed; inset:0; z-index:40; background:rgba(9,18,31,.72); display:none; overflow-y:auto; padding:40px 16px; backdrop-filter:blur(4px); }
+.reader.on { display:block; }
+.paper { max-width:760px; margin:0 auto; background:var(--ivory); position:relative; }
+.paper > img { width:100%; aspect-ratio:21/9; object-fit:cover; }
+.paper .body { padding:44px 54px 54px; }
+.paper h2 { font-size:clamp(1.6rem, 4vw, 2.5rem); color:var(--navy); margin:12px 0 22px; }
+.paper p { font-size:1.08rem; color:#2B3442; margin:0 0 18px; }
+.paper ul { margin:6px 0 24px; padding:0; list-style:none; }
+.paper li { padding:8px 0; border-bottom:1px solid var(--lineD); display:flex; gap:12px; }
+.paper li::before { content:""; width:18px; height:1px; background:var(--gold); margin-top:15px; flex:none; }
+.paper blockquote { margin:28px 0; padding:6px 26px; border-inline-start:3px solid var(--gold); font-family:"Frank Ruhl Libre", serif; font-size:1.4rem; line-height:1.5; color:var(--navy); }
+.byline { display:flex; align-items:center; gap:14px; margin-top:34px; padding-top:24px; border-top:1px solid var(--lineD); }
+.byline img { width:52px; height:52px; border-radius:50%; object-fit:cover; }
+.byline b { display:block; font-weight:500; } .byline small { color:var(--mute); }
+.close { position:absolute; top:14px; left:14px; width:44px; height:44px; border-radius:50%; border:0; background:rgba(14,27,46,.8); color:#fff; font-size:1.5rem; cursor:pointer; z-index:2; }
+/* reveal */
+.rv { opacity:0; transform:translateY(24px); transition:opacity .9s ease, transform .9s ease; }
+.rv.in { opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity:1; transform:none; transition:none; } .marq, .emblem { animation:none; } html { scroll-behavior:auto; } }
+/* phone first - checked at 360px */
+@media (max-width:1020px) {
+  nav.main, .bar > .btn { display:none; } .burger { display:block; }
+  .hero .wrap, .intro .wrap, .disc .wrap, .founder .wrap, .faq .wrap, .contact .wrap { grid-template-columns:1fr; gap:44px; }
+  .emblem { display:none; }
+  .steps { grid-template-columns:1fr 1fr; gap:40px 28px; } .steps::before { display:none; }
+  .grid3, .inss { grid-template-columns:1fr 1fr; } .tqs { grid-template-columns:1fr; }
+  footer .top { grid-template-columns:1fr 1fr; } footer .top > div:first-child { grid-column:1 / -1; }
+}
+@media (max-width:640px) {
+  body { font-size:16px; }
+  .wrap { padding:0 18px; }
+  section { padding:76px 0; }
+  .bar { height:68px; } .brand img { width:36px; height:36px; } .brand { gap:10px; } .brand span { font-size:.68rem; letter-spacing:.14em; }
+  .hero { padding:110px 0 70px; }
+  .hero .ctas { flex-direction:column; align-items:stretch; } .hero .ctas .btn { justify-content:center; } .hero .ctas .link { align-self:center; }
+  .kicker { font-size:.64rem; letter-spacing:.14em; }
+  .tagline { font-size:.7rem; letter-spacing:.06em; }
+  .stat b { font-size:2.6rem; } .stat { padding:26px 4px; } .stat span { font-size:.8rem; }
+  .steps { grid-template-columns:1fr; }
+  .steps li { display:grid; grid-template-columns:56px 1fr; gap:18px; } .node { margin:0; }
+  .grid3, .inss, .grid2 { grid-template-columns:1fr; }
+  .svc { padding:30px 22px; } .eng { padding:26px 22px; }
+  .disc dl, .founder dl, .fgrid { grid-template-columns:1fr; }
+  .photo::after { inset:10px -10px -10px 10px; }
+  .portrait::before { inset:-10px 10px 10px -10px; }
+  form { padding:26px 20px; }
+  footer .top { grid-template-columns:1fr; }
+  .paper .body { padding:30px 22px 36px; }
+  .reader { padding:0; } .paper { min-height:100%; }
+  .cl { margin:0 26px; }
+  .fw-note .btn { width:100%; justify-content:center; }
+}
+</style>
+</head>
+<body>
+<header id="hdr"><div class="wrap bar">
+  <a class="brand" href="#top" aria-label="KSA GROUP"><img src="img/mark-light.png" alt=""><span>KAPLAN STRATEGIC AI GROUP</span></a>
+  <nav class="main"><a href="#approach">הגישה</a><a href="#services">שירותים</a><a href="#discovery"><bdi>Discovery</bdi></a><a href="#firm">הפירמה</a><a href="#experience">ניסיון</a><a href="#contact">צור קשר</a></nav>
+  <a class="btn" href="#contact">תיאום שיחת היכרות</a>
+  <button class="burger" id="burger" aria-label="תפריט"><svg viewBox="0 0 24 24" width="28" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 7h18M3 12h18M9 17h12"/></svg></button>
+</div></header>
+<div class="drawer" id="drawer"><button class="x" id="dx" aria-label="סגירה">×</button><a href="#approach">הגישה</a><a href="#services">שירותים</a><a href="#discovery"><bdi>Discovery</bdi></a><a href="#firm">הפירמה</a><a href="#experience">ניסיון</a><a href="#contact">צור קשר</a><a class="btn solid" href="#contact">תיאום שיחת היכרות</a></div>
+
+<section class="hero" id="top">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <div class="kicker" dir="ltr">KAPLAN STRATEGIC AI GROUP · ISRAEL &amp; INTERNATIONAL</div>
+      <h1>החלטות <bdi>AI</bdi> מתחילות בשאלות הנכונות.</h1>
+      <p class="sub">אנחנו מלווים הנהלות וארגוני <bdi>Enterprise</bdi> בגיבוש אסטרטגיית <bdi>AI</bdi>, במיפוי הזדמנויות ובבניית הבסיס לארכיטקטורה שנועדה לצמוח.</p>
+      <div class="ctas"><a class="btn solid" href="#contact">תיאום שיחת היכרות ←</a><a class="link" href="#approach">להכיר את <bdi>The KSA Framework™</bdi></a></div>
+      <div class="tagline" dir="ltr">AI STRATEGY · ENTERPRISE TRANSFORMATION · ADVISORY</div>
+    </div>
+    <img class="emblem" src="img/mark-light.png" alt="">
+  </div>
+  <div class="scroll"></div>
+</section>
+
+<div class="stats"><div class="wrap"><div class="row"><div class="stat rv"><b>40+</b><span>ארגוני <bdi>Enterprise</bdi></span></div><div class="stat rv"><b>12</b><span>מדינות</span></div><div class="stat rv"><b>1</b><span><bdi>Framework</bdi></span></div></div></div></div>
+<div class="clients"><p>Trusted by leadership teams at</p><div class="marq" aria-hidden="true"><span class="cl mont"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l6 12 6-12"/></svg><b>VELTARA</b></span><span class="cl corm"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="5" width="8" height="8" transform="rotate(45 8 9)"/></svg><b>NORRVIK GROUP</b></span><span class="cl play"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="9" r="6"/><path d="M2 9h12"/></svg><b>Ardente Global</b></span><span class="cl mont"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="9" r="6"/><path d="m11 12 4 4"/></svg><b>QUORIX</b></span><span class="cl corm"><b>Halden &amp; Rowe</b></span><span class="cl mont"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 15 8 3l6 12z"/></svg><b>MERIDYN</b></span><span class="cl play"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v12M2 9h12"/></svg><b>Oktave Health</b></span><span class="cl corm"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12v12H2zM2 9h12"/></svg><b>BRAXLYN</b></span><span class="cl mont"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l6 12 6-12"/></svg><b>VELTARA</b></span><span class="cl corm"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="5" width="8" height="8" transform="rotate(45 8 9)"/></svg><b>NORRVIK GROUP</b></span><span class="cl play"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="9" r="6"/><path d="M2 9h12"/></svg><b>Ardente Global</b></span><span class="cl mont"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="9" r="6"/><path d="m11 12 4 4"/></svg><b>QUORIX</b></span><span class="cl corm"><b>Halden &amp; Rowe</b></span><span class="cl mont"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 15 8 3l6 12z"/></svg><b>MERIDYN</b></span><span class="cl play"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v12M2 9h12"/></svg><b>Oktave Health</b></span><span class="cl corm"><svg viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12v12H2zM2 9h12"/></svg><b>BRAXLYN</b></span></div></div>
+
+<section class="intro"><div class="wrap">
+  <div class="rv"><div class="eyebrow">The Firm</div><h2>אסטרטגיה לפני ארכיטקטורה. <bdi>Alignment</bdi> לפני החלטה.</h2></div>
+  <div class="rv"><p><bdi>AI</bdi> הוא כבר לא שאלה טכנולוגית בלבד. הוא נוגע למבנה הארגון, לתהליכי קבלת ההחלטות וליכולת ההנהלה להגדיר לאן היא רוצה להגיע.</p><p><bdi>KSA GROUP</bdi> היא פירמת <bdi>Advisory</bdi> בוטיק המבוססת בישראל ופועלת בזירה הבינלאומית. אנחנו עובדים עם הנהלות, דירקטוריונים וצוותי <bdi>Enterprise</bdi> כדי להפוך מורכבות לכיוון אסטרטגי ברור.</p>
+    <div class="sig"><img src="img/ronen.jpg" alt="רונן קפלן"><div><b>רונן קפלן</b><small><bdi>Founder &amp; Managing Partner</bdi></small></div></div></div>
+</div></section>
+
+<section class="framework dark" id="approach"><div class="wrap">
+  <div class="sec-head rv"><div class="eyebrow">Our Approach</div><h2><bdi>The KSA Framework™</bdi></h2><p>ארבעה שלבים. מסגרת אחת. מבט שלם על הדרך מהשאלה העסקית ועד מוכנות ל-<bdi>Scale</bdi>.</p></div>
+  <ol class="steps rv"><li><span class="node"><i>01</i></span><div><h3><bdi>Discover</bdi> <small>לגלות</small></h3><p>מתחילים בהקשבה. מגדירים את האתגרים, מזהים <bdi>Stakeholders</bdi> ומבינים מה הארגון מבקש להשיג.</p></div></li><li><span class="node"><i>02</i></span><div><h3><bdi>Map</bdi> <small>למפות</small></h3><p>ממפים <bdi>Use Cases</bdi>, תהליכים, מידע ותלויות. בוחנים הזדמנויות לצד מגבלות וסיכונים.</p></div></li><li><span class="node"><i>03</i></span><div><h3><bdi>Architect</bdi> <small>לתכנן</small></h3><p>מגבשים ארכיטקטורת יעד, עקרונות <bdi>Governance</bdi> ו-<bdi>Roadmap</bdi> שמחברים בין הצורך העסקי לאפשרויות הטכנולוגיות.</p></div></li><li><span class="node"><i>04</i></span><div><h3><bdi>Scale</bdi> <small>להיערך לצמיחה</small></h3><p>מגדירים סדרי עדיפויות, מדדי הצלחה ומנגנוני בקרה לקראת הרחבה אחראית ברחבי הארגון.</p></div></li></ol>
+  <div class="fw-note rv"><span>DISCOVER · MAP · ARCHITECT · SCALE</span><a class="btn" href="#discovery">איך זה מתחיל ←</a></div>
+</div></section>
+
+<section id="services"><div class="wrap">
+  <div class="sec-head rv"><div class="eyebrow">Services</div><h2>תחומי המומחיות שלנו</h2><p>ייעוץ אסטרטגי להנהלות שמבקשות להתקדם ב-<bdi>AI</bdi> מתוך בהירות, אחריות וראייה ארוכת טווח.</p></div>
+  <div class="grid3 rv"><article class="svc"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/><circle cx="16" cy="9" r="2"/></svg></div><h3><bdi>AI Strategy &amp; Roadmap</bdi></h3><p class="he">אסטרטגיית <bdi>AI</bdi> ומפת דרכים</p><p>גיבוש כיוון אסטרטגי שמחבר בין יעדי הארגון, הזדמנויות <bdi>AI</bdi> וסדרי העדיפויות של ההנהלה.</p><ul><li><span>הגדרת חזון ויעדים עסקיים</span></li><li><span>תעדוף <bdi>Use Cases</bdi></span></li><li><span>בניית <bdi>Roadmap</bdi> לקבלת החלטות</span></li></ul></article><article class="svc flag"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-5-5M8 11h6M11 8v6"/></svg></div><h3><bdi>Discovery Workshops</bdi></h3><p class="he">סדנאות <bdi>Discovery</bdi></p><p>תהליך הדגל שלנו ליצירת <bdi>Alignment</bdi> בין <bdi>Stakeholders</bdi> ולהבנת הצורך לפני בחירת הפתרון.</p><ul><li><span>מיפוי צרכים ותהליכים</span></li><li><span>זיהוי <bdi>Use Cases</bdi> והזדמנויות</span></li><li><span>הגדרת שאלות והחלטות להמשך</span></li></ul></article><article class="svc"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><circle cx="4" cy="5" r="2"/><circle cx="20" cy="5" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="20" cy="19" r="2"/><path d="M6 6.5 10 10.5M18 6.5l-4 4M6 17.5l4-4M18 17.5l-4-4"/></svg></div><h3><bdi>Multi-Agent Architecture Advisory</bdi></h3><p class="he">ייעוץ לארכיטקטורת <bdi>Multi-Agent</bdi></p><p>בחינת ארכיטקטורות <bdi>AI</bdi> מתקדמות בהתאם ל-<bdi>Use Cases</bdi>, לסביבת הארגון ולרמת המוכנות שלו.</p><ul><li><span>בחינת <bdi>Multi-Agent</bdi> ו-<bdi>Agentic Workflow</bdi></span></li><li><span>הערכת <bdi>RAG</bdi>, <bdi>vector database</bdi> ו-<bdi>orchestration layer</bdi></span></li><li><span>בחינת התאמה של <bdi>MCP</bdi>, <bdi>LangGraph</bdi> ו-<bdi>CrewAI</bdi></span></li></ul></article><article class="svc"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></div><h3><bdi>AI Governance &amp; Guardrails</bdi></h3><p class="he">ממשל ובקרות <bdi>AI</bdi></p><p>הגדרת עקרונות לניהול אחראי של מערכות <bdi>AI</bdi> בסביבה ארגונית מורכבת.</p><ul><li><span>מסגרות <bdi>Governance</bdi> ואחריות</span></li><li><span><bdi>Guardrails</bdi> ו-<bdi>Human in the Loop</bdi></span></li><li><span>עקרונות <bdi>Observability</bdi> וניהול סיכונים</span></li></ul></article><article class="svc"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4M7 12l3-3 2 2 4-4"/></svg></div><h3><bdi>Executive AI Briefings</bdi></h3><p class="he">תדריכי <bdi>AI</bdi> להנהלות ולדירקטוריונים</p><p>תמונת מצב ממוקדת למקבלי החלטות. ההזדמנויות, הסיכונים והשאלות שדורשות תשומת לב הנהלתית.</p><ul><li><span>סקירת מגמות ומשמעויות עסקיות</span></li><li><span>דיון בהזדמנויות ובסיכונים</span></li><li><span><bdi>Alignment</bdi> סביב החלטות אסטרטגיות</span></li></ul></article><article class="svc"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></div><h3><bdi>Enterprise Transformation Programs</bdi></h3><p class="he">תוכניות טרנספורמציה ארגונית</p><p>ליווי הנהלות בתכנון השינוי הארגוני הנדרש כדי להפוך יוזמות <bdi>AI</bdi> לחלק מתפיסה רחבה ועקבית.</p><ul><li><span>מיפוי בעלי עניין ותלויות</span></li><li><span>הגדרת מודל עבודה וממשל</span></li><li><span>תכנון אבני דרך ומדדי הצלחה</span></li></ul></article></div>
+</div></section>
+
+<section class="disc" id="discovery"><div class="wrap">
+  <div class="photo rv"><img src="img/workshop.jpg" alt="סדנת Discovery" loading="lazy"></div>
+  <div class="rv"><div class="eyebrow">Discovery Workshops</div><h2 class="serif" style="font-size:clamp(1.9rem,4vw,2.7rem)"><bdi>Discovery</bdi> הוא המקום שבו מתחילים נכון.</h2><p style="color:var(--mute);margin:16px 0 0">לפני שבוחרים ארכיטקטורה או מגדירים <bdi>POC</bdi>, יוצרים הבנה משותפת של מה שהמערכת צריכה לעשות ושל הערך שהיא נדרשת לייצר.</p>
+    <dl><div><dt>משך</dt><dd>לרוב 2–4 שבועות, בהתאם להיקף</dd></div><div><dt>משתתפים</dt><dd>הנהלה, בעלי תהליכים ו-<bdi>Stakeholders</bdi> רלוונטיים</dd></div><div><dt>מתכונת</dt><dd>סדרת סדנאות ודיוני עומק</dd></div><div><dt>הנחיה</dt><dd>רונן קפלן וצוות <bdi>KSA GROUP</bdi></dd></div></dl>
+    <ol class="agenda"><li><span class="n">01</span><span>הקשר עסקי והגדרת מטרות</span></li><li><span class="n">02</span><span>מיפוי <bdi>Stakeholders</bdi> ותהליכים</span></li><li><span class="n">03</span><span>זיהוי ותעדוף <bdi>Use Cases</bdi></span></li><li><span class="n">04</span><span>בחינת מידע, סיכונים וחלופות ארכיטקטוניות</span></li><li><span class="n">05</span><span><bdi>Alignment</bdi> על המלצות והצעדים הבאים</span></li></ol>
+    <div class="outcome">בסיום התהליך מתקבלת תמונה משותפת של הצרכים, <bdi>Use Cases</bdi> מתועדפים והמלצות לארכיטקטורה ול-<bdi>Roadmap</bdi>.</div>
+  </div>
+</div></section>
+
+<section class="founder dark" id="firm"><div class="wrap">
+  <figure class="portrait rv"><img src="img/founder.jpg" alt="רונן קפלן" loading="lazy"><figcaption>RONEN KAPLAN</figcaption></figure>
+  <div class="rv"><div class="eyebrow"><bdi>Founder &amp; Managing Partner</bdi></div><h2>רונן קפלן</h2>
+    <p class="quote">הערך האמיתי של <bdi>AI</bdi> לא מתחיל בטכנולוגיה. הוא מתחיל ביכולת של הנהלה לשאול מה נכון לארגון שלה.</p><p>רונן קפלן הוא המייסד וה-<bdi>Managing Partner</bdi> של <bdi>KSA GROUP</bdi>. הוא מלווה הנהלות בכירות ודירקטוריונים בצומתי החלטה אסטרטגיים סביב <bdi>AI</bdi> וטרנספורמציה ארגונית.</p><p>גישתו מחברת בין שיח עסקי, חשיבה ארכיטקטונית והיכרות עם הדרישות של ארגוני <bdi>Enterprise</bdi>. הוא מוביל באופן אישי את הדיאלוג עם לקוחות הפירמה ואת תהליכי ה-<bdi>Discovery</bdi> המרכזיים.</p><p>לצדו פועל צוות ייעוץ ממוקד, בשיתוף מומחים ושותפים חיצוניים בהתאם לצורכי כל התקשרות. הניסיון שנצבר בעבודה עם ארגונים גדולים ובינלאומיים מאפשר לפירמה להביא פרספקטיבה רחבה לכל דיון.</p><dl><div><dt>תפקיד</dt><dd><bdi>Founder &amp; Managing Partner</bdi></dd></div><div><dt>מיקוד</dt><dd><bdi>AI Strategy &amp; Enterprise Advisory</bdi></dd></div><div><dt>עבודה ישירה עם</dt><dd>הנהלות, דירקטוריונים ו-<bdi>Stakeholders</bdi></dd></div><div><dt>פעילות</dt><dd>ישראל ובינלאומית</dd></div></dl></div>
+</div></section>
+
+<section id="experience"><div class="wrap">
+  <div class="sec-head rv"><div class="eyebrow">Experience</div><h2><bdi>Selected Engagements</bdi></h2><p>מבחר תחומי פעילות עם ארגונים גדולים בישראל ובעולם. שמות הלקוחות אינם מפורסמים מתוך מחויבות לדיסקרטיות.</p></div>
+  <div class="grid2 rv"><article class="eng"><span class="sector">שירותים פיננסיים</span><h3>אסטרטגיית <bdi>AI</bdi> חוצת ארגון</h3><p>ליווי הנהלה בגיבוש סדרי עדיפויות ל-<bdi>AI</bdi> וביצירת <bdi>Alignment</bdi> בין יחידות עסקיות, טכנולוגיה וגורמי סיכון.</p><div class="tags"><bdi>AI Strategy</bdi><bdi>Governance</bdi></div></article><article class="eng"><span class="sector">תעשייה בינלאומית</span><h3><bdi>Discovery</bdi> למערך ידע ארגוני</h3><p>מיפוי צרכים ו-<bdi>Use Cases</bdi> לגישה לידע מבוזר, לצד בחינת עקרונות לארכיטקטורת <bdi>RAG</bdi>.</p><div class="tags"><bdi>Discovery</bdi><bdi>RAG</bdi></div></article><article class="eng"><span class="sector">קמעונאות גלובלית</span><h3>בחינת ארכיטקטורת <bdi>Multi-Agent</bdi></h3><p>ייעוץ לארכיטקטורת יעד עבור תהליכים מרובי <bdi>Stakeholders</bdi>, עם דגש על <bdi>orchestration</bdi> ו-<bdi>Human in the Loop</bdi>.</p><div class="tags"><bdi>Multi-Agent</bdi><bdi>Architecture</bdi></div></article><article class="eng"><span class="sector">בריאות</span><h3>מסגרת לקבלת החלטות על <bdi>AI</bdi></h3><p>גיבוש עקרונות <bdi>Governance</bdi> ודיון הנהלתי בסיכונים, באחריות ובתעדוף יוזמות <bdi>AI</bdi>.</p><div class="tags"><bdi>Executive Advisory</bdi><bdi>Guardrails</bdi></div></article></div>
+</div></section>
+
+<section class="dark" style="background:var(--navy2)"><div class="wrap">
+  <div class="sec-head rv"><div class="eyebrow">Client Perspectives</div><h2>מה אומרות ההנהלות</h2></div>
+  <div class="tqs rv"><figure class="tq"><blockquote>רונן הצליח לחבר בין השאלות העסקיות לבין דיון ארכיטקטוני שההנהלה כולה יכלה לקבל בו החלטות.</blockquote><figcaption>סמנכ״לית אסטרטגיה, ארגון פיננסי בינלאומי</figcaption></figure><figure class="tq"><blockquote>תהליך ה-<bdi>Discovery</bdi> יצר שפה משותפת בין גורמים שהגיעו עם הנחות שונות מאוד לגבי מה שנדרש.</blockquote><figcaption>מנהל טרנספורמציה, קבוצת תעשייה גלובלית</figcaption></figure><figure class="tq"><blockquote>קיבלנו מסגרת ברורה לתעדוף ולדיון בסיכונים. זו הייתה נקודת פתיחה חשובה עבור הדירקטוריון.</blockquote><figcaption>חברת דירקטוריון, ארגון בריאות גדול</figcaption></figure></div>
+</div></section>
+
+<section id="insights" style="background:var(--ivory2)"><div class="wrap">
+  <div class="sec-head rv"><div class="eyebrow">Insights</div><h2>מחשבות מהשטח</h2><p>מאמרים של רונן קפלן על אסטרטגיית <bdi>AI</bdi>, על <bdi>Discovery</bdi> ועל השאלות שעל שולחן ההנהלה.</p></div>
+  <div class="inss rv"><article class="ins" data-a="0" tabindex="0" role="button"><img src="img/insight1.jpg" alt="" loading="lazy"><div><span class="meta">ינואר 2026 · <bdi>5 min</bdi></span><h3>השאלות שאתם עדיין לא יודעים שאתם צריכים לשאול</h3><p>איך תהליך <bdi>Discovery</bdi> חושף הנחות, תלויות וצרכים שלא תמיד עולים בתחילת יוזמת <bdi>AI</bdi>.</p><span class="more">לקריאה ←</span></div></article><article class="ins" data-a="1" tabindex="0" role="button"><img src="img/insight2.jpg" alt="" loading="lazy"><div><span class="meta">מרץ 2026 · <bdi>5 min</bdi></span><h3>למה <bdi>POC</bdi> צריך להיבנות כמו מוצר מוגמר מהיום הראשון</h3><p>גם בשלב מוקדם, החלטות על מידע, <bdi>Governance</bdi>, <bdi>Guardrails</bdi> ו-<bdi>Scale</bdi> מעצבות את האפשרויות בהמשך.</p><span class="more">לקריאה ←</span></div></article><article class="ins" data-a="2" tabindex="0" role="button"><img src="img/insight3.jpg" alt="" loading="lazy"><div><span class="meta">יוני 2026 · <bdi>5 min</bdi></span><h3><bdi>Multi-Agent</bdi> הוא לא נקודת המוצא. ה-<bdi>Use Case</bdi> הוא כן.</h3><p>מתי ארכיטקטורה מרובת <bdi>Agents</bdi> עשויה להתאים לארגון, ואילו שאלות נכון לברר לפני שבוחרים בה.</p><span class="more">לקריאה ←</span></div></article></div>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <div class="rv"><div class="eyebrow">FAQ</div><h2 class="serif" style="font-size:clamp(1.9rem,4vw,2.7rem)">שאלות נפוצות</h2></div>
+  <div class="rv"><details><summary><span>כמה זמן נמשך תהליך <bdi>Discovery</bdi>?</span></summary><p>לרוב בין שבועיים לארבעה שבועות. משך התהליך נקבע בהתאם להיקף, למספר ה-<bdi>Stakeholders</bdi> ולמורכבות השאלות שיש לברר.</p></details><details><summary><span>האם <bdi>KSA GROUP</bdi> גם מבצעת את ההטמעה?</span></summary><p><bdi>KSA GROUP</bdi> מתמקדת באסטרטגיה, בייעוץ ובארכיטקטורה. ההטמעה מתבצעת על ידי צוותי הלקוח או שותפים מטעמו.</p></details><details><summary><span>מה צריך להכין לפני שמתחילים?</span></summary><p>מומלץ להגיע עם תיאור ראשוני של האתגר, מטרות עסקיות ככל שהוגדרו ורשימת <bdi>Stakeholders</bdi> רלוונטיים. אין צורך להגיע עם פתרון או עם <bdi>Use Cases</bdi> סופיים.</p></details><details><summary><span>האם צריך לבחור טכנולוגיה לפני ה-<bdi>Discovery</bdi>?</span></summary><p>לא. בחירת הגישה תלויה בצורך. במסגרת התהליך נבחן חלופות כגון <bdi>RAG</bdi>, <bdi>Multi-Agent</bdi>, <bdi>Vision</bdi>, <bdi>OCR</bdi> או <bdi>Fine-Tuning</bdi>, ככל שהן רלוונטיות ל-<bdi>Use Cases</bdi>.</p></details><details><summary><span>למי מיועדים תדריכי ההנהלה?</span></summary><p>התדריכים מיועדים לדירקטוריונים, להנהלות בכירות ולבעלי תפקידים שמבקשים להבין את המשמעויות העסקיות והארגוניות של <bdi>AI</bdi> ולקבל החלטות מושכלות.</p></details></div>
+</div></section>
+
+<section class="contact dark" id="contact"><div class="wrap">
+  <div class="rv"><div class="eyebrow">Contact</div><h2>בואו נתחיל בשיחה.</h2><p class="lead">ספרו לנו על האתגר, על ההזדמנות או על השאלה שנמצאת על שולחן ההנהלה.</p>
+    <div class="direct"><img src="img/ronen.jpg" alt=""><div><b>רונן קפלן</b><small><bdi>Founder &amp; Managing Partner</bdi></small></div></div>
+  </div>
+  <div class="rv">
+    <form id="form" novalidate>
+      <div id="ask">
+        <div class="fgrid">
+          <div class="f"><label for="fn">שם מלא</label><input id="fn" name="name" autocomplete="name" required></div>
+          <div class="f"><label for="fc">ארגון</label><input id="fc" name="company" autocomplete="organization"></div>
+          <div class="f"><label for="fr">תפקיד</label><input id="fr" name="role" autocomplete="organization-title"></div>
+          <div class="f"><label for="fe">דוא״ל</label><input id="fe" name="email" type="email" autocomplete="email" dir="ltr"></div>
+          <div class="f"><label for="fp">טלפון</label><input id="fp" name="phone" type="tel" autocomplete="tel" dir="ltr"></div>
+          <div class="f"><label for="ft">נושא הפנייה</label><select id="ft" name="choice"><option>Discovery Workshops</option><option>AI Strategy &amp; Roadmap</option><option>Architecture &amp; Governance</option><option>Executive Briefing</option></select></div>
+          <div class="f full"><label for="fm">כיצד נוכל לסייע?</label><textarea id="fm" name="message" rows="4"></textarea></div>
+        </div>
+        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="send"><button class="btn solid" id="go" type="submit">שליחת פנייה</button><small>לאימות הפנייה נבקש כניסה עם חשבון <bdi>Google</bdi>.</small></div>
+        <div class="err" id="err" role="alert"></div>
+      </div>
+      <div class="done" id="done" hidden><img src="img/mark-light.png" alt=""><h3>תודה על פנייתכם.</h3><p>הפנייה התקבלה. צוות <bdi>KSA GROUP</bdi> יבחן את הפרטים ויחזור אליכם.</p></div>
+    </form>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="top">
+    <div><img class="flogo" src="img/logo-light.png" alt="KAPLAN STRATEGIC AI GROUP"></div>
+    <div><h4>OFFICES</h4><ul class="offices"><li>Tel Aviv</li><li>London</li><li>New York</li></ul></div>
+    <div><h4>THE FIRM</h4><ul><li><a href="#approach">הגישה</a></li><li><a href="#services">שירותים</a></li><li><a href="#discovery"><bdi>Discovery</bdi></a></li><li><a href="#firm">הפירמה</a></li><li><a href="#experience">ניסיון</a></li><li><a href="#insights"><bdi>Insights</bdi></a></li></ul></div>
+  </div>
+  <div class="legal"><span>© <bdi>KAPLAN STRATEGIC AI GROUP</bdi>. כל הזכויות שמורות.</span><span dir="ltr">AI STRATEGY · ENTERPRISE TRANSFORMATION · ADVISORY</span></div>
+</div></footer>
+
+<div class="reader" id="reader" role="dialog" aria-modal="true"><div class="paper"><button class="close" id="rx" aria-label="סגירה">×</button><img id="rImg" alt=""><div class="body"><span class="meta" id="rMeta"></span><h2 id="rTitle"></h2><div id="rBody"></div>
+  <div class="byline"><img src="img/ronen.jpg" alt=""><div><b>רונן קפלן</b><small><bdi>Founder &amp; Managing Partner, KSA GROUP</bdi></small></div></div></div></div></div>
+
+<script>
+const ARTS = [{"title": "השאלות שאתם עדיין לא יודעים שאתם צריכים לשאול", "date": "ינואר 2026", "read": "5 min", "paras": ["הנהלות רבות מגיעות לשיחה על AI עם רשימת תשובות: כלי שנראה מבטיח, Use Cases שעלו מהשטח ויעד שאפתני לשנה הקרובה. אלה נקודות פתיחה חשובות, אבל מניסיוני בליווי חברות גלובליות גדולות מאוד, השאלה המשמעותית היא דווקא מה עדיין לא נכנס לחדר.", "Discovery אינו שלב מקדים שצריך לעבור במהירות כדי להגיע לעבודה האמיתית. הוא העבודה שמאפשרת להגדיר אותה. בסדנאות עם הנהלה, בעלי תהליכים וצוותים מקצועיים מתברר לא פעם שהאתגר העסקי שתואר בתחילת הדרך שונה מהאתגר שמייצר את החיכוך בפועל. ההבדל הזה קובע לאן יופנו המשאבים.", "הנקודה אינה לייצר עוד רשימה של רעיונות, אלא להבין את מערכת ההחלטות שסביבם: מי אחראי לתוצאה, מי יידרש לשנות את אופן העבודה, ואילו נתונים והרשאות זמינים לאורך התהליך. כשמחברים את ה-Stakeholders לשיחה מוקדם, אפשר לזהות תלות עסקית עוד לפני שהיא הופכת לעיכוב.", "בארגונים גלובליים גדולים מאוד ראיתי כיצד אותו Use Case מקבל משמעות שונה בין יחידות עסקיות, שווקים ורמות ניהול. Alignment אינו מחייב את כולם לחשוב באותו אופן; הוא מחייב אותם להסכים על הבעיה, על מדדי ההצלחה ועל ההחלטות שיתקבלו בעקבות הלמידה.", "Discovery טוב מסתיים בכיוון ברור: מה בודקים תחילה, מה לא עושים כרגע, ומי מוסמך לקבל החלטה בכל צומת. זהו הבסיס למעבר משאיפה כללית לתוכנית שאפשר להוביל, למדוד ולהרחיב. השאלות הנכונות אינן מעכבות את ההתקדמות; הן מעניקות לה משמעות.\n\nרונן קפלן, Founder & Managing Partner"], "bullets": ["איזו החלטה עסקית אנחנו מבקשים לשפר?", "מי יושפע מהשינוי ומי אחראי לתוצאה?", "איך נדע שהערך מצדיק השקעה ב-Scale?"], "quote": "היתרון האסטרטגי מתחיל בשאלות שהארגון עדיין לא ידע לנסח."}, {"title": "למה POC צריך להיבנות כמו מוצר מוגמר מהיום הראשון", "date": "מרץ 2026", "read": "5 min", "paras": ["POC מוצלח אינו רק הדגמה מרשימה של יכולת. הוא מבחן עסקי לשאלה אם פתרון יכול להשתלב במציאות של הארגון ולייצר ערך לאורך זמן. לכן, גם כאשר ההיקף קטן, החשיבה שמאחוריו צריכה להיות של מוצר מוגמר: למי הוא מיועד, באיזה תהליך הוא משתלב וכיצד תימדד הצלחתו.", "מניסיוני עם חברות גלובליות גדולות מאוד, הפער בין הדגמה מוצלחת לאימוץ רחב נובע לעיתים פחות מהיכולת עצמה ויותר משאלות שלא נשאלו בזמן. מי יהיה בעל הבית העסקי? מה יידרש מהמשתמשים? כיצד תתקבל החלטה כאשר התוצאה אינה מספקת? אלה אינן שאלות לשלב מאוחר יותר.", "העבודה מתחילה ב-Discovery שמחבר בין ה-Use Case, המשתמשים וה-Stakeholders. משם מגדירים תרחיש ממוקד, מדדי הצלחה וגבולות ברורים. החשיבה המוצרית אינה מחייבת לבנות כבר ביום הראשון את כל מה שיידרש ב-Scale; היא מחייבת להבין אילו הנחות בודקים ומה יהיה נחוץ כדי להתקדם.", "Guardrails, גישה למידע, אחריות אנושית וחוויית המשתמש צריכים להיות חלק מהשיחה כבר בתכנון ה-POC. עומק הפתרון יכול להתאים להיקף הניסוי, אבל אין להתעלם מדרישות שיקבעו אם הארגון יוכל להשתמש בו בפועל. כך ניתן להבחין בין הצלחה בתנאי מעבדה לבין פוטנציאל עסקי אמיתי.", "בסיום ה-POC ההנהלה צריכה להיות מסוגלת לקבל החלטה: להרחיב, לשנות כיוון או לעצור. כשמגדירים מראש את ההחלטה הזאת ואת הנתונים שיתמכו בה, גם ניסוי מצומצם הופך להשקעה אסטרטגית. המטרה אינה להוכיח שהטכנולוגיה עובדת; המטרה היא לדעת אם נכון לארגון להתקדם איתה.\n\nרונן קפלן, Founder & Managing Partner"], "bullets": ["משתמש ותהליך עסקי מוגדרים", "מדדי הצלחה וסף לקבלת החלטה", "אחריות, Guardrails ותנאים להרחבה"], "quote": "POC קטן בהיקפו צריך להיות גדול באחריות שהוא לוקח על השאלה העסקית."}, {"title": "Multi-Agent הוא לא נקודת המוצא. ה-Use Case הוא כן.", "date": "יוני 2026", "read": "5 min", "paras": ["Multi-Agent הפך לחלק מרכזי בשיחה על עתיד ה-AI בארגון. האפשרות לחלק עבודה בין גורמים בעלי תפקידים שונים מעוררת עניין מוצדק. אבל מורכבות ארכיטקטונית אינה אסטרטגיה, וההחלטה אם היא נחוצה צריכה להיגזר מהבעיה העסקית, לא מהאטרקטיביות של המושג.", "הנקודה הראשונה היא Discovery: להבין את התהליך מקצה לקצה, את ההחלטות שמתקבלות בו ואת המקומות שבהם נדרש שיקול דעת אנושי. רק לאחר מכן אפשר להגדיר Use Case ממוקד ולבחון אם הוא דורש תיאום בין כמה רכיבים, או שגישה פשוטה יותר תספק את התוצאה הרצויה.", "יש מקרים שבהם RAG, תהליך עבודה מוגדר או כלי יחיד יכולים לענות על הצורך. במקרים אחרים, תהליך הכולל משימות נפרדות, העברת הקשר ובקרה בין שלבים עשוי להצדיק בחינה של Multi-Agent. ההבחנה אינה אידיאולוגית; היא נוגעת לערך, לאחריות וליכולת של הארגון לנהל את הפתרון.", "בעבודה עם חברות גלובליות גדולות מאוד, למדתי שהשאלה מי אחראי לתוצאה חשובה לא פחות מהשאלה כיצד היא נוצרת. ככל שמתרבים הגורמים המשתתפים בתהליך, כך חשוב יותר להגדיר Guardrails, נקודות בקרה ומנגנון ברור להסלמה לאדם. ה-Stakeholders צריכים להבין לא רק את ההבטחה, אלא גם את גבולות הפעולה.", "התקדמות נכונה נמדדת ביכולת לעבור מבעיה מוגדרת לניסוי שמייצר למידה, ומשם להחלטה על Scale. לכן הבחירה הטכנולוגית צריכה להישאר פתוחה עד שיש Alignment סביב התוצאה הרצויה. אסטרטגיית AI בוגרת אינה מתחילה בשאלה כמה Agents אפשר להפעיל, אלא איזה שינוי הארגון מבקש להשיג.\n\nרונן קפלן, Founder & Managing Partner"], "bullets": ["הגדירו את התוצאה העסקית לפני הארכיטקטורה", "בחנו את החלופה הפשוטה ביותר שעשויה להספיק", "קבעו אחריות ונקודות בקרה לאורך התהליך"], "quote": "הארכיטקטורה הנכונה היא זו שמשרתת את ה-Use Case, לא זו שמגדירה אותו."}];
+const hdr = document.getElementById('hdr'), drawer = document.getElementById('drawer');
+const onScroll = () => hdr.classList.toggle('on', scrollY > 30); onScroll(); addEventListener('scroll', onScroll, { passive: true });
+document.getElementById('burger').onclick = () => drawer.classList.add('on');
+document.getElementById('dx').onclick = () => drawer.classList.remove('on');
+drawer.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => drawer.classList.remove('on')));
+const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { threshold: .1 });
+document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+// the gold network behind the hero
+(() => {
+  const c = document.getElementById('net'), g = c.getContext('2d'); let W, H, P = []; const dpr = Math.min(devicePixelRatio || 1, 2);
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const size = () => { W = c.clientWidth; H = c.clientHeight; c.width = W * dpr; c.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(Math.min(90, W * H / 14000)); P = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25, r: Math.random() * 1.6 + .4 })); };
+  const draw = () => {
+    g.clearRect(0, 0, W, H);
+    for (const p of P) { p.x += p.vx; p.y += p.vy; if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1; }
+    for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+      const a = P[i], b = P[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d < 140) { g.strokeStyle = `rgba(201,169,110,${(1 - d / 140) * .28})`; g.lineWidth = .6; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
+    }
+    for (const p of P) { g.fillStyle = 'rgba(226,200,147,.85)'; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.fill(); }
+    if (!still) requestAnimationFrame(draw);
+  };
+  size(); draw(); addEventListener('resize', () => { size(); if (still) draw(); });
+})();
+// the article reader
+const reader = document.getElementById('reader');
+const esc = (s) => String(s).replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[m]);
+const open = (i) => {
+  const a = ARTS[i]; document.getElementById('rImg').src = `img/insight${i + 1}.jpg`;
+  document.getElementById('rMeta').textContent = [a.date, a.read].filter(Boolean).join(' · ');
+  document.getElementById('rTitle').textContent = a.title;
+  const ps = a.paras.map((p) => `<p>${esc(p)}</p>`);
+  const mid = Math.min(2, ps.length);
+  if (a.bullets && a.bullets.length) ps.splice(mid, 0, `<ul>${a.bullets.map((b) => `<li><span>${esc(b)}</span></li>`).join('')}</ul>`);
+  if (a.quote) ps.splice(Math.min(ps.length - 1, mid + 2), 0, `<blockquote>${esc(a.quote)}</blockquote>`);
+  document.getElementById('rBody').innerHTML = ps.join('');
+  reader.classList.add('on'); reader.scrollTop = 0; document.body.style.overflow = 'hidden';
+};
+const shut = () => { reader.classList.remove('on'); document.body.style.overflow = ''; };
+document.querySelectorAll('.ins').forEach((el) => { el.onclick = () => open(+el.dataset.a); el.onkeydown = (e) => { if (e.key === 'Enter') open(+el.dataset.a); }; });
+document.getElementById('rx').onclick = shut; reader.onclick = (e) => { if (e.target === reader) shut(); };
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { shut(); drawer.classList.remove('on'); } });
+// the contact form: a Google account first (public/verse/site-signin.js), then siteLead
+const API = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/siteLead';
+const form = document.getElementById('form'), err = document.getElementById('err'), go = document.getElementById('go');
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  const v = (n) => form.elements[n].value.trim();
+  if (!v('name')) { err.textContent = 'נשמח לדעת עם מי אנחנו מדברים.'; form.elements.name.focus(); return; }
+  if (!window.SiteSignIn) { err.textContent = 'רגע, הטופס עוד נטען. נסו שוב.'; return; }
+  const who = await SiteSignIn.ensure('ksa'); if (!who) return;
+  go.disabled = true; go.textContent = 'שולח…'; err.textContent = '';
+  try {
+    const fd = new FormData();
+    fd.append('site', 'ksa'); fd.append('name', v('name')); fd.append('email', v('email')); fd.append('phone', v('phone'));
+    fd.append('choice', v('choice')); fd.append('website', v('website'));
+    fd.append('message', [v('company') && `ארגון: ${v('company')}`, v('role') && `תפקיד: ${v('role')}`, v('message')].filter(Boolean).join('\n'));
+    const r = await fetch(API, { method: 'POST', body: fd, headers: { authorization: 'Bearer ' + who.token } });
+    if (!r.ok) throw new Error(r.status === 429 ? 'many' : 'send');
+    document.getElementById('ask').hidden = true; document.getElementById('done').hidden = false; form.reset();
+  } catch (x) {
+    err.textContent = x.message === 'many' ? 'הפנייה כבר התקבלה. נחזור אליכם.' : 'משהו לא עבר. נסו שוב בעוד רגע.';
+  } finally { go.disabled = false; go.textContent = "שליחת פנייה"; }
+};
+</script>
+<script src="/t.js" data-site="ksa" defer></script>
+<script src="/verse/site-signin.js" defer></script>
+</body>
+</html>
