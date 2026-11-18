@@ -335,7 +335,7 @@ His ask: "videos like in OnlyFans - the highlight, the ending, the cliffhanger o
   (`ending.pixel`, `ending.dark`), and over it an error message (his note: "it looks like an error message"): a dark
   box with a glowing orange edge (`ending.panel`, a shape), the Shlomiverse planet flickering (`ending.logo`), a "no
   signal" icon (`ending.icon`) beside "בעיית קליטה" / "הקשר עם יקום
-  שלומיוורס נותק" / "לסיום המלא - מוזמנים לטוס לביקור" (`ending.words`), the shlomiverse.com pill (`ending.link` - set its text to `shlomiverse.com/v/<id>`, the video's own address: on a phone it opens the feed at this video, and the signed-out drop + sign-in + the "jump to where it dropped" button are all there; never /videos, where a newer video soon comes first - 2026-11-18), a faint
+  שלומיוורס נותק" / "לסיום המלא - מוזמנים לטוס לביקור" (`ending.words`), the shlomiverse.com pill (`ending.link`), a faint
   static (`ending.static`) - 2.6 s, all in REAL seconds (laid out at the project's speed). Files:
   `episodes/_assets/socials-ending/` (the shared pool). First made on `not-the-question` (the call drops as Daniel asks
   "זימון? למה אתה צריך לשלוח—"; his removal and "Ofer, stay on the line" only on the Shlomiverse).
