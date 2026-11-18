@@ -820,7 +820,7 @@ function bestNum() { return +(store.get(KEY.best) || 0); }
 function showBest() {
   const b = bestNum(), d = (store.get(KEY.day) || '').split('|');
   const td = d[0] === today() ? +d[1] : 0;
-  $('bestStart').innerHTML = `<small>${td ? 'שיא היום' : 'השיא'}</small><b>${(td || b || 0).toLocaleString('en-US')}</b>`;
+  $('bestStart').innerHTML = `<span><small>${td ? 'השיא של היום' : 'השיא שלך'}</small><b>${(td || b || 0).toLocaleString('en-US')}</b></span>`;
   $('bestOver').innerHTML = b ? `השיא שלכם: <b>${b}</b>` : '';
 }
 function gameOver() {

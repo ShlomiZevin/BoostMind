@@ -26,9 +26,10 @@ principles - apply them to whatever the game is.
   - **Zones, top to bottom**: the title art (top, big) -> the character's face, nothing over it -> the buttons. No
     paragraph of text, no tagline plaque over the art (it covered his face on small phones).
   - **The buttons**: ONE big main "שחקו" (the biggest thing after the title, gently breathing) -> ONE row of two equal
-    buttons side by side, a clear gap between them: "איך משחקים" + "חזרה למשחקים" (in the verse) / the character link
-    (outside it) -> a footer row: sound in one corner, the record badge in the other (+ levels / modes as one more row
-    only if the game has them). Never buttons stacked one on another, never more than these.
+    buttons side by side, a clear gap between them: "איך משחקים" + "חזרה למשחקים" (with the Shlomiverse logo, ALWAYS
+    shown, `href="/games" data-verse-back`) -> the record badge centred under them, its words centred on the badge's
+    empty face -> the sound button small in a top corner (+ levels / modes as one more row only if the game has them).
+    Never buttons stacked one on another, never a record squeezed into a corner, never more than these.
   - **Painted pieces, words in code**: the buttons are blank painted pieces in the game's material (a sheet: big sign,
     plaque, record badge with its icon, round sound button, the back button with the Shlomiverse logo), the Hebrew
     written over them in code (Rubik 900, a light face with a dark engraved shadow) so every letter is exact. Cut the

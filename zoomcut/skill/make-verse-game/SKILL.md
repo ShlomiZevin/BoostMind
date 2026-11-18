@@ -227,9 +227,9 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
    - **The way back to the games lives ONLY on that start screen, and EACH GAME PAINTS ITS OWN** (his rule, 18 Nov 2026 -
      the verse's orange pill was "ugly as hell"; older games keep it, new games never use it): a "חזרה למשחקים" button in the
      game's own menu style WITH the Shlomiverse logo on it (`v2/site/verse/logo-512.png` as a reference when painting it),
-     `class="... verse-only" data-verse-back` (game-frame.js turns it into the way back and shows it only in the verse; add
-     `html:not(.in-verse) .verse-only{display:none!important}` to the game's CSS too). Outside the verse its slot holds the
-     character link (`verse-hide`). The whole start screen follows "The start screen (menu)" in `rules.md`. It returns to
+     ALWAYS shown (in the verse AND on the game's own address - he opened the game outside the verse and the button was
+     missing: "that's not what we talked about"): `<a class="..." href="/games" target="_top" data-verse-back>` - in the
+     verse game-frame.js turns it into the way back to the feed, outside it opens the verse's games page. The whole start screen follows "The start screen (menu)" in `rules.md`. It returns to
      the feed at this game. Exits inside the game (the pause menu, a home icon) go back to the GAME's own start screen.
      The game's own "לכל המשחקים" link gets `verse-hide` (the verse button replaces it inside the verse), and EVERY end / game-over
      screen offers a way to that menu ("לתפריט", the same as the pause menu's exit) - else a player there has no way back.

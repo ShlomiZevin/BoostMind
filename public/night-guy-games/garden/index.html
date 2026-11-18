@@ -106,7 +106,7 @@ body.turn #turn{display:flex}
 .st-title{width:min(78vw,380px,46vh);filter:drop-shadow(0 6px 14px #000c)}
 .st-bottom{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2.2vh,20px);width:100%}
 .st-row{display:flex;gap:clamp(10px,3vw,18px);justify-content:center;align-items:center}
-.st-foot{display:flex;justify-content:space-between;align-items:center;width:min(100%,420px);padding:0 2px}
+.sign.st-snd{position:absolute!important;top:calc(var(--safe-t) + 10px);left:12px;z-index:2}
 .sign{all:unset;box-sizing:border-box;position:relative;display:grid;place-items:center;background:center/100% 100% no-repeat;cursor:pointer;color:#fff4dc;font-family:Rubik,system-ui,sans-serif;font-weight:900;line-height:1;text-shadow:0 2px 0 #5a2a0a,0 3px 8px #000b;transition:transform .12s;-webkit-tap-highlight-color:transparent;text-decoration:none}
 .sign:active{transform:scale(.94)}
 .sign:focus-visible{outline:3px solid #facc15;outline-offset:3px;border-radius:20px}
@@ -117,9 +117,10 @@ body.turn #turn{display:flex}
 .sign.back span{padding:0 33% 0 10%;text-align:center;line-height:1.05}
 .sign.thin{background-image:url(assets/ui/sign-thin.webp);width:min(52vw,230px,34vh);aspect-ratio:420/115;font-size:clamp(13px,2.2vh,16px);cursor:default;margin-top:-6px}
 .sign.thin:active{transform:none}
-.rec{background:url(assets/ui/badge-record.webp) center/100% 100% no-repeat;width:min(36vw,150px,24vh);aspect-ratio:420/198;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8% 0 34%;color:#fff4dc;font-weight:900;text-shadow:0 2px 0 #5a2a0a;line-height:1.05}
-.rec small{font-size:clamp(10px,1.6vh,12px);font-weight:700;opacity:.92;white-space:nowrap}
-.rec b{font-size:clamp(15px,2.8vh,21px);color:#fde68a}
+.rec{position:relative;background:url(assets/ui/badge-record.webp) center/100% 100% no-repeat;width:min(44vw,180px,27vh);aspect-ratio:420/198;color:#fff4dc;font-weight:900;text-shadow:0 2px 0 #5a2a0a;line-height:1.05}
+.rec span{position:absolute;left:38%;right:11%;top:16%;bottom:16%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center}
+.rec small{font-size:clamp(11px,1.8vh,14px);font-weight:700;opacity:.92;white-space:nowrap}
+.rec b{font-size:clamp(17px,3.2vh,24px);color:#fde68a}
 .sign.snd{background-image:url(assets/ui/btn-sound.webp);width:clamp(48px,9vh,64px);aspect-ratio:420/344}
 .sign.snd.off{filter:grayscale(.8) brightness(.75)}
 .sign.snd.off::after{content:'';position:absolute;left:22%;right:22%;top:48%;height:9%;background:#ef4444;border-radius:4px;transform:rotate(-40deg);box-shadow:0 0 0 2px #5a2a0a}
@@ -159,6 +160,7 @@ html:not(.in-verse) .verse-only{display:none!important}html.in-verse .verse-hide
 <div id="turn"><svg viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>סובבו את הטלפון לאורך<br><small style="font-size:15px;font-weight:700;opacity:.8">״סליחה, אפשר לשאול אותך משהו? רק לאורך.״</small></div>
 
 <div class="screen on" id="start">
+  <button class="sign snd sndBtn painted st-snd" aria-label="צליל"></button>
   <div class="st-top">
     <img class="st-title" src="assets/title.png" alt="פסיכופת גינה">
   </div>
@@ -166,13 +168,9 @@ html:not(.in-verse) .verse-only{display:none!important}html.in-verse .verse-hide
     <button class="sign play" id="playBtn"><span>שחקו</span></button>
     <div class="st-row">
       <button class="sign mid" id="howBtn"><span>איך משחקים</span></button>
-      <button class="sign back verse-only" data-verse-back aria-label="חזרה למשחקים"><span>חזרה<br>למשחקים</span></button>
-      <a class="sign mid verse-hide" href="/c/night-guy" target="_top"><span>בשלומיוורס ←</span></a>
+      <a class="sign back" href="/games" target="_top" data-verse-back aria-label="חזרה למשחקים"><span>חזרה<br>למשחקים</span></a>
     </div>
-    <div class="st-foot">
-      <div class="rec" id="bestStart"></div>
-      <button class="sign snd sndBtn painted" aria-label="צליל"></button>
-    </div>
+    <div class="rec" id="bestStart"></div>
   </div>
 </div>
 
@@ -212,6 +210,6 @@ html:not(.in-verse) .verse-only{display:none!important}html.in-verse .verse-hide
     <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
   </div>
 </div>
-<script src="game.js?v=4"></script>
+<script src="game.js?v=5"></script>
 </body>
 </html>
