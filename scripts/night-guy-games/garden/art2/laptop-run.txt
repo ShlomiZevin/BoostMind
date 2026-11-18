@@ -1,0 +1,4 @@
+A walk-cycle sprite sheet for a mobile game: the SAME character from the first reference picture (the young woman with a laptop and headphones around her neck), drawn 6 times in a grid of 3 columns and 2 rows, in exactly the same art style and slightly-from-above camera as the reference.
+LEFT column: walking TOWARD the viewer (front view). MIDDLE column: walking AWAY from the viewer (back view, we see her/his back). RIGHT column: walking toward the right edge of the picture, side view in profile.
+Row 1 (top): RUNNING away scared, a wide running stride, shocked face, hands up. Row 2 (bottom): RUNNING away scared, the other leg forward, knee high, shocked face, hands up.
+The legs clearly differ between row 1 and row 2. Same size, same clothes, same face in all 6. Each figure whole and centered in its cell with empty space around it, nothing crossing into another cell. Transparent background, no shadows, no text, no grid lines.

@@ -1,0 +1,1 @@
+saved props-playground.png gpt-image-2.6-flare 1536x1024 high {"input_tokens":1687,"input_tokens_details":{"image_tokens":1536,"text_tokens":151},"output_tokens":1353,"output_tokens_details":{"image_tokens":1353,"text_tokens":0},"total_tokens":3040}

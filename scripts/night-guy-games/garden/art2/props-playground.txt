@@ -1,0 +1,2 @@
+A sheet of 6 game props for a mobile game, in a grid of 3 columns and 2 rows, in exactly the same art style, night lighting and slightly-from-above camera as the reference game screen: 1 a colorful slide, 2 a swing set (wide), 3 a sandbox with a bucket, 4 a seesaw (wide), 5 a spring-rider toy horse, 6 a climbing dome frame.
+Each prop whole and centered in its own cell with empty space around it, nothing crossing into another cell, each standing on its own (no ground under it). Transparent background, no shadows, no text, no people.

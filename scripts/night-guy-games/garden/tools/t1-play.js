@@ -49,7 +49,7 @@ const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
     await key('Space'); await sleep(450);
   }
   if (await S('s.tut')) fail('tutorial did not end');
-  await sleep(3800);
+  await sleep(5200);
   if ((await S('s.state')) !== 'play') fail('game did not start after the tutorial: ' + (await S('s.state')));
   await S('s.clearForTest()');
   // a loop: up 5, right 4, down home
@@ -75,13 +75,16 @@ const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
   for (let n = 0; n < 3 && (await S('s.state')) === 'play'; n++) {
     const z = await S('s.zone'); const pl = await S('s.player');
     await pg.evaluate(([c, r]) => { const s = window.GARDEN; s.clearForTest(); }, [0, 0]);
-    // teleport-free: walk to the zone by keys
-    for (let k = 0; k < 120 && (await S('s.lives')) === 3 - n && (await S('s.state')) === 'play'; k++) {
-      const q = await S('s.player');
-      const dx = Math.round(z.c) - q.c, dy = Math.round(z.r) - q.r;
-      await key(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'ArrowRight' : 'ArrowLeft') : (dy > 0 ? 'ArrowDown' : 'ArrowUp'));
-      await sleep(90);
-    }
+    // a path around the obstacles to the nearest cell of her circle, walked with real turns
+    const route = await pg.evaluate(() => {
+      const s = window.GARDEN, p = s.player, key = (c, r) => c + ',' + r, prev = new Map([[key(p.c, p.r), null]]), q = [[p.c, p.r]]; let end = null;
+      while (q.length) { const [c, r] = q.shift(); if (s.zoneAt(c, r)) { end = [c, r]; break; }
+        for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) { const nc = c + dx, nr = r + dy; if (s.blockAt(nc, nr) || prev.has(key(nc, nr))) continue; prev.set(key(nc, nr), [c, r]); q.push([nc, nr]); } }
+      const cells = []; for (let k = end; k; k = prev.get(key(k[0], k[1]))) cells.unshift({ c: k[0], r: k[1] });
+      const corners = []; for (let i = 1; i < cells.length; i++) { const nx = cells[i + 1]; if (!nx || (nx.c - cells[i].c) !== (cells[i].c - cells[i - 1].c) || (nx.r - cells[i].r) !== (cells[i].r - cells[i - 1].r)) corners.push(cells[i]); }
+      return corners;
+    });
+    await walk(route, 15);
     if (n === 0) await pg.screenshot({ path: path.join(OUT, '06-caught.png') });
     await sleep(3200);
   }

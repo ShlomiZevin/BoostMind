@@ -44,6 +44,14 @@ const STORIES = {
     'אנחנו רבים על זה מלא. זה מגיע לטונים גבוהים. היא צורחת עליי.',
     '״תעזוב אותי! תוריד אותי! מה, תלית אותי?״ – ככה היא צורחת.'],
 };
+// the same stories, short - in the bubble beside his head
+const SHORT = {
+  phone: ['את אוהבת רילסים?', 'אני שולח לחברה שלי. חתולים, AI...', 'היא לא אוהבת. אז קניתי לה מסך ענק.', 'רק קשרתי אותה לכי—'],
+  shake: ['את לוקחת תוספים?', 'קריאטין! זה מחזק! ממש מחזק!', 'היא רוצה גם. אני לא נותן.', 'למקום! למקום!'],
+  dog: ['איך הם יודעים שאני האדון?', 'יש לי בבית מקרה קשה. קשה מאוד.', 'נובחים, נושכים, אוכלים מהזבל...', 'אין לי כלב. זה על חברה שלי.'],
+  laptop: ['את לא מפחדת מה-AI?', 'אני לא עובד. היא מפרנסת.', 'היא צורחת עליי... טונים גבוהים.', '״מה, תלית אותי?!״'],
+};
+const OPENERS = ['סליחה!', 'אפשר לשאול אותך שאלה?', 'סליחה, רגע...', 'תגידי...', 'סליחה, אפשר שאלה קטנה?'];
 const UNLOCK = ['phone', 'shake', 'dog', 'laptop'];            // night 1: 2 stories, then one more each night
 const LINES = {
   police: ['אני שואל בשביל לדעת!', 'סליחה, אפשר לשאול אותך משהו, שוטר?', 'זה לא מה שזה נראה!'],
@@ -53,23 +61,43 @@ const LINES = {
   drop: ['לאן את הולכת? עוד לא סיפרתי לך...', 'רגע! עוד לא הגעתי לחלק הטוב!'],
   near: ['זה הבית שלה. יש שם איזה צו... סתם בירוקרטיה.', 'שלום מותק! סתם, אני לא פה.'],
   other: ['סליחה, אפשר לשאול אותך משהו? ...לאן את רצה?', 'רגע, רק שאלה קטנה!'],
+  done: ['טוב, לילה טוב!', 'נדבר מחר, באותה שעה!', 'היה נעים! אני פה כל לילה.'],
 };
 
 // ───────────────────────── art ─────────────────────────
 const IMG = {};
 const img = (k, src) => { const i = new Image(); i.src = src; IMG[k] = i; return i; };
-img('map', 'assets/map.jpg');
-for (const p of ['walk', 'talk', 'caught']) img('guy-' + p, `assets/guy-${p}.webp`);
-for (const k of UNLOCK) for (const v of ['walk', 'run']) img(`girl-${k}-${v}`, `assets/girl-${k}-${v}.webp`);
+for (const p of ['talk', 'caught']) img('guy-' + p, `assets/guy-${p}.webp`);
+// walk cycles: f = toward us, b = away, s = to the right (flipped for left); 1 = stride, 2 = passing
+const FR = ['f1', 'f2', 'b1', 'b2', 's1', 's2'];
+const ANIMS = ['guy', ...UNLOCK.map((k) => k + '-walk'), ...UNLOCK.map((k) => k + '-run')];
+for (const a of ANIMS) for (const f of FR) img(`${a}-${f}`, `assets/anim/${a}-${f}.webp`);
+const FEET = { guy: 0.5, 'dog-walk': 0.557, 'dog-run': 0.617, 'shake-walk': 0.547, 'shake-run': 0.547, 'phone-walk': 0.526, 'phone-run': 0.58, 'laptop-walk': 0.538, 'laptop-run': 0.552 };
+// the parks: one per night, in turn
+const ARENAS = [
+  { id: 'park', name: 'הגינה הציבורית', props: [['tree', 3], ['bench', 3], ['bin', 2], ['lamp', 3], ['bush', 3], ['fountain', 1]] },
+  { id: 'playground', name: 'גן השעשועים', props: [['slide', 1], ['swings', 1], ['sandbox', 1], ['seesaw', 1], ['horse', 2], ['dome', 1], ['bench', 2], ['bin', 2], ['lamp', 2]] },
+  { id: 'botanic', name: 'הגן הבוטני', props: [['pond', 2], ['statue', 2], ['pot', 3], ['topiary', 3], ['birdbath', 2], ['glamp', 3]] },
+  { id: 'beach', name: 'טיילת החוף', props: [['palm', 4], ['tower', 1], ['icecream', 1], ['umbrella', 2], ['bluebin', 2], ['blamp', 3], ['bench', 1]] },
+];
+// footprint (tiles it blocks) and how wide it is drawn; light = a lamp
+const PROP = {
+  bench: { w: 2, h: 1, dw: 2.3 }, bin: { w: 1, h: 1, dw: 0.95 }, lamp: { w: 1, h: 1, dw: 0.75, light: 1 }, tree: { w: 2, h: 1, dw: 2.7 }, bush: { w: 1, h: 1, dw: 1.4 }, fountain: { w: 2, h: 2, dw: 2.7 },
+  slide: { w: 2, h: 2, dw: 2.7 }, swings: { w: 3, h: 1, dw: 3.3 }, sandbox: { w: 2, h: 2, dw: 2.5 }, seesaw: { w: 3, h: 1, dw: 3.1 }, horse: { w: 1, h: 1, dw: 1.3 }, dome: { w: 2, h: 2, dw: 2.7 },
+  pond: { w: 2, h: 2, dw: 2.8 }, statue: { w: 1, h: 1, dw: 1.35 }, pot: { w: 1, h: 1, dw: 1.25 }, topiary: { w: 1, h: 1, dw: 1.45 }, birdbath: { w: 1, h: 1, dw: 1.15 }, glamp: { w: 1, h: 1, dw: 0.75, light: 1 },
+  palm: { w: 1, h: 1, dw: 2.0 }, tower: { w: 2, h: 2, dw: 2.5 }, icecream: { w: 1, h: 1, dw: 1.5 }, umbrella: { w: 2, h: 1, dw: 2.3 }, bluebin: { w: 1, h: 1, dw: 0.95 }, blamp: { w: 1, h: 1, dw: 0.75, light: 1 },
+  house: { w: 2, h: 2, dw: 3.7 },
+};
+for (const a of ARENAS) img('ground-' + a.id, `assets/ground-${a.id}.jpg`);
+for (const k of Object.keys(PROP)) img('prop-' + k, `assets/props/${k}.webp`);
 for (const f of ['polite', 'unsure', 'horror']) img('face-' + f, `assets/face-${f}.webp`);
 img('police', 'assets/police.webp');
 const ok = (im) => im && im.complete && im.naturalWidth;
-const HOUSE = { u: 0.885, v: 0.15 };            // the house's door in map.jpg (0..1)
 
 // ───────────────────────── sound ─────────────────────────
 const SND = { ctx: null, raw: {}, buf: {}, on: store.get(KEY.snd) !== '0', last: {}, master: null, loops: {} };
 const SFX = ['claim-1', 'claim-2', 'claim-3', 'talk-1', 'talk-2', 'talk-3', 'gasp-1', 'gasp-2', 'gasp-3', 'scream-1', 'scream-2',
-  'reveal-1', 'reveal-2', 'capture-1', 'capture-2', 'siren', 'caught-1', 'caught-2', 'warn', 'night', 'over', 'tick', 'go', 'start', 'park', 'trail', 'music'];
+  'reveal-1', 'reveal-2', 'capture-1', 'capture-2', 'siren', 'caught-1', 'caught-2', 'warn', 'night', 'over', 'tick', 'go', 'start', 'park', 'trail', 'music', 'bump-1', 'bump-2'];
 const load = (n) => fetch(`assets/sfx/${n}.mp3`).then((r) => r.ok ? r.arrayBuffer() : null).then((b) => { if (b) { SND.raw[n] = b; decode(n); } }).catch(() => {});
 for (const n of SFX) load(n);
 function decode(n) {
@@ -150,28 +178,71 @@ function layout() {
 addEventListener('resize', layout); addEventListener('verseframe', layout);
 const px = (c) => B.x + (c + 0.5) * B.t, py = (r) => B.y + (r + 0.5) * B.t;
 // the map is drawn "cover" over the board - where a point of the picture lands, in tiles
-function mapRect() { const im = IMG.map, ar = ok(im) ? im.naturalWidth / im.naturalHeight : 2 / 3, bar = COLS / ROWS; return bar < ar ? { w: ROWS * ar, h: ROWS, x: (COLS - ROWS * ar) / 2, y: 0 } : { w: COLS, h: COLS / ar, x: 0, y: (ROWS - COLS / ar) / 2 }; }
+function mapRect() { const im = IMG['ground-' + arena().id], ar = ok(im) ? im.naturalWidth / im.naturalHeight : 2 / 3, bar = COLS / ROWS; return bar < ar ? { w: ROWS * ar, h: ROWS, x: (COLS - ROWS * ar) / 2, y: 0 } : { w: COLS, h: COLS / ar, x: 0, y: (ROWS - COLS / ar) / 2 }; }
 
 // ───────────────────────── the park grid ─────────────────────────
-let owner = new Uint8Array(0), zone = new Uint8Array(0), zoneC = { c: 0, r: 0, R: 3.2 }, zoneCount = 0;
+let owner = new Uint8Array(0), zone = new Uint8Array(0), block = new Uint8Array(0), zoneC = { c: 0, r: 0, R: 3.2 }, zoneCount = 0, blockCount = 0;
+let props = [], lights = [];                      // props: { k, c, r } - c,r = the footprint's top-left
 let trail = [], trailSet = new Set(), trailFrom = null;
 const idx = (c, r) => r * COLS + c;
 const inside = (c, r) => c >= 0 && r >= 0 && c < COLS && r < ROWS;
-function buildPark() {
-  owner = new Uint8Array(COLS * ROWS); zone = new Uint8Array(COLS * ROWS); zoneCount = 0;
-  const m = mapRect();
-  zoneC = { c: clamp(m.x + HOUSE.u * m.w, 2.5, COLS - 2.5), r: clamp(m.y + HOUSE.v * m.h, 2.5, ROWS - 2.5), R: 3.2 };
+const arena = () => ARENAS[(Math.max(1, night) - 1) % ARENAS.length];
+const START = () => ({ c: Math.floor(COLS / 2), r: ROWS - 7 });
+const blocked = (c, r) => !inside(c, r) || block[idx(c, r)] === 1;
+// clearFrom: rows from here down stay empty (the tutorial's stage)
+function buildPark(seed, clearFrom) {
+  owner = new Uint8Array(COLS * ROWS); zone = new Uint8Array(COLS * ROWS); block = new Uint8Array(COLS * ROWS); zoneCount = 0; blockCount = 0; props = [];
+  const PR = rng(seed);
+  // her house in a top corner, the restraining-order circle around it
+  const left = PR() < 0.5, hc = left ? 1 : COLS - 3, hr = 1;
+  props.push({ k: 'house', c: hc, r: hr });
+  for (let y = hr; y < hr + 2; y++) for (let x = hc; x < hc + 2; x++) block[idx(x, y)] = 1;
+  zoneC = { c: hc + 1, r: hr + 1.2, R: 3.3 };
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (Math.hypot(c + 0.5 - zoneC.c, r + 0.5 - zoneC.r) < zoneC.R) { zone[idx(c, r)] = 1; zoneCount++; }
+  const s0 = START();
+  const keepClear = (c, r) => (Math.abs(c - s0.c) <= 3 && Math.abs(r - s0.r) <= 3) || Math.hypot(c + 0.5 - zoneC.c, r + 0.5 - zoneC.r) < zoneC.R + 1.2 || (clearFrom !== undefined && r >= clearFrom);
+  const scale = clamp(ROWS / 32, 0.7, 1.2);
+  // every free cell keeps 2+ ways out and the free floor stays one piece - nobody can get stuck
+  const roomy = () => {
+    let first = -1, free = 0;
+    for (let i = 0; i < block.length; i++) if (!block[i]) {
+      free++; if (first < 0) first = i;
+      const c = i % COLS, r = (i / COLS) | 0; let n = 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (!blocked(c + dx, r + dy)) n++;
+      if (n < 2) return false;
+    }
+    const seen = new Uint8Array(block.length), q = [first]; seen[first] = 1; let cnt = 1;
+    while (q.length) { const i = q.pop(), c = i % COLS, r = (i / COLS) | 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nc = c + dx, nr = r + dy; if (!blocked(nc, nr)) { const j = idx(nc, nr); if (!seen[j]) { seen[j] = 1; cnt++; q.push(j); } } } }
+    return cnt === free;
+  };
+  for (const [k, n0] of arena().props) {
+    const P = PROP[k], n = Math.max(1, Math.round(n0 * scale));
+    for (let m = 0; m < n; m++) for (let tries = 0; tries < 60; tries++) {
+      const c = 1 + Math.floor(PR() * (COLS - P.w - 1)), r = 2 + Math.floor(PR() * (ROWS - P.h - 3));
+      let okk = true;
+      for (let y = r - 1; y <= r + P.h && okk; y++) for (let x = c - 1; x <= c + P.w; x++) {
+        if (!inside(x, y)) continue;
+        if (block[idx(x, y)]) { okk = false; break; }
+        if (y >= r && y < r + P.h && x >= c && x < c + P.w && keepClear(x, y)) { okk = false; break; }
+      }
+      if (!okk) continue;
+      for (let y = r; y < r + P.h; y++) for (let x = c; x < c + P.w; x++) block[idx(x, y)] = 1;
+      if (!roomy()) { for (let y = r; y < r + P.h; y++) for (let x = c; x < c + P.w; x++) block[idx(x, y)] = 0; continue; }
+      props.push({ k, c, r }); break;
+    }
+  }
+  for (let i = 0; i < block.length; i++) blockCount += block[i];
+  lights = props.filter((p) => PROP[p.k].light).map((p) => ({ x: p.c + 0.5, y: p.r - 0.6, ph: PR() * 6 }));
   trail = []; trailSet = new Set(); trailFrom = null; terrDirty = true;
 }
-const START = () => ({ c: Math.floor(COLS / 2), r: ROWS - 7 });
 function homeBlock() {
   const s = START();
   for (let r = s.r - 2; r <= s.r + 2; r++) for (let c = s.c - 2; c <= s.c + 2; c++) if (inside(c, r)) owner[idx(c, r)] = 1;
   terrDirty = true;
 }
-function ownedCount() { let n = 0; for (let i = 0; i < owner.length; i++) n += owner[i]; return n; }
-const pctNow = () => Math.floor(ownedCount() / (COLS * ROWS - zoneCount) * 100);
+function ownedCount() { let n = 0; for (let i = 0; i < owner.length; i++) if (!block[i]) n += owner[i]; return n; }
+const pctNow = () => Math.floor(ownedCount() / (COLS * ROWS - zoneCount - blockCount) * 100);
 
 // close the loop: the trail becomes his, and so does every cell the outside can't reach
 function claim() {
@@ -185,8 +256,10 @@ function claim() {
     const i = q.pop(), c = i % COLS, r = (i / COLS) | 0;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nc = c + dx, nr = r + dy; if (inside(nc, nr)) seed(nc, nr); }
   }
-  let gained = trail.length;
-  for (let i = 0; i < owner.length; i++) if (!owner[i] && !out[i]) { owner[i] = 1; gained++; }
+  let gained = trail.length; const fresh = trail.map((t) => idx(t.c, t.r));
+  for (let i = 0; i < owner.length; i++) if (!owner[i] && !out[i]) { owner[i] = 1; if (!block[i]) gained++; fresh.push(i); }
+  ripple = { cells: fresh, c: player.c, r: player.r, t: 0 };
+  for (let k = 0; k < Math.min(40, fresh.length); k++) { const i = pick(fresh); sparkle(i % COLS + Math.random(), ((i / COLS) | 0) + Math.random(), '#e9d5ff'); }
   const n = trail.length; trail = []; trailSet = new Set(); trailFrom = null; terrDirty = true;
   if (!tutorial) { score += gained; nightStat.tiles += gained; }
   play('claim', .7); loop('trail', 0);
@@ -213,21 +286,21 @@ const kinds = () => UNLOCK.slice(0, Math.min(4, night + 1));
 
 function resetPlayer() {
   const s = START();
-  player = { c: s.c, r: s.r, pc: s.c, pr: s.r, prog: 1, face: 1, idle: true };
+  player = { c: s.c, r: s.r, pc: s.c, pr: s.r, prog: 1, face: 1, idle: true, walk: 0, bump: 0, view: 'f' };
   dir = { x: 0, y: -1 }; queue = []; trail = []; trailSet = new Set(); trailFrom = null; loop('trail', 0);
 }
 const ppos = () => ({ x: lerp(player.pc, player.c, clamp(player.prog, 0, 1)), y: lerp(player.pr, player.r, clamp(player.prog, 0, 1)) });
 const onOwn = () => owner[idx(player.c, player.r)] === 1;
 
 function startNight(first) {
-  state = 'count'; count = 3.2; freeze = 0; invuln = 0; talk = null; pips(0);
-  setRows(); buildPark(); homeBlock(); resetPlayer();
+  state = 'count'; count = 4.5; freeze = 0; invuln = 0; talk = null; pips(0);
+  setRows(); buildPark(`${SLUG}|${today()}|${arena().id}|${ROWS}`); homeBlock(); resetPlayer();
   R = rng(`${SLUG}|${today()}|${night}`);
   girls = []; police = []; girlNext = 0.5;
   for (let i = 0; i < night; i++) addPolice(false);
   nightStat = { tiles: 0, talks: 0 };
   showHUD(true); show(null); hud(); fxEl.innerHTML = '';
-  say(night === 1 ? 'לילה בגינה. בואו נראה מי מסתובבת פה...' : `לילה ${night}. ${kinds().length > night ? '' : ''}עוד שאלות קטנות.`, 3);
+  say(night === 1 ? 'לילה בגינה. בואו נראה מי מסתובבת פה...' : `${arena().name}. עוד לילה, עוד שאלות קטנות.`, 3); banner(arena().name);
   loop('music', 0.28); loop('park', 0.35);
   if (first) { window.track && window.track('game_start', SLUG); play('start', .7); }
 }
@@ -238,40 +311,68 @@ function startGame() {
 }
 
 // ───────────────────────── strangers ─────────────────────────
+const DIR4 = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
 function freeCell(test, tries = 300) {
   for (let k = 0; k < tries; k++) { const c = Math.floor(R() * COLS), r = Math.floor(R() * ROWS); if (test(c, r)) return { c, r }; }
   return null;
 }
-const walkable = (c, r) => inside(c, r) && !owner[idx(c, r)] && !zone[idx(c, r)];
+const walkable = (c, r) => inside(c, r) && !owner[idx(c, r)] && !zone[idx(c, r)] && !block[idx(c, r)];
 function addGirl(at, kind, spd) {
   const pp = ppos();
   const p = at || freeCell((c, r) => walkable(c, r) && (c === 0 || r === 0 || c === COLS - 1 || r === ROWS - 1) && Math.hypot(c - pp.x, r - pp.y) > 6)
     || freeCell((c, r) => walkable(c, r) && Math.hypot(c - pp.x, r - pp.y) > 6);
   if (!p) return null;
-  const g = { kind: kind || pick(kinds(), R), x: p.c, y: p.r, c: p.c, r: p.r, tc: p.c, tr: p.r, spd: spd || (1.1 + R() * 0.4), state: 'walk', t: 0, cool: 0, flip: false, goal: null, k: 0 };
+  const g = { kind: kind || pick(kinds(), R), x: p.c, y: p.r, c: p.c, r: p.r, tc: p.c, tr: p.r, spd: spd || (1.1 + R() * 0.4), state: 'walk', t: 0, cool: 0, flip: false, goal: null, k: 0, view: 'f', walk: 0, moving: false, sq: 0 };
   girls.push(g); return g;
 }
 function girlGoal(g) { g.goal = freeCell((c, r) => walkable(c, r) && Math.hypot(c - g.c, r - g.r) > 4) || { c: g.c, r: g.r }; }
 function girlStep(g, dt) {
-  if (g.state === 'stuck') { g.t -= dt; if (g.t <= 0) { g.state = 'flee'; play('scream', .55); } return; }
-  const fleeing = g.state === 'flee';
-  const spd = fleeing ? 4.2 : g.state === 'talk' ? g.spd * 0.55 : g.spd;
-  // move from (c,r) toward the next tile (tc,tr)
+  if (g.sq > 0) g.sq = Math.max(0, g.sq - dt * 4);
+  if (g.state === 'stuck') {
+    // trapped in his ground: she runs for it and bounces off the edge, again and again, till he's done
+    g.t -= dt;
+    if (g.t <= 0) { g.state = 'flee'; g.out = null; play('scream', .55); guySays(pickNo(LINES.done, 'done'), 1.8); return; }
+  }
+  const fleeing = g.state === 'flee', stuck = g.state === 'stuck';
+  const spd = stuck ? 3.4 : fleeing ? 4.4 : g.state === 'talk' ? g.spd * 0.55 : g.spd;
   const dx = g.tc - g.x, dy = g.tr - g.y, d = Math.hypot(dx, dy);
-  if (d > 0.001) { const m = Math.min(d, spd * dt); g.x += dx / d * m; g.y += dy / d * m; if (Math.abs(dx) > 0.01) g.flip = dx < 0; return; }
-  g.c = g.tc; g.r = g.tr;
-  if (fleeing) {                                          // straight to the nearest edge, then gone
+  if (d > 0.001) {
+    const m = Math.min(d, spd * dt); g.x += dx / d * m; g.y += dy / d * m; g.walk += m; g.moving = true;
+    if (Math.abs(dx) > Math.abs(dy)) { g.view = 's'; g.flip = dx < 0; } else g.view = dy > 0 ? 'f' : 'b';
+    return;
+  }
+  g.c = g.tc; g.r = g.tr; g.moving = false;
+  if (stuck) {
+    if (!g.run) g.run = pick(DIR4);
+    let nc = g.c + g.run.x, nr = g.r + g.run.y;
+    if (!inside(nc, nr) || !owner[idx(nc, nr)] || block[idx(nc, nr)]) {
+      // the edge of his ground: bump, bounce back, try another way
+      g.sq = 1; play('bump', .4); if (Math.random() < 0.5) popText(px(g.x), py(g.y) - B.t * 3.2, pick(['!!', 'הצילו!', 'אין יציאה!']), 'bad');
+      const back = { x: -g.run.x, y: -g.run.y }, opts = DIR4.filter((q) => { const x = g.c + q.x, y = g.r + q.y; return inside(x, y) && owner[idx(x, y)] && !block[idx(x, y)]; });
+      g.run = opts.length ? (opts.find((q) => q.x === back.x && q.y === back.y && Math.random() < 0.6) || pick(opts)) : back;
+      nc = g.c + g.run.x; nr = g.r + g.run.y;
+      if (!inside(nc, nr) || !owner[idx(nc, nr)] || block[idx(nc, nr)]) return;
+      g.tc = nc; g.tr = nr; g.pause = 0.15; return;
+    }
+    g.tc = nc; g.tr = nr; return;
+  }
+  if (fleeing) {                                          // to the nearest edge, around things, then gone
+    if (!inside(g.c, g.r)) { g.gone = true; return; }
     if (!g.out) g.out = [[g.c + 1, -1, 0], [COLS - g.c, 1, 0], [g.r + 1, 0, -1], [ROWS - g.r, 0, 1]].sort((a, b) => a[0] - b[0])[0];
-    g.tc = g.c + g.out[1]; g.tr = g.r + g.out[2];
-    if (!inside(g.c, g.r)) g.gone = true;
+    let nx = g.c + g.out[1], ny = g.r + g.out[2];
+    if (inside(nx, ny) && block[idx(nx, ny)]) {
+      const side = [{ x: g.out[2], y: g.out[1] }, { x: -g.out[2], y: -g.out[1] }].find((q) => !blocked(g.c + q.x, g.r + q.y));
+      if (side) { nx = g.c + side.x; ny = g.r + side.y; }
+    }
+    g.tc = nx; g.tr = ny;
     return;
   }
   if (!g.goal || (g.goal.c === g.c && g.goal.r === g.r) || R() < 0.04) girlGoal(g);
   const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([ox, oy]) => ({ c: g.c + ox, r: g.r + oy }))
-    .filter((p) => walkable(p.c, p.r)).sort((a, b) => Math.hypot(a.c - g.goal.c, a.r - g.goal.r) - Math.hypot(b.c - g.goal.c, b.r - g.goal.r));
+    .filter((q) => walkable(q.c, q.r)).sort((a, b) => Math.hypot(a.c - g.goal.c, a.r - g.goal.r) - Math.hypot(b.c - g.goal.c, b.r - g.goal.r));
   if (!opts.length) return;                               // boxed in by his ground: she waits (and gets trapped by the next loop)
+  if (R() < 0.15 && opts.length > 1) opts.shift();          // a little wandering
   const n = opts[0];
-  if (n.c === g.c && n.r === g.r) return;
   g.tc = n.c; g.tr = n.r;
 }
 
@@ -280,7 +381,8 @@ function startTalk(g) {
   g.state = 'talk';
   talk = { g, step: 0, t: 0 };
   say(STORIES[g.kind][0], 99); pips(1);
-  play('talk', .8); guySays('סליחה!', 1.2);
+  play('talk', .8); guySays(pickNo(OPENERS, 'open'), 1.3);
+  setTimeout(() => { if (talk && talk.g === g && talk.step === 0) guySays(SHORT[g.kind][0], stepDur() * 0.85); }, 1300);
   if (tutWait && tutWait.id === 'talk') tutWait.done = true;
 }
 function talkStep(dt) {
@@ -301,12 +403,12 @@ function talkStep(dt) {
   if (talk.t < stepDur()) return;
   talk.t = 0; talk.step++;
   if (talk.step < 3) {
-    say(STORIES[g.kind][talk.step], 99); pips(talk.step + 1);
+    say(STORIES[g.kind][talk.step], 99); pips(talk.step + 1); guySays(SHORT[g.kind][talk.step], stepDur() * 0.9);
     play('talk', .8); if (talk.step === 2) setTimeout(() => play('gasp', .6), 400);
     return;
   }
   // the reveal slipped out before he closed the loop: she screams, runs and calls the police
-  say(STORIES[g.kind][3], 3.4, 'loud'); pips(4);
+  say(STORIES[g.kind][3], 3.4, 'loud'); pips(4); guySays(SHORT[g.kind][3], 2.4);
   play('reveal', .7); setTimeout(() => play('scream', .7), 350);
   g.state = 'flee'; talk = null;
   popText(px(g.x), py(g.y) - B.t * 2.4, tutorial ? 'היא ברחה!' : 'התקשרה למשטרה!', 'bad');
@@ -317,9 +419,9 @@ function talkStep(dt) {
 function trapped(g) {
   const was = talk && talk.g === g, left = was ? 3 - talk.step : 0;
   const pts = 150 + left * 80;
-  g.state = 'stuck'; g.t = 2.4;
-  if (was) { say(STORIES[g.kind][3], 3.6, 'reveal'); pips(4); talk = null; }
-  else say(pickNo(LINES.other, 'oth'), 2.4);
+  g.state = 'stuck'; g.t = 3.6; g.run = null; g.tc = Math.round(g.x); g.tr = Math.round(g.y); g.x = g.tc; g.y = g.tr;
+  if (was) { say(STORIES[g.kind][3], 3.8, 'reveal'); pips(4); talk = null; guySays(SHORT[g.kind][3], 2.6); }
+  else { say(pickNo(LINES.other, 'oth'), 2.4); guySays(pickNo(OPENERS, 'open'), 1.6); }
   play('capture', .8); setTimeout(() => play('reveal', .55), 500); setTimeout(() => play('gasp', .7), 900);
   if (!tutorial) { score += pts; nightStat.talks++; }
   popText(px(g.x), py(g.y) - B.t * 2.6, `+${pts}`, 'gold'); setTimeout(() => popText(px(g.x), py(g.y) - B.t * 1.6, was && left ? 'נתקעה איתו!' : 'שיחה!', ''), 250);
@@ -328,11 +430,10 @@ function trapped(g) {
 }
 
 // ───────────────────────── police ─────────────────────────
-const DIR4 = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
 function addPolice(called) {
   if (police.length >= 2 + night + 1) return;
   const pp = ppos();
-  const p = freeCell((c, r) => (c === 0 || c === COLS - 1 || r === 0 || r === ROWS - 1) && Math.hypot(c - pp.x, r - pp.y) > 9) || { c: 0, r: 0 };
+  const p = freeCell((c, r) => (c === 0 || c === COLS - 1 || r === 0 || r === ROWS - 1) && !blocked(c, r) && Math.hypot(c - pp.x, r - pp.y) > 9) || { c: 0, r: ROWS - 1 };
   const d = p.c === 0 ? DIR4[0] : p.c === COLS - 1 ? DIR4[1] : p.r === 0 ? DIR4[2] : DIR4[3];
   police.push({ x: p.c, y: p.r, c: p.c, r: p.r, tc: p.c + d.x, tr: p.r + d.y, d, chase: called ? 6 : 0, ang: Math.atan2(d.y, d.x) });
   if (called) { play('siren', .25); flash(true); }
@@ -344,8 +445,8 @@ function policeStep(o, dt) {
   if (d > 0.001) { const m = Math.min(d, spd * dt); o.x += dx / d * m; o.y += dy / d * m; }
   else {
     o.c = o.tc; o.r = o.tr;
-    let opts = DIR4.filter((q) => inside(o.c + q.x, o.r + q.y) && !(q.x === -o.d.x && q.y === -o.d.y));
-    if (!opts.length) opts = DIR4.filter((q) => inside(o.c + q.x, o.r + q.y));
+    let opts = DIR4.filter((q) => !blocked(o.c + q.x, o.r + q.y) && !(q.x === -o.d.x && q.y === -o.d.y));
+    if (!opts.length) opts = DIR4.filter((q) => !blocked(o.c + q.x, o.r + q.y));
     const ahead = opts.find((q) => q.x === o.d.x && q.y === o.d.y);
     let nd;
     if (o.chase > 0) {                                     // called in: heads for him / his trail
@@ -403,7 +504,9 @@ function pTick() {
     dir = d; if (d.x) player.face = d.x; break;
   }
   const nc = player.c + dir.x, nr = player.r + dir.y;
-  if (!inside(nc, nr)) { player.prog = 1; return false; }             // the park's edge: he waits for a turn
+  if (blocked(nc, nr)) {                                               // the edge, a bench, a bin: he waits for a turn
+    player.prog = 1; if (!player.bump) { player.bump = 0.25; if (inside(nc, nr)) play('bump', .35); } return false;
+  }
   const wasOwn = onOwn();
   player.pc = player.c; player.pr = player.r; player.c = nc; player.r = nr;
   const i = idx(nc, nr);
@@ -422,7 +525,7 @@ function caught(why) {
     play('caught', .5); popText(px(pp.x), py(pp.y) - B.t * 2, 'אופס! עוד פעם', 'bad');
     trail = []; trailSet = new Set(); trailFrom = null; loop('trail', 0); toHome(); invuln = 1.2; return;
   }
-  lives--; freeze = 1.3; invuln = 1.3 + 1.6; loop('trail', 0);
+  lives--; freeze = 1.3; invuln = 1.3 + 1.6; loop('trail', 0); shake = 0.5;
   play('caught', .8); if (why !== 'self') play('siren', .22);
   flash(); say(pickNo(LINES[why], why), 2.6, 'loud');
   popText(px(pp.x), py(pp.y) - B.t * 2.6, why === 'zone' ? 'צו הרחקה!' : why === 'self' ? 'השובל שלך!' : 'נתפסת!', 'bad');
@@ -455,7 +558,7 @@ function checkNight() {
     fxEl.innerHTML = ''; joyEnd();
     $('nightDid').textContent = did; $('nightBig').textContent = `לילה ${night}`;
     const nk = UNLOCK[night] && night <= 3 ? ' · סיפור חדש!' : '';
-    $('nightGoal').textContent = `יעד: ${goal()}% מהגינה${nk}`;
+    $('nightGoal').textContent = `${arena().name} · יעד: ${goal()}%${nk}`;
     show('night');
   }, 1500);
 }
@@ -471,11 +574,12 @@ function step(dt) {
     return;
   }
   if (state !== 'play' && state !== 'tut') return;
-  if (freeze > 0) { freeze -= dt; if (freeze <= 0) afterCaught(); return; }
+  if (freeze > 0) { freeze -= dt; fxStep(dt); if (freeze <= 0) afterCaught(); return; }
+  if (player.bump > 0) player.bump = Math.max(0, player.bump - dt);
   if (invuln > 0) invuln -= dt;
   // he walks
   if (tutMove() && !player.idle) {
-    player.prog += dt * SPEED;
+    player.prog += dt * SPEED; if (player.prog < 1.001) player.walk += dt * SPEED;
     let guard = 0;
     while (player.prog >= 1 && guard++ < 3) { player.prog -= 1; if (!pTick()) break; if (freeze > 0 || state !== 'play' && state !== 'tut') break; }
   }
@@ -491,6 +595,7 @@ function step(dt) {
     if (!talk && !bubble && (idleT -= dt) <= 0) { idleT = 8 + Math.random() * 5; guySays(pickNo(LINES.idle, 'idle'), 2); }
   }
   if (bubble && (bubble.t -= dt) <= 0) bubble = null;
+  fxStep(dt);
 }
 
 // ───────────────────────── drawing ─────────────────────────
@@ -530,13 +635,46 @@ function drawTrail(now) {
   path(); ctx.shadowBlur = 0; ctx.strokeStyle = '#f5f3ff'; ctx.lineWidth = B.t * 0.22 + Math.sin(now * 8) * 1; ctx.stroke();
   ctx.restore();
 }
+// ───────────────────────── effects ─────────────────────────
+let ripple = null, shake = 0, parts = [], flies = [], trailEmit = 0;
+function sparkle(x, y, col) { parts.push({ x, y, vx: (Math.random() - 0.5) * 1.2, vy: -0.6 - Math.random() * 1.2, life: 0.9 + Math.random() * 0.5, max: 1.4, col, kind: 'star' }); }
+function dust(x, y) { parts.push({ x, y, vx: (Math.random() - 0.5) * 0.4, vy: -0.1, life: 0.5, max: 0.5, kind: 'dust' }); }
+function fxStep(dt) {
+  if (ripple) { ripple.t += dt; if (ripple.t > 2.5) ripple = null; }
+  if (shake > 0) shake = Math.max(0, shake - dt);
+  for (const q of parts) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy += (q.kind === 'star' ? 1.4 : 0) * dt; q.life -= dt; }
+  parts = parts.filter((q) => q.life > 0);
+  if (!flies.length) for (let i = 0; i < 16; i++) flies.push({ x: Math.random() * COLS, y: Math.random() * ROWS, ph: Math.random() * 6, sp: 0.3 + Math.random() * 0.4 });
+  for (const f of flies) { f.ph += dt * f.sp; f.x += Math.cos(f.ph * 1.3) * dt * 0.5; f.y += Math.sin(f.ph) * dt * 0.4; if (f.x < 0) f.x += COLS; if (f.x > COLS) f.x -= COLS; if (f.y < 0) f.y += ROWS; if (f.y > ROWS) f.y -= ROWS; }
+  // sparkles along the trail while he draws it, dust under his feet
+  if (player && trail.length && !player.idle && freeze <= 0) { trailEmit -= dt; if (trailEmit <= 0) { trailEmit = 0.06; const pp = ppos(); sparkle(pp.x + 0.5 + (Math.random() - 0.5) * 0.4, pp.y + 0.7, '#f5d0fe'); } }
+  if (player && !player.idle && freeze <= 0) { const st = Math.floor(player.walk * 2.2); if (st !== player.lastStep) { player.lastStep = st; const pp = ppos(); dust(pp.x + 0.5, pp.y + 0.95); } }
+  if (parts.length > 220) parts.splice(0, parts.length - 220);
+}
+
+// ───────────────────────── drawing ─────────────────────────
+function shadow(cx, cy, w) { ctx.save(); ctx.fillStyle = '#0007'; ctx.beginPath(); ctx.ellipse(cx, cy, w / 2, w / 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
 function sprite(im, cx, bottom, h, flip, alpha = 1, sq = 1) {
   if (!ok(im)) return;
   const w = h * im.naturalWidth / im.naturalHeight;
   ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, bottom); ctx.scale(flip ? -1 / sq : 1 / sq, sq);
   ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
 }
-function shadow(cx, cy, w) { ctx.save(); ctx.fillStyle = '#0006'; ctx.beginPath(); ctx.ellipse(cx, cy, w / 2, w / 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+// a walk-cycle frame: stride, pass, stride (mirrored front / back), pass; feet anchored where the sheet put them
+function animFrame(set, view, walk, moving, mirrorOK) {
+  if (!moving) return { key: `${set}-${view}2`, mirror: false };
+  const ph = Math.floor(walk * 2.2) % 4;
+  const n = ph % 2 ? 2 : 1, mirror = mirrorOK && view !== 's' && ph === 2;
+  return { key: `${set}-${view}${n}`, mirror };
+}
+function drawAnim(set, fr, cx, bottom, h, flipSide, alpha = 1, sqx = 1, sqy = 1) {
+  const im = IMG[fr.key]; if (!ok(im)) return false;
+  const w = h * im.naturalWidth / im.naturalHeight, fx = FEET[set] ?? 0.5;
+  const flip = (!!flipSide) !== fr.mirror;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, bottom); ctx.scale((flip ? -1 : 1) * sqx, sqy);
+  ctx.drawImage(im, -fx * w, -h, w, h); ctx.restore();
+  return true;
+}
 function drawBubble(text, hx, hy, alpha) {
   const fs = clamp(Math.round(B.t * 0.62), 12, 15), pad = fs * 0.5, maxW = Math.min(W * 0.55, fs * 11);
   ctx.save(); ctx.font = `700 ${fs}px Rubik, system-ui, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -548,54 +686,110 @@ function drawBubble(text, hx, hy, alpha) {
   let bx = right ? hx + B.t * 0.6 : hx - B.t * 0.6 - bw, by = hy - bh;
   bx = clamp(bx, 6, W - bw - 6); by = clamp(by, B.y + 2, H - bh - 80);
   ctx.globalAlpha = alpha; ctx.fillStyle = '#fffffff2'; ctx.strokeStyle = '#140d2477'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, Math.min(14, bh / 2)); ctx.fill(); ctx.stroke();
+  ctx.shadowColor = '#0008'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, Math.min(14, bh / 2)); ctx.fill(); ctx.shadowColor = 'transparent'; ctx.stroke();
+  // the tail toward his head
+  const tx0 = clamp(hx, bx + 12, bx + bw - 12); ctx.fillStyle = '#fffffff2'; ctx.beginPath(); ctx.moveTo(tx0 - 6, by + bh - 1); ctx.lineTo(hx + (right ? -2 : 2), by + bh + 9); ctx.lineTo(tx0 + 6, by + bh - 1); ctx.fill();
   ctx.fillStyle = '#140d24'; rows.forEach((t, i) => ctx.fillText(t, bx + bw / 2, by + pad * 0.6 + fs * 1.25 * (i + 0.5)));
   ctx.restore();
+}
+function glow(x, y, r, col, a) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(1, col.replace('A', 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
 }
 function draw(now) {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = '#0d0818'; ctx.fillRect(0, 0, W, H);
   if (state === 'menu' || !player) return;
   const t = B.t;
+  if (shake > 0) { const k = shake * 12; ctx.translate((Math.random() - 0.5) * k, (Math.random() - 0.5) * k); }
   ctx.save(); ctx.beginPath(); ctx.roundRect(B.x, B.y, B.w, B.h, 10); ctx.clip();
-  if (ok(IMG.map)) { const m = mapRect(); ctx.drawImage(IMG.map, B.x + m.x * t, B.y + m.y * t, m.w * t, m.h * t); }
-  ctx.fillStyle = '#0d081822'; ctx.fillRect(B.x, B.y, B.w, B.h);
-  drawZone(now); drawTerritory(); drawTrail(now);
-  // everyone, back to front
+  const gim = IMG['ground-' + arena().id];
+  if (ok(gim)) { const m = mapRect(); ctx.drawImage(gim, B.x + m.x * t, B.y + m.y * t, m.w * t, m.h * t); }
+  ctx.fillStyle = '#0d081833'; ctx.fillRect(B.x, B.y, B.w, B.h);
+  // lamp light pools on the ground
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const L of lights) glow(px(L.x - 0.5), py(L.y + 0.9), t * 3.2, 'rgba(255,190,90,A)', 0.2 + Math.sin(now * 3 + L.ph) * 0.03 + (Math.random() < 0.01 ? -0.08 : 0));
+  // police lights on the ground
+  for (const o of police) glow(px(o.x), py(o.y), t * 2.4, Math.floor(now * 5 + o.x) % 2 ? 'rgba(255,40,60,A)' : 'rgba(40,110,255,A)', o.chase > 0 ? 0.42 : 0.26);
+  ctx.restore();
+  drawZone(now); drawTerritory();
+  // the ripple over new ground
+  if (ripple) {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const i of ripple.cells) {
+      const c = i % COLS, r = (i / COLS) | 0, d = Math.hypot(c - ripple.c, r - ripple.r), k = 1 - Math.abs(ripple.t * 16 - d) / 2.5;
+      if (k > 0) { ctx.fillStyle = `rgba(216,180,254,${k * 0.55})`; ctx.fillRect(B.x + c * t, B.y + r * t, t + 0.5, t + 0.5); }
+    }
+    ctx.restore();
+  }
+  drawTrail(now);
+  // dust (under everyone)
+  for (const q of parts) if (q.kind === 'dust') { const k = q.life / q.max; ctx.fillStyle = `rgba(220,210,230,${k * 0.35})`; ctx.beginPath(); ctx.ellipse(px(q.x - 0.5), py(q.y - 0.5), t * (0.5 - k * 0.3), t * (0.22 - k * 0.12), 0, 0, Math.PI * 2); ctx.fill(); }
+  // everyone and everything, back to front
   const items = [];
+  for (const p of props) {
+    const P = PROP[p.k];
+    items.push({ y: p.r + P.h - 0.55, f: () => {
+      const im = IMG['prop-' + p.k]; if (!ok(im)) return;
+      const cx = B.x + (p.c + P.w / 2) * t, by = B.y + (p.r + P.h) * t - t * 0.15, w = P.dw * t, h = w * im.naturalHeight / im.naturalWidth;
+      shadow(cx, by - t * 0.05, w * 0.8);
+      ctx.drawImage(im, cx - w / 2, by - h, w, h);
+    } });
+  }
   for (const g of girls) items.push({ y: g.y, f: () => {
     const cx = px(g.x), by = py(g.y) + t * 0.45, run = g.state === 'flee' || g.state === 'stuck';
-    const bob = g.state === 'stuck' ? Math.sin(now * 40) * t * 0.05 : 0;
-    shadow(cx, by, t * 1.1);
-    sprite(IMG[`girl-${g.kind}-${run ? 'run' : 'walk'}`], cx + bob, by - (run ? 0 : Math.abs(Math.sin(now * 7 + g.c)) * t * 0.08), t * 2.75, g.flip, g.state === 'flee' && !inside(Math.round(g.x), Math.round(g.y)) ? 0.5 : 1);
+    const set = `${g.kind}-${run ? 'run' : 'walk'}`;
+    const fr = animFrame(set, g.view, g.walk, g.moving || run, g.kind !== 'dog');
+    const away = g.state === 'flee' && !inside(Math.round(g.x), Math.round(g.y));
+    shadow(cx, by, t * 1.2);
+    const sq = g.sq || 0;
+    drawAnim(set, fr, cx, by - (g.moving ? Math.abs(Math.sin(g.walk * Math.PI * 2.2)) * t * 0.06 : 0), t * 2.95, g.view === 's' && g.flip, away ? 0.5 : 1, 1 + sq * 0.18, 1 - sq * 0.15);
     // her face over her head: how the talk is going
     let f = null;
     if (g.state === 'talk') f = talk && talk.g === g && talk.step >= 2 ? 'unsure' : 'polite';
-    else if (g.state === 'stuck' || g.state === 'flee') f = 'horror';
+    else if (run) f = 'horror';
     else if (g.cool > 0) f = 'unsure';
-    if (f) { const s = t * 1.9, pulse = 1 + (g.state === 'talk' ? Math.sin(now * 6) * 0.05 : 0); const im = IMG['face-' + f]; if (ok(im)) ctx.drawImage(im, cx - s * pulse / 2, by - t * 2.75 - s * pulse - t * 0.1, s * pulse, s * pulse); }
+    if (f) { const s2 = t * 1.9, pulse = 1 + (g.state === 'talk' ? Math.sin(now * 6) * 0.05 : run ? Math.sin(now * 20) * 0.04 : 0); const im = IMG['face-' + f]; if (ok(im)) ctx.drawImage(im, cx - s2 * pulse / 2, by - t * 2.95 - s2 * pulse - t * 0.05, s2 * pulse, s2 * pulse); }
+    if (g.state === 'stuck') { ctx.fillStyle = '#7dd3fc'; for (let k = 0; k < 2; k++) { const a = now * 6 + k * 3; ctx.beginPath(); ctx.ellipse(cx + Math.cos(a) * t * 0.7, by - t * 2.2 + Math.abs(Math.sin(a)) * t * 0.3, t * 0.08, t * 0.13, 0, 0, Math.PI * 2); ctx.fill(); } }
   } });
   for (const o of police) items.push({ y: o.y, f: () => {
     const im = IMG.police; if (!ok(im)) return; const L = t * 2.0, w = L * im.naturalWidth / im.naturalHeight;
     ctx.save(); ctx.translate(px(o.x), py(o.y)); ctx.rotate(o.ang + Math.PI / 2);
-    ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.ellipse(t * 0.1, t * 0.15, w * 0.55, L * 0.52, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0006'; ctx.beginPath(); ctx.ellipse(t * 0.12, t * 0.18, w * 0.55, L * 0.52, 0, 0, Math.PI * 2); ctx.fill();
     ctx.drawImage(im, -w / 2, -L / 2, w, L);
-    if (Math.floor(now * 6) % 2) { ctx.fillStyle = o.chase > 0 ? '#ef444466' : '#3b82f644'; ctx.beginPath(); ctx.arc(0, 0, L * 0.7, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   } });
   const pp = ppos();
   items.push({ y: pp.y + 0.01, f: () => {
     const cx = px(pp.x), by = py(pp.y) + t * 0.45;
     const blink = invuln > 0 && freeze <= 0 && Math.floor(now * 10) % 2;
-    shadow(cx, by, t * 1.2);
-    if (freeze > 0) { sprite(IMG['guy-caught'], cx + Math.sin(now * 50) * 2, by, t * 2.8, false); return; }
-    const im = talk ? IMG['guy-talk'] : IMG['guy-walk'];
-    const sq = 1 + Math.sin(now * 14) * 0.04;
-    sprite(im, cx, by, t * 2.8, player.face < 0, blink ? 0.4 : 1, sq);
+    shadow(cx, by, t * 1.25);
+    if (freeze > 0) { sprite(IMG['guy-caught'], cx + Math.sin(now * 50) * 2, by, t * 2.9, false); return; }
+    const moving = !player.idle && player.prog < 1 && state !== 'count';
+    const view = dir.x ? 's' : dir.y > 0 ? 'f' : 'b';
+    if (!moving && talk) { sprite(IMG['guy-talk'], cx, by, t * 2.9, player.face < 0, blink ? 0.4 : 1, 1 + Math.sin(now * 8) * 0.02); return; }
+    const fr = animFrame('guy', view, player.walk, moving, true);
+    const bq = player.bump > 0 ? Math.sin(player.bump * 40) * 0.08 : 0;
+    const bob = moving ? Math.abs(Math.sin(player.walk * Math.PI * 2.2)) * t * 0.07 : 0;
+    if (!drawAnim('guy', fr, cx, by - bob, t * 3.05, view === 's' && dir.x < 0, blink ? 0.4 : 1, 1 + bq, 1 - bq)) sprite(IMG['guy-talk'], cx, by, t * 2.9, player.face < 0);
   } });
   items.sort((a, b) => a.y - b.y).forEach((it) => it.f());
+  // the lamps' heads glow, fireflies, sparkles
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const L of lights) glow(px(L.x - 0.5), B.y + (L.y + 0.6) * t - t * 1.75, t * 1.1, 'rgba(255,210,120,A)', 0.55 + Math.sin(now * 3 + L.ph) * 0.08);
+  for (const f of flies) glow(px(f.x), py(f.y), t * 0.35, 'rgba(210,255,140,A)', 0.35 + Math.sin(f.ph * 4) * 0.3);
+  for (const q of parts) if (q.kind === 'star') {
+    const k = q.life / q.max, x = px(q.x - 0.5), y = py(q.y - 0.5), r = t * 0.22 * k + 1;
+    ctx.strokeStyle = q.col; ctx.globalAlpha = k; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r); ctx.lineTo(x, y + r); ctx.stroke();
+  }
   ctx.restore();
-  if (bubble) drawBubble(bubble.text, px(pp.x), py(pp.y) - t * 2.6, clamp(bubble.t * 3, 0, 1));
+  // a soft night vignette
+  const vg = ctx.createRadialGradient(B.x + B.w / 2, B.y + B.h * 0.55, Math.min(B.w, B.h) * 0.35, B.x + B.w / 2, B.y + B.h / 2, Math.max(B.w, B.h) * 0.75);
+  vg.addColorStop(0, 'rgba(8,4,20,0)'); vg.addColorStop(1, 'rgba(8,4,20,0.5)'); ctx.fillStyle = vg; ctx.fillRect(B.x, B.y, B.w, B.h);
+  ctx.restore();
+  if (bubble) drawBubble(bubble.text, px(pp.x), py(pp.y) - t * 2.8, clamp(bubble.t * 3, 0, 1));
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   if (joy.on) {
     ctx.save(); ctx.globalAlpha = 0.5; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.fillStyle = '#140d2466';
     ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 46, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -685,7 +879,7 @@ const tut = {
   on: false, i: 0,
   begin() {
     show(null); showHUD(true); state = 'tut'; tutorial = true; this.on = true; this.i = 0; score = 0; lives = 3; night = 1; T = 0; talk = null; pips(0);
-    setRows(); buildPark(); homeBlock(); resetPlayer(); R = rng('tutorial'); girls = []; police = []; freeze = 0; invuln = 0; hud();
+    setRows(); buildPark('tutorial|' + ROWS, START().r - 9); homeBlock(); resetPlayer(); R = rng('tutorial'); girls = []; police = []; freeze = 0; invuln = 0; hud();
     loop('music', 0.22); loop('park', 0.3);
     tutCard.classList.add('on'); this.enter();
   },
@@ -758,7 +952,9 @@ window.GARDEN = {
   get tut() { return tut.on; }, get tutStep() { return tut.i; }, get tutTry() { return (STEPS[tut.i] || {}).try; }, get tutDone() { return !!(tutWait && tutWait.done); },
   get zone() { return zoneC; }, get start() { return START(); }, get B() { return B; }, COLS, get ROWS() { return ROWS; }, want, DIRS, startGame,
   tick(dt, n = 1) { for (let i = 0; i < n; i++) step(dt); },
-  owned(c, r) { return owner[idx(c, r)]; }, zoneAt(c, r) { return zone[idx(c, r)]; },
+  owned(c, r) { return owner[idx(c, r)]; }, blockAt(c, r) { return blocked(c, r); }, get props() { return props; }, zoneAt(c, r) { return zone[idx(c, r)]; },
+  nightForTest(n) { night = n; startNight(false); },
+  trapForTest() { const st = START(); const g = addGirl({ c: st.c + 1, r: st.r - 1 }, 'dog', 1); if (g) trapped(g); },
   holdForTest() { player.idle = true; player.prog = 1; },
   clearForTest() { police = []; girls = []; talk = null; },
   girlForTest(c, r, kind = 'phone', spd = 0.0001) { const g = addGirl({ c, r }, kind, spd); if (g) g.goal = { c, r }; return !!g; },
