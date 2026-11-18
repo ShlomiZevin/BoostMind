@@ -167,9 +167,7 @@ When he approves the video and says to put it out, do ALL of it, in this order, 
 2. **The verse FIRST** (the socials' caption points at it): `POST /api/ep/<id>/done {done:true}`, then
    `POST /api/ep/<id>/site` -> "✔ on the Shlomiverse". Check the record: `content.mjs get video <id>` has `drop.at`
    (= split.at / fps / speed) - the signed-out viewer gets the drop there, signed-in the whole video. Then
-   `node scripts/verse/drop-frames.mjs <id>` (the home's live strip; on Windows its upload breaks on the space in
-   `--cache-control` - run `--dry` and `gcloud storage cp <file> gs://shlomiverse-media/wiki/v/<id>.frames.jpg
-   "--cache-control=public, max-age=86400"`).
+   `node scripts/verse/drop-frames.mjs <id>` (the frames for the home's live strip).
 3. **The socials** - the file he approved: `POST /api/ep/<id>/publish {platforms, caption, title, options, useLast:true}`
    (the socials' version goes by itself when there is a split). High-tech = exactly the four hashtags; `options.x.text`
    without the link. Wait for every platform's `done` + link; TikTok's caption reaches his Telegram by itself.
