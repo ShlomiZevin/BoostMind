@@ -147,3 +147,39 @@ image layer: live in the editor, covering everything in the export. Any preset t
 - **Rebuild after hand ops**: items changed by op are `user: true` and keep their OLD frames through a rebuild (they
   overlapped the new cut). Hand them back first - `item.update` with `"user": false` and `set: {"user": null}` - then
   rebuild and re-apply. After every rebuild check each voice row for overlaps of the same person.
+
+## the-consultant (2026-11-18) - a guest with a bad connection, a guest with a site
+- **The timing that matched "perfect" with the 0.25 s voice lead**: trim every line to its words (as above), `in` -0.25 /
+  `shift` -0.25, then `timing` handover_overlap = quick_overlap = 0.62, victim_answer -0.62 - the words overlap ~0.45 s
+  at every handover (measure: speech onset of the next minus the last word end of the one before, from the takes' wavs).
+- **A short line between two lines of the same person** (Amir / Ofer "חד משמעית" / Amir): the person must never overlap
+  himself on his voice row. Clear it on the next line (lead 0.25 -> 0.10, `shift` + the rest of the overlap), then
+  CENTRE the short line: `shift` +d on it and -d on the next line, so it lands on both sides (~0 gap each). Shifts
+  cascade (a line is placed from the end of the one before), so +d / -d moves only that join.
+- **A script line ending "..." or "—" = interrupted** (its voice runs on under the next line). The freeze beat ("תודה
+  שהצטרפת." then "אתה איתנו?") needs a full stop and a `shift` on the next line (~0.5 s beat).
+- **One take, two script lines**: Ofer said "חד משמעית מקוטע" once where the script has "חד משמעית." and, a line later,
+  "חד משמעית מקוטע." - the first line plays the same take up to "משמעית", the second the whole of it. Look for this before
+  calling a line missing (whisper heard "מקוטע" as "נקודה").
+- **Check every person's cut-out after the first build**: this project came out with Amir's and Ofer's `cutout: false`
+  (their real rooms instead of the offices) - `layer.update <who>.picture props {cutout: true}`.
+- **A broken connection, from the tool's own pieces** (his ask: "stuck, hanging, scratching, no connection"):
+  - stuck = the picture item split, the frozen part `rate: 0` (a held frame);
+  - his line breaking up = the voice item split into the words that survive ("כן... אני... שו... אתם... אותי?") with
+    silence where the others were, plus the signal "hanging": a 60 ms slice repeated 3x (`in` 15.32, 1.8 frames each);
+    the picture freezes (`rate 0`) and jumps (`in` skips ahead) in the same dropouts;
+  - scratches = `episodes/_assets/socials-ending/signal-glitch-1/2.mp3` on the sfx row at each dropout (gain ~0.5) and
+    `signal-static.mp3` very low (0.12) while he is frozen;
+  - Zoom's warning on his tile = a `toast` text layer "החיבור של רונן לא יציב" (size 17 small tile / 28 big);
+  - the subtitle = the broken words: `POST /api/p/<id>/build {action: "caption", n, text}`;
+  - camera off ("we hear him, don't see him") = his picture items removed for the span, and an image layer of exactly
+    what his tile shows of his background (crop computed with geometry.js `fitBox` + `backdropBox` for his take and
+    tile size: here x 480..1056 of the 1536 photo) - background, logo and URL, his voice going on.
+  Do all of it AFTER the last rebuild (hand ops on builder rows stay `user: true`).
+- **A guest with a site (Ronen -> shlomiverse.com/ksa)**: his virtual background carries the firm's panel (logo + URL,
+  its own picture in Media), but `fit: face` keeps his head in the middle of the tile, so in the big tile his head covers
+  any panel. While he speaks: a `pill` text layer "KSA GROUP · shlomiverse.com/ksa" in the free bottom corner of his tile
+  (bottom-left, opposite the name tag; gold #C9A96E on navy text, size 34), one item per big-tile span of his picture
+  (filter `box.w > 900` - after a removal the small tiles are 518 wide), smaller (19) in a mid-size tile.
+- **A take's bad stretch** (Daniel's phone went black / fell, 1:55-2:05): contact-sheet the take at 1 fps, and move the
+  listening tiles that land on it (`item.update ... in`) to a clean listening stretch.
