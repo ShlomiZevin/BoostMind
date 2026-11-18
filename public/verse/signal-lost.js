@@ -178,7 +178,7 @@ export function signalLost({ video, stage, drop, signedIn, signIn, assets = {}, 
 
   // "seen it on the socials? jump to where it dropped" - a few seconds before, so the drop comes again
   jump.addEventListener('click', (e) => { e.stopPropagation(); jump.hidden = true; video.currentTime = Math.max(0, at - 3.5); video.play().catch(() => {}); });
-  const jumpShow = () => { if (state === 'play' && !signedIn() && video.currentTime < at - 8) { jump.hidden = false; clearTimeout(jumpShow.t); jumpShow.t = setTimeout(() => { jump.hidden = true; }, 9000); } };
+  const jumpShow = () => { if (state === 'play' && video.currentTime < at - 8) { jump.hidden = false; clearTimeout(jumpShow.t); jumpShow.t = setTimeout(() => { jump.hidden = true; }, 9000); } };
 
   // the clock: every frame while it plays
   const tick = () => {
