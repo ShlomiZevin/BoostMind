@@ -567,7 +567,7 @@ function checkNight() {
     fxEl.innerHTML = ''; joyEnd();
     $('nightDid').textContent = did; $('nightBig').textContent = `לילה ${night}`;
     const nk = UNLOCK[night] && night <= 3 ? ' · סיפור חדש!' : '';
-    $('nightGoal').textContent = `${arena().name} · יעד: ${goal()}%${nk}`;
+    $('nightGoal').innerHTML = `${arena().name}<br><span dir="rtl">יעד: ${goal()}% מהגינה</span>${nk ? '<br><small style="color:#15803d">סיפור חדש!</small>' : ''}`;
     show('night');
   }, 1500);
 }
@@ -818,7 +818,7 @@ function hud() {
 function show(id) { document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id)); }
 function showHUD(on) { $('hud').classList.toggle('on', on); $('strip').classList.toggle('on', on); }
 function bestNum() { return +(store.get(KEY.best) || 0); }
-function showBest() {
+function showBest() { setTimeout(fitWords, 0);
   const b = bestNum(), d = (store.get(KEY.day) || '').split('|');
   const td = d[0] === today() ? +d[1] : 0;
   $('bestStart').innerHTML = `<span><small>${td ? 'השיא של היום' : 'השיא שלך'}</small><b>${(td || b || 0).toLocaleString('en-US')}</b></span>`;
@@ -836,7 +836,7 @@ function gameOver() {
     fxEl.innerHTML = ''; showHUD(false); joyEnd();
     $('overH').textContent = caughtWhy === 'zone' ? 'צו הרחקה!' : caughtWhy === 'self' ? 'נתקעת בשובל של עצמך!' : 'נתפסת!';
     $('overScore').innerHTML = `${score}<small>נקודות · הגעתם ללילה ${night}</small>`;
-    $('overLine').textContent = night >= 4 ? '״כל הגינה מכירה אותי. אני שואל בשביל לדעת.״' : night >= 2 ? '״היה לילה טוב. יש לי עוד המון שאלות קטנות.״' : '״אבל רק שאלתי שאלה קטנה!״';
+    $('overLine').textContent = night >= 4 ? 'כל הגינה מכירה אותי. אני שואל בשביל לדעת.' : night >= 2 ? 'היה לילה טוב. יש לי עוד המון שאלות קטנות.' : 'אבל רק שאלתי שאלה קטנה!';
     $('overRec').innerHTML = rec && score ? '<span class="newrec">שיא חדש!</span>' : '';
     showBest(); show('over');
   }, 900);
@@ -950,7 +950,18 @@ function frame(now) {
 }
 let hudN = 0;
 function hudLite() { if (++hudN % 10 === 0) hud(); }
-layout(); hud(); showBest(); requestAnimationFrame(frame);
+// words on painted pieces: shrink until they fit the piece's face (the record badge, the signs)
+function fitWords() {
+  document.querySelectorAll('.rec span').forEach((el) => {
+    el.style.fontSize = ''; el.querySelectorAll('small,b').forEach((x) => { x.style.fontSize = ''; });
+    for (let k = 0; k < 12 && (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1); k++) {
+      const f = parseFloat(getComputedStyle(el).fontSize) * 0.92; el.style.fontSize = f + 'px';
+      el.querySelectorAll('small,b').forEach((x) => { x.style.fontSize = parseFloat(getComputedStyle(x).fontSize) * 0.92 + 'px'; });
+    }
+  });
+}
+addEventListener('resize', fitWords);
+layout(); hud(); showBest(); fitWords(); document.fonts && document.fonts.ready.then(fitWords); requestAnimationFrame(frame);
 
 // for the tests
 window.GARDEN = {

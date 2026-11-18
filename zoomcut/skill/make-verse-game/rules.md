@@ -38,6 +38,20 @@ principles - apply them to whatever the game is.
     it must fit a 320x568 phone AND the verse's short frame (~380 px tall) without scrolling or cutting.
   - **Check** at 320x568, 390x844, desktop and inside the verse (add `in-verse` to `<html>` in the test): every button on
     screen, >= 44 px tall, >= 10 px apart, nothing over the character's face; read the screenshots yourself.
+  - **Every screen inside the game uses the same kit** (his rule, 18 Nov 2026: "make sure all menus look nice"): pause,
+    level / night card, game over, the tutorial card - a painted frame with an empty face (paint one TALL panel with its
+    decorations in the CORNERS, so it can stretch: CSS `border-image: url(panel.webp) <slice> fill / <width> stretch`,
+    slice = the corner size in the picture's pixels), the heading on a painted plaque over the frame's top edge, the
+    painted signs as buttons (one main, one secondary), dark text on the light face, the character's face beside his
+    line (no quote marks - a closing ״ wraps alone onto its own line). Inside screens sit above every effect layer
+    (z-index) - a countdown banner must never fly over the pause panel. A panel with decorations in the middle of its
+    sides can't stretch - don't use it for a box whose height changes.
+  - **Pixel perfect on painted pieces** (same day: the record's words were off its badge): measure each piece's empty
+    face - draw the picture big with a 5% grid, read where the face starts and ends - and place the words in exactly
+    that box (`position:absolute; left/right/top/bottom` in %), centred; words that can grow (a record, a name) shrink
+    in code until they fit the box (`scrollWidth <= clientWidth`). Trim every painted piece on real paint
+    (alpha > 40), never on `getbbox()` - faint see-through pixels left an empty strip under a house and it floated.
+    Test it with a long value (a 4-digit record) at 320x568.
   Exits during play go back to this start screen. Never a floating button, never a reserved top strip.
 - Phone upright is the main layout; the computer layout is the same game with more room, not a different design.
 - **The game area IS the screen** (his rule, 12 Nov 2026: "don't waste place on areas which are not the game - I saw
