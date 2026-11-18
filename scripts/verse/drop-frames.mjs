@@ -34,6 +34,6 @@ shots.forEach((t, i) => execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-ss
 const out = path.join(tmp, `${id}.frames.jpg`);
 execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...shots.flatMap((_, i) => ['-i', path.join(tmp, `f${i}.png`)]), '-filter_complex', 'vstack=4', '-q:v', '5', out]);
 if (args.includes('--dry')) { console.log('dry: ' + out); process.exit(0); }
-execFileSync('gcloud', ['storage', 'cp', out, BUCKET + id + '.frames.jpg', '--cache-control=public, max-age=86400'], { stdio: 'ignore', shell: true });
+execFileSync('gcloud', ['storage', 'cp', out, BUCKET + id + '.frames.jpg', '"--cache-control=public, max-age=86400"'], { stdio: 'ignore', shell: true });   // (quoted: shell:true split it at the space on Windows)
 console.log(`${id}: frames at ${shots.join(', ')} s (drop at ${at}) -> ${BUCKET}${id}.frames.jpg (${Math.round(fs.statSync(out).size / 1024)} KB)`);
 if (args.includes('--keep')) console.log('kept: ' + out);
