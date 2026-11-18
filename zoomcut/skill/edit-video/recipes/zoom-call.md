@@ -48,8 +48,10 @@ any number of people (5 = one big tile + 4 thumbnails, a 2x2 gallery after a rem
     he is cut off), not when the next voice starts. The new voice is heard under him first (a J-cut), and the switch is
     never later than 0.3 s before the new line ends. Asides, forced layouts and the removal attempt keep their own times.
   - `min_shot`: no shot shorter than that. A shot that comes too soon waits, and it is dropped if its speaker would be
-    done by then (nobody is shown after their words). A removal never moves, so the attempt just before it may stay
-    short.
+    done by then (nobody is shown after their words). **Fixed shots never move:** a removal, the last try just before it
+    (which may stay short), and a line's forced `layout` in corrections. Use a forced layout to "give Ofer his place" in a
+    fast exchange: his note, 2026-11-18, was "when Ofer talks, show Ofer more". Shots before a fixed one give way, and one
+    it would cut below min_shot is dropped, so the shot before that holds a moment longer.
   - In fast ping-pong, some quick lines are heard but not seen. That is the rule working. A line that must be seen gets
     a `layout` in corrections, or a `shift`.
   - Measured on the-consultant: shots under 1.5 s went from 18 to 1 (the removal attempt).

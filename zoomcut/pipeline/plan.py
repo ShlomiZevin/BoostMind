@@ -204,10 +204,11 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
                 shots.append({"t": back, "layout": "speaker", "order": on(on_screen, back)})
             continue
         until = b["cut_t"] if b.get("interrupted") else b["end_t"]  # (his voice stops - for min_shot: too late after this = no shot)
-        if b.get("layout"):
-            shots.append({"t": at, "layout": b["layout"], "order": on(spk, at)})
+        if b.get("layout"):  # (forced by hand in corrections: min_shot never moves or drops it - the shots before it give way)
+            shots.append({"t": at, "layout": b["layout"], "order": on(spk, at), "fixed": True})
         elif k == 0 or spk != on_screen:
-            shots.append({"t": at, "layout": "speaker", "order": on(spk, at), "until": until})
+            shots.append({"t": at, "layout": "speaker", "order": on(spk, at), "until": until,
+                          **({"fixed": True} if "shot_at" in b else {})})  # (the last try before a removal: its moment)
         elif shots and shots[-1]["layout"] != "speaker":  # back to auto after a forced layout
             shots.append({"t": at, "layout": "speaker", "order": on(spk, at)})
         elif tm.get("min_shot"):  # (min_shot may drop a turn's shot - so every line offers his shot; repeats merge away)
@@ -324,9 +325,11 @@ def _merge_shots(shots):
 
 def _min_shots(shots, min_shot):
     """No shot shorter than min_shot seconds (his rule, 2026-11-18: "nobody under 1.5 s"): a shot that comes too soon
-    waits until the one before it has had min_shot. A "fixed" shot (someone removed from the call) never moves. A
+    waits until the one before it has had min_shot. A "fixed" shot (someone removed from the call, a line's forced
+    `layout`) never moves. A
     waiting shot is dropped when its speaker would be done by then (`until` - never show someone after his words), or
-    when it can't get min_shot before the next fixed one (the shots after it wait / drop in turn)."""
+    when it can't get min_shot before the next fixed one (the shots after it wait / drop in turn); a shot a fixed one
+    would cut below min_shot is dropped."""
     out = []
     for i, s in enumerate(shots):
         s = dict(s)
@@ -335,6 +338,11 @@ def _min_shots(shots, min_shot):
             continue
         if out and s["layout"] == out[-1]["layout"] and s["order"] == out[-1]["order"]:
             continue  # (already on screen)
+        if s.get("fixed"):  # the shots before it give way: one it would cut below min_shot goes (never the first, never a fixed one)
+            while len(out) > 1 and not out[-1].get("fixed") and s["t"] - out[-1]["t"] < min_shot:
+                out.pop()
+            if out and s["layout"] == out[-1]["layout"] and s["order"] == out[-1]["order"]:
+                continue  # (already on screen)
         if out and not s.get("fixed") and s["t"] - out[-1]["t"] < min_shot:
             s["t"], s["moved"] = out[-1]["t"] + min_shot, True
             nxt = next((x for x in shots[i + 1:]), None)
