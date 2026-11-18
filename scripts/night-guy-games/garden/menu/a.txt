@@ -1,0 +1,4 @@
+The START SCREEN (main menu) of a polished mobile phone game, upright phone screen, designed by a top mobile-game UI designer, using the first reference painting as the full background art and the second reference as the game title logo (Hebrew "פסיכופת גינה", keep its letters exactly).
+It must contain, in Hebrew: the title logo; ONE big main button "שחקו"; a smaller "איך משחקים" button; today's record "השיא שלך: 1,240"; a small sound icon; a small link "פסיכופת גינה בשלומיוורס"; a short tagline "יש לו שאלה קטנה".
+The painting is the hero - the screen should feel like the game's shop window, rich and premium like a top App Store game, nothing like a plain web page. No paragraphs of text.
+Direction: the painting fills the whole screen edge to edge; the title big at the top; the buttons sit at the bottom over a soft dark fade, the main button large and glowing, game-like.

@@ -1,0 +1,7 @@
+A sheet of blank game UI pieces for a mobile game's start screen, matching exactly the wooden night-park sign style of the reference (warm wood, little flowers and leaves, glowing lamp light): 
+1 a big wide wooden sign for the main button (empty face, no words), with small flowers at its ends;
+2 a smaller wide wooden plaque (empty, no words);
+3 a small rounded wooden badge with a gold trophy on its left side and empty space for a number;
+4 a round wooden button with a speaker icon;
+5 a long thin wooden plaque (empty, no words).
+Arranged in a grid of 3 columns and 2 rows (the 6th cell empty), each piece whole and centered in its cell with space around it. Transparent background, no text anywhere, no shadows.

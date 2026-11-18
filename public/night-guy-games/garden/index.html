@@ -97,18 +97,33 @@ body.turn #turn{display:flex}
 .night-did{color:#d8ccf5;font-size:17px;font-weight:700;margin:0}
 .night-goal{color:#fff;font-size:18px;font-weight:900;margin:0}
 
-#start{gap:clamp(8px,2vh,18px)}
-#start .hero{width:min(94vw,560px,calc((100vh - 300px) * 1.905));aspect-ratio:1200/630;border-radius:20px;box-shadow:0 0 0 3px #a78bfa55,0 14px 40px #000a;object-fit:cover;background:#2a1850}
-.startBtns{display:flex;flex-direction:column;align-items:center;gap:10px}
-#playBtn{display:flex;align-items:center;justify-content:center;gap:10px;min-width:240px;font-size:28px;padding:15px 34px;animation:breathe 2.4s ease-in-out infinite}
-#playBtn svg{width:24px;height:24px;fill:var(--ink)}
-@keyframes breathe{50%{transform:scale(1.04)}}
-#howBtn{min-width:0;padding:9px 22px;font-size:16px;background:#ffffff1f;color:#fff;box-shadow:none;border:2px solid #ffffff55}
-.foot{display:flex;align-items:center;gap:14px}
-.foot a{color:#d8ccf5;font-weight:700;font-size:15px;text-decoration:none}
-.who{color:#a99cc9;font-size:13px;font-weight:700;margin:0}
-@media (max-height:620px){.who{display:none}#start .sub{font-size:14px}#playBtn{font-size:23px;padding:11px 26px}#start{gap:7px}}
-@media (max-height:460px){#start .sub{display:none}}
+/* the start screen - design B: the painting is the screen, the buttons are signs from the night park */
+#start{justify-content:space-between;gap:8px;padding:calc(var(--safe-t) + 8px) 12px calc(var(--safe-b) + 12px);background:url(assets/ui/start-bg.jpg) center 30%/cover no-repeat,#0d0818}
+#start::after{content:'';position:absolute;inset:0;background:linear-gradient(#0d081870,transparent 24%,transparent 50%,#0d0818cc 86%,#0d0818f0);pointer-events:none}
+#start>*{position:relative;z-index:1}
+@media (min-aspect-ratio:4/5){#start{background:url(assets/ui/start-bg.jpg) center top/auto 100% no-repeat,radial-gradient(ellipse at 50% 40%,#2a1850,#0d0818 70%)}}
+.st-top{display:flex;flex-direction:column;align-items:center;gap:2px}
+.st-title{width:min(78vw,380px,46vh);filter:drop-shadow(0 6px 14px #000c)}
+.st-bottom{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2.2vh,20px);width:100%}
+.st-row{display:flex;gap:clamp(10px,3vw,18px);justify-content:center;align-items:center}
+.st-foot{display:flex;justify-content:space-between;align-items:center;width:min(100%,420px);padding:0 2px}
+.sign{all:unset;box-sizing:border-box;position:relative;display:grid;place-items:center;background:center/100% 100% no-repeat;cursor:pointer;color:#fff4dc;font-family:Rubik,system-ui,sans-serif;font-weight:900;line-height:1;text-shadow:0 2px 0 #5a2a0a,0 3px 8px #000b;transition:transform .12s;-webkit-tap-highlight-color:transparent;text-decoration:none}
+.sign:active{transform:scale(.94)}
+.sign:focus-visible{outline:3px solid #facc15;outline-offset:3px;border-radius:20px}
+.sign.play{background-image:url(assets/ui/sign-play.webp);width:min(78vw,370px,50vh);aspect-ratio:640/213;font-size:clamp(26px,5.4vh,42px);animation:breathe 2.4s ease-in-out infinite}
+.sign.play span{margin-top:-4%}
+.sign.mid{background-image:url(assets/ui/sign-mid.webp);width:min(42vw,190px,30vh);aspect-ratio:420/162;font-size:clamp(14px,2.4vh,18px)}
+.sign.back{background-image:url(assets/ui/sign-back.webp);width:min(46vw,215px,33vh);aspect-ratio:520/161;font-size:clamp(13px,2.2vh,16px)}
+.sign.back span{padding:0 33% 0 10%;text-align:center;line-height:1.05}
+.sign.thin{background-image:url(assets/ui/sign-thin.webp);width:min(52vw,230px,34vh);aspect-ratio:420/115;font-size:clamp(13px,2.2vh,16px);cursor:default;margin-top:-6px}
+.sign.thin:active{transform:none}
+.rec{background:url(assets/ui/badge-record.webp) center/100% 100% no-repeat;width:min(36vw,150px,24vh);aspect-ratio:420/198;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8% 0 34%;color:#fff4dc;font-weight:900;text-shadow:0 2px 0 #5a2a0a;line-height:1.05}
+.rec small{font-size:clamp(10px,1.6vh,12px);font-weight:700;opacity:.92;white-space:nowrap}
+.rec b{font-size:clamp(15px,2.8vh,21px);color:#fde68a}
+.sign.snd{background-image:url(assets/ui/btn-sound.webp);width:clamp(48px,9vh,64px);aspect-ratio:420/344}
+.sign.snd.off{filter:grayscale(.8) brightness(.75)}
+.sign.snd.off::after{content:'';position:absolute;left:22%;right:22%;top:48%;height:9%;background:#ef4444;border-radius:4px;transform:rotate(-40deg);box-shadow:0 0 0 2px #5a2a0a}
+html:not(.in-verse) .verse-only{display:none!important}html.in-verse .verse-hide{display:none!important}
 
 /* tutorial */
 #tutDim{position:fixed;inset:0;display:none;pointer-events:none;z-index:7}
@@ -144,19 +159,21 @@ body.turn #turn{display:flex}
 <div id="turn"><svg viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>סובבו את הטלפון לאורך<br><small style="font-size:15px;font-weight:700;opacity:.8">״סליחה, אפשר לשאול אותך משהו? רק לאורך.״</small></div>
 
 <div class="screen on" id="start">
-  <img class="hero" src="assets/hero.jpg" alt="פסיכופת גינה">
-  <p class="sub">בלילה, בגינה, יש לו שאלה קטנה ותמימה לכל מי שעוברת.<br>סגרו שטחים – וסגרו עליהן את השיחה לפני שהסיפור נהיה מחריד.</p>
-  <div class="startBtns">
-    <button class="big" id="playBtn"><svg viewBox="0 0 24 24"><path d="M17 4v16L4 12z"/></svg>שחקו</button>
-    <button class="mid" id="howBtn">איך משחקים</button>
-    <span data-verse-back-btn></span>
+  <div class="st-top">
+    <img class="st-title" src="assets/title.png" alt="פסיכופת גינה">
   </div>
-  <div class="best" id="bestStart"></div>
-  <div class="foot">
-    <a class="verse-hide" href="/c/night-guy" target="_top">פסיכופת גינה בשלומיוורס ←</a>
-    <button class="ibtn sndBtn" aria-label="צליל"></button>
+  <div class="st-bottom">
+    <button class="sign play" id="playBtn"><span>שחקו</span></button>
+    <div class="st-row">
+      <button class="sign mid" id="howBtn"><span>איך משחקים</span></button>
+      <button class="sign back verse-only" data-verse-back aria-label="חזרה למשחקים"><span>חזרה<br>למשחקים</span></button>
+      <a class="sign mid verse-hide" href="/c/night-guy" target="_top"><span>בשלומיוורס ←</span></a>
+    </div>
+    <div class="st-foot">
+      <div class="rec" id="bestStart"></div>
+      <button class="sign snd sndBtn painted" aria-label="צליל"></button>
+    </div>
   </div>
-  <p class="who">פסיכופת גינה · יש לו שאלה קטנה</p>
 </div>
 
 <div class="screen" id="night">
@@ -195,6 +212,6 @@ body.turn #turn{display:flex}
     <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
   </div>
 </div>
-<script src="game.js?v=3"></script>
+<script src="game.js?v=4"></script>
 </body>
 </html>

@@ -143,7 +143,7 @@ function loop(n, vol) {           // vol 0 = off
 function loopsOff() { for (const n of Object.keys(wantLoops)) loop(n, 0); }
 const SPK = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const MUTE = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
-function sndIcons() { document.querySelectorAll('.sndBtn').forEach((b) => { b.innerHTML = SND.on ? SPK : MUTE; }); }
+function sndIcons() { document.querySelectorAll('.sndBtn').forEach((b) => { if (b.classList.contains('painted')) b.classList.toggle('off', !SND.on); else b.innerHTML = SND.on ? SPK : MUTE; }); }
 document.querySelectorAll('.sndBtn').forEach((b) => b.onclick = () => { audioUnlock(); SND.on = !SND.on; store.set(KEY.snd, SND.on ? '1' : '0'); if (SND.master) SND.master.gain.value = SND.on ? 1 : 0; sndIcons(); });
 sndIcons();
 
@@ -331,23 +331,32 @@ function girlStep(g, dt) {
   if (g.state === 'stuck') {
     // trapped in his ground: she runs for it and bounces off the edge, again and again, till he's done
     g.t -= dt;
-    if (g.t <= 0) { g.state = 'flee'; g.out = null; play('scream', .55); guySays(pickNo(LINES.done, 'done'), 1.8); return; }
+    if (g.t <= 0) { g.state = 'kept'; guySays(pickNo(LINES.done, 'done'), 1.8); }
   }
-  const fleeing = g.state === 'flee', stuck = g.state === 'stuck';
-  const spd = stuck ? 3.4 : fleeing ? 4.4 : g.state === 'talk' ? g.spd * 0.55 : g.spd;
-  const dx = g.tc - g.x, dy = g.tr - g.y, d = Math.hypot(dx, dy);
-  if (d > 0.001) {
-    const m = Math.min(d, spd * dt); g.x += dx / d * m; g.y += dy / d * m; g.walk += m; g.moving = true;
-    if (Math.abs(dx) > Math.abs(dy)) { g.view = 's'; g.flip = dx < 0; } else g.view = dy > 0 ? 'f' : 'b';
-    return;
+  const fleeing = g.state === 'flee', stuck = g.state === 'stuck', kept = g.state === 'kept';
+  const spd = stuck ? 3.4 : kept ? 1.2 : fleeing ? 4.4 : g.state === 'talk' ? g.spd * 0.55 : g.spd;
+  let budget = spd * dt;
+  for (let guard = 0; guard < 3; guard++) {
+    const dx = g.tc - g.x, dy = g.tr - g.y, d = Math.hypot(dx, dy);
+    if (d > 0.0005) {
+      const m = Math.min(d, budget); g.x += dx / d * m; g.y += dy / d * m; g.walk += m; budget -= m; g.moving = true;
+      if (Math.abs(dx) > Math.abs(dy)) { g.view = 's'; g.flip = dx < 0; } else g.view = dy > 0 ? 'f' : 'b';
+      if (budget <= 0.0001) return;
+    }
+    g.c = g.tc; g.r = g.tr;
+    girlRoute(g);
+    if (g.gone || (g.tc === g.c && g.tr === g.r)) { g.moving = false; return; }
   }
-  g.c = g.tc; g.r = g.tr; g.moving = false;
+}
+// she reached a tile centre: where to next
+function girlRoute(g) {
+  const fleeing = g.state === 'flee', stuck = g.state === 'stuck' || g.state === 'kept';
   if (stuck) {
     if (!g.run) g.run = pick(DIR4);
     let nc = g.c + g.run.x, nr = g.r + g.run.y;
     if (!inside(nc, nr) || !owner[idx(nc, nr)] || block[idx(nc, nr)]) {
       // the edge of his ground: bump, bounce back, try another way
-      g.sq = 1; play('bump', .4); if (Math.random() < 0.5) popText(px(g.x), py(g.y) - B.t * 3.2, pick(['!!', 'הצילו!', 'אין יציאה!']), 'bad');
+      g.sq = 1; if (g.state === 'stuck') { play('bump', .4); if (Math.random() < 0.5) popText(px(g.x), py(g.y) - B.t * 3.2, pick(['!!', 'הצילו!', 'אין יציאה!']), 'bad'); }
       const back = { x: -g.run.x, y: -g.run.y }, opts = DIR4.filter((q) => { const x = g.c + q.x, y = g.r + q.y; return inside(x, y) && owner[idx(x, y)] && !block[idx(x, y)]; });
       g.run = opts.length ? (opts.find((q) => q.x === back.x && q.y === back.y && Math.random() < 0.6) || pick(opts)) : back;
       nc = g.c + g.run.x; nr = g.r + g.run.y;
@@ -661,11 +670,9 @@ function sprite(im, cx, bottom, h, flip, alpha = 1, sq = 1) {
   ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
 }
 // a walk-cycle frame: stride, pass, stride (mirrored front / back), pass; feet anchored where the sheet put them
-function animFrame(set, view, walk, moving, mirrorOK) {
+function animFrame(set, view, walk, moving, rate = 2.2) {
   if (!moving) return { key: `${set}-${view}2`, mirror: false };
-  const ph = Math.floor(walk * 2.2) % 4;
-  const n = ph % 2 ? 2 : 1, mirror = mirrorOK && view !== 's' && ph === 2;
-  return { key: `${set}-${view}${n}`, mirror };
+  return { key: `${set}-${view}${Math.floor(walk * rate) % 2 ? 2 : 1}`, mirror: false };
 }
 function drawAnim(set, fr, cx, bottom, h, flipSide, alpha = 1, sqx = 1, sqy = 1) {
   const im = IMG[fr.key]; if (!ok(im)) return false;
@@ -738,17 +745,17 @@ function draw(now) {
     } });
   }
   for (const g of girls) items.push({ y: g.y, f: () => {
-    const cx = px(g.x), by = py(g.y) + t * 0.45, run = g.state === 'flee' || g.state === 'stuck';
+    const cx = px(g.x), by = py(g.y) + t * 0.45, run = g.state === 'flee' || g.state === 'stuck', kept = g.state === 'kept';
     const set = `${g.kind}-${run ? 'run' : 'walk'}`;
-    const fr = animFrame(set, g.view, g.walk, g.moving || run, g.kind !== 'dog');
+    const fr = animFrame(set, g.view, g.walk, g.moving || run, run ? 2.6 : 3.4);
     const away = g.state === 'flee' && !inside(Math.round(g.x), Math.round(g.y));
     shadow(cx, by, t * 1.2);
     const sq = g.sq || 0;
-    drawAnim(set, fr, cx, by - (g.moving ? Math.abs(Math.sin(g.walk * Math.PI * 2.2)) * t * 0.06 : 0), t * 2.95, g.view === 's' && g.flip, away ? 0.5 : 1, 1 + sq * 0.18, 1 - sq * 0.15);
+    drawAnim(set, fr, cx, by - (g.moving ? Math.abs(Math.sin(g.walk * Math.PI * 3.4)) * t * 0.05 : 0), t * 2.95, g.view === 's' && g.flip, away ? 0.5 : 1, 1 + sq * 0.18, 1 - sq * 0.15);
     // her face over her head: how the talk is going
     let f = null;
     if (g.state === 'talk') f = talk && talk.g === g && talk.step >= 2 ? 'unsure' : 'polite';
-    else if (run) f = 'horror';
+    else if (run || kept) f = 'horror';
     else if (g.cool > 0) f = 'unsure';
     if (f) { const s2 = t * 1.9, pulse = 1 + (g.state === 'talk' ? Math.sin(now * 6) * 0.05 : run ? Math.sin(now * 20) * 0.04 : 0); const im = IMG['face-' + f]; if (ok(im)) ctx.drawImage(im, cx - s2 * pulse / 2, by - t * 2.95 - s2 * pulse - t * 0.05, s2 * pulse, s2 * pulse); }
     if (g.state === 'stuck') { ctx.fillStyle = '#7dd3fc'; for (let k = 0; k < 2; k++) { const a = now * 6 + k * 3; ctx.beginPath(); ctx.ellipse(cx + Math.cos(a) * t * 0.7, by - t * 2.2 + Math.abs(Math.sin(a)) * t * 0.3, t * 0.08, t * 0.13, 0, 0, Math.PI * 2); ctx.fill(); } }
@@ -769,7 +776,7 @@ function draw(now) {
     const moving = !player.idle && player.prog < 1 && state !== 'count';
     const view = dir.x ? 's' : dir.y > 0 ? 'f' : 'b';
     if (!moving && talk) { sprite(IMG['guy-talk'], cx, by, t * 2.9, player.face < 0, blink ? 0.4 : 1, 1 + Math.sin(now * 8) * 0.02); return; }
-    const fr = animFrame('guy', view, player.walk, moving, true);
+    const fr = animFrame('guy', view, player.walk, moving, 2.2);
     const bq = player.bump > 0 ? Math.sin(player.bump * 40) * 0.08 : 0;
     const bob = moving ? Math.abs(Math.sin(player.walk * Math.PI * 2.2)) * t * 0.07 : 0;
     if (!drawAnim('guy', fr, cx, by - bob, t * 3.05, view === 's' && dir.x < 0, blink ? 0.4 : 1, 1 + bq, 1 - bq)) sprite(IMG['guy-talk'], cx, by, t * 2.9, player.face < 0);
@@ -813,7 +820,7 @@ function bestNum() { return +(store.get(KEY.best) || 0); }
 function showBest() {
   const b = bestNum(), d = (store.get(KEY.day) || '').split('|');
   const td = d[0] === today() ? +d[1] : 0;
-  $('bestStart').innerHTML = b ? `השיא שלכם: <b>${b}</b>` + (td ? ` · היום: <b>${td}</b>` : '') : 'כמה מהגינה יהיה שלו הלילה?';
+  $('bestStart').innerHTML = `<small>${td ? 'שיא היום' : 'השיא'}</small><b>${(td || b || 0).toLocaleString('en-US')}</b>`;
   $('bestOver').innerHTML = b ? `השיא שלכם: <b>${b}</b>` : '';
 }
 function gameOver() {

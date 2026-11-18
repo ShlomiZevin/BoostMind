@@ -224,9 +224,12 @@ Read `rules.md` in this folder - all of it - before writing the game. The short 
      `--verse-top` is only the safe area there, so the game starts from the top. Keep using `var(--safe-t)`.
    - **The game opens on its own start screen** (his call after trying autostart: "a huge mess") - cover, "שחקו",
      "איך משחקים", levels, all of it, as on its own address.
-   - **The way back to the games lives ONLY on that start screen, and it is the verse's button, not yours**: put
-     `<span data-verse-back-btn></span>` in the main menu (poster / "שחקו" / "איך משחקים") and game-frame.js draws the same
-     orange "חזרה למשחקים" pill with the planet in every game, only inside the verse - never style your own. It returns to
+   - **The way back to the games lives ONLY on that start screen, and EACH GAME PAINTS ITS OWN** (his rule, 18 Nov 2026 -
+     the verse's orange pill was "ugly as hell"; older games keep it, new games never use it): a "חזרה למשחקים" button in the
+     game's own menu style WITH the Shlomiverse logo on it (`v2/site/verse/logo-512.png` as a reference when painting it),
+     `class="... verse-only" data-verse-back` (game-frame.js turns it into the way back and shows it only in the verse; add
+     `html:not(.in-verse) .verse-only{display:none!important}` to the game's CSS too). Outside the verse its slot holds the
+     character link (`verse-hide`). The whole start screen follows "The start screen (menu)" in `rules.md`. It returns to
      the feed at this game. Exits inside the game (the pause menu, a home icon) go back to the GAME's own start screen.
      The game's own "לכל המשחקים" link gets `verse-hide` (the verse button replaces it inside the verse), and EVERY end / game-over
      screen offers a way to that menu ("לתפריט", the same as the pause menu's exit) - else a player there has no way back.

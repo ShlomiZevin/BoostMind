@@ -14,11 +14,30 @@ principles - apply them to whatever the game is.
 - **Simple** (his rule): the fewest screens, options and buttons that still make it a full game. No settings pages.
 
 ## Screens and layout
-- Start screen: the game's cover art as the hero, the title, one line of what it is, ONE big main button ("שחקו"),
-  a quieter "איך משחקים", the record, and a small footer (back to the hub, sound). Not a stack of equal buttons.
-  He called a plain menu "terrible" - the start screen is the game's shop window. In the verse it also holds the way
-  back to the games - the verse's own button, `<span data-verse-back-btn></span>` (game-frame.js draws it, never style your own) - only there; exits during play go back to
-  this start screen. Never a floating button, never a reserved top strip.
+- **The start screen (menu)** - his rule, 18 Nov 2026 ("I don't like our menus", the card-picture + paragraph + stacked
+  buttons layout). The flow: the verse's games feed -> "לשחק" -> the game's OWN start screen. Every game designs its own,
+  in its own world, by these rules (worked example: `public/night-guy-games/garden/`, design B in
+  `scripts/night-guy-games/garden/menu/`):
+  - **Designed first**: GPT draws 3 start-screen mockups (A / B / C stamped big) from the game's tall key art + title art,
+    each a different direction (full-bleed glow / buttons painted as things from the game's world / arcade); he picks.
+  - **The painting IS the screen**: a tall key art (1024x1536, the character from the portrait, sunburst HIGH; open sky at
+    the top for the title, open ground at the bottom for the buttons) as the full-screen background, a dark fade only
+    behind the buttons. On a wide screen the painting at full height in the middle on the game's dark colour.
+  - **Zones, top to bottom**: the title art (top, big) -> the character's face, nothing over it -> the buttons. No
+    paragraph of text, no tagline plaque over the art (it covered his face on small phones).
+  - **The buttons**: ONE big main "שחקו" (the biggest thing after the title, gently breathing) -> ONE row of two equal
+    buttons side by side, a clear gap between them: "איך משחקים" + "חזרה למשחקים" (in the verse) / the character link
+    (outside it) -> a footer row: sound in one corner, the record badge in the other (+ levels / modes as one more row
+    only if the game has them). Never buttons stacked one on another, never more than these.
+  - **Painted pieces, words in code**: the buttons are blank painted pieces in the game's material (a sheet: big sign,
+    plaque, record badge with its icon, round sound button, the back button with the Shlomiverse logo), the Hebrew
+    written over them in code (Rubik 900, a light face with a dark engraved shadow) so every letter is exact. Cut the
+    sheet by its shapes when the pieces differ in size (a grid cut mixes them). Mute = the same piece greyed + a slash.
+  - **Sized from the screen**: widths in `min(vw, px, vh)`, fonts in `clamp(px, vh, px)`, gaps `clamp(10px, 2vh, 20px)`;
+    it must fit a 320x568 phone AND the verse's short frame (~380 px tall) without scrolling or cutting.
+  - **Check** at 320x568, 390x844, desktop and inside the verse (add `in-verse` to `<html>` in the test): every button on
+    screen, >= 44 px tall, >= 10 px apart, nothing over the character's face; read the screenshots yourself.
+  Exits during play go back to this start screen. Never a floating button, never a reserved top strip.
 - Phone upright is the main layout; the computer layout is the same game with more room, not a different design.
 - **The game area IS the screen** (his rule, 12 Nov 2026: "don't waste place on areas which are not the game - I saw
   it in games made for the verse"): the board / play field takes almost the whole phone; HUD, speech and controls are
