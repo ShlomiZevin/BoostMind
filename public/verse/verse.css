@@ -3143,7 +3143,8 @@ button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); 
 .live { position: relative; isolation: isolate; display: flex; align-items: center; gap: 10px; height: 72px; padding-inline: 12px 12px; border-radius: 16px; overflow: hidden;
   text-decoration: none; color: #fff; background: #120b08; box-shadow: 0 0 0 1.5px rgba(255, 122, 48, .9), 0 0 18px rgba(255, 106, 31, .32); -webkit-tap-highlight-color: transparent; }
 .live:active { transform: scale(.99); }
-.live-bg { position: absolute; inset: 0; z-index: -3; overflow: hidden; border-radius: inherit; clip-path: inset(0 round 16px); -webkit-clip-path: inset(0 round 16px); }   /* iPhone (WebKit) doesn't clip moving layers to a parent's rounded overflow - clip the picture layer itself (his iPhone, 2026-11-18) */
+.live-bg { position: absolute; inset: 0; z-index: -3; overflow: hidden; border-radius: inherit; clip-path: inset(0 round 16px); -webkit-clip-path: inset(0 round 16px);
+  contain: paint; transform: translateZ(0); -webkit-mask-image: -webkit-radial-gradient(#fff, #000); mask-image: radial-gradient(#fff, #000); }   /* iOS (Safari and Chrome = WebKit) lets moving, composited layers escape a rounded overflow and even clip-path; a mask on the clipping layer + paint containment force a real clip (his iPhone, 2026-11-18, twice) */
 .live-bg.poster i { position: absolute; top: -12%; bottom: -12%; left: -4%; width: 70%; background: var(--pic) 50% 30% / cover; animation: live-drift 7s ease-in-out infinite alternate; }
 .live-bg.frames i { position: absolute; left: 6%; width: 56%; top: 50%; aspect-ratio: 1.6; background-image: var(--pic); background-size: 100% 400%; opacity: 0;
   transform: translateY(-50%) scale(1.02); animation: live-frame 8s linear infinite, live-kb1 8s ease-out infinite; }
