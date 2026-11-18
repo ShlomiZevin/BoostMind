@@ -3155,8 +3155,8 @@ button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); 
 .live-bg.frames i:nth-child(2) { background-position: 0 33.333%; animation-delay: -6s; animation-name: live-frame, live-kb2; }
 .live-bg.frames i:nth-child(3) { background-position: 0 66.667%; animation-delay: -4s; animation-name: live-frame, live-kb3; }
 .live-bg.frames i:nth-child(4) { background-position: 0 100%; animation-delay: -2s; animation-name: live-frame, live-kb4; }
-.live-shade { position: absolute; inset: 0; z-index: -2; background: linear-gradient(to left, rgba(12, 7, 4, .95) 0%, rgba(12, 7, 4, .88) 34%, rgba(12, 7, 4, .4) 58%, rgba(12, 7, 4, .08) 80%, rgba(12, 7, 4, .2) 100%); }
-.live-scan { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 3px); }
+.live-shade { position: absolute; inset: 0; z-index: -2; border-radius: inherit; background: linear-gradient(to left, rgba(12, 7, 4, .95) 0%, rgba(12, 7, 4, .88) 34%, rgba(12, 7, 4, .4) 58%, rgba(12, 7, 4, .08) 80%, rgba(12, 7, 4, .2) 100%); }
+.live-scan { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 3px); }
 .live-glitch { position: absolute; inset-inline: 4px; top: 30%; height: 5px; z-index: -1; pointer-events: none; opacity: 0; mix-blend-mode: screen;
   background: linear-gradient(90deg, transparent, rgba(255, 60, 90, .55) 18%, rgba(60, 200, 255, .55) 48%, rgba(255, 255, 255, .4) 66%, transparent); animation: live-glitch 5.5s steps(1) infinite; }
 .live-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
