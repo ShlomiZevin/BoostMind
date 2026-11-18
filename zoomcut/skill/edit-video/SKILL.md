@@ -144,6 +144,9 @@ layers a builder made; the editor and the export don't know or care which builde
    Shlomiverse** (live since 2026-11-17): a signed-out viewer gets the same drop over the full video, with a sign-in
    button that brings the reception back ("השידור ממשיך בשלומיוורס"; `v2/site/verse/signal-lost.js`). The drop's
    time travels by itself: publishing from the studio sends `version.js` `dropOf` -> the video's `drop` on the site.
+   **After publishing a video with a drop:** `node scripts/verse/drop-frames.mjs <video id>` - 4 frames from before the
+   drop (no spoiler) for the home's live strip (shown 7 days for every drop video); without them the strip falls back
+   to the poster.
    **Why it works - every video is a live broadcast** (his framing, 2026-11-18: "each video is like we are
    broadcasting something that happens live now in the verse - that is why our break-connection ending ... makes so
    much sense"). The Shlomiverse is a real parallel world; a video is a broadcast from it, happening right now. The
