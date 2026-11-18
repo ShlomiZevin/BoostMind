@@ -89,12 +89,24 @@ function paintRail() {
   paintSaves();
 }
 
+let enteredFeed = false;   // the first feed of this page load only - later visits are inside the site
+const fromOutside = (() => { try { return !document.referrer || new URL(document.referrer).host !== location.host; } catch (e) { return true; } })();
+function dropLanding(list) {
+  if (!fromOutside) return -1;
+  const since = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  return list.findIndex((v) => v.drop && v.drop.at > 0 && (v.date || '') >= since);   // the list is newest first
+}
+
 export function videosFeed(q) {
   unmount();
   const list = fresh().filter((v) => v.src && !v.url);
   if (!list.length) return null;
   let start = q.at ? list.findIndex((v) => v.id === q.at) : 0;
   if (start < 0) start = 0;
+  // arrived from outside on a bare /videos (the drop card's typed address, his rule 2026-11-18: "wherever they copy it - /videos"):
+  // start at the newest video whose socials version lost the reception, published in the last 7 days - the broadcast goes on here
+  if (!q.at && !enteredFeed) { const d = dropLanding(list); if (d >= 0) start = d; }
+  enteredFeed = true;
   mountAt = q.at || null;
   queueMicrotask(() => mount(list, start));   // once the router has put it on the page
   return `<div class="fd" id="fd" role="feed" aria-label="${esc(FT.title)}">${list.map(slide).join('')}</div>`;
