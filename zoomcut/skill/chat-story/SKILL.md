@@ -25,7 +25,8 @@ them. First one: three posters of Hani's chats. Reply in English; the posters ar
    `portrait` = the resident's record (`content.mjs get character <id>`). The letters shrink by themselves
    to fit; it prints the size - under 30px = too much text: shorten the answers (cut, never rewrite) or split into two
    posters. **The verse's branding, never the resident's colour** (his rule, 2026-11-18): the app chat's own look - visitor
-   bubbles orange #ff6a1f with the plain face, the resident's dark glass #1f1f24 beside a face in an orange ring, Heebo,
+   bubbles orange #ff6a1f beside the anonymous visitor's picture (scripts/stories/art/visitor.jpg - someone from our world
+   peeking in through the portal, his pick 2026-11-18), the resident's dark glass #1f1f24 beside a face in an orange ring, Heebo,
    the planet logo in the header, an orange pill "דברו עם <first> בשלומיוורס" + shlomiverse.com at the bottom.
 5. **Look** at every poster yourself at full size (nothing touching, nothing cut, Hebrew + English mixed lines right),
    then send him ONLY the clean posters (SendUserFile). He posts them himself; posting to the verse = the verse-story

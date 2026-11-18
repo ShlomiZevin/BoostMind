@@ -12,13 +12,12 @@ if (!specFile || !out) { console.error('usage: chat-poster.cjs spec.json out.jpg
 const spec = JSON.parse(fs.readFileSync(specFile, 'utf8'));
 const img = (p) => { const f = path.isAbsolute(p) ? p : path.join(ROOT, p); return `data:image/${/\.png$/i.test(f) ? 'png' : 'jpeg'};base64,` + fs.readFileSync(f).toString('base64'); };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
-const face = img(spec.portrait), logo = img('public/verse/logo-512.png');
+const face = img(spec.portrait), logo = img('public/verse/logo-512.png'), visitor = img('scripts/stories/art/visitor.jpg');
 // the verse's own look (v2/site/verse/verse.css + the app chat in shell.css): orange #ff6a1f for the visitor and the
 // rings, dark glass bubbles for the resident, Heebo, the planet logo; no emoji
-const ME = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a3a3ab'%3E%3Ccircle cx='12' cy='8.6' r='4.3'/%3E%3Cpath d='M3.6 22c.8-4.6 4.2-7.3 8.4-7.3s7.6 2.7 8.4 7.3z'/%3E%3C/svg%3E\")";
 const bubbles = spec.msgs.map((m) => m.who === 'c'
   ? `<div class="row c"><img class="av" src="${face}"><div class="b">${esc(m.t)}</div></div>`
-  : `<div class="row v"><div class="b">${esc(m.t)}</div><span class="av me"></span></div>`).join('');
+  : `<div class="row v"><div class="b">${esc(m.t)}</div><img class="av me" src="${visitor}"></div>`).join('');
 const html = `<html dir="rtl"><head><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:Heebo}
@@ -40,7 +39,7 @@ body{color:#fff;background:
 .c .b{background:#1f1f24;border:1.5px solid rgba(255,255,255,.14);font-weight:500}
 .v .b{background:#ff6a1f;font-weight:600;box-shadow:0 0 0 1px rgba(255,106,31,.22),0 10px 26px -8px rgba(255,106,31,.5)}
 .av{width:66px;height:66px;border-radius:50%;object-fit:cover;object-position:50% 18%;flex:none;border:3.5px solid #ff6a1f;box-shadow:0 0 14px rgba(255,106,31,.4);box-sizing:border-box}
-.av.me{width:60px;height:60px;border:2px solid rgba(255,255,255,.22);box-shadow:none;background:#3a3a41 ${ME} 50% 75% / 74% no-repeat}
+.av.me{object-position:50% 50%;border:2px solid rgba(255,138,61,.55);box-shadow:none}   /* the anonymous visitor: someone from our world peeking in through the portal (his pick, 2026-11-18) */
 .foot{position:absolute;bottom:150px;right:0;left:0;display:flex;flex-direction:column;align-items:center;gap:18px}
 .foot .btn{display:inline-flex;align-items:center;height:104px;padding:0 56px;border-radius:999px;background:#ff6a1f;font:800 46px/1 Heebo;box-shadow:0 0 0 1px rgba(255,106,31,.22),0 14px 40px -10px rgba(255,106,31,.6)}
 .foot .u{font:700 34px/1 Heebo;letter-spacing:1px;direction:ltr;color:rgba(255,255,255,.75)}
