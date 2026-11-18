@@ -26,11 +26,29 @@
 .sl-toast { position: absolute; top: calc(140 * var(--u)); left: 50%; transform: translateX(-50%); padding: calc(14 * var(--u)) calc(34 * var(--u)); border-radius: 999px;
   background: rgba(16, 13, 12, 0.86); border: calc(3 * var(--u)) solid rgba(255, 106, 31, 0.6); color: #fff; font-size: calc(44 * var(--u)); font-weight: 800; white-space: nowrap; }
 /* at the start: "seen it on the socials? jump to where it dropped" */
-.sl-jump { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); pointer-events: auto; display: flex; align-items: center; gap: calc(14 * var(--u));
-  padding: calc(18 * var(--u)) calc(36 * var(--u)); border-radius: 999px; border: calc(3 * var(--u)) solid rgba(255, 106, 31, 0.7); background: rgba(16, 13, 12, 0.78);
-  color: #fff; font: inherit; font-size: calc(42 * var(--u)); font-weight: 800; white-space: nowrap; cursor: pointer; backdrop-filter: blur(6px); }
+/* (mockup live-strip/5-jump-pill option 2, his OK 2026-11-18): a small two-line card in the top corner - bold question, the
+   action, a tiny bar with the drop marked on it; the arrow on its left points forward (left, in Hebrew) */
+.sl-jump { position: absolute; top: 1.5%; right: calc(34 * var(--u)); pointer-events: auto; display: flex; align-items: center; gap: calc(26 * var(--u));
+  padding: calc(24 * var(--u)) calc(34 * var(--u)) calc(26 * var(--u)) calc(26 * var(--u)); border-radius: calc(34 * var(--u)); border: calc(3 * var(--u)) solid rgba(255, 106, 31, 0.85);
+  background: rgba(16, 13, 12, 0.8); box-shadow: 0 0 calc(30 * var(--u)) rgba(255, 106, 31, 0.28), 0 calc(10 * var(--u)) calc(40 * var(--u)) rgba(0, 0, 0, 0.45);
+  color: #fff; font: inherit; text-align: right; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); -webkit-tap-highlight-color: transparent;
+  animation: sl-jin .35s cubic-bezier(.2, .8, .2, 1); }
 .sl:has(.sl-card:not([hidden])) .sl-jump { display: none; }
-.sl-jump i { font-style: normal; color: #ff6a1f; font-size: 1.3em; line-height: 1; }
+.sl-jump:active { transform: scale(.97); }
+.sl-jt { display: flex; flex-direction: column; gap: calc(6 * var(--u)); min-width: calc(400 * var(--u)); }
+.sl-jt b { font-size: calc(48 * var(--u)); font-weight: 800; line-height: 1.1; white-space: nowrap; }
+.sl-jt small { font-size: calc(37 * var(--u)); font-weight: 600; line-height: 1.15; color: rgba(255, 255, 255, 0.85); white-space: nowrap; }
+.sl-jbar { position: relative; direction: ltr; height: calc(6 * var(--u)); margin-top: calc(16 * var(--u)); border-radius: 99px; background: rgba(255, 255, 255, 0.18); }   /* left to right, like the player's bar */
+.sl-jnow { position: absolute; left: 0; top: 0; bottom: 0; width: var(--now, 3%); border-radius: inherit; background: rgba(255, 106, 31, 0.6); }
+.sl-jmark { position: absolute; left: var(--drop, 85%); top: 50%; width: calc(20 * var(--u)); height: calc(20 * var(--u)); border-radius: 50%; transform: translate(-50%, -50%);
+  background: #ff6a1f; box-shadow: 0 0 calc(14 * var(--u)) #ff6a1f; animation: sl-jpulse 1.4s ease-in-out infinite; }
+.sl-jwave { position: absolute; left: var(--drop, 85%); top: 50%; width: calc(110 * var(--u)); transform: translate(-6%, -50%); line-height: 0; }
+.sl-jwave svg { width: 100%; height: calc(28 * var(--u)); display: block; }
+.sl-jgo { flex: none; display: grid; place-items: center; width: calc(40 * var(--u)); color: #ff6a1f; }
+.sl-jgo svg { width: calc(54 * var(--u)); height: calc(54 * var(--u)); display: block; }
+@keyframes sl-jin { from { opacity: 0; transform: translateY(calc(-14 * var(--u))); } }
+@keyframes sl-jpulse { 50% { box-shadow: 0 0 calc(4 * var(--u)) #ff6a1f; } }
+@media (prefers-reduced-motion: reduce) { .sl-jump, .sl-jmark { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .sl-card * { animation: none !important; } }
 /* the hosts while the signal is lost: their words and buttons step aside (the feed's rail stays) */
 .fd-s.sl-on .fd-info, .fd-s.sl-on .fd-big, .fd-s.sl-on .fd-shade { opacity: 0; pointer-events: none; transition: opacity .25s; }
