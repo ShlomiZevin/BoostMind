@@ -191,6 +191,11 @@ Her lines are NOT a stand-in - they are the final voice (his ask: "real, not a m
   channel, levelled), on her row with the LIVE `fx {filter: phone, room 0.35, roomSize 0.6}` at volume 0.4 (~10 dB
   under him) - no baked chain needed; the same delivery voice-changed to Danit (ElevenLabs STS) on a muted row to
   compare. No music bed on this character ("remove the bg music") - his park sound + the ambience row only.
+- **What he finally picked (round 4, from 4 samples he heard first - "send me the voices before you do anything")**:
+  HIS performance voice-changed to Danit (ElevenLabs STS on his own take - natural delivery, a woman's voice), soft and
+  dark, NO room / echo ("it's an open park"), `tempo` 1.3 ("natural speaking fast"), ~20 dB under him ("people don't
+  even have to understand what she says"). Live on her row: voice chain lowcut 250, presence -6, deess 0.6, comp 0,
+  room 0, no fx; volume 0.5 on a -27 LUFS file. The phone filter + room of round 3 was "terrible".
 - **His reaction words stay** (his round-2 note: "it's okay to overlap, don't remove... it's okay she'll be a bit quiet,
   he is the main thing"): she lands ON his words, quiet; never take his words out to make room for her.
 - **The ending = cut dead in the middle of his last word, no poster** ("cut suddenly in the middle of the sentence, just
