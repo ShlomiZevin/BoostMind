@@ -174,9 +174,18 @@ Her lines are NOT a stand-in - they are the final voice (his ask: "real, not a m
   (`Tbj9UQjXon5RB9MPEyc2`, softer / breathy - the alternative). `eleven_v4`, `language_code he`, stability 0.3, a tag
   per line (`[casual, polite, a little guarded]`, `[hesitant, uneasy]`); transcribe every take (one Danit take said
   its line twice - drop those).
-- **She sounds a bit far, he is the clear one** (his words: "you hear the guy more clearly and the girl in the
-  background with the sound of the park"): her row = the Someone in the background setup with the room cut for open
-  air (room 0.12, roomSize 0.4, lowcut 160, presence -3, volume 0.8) + a night-park ambience row under the whole
-  video (`_assets/night-guy/reels/park-night-a.mp3`, a 30 s loop, volume 0.5).
+- **She sounds FAR and low-quality - a phone hearing someone a few metres away, never a microphone** (his notes on the
+  first draft, 2026-11-18: "it doesn't sound realistic... very low, noisy a bit, it shouldn't be good quality, now it
+  sounds like a microphone"). A clean TTS file + the editor's background setup still sounded like a mic. What he got
+  instead: the far sound made INTO her file (the editor has no "far away" filter - that would be tool work), clean
+  originals kept in Media - ffmpeg: highpass 280 x2, lowpass 3600 x2, +2 dB @1.2 kHz, -3 dB @3 kHz, compressor 3:1,
+  `aecho=0.8:0.6:19|47|83:0.3|0.18|0.09` (street reflections), -6 dB, pink-noise hiss (amplitude 0.012, 200-5000 Hz)
+  under the whole clip, 0.08 / 0.12 s fades, then levelled to -27 LUFS (`girl-*-far.wav`). Her row: natural, no
+  cleaning, `tempo` 1.25, volume 0.6 (~8 dB under him). ElevenLabs' own `audio_effects` (cheap mic + street + city +
+  distance) re-performs the line (a "כן?" came out twice) - not used.
+- **Her lines need room, not a pause** - when his take has no gap for her answer, take HIS reaction word out of the
+  voice only and let the picture run on under her (his "כן" after "שאלה?", his first "נכון"); a quiet far voice under
+  his next words is masked (checked by transcribing a rough mix of the stems at the row volumes).
+- Under the whole video: a night-park ambience row (`_assets/night-guy/reels/park-night-a.mp3`, 30 s loop, volume 0.7).
 - End card: the פסיכופת גינה poster (`_assets/night-guy/poster/` - the garden-gnome statue / gnome-hat versions,
   HTML + shoot.mjs, title in Rubik Wet Paint).
