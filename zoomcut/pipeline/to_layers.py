@@ -214,7 +214,7 @@ def build(ep):
                 continue
             big = sorted([r for r in rects.values() if not r["small"]], key=lambda r: -r["w"] * r["h"])
             own = rects.get(c.get("id")) if not c.get("side") and c.get("id") in rects and not rects[c["id"]]["small"] else None
-            r = own if s["layout"] == "gallery" else (big[0] if big else own)
+            r = own if s["layout"] in ("gallery", "trio") else (big[0] if big else own)
             narrow = bool(r) and r["w"] < 600
             if r:
                 left, right, bottom = r["x"] + 20, r["x"] + r["w"] - 20, r["y"] + r["h"] - (64 if narrow else 84)

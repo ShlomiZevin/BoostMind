@@ -39,6 +39,13 @@ def layout(name, order, top):
             row, col = divmod(i, cols)
             x = PAD + (SW - w) / 2 if (n % 2 and i == n - 1) else PAD + SW - (col + 1) * w - col * GAP
             r[pid] = dict(x=x, y=top + row * (h + GAP), w=w, h=h, small=False)
+    elif name == "trio" and n == 3:
+        # three on the call, the one talking on top (his note, the-consultant 2026-11-18: "whoever is talking should be on
+        # top - even if we see the three"): gallery-size tiles, the first centred on top, the other two side by side below
+        w, h = (SW - GAP) / 2, (sh_total - GAP) / 2
+        r[order[0]] = dict(x=PAD + (SW - w) / 2, y=top, w=w, h=h, small=False)
+        for i, pid in enumerate(order[1:]):
+            r[pid] = dict(x=PAD + SW - (i + 1) * w - i * GAP, y=top + h + GAP, w=w, h=h, small=False)
     elif name == "gallery" or (name == "duo" and n == 2):
         h = (sh_total - GAP * (n - 1)) / n
         for i, pid in enumerate(order):

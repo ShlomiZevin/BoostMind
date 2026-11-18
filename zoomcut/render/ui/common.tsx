@@ -28,6 +28,7 @@ export const LAYOUTS: [string, string, string][] = [
   ['gallery', 'Gallery', 'Everyone in the meeting, stacked vertically.'],
   ['speaker', 'Speaker', 'The speaker big, the others in a strip underneath.'],
   ['duo', 'Duo', 'Two people big, the third floating in the corner.'],
+  ['trio', 'Trio', 'Three on the call: the speaker on top, the other two side by side below.'],
 ];
 export const STATUS: Record<string, string> = { ok: 'Matched', check: 'Check', missing: 'Missing', skipped: 'Dropped' };
 export const f2 = (t?: number | null) => (t == null ? '' : t.toFixed(2));

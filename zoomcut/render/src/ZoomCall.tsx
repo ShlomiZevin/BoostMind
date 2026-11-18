@@ -49,6 +49,11 @@ function layout(name: string, order: string[], TOP: number): Record<string, Rect
       const x = n % 2 && i === n - 1 ? PAD + (SW - w) / 2 : PAD + SW - (col + 1) * w - col * GAP;
       r[id] = { x, y: TOP + row * (h + GAP), w, h };
     });
+  } else if (name === 'trio' && n === 3) {
+    // three, the one talking on top (the same as compose.py layout): the first centred on top, the other two below
+    const w = (SW - GAP) / 2, h = (SH - GAP) / 2;
+    r[order[0]] = { x: PAD + (SW - w) / 2, y: TOP, w, h };
+    order.slice(1).forEach((id, i) => (r[id] = { x: PAD + SW - (i + 1) * w - i * GAP, y: TOP + h + GAP, w, h }));
   } else if (name === 'gallery' || (name === 'duo' && n === 2)) {
     const h = (SH - GAP * (n - 1)) / n;
     order.forEach((id, i) => (r[id] = { x: PAD, y: TOP + i * (h + GAP), w: SW, h }));
@@ -276,7 +281,7 @@ export const ZoomCall: React.FC<EditProps> = (p) => {
         // others' reactions are always seen. Something said on the side sits on top of the main subtitle.
         const big = Object.values(rects).filter((r) => !r.small).sort((a, b) => b.w * b.h - a.w * a.h);
         const own = cap?.id && rects[cap.id] && !rects[cap.id].small ? rects[cap.id] : null;
-        const r = shot?.layout === 'gallery' ? own : big[0] || own;
+        const r = (shot?.layout === 'gallery' || shot?.layout === 'trio') ? own : big[0] || own;
         const narrow = !!r && r.w < 600;
         const pos = r ? { left: r.x + 20, right: 1080 - (r.x + r.w) + 20, bottom: 1920 - (r.y + r.h) + (narrow ? 64 : 84) }
           : { left: 70, right: 70, bottom: 1920 - BAR + 96 };

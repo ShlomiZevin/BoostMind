@@ -55,6 +55,13 @@ any number of people (5 = one big tile + 4 thumbnails, a 2x2 gallery after a rem
   - In fast ping-pong, some quick lines are heard but not seen. That is the rule working. A line that must be seen gets
     a `layout` in corrections, or a `shift`.
   - Measured on the-consultant: shots under 1.5 s went from 18 to 1 (the removal attempt).
+- **Three on the call - the one talking on top** (his note, the-consultant 2026-11-18: "when there are three, whoever is
+  talking should be on top - even if it's not full screen, even if we see the three ... otherwise it's not clear who's
+  talking"). Set the episode's `"timing": {"trio": "top"}`. With exactly three present, every shot is layout `trio`: the
+  three in gallery-size tiles, the one talking centred on top, the other two side by side below. That includes the
+  removal's shot, with whoever talks at that moment on top. It's compose.py `layout` with the ZoomCall.tsx mirror.
+  Subtitles go in the talker's own tile. A line's forced layout stays as set, and `trio` is also in the line panel's
+  layouts. Off unless set. Turn it on for every new Zoom project that ends with three.
 - **Overlap every handover:** exec→exec 0.3 s; victim answers immediately (−0.08 s). **Ping-pong** (exec→exec, line
   ≤1.8 s) overlaps `quick_overlap` 0.4 s (max 40% of the previous line). Lines never start with dead air (0.1 s lead
   kept). Subtitles switch with the speaker.

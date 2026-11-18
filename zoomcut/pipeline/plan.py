@@ -205,7 +205,7 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
             continue
         until = b["cut_t"] if b.get("interrupted") else b["end_t"]  # (his voice stops - for min_shot: too late after this = no shot)
         if b.get("layout"):  # (forced by hand in corrections: min_shot never moves or drops it - the shots before it give way)
-            shots.append({"t": at, "layout": b["layout"], "order": on(spk, at), "fixed": True})
+            shots.append({"t": at, "layout": b["layout"], "order": on(spk, at), "fixed": True, "forced": True})
         elif k == 0 or spk != on_screen:
             shots.append({"t": at, "layout": "speaker", "order": on(spk, at), "until": until,
                           **({"fixed": True} if "shot_at" in b else {})})  # (the last try before a removal: its moment)
@@ -218,6 +218,20 @@ def build(ep, items, matches, attempts, idle_pools, clips, corrections, quiet=No
         rest = present(at + 0.01)
         shots.append({"t": at, "layout": "gallery" if len(rest) != 1 else "speaker", "order": rest, "fixed": True})
 
+    # trio: "top" - with three on the call, every shot shows the three with the one talking on top (layout "trio"), the
+    # removal's shot too (the one talking at that moment first). A line's forced layout stays as he set it.
+    if tm.get("trio") == "top":
+        talk = [b for b in beats if not b.get("aside") and b.get("speaker")]
+        def talker(t):
+            now = [b for b in talk if b["start"] <= t < (b["cut_t"] if b.get("interrupted") else b["end_t"])]
+            if now:
+                return max(now, key=lambda b: b["start"])["speaker"]
+            nxt = [b for b in talk if b["start"] > t]
+            return min(nxt, key=lambda b: b["start"])["speaker"] if nxt else None
+        for s in shots:
+            if not s.get("forced") and len(s["order"]) == 3 and s["layout"] in ("speaker", "gallery"):
+                who = s["order"][0] if s["layout"] == "speaker" else talker(s["t"] + 0.01)
+                s["layout"], s["order"] = "trio", ([who] + [x for x in s["order"] if x != who]) if who in s["order"] else s["order"]
     shots.sort(key=lambda s: s["t"])
     merged = _merge_shots(_min_shots(shots, float(tm["min_shot"])) if tm.get("min_shot") else shots)
     shots_f = []
