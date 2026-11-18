@@ -156,6 +156,32 @@ layers a builder made; the editor and the export don't know or care which builde
    "continued"). No LIVE / "שידור חי" tag in the app for now (his call, 2026-11-18). The words: the
    `shlomiverse-content` skill's `words.md`.
 
+## PUBLISHING EVERYWHERE - THE PROTOCOL (his ask, the-consultant 2026-11-18: "deploy it to the verse, to all the social, the signed-out and signed-in version, the site of the new guy, the story - all of that" / "you need first to make sure the verse is updated")
+When he approves the video and says to put it out, do ALL of it, in this order, and check each step before the next
+(when he says it in his own words, as here, you run Publish yourself - otherwise rule 8 / step 9: his button).
+1. **The cast is the verse's real ids.** `node scripts/verse/content.mjs list character` - a new character may already
+   exist under another id (he makes characters himself through his ChatGPT MCP: Ronen was `ronen-kaplan`, I had made a
+   second `ronen`). His record wins: move what yours added (site, colour, links, portrait) onto it, fix the other
+   characters' `relations`, the site record's `whose` / `mainOf`, `techietech-api/replies.json` `char`, then `hide` yours.
+   Cast = `POST /api/ep/<id>/cast` + project `characters`; check the chips say `fixed`.
+2. **The verse FIRST** (the socials' caption points at it): `POST /api/ep/<id>/done {done:true}`, then
+   `POST /api/ep/<id>/site` -> "✔ on the Shlomiverse". Check the record: `content.mjs get video <id>` has `drop.at`
+   (= split.at / fps / speed) - the signed-out viewer gets the drop there, signed-in the whole video. Then
+   `node scripts/verse/drop-frames.mjs <id>` (the home's live strip; on Windows its upload breaks on the space in
+   `--cache-control` - run `--dry` and `gcloud storage cp <file> gs://shlomiverse-media/wiki/v/<id>.frames.jpg
+   "--cache-control=public, max-age=86400"`).
+3. **The socials** - the file he approved: `POST /api/ep/<id>/publish {platforms, caption, title, options, useLast:true}`
+   (the socials' version goes by itself when there is a split). High-tech = exactly the four hashtags; `options.x.text`
+   without the link. Wait for every platform's `done` + link; TikTok's caption reaches his Telegram by itself.
+4. **A new character's site** - live, in /all/, the links page's sites strip, the record's `site`, wiki.md's table
+   (CLAUDE.md "A new page or site"). Check, don't redo.
+5. **The stories** - a verse story from the character (verse-story skill: a clean picture, words in boxes, preview,
+   `--test`, post) + the Instagram story poster he posts himself with a link sticker (empty bottom quarter for it).
+6. **Log it**: `node scripts/stats/event.mjs add --kind release ...` (the day it went live, `--at` the time).
+7. **Tell the other sessions what is live** (`ListAgents` / SendMessage): the one that prepared a release waiting
+   for this video (the live strip + a banner waited for the-consultant), Studio Dialoug.
+8. **Hand-over** = the links (verse, each platform) + what he does by hand (Facebook share, TikTok Inbox, the IG story).
+
 ## USING THE TOOL RIGHT - what went wrong on gilad-joins (2026-10-22) and the rules from it
 The video came out great; the way I used the tool did not ("something in the tool you didn't use as supposed to").
 What I did wrong:
