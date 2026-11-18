@@ -2491,9 +2491,9 @@ body:not([data-page="home"]) > footer { display: none !important; }
 .ad-thin .ad-pic { border-radius: 12px; background: #0e1b2e; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08); }
 .ad-thin .ad-pic img { aspect-ratio: 640 / 100; }
 @media (min-width: 700px) { .ad-thin .ad-pic img { aspect-ratio: 1092 / 160; } }
-.ad-mark { position: absolute; top: 3px; left: 4px; display: inline-flex; align-items: center; gap: 3px; height: 15px; padding: 0 5px 0 4px; border: 0; border-radius: 4px;
-  background: rgba(240, 240, 244, .88); color: #3a3d46; font: 700 9.5px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: .01em; cursor: pointer; direction: ltr; }
-.ad-mark svg { width: 10px; height: 10px; }
+.ad-mark { position: absolute; bottom: 0; left: 0; display: inline-flex; align-items: center; gap: 3px; height: 12px; padding: 0 5px 0 6px; border: 0; border-radius: 0 5px 0 12px;   /* a corner tab, like Google's ad mark - clear of the sponsor's button at every width */
+  background: rgba(240, 240, 244, .88); color: #3a3d46; font: 700 8.5px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: .01em; cursor: pointer; direction: ltr; }
+.ad-mark svg { width: 9px; height: 9px; }
 .ad-mark::before { content: ""; position: absolute; inset: -8px -6px; }   /* a finger-sized target around the small mark */
 /* the coupon window (W1): the sponsor's paper and red inside the sheet, the dark site dimmed behind it */
 .vx-sheet.adc-sheet { background: #f4ecdc; color: #3a1d0e; border-color: #c8962e; -webkit-backdrop-filter: none; backdrop-filter: none; }
