@@ -166,7 +166,7 @@ export function openPlayer(id, q = {}) {
     else if (b.matches('[data-dl]')) download(v);
     else if (b.matches('[data-sticker]')) stickerMenu();   // (a phone: make one / the gallery; else the maker as before)
     else if (b.matches('[data-ep]') && b.dataset.ep) nav('/v/' + b.dataset.ep, true);
-    else if (b.matches('.vp-who') && appShell() && P && P.video) { e.preventDefault(); castSheet(P.lead, { v: P.v, video: P.video, from: 'player' }); }   // APP SHELL: the video stays
+    else if (b.matches('.vp-who') && phoneApp() && P && P.video) { e.preventDefault(); castSheet(P.lead, { v: P.v, video: P.video, from: 'player' }); }   // APP SHELL: the video stays
     else if (b.matches('.vp-who')) { /* the link closes the player through the router */ }
   });
   // swipe up / down: the next / previous episode

@@ -85,7 +85,7 @@ export function mountBand() {
   if (!st.ready && cachedMe()) { el.innerHTML = ''; return; }
   const h = visitHost(), c = C[h], o = openCached(h);
   // APP SHELL round 2 (his note 3, mockup r2/1-home): a thin one-line strip - a small face, the question, a small "לסיווג"
-  if (appShell()) {
+  if (appShell() && matchMedia('(max-width: 760px)').matches) {   // phones only - its styles are phone-only (desktop showed the face at full size, 2026-11-18)
     el.innerHTML = `<a class="sim-strip" href="/simulation?host=${h}&from=home" data-sim-band><span class="sim-strip-face"><img src="${esc(img(h))}" alt="${esc(c.name)}"></span>
       <b>${esc(T.shell.simStrip)}</b><span class="sim-strip-go">${esc(S().go)}</span></a>`;
     if (!el.dataset.seen) { el.dataset.seen = '1'; track('sim_band', h); }
