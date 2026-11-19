@@ -9,7 +9,7 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 let seed = 11; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
 const STARS = Array.from({ length: 110 }, () => `${Math.round(rnd() * 1200)}px ${Math.round(rnd() * 630)}px 0 ${rnd() < .15 ? 1.4 : .7}px rgba(255,${200 + Math.round(rnd() * 55)},${170 + Math.round(rnd() * 80)},${(.25 + rnd() * .6).toFixed(2)})`).join(',');
 
-function html(g, face) {
+function html(g, face, base) {
   const forWho = 'ל' + String(g.forWho || '');   // the record keeps the bare name ("ליאור" -> "לליאור")
   return `<html dir="rtl"><head><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800;900&display=swap" rel="stylesheet"><style>
 html,body{margin:0;width:1200px;height:630px;overflow:hidden;font-family:Heebo;color:#fff;background:#0a0807}
@@ -30,14 +30,21 @@ html,body{margin:0;width:1200px;height:630px;overflow:hidden;font-family:Heebo;c
 .play i{width:46px;height:46px;border-radius:50%;background:#ff6a1f;display:grid;place-items:center;box-shadow:0 0 18px rgba(255,106,31,.7)}
 .play i::before{content:'';margin-left:5px;border-style:solid;border-width:11px 0 11px 18px;border-color:transparent transparent transparent #fff}
 .logo{position:absolute;right:46px;bottom:34px;width:150px;filter:drop-shadow(0 0 14px rgba(255,110,30,.6))}
+/* base = the card that carries the sender's own words (drawn later by the server, page.js drawCard, into the empty band):
+   same size, same look - a branded header line, the play mark moves onto the picture, the words get the band under a thin rule */
+.base .got{display:flex;align-items:center;justify-content:flex-start;gap:14px}.base .got img{width:92px;filter:drop-shadow(0 0 10px rgba(255,110,30,.6))}
+.base .for{margin-top:14px}.base .rule{margin-top:26px;height:2px;background:linear-gradient(270deg,#ffb070,rgba(255,176,112,0));box-shadow:0 0 10px rgba(255,140,60,.6)}
+.pf{position:absolute;left:326px;top:372px;width:84px;height:84px;border-radius:50%;background:rgba(255,106,31,.92);display:grid;place-items:center;box-shadow:0 0 30px rgba(255,106,31,.8);border:3px solid rgba(255,255,255,.85)}
+.pf::before{content:'';margin-left:6px;border-style:solid;border-width:16px 0 16px 26px;border-color:transparent transparent transparent #fff}
 </style></head><body><div class="space"><div class="stars"></div></div><div class="planet"></div>
 <div class="face"><img src="${face}"></div><div class="who"><b>${esc(g.charName)}</b><small>ברכה אישית</small></div>
-<div class="txt"><div class="got">קיבלת ברכה מהשלומיוורס</div><div class="for" id="for">${esc(forWho)}</div>${g.event ? `<div class="ev" id="ev">${esc(g.event)}</div>` : ''}
-<div class="play"><i></i>לצפייה בברכה</div></div><img class="logo" src="${LOGO}"><div class="frame"></div></body></html>`;
+${base ? `<div class="pf"></div><div class="txt base"><div class="got"><img src="${LOGO}">קיבלת ברכה מהשלומיוורס</div><div class="for" id="for">${esc(forWho)}</div>${g.event ? `<div class="ev" id="ev">${esc(g.event)}</div>` : ''}<div class="rule"></div></div>`
+  : `<div class="txt"><div class="got">קיבלת ברכה מהשלומיוורס</div><div class="for" id="for">${esc(forWho)}</div>${g.event ? `<div class="ev" id="ev">${esc(g.event)}</div>` : ''}
+<div class="play"><i></i>לצפייה בברכה</div></div><img class="logo" src="${LOGO}">`}<div class="frame"></div></body></html>`;
 }
 
 // draws the card to outFile; face = the resident's picture (URL or local path)
-async function render(g, outFile) {
+async function render(g, outFile, { base = false } = {}) {
   const puppeteer = require(path.join(ROOT, 'zoomcut/render/node_modules/puppeteer-core'));
   let face = g.charImg || '';
   if (face && !/^https?:/.test(face)) face = 'data:image/jpeg;base64,' + fs.readFileSync(face).toString('base64');
@@ -46,11 +53,12 @@ async function render(g, outFile) {
   const b = await puppeteer.launch({ executablePath: exe });
   try {
     const p = await b.newPage(); await p.setViewport({ width: 1200, height: 630 });
-    await p.setContent(html(g, face), { waitUntil: 'load', timeout: 90000 }); await p.evaluate(() => document.fonts.ready);
+    await p.setContent(html(g, face, base), { waitUntil: 'load', timeout: 90000 }); await p.evaluate(() => document.fonts.ready);
     await p.evaluate(() => {   // the occasion as big as fits its width
       const fit = (id, v, max, min) => { const el = document.getElementById(id); if (!el) return; for (let s = max; s >= min; s -= 2) { el.style.setProperty(v, s + 'px'); if (el.scrollWidth <= 650) break; } };
       fit('for', '--f', 150, 70); fit('ev', '--e', 86, 44);
     });
+    if (base) await p.evaluate(() => { const f = document.getElementById('for'), e = document.getElementById('ev'); f.style.setProperty('--f', Math.min(parseInt(getComputedStyle(f).fontSize), 118) + 'px'); if (e) e.style.setProperty('--e', Math.min(parseInt(getComputedStyle(e).fontSize), 64) + 'px'); });
     await p.screenshot({ path: outFile, type: 'jpeg', quality: 90 });
   } finally { await b.close(); }
 }

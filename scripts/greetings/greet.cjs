@@ -65,7 +65,11 @@ async function makeOg(id) {
   const g = await load(id), f = path.join(require('os').tmpdir(), `og-${id}.jpg`);
   await require('./og.cjs').render(g, f);
   await bucket.upload(f, { destination: `greetings/${id}/og.jpg`, metadata: { contentType: 'image/jpeg' } });
-  await db.collection('greetings').doc(id).update({ og: true });
+  // + the base for the sender's own words (same card, an empty band; techietech-api/greetcard.js writes the words into it)
+  const fb = path.join(require('os').tmpdir(), `og-base-${id}.jpg`);
+  await require('./og.cjs').render(g, fb, { base: true });
+  await bucket.upload(fb, { destination: `greetings/${id}/og-base.jpg`, metadata: { contentType: 'image/jpeg' } });
+  await db.collection('greetings').doc(id).update({ og: true, ogBase: true });
 }
 
 async function load(id) {

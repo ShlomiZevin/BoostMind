@@ -163,14 +163,44 @@ ${SITE}/greeting/${id}`;
   return res.json({ ok: true });
 }
 const FN = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/versePage';   // the video straight from here (Range works without the CDN in between)
+// the sender's own words on the card (his ask 2026-11-19): POST {msg, name} -> the words drawn on the base card (greetcard.js) ->
+// greetings/<id>/c/<hash>.jpg + Firestore greetings/<id>/cards/<hash>; the answer is a link of their own (/greeting/<id>?c=<hash>)
+// whose WhatsApp preview is that card. Text only (no uploads), 40 + 18 characters, at most 60 different cards per greeting.
+async function greetingCard(req, res, id) {
+  if (req.method !== 'POST') return res.status(405).send('');
+  const { drawCard, clean, MAX_MSG, MAX_NAME } = require('./greetcard');
+  const b = typeof req.body === 'object' && req.body ? req.body : {};
+  const msg = clean(b.msg, MAX_MSG), name = clean(b.name, MAX_NAME);
+  if (!msg) return res.status(400).json({ error: 'empty' });
+  const admin = require('firebase-admin');
+  if (!admin.apps.length) admin.initializeApp();
+  const ref = admin.firestore().collection('greetings').doc(id), g = (await ref.get()).data();
+  if (!g || g.off || !g.ogBase) return res.status(404).json({ error: 'no' });
+  const c = require('crypto').createHash('sha1').update(`${id}|${msg}|${name}`).digest('hex').slice(0, 12);
+  const card = ref.collection('cards').doc(c), bucket = admin.storage().bucket(GREET_BUCKET);
+  if (!(await card.get()).exists) {
+    if ((g.cards || 0) >= 60) return res.status(429).json({ error: 'many' });
+    const [base] = await bucket.file(`greetings/${id}/og-base.jpg`).download();
+    await bucket.file(`greetings/${id}/c/${c}.jpg`).save(await drawCard(base, msg, name), { contentType: 'image/jpeg' });
+    await card.set({ msg, name, t: admin.firestore.FieldValue.serverTimestamp() });
+    await ref.update({ cards: admin.firestore.FieldValue.increment(1) });
+  }
+  res.set('Cache-Control', 'no-store');
+  return res.json({ ok: true, c, url: `${SITE}/greeting/${id}?c=${c}` });
+}
+
 async function greetingPage(req, res, id) {
   const g = greetId(id) ? await greetingRec(id).catch(() => null) : null;
   let html = await cached('g', `${SITE}/greeting/page.html`, 60e3, 'text');
   const url = `${SITE}/greeting/${id}`;
+  // a link of their own (?c=<hash>): that card is the preview, and the page shows their words
+  let card = null;
+  if (g && /^[a-f0-9]{12}$/.test(String(req.query.c || ''))) { try { const d = await require('firebase-admin').firestore().collection('greetings').doc(id).collection('cards').doc(req.query.c).get(); if (d.exists) card = { c: req.query.c, msg: d.data().msg, name: d.data().name || '' }; } catch (e) {} }
   if (g) {
-    html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img: `${SITE}/greeting/${id}/${g.og ? 'og.jpg' : 'poster.jpg'}` }, url);   // og.jpg = its own preview card (scripts/greetings/og.cjs)
-    if (g.og) html = html.replace('</head>', '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n</head>');
-    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, shown: !!g.shownAt, shownAt: g.shownAt?.toDate ? g.shownAt.toDate().toISOString() : null,
+    const img = card ? `${SITE}/greeting/${id}/c/${card.c}.jpg` : `${SITE}/greeting/${id}/${g.og ? 'og.jpg' : 'poster.jpg'}`;   // og.jpg = its own preview card (scripts/greetings/og.cjs)
+    html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: card ? `״${card.msg}״${card.name ? ' — ' + card.name : ''}` : `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img }, card ? `${url}?c=${card.c}` : url);
+    if (g.og || card) html = html.replace('</head>', '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n</head>');
+    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, card, og: g.og ? `${SITE}/greeting/${id}/og.jpg` : null, base: g.ogBase ? `${SITE}/greeting/${id}/og-base.jpg` : null, shown: !!g.shownAt, shownAt: g.shownAt?.toDate ? g.shownAt.toDate().toISOString() : null,
       video: `${FN}/greeting/${id}/video.mp4`, poster: `${SITE}/greeting/${id}/poster.jpg`, download: `${FN}/greeting/${id}/video.mp4?dl=1`, url };
     html = html.replace('<script id="g-data" type="application/json">null</script>', `<script id="g-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
     html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex">');
@@ -180,13 +210,15 @@ async function greetingPage(req, res, id) {
   res.status(g ? 200 : 404).send(html);
 }
 
-exports.versePage = onRequest({ region: 'europe-west1', memory: '256MiB', timeoutSeconds: 300, concurrency: 80, maxInstances: 5, secrets: [STUDIO_KEYS] }, async (req, res) => {
+exports.versePage = onRequest({ region: 'europe-west1', timeoutSeconds: 300, concurrency: 80, maxInstances: 5, memory: '512MiB', secrets: [STUDIO_KEYS] }, async (req, res) => {
   const [, kind = '', raw = '', file = ''] = req.path.split('/');
   const id = decodeURIComponent(raw);
   if (kind === 'greeting') {   // timeoutSeconds 300: a video streams to a slow phone
     try {
       if (file === 'shown') { if (!greetId(id)) return res.status(404).send(''); return await greetingShown(req, res, id); }
-      if (file === 'video.mp4' || file === 'poster.jpg' || file === 'og.jpg') { if (!greetId(id) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, file); }
+      if (file === 'card') { if (!greetId(id)) return res.status(404).send(''); return await greetingCard(req, res, id); }
+      if (file === 'c') { const h = String(req.path.split('/')[4] || ''); if (!greetId(id) || !/^[a-f0-9]{12}\.jpg$/.test(h) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, 'c/' + h); }
+      if (file === 'video.mp4' || file === 'poster.jpg' || file === 'og.jpg' || file === 'og-base.jpg') { if (!greetId(id) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, file); }
       return await greetingPage(req, res, id);
     } catch (e) { console.error('versePage greeting', req.path, e.message); if (!res.headersSent) res.status(500).send(''); return; }
   }

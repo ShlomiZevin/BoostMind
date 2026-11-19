@@ -12,7 +12,7 @@
 <meta property="og:image" content="https://shlomiverse.com/verse/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/verse/favicon-32.png">
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&family=Amatic+SC:wght@700&display=swap" rel="stylesheet">
 <!-- A personal greeting's page (his ask, 2026-11-19, plan greeting-send): /greeting/<id>, open only to whoever has the link.
      techietech-api/page.js (versePage) serves this file with the greeting's data in #g-data and its WhatsApp preview; the video
      streams from the private bucket through the same function. A greeting is not a video of the resident's life - it is not in
@@ -55,6 +55,26 @@
   .meet span { flex: 1; } .meet small { display: block; color: var(--dim); }
   .home { display: block; text-align: center; margin: 18px 0 0; color: var(--dim); font-weight: 600; text-decoration: none; }
   .home b { color: var(--acc2); }
+  /* "send it on WhatsApp" (his ask 2026-11-19): the link arrives as a card - a live preview, and their own words ON the card */
+  .wa { margin: 18px 0 18px; padding: 18px 14px 16px; border-radius: 20px; background: linear-gradient(180deg, rgba(255,106,31,.10), rgba(255,106,31,.02)); border: 1px solid rgba(255,138,61,.4); }
+  .wa h2 { margin: 0; font: 900 1.45rem/1.1 Heebo; text-align: center; }
+  .wa > p { margin: 6px 0 14px; text-align: center; color: var(--dim); font-weight: 600; font-size: .92rem; }
+  .bubble { background: #0b141a; border-radius: 14px; padding: 10px; }
+  .bubble .in { background: #005c4b; border-radius: 10px 10px 2px 10px; padding: 4px 4px 6px; margin-inline-start: 14%; }
+  .cardp { position: relative; container-type: inline-size; border-radius: 8px; overflow: hidden; aspect-ratio: 1200 / 630; background: #140c08; }
+  .cardp img { width: 100%; height: 100%; display: block; }
+  .cardp .ml { position: absolute; right: 4.67cqw; left: 40.5cqw; text-align: right; direction: rtl; white-space: nowrap; color: #fff; font-family: 'Amatic SC', Heebo; font-weight: 700; line-height: 1; text-shadow: 0 0 1.3cqw rgba(255,140,60,.35); }
+  .cardp .sg { position: absolute; right: 4.67cqw; direction: rtl; color: #ffb074; font: 800 2.5cqw/1 Heebo; white-space: nowrap; }
+  .bubble .lt { padding: 6px 6px 0; color: #e9edef; font-size: .82rem; line-height: 1.35; }
+  .bubble .lt b { display: block; font-size: .85rem; } .bubble .lt span { color: #8fd3c3; font-size: .78rem; direction: ltr; display: inline-block; }
+  .wa label { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 2px 6px; font-weight: 700; font-size: .9rem; }
+  .wa label small { color: var(--dim); font-weight: 600; } .wa label small.full { color: #ffb074; }
+  .wa input { width: 100%; height: 50px; border-radius: 14px; border: 1.5px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); color: #fff; font: 600 1rem Heebo; padding: 0 14px; outline: none; }
+  .wa input:focus { border-color: var(--acc2); }
+  .wagreen { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 56px; margin-top: 16px; border: 0; border-radius: 999px; background: #25d366; color: #06301a; font: 900 1.12rem Heebo; cursor: pointer; box-shadow: 0 8px 24px -8px rgba(37,211,102,.6); }
+  .wagreen svg { width: 24px; height: 24px; } .wagreen:disabled { opacity: .65; }
+  .theirs { margin: 8px 0 0; padding: 10px 14px; border-radius: 14px; background: rgba(255,106,31,.10); border: 1px solid rgba(255,138,61,.35); font-family: 'Amatic SC', Heebo; font-weight: 700; font-size: 1.7rem; line-height: 1.1; text-align: center; }
+  .theirs small { display: block; font: 700 .85rem Heebo; color: #ffb074; margin-top: 2px; }
   .missing { text-align: center; padding: 60px 10px; color: var(--dim); }
   .missing h1 { color: #fff; font-size: 1.6rem; white-space: normal; margin: 0 0 8px; }
 </style>
@@ -85,12 +105,58 @@
     return wasShown ? '<div class="given done" id="given"><i>' + CHECK + '</i><div><p>הברכה נמסרה ' + esc('ל' + g.forWho) + (when ? ' · ' + when : '') + '</p><small>תודה! עכשיו נוכל לשתף אותה גם בסטורי של השלומיוורס.</small></div></div>'
       : '<div class="given" id="given"><p>הברכה כבר הגיעה ' + esc('ל' + g.forWho) + '?</p><small>ספרו לנו כשהיא נמסרה. נשמח להעלות אותה גם לסטורי שלנו, ולא נעלה אותה לפני שהיא הגיעה ליעדה.</small><button id="givenBtn">' + CHECK + 'הברכה נמסרה</button></div>';
   }
-  var wa = 'https://wa.me/?text=' + encodeURIComponent('ברכה ל' + g.forWho + ' מ' + g.charName + ' בשלומיוורס ' + g.url);
+  // ---- send it on WhatsApp: the card it arrives as, their own words on it (drawn for real by the server: techietech-api/greetcard.js) ----
+  var MAXM = 40, MAXN = 18;
+  function waBox() {
+    return '<section class="wa" id="wa"><h2>שלחו בוואטסאפ</h2><p>הקישור מגיע ככרטיס כזה, עם הברכה בפנים</p>' +
+      '<div class="bubble"><div class="in"><div class="cardp" id="cardp"><img id="cimg" src="' + esc(g.og || g.poster) + '" alt=""></div>' +
+      '<div class="lt"><b>ברכה ל' + esc(g.forWho) + ' · שלומיוורס</b><span>shlomiverse.com</span></div></div></div>' +
+      (g.base ? '<label for="wmsg">המילים שלכם על הכרטיס <small id="wcnt">0/' + MAXM + '</small></label><input id="wmsg" maxlength="' + MAXM + '" placeholder="למשל: מזל טוב, תראי מה הכנתי לך" autocomplete="off">' +
+        '<label for="wname">השם שלכם</label><input id="wname" maxlength="' + MAXN + '" placeholder="השם שיופיע מתחת" autocomplete="off">' : '') +
+      '<button class="wagreen" id="wabtn">' + WA + '<span>לשליחה בוואטסאפ</span></button></section>';
+  }
+  // the same layout the server draws (greetcard.js): one line 76 -> 50, else two lines 58 -> 40, on a 1200-wide card
+  var meas = document.createElement('canvas').getContext('2d');
+  function layout(msg) {
+    var F = function (s) { return '700 ' + s + 'px "Amatic SC", Heebo'; }, W = 650, s, lines = [msg];
+    for (s = 76; s >= 50; s -= 2) { meas.font = F(s); if (meas.measureText(msg).width <= W) return { size: s, lines: lines }; }
+    var w = msg.split(' '), best = null;
+    meas.font = F(58);
+    for (var i = 1; i < w.length; i++) { var a = w.slice(0, i).join(' '), b = w.slice(i).join(' '), m = Math.max(meas.measureText(a).width, meas.measureText(b).width); if (!best || m < best.m) best = { a: a, b: b, m: m }; }
+    lines = best ? [best.a, best.b] : [msg];
+    for (s = 58; s >= 40; s -= 2) { meas.font = F(s); if (lines.every(function (l) { return meas.measureText(l).width <= W; })) break; }
+    return { size: s, lines: lines };
+  }
+  function preview() {
+    var box = document.getElementById('cardp'); if (!box) return;
+    var mi = document.getElementById('wmsg'), ni = document.getElementById('wname');
+    var msg = mi ? mi.value.replace(/\s+/g, ' ').trim() : '', name = ni ? ni.value.replace(/\s+/g, ' ').trim() : '';
+    if (mi) { var c = document.getElementById('wcnt'); c.textContent = mi.value.length + '/' + MAXM; c.className = mi.value.length >= MAXM ? 'full' : ''; }
+    box.querySelectorAll('.ml,.sg').forEach(function (e) { e.remove(); });
+    document.getElementById('cimg').src = msg && g.base ? g.base : (g.og || g.poster);
+    if (!msg || !g.base) return;
+    var L = layout(msg), top = L.lines.length === 1 ? 462 : 432, cq = function (px) { return (px / 12) + 'cqw'; };
+    L.lines.forEach(function (l, i) { var d = document.createElement('div'); d.className = 'ml'; d.textContent = l; d.style.fontSize = cq(L.size); d.style.top = cq(top + i * L.size * 1.02 - L.size * .8); box.appendChild(d); });
+    if (name) { var sg = document.createElement('div'); sg.className = 'sg'; sg.textContent = '— ' + name; sg.style.top = cq(top + (L.lines.length - 1) * L.size * 1.02 + 50 - 26); box.appendChild(sg); }
+  }
+  function sendWa(btn) {
+    var mi = document.getElementById('wmsg'), ni = document.getElementById('wname'), lab = btn.querySelector('span');
+    var msg = mi ? mi.value.trim() : '', name = ni ? ni.value.trim() : '';
+    var go = function (url) { t('greeting_whatsapp', { id: g.id, char: g.char, words: msg ? 1 : 0 }); location.href = 'https://wa.me/?text=' + encodeURIComponent((msg ? msg + '\n' : '') + 'ברכה ל' + g.forWho + ' מהשלומיוורס ' + url); };
+    if (!msg || !g.base) return go(g.card ? g.url + '?c=' + g.card.c : g.url);
+    btn.disabled = true; lab.textContent = 'מכינים את הכרטיס…';
+    fetch('/greeting/' + encodeURIComponent(g.id) + '/card', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ msg: msg, name: name }) })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) { btn.disabled = false; lab.textContent = 'לשליחה בוואטסאפ'; go(j.url); })
+      .catch(function () { btn.disabled = false; lab.textContent = 'לא הצליח - לנסות שוב'; });
+  }
   var DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
   var WA = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.9 2c0 1.2.9 2.4 1 2.5.1.2 1.7 2.7 4.2 3.7 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2Z"/></svg>';
   app.innerHTML = head('ברכה ל' + esc(g.forWho), 'מאת <b>' + esc(g.charName) + '</b>' + (g.event ? ' · ' + esc(g.event) : '')) +
+    (g.card ? '<div class="theirs">' + esc(g.card.msg) + (g.card.name ? '<small>— ' + esc(g.card.name) + '</small>' : '') + '</div>' : '') +
     '<div class="player"><video src="' + esc(g.video) + '" poster="' + esc(g.poster) + '" controls playsinline preload="metadata"></video></div>' +
-    '<div class="acts"><a href="' + esc(g.download) + '" data-act="download">' + DL + 'להורדה</a><a href="' + esc(wa) + '" target="_blank" rel="noopener" data-act="whatsapp">' + WA + 'לשליחה בוואטסאפ</a></div>' +
+    '<div class="acts"><a href="' + esc(g.download) + '" data-act="download">' + DL + 'להורדה</a><a href="#wa" data-act="whatsapp_jump">' + WA + 'לשליחה בוואטסאפ</a></div>' +
+    waBox() +
     '<p class="share">נשמח מאוד אם תשתפו את הברכה עם העוקבים שלכם בסטורי, ובכל מקום שבא לכם, ותתייגו את <a href="https://www.instagram.com/shlomizevin/" target="_blank" rel="noopener" data-act="insta">@shlomizevin</a> באינסטגרם.</p>' +
     '<p class="note">ברכות עשויות לעלות לסטורי בשלומיוורס ובאינסטגרם.</p>' +
     givenBox() +
@@ -107,6 +173,11 @@
       .then(function () { wasShown = true; try { localStorage.setItem('greet-shown-' + g.id, '1'); } catch (e) {} document.getElementById('given').outerHTML = givenBox(); t('greeting_shown', { id: g.id, char: g.char }); })
       .catch(function () { gb.disabled = false; gb.lastChild.textContent = 'לא נשלח - לנסות שוב'; });
   });
+  ['wmsg', 'wname'].forEach(function (k) { var el = document.getElementById(k); if (el) el.addEventListener('input', preview); });
+  if (document.fonts && document.fonts.load) document.fonts.load('700 40px "Amatic SC"', 'אב').then(preview, preview);
+  document.getElementById('wabtn').addEventListener('click', function () { sendWa(this); });
+  var jump = app.querySelector('[data-act="whatsapp_jump"]');
+  if (jump) jump.addEventListener('click', function (e) { e.preventDefault(); document.getElementById('wa').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   app.addEventListener('click', function (e) { var a = e.target.closest('[data-act]'); if (a) t('greeting_' + a.dataset.act, { id: g.id, char: g.char }); });
 })();
 </script>
