@@ -4,7 +4,7 @@
 // its own link-only page https://shlomiverse.com/greeting/<id> (techietech-api/page.js streams it; v2/site/greeting/page.html).
 //
 //   node scripts/greetings/greet.cjs add --video <file.mp4> --char <resident id> [--request <requests doc id>] [--for "מאיה"] [--event "שנתיים ביחד"]
-//        [--to <requester email>] [--poster <jpg>] [--at <seconds for the poster frame>]   -> prints the greeting id + its page
+//        [--to <requester email>] [--poster <jpg>] [--at <seconds for the poster frame>] [--name "how the resident signs"]   -> prints the greeting id + its page
 //   node scripts/greetings/greet.cjs mail <greeting id> [--out preview.html]     the email as HTML, to look at (nothing sent)
 //   node scripts/greetings/greet.cjs send <greeting id> --test                   the email to Shlomi's own inbox (how it looks in Gmail)
 //   node scripts/greetings/greet.cjs send <greeting id> --yes                    to the requester - ONLY after Shlomi approved THIS greeting.
@@ -25,6 +25,8 @@ const die = (m) => { console.error(m); process.exit(1); };
 const newId = () => { const A = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'; return Array.from(crypto.randomBytes(14), (b) => A[b % A.length]).join(''); };
 const secret = (n) => execSync(`gcloud secrets versions access latest --secret=${n} --project=boostmind-b052c`, { encoding: 'utf8' }).trim();
 
+// how a resident signs a greeting when it differs from the page's name (Hani: never "חני" from her own mouth)
+const NAME_AS = { hani: 'חנה פרידמן' };
 async function add() {
   const video = opt('video'), char = opt('char');
   if (!video || !fs.existsSync(video)) die('--video <file.mp4> is missing');
@@ -50,7 +52,7 @@ async function add() {
   await bucket.upload(video, { destination: `greetings/${id}/video.mp4`, metadata: { contentType: 'video/mp4', cacheControl: 'private, max-age=0' } });
   await bucket.upload(poster, { destination: `greetings/${id}/poster.jpg`, metadata: { contentType: 'image/jpeg' } });
   await db.collection('greetings').doc(id).set({
-    char, charName: c.name, charImg: img, world: c.world || '', techy: c.world === 'טקי-טק' || flag('techy'),
+    char, charName: opt('name', NAME_AS[char] || c.name), charImg: img, world: c.world || '', techy: c.world === 'טקי-טק' || flag('techy'),
     forWho, event, to, requestId: opt('request') || null, public: false,
     t: admin.firestore.FieldValue.serverTimestamp(), sentAt: null,
   });
