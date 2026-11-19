@@ -10,6 +10,8 @@ must never reach wiki.json, the resident's videos, "latest videos", the brain or
 through its own link-only page. The project's `episode.json` carries
 `"greeting": {"char": "<resident id>", "request": "<request id>", "for": "מאיה", "event": "שנתיים ביחד", "date": "28.11.2026"}`
 from its first minute - with it, the studio's verse publish refuses the project (`render/verse.mjs` `toVerse`).
+**The greeting's details = `episodes/_assets/greetings/<slug>/greeting.json`** (char, request, for, event, date, the
+script, the add command - private, the cloud pool, not git) -> copy them into episode.json `greeting`.
 Not for the socials either, unless he says so for that greeting.
 
 ## The look - his pick (plan greeting-ideas, option 3 "cards")
