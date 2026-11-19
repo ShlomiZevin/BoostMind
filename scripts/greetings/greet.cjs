@@ -9,7 +9,7 @@
 //   node scripts/greetings/greet.cjs send <greeting id> --test                   the email to Shlomi's own inbox (how it looks in Gmail)
 //   node scripts/greetings/greet.cjs send <greeting id> --yes                    to the requester - ONLY after Shlomi approved THIS greeting.
 //        Inside the requester's own thread when they ever wrote to us (his rule: answers go in their thread); logged in mailLog;
-//        the request is marked done.
+//        the request is marked done. + an SMS from "Shlomiverse" with the link to the request's phone (sms.cjs, Twilio).
 //   node scripts/greetings/greet.cjs public <greeting id> on|off                 shown in the verse's "ברכות" section / for stories (his call)
 //   node scripts/greetings/greet.cjs og <greeting id>                            (re)draw its link-preview card (add does it by itself)
 //   node scripts/greetings/greet.cjs list
@@ -141,6 +141,21 @@ async function send(id) {
     if (g.requestId) await db.collection('requests').doc(g.requestId).update({ done: true, answer: `greeting sent: ${SITE}/greeting/${g.id}`, answeredAt: admin.firestore.FieldValue.serverTimestamp() });
   }
   console.log(`sent ${test ? '(test, to Shlomi)' : 'to the requester'}${th ? ' in their thread' : ''}: ${subject}`);
+  // + an SMS from "Shlomiverse" with the link (his ask 2026-11-19: an email can land in spam). The phone is a must on requests
+  // since 2026-11-19; older ones may have it in `contact`. A failed SMS never fails the send - it says so.
+  if (!test) {
+    const { sendSms, phoneOf, greetingText, tail } = require('./sms.cjs');
+    const r = g.requestId ? (await db.collection('requests').doc(g.requestId).get()).data() || {} : {};
+    const phone = phoneOf(r.phone) || phoneOf(r.contact);
+    if (!phone) console.log('sms: no phone on the request');
+    else {
+      try {
+        const s = await sendSms(phone, greetingText(g));
+        await db.collection('greetings').doc(g.id).update({ smsAt: admin.firestore.FieldValue.serverTimestamp(), smsSid: s.sid });
+        console.log(`sms: ${s.status} to ${tail(s.to)}`);
+      } catch (e) { console.log('sms failed: ' + e.message); }
+    }
+  }
 }
 
 (async () => {
