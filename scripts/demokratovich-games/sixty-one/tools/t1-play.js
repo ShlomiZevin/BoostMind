@@ -12,7 +12,7 @@ const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
   const pg = await br.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true }); await pg.addInitScript(() => { try { localStorage.setItem('t-ignore', '1'); } catch (e) {} });
   const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await pg.goto(URL);
-  await pg.waitForFunction(() => window.SIXTYONE && window.SIXTYONE.rabbi, null, { timeout: 60000 }).catch(() => fail('rabbi never loaded'));
+  await pg.waitForFunction(() => window.SIXTYONE && window.SIXTYONE.rabbi && SIXTYONE.ready, null, { timeout: 90000 }).catch(() => fail('rabbi never loaded'));
   await sleep(800);
   await pg.screenshot({ path: path.join(OUT, `t1-1start.png`) });
   console.log('clips', await pg.evaluate(() => window.SIXTYONE.clips.join(',')));

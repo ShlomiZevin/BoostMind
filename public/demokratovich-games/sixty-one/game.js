@@ -186,10 +186,10 @@ function layout() {
   // a phone: the tower ~ half the width; a wide screen: the same height as a phone sees, the tower in a phone-wide column
   const PA = 0.462, halfH0 = 3.8 / PA;
   let halfW, halfH;
-  if (aspect < 0.75) { halfW = 5.6; halfH = halfW / aspect; } else { halfH = halfH0 * 1.15; halfW = halfH * aspect; }
+  if (aspect < 0.75) { halfW = 6.7; halfH = halfW / aspect; } else { halfH = halfH0 * 1.15; halfW = halfH * aspect; }
   viewW = halfW * 2; const shift = Math.min(viewW, halfH * 2 * 0.6) * 0.07;
   cam.left = -halfW - shift; cam.right = halfW - shift; cam.top = halfH; cam.bottom = -halfH; cam.updateProjectionMatrix();
-  rabbiLayout();
+  rabbiLayout(); if (typeof roomCamera === 'function' && DIORAMA.box) roomCamera();
   document.body.classList.toggle('turn', matchMedia('(hover:none)').matches && W > H && H < 520);
 }
 addEventListener('resize', layout);
@@ -284,7 +284,24 @@ function pedestal() {
 // pedestal stays only as a fallback while the model loads / if it fails.
 const ped = []; { const before = new Set(scene.children); pedestal(); for (const o of scene.children) if (!before.has(o)) ped.push(o); }
 let diorama = null;
+// loading: both models report their download; the start screen shows one bar and "שחקו" waits for it
+const LOAD = { room: 0, rabbi: 0, roomDone: false, rabbiDone: false, ready: false };
+function loadProgress() {
+  const p = (LOAD.room * 0.35 + LOAD.rabbi * 0.65);
+  $('loadBar').firstElementChild.style.width = Math.round(p * 100) + '%';
+  $('loadPct').textContent = Math.round(p * 100) + '%';
+  if (LOAD.roomDone && LOAD.rabbiDone && !LOAD.ready) {
+    LOAD.ready = true;
+    // build every shader and upload every texture now, while the menu is up - no hitch when the game starts
+    try { renderer.compile(scene, cam); renderer.compile(rScene, rCam); } catch (e) {}
+    warm = 3;
+    setTimeout(() => { $('loadBar').classList.add('done'); $('playBtn').classList.remove('wait'); }, 250);
+  }
+}
+const prog = (k) => (e) => { if (e && e.total) { LOAD[k] = Math.min(0.99, e.loaded / e.total); loadProgress(); } };
+let warm = 0;
 new GLTFLoader().load('assets/diorama.glb', (g) => {
+  LOAD.room = 1; LOAD.roomDone = true;
   const root = g.scene; root.rotation.y = DIORAMA.rot;
   root.traverse((o) => { if (o.isMesh) { [].concat(o.material).forEach((m) => { if (m.map) m.map.anisotropy = 2; }); } });
   const holder = new THREE.Group(); holder.add(root); scene.add(holder);
@@ -319,7 +336,60 @@ new GLTFLoader().load('assets/diorama.glb', (g) => {
     const bs = new THREE.Mesh(new THREE.PlaneGeometry(BASE * 1.9, BASE * 1.9), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, depthWrite: false }));
     bs.rotation.x = -Math.PI / 2; bs.position.set(-0.25, -SH / 2 + 0.004, 0.25); scene.add(bs);
   }
-}, undefined, () => {});
+  buildPlinth(holder);
+  roomCamera();
+  loadProgress();
+}, prog('room'), () => { LOAD.room = 1; LOAD.roomDone = true; loadProgress(); });
+// the room stands on a tall wooden plinth that runs down out of the picture, with the community's name on its two front faces
+function buildPlinth(holder) {
+  const box = new THREE.Box3().setFromObject(holder); DIORAMA.box = box;
+  // synagogues have very high walls: the room's two back walls carry on far up (painted upper walls, windows, cornice, ceiling edge)
+  {
+    const ray = new THREE.Raycaster(), mid = (box.min.y + box.max.y) / 2;
+    const hitAt = (dir) => { ray.set(new THREE.Vector3(0, mid + 0.6, 0), dir); const h = ray.intersectObject(holder, true).filter((x) => x.distance > 1.5); return h.length ? h[h.length - 1].point : null; };
+    const hl = hitAt(new THREE.Vector3(-1, 0, 0)), hr = hitAt(new THREE.Vector3(0, 0, -1));
+    const lx = hl ? hl.x : box.min.x + 0.15, rz = hr ? hr.z : box.min.z + 0.15, T = 0.18;
+    const wallTop = box.max.y - 0.05;
+    const mat = (f) => { const t = new THREE.TextureLoader().load(f); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 2; return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }); };
+    const wood = new THREE.MeshStandardMaterial({ color: 0x8a4a1c, roughness: 0.7 });
+    const lw = box.max.z - box.min.z, rw = box.max.x - box.min.x, Hw = Math.max(lw, rw) * 1.5;
+    const L = new THREE.Mesh(new THREE.BoxGeometry(T, Hw, lw), [mat('assets/wall-l.webp'), wood, wood, wood, wood, wood]);
+    L.position.set(lx - T / 2, wallTop + Hw / 2, (box.min.z + box.max.z) / 2); scene.add(L);
+    const Rw = new THREE.Mesh(new THREE.BoxGeometry(rw, Hw, T), [wood, wood, wood, wood, mat('assets/wall-r.webp'), wood]);
+    Rw.position.set((box.min.x + box.max.x) / 2, wallTop + Hw / 2, rz - T / 2); scene.add(Rw);
+    DIORAMA.wallTop = wallTop + Hw;
+  }
+  const wx = box.max.x - box.min.x, wz = box.max.z - box.min.z, Hh = 9;
+  const face = (len, lines) => {
+    const c = document.createElement('canvas'); c.width = 1024; c.height = Math.round(1024 * Hh / len); const g = c.getContext('2d');
+    const gr = g.createLinearGradient(0, 0, 0, c.height); gr.addColorStop(0, '#a85d27'); gr.addColorStop(0.25, '#8a4718'); gr.addColorStop(1, '#4a230b'); g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
+    for (let i = 0; i < 90; i++) { g.strokeStyle = `rgba(50,20,4,${0.08 + Math.random() * 0.12})`; g.lineWidth = 1 + Math.random() * 3; g.beginPath(); const y = Math.random() * c.height; g.moveTo(0, y); g.bezierCurveTo(340, y + 10, 680, y - 10, 1024, y + 4); g.stroke(); }
+    g.fillStyle = '#d9a23e'; g.fillRect(0, 0, 1024, 14);
+    // an engraved brass plaque near the top
+    const ph = 250, py = 70; g.fillStyle = '#5a2c0e'; g.fillRect(60, py - 6, 904, ph + 12);
+    const pg = g.createLinearGradient(0, py, 0, py + ph); pg.addColorStop(0, '#f6d27a'); pg.addColorStop(0.5, '#d7a640'); pg.addColorStop(1, '#a8761f'); g.fillStyle = pg; g.fillRect(66, py, 892, ph);
+    g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    lines.forEach(([t, fs, y]) => { g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; let f = fs; while (g.measureText(t).width > 840 && f > 30) { f -= 4; g.font = `900 ${f}px Rubik, system-ui, sans-serif`; } g.fillStyle = '#fff3c4'; g.fillText(t, 512, py + y + 2); g.fillStyle = '#4a2208'; g.fillText(t, 512, py + y); });
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 2; return new THREE.MeshStandardMaterial({ map: t, roughness: 0.7 });
+  };
+  const plain = new THREE.MeshStandardMaterial({ color: 0x5a2c0e, roughness: 0.8 });
+  const left = face(wz, [['בית המשפט ״שערי בג״ץ״', 96, 95], ['רב הקהילה: הגאון הרב דמוקרטוביץ שליט״א', 46, 185]]);
+  const right = face(wx, [['קהילת ״שערי בג״ץ״', 96, 95], ['עמותת ״קופת הקולות״ · שיעור במסכת שלטון ומשפט', 42, 185]]);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(wx * 0.985, Hh, wz * 0.985), [right, plain, plain, plain, left, plain]);
+  m.position.set((box.min.x + box.max.x) / 2, box.min.y - Hh / 2 + 0.02, (box.min.z + box.max.z) / 2); scene.add(m);
+}
+// where the camera starts: the room's front corner sits low on the screen, near the rabbi's feet; it rises only once the
+// tower top would pass ~38% from the top
+let camStart = SH - 3;
+function roomCamera() {
+  if (!DIORAMA.box) return;
+  const P = new THREE.Vector3(DIORAMA.box.max.x, DIORAMA.box.min.y, DIORAMA.box.max.z);
+  const at = (c) => { cam.position.set(0, c, 0).addScaledVector(CAMDIR, 30); cam.lookAt(0, c, 0); cam.updateMatrixWorld(); const v = P.clone().project(cam); return (1 - v.y) / 2 * H; };
+  const y0 = at(0), y1 = at(1), target = H - safeB - RB.h * 0.62;
+  camStart = (target - y0) / (y1 - y0);
+  if (state === 'menu' || !cur) { camY = camYGoal = Math.max(camStart, camYGoal); }
+}
+const camFor = (y) => Math.max(camStart, y - camLift());
 
 // ───────────────────────── the rabbi: the verse's 3D resident, in his own little view ─────────────────────────
 const rScene = new THREE.Scene();
@@ -336,6 +406,7 @@ function rabbiLayout() {
 }
 const anim = { mixer: null, base: null, clips: {}, masks: {}, cur: null, idleT: 6 };
 new GLTFLoader().load('assets/rabbi.glb', async (g) => {
+  LOAD.rabbi = 1;
   const root = g.scene;
   root.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; [].concat(o.material).forEach((m) => { m.side = THREE.DoubleSide; }); } });
   // the shared figure has a test sphere in some builds - hide anything that is not skinned
@@ -393,8 +464,8 @@ new GLTFLoader().load('assets/rabbi.glb', async (g) => {
     };
   }
   anim.base = anim.mixer.clipAction(baseClip); anim.base.play();
-  $('loading').hidden = true;
-}, undefined, () => { $('loading').textContent = ''; });
+  LOAD.rabbiDone = true; loadProgress();
+}, prog('rabbi'), () => { LOAD.rabbi = 1; LOAD.rabbiDone = true; loadProgress(); });
 
 // play a gesture (masked over the idle) or a whole-body motion, with a smooth in / out
 function act(name) {
@@ -471,7 +542,7 @@ function reset(seed) {
   seats = 0; drops = 0; streak = 0; qi = 0; govDone = false; milestones = {}; busy = 0;
   R = rng(seed); queue = seed === 'tutorial' ? TUT_QUEUE.map((e) => ({ ...e })) : makeQueue(R);
   poll = { on: false, left: 0, next: 7 + Math.floor(R() * 4), t: 0 };
-  camY = camYGoal = SH - camLift(); stopRing();
+  camY = camYGoal = camFor(SH); stopRing();
   spawn(); hud();
 }
 function camLift() { const halfH = (cam.top - cam.bottom) / 2; return 0.12 * 2 * halfH / 0.866; }
@@ -492,7 +563,7 @@ function spawn() {
   }
   cur[axis] = (axis === 'x' ? t.x : t.z) - range;
   mesh.position.set(cur.x, cur.y, cur.z); scene.add(mesh);
-  camYGoal = cur.y - camLift();
+  camYGoal = camFor(cur.y);
   nextChip(); vetoGlow();
 }
 function nextChip() {
@@ -637,7 +708,7 @@ function removeSlabs(list) {
   }
   for (let i = 1; i < tower.length; i++) { const s = tower[i]; const y = tower[i - 1].y + SH; if (Math.abs(s.y - y) > 1e-4) { s.settleFrom = s.mesh.position.y; s.y = y; s.settle = 0; } }
   if (cur) { cur.y = topSlab().y + SH; cur.mesh.position.y = cur.y; }
-  camYGoal = topSlab().y + SH - camLift();
+  camYGoal = camFor(topSlab().y + SH);
 }
 // the פסול! button: throw the sliding slab out
 function veto(ev) {
@@ -762,7 +833,7 @@ function finish(reason) {
 function toMenu() {
   state = 'menu'; paused = false; tutorial = false; tut.on = false; $('tutCard').classList.remove('on'); $('tutDim').classList.remove('on');
   showHUD(false); hint(false); bubble.className = ''; stopRing(); $('pollChip').hidden = true;
-  clearScene(); tower = [{ x: 0, z: 0, w: BASE, d: BASE, y: -SH }]; camY = camYGoal = SH - camLift();
+  clearScene(); tower = [{ x: 0, z: 0, w: BASE, d: BASE, y: -SH }]; camY = camYGoal = camFor(SH);
   loop('music', 0); show('start'); showBest();
 }
 function pause(on) {
@@ -771,8 +842,8 @@ function pause(on) {
   if (SND.master) SND.master.gain.value = on ? 0 : (SND.on ? 1 : 0);
   if (!on) lastT = performance.now();
 }
-$('playBtn').onclick = () => { play('click', 0.6); if (store.get(KEY.tut)) startGame(); else tut.begin(); };
-$('howBtn').onclick = () => { play('click', 0.6); tut.begin(); };
+$('playBtn').onclick = () => { if (!LOAD.ready) return; play('click', 0.6); if (store.get(KEY.tut)) startGame(); else tut.begin(); };
+$('howBtn').onclick = () => { if (!LOAD.ready) return; play('click', 0.6); tut.begin(); };
 $('againBtn').onclick = () => { play('click', 0.6); startGame(); };
 $('menuBtn').onclick = () => { play('click', 0.6); toMenu(); };
 $('pauseBtn').onclick = (e) => { e.stopPropagation(); pause(true); };
@@ -903,8 +974,8 @@ function render() {
   const t = new THREE.Vector3(0, camY, 0);
   cam.position.copy(t).addScaledVector(CAMDIR, 30); cam.lookAt(t);
   // the hall's picture rises with the tower (floor -> ceiling)
-  const prog = clamp((camY + camLift()) / 22, 0, 1);
-  $('hall').style.setProperty('--rise', prog.toFixed(3));
+  const rise = clamp((camY - camStart) / 22, 0, 1);
+  $('hall').style.setProperty('--rise', rise.toFixed(3));
   sun.position.set(4, camY + 9, 6); sun.target.position.set(0, camY, 0);
   renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H); renderer.clear(); renderer.render(scene, cam);
   if (rabbi) {
@@ -916,9 +987,10 @@ function render() {
 }
 function frame(now) {
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
-  if (!paused) step(dt);
+  if (!paused && (state !== 'menu' || warm > 0)) step(dt);
   if (bubbleT > 0) { bubbleT -= dt; placeBubble(); if (bubbleT <= 0) bubble.classList.remove('on'); }
-  tut.frame(); render();
+  tut.frame();
+  if (state !== 'menu') render(); else if (warm > 0) { warm--; render(); }   // nothing 3D is drawn behind the menu
   requestAnimationFrame(frame);
 }
 renderer.autoClear = false;
@@ -936,7 +1008,7 @@ window.SIXTYONE = {
   get state() { return state; }, get seats() { return seats; }, get drops() { return drops; }, get streak() { return streak; },
   get tower() { return tower.map((s) => ({ x: s.x, z: s.z, w: s.w, d: s.d })); }, get poll() { return { ...poll }; },
   get cur() { return cur && { axis: cur.axis, off: cur[cur.axis] - topSlab()[cur.axis], size: cur.axis === 'x' ? cur.w : cur.d, name: cur.e.p.name, seats: cur.e.seats, bloc: cur.e.p.bloc, side: cur.side }; },
-  get room() { return !!diorama; }, roomRot(r) { if (diorama) diorama.children[0].rotation.y = r; },
+  get room() { return !!diorama; }, get ready() { return LOAD.ready; }, roomRot(r) { if (diorama) diorama.children[0].rotation.y = r; },
   get busy() { return busy; }, veto, get queue() { return queue; },
   // a player bot: disqualify the other bloc (and Liberman when he can't sit), wait for the Haredim's colour, drop within `want`
   bot(want = 0.05, opts = {}) {

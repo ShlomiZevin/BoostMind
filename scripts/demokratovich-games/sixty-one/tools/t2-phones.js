@@ -14,7 +14,7 @@ const SIZES = [[320, 568], [360, 640], [390, 844], [412, 915], [844, 390], [1280
     const pg = await br.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: touch, isMobile: touch }); pg.setDefaultTimeout(120000);
     const errs = []; pg.on('pageerror', (e) => errs.push(e.message));
     
-    await pg.goto(URL); if (verse) await pg.evaluate(() => document.documentElement.classList.add('in-verse')); await pg.waitForFunction(() => window.SIXTYONE && SIXTYONE.rabbi, null, { timeout: 60000 }).catch(() => fail('no rabbi'));
+    await pg.goto(URL); if (verse) await pg.evaluate(() => document.documentElement.classList.add('in-verse')); await pg.waitForFunction(() => window.SIXTYONE && SIXTYONE.rabbi && SIXTYONE.ready, null, { timeout: 90000 }).catch(() => fail('no rabbi'));
     await sleep(600);
     const tag = `${w}x${h}${verse ? '-verse' : ''}`;
     await pg.screenshot({ path: path.join(OUT, `p-${tag}-1start.png`) });
