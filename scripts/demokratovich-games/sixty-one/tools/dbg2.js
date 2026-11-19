@@ -5,7 +5,7 @@ const { chromium } = require(path.join(process.env.USERPROFILE, 'plaxzy-creator/
   const pg = await br.newPage({ viewport: { width: 390, height: 844 } });
   await pg.addInitScript(() => { try { localStorage.setItem('shlomiverse:sixty-one:tut', '1'); } catch (e) {} });
   await pg.goto('http://localhost:8781/demokratovich-games/sixty-one/?solo=1&notrack=1');
-  await pg.waitForFunction(() => window.SIXTYONE && SIXTYONE.rabbi, null, { timeout: 60000 });
+  await pg.waitForFunction(() => window.SIXTYONE && SIXTYONE.ready, null, { timeout: 90000 });
   console.log(await pg.evaluate(() => {
     const S = window.SIXTYONE; S.startGame(); const log = [];
     for (let n = 0; n < 60 && S.state === 'play'; n++) {

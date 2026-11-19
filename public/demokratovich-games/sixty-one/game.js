@@ -36,8 +36,8 @@ const P = {
   ib: { name: 'ישראל ביתנו', who: 'ליברמן', seats: 7, col: '#0aa5b8', bloc: 'us', liberman: true },
   raam: { name: 'רע״ם', who: 'עבאס', seats: 8, col: '#1f9d55', bloc: 'arab' },
   joint: { name: 'הרשימה המשותפת', who: 'ג׳בארין', seats: 11, col: '#c62828', bloc: 'arab' },
-  utj: { name: 'יהדות התורה', who: 'אשר', seats: 7, col: '#3d3d47', bloc: 'haredi', ours: 0.66 },
-  shas: { name: 'ש״ס', who: 'דרעי', seats: 6, col: '#1d6f8a', bloc: 'haredi', ours: 0.45 },
+  utj: { name: 'יהדות התורה', who: 'אשר', seats: 7, col: '#3d3d47', bloc: 'haredi', ours: 0.72 },
+  shas: { name: 'ש״ס', who: 'דרעי', seats: 6, col: '#1d6f8a', bloc: 'haredi', ours: 0.55 },
   likud: { name: 'הליכוד', who: 'נתניהו', seats: 27, col: '#1b3a8f', bloc: 'them' },
   otzma: { name: 'עוצמה יהודית', who: 'בן גביר', seats: 7, col: '#e07b12', bloc: 'them' },
   rz: { name: 'הציונות הדתית', who: 'סמוטריץ׳', seats: 6, col: '#2f6b3a', bloc: 'them' },
@@ -186,8 +186,8 @@ function layout() {
   // a phone: the tower ~ half the width; a wide screen: the same height as a phone sees, the tower in a phone-wide column
   const PA = 0.462, halfH0 = 3.8 / PA;
   let halfW, halfH;
-  if (aspect < 0.75) { halfW = 6.7; halfH = halfW / aspect; } else { halfH = halfH0 * 1.15; halfW = halfH * aspect; }
-  viewW = halfW * 2; const shift = Math.min(viewW, halfH * 2 * 0.6) * 0.09;   // the tower sits left of centre: the rabbi has the right corner
+  if (aspect < 0.75) { halfW = 5.0; halfH = halfW / aspect; } else { halfH = halfH0 * 1.15; halfW = halfH * aspect; }
+  viewW = halfW * 2; const shift = Math.min(viewW, halfH * 2 * 0.6) * 0.04;   // the tower sits left of centre: the rabbi has the right corner
   cam.left = -halfW + shift; cam.right = halfW + shift; cam.top = halfH; cam.bottom = -halfH; cam.updateProjectionMatrix();
   rabbiLayout(); if (typeof roomCamera === 'function' && DIORAMA.box) roomCamera();
   document.body.classList.toggle('turn', matchMedia('(hover:none)').matches && W > H && H < 520);
@@ -226,24 +226,31 @@ function labelTex(L, len, seats) {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
-const topCache = {};
-function topTex(L) {                    // the top face: a plain colour, warning stripes for the other bloc, a "?" for the Haredim
-  const key = L.col + (L.hazard ? 'h' : '') + (L.q ? 'q' : '');
-  if (topCache[key]) return topCache[key];
-  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
-  g.fillStyle = shade(L.col, 0.08); g.fillRect(0, 0, 256, 256);
-  if (L.hazard) { g.fillStyle = '#0000002e'; for (let x = -256; x < 512; x += 48) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 22, 0); g.lineTo(x + 22 + 256, 256); g.lineTo(x + 256, 256); g.fill(); } }
-  if (L.q) { g.fillStyle = '#ffffffd0'; g.font = '900 150px Rubik, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', 128, 136); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; topCache[key] = t; return t;
-}
 function shade(hex, k) {
   const n = parseInt(hex.slice(1), 16); let r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
   const f = (v) => clamp(Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k)), 0, 255);
   return `rgb(${f(r)},${f(gg)},${f(b)})`;
 }
+function topTex(L, w, d, seats) {       // the top face: colour, the party's name and seats; stripes for the other bloc; "?" for the Haredim
+  const k = 200, cw = Math.max(64, Math.round(w * k)), ch = Math.max(64, Math.round(d * k));
+  const c = document.createElement('canvas'); c.width = cw; c.height = ch; const g = c.getContext('2d');
+  g.fillStyle = shade(L.col, 0.08); g.fillRect(0, 0, cw, ch);
+  if (L.hazard) { g.fillStyle = '#0000002e'; for (let x = -ch; x < cw + ch; x += 48) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 22, 0); g.lineTo(x + 22 + ch, ch); g.lineTo(x + ch, ch); g.fill(); } }
+  g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.save(); g.translate(cw / 2, ch / 2); g.rotate(TOP_ROT);
+  const span = (Math.abs(Math.sin(TOP_ROT)) > 0.5 ? ch : cw) - 20, high = Math.abs(Math.sin(TOP_ROT)) > 0.5 ? cw : ch;
+  let txt = L.q ? `${L.name} ?` : `${L.name} ${seats}`, fs = Math.min(70, high * 0.36);
+  g.font = `900 ${fs}px Rubik, system-ui, sans-serif`;
+  while (g.measureText(txt).width > span && fs > 16) { fs -= 3; g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; }
+  if (g.measureText(txt).width > span) { txt = L.q ? '?' : String(seats); fs = Math.min(70, high * 0.5); g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; }
+  g.fillStyle = '#0006'; g.fillText(txt, 0, 3); g.fillStyle = '#fff'; g.fillText(txt, 0, 0);
+  g.restore();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+const TOP_ROT = +(new URLSearchParams(location.search).get('toprot') ?? -Math.PI / 2);
 function slabMats(L, w, d, seats) {
   const plain = new THREE.MeshStandardMaterial({ color: new THREE.Color(L.col).multiplyScalar(0.8), roughness: 0.55 });
-  const top = new THREE.MeshStandardMaterial({ map: topTex(L), roughness: 0.45 }); top.userData.shared = true;
+  const top = new THREE.MeshStandardMaterial({ map: topTex(L, w, d, seats), roughness: 0.45 });
   const sx = new THREE.MeshStandardMaterial({ map: labelTex(L, d, seats), roughness: 0.5 });
   const sz = new THREE.MeshStandardMaterial({ map: labelTex(L, w, seats), roughness: 0.5 });
   return [sx, plain, top, plain, sz, plain];
@@ -340,13 +347,22 @@ new GLTFLoader().load('assets/diorama.glb', (g) => {
     const bs = new THREE.Mesh(new THREE.PlaneGeometry(BASE * 1.9, BASE * 1.9), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, depthWrite: false }));
     bs.rotation.x = -Math.PI / 2; bs.position.set(-0.25, -SH / 2 + 0.004, 0.25); scene.add(bs);
   }
-  buildPlinth(holder);
+  buildHall(holder);
   roomCamera();
   loadProgress();
 }, prog('room'), () => { LOAD.room = 1; LOAD.roomDone = true; loadProgress(); });
 // the room stands on a tall wooden plinth that runs down out of the picture, with the community's name on its two front faces
-function buildPlinth(holder) {
+function buildHall(holder) {
   const box = new THREE.Box3().setFromObject(holder); DIORAMA.box = box;
+  const canvasTex = (w, h, draw, rx = 1, ry = 1) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 2; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); return t; };
+  // the floor: warm wooden planks at the room's floor level, out past the screen
+  const planks = canvasTex(512, 512, (g, w, h) => {
+    for (let i = 0; i < 8; i++) { const y = i * 64; g.fillStyle = ['#a9602a', '#9c5524', '#b26a2f', '#a35b27'][i % 4]; g.fillRect(0, y, w, 64); g.fillStyle = '#5a2c0e'; g.fillRect(0, y, w, 3); const cut = ((i * 197) % 400) + 50; g.fillRect(cut, y, 3, 64);
+      for (let k = 0; k < 6; k++) { g.strokeStyle = `rgba(70,30,8,${0.08 + Math.random() * 0.1})`; g.beginPath(); const yy = y + 8 + Math.random() * 50; g.moveTo(0, yy); g.bezierCurveTo(170, yy + 3, 340, yy - 3, 512, yy + 1); g.stroke(); } }
+  }, 10, 10);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ map: planks, roughness: 0.8 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.set(box.max.x + 22, DIORAMA.floor - 0.02, box.max.z + 22); scene.add(floor);
+  DIORAMA.makeTex = canvasTex;
   // synagogues have very high walls: the room's two back walls carry on far up (painted upper walls, windows, cornice, ceiling edge)
   {
     const ray = new THREE.Raycaster(), mid = (box.min.y + box.max.y) / 2;
@@ -384,6 +400,22 @@ function buildPlinth(holder) {
     Rw.position.set((lx + box.max.x) / 2, wallTop + Hw / 2, rz - T / 2); scene.add(Rw);
     // a wooden post hides the corner seam
     const post = new THREE.Mesh(new THREE.BoxGeometry(T * 2.2, Hw, T * 2.2), wood); post.position.set(lx - T * 0.6, wallTop + Hw / 2, rz - T * 0.6); scene.add(post);
+    // the hall goes on past the little room: lower walls (wood wainscot + plaster) from the floor, upper walls above them
+    const lowerTex = DIORAMA.makeTex(512, 512, (g, w, h) => {
+      g.fillStyle = '#efd9b0'; g.fillRect(0, 0, w, h);
+      const wy = h * 0.42; const gr = g.createLinearGradient(0, wy, 0, h); gr.addColorStop(0, '#9a5524'); gr.addColorStop(1, '#6a3412'); g.fillStyle = gr; g.fillRect(0, wy, w, h - wy);
+      g.fillStyle = '#c98a3e'; g.fillRect(0, wy, w, 12); g.strokeStyle = '#5a2c0e'; g.lineWidth = 6;
+      for (let x = 20; x < w; x += 128) g.strokeRect(x, wy + 40, 96, h - wy - 70);
+    }, 1, 1);
+    const ext = 30, floorY = DIORAMA.floor, lh = wallTop - floorY;
+    const lowerMat = (len) => { const t = lowerTex.clone(); t.needsUpdate = true; t.repeat.set(len / 3.5, 1); return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }); };
+    const upperMat = (f, len) => { const t = new THREE.TextureLoader().load(f); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.repeat.set(len / Math.max(lw, rw), 1); return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }); };
+    { const g2 = new THREE.Group();
+      const lo = new THREE.Mesh(new THREE.PlaneGeometry(ext, lh), lowerMat(ext)); lo.rotation.y = Math.PI / 2; lo.position.set(lx, floorY + lh / 2, box.max.z + ext / 2); g2.add(lo);
+      const up = new THREE.Mesh(new THREE.PlaneGeometry(ext, Hw), upperMat('assets/wall-l.webp', ext)); up.rotation.y = Math.PI / 2; up.position.set(lx - 0.01, wallTop + Hw / 2, box.max.z + ext / 2); g2.add(up); scene.add(g2); }
+    { const g3 = new THREE.Group();
+      const lo = new THREE.Mesh(new THREE.PlaneGeometry(ext, lh), lowerMat(ext)); lo.position.set(box.max.x + ext / 2, floorY + lh / 2, rz); g3.add(lo);
+      const up = new THREE.Mesh(new THREE.PlaneGeometry(ext, Hw), upperMat('assets/wall-r.webp', ext)); up.position.set(box.max.x + ext / 2, wallTop + Hw / 2, rz - 0.01); g3.add(up); scene.add(g3); }
     DIORAMA.wallTop = wallTop + Hw;
   }
   const wx = box.max.x - box.min.x, wz = box.max.z - box.min.z, Hh = 9;
@@ -528,7 +560,7 @@ function animStep(dt) {
 // his bubble, beside his head
 const bubble = $('bubble');
 let bubbleT = 0;
-function say(text, dur = 2.6, cls = '') { bubble.textContent = text; bubble.className = 'on' + (cls ? ' ' + cls : ''); bubbleT = dur; placeBubble(); }
+function say() { /* no bubbles over the play (his ask) - he reacts with his gestures; big moments have banners */ }
 const tmpV = new THREE.Vector3();
 function placeBubble() {
   let hx = RB.x + RB.w * 0.45, hy = RB.y + RB.h * 0.2;
@@ -554,7 +586,7 @@ let timers = [];                    // game-time delays (pause-safe, and the tes
 function later(sec, fn) { timers.push({ t: sec, fn }); }
 function speedNow() {
   if (tutorial) return 1.5;
-  return clamp(2.6 + drops * 0.1, 2.6, 6.6) * (poll.on ? 1.45 : 1);
+  return clamp(2.1 + drops * 0.07, 2.1, 5.2) * (poll.on ? 1.35 : 1);
 }
 function topSlab() { return tower[tower.length - 1]; }
 function clearScene() {
@@ -619,7 +651,7 @@ function drop() {
   if (v === 'stunt') return stunt();
   if (v === 'refuse') return refuse();
   let newSize = keep, center = t[a] + delta / 2, perfect = false;
-  if (over < 0.08) { perfect = true; newSize = size; center = t[a]; }
+  if (over < 0.13) { perfect = true; newSize = size; center = t[a]; }
   const L = lookOf(cur.e, 'us');
   if (!perfect) {                                               // the cut piece falls: MKs who defected
     const cutW = a === 'x' ? over : cur.w, cutD = a === 'z' ? over : cur.d;
@@ -633,7 +665,7 @@ function drop() {
   if (perfect && streak >= 3 && newSize < BASE - 0.01) { newSize = Math.min(BASE, newSize + 0.25); grew = true; }
   const frac = clamp(keep / size, 0, 1);
   // seats defect only on a real cut: a near miss keeps them all, a cut past a quarter costs one, past half - the cut share
-  const gained = perfect || frac >= 0.75 ? cur.e.seats : frac >= 0.5 ? Math.max(1, cur.e.seats - 1) : Math.max(1, Math.round(cur.e.seats * frac));
+  const gained = perfect || frac >= 0.7 ? cur.e.seats : frac >= 0.5 ? Math.max(1, cur.e.seats - 1) : Math.max(1, Math.round(cur.e.seats * frac));
   scene.remove(cur.mesh); disposeMesh(cur.mesh);
   const nw = a === 'x' ? newSize : cur.w, nd = a === 'z' ? newSize : cur.d;
   const s = { x: cur.x, z: cur.z, w: nw, d: nd, y: cur.y, e: cur.e, seats: gained };
@@ -978,7 +1010,7 @@ function step(dt) {
     cur[cur.axis] = topSlab()[cur.axis] + p;
     cur.mesh.position.set(cur.x, cur.y, cur.z);
     if (cur.mats) {                      // the Haredim: our colour part of each 1.7 s, Netanyahu's the rest
-      cur.flick += dt; const ph = (cur.flick % 2.2) / 2.2, side = ph < cur.ours ? 'us' : 'them';
+      cur.flick += dt; const ph = (cur.flick % 2.8) / 2.8, side = ph < cur.ours ? 'us' : 'them';
       if (side !== cur.side) { cur.side = side; cur.mesh.material = cur.mats[side === 'us' ? 0 : 1]; vetoGlow(); play('click', 0.25, side === 'us' ? 1.2 : 0.8); }
     }
   }
@@ -1045,7 +1077,7 @@ window.SIXTYONE = {
     const b = cur.e.p.bloc;
     if (b === 'them' || (cur.e.p.liberman && hasLibFoe()) || (opts.noArab && b === 'arab')) return veto();
     if (b === 'arab' && hasLib() && opts.keepLib) return veto();
-    for (let i = 0; i < 6000 && cur; i++) {
+    for (let i = 0; i < 40000 && cur; i++) {
       const ok = Math.abs(cur[cur.axis] - topSlab()[cur.axis]) < want && (b !== 'haredi' || cur.side === 'us');
       if (ok && i > 3) break; step(1 / 240);
     }

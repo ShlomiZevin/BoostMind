@@ -9,7 +9,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const errs = []; pg.on('pageerror', (e) => errs.push(e.message));
   await pg.addInitScript(() => { try { localStorage.setItem('shlomiverse:sixty-one:tut', '1'); } catch (e) {} });
   await pg.goto('http://localhost:8781/demokratovich-games/sixty-one/?solo=1&notrack=1');
-  await pg.waitForFunction(() => window.SIXTYONE && SIXTYONE.rabbi, null, { timeout: 60000 });
+  await pg.waitForFunction(() => window.SIXTYONE && SIXTYONE.ready, null, { timeout: 90000 });
   // the queue of the day
   console.log('queue', await pg.evaluate(() => { SIXTYONE.startGame(); return SIXTYONE.queue.map((e) => e.p.name + e.seats).join(' '); }));
   // balance: timing-error bots, two strategies
@@ -18,7 +18,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     for (let g = 0; g < 5; g++) res.push(await pg.evaluate(([err, strat]) => {
       const S = window.SIXTYONE; S.startGame();
       for (let n = 0; n < 200 && S.state === 'play'; n++) {
-        const sp = Math.min(6.6, 2.6 + S.drops * 0.1) * (S.poll.on ? 1.45 : 1);
+        const sp = Math.min(5.2, 2.1 + S.drops * 0.07) * (S.poll.on ? 1.35 : 1);
         const gg = (Math.random() + Math.random() + Math.random() - 1.5) * 2;
         S.bot(Math.max(0.02, Math.abs(gg) * err * sp), strat);
       }
