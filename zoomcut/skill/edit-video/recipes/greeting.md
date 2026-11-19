@@ -61,5 +61,9 @@ Three steps, each HIS click (you never press them - you set the project up, he e
    https://shlomiverse.com/greeting/<gid>) and the video to his Telegram, to post as a story, with the page's link.
 2. **Test email to me** - `greet.cjs send <gid> --test`.
 3. **Send to <name>** - `greet.cjs send <gid> --yes`: the email to the person who asked. His click is the approval.
+**Never on OUR story before the person it's for has seen it** (his rule, 2026-11-19 - it would spoil the surprise): the
+mail asks them to share it with their followers and tag @shlomizevin on Instagram, and to press "shown" on the greeting
+page once it was given; that press sends him a Telegram ("you can post it to your story now"). The Telegram copy he gets
+at Make says to wait for it.
 State: `episodes/<id>/greeting-out.json` (gid, url, made, tested, sent); every step is a job in the Jobs list (`greeting`).
 A new export after a fix -> "Make again" (a new page; "Send" waits until the page is the newest export).

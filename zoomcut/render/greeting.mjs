@@ -48,7 +48,9 @@ export function startGreetings({ ROOT, app, epDir, readJson, writeJson, recordJo
         setState(id, { gid, url, made: Date.now(), tested: null, sent: null, pending: false });
         r.log.push('Sending it to your Telegram…');
         const file = await sizedCopy(master(id), 'telegram', () => {});
-        if (!TEST) await sendTelegram({ file, caption: `💌 Greeting for ${g.for || 'them'} - for your story\n${url}\nWhen it's good: Studio → Send → "Send to ${g.for || 'them'}"` });
+        // (his rule, 2026-11-19: never on our story before the person it's for has seen it - the requester presses "shown"
+        // on the greeting page and he gets a Telegram then)
+        if (!TEST) await sendTelegram({ file, caption: `💌 Greeting for ${g.for || 'them'} - for your story, but NOT yet: wait until they mark it shown on the page (you'll get a Telegram)\n${url}\nWhen it's good: Studio → Send → "Send to ${g.for || 'them'}"` });
         r.log.push(`✔ ${url} · in your Telegram`);
       } else if (which === 'test' || which === 'send') {
         const { gid } = stateOf(id);
