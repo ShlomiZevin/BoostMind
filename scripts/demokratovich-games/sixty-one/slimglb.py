@@ -1,7 +1,8 @@
 # rewrite a GLB: constant animation channels -> 1 key, drop non-hips translation/scale channels; repack buffer
 import json,struct,sys,numpy as np
 src,dst=sys.argv[1],sys.argv[2]
-DROP=set(sys.argv[3].split(',')) if len(sys.argv)>3 else set()
+DROP=set(sys.argv[3].split(',')) if len(sys.argv)>3 and sys.argv[3] else set()
+STEP=int(sys.argv[4]) if len(sys.argv)>4 else 2
 f=open(src,'rb').read(); l=struct.unpack('<I',f[12:16])[0]; j=json.loads(f[20:20+l])
 binoff=20+l+8; B=f[binoff:]
 bv=j['bufferViews']; acc=j['accessors']
@@ -53,7 +54,7 @@ for an in j['animations']:
         if np.abs(v-v[0]).max()<1e-4: t=t[:1]; v=v[:1]
         else:
             # every other frame (15 fps)
-            keep=np.arange(0,len(t),2)
+            keep=np.arange(0,len(t),STEP)
             if keep[-1]!=len(t)-1: keep=np.append(keep,len(t)-1)
             t=t[keep]; v=v[keep]
         ti=push(t,5126,'SCALAR',minmax=True); vi=push(v,5126,acc[s['output']]['type'])

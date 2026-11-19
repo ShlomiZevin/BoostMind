@@ -187,8 +187,8 @@ function layout() {
   const PA = 0.462, halfH0 = 3.8 / PA;
   let halfW, halfH;
   if (aspect < 0.75) { halfW = 6.7; halfH = halfW / aspect; } else { halfH = halfH0 * 1.15; halfW = halfH * aspect; }
-  viewW = halfW * 2; const shift = Math.min(viewW, halfH * 2 * 0.6) * 0.07;
-  cam.left = -halfW - shift; cam.right = halfW - shift; cam.top = halfH; cam.bottom = -halfH; cam.updateProjectionMatrix();
+  viewW = halfW * 2; const shift = Math.min(viewW, halfH * 2 * 0.6) * 0.09;   // the tower sits left of centre: the rabbi has the right corner
+  cam.left = -halfW + shift; cam.right = halfW + shift; cam.top = halfH; cam.bottom = -halfH; cam.updateProjectionMatrix();
   rabbiLayout(); if (typeof roomCamera === 'function' && DIORAMA.box) roomCamera();
   document.body.classList.toggle('turn', matchMedia('(hover:none)').matches && W > H && H < 520);
 }
@@ -285,20 +285,24 @@ function pedestal() {
 const ped = []; { const before = new Set(scene.children); pedestal(); for (const o of scene.children) if (!before.has(o)) ped.push(o); }
 let diorama = null;
 // loading: both models report their download; the start screen shows one bar and "שחקו" waits for it
-const LOAD = { room: 0, rabbi: 0, roomDone: false, rabbiDone: false, ready: false };
+const LOAD = { room: 0, rabbi: 0, roomDone: false, rabbiDone: false, ready: false, t0: performance.now() };
+const SIZE = { room: 1.25e6, rabbi: 2.35e6 };
 function loadProgress() {
-  const p = (LOAD.room * 0.35 + LOAD.rabbi * 0.65);
+  if (LOAD.ready) return;
+  const bytes = LOAD.room * 0.4 + LOAD.rabbi * 0.6, creep = 0.9 * (1 - Math.exp(-(performance.now() - LOAD.t0) / 6000));
+  const p = LOAD.roomDone && LOAD.rabbiDone ? 1 : Math.max(bytes, creep * (LOAD.roomDone ? 1 : 0.85));
   $('loadBar').firstElementChild.style.width = Math.round(p * 100) + '%';
   $('loadPct').textContent = Math.round(p * 100) + '%';
-  if (LOAD.roomDone && LOAD.rabbiDone && !LOAD.ready) {
+  // the room is enough to play - the rabbi steps in when he arrives
+  if (LOAD.roomDone && !LOAD.ready) {
     LOAD.ready = true;
-    // build every shader and upload every texture now, while the menu is up - no hitch when the game starts
-    try { renderer.compile(scene, cam); renderer.compile(rScene, rCam); } catch (e) {}
+    try { renderer.compile(scene, cam); } catch (e) {}
     warm = 3;
-    setTimeout(() => { $('loadBar').classList.add('done'); $('playBtn').classList.remove('wait'); }, 250);
+    setTimeout(() => { $('loadBar').classList.add('done'); $('playBtn').classList.remove('wait'); }, 200);
   }
 }
-const prog = (k) => (e) => { if (e && e.total) { LOAD[k] = Math.min(0.99, e.loaded / e.total); loadProgress(); } };
+const loadTick = setInterval(() => { if (LOAD.ready) clearInterval(loadTick); else loadProgress(); }, 120);
+const prog = (k) => (e) => { if (e && e.loaded) { LOAD[k] = Math.min(0.97, e.loaded / (e.total || SIZE[k] * 0.8)); loadProgress(); } };
 let warm = 0;
 new GLTFLoader().load('assets/diorama.glb', (g) => {
   LOAD.room = 1; LOAD.roomDone = true;
@@ -349,14 +353,37 @@ function buildPlinth(holder) {
     const hitAt = (dir) => { ray.set(new THREE.Vector3(0, mid + 0.6, 0), dir); const h = ray.intersectObject(holder, true).filter((x) => x.distance > 1.5); return h.length ? h[h.length - 1].point : null; };
     const hl = hitAt(new THREE.Vector3(-1, 0, 0)), hr = hitAt(new THREE.Vector3(0, 0, -1));
     const lx = hl ? hl.x : box.min.x + 0.15, rz = hr ? hr.z : box.min.z + 0.15, T = 0.18;
-    const wallTop = box.max.y - 0.05;
-    const mat = (f) => { const t = new THREE.TextureLoader().load(f); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 2; return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }); };
+    // the real top of each model wall: a ray straight down just inside it
+    const topAt = (x, z) => { ray.set(new THREE.Vector3(x, 60, z), new THREE.Vector3(0, -1, 0)); const h = ray.intersectObject(holder, true)[0]; return h ? h.point.y : box.max.y; };
+    const lTop = topAt(lx - 0.06, (rz + box.max.z) / 2 + 1.2), rTop = topAt((lx + box.max.x) / 2 + 1.2, rz - 0.06);
+    const wallTop = Math.min(lTop, rTop) - 0.02;
     const wood = new THREE.MeshStandardMaterial({ color: 0x8a4a1c, roughness: 0.7 });
-    const lw = box.max.z - box.min.z, rw = box.max.x - box.min.x, Hw = Math.max(lw, rw) * 1.5;
-    const L = new THREE.Mesh(new THREE.BoxGeometry(T, Hw, lw), [mat('assets/wall-l.webp'), wood, wood, wood, wood, wood]);
-    L.position.set(lx - T / 2, wallTop + Hw / 2, (box.min.z + box.max.z) / 2); scene.add(L);
-    const Rw = new THREE.Mesh(new THREE.BoxGeometry(rw, Hw, T), [wood, wood, wood, wood, mat('assets/wall-r.webp'), wood]);
-    Rw.position.set((box.min.x + box.max.x) / 2, wallTop + Hw / 2, rz - T / 2); scene.add(Rw);
+    // each wall runs from the corner (the other wall's inner face) to the room's front edge - no overlap, no cut windows
+    const lw = box.max.z - rz, rw = box.max.x - lx, Hw = Math.max(lw, rw) * 1.45;
+    const wallMat = (f, sign) => {                     // the painted upper wall, with an optional carved name board on it
+      const c = document.createElement('canvas'); c.width = 768; c.height = 1152; const g = c.getContext('2d');
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 2;
+      const img = new Image(); img.onload = () => {
+        g.drawImage(img, 0, 0, 768, 1152);
+        if (sign) {
+          const y = 860, h = 120; g.fillStyle = '#4a230b'; g.fillRect(70, y - 8, 628, h + 16);
+          const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, '#9a5524'); gr.addColorStop(1, '#6a3412'); g.fillStyle = gr; g.fillRect(78, y, 612, h);
+          g.strokeStyle = '#e0b04a'; g.lineWidth = 5; g.strokeRect(90, y + 10, 588, h - 20);
+          g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+          let fs = 58; g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; while (g.measureText(sign[0]).width > 540) { fs -= 3; g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; }
+          g.fillStyle = '#2a1205'; g.fillText(sign[0], 384, y + 44 + 2); g.fillStyle = '#f5cf6a'; g.fillText(sign[0], 384, y + 44);
+          g.font = '700 26px Rubik, system-ui, sans-serif'; g.fillStyle = '#f3dfae'; g.fillText(sign[1], 384, y + 92);
+        }
+        t.needsUpdate = true;
+      };
+      img.src = f; return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 });
+    };
+    const L = new THREE.Mesh(new THREE.BoxGeometry(T, Hw, lw), [wallMat('assets/wall-l.webp', ['בית המשפט ״שערי בג״ץ״', 'רב הקהילה: הגאון הרב דמוקרטוביץ שליט״א']), wood, wood, wood, wood, wood]);
+    L.position.set(lx - T / 2, wallTop + Hw / 2, (rz + box.max.z) / 2); scene.add(L);
+    const Rw = new THREE.Mesh(new THREE.BoxGeometry(rw, Hw, T), [wood, wood, wood, wood, wallMat('assets/wall-r.webp', ['קהילת ״שערי בג״ץ״', 'עמותת ״קופת הקולות״ · שיעור במסכת שלטון ומשפט']), wood]);
+    Rw.position.set((lx + box.max.x) / 2, wallTop + Hw / 2, rz - T / 2); scene.add(Rw);
+    // a wooden post hides the corner seam
+    const post = new THREE.Mesh(new THREE.BoxGeometry(T * 2.2, Hw, T * 2.2), wood); post.position.set(lx - T * 0.6, wallTop + Hw / 2, rz - T * 0.6); scene.add(post);
     DIORAMA.wallTop = wallTop + Hw;
   }
   const wx = box.max.x - box.min.x, wz = box.max.z - box.min.z, Hh = 9;
@@ -383,9 +410,9 @@ function buildPlinth(holder) {
 let camStart = SH - 3;
 function roomCamera() {
   if (!DIORAMA.box) return;
-  const P = new THREE.Vector3(DIORAMA.box.max.x, DIORAMA.box.min.y, DIORAMA.box.max.z);
+  const P = new THREE.Vector3(DIORAMA.box.max.x, DIORAMA.floor, DIORAMA.box.max.z);
   const at = (c) => { cam.position.set(0, c, 0).addScaledVector(CAMDIR, 30); cam.lookAt(0, c, 0); cam.updateMatrixWorld(); const v = P.clone().project(cam); return (1 - v.y) / 2 * H; };
-  const y0 = at(0), y1 = at(1), target = H - safeB - RB.h * 0.62;
+  const y0 = at(0), y1 = at(1), target = H - safeB - RB.h * 0.06;
   camStart = (target - y0) / (y1 - y0);
   if (state === 'menu' || !cur) { camY = camYGoal = Math.max(camStart, camYGoal); }
 }
@@ -400,7 +427,7 @@ const rCam = new THREE.PerspectiveCamera(24, 0.7, 0.05, 50);
 const RB = { x: 0, y: 0, w: 1, h: 1 };          // his viewport (css px, y from the top)
 let rabbi = null;
 function rabbiLayout() {
-  const w = Math.round(clamp(Math.min(W * 0.4, H * 0.24), 120, 260)), h = Math.round(w * 1.5);
+  const w = Math.round(clamp(Math.min(W * 0.34, H * 0.22), 110, 240)), h = Math.round(w * 1.5);
   RB.w = w; RB.h = h; RB.x = W - w - Math.max(0, (W - Math.min(W, H * 0.75)) / 2) + 4; RB.y = H - safeB - h + 6;
   rCam.aspect = w / h; rCam.updateProjectionMatrix();
 }
@@ -464,7 +491,7 @@ new GLTFLoader().load('assets/rabbi.glb', async (g) => {
     };
   }
   anim.base = anim.mixer.clipAction(baseClip); anim.base.play();
-  LOAD.rabbiDone = true; loadProgress();
+  LOAD.rabbiDone = true; try { renderer.compile(rScene, rCam); } catch (e) {} loadProgress();
 }, prog('rabbi'), () => { LOAD.rabbi = 1; LOAD.rabbiDone = true; loadProgress(); });
 
 // play a gesture (masked over the idle) or a whole-body motion, with a smooth in / out
@@ -493,7 +520,7 @@ function animStep(dt) {
     if (c.t >= c.dur) endAct();
   } else if (state === 'play' && !paused) {
     anim.idleT -= dt;
-    if (anim.idleT <= 0) { act(Math.random() < 0.6 ? 'beard_stroke' : pick(['look_around', 'talmud_thumb', 'wait'])); }
+    if (anim.idleT <= 0) { act(Math.random() < 0.6 ? 'beard_stroke' : pick(['talmud_thumb', 'agree'])); }
   }
   anim.mixer.update(dt);
 }
@@ -510,9 +537,10 @@ function placeBubble() {
     hx = RB.x + (tmpV.x + 1) / 2 * RB.w; hy = RB.y + (1 - tmpV.y) / 2 * RB.h;
   }
   const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
-  const right = clamp(W - (hx - RB.w * 0.16), 6, W - bw - 6);
+  // above his head (the bimah is right beside him - never cover the play), its tail pointing down at him
+  const right = clamp(W - (hx + RB.w * 0.3), 6, W - bw - 6);
   bubble.style.right = right + 'px'; bubble.style.left = 'auto';
-  bubble.style.top = clamp(hy - bh * 0.85, safeT + 96, H - bh - 6) + 'px';
+  bubble.style.top = clamp(hy - RB.h * 0.08 - bh, safeT + 96, H - bh - 6) + 'px';
 }
 
 // ───────────────────────── the game ─────────────────────────
