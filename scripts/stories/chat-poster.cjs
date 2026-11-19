@@ -7,11 +7,10 @@
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 const puppeteer = require(path.join(ROOT, 'zoomcut/render/node_modules/puppeteer-core'));
-const [specFile, out] = process.argv.slice(2);
-if (!specFile || !out) { console.error('usage: chat-poster.cjs spec.json out.jpg'); process.exit(1); }
-const spec = JSON.parse(fs.readFileSync(specFile, 'utf8'));
 const img = (p) => { const f = path.isAbsolute(p) ? p : path.join(ROOT, p); return `data:image/${/\.png$/i.test(f) ? 'png' : 'jpeg'};base64,` + fs.readFileSync(f).toString('base64'); };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+// opts (used by chat-video.cjs): part = '2/5' shown beside the date
+function buildHtml(spec, opts = {}) {
 const face = img(spec.portrait), logo = img('public/verse/logo-512.png'), visitor = img('scripts/stories/art/visitor.jpg');
 // the verse's own look (v2/site/verse/verse.css + the app chat in shell.css): orange #ff6a1f for the visitor and the
 // rings, dark glass bubbles for the resident, Heebo, the planet logo; no emoji
@@ -45,13 +44,19 @@ body{color:#fff;background:
 .foot .u{font:700 34px/1 Heebo;letter-spacing:1px;direction:ltr;color:rgba(255,255,255,.75)}
 .foot .u b{color:#ff8a3d}
 </style></head><body><div class="ring"></div>
-<div class="head"><img class="face" src="${face}"><div><div class="n">${esc(spec.name)}</div><div class="d"><i></i>שיחה מהשלומיוורס · ${esc(spec.date)}</div></div><img class="logo" src="${logo}"></div>
+<div class="head"><img class="face" src="${face}"><div><div class="n">${esc(spec.name)}</div><div class="d"><i></i>שיחה מהשלומיוורס · ${esc(spec.date)}${opts.part ? ' · ' + esc(opts.part) : ''}</div></div><img class="logo" src="${logo}"></div>
 <div id="chat">${bubbles}</div>
 <div class="foot"><div class="btn">דברו עם ${esc(spec.first || spec.name)} בשלומיוורס</div><div class="u">shlomi<b>verse</b>.com</div></div>
 </body></html>`;
-(async () => {
-  const exe = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((f) => fs.existsSync(f)) || process.env.CHROME_PATH;
-  const b = await puppeteer.launch({ executablePath: exe });
+return html;
+}
+const chrome = () => ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((f) => fs.existsSync(f)) || process.env.CHROME_PATH;
+module.exports = { buildHtml, chrome, puppeteer };
+if (require.main === module) (async () => {
+  const [specFile, out] = process.argv.slice(2);
+  if (!specFile || !out) { console.error('usage: chat-poster.cjs spec.json out.jpg'); process.exit(1); }
+  const spec = JSON.parse(fs.readFileSync(specFile, 'utf8')), html = buildHtml(spec);
+  const b = await puppeteer.launch({ executablePath: chrome() });
   const p = await b.newPage(); await p.setViewport({ width: 1080, height: 1920 });
   await p.setContent(html, { waitUntil: 'networkidle0' }); await p.evaluate(() => document.fonts.ready);
   const fs_ = await p.evaluate(() => {   // the biggest letters that still fit the chat area
