@@ -84,6 +84,9 @@ export function verseApi(key) {
 
 // one video up. log(line) for the job's log; dryRun = everything but writing the record (the files do go up)
 export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun = false }) {
+  // a personal greeting (episode.json "greeting", his plan greeting-send 2026-11-19) is not a moment of the resident's
+  // life - it never reaches the verse; it goes to the person only (scripts/greetings/greet.cjs add)
+  if (readJson(path.join(dir, 'episode.json'), {}).greeting) throw new Error(`${id} is a personal greeting - never on the Shlomiverse; hand it over with: node scripts/greetings/greet.cjs add --video out/${id}.mp4 --char <resident> --request <request id>`);
   const api = verseApi(key);
   const master = path.join(dir, 'out', `${id}.mp4`);
   if (!fs.existsSync(master)) throw new Error(`no full export (out/${id}.mp4) - export it first`);
