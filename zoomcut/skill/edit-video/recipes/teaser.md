@@ -3,6 +3,15 @@
 The first: `balabusta-teaser` (בעלבוסטע, Hani's comic book, 2026-11-05 - he called it "perfect"). A still (a comic cover,
 a poster) cut into layers and moved like a film, in the one editor, exported by the one exporter.
 
+## THE MASTER LOGO - super important asset (his rule, 2026-11-19)
+`episodes/_assets/shlomiverse/MASTER/` (cloud: `gs://shlomiverse-studio/assets/_assets/shlomiverse/MASTER/`) holds the
+ORIGINAL raw Seedance clips of the Shlomiverse logo from the first teaser (2 Nov) + their prompts + README. Never
+delete, overwrite or "improve" them; everything else (bookends, kit/circle-*) is cut from them. He loves both:
+- `logo-spin-reveal.mp4` - the natural spinning logo: the turning planet grows out of space and lands on the logo.
+- `logo-orbit-reveal.mp4` - the camera swings round the planet from the eclipse flare and lands on the logo.
+Both are the raw clips REVERSED - **always play them backwards** (the raw forward files are kept beside them).
+Any teaser / reveal / "coming soon": reach for these first.
+
 ## The Shlomiverse bookends - every teaser and preview (his ask, 2026-11-05)
 "שלומיוורס מציגים" before it and "רק בשלומיוורס" after it. They are made from **the first Shlomiverse teaser's own
 circle** (his rule - "if you find the original, use it"): the Seedance clips of the real logo from 2 Nov
