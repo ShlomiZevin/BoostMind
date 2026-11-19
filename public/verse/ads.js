@@ -33,9 +33,11 @@ export function adSlot(place) {
   return `<div class="ad-slot" data-ad-place="${esc(place)}">${a ? banner(a) : ''}</div>`;
 }
 
-(async () => {
+// the list, for the slots here and for the home's notice board (board.js - notices are records placed on "board")
+export const adsReady = (async () => {
   try { const r = await fetch(API + '?op=list'); ads = r.ok ? (await r.json()).ads || [] : []; } catch (e) { ads = []; }
   for (const el of document.querySelectorAll('[data-ad-place]')) if (!el.firstElementChild) el.outerHTML = adSlot(el.dataset.adPlace);
+  return ads;
 })();
 
 // ---------- the coupon window (mockup W1) ----------
