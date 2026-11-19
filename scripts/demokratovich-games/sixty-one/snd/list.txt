@@ -1,0 +1,18 @@
+drop1|0.7|A heavy smooth wooden block dropped flat onto a stack of wooden blocks, one solid satisfying thud, short, no echo
+drop2|0.7|A solid wooden slab landing on top of a wooden tower, deep clunk, short and dry
+drop3|0.7|A thick painted wooden plank set down hard on wood, a firm knock with a tiny rattle, short
+slice1|0.8|A quick wooden saw-chop slicing a block, a sharp crack and a small piece falling away
+slice2|0.8|A fast clean chop cutting through soft wood, with a swish, short
+slice3|0.8|A wooden block edge snapping off with a crisp crack, short
+perfect1|0.9|A bright magical sparkling chime, positive, short, game reward
+perfect2|0.9|A clear bell ding with sparkle, rewarding perfect move in a mobile game, short
+perfect3|0.9|A golden shimmering chime rising, perfect combo reward, short
+fall|1.4|A small wooden block tumbling down and bouncing on a wooden floor far below
+grow|1.3|A magical growing whoosh with a rising sparkle and a small wooden gavel tap at the end
+ring|2.5|An old landline home telephone ringing twice, indoors
+hangup|0.6|A telephone receiver hung up firmly on an old phone, click
+gavel61|3.5|A judge's wooden gavel banging three times followed by a small hall audience applauding and cheering
+collapse|2.5|A tall tower of wooden blocks collapsing and crashing onto a wooden floor, then a sad low game-over horn
+milestone|0.6|A single wooden gavel tap on a sound block, crisp
+click|0.3|A soft wooden UI button click
+newbest|2|A short triumphant brass fanfare for a new high score in a mobile game

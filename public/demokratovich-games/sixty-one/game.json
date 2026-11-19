@@ -1,0 +1,12 @@
+{
+  "slug": "sixty-one",
+  "title": "61 – רוב קואליציוני",
+  "tagline": "הרב דמוקרטוביץ מרכיב קואליציה: הפילו סיעות על המגדל, בדיוק, עד 61 מנדטים – ומשם עד כנסת שלמה. ותיזהרו מהסקרים של הרבנית.",
+  "character": "demokratovich",
+  "world": "שערי בג״ץ",
+  "status": "draft",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:sixty-one:best", "label": "מנדטים" },
+  "record": { "unit": "מנדטים", "better": "high", "max": 120 },
+  "date": "2026-11-19"
+}

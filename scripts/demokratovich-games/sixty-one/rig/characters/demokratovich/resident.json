@@ -1,0 +1,1251 @@
+{
+ "name": "Rabbi Demokratovich",
+ "name_he": "הרב דמוקרטוביץ",
+ "looks": {
+  "main": {
+   "sheet": "a",
+   "label": "הרב"
+  }
+ },
+ "points": {
+  "eye_R": [
+   -0.0405,
+   -0.06,
+   0.8846
+  ],
+  "eye_L": [
+   0.0345,
+   -0.06,
+   0.8846
+  ],
+  "lips": [
+   0.002,
+   -0.078,
+   0.827
+  ],
+  "ear_R": [
+   -0.0755,
+   0.0,
+   0.8796
+  ],
+  "face_centre": [
+   0.0,
+   -0.03,
+   0.86
+  ],
+  "beard_top": [
+   0.0,
+   -0.112,
+   0.78
+  ],
+  "beard_mid": [
+   0.0,
+   -0.137,
+   0.7
+  ],
+  "beard_low": [
+   0.0,
+   -0.135,
+   0.63
+  ],
+  "kid": [
+   -1.5,
+   -1.7,
+   0.42
+  ]
+ },
+ "lenses": [],
+ "face_shapes": [],
+ "use_gestures": [
+  "point"
+ ],
+ "gestures": {
+  "beard_stroke": {
+   "note": "strokes his long beard down, thinking - twice",
+   "keys": [
+    {
+     "t": 0,
+     "R": "down"
+    },
+    {
+     "t": 0.5,
+     "head": [
+      -6,
+      0,
+      0
+     ],
+     "R": {
+      "target": "beard_top+[0.0,-0.008,0]",
+      "tip": "Middle",
+      "fingers": "relax",
+      "hand_fwd": [
+       0.75,
+       -0.15,
+       -0.55
+      ],
+      "hand_side": [
+       0.3,
+       -0.9,
+       0.3
+      ],
+      "pole": [
+       -0.5,
+       -0.3,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 1.1,
+     "head": [
+      -4,
+      0,
+      0
+     ],
+     "R": {
+      "target": "beard_mid+[0.01,-0.008,0]",
+      "tip": "Middle",
+      "fingers": "relax",
+      "hand_fwd": [
+       0.75,
+       -0.15,
+       -0.55
+      ],
+      "hand_side": [
+       0.3,
+       -0.9,
+       0.3
+      ],
+      "pole": [
+       -0.5,
+       -0.3,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 1.6,
+     "head": [
+      -3,
+      0,
+      0
+     ],
+     "R": {
+      "target": "beard_low+[0.01,-0.008,0]",
+      "tip": "Middle",
+      "fingers": "relax",
+      "hand_fwd": [
+       0.75,
+       -0.15,
+       -0.55
+      ],
+      "hand_side": [
+       0.3,
+       -0.9,
+       0.3
+      ],
+      "pole": [
+       -0.5,
+       -0.3,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 2.0,
+     "head": [
+      -6,
+      0,
+      0
+     ],
+     "R": {
+      "target": "beard_top+[0.0,-0.008,0]",
+      "tip": "Middle",
+      "fingers": "relax",
+      "hand_fwd": [
+       0.75,
+       -0.15,
+       -0.55
+      ],
+      "hand_side": [
+       0.3,
+       -0.9,
+       0.3
+      ],
+      "pole": [
+       -0.5,
+       -0.3,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 2.6,
+     "head": [
+      -4,
+      0,
+      0
+     ],
+     "R": {
+      "target": "beard_mid+[0.01,-0.008,0]",
+      "tip": "Middle",
+      "fingers": "relax",
+      "hand_fwd": [
+       0.75,
+       -0.15,
+       -0.55
+      ],
+      "hand_side": [
+       0.3,
+       -0.9,
+       0.3
+      ],
+      "pole": [
+       -0.5,
+       -0.3,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 3.1,
+     "head": [
+      -3,
+      0,
+      0
+     ],
+     "R": {
+      "target": "beard_low+[0.01,-0.008,0]",
+      "tip": "Middle",
+      "fingers": "relax",
+      "hand_fwd": [
+       0.75,
+       -0.15,
+       -0.55
+      ],
+      "hand_side": [
+       0.3,
+       -0.9,
+       0.3
+      ],
+      "pole": [
+       -0.5,
+       -0.3,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 3.7,
+     "R": "down"
+    }
+   ]
+  },
+  "lilmodcha": {
+   "note": "ללמדך - the index finger raised beside his head, teaching",
+   "keys": [
+    {
+     "t": 0,
+     "R": "down"
+    },
+    {
+     "t": 0.5,
+     "head": [
+      -6,
+      -8,
+      6
+     ],
+     "spine": [
+      -3,
+      -5,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.02,-0.11,0.16]",
+      "tip": "Index",
+      "fingers": "point",
+      "hand_fwd": [
+       0,
+       -0.15,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.6,
+       0.2,
+       -0.6
+      ]
+     }
+    },
+    {
+     "t": 0.9,
+     "head": [
+      -6,
+      -8,
+      6
+     ],
+     "spine": [
+      -3,
+      -5,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.02,-0.11,0.13]",
+      "tip": "Index",
+      "fingers": "point",
+      "hand_fwd": [
+       0,
+       -0.15,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.6,
+       0.2,
+       -0.6
+      ]
+     }
+    },
+    {
+     "t": 1.3,
+     "head": [
+      -6,
+      -8,
+      6
+     ],
+     "spine": [
+      -3,
+      -5,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.02,-0.11,0.16]",
+      "tip": "Index",
+      "fingers": "point",
+      "hand_fwd": [
+       0,
+       -0.15,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.6,
+       0.2,
+       -0.6
+      ]
+     }
+    },
+    {
+     "t": 1.7,
+     "head": [
+      -4,
+      -4,
+      4
+     ],
+     "spine": [
+      -3,
+      -5,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.02,-0.11,0.13]",
+      "tip": "Index",
+      "fingers": "point",
+      "hand_fwd": [
+       0,
+       -0.15,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.6,
+       0.2,
+       -0.6
+      ]
+     }
+    },
+    {
+     "t": 2.4,
+     "R": "down"
+    }
+   ]
+  },
+  "talmud_thumb": {
+   "note": "the Talmud-study thumb: thumb up, circling in front of him as he argues",
+   "keys": [
+    {
+     "t": 0,
+     "R": "down"
+    },
+    {
+     "t": 0.5,
+     "head": [
+      4,
+      -6,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.06,-0.17,-0.06]",
+      "tip": "Thumb",
+      "fingers": {
+       "Thumb": [
+        -10,
+        -5,
+        0
+       ],
+       "Index": [
+        100,
+        110,
+        85
+       ],
+       "Middle": [
+        105,
+        110,
+        85
+       ],
+       "Ring": [
+        108,
+        110,
+        85
+       ],
+       "Pinky": [
+        110,
+        110,
+        85
+       ]
+      },
+      "hand_fwd": [
+       0.3,
+       -0.7,
+       0.4
+      ],
+      "hand_side": [
+       0,
+       0,
+       1
+      ],
+      "pole": [
+       -0.6,
+       0.1,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 0.8,
+     "head": [
+      4,
+      -6,
+      4
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.03,-0.17,-0.03]",
+      "tip": "Thumb",
+      "fingers": {
+       "Thumb": [
+        -10,
+        -5,
+        0
+       ],
+       "Index": [
+        100,
+        110,
+        85
+       ],
+       "Middle": [
+        105,
+        110,
+        85
+       ],
+       "Ring": [
+        108,
+        110,
+        85
+       ],
+       "Pinky": [
+        110,
+        110,
+        85
+       ]
+      },
+      "hand_fwd": [
+       0.3,
+       -0.7,
+       0.4
+      ],
+      "hand_side": [
+       0,
+       0,
+       1
+      ],
+      "pole": [
+       -0.6,
+       0.1,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 1.1,
+     "head": [
+      4,
+      -6,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.07,-0.17,-0.02]",
+      "tip": "Thumb",
+      "fingers": {
+       "Thumb": [
+        -10,
+        -5,
+        0
+       ],
+       "Index": [
+        100,
+        110,
+        85
+       ],
+       "Middle": [
+        105,
+        110,
+        85
+       ],
+       "Ring": [
+        108,
+        110,
+        85
+       ],
+       "Pinky": [
+        110,
+        110,
+        85
+       ]
+      },
+      "hand_fwd": [
+       0.3,
+       -0.7,
+       0.4
+      ],
+      "hand_side": [
+       0,
+       0,
+       1
+      ],
+      "pole": [
+       -0.6,
+       0.1,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 1.4,
+     "head": [
+      4,
+      -6,
+      -4
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.04,-0.17,-0.07]",
+      "tip": "Thumb",
+      "fingers": {
+       "Thumb": [
+        -10,
+        -5,
+        0
+       ],
+       "Index": [
+        100,
+        110,
+        85
+       ],
+       "Middle": [
+        105,
+        110,
+        85
+       ],
+       "Ring": [
+        108,
+        110,
+        85
+       ],
+       "Pinky": [
+        110,
+        110,
+        85
+       ]
+      },
+      "hand_fwd": [
+       0.3,
+       -0.7,
+       0.4
+      ],
+      "hand_side": [
+       0,
+       0,
+       1
+      ],
+      "pole": [
+       -0.6,
+       0.1,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 1.7,
+     "head": [
+      4,
+      -6,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.06,-0.17,-0.03]",
+      "tip": "Thumb",
+      "fingers": {
+       "Thumb": [
+        -10,
+        -5,
+        0
+       ],
+       "Index": [
+        100,
+        110,
+        85
+       ],
+       "Middle": [
+        105,
+        110,
+        85
+       ],
+       "Ring": [
+        108,
+        110,
+        85
+       ],
+       "Pinky": [
+        110,
+        110,
+        85
+       ]
+      },
+      "hand_fwd": [
+       0.3,
+       -0.7,
+       0.4
+      ],
+      "hand_side": [
+       0,
+       0,
+       1
+      ],
+      "pole": [
+       -0.6,
+       0.1,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 2.0,
+     "head": [
+      4,
+      -6,
+      4
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.03,-0.17,-0.05]",
+      "tip": "Thumb",
+      "fingers": {
+       "Thumb": [
+        -10,
+        -5,
+        0
+       ],
+       "Index": [
+        100,
+        110,
+        85
+       ],
+       "Middle": [
+        105,
+        110,
+        85
+       ],
+       "Ring": [
+        108,
+        110,
+        85
+       ],
+       "Pinky": [
+        110,
+        110,
+        85
+       ]
+      },
+      "hand_fwd": [
+       0.3,
+       -0.7,
+       0.4
+      ],
+      "hand_side": [
+       0,
+       0,
+       1
+      ],
+      "pole": [
+       -0.6,
+       0.1,
+       -0.7
+      ]
+     }
+    },
+    {
+     "t": 2.6,
+     "R": "down"
+    }
+   ]
+  },
+  "rachmana": {
+   "note": "רחמנא ליצלן - both palms up beside his face, head shaking, eyes up",
+   "keys": [
+    {
+     "t": 0,
+     "R": "down",
+     "L": "down"
+    },
+    {
+     "t": 0.5,
+     "head": [
+      -12,
+      10,
+      0
+     ],
+     "spine": [
+      -4,
+      0,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.02,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       -0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.7,
+       0.1,
+       -0.5
+      ]
+     },
+     "L": {
+      "target": "shoulder_L+[0.02,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       -1,
+       0,
+       0
+      ],
+      "pole": [
+       0.7,
+       0.1,
+       -0.5
+      ]
+     }
+    },
+    {
+     "t": 0.9,
+     "head": [
+      -12,
+      -10,
+      0
+     ],
+     "spine": [
+      -4,
+      0,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.03,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       -0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.7,
+       0.1,
+       -0.5
+      ]
+     },
+     "L": {
+      "target": "shoulder_L+[0.03,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       -1,
+       0,
+       0
+      ],
+      "pole": [
+       0.7,
+       0.1,
+       -0.5
+      ]
+     }
+    },
+    {
+     "t": 1.3,
+     "head": [
+      -12,
+      10,
+      0
+     ],
+     "spine": [
+      -4,
+      0,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.02,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       -0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.7,
+       0.1,
+       -0.5
+      ]
+     },
+     "L": {
+      "target": "shoulder_L+[0.02,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       -1,
+       0,
+       0
+      ],
+      "pole": [
+       0.7,
+       0.1,
+       -0.5
+      ]
+     }
+    },
+    {
+     "t": 1.7,
+     "head": [
+      -10,
+      -6,
+      0
+     ],
+     "spine": [
+      -4,
+      0,
+      0
+     ],
+     "R": {
+      "target": "shoulder_R+[-0.03,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       -0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       1,
+       0,
+       0
+      ],
+      "pole": [
+       -0.7,
+       0.1,
+       -0.5
+      ]
+     },
+     "L": {
+      "target": "shoulder_L+[0.03,-0.14,0.10]",
+      "fingers": "open",
+      "hand_fwd": [
+       0.2,
+       -0.2,
+       1
+      ],
+      "hand_side": [
+       -1,
+       0,
+       0
+      ],
+      "pole": [
+       0.7,
+       0.1,
+       -0.5
+      ]
+     }
+    },
+    {
+     "t": 2.4,
+     "R": "down",
+     "L": "down"
+    }
+   ]
+  },
+  "phone_call": {
+   "prop": "phone",
+   "note": "the Rabbanit calls mid-lesson: kosher phone at the ear, one finger 'רגע'",
+   "keys": [
+    {
+     "t": 0,
+     "R": "down",
+     "L": "down"
+    },
+    {
+     "t": 0.55,
+     "head": [
+      8,
+      0,
+      10
+     ],
+     "R": {
+      "target": "ear_R+[-0.025,-0.04,-0.05]",
+      "fingers": "phone",
+      "hand_fwd": [
+       0.1,
+       0.2,
+       1
+      ],
+      "hand_side": [
+       0,
+       1,
+       0
+      ],
+      "pole": [
+       -0.2,
+       -0.05,
+       -0.6
+      ]
+     },
+     "L": "down",
+     "spine": [
+      3,
+      0,
+      0
+     ]
+    },
+    {
+     "t": 1.2,
+     "head": [
+      8,
+      0,
+      10
+     ],
+     "R": {
+      "target": "ear_R+[-0.025,-0.04,-0.05]",
+      "fingers": "phone",
+      "hand_fwd": [
+       0.1,
+       0.2,
+       1
+      ],
+      "hand_side": [
+       0,
+       1,
+       0
+      ],
+      "pole": [
+       -0.2,
+       -0.05,
+       -0.6
+      ]
+     },
+     "L": "down",
+     "spine": [
+      3,
+      0,
+      0
+     ]
+    },
+    {
+     "t": 1.7,
+     "head": [
+      4,
+      -18,
+      10
+     ],
+     "spine": [
+      4,
+      -4,
+      0
+     ],
+     "R": {
+      "target": "ear_R+[-0.025,-0.04,-0.05]",
+      "fingers": "phone",
+      "hand_fwd": [
+       0.1,
+       0.2,
+       1
+      ],
+      "hand_side": [
+       0,
+       1,
+       0
+      ],
+      "pole": [
+       -0.2,
+       -0.05,
+       -0.6
+      ]
+     },
+     "L": {
+      "target": "chest+[0.1,-0.2,-0.05]",
+      "fingers": "point",
+      "hand_fwd": [
+       0.05,
+       -0.25,
+       1
+      ],
+      "hand_side": [
+       -1,
+       0,
+       0
+      ],
+      "pole": [
+       0.2,
+       0.15,
+       -0.8
+      ]
+     }
+    },
+    {
+     "t": 2.3,
+     "head": [
+      4,
+      -18,
+      10
+     ],
+     "spine": [
+      4,
+      -4,
+      0
+     ],
+     "R": {
+      "target": "ear_R+[-0.025,-0.04,-0.05]",
+      "fingers": "phone",
+      "hand_fwd": [
+       0.1,
+       0.2,
+       1
+      ],
+      "hand_side": [
+       0,
+       1,
+       0
+      ],
+      "pole": [
+       -0.2,
+       -0.05,
+       -0.6
+      ]
+     },
+     "L": {
+      "target": "chest+[0.1,-0.2,-0.05]",
+      "fingers": "point",
+      "hand_fwd": [
+       0.05,
+       -0.25,
+       1
+      ],
+      "hand_side": [
+       -1,
+       0,
+       0
+      ],
+      "pole": [
+       0.2,
+       0.15,
+       -0.8
+      ]
+     }
+    },
+    {
+     "t": 2.9,
+     "head": [
+      8,
+      0,
+      10
+     ],
+     "R": {
+      "target": "ear_R+[-0.025,-0.04,-0.05]",
+      "fingers": "phone",
+      "hand_fwd": [
+       0.1,
+       0.2,
+       1
+      ],
+      "hand_side": [
+       0,
+       1,
+       0
+      ],
+      "pole": [
+       -0.2,
+       -0.05,
+       -0.6
+      ]
+     },
+     "L": "down",
+     "spine": [
+      3,
+      0,
+      0
+     ]
+    },
+    {
+     "t": 3.5,
+     "R": "down",
+     "L": "down"
+    }
+   ]
+  }
+ },
+ "motions": [
+  "idle",
+  "standing_relax",
+  "agree",
+  "look_around",
+  "wait",
+  "greet_01",
+  "laugh_01",
+  "fold_arms",
+  "complain_01",
+  "cheer",
+  "clap",
+  "frustrated_01"
+ ],
+ "ui": {
+  "base": [
+   [
+    "idle",
+    "Stand"
+   ],
+   [
+    "walk",
+    "Walk"
+   ],
+   [
+    "sit",
+    "Sit"
+   ],
+   [
+    "fold_arms",
+    "Arms folded"
+   ],
+   [
+    "look_around",
+    "Look around"
+   ]
+  ],
+  "gestures": [
+   [
+    "beard_stroke",
+    "Strokes his beard",
+    1
+   ],
+   [
+    "lilmodcha",
+    "ללמדך"
+   ],
+   [
+    "talmud_thumb",
+    "Talmud thumb"
+   ],
+   [
+    "rachmana",
+    "רחמנא ליצלן"
+   ],
+   [
+    "point",
+    "Points at a student"
+   ],
+   [
+    "coffee",
+    "Coffee"
+   ],
+   [
+    "agree",
+    "Nods"
+   ],
+   [
+    "complain_01",
+    "Complains"
+   ],
+   [
+    "greet_01",
+    "Greet"
+   ]
+  ]
+ },
+ "order": 2,
+ "props": {
+  "phone": {
+   "grip": {
+    "f": 0.03,
+    "palm": 0.012,
+    "s": 0.0,
+    "tilt": 0.0
+   }
+  }
+ }
+}

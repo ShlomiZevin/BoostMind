@@ -1,0 +1,7 @@
+A finished screenshot of an upright phone game (portrait, 9:16), for approval of the look.
+The game: a "Stack" tower game - you tap to drop sliding blocks onto a tower; the overhang is cut off, a perfect drop keeps the block wide. Here each block is a political party's slab of Knesset seats, and the goal is to build a coalition tower up to 61 seats and beyond.
+The scene: a warm 3D-rendered interior of a small, shabby community "court-synagogue" hall - a wooden holy-ark-like cabinet with golden scales of justice on it instead of any religious symbol, old benches, a wall plaque in Hebrew "בית המשפט שערי בג״ץ", a framed declaration scroll. No crosses, no religious symbols, no Torah.
+In the lower right corner, standing on a small wooden podium, the rabbi from the reference picture (same 3D toy-figure look: big grey beard, black kippah, glasses, black suit), watching the tower and stroking his beard, as a real 3D figure.
+In the middle a tall tower of stacked colourful party slabs, slightly narrowing, each slab with a seat number on its side; at the top a new slab slides from side to side, about to be dropped.
+On top: a clean game HUD in Hebrew - a big counter "מנדטים 47 / 61" with a progress bar to 61, and the best score small. At the bottom a short strip with the rabbi's line in Hebrew: "ללמדך שאין קואליציה בלא פשרה".
+Bright, readable, juicy mobile-game quality, same 3D toy style as the rabbi figure.

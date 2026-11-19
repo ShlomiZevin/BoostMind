@@ -1,0 +1,8 @@
+rig/tools/
+rig/library/
+rig/*.glb
+rig/characters/demokratovich/rig-main/
+rig/characters/demokratovich/web/
+rig/check/
+tools/shots/
+tools/serve.log

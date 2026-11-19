@@ -1,0 +1,7 @@
+A sheet of blank painted UI pieces for a mobile game set in an old wooden community court of law (navy, gold and warm wood, like the reference title art), on a plain flat light-grey background, each piece separate with wide gaps, NO letters or words on any piece:
+1. a big wide main button sign (wood framed, navy face, gold trim) - top row, alone;
+2. two equal medium plaque buttons side by side (second row) - the left one has the small round logo from the second reference on its left end, the right one is plain;
+3. a round record badge with a small golden trophy/gavel icon on the left and an empty face;
+4. a small round sound button with a speaker icon;
+5. a tall empty panel (light parchment face, carved wood frame, gold ornaments only in the four corners);
+6. a small wide heading plaque (gold-trimmed navy).
