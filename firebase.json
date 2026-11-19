@@ -101,6 +101,20 @@
         }
       },
       {
+        "source": "/greeting/*/**",
+        "function": {
+          "functionId": "versePage",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/greeting/*",
+        "function": {
+          "functionId": "versePage",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "/c/**",
         "function": {
           "functionId": "versePage",

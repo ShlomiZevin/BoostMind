@@ -95,9 +95,63 @@ function inject(html, p, url) {
   return html;
 }
 
-exports.versePage = onRequest({ region: 'europe-west1', memory: '256MiB', timeoutSeconds: 15, concurrency: 80, maxInstances: 5 }, async (req, res) => {
-  const [, kind = '', raw = ''] = req.path.split('/');
+// ---- a personal greeting (his ask, 2026-11-19, plan greeting-send): /greeting/<id> = its own page, open only to whoever has the
+// link. The video and its poster live in the PRIVATE bucket (shlomiverse-private/greetings/<id>/ - the media bucket can be listed by
+// anyone) and are streamed from here, with Range for phones; the record is Firestore greetings/<id> (scripts/greetings/greet.cjs).
+// A greeting is not a video of the resident's life: not in wiki.json, not in the brain, not in the chat.
+const GREET_BUCKET = 'shlomiverse-private';
+const greetId = (s) => /^[A-Za-z0-9]{10,32}$/.test(String(s || ''));
+async function greetingRec(id) {
+  const admin = require('firebase-admin');
+  if (!admin.apps.length) admin.initializeApp();
+  const d = await admin.firestore().collection('greetings').doc(id).get();
+  return d.exists && !d.data().off ? d.data() : null;
+}
+async function greetingFile(req, res, id, name) {
+  const admin = require('firebase-admin');
+  if (!admin.apps.length) admin.initializeApp();
+  const f = admin.storage().bucket(GREET_BUCKET).file(`greetings/${id}/${name}`);
+  const [meta] = await f.getMetadata();
+  const size = +meta.size, type = name.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg';
+  res.set('Content-Type', type); res.set('Accept-Ranges', 'bytes'); res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+  if (req.query.dl) res.set('Content-Disposition', `attachment; filename="greeting.mp4"`);
+  const m = /^bytes=(\d*)-(\d*)$/.exec(req.get('range') || '');
+  let start = 0, end = size - 1;
+  if (m && (m[1] || m[2])) {
+    if (m[1]) { start = +m[1]; end = m[2] ? Math.min(+m[2], size - 1) : size - 1; } else { start = Math.max(0, size - +m[2]); }
+    if (start > end || start >= size) { res.status(416).set('Content-Range', `bytes */${size}`).end(); return; }
+    res.status(206).set('Content-Range', `bytes ${start}-${end}/${size}`);
+  } else res.status(200);
+  res.set('Content-Length', String(end - start + 1));
+  if (req.method === 'HEAD') { res.end(); return; }
+  f.createReadStream({ start, end }).on('error', (e) => { console.error('greeting stream', id, e.message); res.end(); }).pipe(res);
+}
+const FN = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/versePage';   // the video straight from here (Range works without the CDN in between)
+async function greetingPage(req, res, id) {
+  const g = greetId(id) ? await greetingRec(id).catch(() => null) : null;
+  let html = await cached('g', `${SITE}/greeting/page.html`, 60e3, 'text');
+  const url = `${SITE}/greeting/${id}`;
+  if (g) {
+    html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img: `${SITE}/greeting/${id}/poster.jpg` }, url);
+    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy,
+      video: `${FN}/greeting/${id}/video.mp4`, poster: `${SITE}/greeting/${id}/poster.jpg`, download: `${FN}/greeting/${id}/video.mp4?dl=1`, url };
+    html = html.replace('<script id="g-data" type="application/json">null</script>', `<script id="g-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
+    html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex">');
+  }
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300');
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.status(g ? 200 : 404).send(html);
+}
+
+exports.versePage = onRequest({ region: 'europe-west1', memory: '256MiB', timeoutSeconds: 300, concurrency: 80, maxInstances: 5 }, async (req, res) => {
+  const [, kind = '', raw = '', file = ''] = req.path.split('/');
   const id = decodeURIComponent(raw);
+  if (kind === 'greeting') {   // timeoutSeconds 300: a video streams to a slow phone
+    try {
+      if (file === 'video.mp4' || file === 'poster.jpg') { if (!greetId(id) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, file); }
+      return await greetingPage(req, res, id);
+    } catch (e) { console.error('versePage greeting', req.path, e.message); if (!res.headersSent) res.status(500).send(''); return; }
+  }
   let html;
   try { html = await cached('t', TEMPLATE, 60e3, 'text'); } catch (e) { res.redirect(302, `/wiki/#${req.path}`); return; }
   try {

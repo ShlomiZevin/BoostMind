@@ -65,6 +65,7 @@ function lovedFaces() {
   return [p[3], p[1], p[0], p[2], p[4]].filter(Boolean);   // the 3rd face is the big one
 }
 export function communityPage(q = {}) {
+  if (q.do === 'personal') setTimeout(() => personalSheet(), 250);   // "לבקש ברכה" from a greeting's page / mail (/community?do=personal)
   if (q.idea) { focusIdea = q.idea; setTimeout(() => document.getElementById('idea-' + q.idea)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120); }
   const top = appShell() ? lovedFaces() : W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0)).slice(0, 5);
   const list = sorted();

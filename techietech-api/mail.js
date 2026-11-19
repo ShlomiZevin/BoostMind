@@ -196,6 +196,20 @@ ${button('להכין סטיקר', track('/my-stickers', k))}</td></tr></table>`)
 ${d.prefs ? `<br><a href="${esc(d.prefs)}" style="color:${C.accent2};font-weight:700;text-decoration:none">לבחור על מה לקבל מיילים &larr;</a>` : ''}</div></div></td></tr></table>`), spacer(34)].join('');
 }
 
+// a personal greeting is ready (his ask, 2026-11-19, plan greeting-send): its poster with a play mark -> the greeting's own page
+// (/greeting/<id>, link-only), one button, how to keep / send it, the note that greetings may go up to the stories, ask for another
+function greeting(d, k) {
+  const watch = track(d.href, k);
+  return [spacer(18), pad(`<div style="text-align:center">${chip('ברכה אישית')}</div>`), spacer(14), pad(`<div style="text-align:center">${h1(d.title)}</div>`), spacer(8),
+    pad(`<div style="text-align:center">${p(d.line, 16)}</div>`), spacer(18),
+    pad(`<a href="${esc(watch)}" style="display:block;text-decoration:none;${bg('#000000')};border:2px solid ${C.line};border-radius:30px;padding:8px;max-width:262px;margin:0 auto"><img src="${esc(d.poster)}" alt="${esc(d.title)}" width="262" style="display:block;width:100%;max-width:262px;height:auto;border-radius:22px;border:0"></a>`), spacer(14),
+    pad(`<div style="text-align:center">${ghost('▶ לצפייה בברכה', watch)}</div>`), spacer(18),
+    ...(d.paras || []).map((x) => pad(p(x)) + spacer(12)), spacer(8),
+    pad(button('לצפייה בברכה', watch)), spacer(12), pad(`<div style="text-align:center">${p('בדף הברכה אפשר להוריד אותה או לשלוח בוואטסאפ.', 14)}</div>`), spacer(24),
+    pad(`<div style="${bg(C.card || '#15151a')};border:1px solid ${C.line};border-radius:16px;padding:14px 16px;text-align:center">${p('ברכות עשויות לעלות לסטורי בשלומיוורס ובאינסטגרם. מעדיפים שלא? פשוט תענו למייל הזה.', 14)}</div>`), spacer(22),
+    pad(`<div style="text-align:center">${p('רוצים ברכה נוספת, למישהו אחר?', 15)}</div>`), spacer(10), pad(`<div style="text-align:center">${ghost('לבקש ברכה', track('/community?do=personal', k))}</div>`), spacer(30)].join('');
+}
+
 // a reply from a character to someone who sent a form on their site: their face, their words, their signature
 function reply(d, k) {
   const verse = d.face === LOGO;
@@ -237,7 +251,7 @@ function citizen(d, k) {
 <div style="font:400 14px/1.5 ${FONT};color:${C.dim}">${gm(esc(d.signRole))}</div>`), spacer(32)].join('');
 }
 
-const KINDS = { game: newGame, story, video, digest, welcome, reply, idea, citizen };
+const KINDS = { game: newGame, story, video, digest, welcome, reply, idea, citizen, greeting };
 
 // one mail: { subject, html, text, headers } - `unsub` is this reader's own link, `unsubPost` the one-click address
 function render(kind, d, { unsub, unsubPost } = {}) {
