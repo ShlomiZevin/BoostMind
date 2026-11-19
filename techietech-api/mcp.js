@@ -203,7 +203,7 @@ const W = { readOnlyHint: false, openWorldHint: false, destructiveHint: false, i
 const SHEET_TEXT = ['person', 'speech', 'funny', 'parody', 'dissonance'], SHEET_LIST = ['nuances', 'catchphrases'];
 TOOLS.push(
   { name: 'update_character_sheet', title: 'Update a character\'s sheet', annotations: W,
-    description: 'Write what was learned about a character into their sheet (Backstage → דמויות - the one truth about them, also used by the site\'s chat). ONLY when Shlomi asks ("update the character", "put what we learned in Backstage"), and only after showing him exactly what will change. Fields: person (מי זה), speech (איך מדבר), funny (מה מצחיק), parody (הפרודיה), dissonance (הדיסוננס) - text: action replace (the whole new text) or append (adds a sentence); nuances (ניואנסים), catchphrases (קאצ\'פרייז) - lists: action add, remove (an existing item) or edit (old -> text). Hebrew, in the sheet\'s own style. Every change is logged and can be undone with undo_sheet_change.',
+    description: 'Write what was learned about a character into their sheet (Backstage → דמויות - the one truth about them, also used by the site\'s chat). NEVER for greetings / personal videos / how a resident blesses for an event - that is a separate layer that lives only in the Shlomiverse Greetings connector, never in the sheet. ONLY when Shlomi asks ("update the character", "put what we learned in Backstage"), and only after showing him exactly what will change. Fields: person (מי זה), speech (איך מדבר), funny (מה מצחיק), parody (הפרודיה), dissonance (הדיסוננס) - text: action replace (the whole new text) or append (adds a sentence); nuances (ניואנסים), catchphrases (קאצ\'פרייז) - lists: action add, remove (an existing item) or edit (old -> text). Hebrew, in the sheet\'s own style. Every change is logged and can be undone with undo_sheet_change.',
     inputSchema: S({ character: str('The character id, name or nickname'), why: str('One line: what was learned in this session (shown to Shlomi in the log)'),
       changes: { type: 'array', minItems: 1, maxItems: 12, description: 'The changes, applied in order',
         items: S({ field: { type: 'string', enum: [...SHEET_TEXT, ...SHEET_LIST] }, action: { type: 'string', enum: ['replace', 'append', 'add', 'remove', 'edit'] },
@@ -587,8 +587,16 @@ async function run(b, name, a = {}, key = '') {
 
 // ---- MCP over HTTP (stateless JSON-RPC) ----
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide; a new character -> read get_new_character_guide, then create_character and set_character_picture. Personal videos (greetings people asked for): get_personal_requests, and how each resident blesses in get_greeting_voice - a separate layer for personal videos only, NOT part of the character design: it never goes to the chat (write it back with update_greeting_voice only when Shlomi asks; what was learned about the character itself goes to update_character_sheet).';
-async function answer(msg, key = '') {
+const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide; a new character -> read get_new_character_guide, then create_character and set_character_picture. Personal videos (greetings people asked for): get_personal_requests, and how each resident blesses in get_greeting_voice - a separate layer for personal videos only, NOT part of the character design: it never goes to the chat and NEVER goes into a character sheet. Greetings are written in the separate Shlomiverse Greetings connector (this one cannot write them).';
+// Two doors, completely apart (his rule, 2026-11-19, after ChatGPT wrote Hani's greeting style into her character sheet during a
+// greetings session): /mcp/<key> = the characters (sheets, guide, new characters) - it can READ a resident's "איך מברך" but not write
+// it; /mcp/<key>/greet = personal videos only - the requests and "איך מברך" (read + write), the characters read-only, and NO tool that
+// writes a character. In ChatGPT these are two connectors, so a greetings session cannot touch a profile.
+const GREET_ONLY = new Set(['update_greeting_voice', 'undo_greeting_voice']);
+const GREET_DOOR = new Set(['about', 'search', 'fetch', 'list_characters', 'get_character', 'list_videos', 'get_video', 'get_personal_requests', 'get_greeting_voice', 'update_greeting_voice', 'undo_greeting_voice']);
+const toolsFor = (door) => TOOLS.filter((t) => (door === 'greet' ? GREET_DOOR.has(t.name) : !GREET_ONLY.has(t.name)));
+const GREET_INSTRUCTIONS = 'Shlomiverse Greetings - personal videos ONLY: a resident of the Shlomiverse (Shlomi Zevin\'s Hebrew comedy universe) blesses a real person for an event. Read the requests (get_personal_requests), who the resident is (get_character - read only, this connector cannot change a character), and how they bless (get_greeting_voice). What is learned about how a resident blesses goes ONLY to update_greeting_voice, when Shlomi asks - a separate layer for personal videos that is NOT part of the character design and never reaches the site\'s chat. Content is in Hebrew.';
+async function answer(msg, key = '', door = '') {
   const { id, method, params = {} } = msg || {};
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
   const err = (code, message) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message } });
@@ -596,14 +604,15 @@ async function answer(msg, key = '') {
   if (id === undefined || id === null) return null;   // a notification (initialized, cancelled): nothing to answer
   if (method === 'initialize') {
     const v = VERSIONS.includes(params.protocolVersion) ? params.protocolVersion : VERSIONS[0];
-    return ok({ protocolVersion: v, capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'shlomiverse', title: 'Shlomiverse', version: '1.2.0' }, instructions: INSTRUCTIONS });
+    return ok({ protocolVersion: v, capabilities: { tools: { listChanged: false } }, serverInfo: door === 'greet' ? { name: 'shlomiverse-greetings', title: 'Shlomiverse Greetings', version: '1.0.0' } : { name: 'shlomiverse', title: 'Shlomiverse', version: '1.3.0' }, instructions: door === 'greet' ? GREET_INSTRUCTIONS : INSTRUCTIONS });
   }
   if (method === 'ping') return ok({});
-  if (method === 'tools/list') return ok({ tools: TOOLS });
+  if (method === 'tools/list') return ok({ tools: toolsFor(door) });
   if (method === 'resources/list') return ok({ resources: [] });
   if (method === 'prompts/list') return ok({ prompts: [] });
   if (method === 'tools/call') {
     try {
+      if (!toolsFor(door).some((t) => t.name === params.name)) fail(door === 'greet' ? `${params.name} is not part of the greetings connector - characters are changed only from the main Shlomiverse connector.` : `${params.name} belongs to the Shlomiverse Greetings connector (personal videos), not to this one.`);
       const out = await run(await load(), params.name, params.arguments || {}, key);
       if (out && out.json) return ok({ content: [{ type: 'text', text: JSON.stringify(out.json) }], structuredContent: out.json });
       return ok({ content: [{ type: 'text', text: out }] });
@@ -628,6 +637,7 @@ exports.verseMcp = onRequest({ region: 'europe-west1', secrets: [KEY], memory: '
     return res.status(404).send('Not found');
   }
   // the picture upload page (set_character_picture's fallback, his phone): GET = the page, POST = the picture's bytes
+  const door = rest[0] === 'greet' ? 'greet' : '';   // /mcp/<key>/greet = the greetings connector
   if (rest[0] === 'upload' && rest[1]) {
     const b = await load(), c = b.byId[decodeURIComponent(rest[1])];
     if (!c) return res.status(404).send('No such character');
@@ -644,10 +654,10 @@ exports.verseMcp = onRequest({ region: 'europe-west1', secrets: [KEY], memory: '
   if (req.method !== 'POST') return res.status(405).send('');
   const body = req.body;
   if (Array.isArray(body)) {
-    const outs = (await Promise.all(body.map((m) => answer(m, key)))).filter(Boolean);
+    const outs = (await Promise.all(body.map((m) => answer(m, key, door)))).filter(Boolean);
     return outs.length ? res.json(outs) : res.status(202).send('');
   }
-  const out = await answer(body, key);
+  const out = await answer(body, key, door);
   if (!out) return res.status(202).send('');
   res.json(out);
 });
