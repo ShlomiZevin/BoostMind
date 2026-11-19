@@ -160,7 +160,12 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
 const scene = new THREE.Scene();
 scene.add(new THREE.HemisphereLight(0xfff4e0, 0x6b4a2e, 1.15));
-const sun = new THREE.DirectionalLight(0xffe7c2, 1.9); sun.position.set(4, 9, 6); scene.add(sun);
+const sun = new THREE.DirectionalLight(0xffe7c2, 1.9); sun.position.set(4, 9, 6); scene.add(sun); scene.add(sun.target);
+// real shadows: the slabs throw them onto each other and onto the room's floor
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.02;
+Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 0.5, far: 40 });
+const DIORAMA = { rot: +(new URLSearchParams(location.search).get('rot') ?? 0), width: 10, dx: 0, dz: 0 };
 const fill = new THREE.DirectionalLight(0xc9d8ff, 0.5); fill.position.set(-6, 3, -2); scene.add(fill);
 const cam = new THREE.OrthographicCamera(-4, 4, 6, -6, 0.1, 200);
 const CAMDIR = new THREE.Vector3(1, 0.82, 1).normalize();
@@ -180,7 +185,7 @@ function layout() {
   // a phone: the tower ~ half the width; a wide screen: the same height as a phone sees, the tower in a phone-wide column
   const PA = 0.462, halfH0 = 3.8 / PA;
   let halfW, halfH;
-  if (aspect < 0.75) { halfW = 3.8; halfH = halfW / aspect; } else { halfH = halfH0 * 0.82; halfW = halfH * aspect; }
+  if (aspect < 0.75) { halfW = 5.6; halfH = halfW / aspect; } else { halfH = halfH0 * 1.15; halfW = halfH * aspect; }
   viewW = halfW * 2; const shift = Math.min(viewW, halfH * 2 * 0.6) * 0.07;
   cam.left = -halfW - shift; cam.right = halfW - shift; cam.top = halfH; cam.bottom = -halfH; cam.updateProjectionMatrix();
   rabbiLayout();
@@ -242,7 +247,7 @@ function slabMats(L, w, d, seats) {
   const sz = new THREE.MeshStandardMaterial({ map: labelTex(L, w, seats), roughness: 0.5 });
   return [sx, plain, top, plain, sz, plain];
 }
-function slabMesh(L, w, d, seats) { return new THREE.Mesh(new THREE.BoxGeometry(w, SH, d), slabMats(L, w, d, seats)); }
+function slabMesh(L, w, d, seats) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, SH, d), slabMats(L, w, d, seats)); m.castShadow = true; m.receiveShadow = true; return m; }
 function disposeMats(ms) { [].concat(ms).forEach((x) => { if (x.map && !x.userData.shared) x.map.dispose(); x.dispose(); }); }
 function disposeMesh(m) { m.geometry.dispose(); disposeMats(m.material); if (m.userData.alt) disposeMats(m.userData.alt); }
 
@@ -274,7 +279,40 @@ function pedestal() {
   const shd = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 5.6), new THREE.MeshBasicMaterial({ map: shT, transparent: true, depthWrite: false }));
   shd.rotation.x = -Math.PI / 2; shd.position.set(-0.35, floorY + 0.01, 0.35); shd.renderOrder = -1; scene.add(shd);          // the gold band sits below the table's top, never level with it
 }
-pedestal();
+// the room: his court-synagogue as a 3D diorama (assets/diorama.glb); the tower stands on its bimah. The old wooden
+// pedestal stays only as a fallback while the model loads / if it fails.
+const ped = []; { const before = new Set(scene.children); pedestal(); for (const o of scene.children) if (!before.has(o)) ped.push(o); }
+let diorama = null;
+new GLTFLoader().load('assets/diorama.glb', (g) => {
+  const root = g.scene; root.rotation.y = DIORAMA.rot;
+  root.traverse((o) => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; [].concat(o.material).forEach((m) => { if (m.map) m.map.anisotropy = 4; }); } });
+  const holder = new THREE.Group(); holder.add(root); scene.add(holder);
+  let box = new THREE.Box3().setFromObject(holder), size = box.getSize(new THREE.Vector3());
+  const k = DIORAMA.width / Math.max(size.x, size.z); holder.scale.setScalar(k);
+  box = new THREE.Box3().setFromObject(holder); const c = box.getCenter(new THREE.Vector3());
+  holder.position.x -= c.x + DIORAMA.dx; holder.position.z -= c.z + DIORAMA.dz;
+  holder.updateMatrixWorld(true);
+  // find the bimah: sample the room's surface from above; the floor = the most common low height, the bimah = the flat
+  // raised patch near the middle. Centre the tower on it and put its top right under the first slab.
+  const ray = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0), pts = [];
+  for (let x = -4.5; x <= 4.5; x += 0.15) for (let z = -4.5; z <= 4.5; z += 0.15) {
+    ray.set(new THREE.Vector3(x, 60, z), down); const h = ray.intersectObject(holder, true)[0]; if (h) pts.push([x, z, h.point.y]);
+  }
+  const hist = (arr) => { const m = {}; for (const v of arr) { const k = Math.round(v * 20); m[k] = (m[k] || 0) + 1; } return +Object.entries(m).sort((p, q) => q[1] - p[1])[0][0] / 20; };
+  const floorY = hist(pts.map((p) => p[2]));
+  const raised = pts.filter((p) => p[2] > floorY + 0.12 && p[2] < floorY + 1.2 && Math.hypot(p[0], p[1]) < 3.6);
+  let bx = 0, bz = 0, topY = floorY;
+  if (raised.length > 20) {
+    topY = hist(raised.map((p) => p[2]));
+    const flat = raised.filter((p) => Math.abs(p[2] - topY) < 0.06);
+    for (const p of flat) { bx += p[0]; bz += p[1]; } bx /= flat.length; bz /= flat.length;
+    const xs = flat.map((p) => p[0]), zs = flat.map((p) => p[1]);
+    DIORAMA.bimah = Math.min(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs));
+  }
+  holder.position.x -= bx; holder.position.z -= bz; holder.position.y += (-SH / 2 - 0.005) - topY;
+  DIORAMA.floor = floorY - topY - SH / 2;
+  diorama = holder; for (const o of ped) o.visible = false;
+}, undefined, () => {});
 
 // ───────────────────────── the rabbi: the verse's 3D resident, in his own little view ─────────────────────────
 const rScene = new THREE.Scene();
@@ -309,6 +347,20 @@ new GLTFLoader().load('assets/rabbi.glb', async (g) => {
   const rg = sg.createRadialGradient(64, 64, 4, 64, 64, 62); rg.addColorStop(0, 'rgba(0,0,0,.55)'); rg.addColorStop(1, 'rgba(0,0,0,0)'); sg.fillStyle = rg; sg.fillRect(0, 0, 128, 128);
   const sh = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc), transparent: true, depthWrite: false }));
   sh.rotation.x = -Math.PI / 2; sh.position.y = 0.005; rScene.add(sh);
+  { // his little round wooden stand (the same wood as the room)
+    const wc = document.createElement('canvas'); wc.width = 512; wc.height = 128; const wg = wc.getContext('2d');
+    const gr = wg.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, '#b4652a'); gr.addColorStop(1, '#6e3712'); wg.fillStyle = gr; wg.fillRect(0, 0, 512, 128);
+    for (let i = 0; i < 60; i++) { wg.strokeStyle = `rgba(60,25,5,${0.1 + Math.random() * 0.15})`; wg.lineWidth = 1 + Math.random() * 2; wg.beginPath(); const y = Math.random() * 128; wg.moveTo(0, y); wg.bezierCurveTo(170, y + 4, 340, y - 4, 512, y + 2); wg.stroke(); }
+    wg.fillStyle = '#e0a83a'; wg.fillRect(0, 0, 512, 10); wg.fillRect(0, 118, 512, 10);
+    const wt = new THREE.CanvasTexture(wc); wt.colorSpace = THREE.SRGBColorSpace; wt.wrapS = THREE.RepeatWrapping; wt.repeat.x = 3;
+    const topm = new THREE.MeshStandardMaterial({ color: 0xa65a24, roughness: 0.6 });
+    const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 0.22, 48), [new THREE.MeshStandardMaterial({ map: wt, roughness: 0.6 }), topm, topm]);
+    stand.position.y = -0.11; rScene.add(stand);
+    const sc2 = document.createElement('canvas'); sc2.width = sc2.height = 128; const sg2 = sc2.getContext('2d');
+    const rg2 = sg2.createRadialGradient(64, 64, 20, 64, 64, 64); rg2.addColorStop(0, 'rgba(40,15,0,.55)'); rg2.addColorStop(1, 'rgba(40,15,0,0)'); sg2.fillStyle = rg2; sg2.fillRect(0, 0, 128, 128);
+    const gsh = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc2), transparent: true, depthWrite: false }));
+    gsh.rotation.x = -Math.PI / 2; gsh.position.y = -0.215; rScene.add(gsh);
+  }
   rCam.position.set(0.15, 1.05, 5.4); rCam.lookAt(0.05, 0.86, 0);
   rabbi = { root, holder, head: null };
   root.traverse((o) => { if (o.isBone && /Head$/.test(o.name) && !rabbi.head) rabbi.head = o; });
@@ -845,7 +897,8 @@ function render() {
   cam.position.copy(t).addScaledVector(CAMDIR, 30); cam.lookAt(t);
   // the hall's picture rises with the tower (floor -> ceiling)
   const prog = clamp((camY + camLift()) / 22, 0, 1);
-  $('hall').style.backgroundPositionY = (100 - prog * 100) + '%';
+  $('hall').style.setProperty('--rise', prog.toFixed(3));
+  sun.position.set(4, camY + 9, 6); sun.target.position.set(0, camY, 0);
   renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H); renderer.clear(); renderer.render(scene, cam);
   if (rabbi) {
     renderer.clearDepth(); renderer.setScissorTest(true);
@@ -876,6 +929,7 @@ window.SIXTYONE = {
   get state() { return state; }, get seats() { return seats; }, get drops() { return drops; }, get streak() { return streak; },
   get tower() { return tower.map((s) => ({ x: s.x, z: s.z, w: s.w, d: s.d })); }, get poll() { return { ...poll }; },
   get cur() { return cur && { axis: cur.axis, off: cur[cur.axis] - topSlab()[cur.axis], size: cur.axis === 'x' ? cur.w : cur.d, name: cur.e.p.name, seats: cur.e.seats, bloc: cur.e.p.bloc, side: cur.side }; },
+  get room() { return !!diorama; }, roomRot(r) { if (diorama) diorama.children[0].rotation.y = r; },
   get busy() { return busy; }, veto, get queue() { return queue; },
   // a player bot: disqualify the other bloc (and Liberman when he can't sit), wait for the Haredim's colour, drop within `want`
   bot(want = 0.05, opts = {}) {

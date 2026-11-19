@@ -36,3 +36,9 @@ Picked: **61 - רוב קואליציוני** (Stack), with **the 3D figure**.
 - Gameplay: undecided. Offered: pick 1 of 2 parties + drop (vetoes crack the tower, Arabs prop from outside) / coalition Tetris / as now + real parties.
   He wonders about Tetris-like ("things fall and you fit them in") - wants to see the gameplay first.
 - EVERY panel, menu and in-game piece designed and beautiful - nothing weird (HUD, next-party chip, poll chip, bubble -> the painted kit).
+
+## Round 3 - the look (19 Nov 2026)
+- He: the stand floats, the painted hall doesn't mix; "maybe a Blender synagogue". Concepts A/B/C (art/bg3d/c3d-all.jpg) -> he picked
+  **B: a 3D diorama** of the court-synagogue (floor + two back walls, cabinet with scales, window, benches, lectern, bimah in the middle).
+- Built: GPT design (art/bg3d/diorama.png) -> Tripo single image -> assets/diorama.glb; tower stands on the bimah (raycast for its top),
+  real shadows; warm gradient backdrop instead of hall.jpg; the rabbi keeps his corner view on a round wooden stand.
