@@ -185,7 +185,10 @@ principles - apply them to whatever the game is.
   maps (~40 MB of GPU each): keep the colour texture only at 1024 (`texslim.py` in the 61 workshop), decimate to ~25-30k
   triangles, drop animation clips the game never plays. No real-time shadow maps on phones (a soft baked blob instead), pixel
   ratio capped at 1.5 and no antialias on touch devices.
-- **A loading bar with real progress** on the start screen for anything heavy (the loaders' byte progress); "שחקו" waits for it,
+- **A loading bar that always moves** on the start screen for anything heavy. The site serves models brotli-compressed with no
+  content-length, so a loader's `total` is 0 - estimate from the known file sizes plus a slow time creep (it stuck at 0% on his
+  phone). Start the downloads in `<head>` (`<link rel="preload" as="fetch" crossorigin>`) and let play start as soon as the
+  PLACE is in (a character can step in a moment later); "שחקו" waits for it,
   then build the shaders and upload the textures (`renderer.compile`) while the menu is still up, and draw nothing 3D behind a
   full-screen menu.
 - **Frame the play where it happens**: the set sits low on the screen next to the character, the camera rises only when the
