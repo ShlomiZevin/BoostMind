@@ -49,10 +49,18 @@ const tail = (n) => '...' + String(n).slice(-3);
 // the greeting's SMS (his note 2026-11-19: "we are Shlomiverse - cool and funny"; Terra's line, the sender name already says who):
 // one line + the link on its own line
 // + the name inside the words too (his note: "it must say Shlomiverse, or they won't know what it is")
-// and FIRST, light, no flowery words (his notes) - Terra's pick, his choice
-const greetingText = (g) => `שלומיוורס: הברכה של ${g.charName} ל${String(g.forWho).replace(/^ל/, '')} מוכנה!\nhttps://shlomiverse.com/greeting/${g.id}`;
+// FINAL: his own words (2026-11-19) - an embassy's notice. {first} = the requester's first name; תושב / תושבת by the resident's
+// gender (verse/genders.json)
+let GENDER = {};
+try { GENDER = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'v2', 'site', 'verse', 'genders.json'), 'utf8')); } catch (e) { /* no file: תושב/ת */ }
+const greetingText = (g, first) => {
+  const res = GENDER[g.char] === 'f' ? 'תושבת' : GENDER[g.char] === 'm' ? 'תושב' : 'תושב/ת';
+  return [`שלום${first ? ' ' + first : ''},`, '', `התקבלה עבורך ברכה אישית מ${g.charName}, ${res} יקום שלומיוורס.`, '',
+    'הברכה הועברה בהצלחה לכדור הארץ.', '', `לצפייה: https://shlomiverse.com/greeting/${g.id}`, '', 'שגרירות השלומיוורס 🌍'].join('\n');
+};
+const firstOf = (r) => String((r && (r.name || r.nick)) || '').trim().split(/\s+/)[0] || '';
 
-module.exports = { sendSms, phoneOf, greetingText, tail };
+module.exports = { sendSms, phoneOf, greetingText, firstOf, tail };
 
 if (require.main === module) {
   (async () => {
@@ -71,7 +79,7 @@ if (require.main === module) {
       const r = g.requestId ? (await db.collection('requests').doc(g.requestId).get()).data() || {} : {};
       const to = phoneOf(r.phone) || phoneOf(r.contact);
       if (!to) throw new Error('no phone on this request');
-      const s = await sendSms(to, greetingText(g));
+      const s = await sendSms(to, greetingText(g, firstOf(r)));
       await db.collection('greetings').doc(g.id).update({ smsAt: admin.firestore.FieldValue.serverTimestamp(), smsSid: s.sid });
       console.log(`sms ${s.status} to ${tail(s.to)} for greeting ${g.id}`);
     } else console.log('test <phone> | greeting <id> --yes');

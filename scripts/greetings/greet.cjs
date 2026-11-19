@@ -144,13 +144,13 @@ async function send(id) {
   // + an SMS from "Shlomiverse" with the link (his ask 2026-11-19: an email can land in spam). The phone is a must on requests
   // since 2026-11-19; older ones may have it in `contact`. A failed SMS never fails the send - it says so.
   if (!test) {
-    const { sendSms, phoneOf, greetingText, tail } = require('./sms.cjs');
+    const { sendSms, phoneOf, greetingText, firstOf, tail } = require('./sms.cjs');
     const r = g.requestId ? (await db.collection('requests').doc(g.requestId).get()).data() || {} : {};
     const phone = phoneOf(r.phone) || phoneOf(r.contact);
     if (!phone) console.log('sms: no phone on the request');
     else {
       try {
-        const s = await sendSms(phone, greetingText(g));
+        const s = await sendSms(phone, greetingText(g, firstOf(r)));
         await db.collection('greetings').doc(g.id).update({ smsAt: admin.firestore.FieldValue.serverTimestamp(), smsSid: s.sid });
         console.log(`sms: ${s.status} to ${tail(s.to)}`);
       } catch (e) { console.log('sms failed: ' + e.message); }
