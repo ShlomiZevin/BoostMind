@@ -4,7 +4,7 @@
 // notes; a session reads the open ones (scripts/characters/notes.mjs), puts them in order into the record (content.mjs
 // put) and answers under the note. What changed in a character since he last opened it is marked (catalogLog).
 // Private: Firestore `charNotes` (no client rule = nobody reads it). Called only from verseOwner (his key): ops
-// charList, charNotes, charNote, charNoteDone, charLove / charScore, charDone.
+// charList, charNotes, charNote, charNoteDone, charLove / charScore, charDone, charGreet ("איך מברך", greetvoice.js).
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 
@@ -50,6 +50,8 @@ async function owner(op, b) {
     }).sort((a, b) => ((order.indexOf(a.id) + 1) || 999) - ((order.indexOf(b.id) + 1) || 999));
     const videos = Object.fromEntries(brain.videos.map((v) => [v.id, { title: v.title, date: v.date || '', card: (v.card || v.teaser || '').replace(/\s+/g, ' '), tr: !!v.transcript }]));
     const done = ((await db().collection('owner').doc('charsDone').get()).data() || {}).ids || {};
+    const greet = await require('./greetvoice').all().catch(() => ({}));   // "איך מברך" - his own area, never in the chat (greetvoice.js)
+    for (const c of list) if (greet[c.id]) c.greet = greet[c.id];
     return {
       chars: list, videos, changed, done,
       worlds: Object.fromEntries((brain.worlds || []).map((w) => [w.title, w.brief || w.blurb || ''])),
@@ -90,6 +92,11 @@ async function owner(op, b) {
     if (!idOk(b.id)) return { error: 'id' };
     await db().collection('owner').doc('charsDone').set({ ids: { [b.id]: b.on === false ? FieldValue.delete() : Date.now() } }, { merge: true });
     return { ok: true };
+  }
+  // "איך מברך" - the resident's technique for a personal video, his own text (greetvoice.js; not part of the record, not in the chat)
+  if (op === 'charGreet') {
+    if (!idOk(b.id)) return { error: 'id' };
+    return require('./greetvoice').put(b.id, b.text, 'backstage');
   }
   if (op === 'charNoteDone') {   // handled, or open again (his "not yet")
     if (!idOk(String(b.id || '').toLowerCase())) return { error: 'id' };

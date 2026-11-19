@@ -689,7 +689,7 @@
 /* the sheet view */
 .ch-love{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}.ch-love b{font-size:.9rem}.ch-love div{display:flex;gap:4px;flex-wrap:wrap}
 .ch-love button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line2);background:var(--card2);color:var(--dim);font-weight:800;font-size:.85rem}.ch-love button.on{background:rgba(255,106,31,.22);border-color:var(--accent);color:#fff}
-.ch-p{font-size:.98rem;line-height:1.75;margin:2px 0 6px}.ch-ul{margin:2px 0 8px;padding-inline-start:20px;line-height:1.7}.ch-ul li{margin:3px 0}
+.ch-p{font-size:.98rem;line-height:1.75;margin:2px 0 6px}.ch-greet{white-space:pre-wrap}.ch-gta{width:100%;min-height:260px;font:inherit;font-size:.98rem;line-height:1.7;background:var(--card2,#1c1c22);color:inherit;border:1px solid var(--line2);border-radius:12px;padding:12px;box-sizing:border-box}.ch-ghint{color:var(--dim);font-size:.85rem;margin:0 0 8px}.ch-ul{margin:2px 0 8px;padding-inline-start:20px;line-height:1.7}.ch-ul li{margin:3px 0}
 .ch-sec.fresh{box-shadow:inset 3px 0 0 #6bd68a}
 .ch-done{height:40px;margin:6px 0 2px}.ch-done.on{border-color:rgba(107,214,138,.6);color:#8ee6a6}.ch-bar .seg+.seg{margin-inline-start:0}.ch-saved{color:var(--faint);font-size:.75rem;align-self:center}
 @media (max-width:700px){.ch-love button{width:28px;height:28px}}
@@ -1035,6 +1035,7 @@ function more() {
 // sheet and answers under them (scripts/characters/notes.mjs); what changed since he last opened a character is green, and
 // the tab's number = the characters with something new for him.
 let CR = null, crId = null, crQ = '', crSeg = 'all', crSort = 'love', crSnap = 0;   // the list: by how loveable first (his ask)
+let crGreetEdit = false;   // "איך מברך" open for editing (greetvoice.js - his own area, never in the chat)
 const crOpenRows = new Set();   // the life events whose note box is open - stays open until sent or closed
 const CR_TREE = new Set(['hani', 'avraham-moshe', 'shterni', 'brachi', 'chaimi', 'sruli', 'feigy', 'yanky', 'ruchami', 'malki', 'shloimi']);   // the family-tree pictures (public/friedman/img)
 // the guide (2026-11-17, his ask): a page like a resident's - who he is, how he talks - plus the Shlomiverse's mythology,
@@ -1108,12 +1109,30 @@ function crView() {
       ${CR_TEXT.filter(([k]) => s[k]).map(([k, l]) => `<h3>${l}</h3><p class="ch-p">${esc(s[k])}</p>`).join('')}
       ${CR_LISTS.map(([k, l]) => `<h3>${l}</h3>${(s[k] || []).length ? `<ul class="ch-ul">${s[k].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="ch-p dim">אין עדיין</p>'}`).join('')}</div>`
       : '<div class="ch-sec"><p class="ch-p ch-miss">עוד אין דף לדמות הזאת. אפשר לכתוב עליה הערה, וסשן יכתוב לה דף.</p></div>'}
+    ${c.id === CR_GUIDE ? '' : crGreetHtml(c)}
     ${c.id === CR_GUIDE ? '' : `<div class="ch-sec"><h3>החיים - אירוע לכל סרטון${fresh('life') ? ' <span class="tag ok">עודכן</span>' : ''}</h3>${lifeRows || '<p class="ch-p dim">עוד אין סרטונים איתו בשלומיוורס.</p>'}</div>`}`;
   // every keystroke is kept (his note: the text vanished when he tapped something else before sending)
   document.querySelectorAll('[data-ctext]').forEach((ta) => { ta.oninput = () => crKeep(c.id, ta.dataset.ctext, ta.value); });
+  const gta = document.querySelector('[data-gtext]'); if (gta) gta.oninput = () => crKeep(c.id, '__greet', gta.value);
+}
+// "איך מברך" (his ask 2026-11-19): how this resident blesses for an event - the technique of a personal video. His own area: it is
+// not part of the record and never reaches the chat (techietech-api/greetvoice.js); ChatGPT reads and writes it through the MCP.
+function crGreetHtml(c) {
+  const g = c.greet || {}, h = `<h3>איך מברך - סרטון אישי${g.t ? ` <small class="dim" style="font-weight:400">· ${ago(g.t)}${g.by ? ' · ' + esc(g.by) : ''}</small>` : ''}</h3>`;
+  if (crGreetEdit) return `<div class="ch-sec">${h}<p class="ch-ghint">איך ${esc(c.name)} מברך לאירוע: המבנה, הקול, מה תמיד יש ומה אף פעם. לא נכנס לצ׳אט.</p>
+    <textarea class="ch-gta" data-gtext>${esc(crDraft(c.id, '__greet') || g.text || '')}</textarea>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="btn main" data-crgsave>שמירה</button><button class="btn" data-crgcancel>ביטול</button></div></div>`;
+  return `<div class="ch-sec">${h}${g.text ? `<p class="ch-p ch-greet">${esc(g.text)}</p>` : '<p class="ch-p dim">עוד לא נכתב. אפשר לכתוב כאן, או מ-ChatGPT דרך ה-MCP.</p>'}
+    <button class="btn" data-crgedit>${g.text ? 'עריכה' : 'לכתוב'}</button></div>`;
+}
+async function crGreetSave(b) {
+  const c = CR.chars.find((x) => x.id === crId), ta = document.querySelector('[data-gtext]'), text = ta ? ta.value : '';
+  b.disabled = true;
+  try { await api('charGreet', { id: crId, text }); c.greet = { text: text.trim(), t: Date.now(), by: 'backstage' }; crKeep(crId, '__greet', ''); crGreetEdit = false; crRedraw(); }
+  catch (e) { b.disabled = false; b.textContent = 'לא נשמר - לנסות שוב'; }
 }
 function crOpenChar(id) {
-  crId = id; crOpenRows.clear(); crSnap = crSeen(id);
+  crId = id; crOpenRows.clear(); crGreetEdit = false; crSnap = crSeen(id);
   chars(); scrollTo(0, 0);
   SEEN = { ...SEEN, ['char:' + id]: Date.now() };   // green stays for this visit (crSnap), gone next time
   api('seen', { k: 'char:' + id }).catch(() => {});
@@ -3129,6 +3148,9 @@ document.addEventListener('click', async (e) => {
   else if (b.dataset.crrow) { const a = b.dataset.crrow; crOpenRows.has(a) && !crDraft(crId, a) ? crOpenRows.delete(a) : crOpenRows.add(a); crRedraw(); }
   else if (b.dataset.cclose) { crOpenRows.delete(b.dataset.cclose); crRedraw(); }   // the draft stays for next time
   else if (b.dataset.crscore) await crScore(b);
+  else if (b.dataset.crgedit !== undefined) { crGreetEdit = true; crRedraw(); }
+  else if (b.dataset.crgcancel !== undefined) { crGreetEdit = false; crKeep(crId, '__greet', ''); crRedraw(); }
+  else if (b.dataset.crgsave !== undefined) await crGreetSave(b);
   else if (b.dataset.crsort) { crSort = b.dataset.crsort; chars(); }
   else if (b.dataset.csend !== undefined) await crSend(b);
   else if (b.dataset.cdone) { b.disabled = true; const done = b.dataset.v === '1'; await api('charNoteDone', { id: b.dataset.cdone, done }).catch(() => {}); const n = CR.notes.find((x) => x.id === b.dataset.cdone); if (n) n.done = done; crRedraw(); }

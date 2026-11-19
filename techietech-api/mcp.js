@@ -425,6 +425,35 @@ input{display:none}img{width:240px;height:300px;object-fit:cover;border-radius:1
 if(!r.ok)throw new Error(j.error||r.status);v.src=j.img+'&t='+Date.now();v.style.display='block';s.textContent='עלתה. היא באתר.';}catch(err){s.textContent='לא עלתה: '+err.message;}};</script></body></html>`;
 }
 
+// "איך מברך" - each resident's technique for a personal video (his ask, 2026-11-19): his own area, NOT the sheet and never in the chat
+// (greetvoice.js, Firestore greetingVoice). Read with get_greeting_voice, written when he asks.
+TOOLS.push(
+  { name: 'get_greeting_voice', title: 'How a resident blesses (personal videos)', annotations: RO,
+    description: 'A resident’s "איך מברך": how they bless someone for an event in a personal video - the structure, the voice, what is always there and what never. Shlomi’s own working area for personal videos (separate from the character sheet, not used by the site’s chat). Without a character: which residents already have one. Read it (with get_character and get_personal_requests) before writing a greeting.',
+    inputSchema: S({ character: str('Optional: the character id, name or nickname') }) },
+  { name: 'update_greeting_voice', title: 'Update how a resident blesses', annotations: W,
+    description: 'Write a resident’s "איך מברך" (how they bless for an event in a personal video) back to the verse - ONLY when Shlomi asks, after showing him the text. action replace = the whole new text (markdown, Hebrew); append = adds a part at the end. Shows in Backstage → דמויות on the resident’s page; never in the chat. Every earlier version is kept (undo_greeting_voice).',
+    inputSchema: S({ character: str('The character id, name or nickname'), action: { type: 'string', enum: ['replace', 'append'] }, text: str('The text (Hebrew, markdown)'),
+      why: str('One line: what was learned in this session') }, ['character', 'action', 'text']) },
+  { name: 'undo_greeting_voice', title: 'Undo the last "how they bless" change', annotations: W,
+    description: 'Put a resident’s "איך מברך" back as it was before the last change - when Shlomi says a change was wrong.',
+    inputSchema: S({ character: str('The character id, name or nickname') }, ['character']) },
+);
+async function greetVoice(b, a, op) {
+  const gv = require('./greetvoice'), NL = '\n';
+  if (op === 'get' && !a.character) {
+    const all = await gv.all(), ids = Object.keys(all).filter((id) => all[id].text);
+    return ids.length ? 'Residents with "איך מברך":' + NL + ids.map((id) => `- ${id} | ${nameOf(b, id)} | ${(all[id].text.split(NL)[0] || '').slice(0, 80)}`).join(NL) : 'No resident has "איך מברך" yet.';
+  }
+  const c = findCharacter(b, a.character || '') || fail(`No character "${a.character}" - try search or list_characters`);
+  if (op === 'get') { const g = await gv.get(c.id); return g && g.text ? `# ${c.name} - איך מברך${NL}${NL}${g.text}` : `${c.name} has no "איך מברך" yet.`; }
+  if (op === 'undo') { const r = await gv.undo(c.id, BY); if (r.error) fail(r.error); return `Done - the "איך מברך" of ${c.name} is back to:${NL}${NL}${r.text}`; }
+  const text = String(a.text || '').trim() || fail('text is empty');
+  const was = (await gv.get(c.id))?.text || '';
+  const r = await gv.put(c.id, a.action === 'append' && was ? was + NL + NL + text : text, BY, a.why || '');
+  if (r.error) fail(r.error);
+  return `Saved - the "איך מברך" of ${c.name} (Backstage → דמויות). Undo: undo_greeting_voice.`;
+}
 const fail = (msg) => { const e = new Error(msg); e.user = true; throw e; };
 // his open Backstage notes on a character (charnotes.js) - read with the character
 async function openNotes(id) {
@@ -530,6 +559,9 @@ async function run(b, name, a = {}, key = '') {
     }
     case 'get_video': return videoText(b, b.vById[a.id] || b.videos.find((v) => v.id.toLowerCase() === String(a.id || '').toLowerCase()) || fail(`No video "${a.id}" - try search`));
     case 'get_personal_requests': return personalRequests(!!a.all);
+    case 'get_greeting_voice': return greetVoice(b, a, 'get');
+    case 'update_greeting_voice': return greetVoice(b, a, 'put');
+    case 'undo_greeting_voice': return greetVoice(b, a, 'undo');
     case 'sites_and_games':
       return `## Sites\n${(b.sites || []).map((s) => `- ${s.title} | ${pub(s.url)} | ${s.about || ''} | whose: ${(s.whose || []).join(', ')}`).join('\n')}\n\n## Games\n${(b.games || []).map((g) => `- ${g.title} | ${pub(g.url)} | ${g.tagline || ''} | with: ${(g.chars || []).map((id) => nameOf(b, id)).join(', ')}`).join('\n')}`;
     case 'search': {
@@ -554,7 +586,7 @@ async function run(b, name, a = {}, key = '') {
 
 // ---- MCP over HTTP (stateless JSON-RPC) ----
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide; a new character -> read get_new_character_guide, then create_character and set_character_picture. Greetings people asked for (personal videos) -> get_personal_requests.';
+const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide; a new character -> read get_new_character_guide, then create_character and set_character_picture. Personal videos (greetings people asked for): get_personal_requests, and how each resident blesses in get_greeting_voice (write it back with update_greeting_voice only when Shlomi asks).';
 async function answer(msg, key = '') {
   const { id, method, params = {} } = msg || {};
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
