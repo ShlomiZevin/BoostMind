@@ -26,8 +26,8 @@ export function startGreetings({ ROOT, app, epDir, readJson, writeJson, recordJo
   const greet = (args, log) => new Promise((ok, fail) => {
     const p = spawn('node', [GREET, ...args], { cwd: BM, windowsHide: true });
     let out = '';
-    const take = (d) => { out += d; for (const l of String(d).split(/\r?\n/)) if (l.trim()) log.push(l.trim()); };
-    p.stdout.on('data', take); p.stderr.on('data', take);
+    const take = (d, mine) => { if (mine) out += d; for (const l of String(d).split(/\r?\n/)) if (l.trim()) log.push(l.trim()); };
+    p.stdout.on('data', (d) => take(d, true)); p.stderr.on('data', (d) => take(d, false));  // (parsed: stdout only - a warning on stderr never reads as the id)
     p.on('close', (c) => (c ? fail(new Error(log.at(-1) || `greet.cjs ${args[0]} failed`)) : ok(out)));
     p.on('error', fail);
   });
@@ -43,7 +43,7 @@ export function startGreetings({ ROOT, app, epDir, readJson, writeJson, recordJo
         if (g.for) args.push('--for', g.for);
         if (g.event) args.push('--event', g.event);
         const out = await greet(args, r.log);
-        const gid = (out.match(/greeting (\S+)/) || [])[1], url = (out.match(/https:\/\/\S+\/greeting\/\S+/) || [])[0];
+        const gid = (out.match(/^greeting (\S+)\s*$/m) || [])[1], url = (out.match(/^https:\/\/\S+\/greeting\/\S+/m) || [])[0];
         if (!gid || !url) throw new Error('greet.cjs gave no greeting id');
         setState(id, { gid, url, made: Date.now(), tested: null, sent: null, pending: false });
         r.log.push('Sending it to your Telegram…');
