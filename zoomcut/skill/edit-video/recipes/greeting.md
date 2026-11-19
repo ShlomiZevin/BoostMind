@@ -35,6 +35,15 @@ is public) - never `git add` them, never copy real names into a tracked file.
 ## Cutting
 One take: start on the first word, end on the last, cut the silences inside (the monologue rhythm - `recipes/monologue.md`),
 the resident's own voice setting from earlier projects. Keep it short - a greeting, not a lesson.
+- **Eye contact ON** (`"eye_contact": {"on": true}` on the hidden `_greet-<x>-takes` analysis copy, the video row `eyes: true`) -
+  a greeting is a talk to the lens (his ask, 2026-11-19: "we need to fix the eyes - we didn't do it for the last few ones").
+- **The resident's place, as in their videos**: Hani = haredit-6's rows (set-wall-a + the kids' drawing + the family photo,
+  mirrored, voice pitch 0.5); Yotam = `seat-yotam` + his voice from haredit-5-dialogue.
+- **Music under it = the resident's own bed, like their videos** (his note on greet-maya, 2026-11-19: "I can't hear the
+  music in the bg" - I had left it out as "gentle"; wrong): Hani = `music-hasidic-freilach.mp3` at volume 0.37 (haredit-6).
+- **No noise cleaning on the voice** (he removed `clean` from both of Hani's voice rows on greet-maya, 2026-11-19).
+- A mic pop on a plosive (a "ת" 4x his speech in the raw) clips after the voice chain = a "boom": that 0.15 s as its own
+  voice clip at gain ~0.3 (greet-lior).
 
 ## Hand-over - the studio's Send does all of it (his ask, 2026-11-19: "all of this part of the automated process")
 A greeting project (episode.json `greeting`) opens **its own Send window** ("Send · personal greeting", `ui/publish/Greeting.tsx`,
