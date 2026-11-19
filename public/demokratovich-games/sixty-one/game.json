@@ -7,6 +7,6 @@
   "status": "draft",
   "cover": "cover.jpg",
   "best": { "key": "shlomiverse:sixty-one:best", "label": "מנדטים" },
-  "record": { "unit": "מנדטים", "better": "high", "max": 120 },
+  "record": { "unit": "מנדטים", "better": "high", "max": 90 },
   "date": "2026-11-19"
 }

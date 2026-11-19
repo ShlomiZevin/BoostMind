@@ -771,6 +771,12 @@ function removeSlabs(list) {
   camYGoal = camFor(topSlab().y + SH);
 }
 // the פסול! button: throw the sliding slab out
+function growTop(t, by) {
+  const nw = Math.min(BASE, t.w + (t.w < BASE ? by : 0)), nd = Math.min(BASE, t.d + (t.d < BASE ? by : 0));
+  scene.remove(t.mesh); disposeMesh(t.mesh);
+  t.w = nw; t.d = nd; t.mesh = slabMesh(lookOf(t.e, 'us'), nw, nd, t.seats); t.mesh.position.set(t.x, t.y, t.z); scene.add(t.mesh); t.bounce = 1;
+  play('grow', 0.6);
+}
 function veto(ev) {
   if (ev) { ev.preventDefault(); ev.stopPropagation(); }
   if (!cur || paused || busy > 0) return;
@@ -779,8 +785,24 @@ function veto(ev) {
   cur = null; qi++; hint(false); idleTalk = 0;
   play('stamp', 0.9); stampFx();
   falling.push({ mesh: c.mesh, vy: 9, vx: (Math.random() - .5) * 3, vz: -3, rx: 4, rz: -3 });
-  if (theirs) { say(pickNo(LINES.veto, 'vt'), 2.4, 'gold'); act(Math.random() < .6 ? 'lilmodcha' : 'point'); popAt({ x: W / 2, y: H * 0.35 }, `${c.e.p.name} – פסול!`, 'gold'); }
-  else { say(pickNo(LINES.vetoOurs, 'vo'), 2.6, 'loud'); act('rachmana'); popAt({ x: W / 2, y: H * 0.35 }, `פסלתם ${c.e.seats} מנדטים שלנו`, 'bad'); }
+  // disqualifying the other bloc earns a prize (a bonus seat and a wider top); disqualifying the change bloc costs you
+  // (Liberman when he can't sit with who is already in = the right call, no penalty)
+  const libBlocked = c.e.p.liberman && hasLibFoe();
+  if (theirs) {
+    act(Math.random() < .6 ? 'lilmodcha' : 'point'); play('perfect', 0.6, 1.1);
+    if (!tutorial) seats += 1;
+    const t = topSlab(); if (t.mesh && (t.w < BASE - 0.01 || t.d < BASE - 0.01)) growTop(t, 0.3);
+    banner(`פסול!<small>${c.e.p.name} בחוץ · +1 מנדט בונוס</small>`);
+    popAt({ x: W / 2, y: H * 0.35 }, '+1 בונוס', 'gold');
+  } else if (libBlocked) {
+    act('agree'); popAt({ x: W / 2, y: H * 0.35 }, 'ליברמן בחוץ – החלטה נכונה', 'gold');
+  } else {
+    act('rachmana'); flash(true); play('collapse', 0.45);
+    const pen = tutorial ? 0 : Math.min(seats, 2); seats -= pen;
+    banner(`פסלתם את שלנו!<small>${c.e.p.name} · −2 מנדטים קנס</small>`);
+    popAt({ x: W / 2, y: H * 0.35 }, `−2 קנס`, 'bad');
+  }
+  hud();
   if (tutorial) tutDid('veto');
   pollStepMaybe(); next();
 }
@@ -847,7 +869,7 @@ function best() { return +store.get(KEY.best) || 0; }
 function dayBest() { const v = (store.get(KEY.day) || '').split('|'); return v[0] === today() ? +v[1] || 0 : 0; }
 function hud() {
   $('seatNum').textContent = `${tutorial ? 0 : seats} / 61`;
-  $('seatBar').style.width = (clamp(seats / MAXSEATS, 0, 1) * 100) + '%';
+  $('seatBar').style.width = (clamp(seats / MAXSEATS, 0, 1) * 100) + '%';   // bonuses can pass the real 73 - the bar just stays full
   $('seatGoal').style.right = (5.5 + 89 * 61 / MAXSEATS) + '%';
   $('seatBox').classList.toggle('gov', seats >= 61);
   $('bestNum').textContent = dayBest();
@@ -939,7 +961,7 @@ const STEPS = [
   { text: '<b>ישר!</b> זזה מעל המגדל. <b>הקישו בכל מקום</b> כדי להפיל אותה. <b>נסו עכשיו!</b>', try: 'drop', hint: 'הקישו כדי להפיל' },
   { text: 'מה שבולט מחוץ למגדל – <b>נחתך ונופל</b>: חברי כנסת שערקו. המנדטים האלה הולכים לאיבוד.', spot: spotTop },
   { text: '<b>הנחה מדויקת</b> = כל המנדטים. 3 מדויקות ברצף = <b>הרכב מורחב</b>. <b>הפילו את ביחד!</b>', try: 'drop', hint: 'הקישו כדי להפיל' },
-  { text: '<b>הליכוד – מהגוש השני</b> (פסים שחורים-צהובים). אל תפילו אותו! לחצו <b>פסול!</b> והוא עף.', try: 'veto', hint: 'לחצו פסול!', spotBtn: true },
+  { text: '<b>הליכוד – מהגוש השני</b> (פסים שחורים-צהובים). לחצו <b>פסול!</b> = <b>+1 בונוס</b>. אבל פסילה של סיעה שלנו = <b>קנס −2</b>.', try: 'veto', hint: 'לחצו פסול!', spotBtn: true },
   { text: '<b>החרדים – השאלה הגדולה.</b> הסיעה מחליפה צבע: בצבע שלה – <b>מצטרפת</b>. בכחול-פסים של נתניהו – <b>תרגיל</b>. הפילו בזמן, או פסלו.', try: 'any', hint: 'הפילו בצבע שלה' },
   { text: '<b>רע״ם והמשותפת</b> – תמיכה מבחוץ. אבל <b>ליברמן</b> לא יושב איתן, וגם לא עם החרדים: הן נכנסות – הוא קם והולך.', spot: spotEl('nextChip') },
   { text: 'לפעמים <b>הרבנית מתקשרת עם סקר.</b> הרב עונה – והסיעות זזות <b>מהר יותר</b> לכמה הנחות.', setup: 'poll', spot: spotEl('pollChip') },
