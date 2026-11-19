@@ -30,7 +30,8 @@ them. First one: three posters of Hani's chats. Reply in English; the posters ar
    the planet logo in the header, an orange pill "דברו עם <first> בשלומיוורס" + shlomiverse.com at the bottom.
    **A long chat** (his ask, 2026-11-19: "make a movie of it, with numbers, enough time to read"): a video instead -
    the same spec with `"parts": [[msgs],[msgs]...]` (about 2 exchanges a part) -> `node scripts/stories/chat-video.cjs
-   spec.json out.mp4`: numbered parts (1/5 beside the date), bubbles appear one by one, 1.4 s + 1 s per 13 letters each.
+   spec.json out.mp4`: numbered parts (1/5 beside the date), every bubble TYPED fast, the whole video under a minute
+   (default 55 s, `--max`) - one story clip. His note: slow reading-time pacing was far too slow; never over 60 s.
 5. **Look** at every poster yourself at full size (nothing touching, nothing cut, Hebrew + English mixed lines right),
    then send him ONLY the clean posters (SendUserFile). He posts them himself; posting to the verse = the verse-story
    skill, only when he asks.
