@@ -113,6 +113,14 @@ async function greetingFile(req, res, id, name) {
   const admin = require('firebase-admin');
   if (!admin.apps.length) admin.initializeApp();
   const f = admin.storage().bucket(GREET_BUCKET).file(`greetings/${id}/${name}`);
+  if (name.endsWith('.mp4')) {
+    // the video goes straight from the private bucket by a short-lived signed link: a function's response is capped at 32 MB,
+    // so streaming it through here broke every greeting over 32 MB (greet-lior, 47 MB, 2026-11-19). Storage serves any size + Range.
+    const [url] = await f.getSignedUrl({ action: 'read', expires: Date.now() + 12 * 3600e3, responseType: 'video/mp4',
+      ...(req.query.dl ? { responseDisposition: 'attachment; filename="greeting.mp4"' } : {}) });   // signBlob: the functions' account holds Token Creator on itself
+    res.set('Cache-Control', 'private, max-age=600');
+    return res.redirect(302, url);
+  }
   const [meta] = await f.getMetadata();
   const size = +meta.size, type = name.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg';
   res.set('Content-Type', type); res.set('Accept-Ranges', 'bytes'); res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
