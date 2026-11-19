@@ -58,7 +58,8 @@ const greetingText = (g, first) => {
   return [`שלום${first ? ' ' + first : ''},`, '', `התקבלה עבורך ברכה אישית מ${g.charName}, ${res} יקום שלומיוורס.`, '',
     'הברכה הועברה בהצלחה לכדור הארץ.', '', `לצפייה: https://shlomiverse.com/greeting/${g.id}`, '', 'שגרירות השלומיוורס 🌍'].join('\n');
 };
-const firstOf = (r) => String((r && (r.name || r.nick)) || '').trim().split(/\s+/)[0] || '';
+// a real name -> its first word; a nickname is one thing ("עיגולית פרווה", not "עיגולית")
+const firstOf = (r) => (r && r.name ? String(r.name).trim().split(/\s+/)[0] : String((r && r.nick) || '').trim().slice(0, 24));
 
 module.exports = { sendSms, phoneOf, greetingText, firstOf, tail };
 
