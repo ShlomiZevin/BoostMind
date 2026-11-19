@@ -264,7 +264,10 @@ hear the last one after the picture moved on). Live like everything else - his d
     start and everything after it moves by the difference (another group as a whole; a stretch across it - music, a
     strip block - grows; a cut inside it keeps its place in the line; notes move with it). The clips show "1.2×". The
     project's speed changed later = such a group keeps its own (`projectSpeedOps`). Set it through the panel, or ops
-    from `group.ts speedOps` - never `pace` by hand without the lengths;
+    from `group.ts speedOps` - never `pace` by hand without the lengths.
+    **A clip of no group that isn't footage** (a music bed, a sound, a picture) at its own speed changes ONLY itself: its
+    length by the speed (never past the video's end), nothing else moves - also when the project's speed changes later
+    (his note on greet-maya, 2026-11-19: the music set to 1× under a 1.15× video warped every other layer and left gaps);
   - **a section at one speed** (his note "from X to the end at 1.25"): the panel's "Same for every group after it"
     (under its own speed), or for a session `node tools/pace.mjs <ep> --from <s> --to <s|end> --pace <1.25|project>`
     (`--dry` says what it would do, `--undo` takes the last one back; ZC_PORT for a test studio). Every group that

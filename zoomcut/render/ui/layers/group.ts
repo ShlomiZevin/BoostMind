@@ -141,6 +141,15 @@ export function speedOps(p: any, l: any, it: any, pace: number | null) {
   const P = p.speed || 1, members = membersOf(p, l, it);
   const cur = paceOf(it) ?? P, next = pace ?? P;
   if (Math.abs(cur - next) < 1e-4 && paceOf(it) === pace) return [];
+  // a clip of no group that isn't footage (a music bed, a sound, a picture - his note on greet-maya, 2026-11-19: the
+  // music at 1x warped every other layer and left gaps): ONLY it changes - its length by the speed, never past the
+  // video's end; nothing else moves. (Footage / a group is the edit itself: it stretches and what follows moves.)
+  if (members.length === 1 && !(l.kind === 'video' && it.in != null)) {
+    const end = Math.min(p.duration || Infinity, it.from + Math.round(it.dur * (cur / next)));
+    const set: any = { dur: Math.max(1, Math.round(end - it.from)), pace: pace ?? null };
+    if (l.kind !== 'audio' && it.in != null && it.rate !== 0) { const r = +((it.rate ?? 1) * (next / cur)).toFixed(5); set.rate = Math.abs(r - 1) < 1e-4 ? null : r; }
+    return [{ op: 'item.update', layer: l.id, id: it.id, set }];
+  }
   return warpOps(p, members, cur / next, next / cur, pace);
 }
 
@@ -201,7 +210,14 @@ export function projectSpeedOps(p: any, speed: number) {
     for (const g of groups) {
       const ly = cur.layers.find((x: any) => x.id === g.l.id), x = ly?.items?.find((i: any) => i.id === g.it.id);
       if (!x) continue;
-      const o = warpOps(cur, membersOf(cur, ly, x), speed / P, P / speed, paceOf(x));
+      const ms = membersOf(cur, ly, x);
+      if (ms.length === 1 && !(ly.kind === 'video' && x.in != null)) {  // (a lone music bed / sound at its own speed: only it - see speedOps)
+        const end = Math.min(cur.duration || Infinity, x.from + Math.round(x.dur * (speed / P)));
+        const o = [{ op: 'item.update', layer: ly.id, id: x.id, set: { dur: Math.max(1, Math.round(end - x.from)) } }];
+        ops.push(...o); cur = apply(cur, o);
+        continue;
+      }
+      const o = warpOps(cur, ms, speed / P, P / speed, paceOf(x));
       ops.push(...o); cur = apply(cur, o);
     }
   }
