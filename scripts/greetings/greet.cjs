@@ -11,6 +11,7 @@
 //        Inside the requester's own thread when they ever wrote to us (his rule: answers go in their thread); logged in mailLog;
 //        the request is marked done.
 //   node scripts/greetings/greet.cjs public <greeting id> on|off                 shown in the verse's "ברכות" section / for stories (his call)
+//   node scripts/greetings/greet.cjs og <greeting id>                            (re)draw its link-preview card (add does it by itself)
 //   node scripts/greetings/greet.cjs list
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), { execSync, execFileSync } = require('child_process');
 const API = path.join(__dirname, '..', '..', 'techietech-api');
@@ -56,7 +57,15 @@ async function add() {
     forWho, event, to, requestId: opt('request') || null, public: false, ...(flag('test') ? { test: true } : {}),
     t: admin.firestore.FieldValue.serverTimestamp(), sentAt: null,
   });
+  await makeOg(id).catch((e) => console.error('og card failed (the page falls back to the poster):', e.message));   // silent on success: the studio parses the two lines below
   console.log(`greeting ${id}\n${SITE}/greeting/${id}`);
+}
+// the link preview card (og.cjs) -> greetings/<id>/og.jpg, the record marks og: true (page.js then shares it instead of the poster)
+async function makeOg(id) {
+  const g = await load(id), f = path.join(require('os').tmpdir(), `og-${id}.jpg`);
+  await require('./og.cjs').render(g, f);
+  await bucket.upload(f, { destination: `greetings/${id}/og.jpg`, metadata: { contentType: 'image/jpeg' } });
+  await db.collection('greetings').doc(id).update({ og: true });
 }
 
 async function load(id) {
@@ -128,6 +137,7 @@ async function send(id) {
   if (cmd === 'add') await add();
   else if (cmd === 'mail') { const g = await load(rest[0]), m = await build(g, (await requester(g)).first); const out = opt('out', `greeting-${g.id}.html`); fs.writeFileSync(out, m.html); console.log(m.subject, '->', out); }
   else if (cmd === 'send') await send(rest[0]);
+  else if (cmd === 'og') { await makeOg(rest[0]); console.log('og card', rest[0]); }
   else if (cmd === 'public') { const g = await load(rest[0]); await db.collection('greetings').doc(g.id).update({ public: rest[1] === 'on' }); console.log(g.id, 'public', rest[1] === 'on'); }
   else if (cmd === 'list') { const s = await db.collection('greetings').get(); s.docs.forEach((d) => { const x = d.data(); console.log(d.id, '|', x.char, '->', x.forWho, '|', x.event, '|', x.sentAt ? 'sent' : 'not sent', x.public ? '| public' : ''); }); }
   else die('commands: add | mail | send | public | list (see the top of this file)');

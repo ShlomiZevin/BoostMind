@@ -168,7 +168,8 @@ async function greetingPage(req, res, id) {
   let html = await cached('g', `${SITE}/greeting/page.html`, 60e3, 'text');
   const url = `${SITE}/greeting/${id}`;
   if (g) {
-    html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img: `${SITE}/greeting/${id}/poster.jpg` }, url);
+    html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img: `${SITE}/greeting/${id}/${g.og ? 'og.jpg' : 'poster.jpg'}` }, url);   // og.jpg = its own preview card (scripts/greetings/og.cjs)
+    if (g.og) html = html.replace('</head>', '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n</head>');
     const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, shown: !!g.shownAt, shownAt: g.shownAt?.toDate ? g.shownAt.toDate().toISOString() : null,
       video: `${FN}/greeting/${id}/video.mp4`, poster: `${SITE}/greeting/${id}/poster.jpg`, download: `${FN}/greeting/${id}/video.mp4?dl=1`, url };
     html = html.replace('<script id="g-data" type="application/json">null</script>', `<script id="g-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
@@ -185,7 +186,7 @@ exports.versePage = onRequest({ region: 'europe-west1', memory: '256MiB', timeou
   if (kind === 'greeting') {   // timeoutSeconds 300: a video streams to a slow phone
     try {
       if (file === 'shown') { if (!greetId(id)) return res.status(404).send(''); return await greetingShown(req, res, id); }
-      if (file === 'video.mp4' || file === 'poster.jpg') { if (!greetId(id) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, file); }
+      if (file === 'video.mp4' || file === 'poster.jpg' || file === 'og.jpg') { if (!greetId(id) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, file); }
       return await greetingPage(req, res, id);
     } catch (e) { console.error('versePage greeting', req.path, e.message); if (!res.headersSent) res.status(500).send(''); return; }
   }

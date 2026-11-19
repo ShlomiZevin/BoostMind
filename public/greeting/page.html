@@ -82,8 +82,8 @@
   function givenBox() {
     // once pressed it is done for everyone who opens the link (shownAt from the server; this browser's own press as the fallback)
     var when = g.shownAt ? new Date(g.shownAt).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', timeZone: 'Asia/Jerusalem' }) : '';
-    return wasShown ? '<div class="given done" id="given"><i>' + CHECK + '</i><div><p>הברכה נמסרה ' + esc(g.forWho.replace(/^ל?/, 'ל')) + (when ? ' · ' + when : '') + '</p><small>תודה! עכשיו נוכל לשתף אותה גם בסטורי של השלומיוורס.</small></div></div>'
-      : '<div class="given" id="given"><p>הברכה כבר הגיעה ' + esc(g.forWho.replace(/^ל?/, 'ל')) + '?</p><small>ספרו לנו כשהיא נמסרה. נשמח להעלות אותה גם לסטורי שלנו, ולא נעלה אותה לפני שהיא הגיעה ליעדה.</small><button id="givenBtn">' + CHECK + 'הברכה נמסרה</button></div>';
+    return wasShown ? '<div class="given done" id="given"><i>' + CHECK + '</i><div><p>הברכה נמסרה ' + esc('ל' + g.forWho) + (when ? ' · ' + when : '') + '</p><small>תודה! עכשיו נוכל לשתף אותה גם בסטורי של השלומיוורס.</small></div></div>'
+      : '<div class="given" id="given"><p>הברכה כבר הגיעה ' + esc('ל' + g.forWho) + '?</p><small>ספרו לנו כשהיא נמסרה. נשמח להעלות אותה גם לסטורי שלנו, ולא נעלה אותה לפני שהיא הגיעה ליעדה.</small><button id="givenBtn">' + CHECK + 'הברכה נמסרה</button></div>';
   }
   var wa = 'https://wa.me/?text=' + encodeURIComponent('ברכה ל' + g.forWho + ' מ' + g.charName + ' בשלומיוורס ' + g.url);
   var DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
