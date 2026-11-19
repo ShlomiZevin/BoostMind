@@ -28,6 +28,9 @@ them. First one: three posters of Hani's chats. Reply in English; the posters ar
    bubbles orange #ff6a1f beside the anonymous visitor's picture (scripts/stories/art/visitor.jpg - someone from our world
    peeking in through the portal, his pick 2026-11-18), the resident's dark glass #1f1f24 beside a face in an orange ring, Heebo,
    the planet logo in the header, an orange pill "דברו עם <first> בשלומיוורס" + shlomiverse.com at the bottom.
+   **A long chat** (his ask, 2026-11-19: "make a movie of it, with numbers, enough time to read"): a video instead -
+   the same spec with `"parts": [[msgs],[msgs]...]` (about 2 exchanges a part) -> `node scripts/stories/chat-video.cjs
+   spec.json out.mp4`: numbered parts (1/5 beside the date), bubbles appear one by one, 1.4 s + 1 s per 13 letters each.
 5. **Look** at every poster yourself at full size (nothing touching, nothing cut, Hebrew + English mixed lines right),
    then send him ONLY the clean posters (SendUserFile). He posts them himself; posting to the verse = the verse-story
    skill, only when he asks.
