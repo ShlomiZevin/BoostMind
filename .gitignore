@@ -121,3 +121,6 @@ scripts/design.env
 
 # script backups a session keeps while editing (haredit-5.txt.bak2 ...) - the script itself is in git
 zoomcut/scripts/*.bak*
+
+# personal greetings - real people's names and details: never in the public repo (the studio sends them to the phone prompter privately)
+zoomcut/scripts/greet-*.txt
