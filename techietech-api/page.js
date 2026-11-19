@@ -197,10 +197,11 @@ async function greetingPage(req, res, id) {
   let card = null;
   if (g && /^[a-f0-9]{12}$/.test(String(req.query.c || ''))) { try { const d = await require('firebase-admin').firestore().collection('greetings').doc(id).collection('cards').doc(req.query.c).get(); if (d.exists) card = { c: req.query.c, msg: d.data().msg, name: d.data().name || '' }; } catch (e) {} }
   if (g) {
-    const img = card ? `${SITE}/greeting/${id}/c/${card.c}.jpg` : `${SITE}/greeting/${id}/${g.og ? 'og.jpg' : 'poster.jpg'}`;   // og.jpg = its own preview card (scripts/greetings/og.cjs)
+    const v = g.ogV ? `?v=${g.ogV}` : '';   // the card's version: a redrawn card is a new address, so the CDN / WhatsApp never show the old one
+    const img = card ? `${SITE}/greeting/${id}/c/${card.c}.jpg${v}` : `${SITE}/greeting/${id}/${g.og ? 'og.jpg' + v : 'poster.jpg'}`;   // og.jpg = its own preview card (scripts/greetings/og.cjs)
     html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: card ? `״${card.msg}״${card.name ? ' — ' + card.name : ''}` : `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img }, card ? `${url}?c=${card.c}` : url);
     if (g.og || card) html = html.replace('</head>', '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n</head>');
-    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, card, og: g.og ? `${SITE}/greeting/${id}/og.jpg` : null, base: g.ogBase ? `${SITE}/greeting/${id}/og-base.jpg` : null, shown: !!g.shownAt, shownAt: g.shownAt?.toDate ? g.shownAt.toDate().toISOString() : null,
+    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, card, og: g.og ? `${SITE}/greeting/${id}/og.jpg${g.ogV ? '?v=' + g.ogV : ''}` : null, base: g.ogBase ? `${SITE}/greeting/${id}/og-base.jpg${g.ogV ? '?v=' + g.ogV : ''}` : null, shown: !!g.shownAt, shownAt: g.shownAt?.toDate ? g.shownAt.toDate().toISOString() : null,
       video: `${FN}/greeting/${id}/video.mp4`, poster: `${SITE}/greeting/${id}/poster.jpg`, download: `${FN}/greeting/${id}/video.mp4?dl=1`, url };
     html = html.replace('<script id="g-data" type="application/json">null</script>', `<script id="g-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
     html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex">');

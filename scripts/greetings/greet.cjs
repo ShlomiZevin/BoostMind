@@ -69,7 +69,7 @@ async function makeOg(id) {
   const fb = path.join(require('os').tmpdir(), `og-base-${id}.jpg`);
   await require('./og.cjs').render(g, fb, { base: true });
   await bucket.upload(fb, { destination: `greetings/${id}/og-base.jpg`, metadata: { contentType: 'image/jpeg' } });
-  await db.collection('greetings').doc(id).update({ og: true, ogBase: true });
+  await db.collection('greetings').doc(id).update({ og: true, ogBase: true, ogV: Date.now().toString(36) });
   // cards people already made with their own words follow the new look (same links, redrawn on the new base)
   const cs = await db.collection('greetings').doc(id).collection('cards').get();
   if (!cs.empty) {
