@@ -173,3 +173,26 @@ principles - apply them to whatever the game is.
   the game's events and check each one has its sound before he sees it.
 - **Failure is a plain word with its sound** ("נפסלת!" + buzzer) - not a character's joke line; and a new level never
   opens in a failure: a held button is released between levels, and a level card says what was passed and what is next.
+
+## 3D in a verse game (61 – רוב קואליציוני, 19 Nov 2026: "heavy and crashing", "the stand floats", "I don't like this background")
+- **A 3D object never stands on a painted background.** A flat picture can't share the 3D camera, floor or light, so the object
+  floats. Build the PLACE in 3D too: GPT paints the empty set as one object (an isometric diorama from the game's camera angle,
+  white background) -> image-to-3D -> the game stands everything on it (find its surfaces by raycasting, don't guess).
+  Show 3 concept looks (A/B/C) of the 3D set before building it.
+- **Real places have real proportions** (his note: "synagogues have very high walls and ceiling"): a diorama comes out squat -
+  extend what the place is known for (high walls, a tall ceiling) with painted surfaces on simple 3D slabs.
+- **Every generated 3D model is slimmed before it ships - phones crash otherwise.** Image-to-3D models carry several 2048 PBR
+  maps (~40 MB of GPU each): keep the colour texture only at 1024 (`texslim.py` in the 61 workshop), decimate to ~25-30k
+  triangles, drop animation clips the game never plays. No real-time shadow maps on phones (a soft baked blob instead), pixel
+  ratio capped at 1.5 and no antialias on touch devices.
+- **A loading bar with real progress** on the start screen for anything heavy (the loaders' byte progress); "שחקו" waits for it,
+  then build the shaders and upload the textures (`renderer.compile`) while the menu is still up, and draw nothing 3D behind a
+  full-screen menu.
+- **Frame the play where it happens**: the set sits low on the screen next to the character, the camera rises only when the
+  action climbs; nothing floats in an empty band. Put the place's name where the place would carry it (a plaque on its base).
+- **A verse resident (`verse-planet`) in a game**: work on a COPY of its rig folder (the figures session owns the original),
+  size it by its bones (a skinned model's bind box is in another unit), pin the hips' x/z (some motions walk away), play gestures
+  masked over the idle by the `.meta.json` bone lists, show a gesture's prop only while it plays, and give the figure its own
+  little 3D stand so it is grounded too.
+- **Delays in game logic run on the game's clock** (a `later(sec, fn)` list ticked in `step(dt)`), never `setTimeout` - they then
+  pause with the game and bots can fast-forward whole rounds.

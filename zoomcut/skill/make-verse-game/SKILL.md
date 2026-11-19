@@ -39,7 +39,8 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
   background, sound or prop. Reuse first. Plaxzy's studio techniques are open to us too - read its `PROTOCOL.md` for
   guide sheets (`studio/sheet.js` -> `studio/paint.js` -> `studio/cut.py`), walk cycles, audio trimming
   (`tools/audio.js`) - but a Shlomiverse game's assets are made with the editor's tools and keys, above.
-- **3D**: three.js from jsDelivr with a pinned version in an importmap (Hani's games use 0.160.0); Blender for models
+- **3D**: read "3D in a verse game" in `rules.md` first (no painted backgrounds under 3D objects, slim every model, loading bar).
+  three.js from jsDelivr with a pinned version in an importmap (Hani's games use 0.160.0); Blender for models
   (`C:/Users/shazb/tools/blender-5.2.2-windows-x64` on the second PC). Before any 3D characters read Plaxzy's
   `make-game-kit/skills/make-game/characters.md`, before any sports game its `sports.md` (in
   `c:/workspace/plaxzy/make-game-kit/` - the lessons hold here; ignore what is about uploading to Plaxzy).
@@ -100,7 +101,7 @@ Read before any idea - the game must be something THIS character would be in:
   **Before suggesting, list what is already taken** - every `public/*-games/*/game.json` (and Hani's playhouse), plus
   the Plaxzy games in the memory notes - and offer none of those mechanics. Taken so far: snake (Sagi), whack-a-mole
   (Asaf), Pac-Man (Yotam), Rush Hour (Yotam), Diner Dash (Osnat), runner (Hani gan-run), story-chain cards (Hani),
-  drag-in-millimeters (Yaniv), Lemmings (Rosenblum), Block Blast + Ball Sort + match-3 (Lola pills); 2048 + Where's Waldo + Flow Free (Techy-Tech meetings); Red Light Green Light (Hani shabbat-door); Helix Jump (Techy-Tech not-the-question); Paper.io (night-guy garden); on Plaxzy: Breakout, Volfied, Missile Command, bubble shooter,
+  drag-in-millimeters (Yaniv), Lemmings (Rosenblum), Block Blast + Ball Sort + match-3 (Lola pills); 2048 + Where's Waldo + Flow Free (Techy-Tech meetings); Red Light Green Light (Hani shabbat-door); Helix Jump (Techy-Tech not-the-question); Paper.io (night-guy garden); Stack (Demokratovich 61); on Plaxzy: Breakout, Volfied, Missile Command, bubble shooter,
   Space Invaders, pinball, Keen platformer, Frogger-style traffic, gold miner, chain reaction. Add each new game's
   mechanic to this line.
 - **About who the character IS, not one video**: their running traits across all their videos (Asaf is always on the
