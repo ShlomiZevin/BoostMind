@@ -70,6 +70,12 @@ async function makeOg(id) {
   await require('./og.cjs').render(g, fb, { base: true });
   await bucket.upload(fb, { destination: `greetings/${id}/og-base.jpg`, metadata: { contentType: 'image/jpeg' } });
   await db.collection('greetings').doc(id).update({ og: true, ogBase: true });
+  // cards people already made with their own words follow the new look (same links, redrawn on the new base)
+  const cs = await db.collection('greetings').doc(id).collection('cards').get();
+  if (!cs.empty) {
+    const { drawCard } = require(path.join(API, 'greetcard.js')), baseBuf = fs.readFileSync(fb);
+    for (const d of cs.docs) await bucket.file(`greetings/${id}/c/${d.id}.jpg`).save(await drawCard(baseBuf, d.data().msg, d.data().name), { contentType: 'image/jpeg' });
+  }
 }
 
 async function load(id) {

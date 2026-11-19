@@ -18,13 +18,17 @@ html,body{margin:0;width:1200px;height:630px;overflow:hidden;font-family:Heebo;c
 .planet{position:absolute;left:-300px;top:520px;width:1800px;height:1800px;border-radius:50%;background:radial-gradient(circle at 50% 6%,#6b2e14 0,#3a180b 9%,#1a0b06 22%,#0b0604 40%);
   border-top:4px solid #ffb27a;box-shadow:0 -5px 34px 8px rgba(255,120,40,.85),0 0 90px 24px rgba(255,100,20,.4),inset 0 12px 22px rgba(255,200,130,.9)}
 .frame{position:absolute;inset:10px;border-radius:34px;border:2px solid rgba(255,150,80,.75);box-shadow:0 0 18px rgba(255,120,40,.5),inset 0 0 20px rgba(255,120,40,.25)}
-.face{position:absolute;left:71px;top:40px;width:330px;height:350px;border-radius:30px;overflow:hidden;border:3px solid #ff9a50;box-shadow:0 0 34px rgba(255,120,40,.55)}
-.face img{width:100%;height:100%;object-fit:cover;object-position:50% 16%}
-.who{position:absolute;left:86px;top:340px;width:300px;padding:11px 16px 13px;border-radius:22px;background:linear-gradient(180deg,rgba(40,24,18,.92),rgba(14,9,7,.95));border:2px solid rgba(255,160,90,.8);text-align:center;box-shadow:0 0 22px rgba(255,120,40,.45)}
-.who b{display:block;font:800 32px/1.1 Heebo}.who small{display:block;margin-top:3px;font:700 22px/1 Heebo;color:#ffb074}
-/* "לצפייה בברכה" always shows, under the resident (his note 2026-11-19) */
-.watch{position:absolute;left:86px;top:452px;width:300px;height:66px;display:flex;align-items:center;justify-content:center;gap:14px;border-radius:999px;background:linear-gradient(180deg,#ff8a3d,#ff6a1f);box-shadow:0 0 26px rgba(255,106,31,.7);font:800 30px/1 Heebo;color:#fff}
-.watch i{width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center}.watch i::before{content:'';margin-left:4px;border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent #ff6a1f}
+.rc{position:absolute;left:58px;top:40px;width:352px;height:540px;border-radius:30px;padding:12px;background:linear-gradient(160deg,rgba(255,150,80,.22),rgba(30,18,12,.85) 38%,rgba(14,9,7,.94));
+  border:2px solid rgba(255,160,90,.85);box-shadow:0 0 34px rgba(255,110,30,.45),inset 0 1px 0 rgba(255,220,180,.35);transform:rotate(-2.2deg);overflow:hidden}
+.rc::before{content:'';position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 42%,rgba(255,220,180,.16) 50%,transparent 58%);pointer-events:none}
+.rc .ph{position:relative;height:318px;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.rc .ph img{width:100%;height:100%;object-fit:cover;object-position:50% 14%}
+.rc .ph::after{content:'';position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(0deg,rgba(14,9,7,.75),transparent)}
+.rc .tag{position:absolute;top:14px;right:14px;z-index:2;font:800 18px/1 Heebo;letter-spacing:.5px;padding:7px 12px;border-radius:999px;background:rgba(14,9,7,.7);border:1.5px solid rgba(255,160,90,.7);color:#ffcfa6}
+.rc .nm{margin:16px 6px 0;text-align:center;font:800 36px/1.1 Heebo;color:#fff}
+.rc .sb{text-align:center;font:700 21px/1 Heebo;color:#ffb074;margin-top:6px;letter-spacing:.3px}
+.rc .watch{margin:18px 6px 0;height:66px;display:flex;align-items:center;justify-content:center;gap:14px;border-radius:999px;background:linear-gradient(180deg,#ff8a3d,#ff6a1f);box-shadow:0 0 24px rgba(255,106,31,.7),inset 0 1px 0 rgba(255,220,180,.6);font:800 30px/1 Heebo;color:#fff}
+.rc .watch i{width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center}.rc .watch i::before{content:'';margin-left:4px;border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent #ff6a1f}
 .txt{position:absolute;right:56px;top:52px;width:650px;text-align:right}
 .got{font:700 34px/1 Heebo;color:rgba(255,255,255,.82);letter-spacing:.5px}
 .for{font:900 var(--f,150px)/1.02 Heebo;margin-top:22px;white-space:nowrap;text-shadow:0 0 30px rgba(255,150,80,.35)}
@@ -38,7 +42,7 @@ html,body{margin:0;width:1200px;height:630px;overflow:hidden;font-family:Heebo;c
 .base .got{display:flex;align-items:center;justify-content:flex-start;gap:14px}.base .got img{width:92px;filter:drop-shadow(0 0 10px rgba(255,110,30,.6))}
 .base .for{margin-top:14px}.base .rule{margin-top:26px;height:2px;background:linear-gradient(270deg,#ffb070,rgba(255,176,112,0));box-shadow:0 0 10px rgba(255,140,60,.6)}
 </style></head><body><div class="space"><div class="stars"></div></div><div class="planet"></div>
-<div class="face"><img src="${face}"></div><div class="who"><b>${esc(g.charName)}</b><small>ברכה אישית</small></div><div class="watch"><i></i>לצפייה בברכה</div>
+<div class="rc"><div class="ph"><img src="${face}"><span class="tag">ברכה אישית</span></div><div class="nm">${esc(g.charName)}</div><div class="sb">${esc(g.world ? "מ" + g.world : "תושב/ת השלומיוורס")}</div><div class="watch"><i></i>לצפייה בברכה</div></div>
 ${base ? `<div class="txt base"><div class="got"><img src="${LOGO}">קיבלת ברכה מהשלומיוורס</div><div class="for" id="for">${esc(forWho)}</div>${g.event ? `<div class="ev" id="ev">${esc(g.event)}</div>` : ''}<div class="rule"></div></div>`
   : `<div class="txt"><div class="got">קיבלת ברכה מהשלומיוורס</div><div class="for" id="for">${esc(forWho)}</div>${g.event ? `<div class="ev" id="ev">${esc(g.event)}</div>` : ''}
 </div><img class="logo" src="${LOGO}">`}<div class="frame"></div></body></html>`;
