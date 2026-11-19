@@ -392,6 +392,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   });
   // by hand: a video published before this, or one whose site job failed
   app.post('/api/ep/:id/site', (q, res) => {
+    if (readJson(epFile(q.params.id), {}).greeting) return res.status(400).json({ error: 'A personal greeting never goes on the Shlomiverse - Send shows its own steps' });
     if (!fs.existsSync(master(q.params.id))) return res.status(400).json({ error: 'No full export of this video' });
     res.json(site(q.params.id));
   });
@@ -426,6 +427,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
     if (q.body?.afterExport) { savePost(id, post, true, !!q.body?.dry); return res.json({ saved: true }); }
     // {save: true}: only fills the Publish window (a session prepares caption / title / platforms - he presses Publish)
     if (q.body?.save) { savePost(id, post, !!readJson(pubFile(id), {}).afterExport); return res.json({ saved: true }); }
+    if (readJson(epFile(id), {}).greeting) return res.status(400).json({ error: 'A personal greeting never goes to the socials - Send shows its own steps' });
     if (!post.platforms.length) return res.status(400).json({ error: 'Pick where to publish' });
     if (!fs.existsSync(master(id))) return res.status(400).json({ error: 'Export the video first' });
     // never a file older than his last change (public and can't be undone) - export again first, unless he picked
@@ -441,7 +443,7 @@ export function startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob,
   return {
     afterExport(id, quick) {
       const pj = readJson(pubFile(id), {});
-      if (quick || !pj.afterExport || !(pj.platforms || []).length) return;
+      if (quick || !pj.afterExport || !(pj.platforms || []).length || readJson(epFile(id), {}).greeting) return;  // (a greeting never goes to the socials)
       writeJson(pubFile(id), { ...pj, afterExport: false, dry: false });  // (cleared first: it publishes once)
       run(id, pj, !!pj.dry);
     },

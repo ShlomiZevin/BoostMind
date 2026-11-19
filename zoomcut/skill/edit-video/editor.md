@@ -288,6 +288,14 @@ end must show at once, with the real footage there.
   name on the left turns the button into **Delete layer** (it goes with what is on it, the ones under it move up);
   "+ Sound layer" adds one; a sound dragged up / down changes layer; a new sound goes on the first empty layer.
   Anything pointing at a sound by number (thought bubble `sound`, film hit / blackout `sound`) is renumbered.
+- **A personal greeting has its own Send** (2026-11-19, render/greeting.mjs + ui/publish/Greeting.tsx; recipe
+  `recipes/greeting.md`): a project whose episode.json has `greeting` {char, request, for, event, date} opens "Send ·
+  personal greeting" instead of the socials window - three steps, each his click: (1) make the private page
+  (scripts/greetings/greet.cjs add -> shlomiverse.com/greeting/<gid>; exports first when needed) + the video to his
+  Telegram for a story, (2) a test email to him, (3) send to the person (greet.cjs send --yes = his approval). The socials'
+  publish, the verse publish (toVerse) and POST /api/ep/<id>/site all refuse a greeting. State
+  episodes/<id>/greeting-out.json; jobs kind `greeting`; GET/POST /api/ep/<id>/greeting {step: make|test|send}. Test with a
+  stand-in script: ZC_GREET=<stub.cjs> (nothing to his Telegram).
 - **Publish to his socials** (2026-10-24, render/publish.mjs + ui/publish/Publish.tsx): Export → "Export and publish…"
   (picks + caption + results in episodes/<id>/publish.json - NEVER episode.json: its mtime makes the export
   look stale; the export publishes by itself when it ends well - never a Quick draft; `{dry: true}` tests the whole path

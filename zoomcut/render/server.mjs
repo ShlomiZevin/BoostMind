@@ -13,6 +13,7 @@ import react from '@vitejs/plugin-react';
 import { sendEmail, sendTelegram, sizedCopy } from './share.mjs';
 import { startDrop } from './drop.mjs';
 import { startPublish } from './publish.mjs';
+import { startGreetings } from './greeting.mjs';
 import characters from './characters.mjs';
 import ideas from './ideas.mjs';
 import setups from './setups.mjs';
@@ -164,6 +165,7 @@ async function finishSends(id) {
     while (sh.running) await new Promise((r) => setTimeout(r, 500));
   }
   publisher.afterExport(id, !!(s.quick || s.test));  // (a draft / a test never goes out)  // (asked in the Publish window: the socials, once the file is made)
+  greetings.afterExport(id, !!(s.quick || s.test));  // (a greeting asked for in Send: its page + his Telegram)
 }
 // on start: jobs still running from before (or finished while the server was down) are picked up again
 if (!TEST) setTimeout(() => {
@@ -396,6 +398,7 @@ if (!TEST && cloud.mode() === 'on') {
 }  // Ideas + the Jobs history, merged across his computers
 library(app, { ROOT, PORT, cloudOn: () => !TEST && cloud.mode() === 'on' });  // the Assets page: every background, music, sound, picture his videos use (library.mjs)
 const publisher = startPublish({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id), keysFresh: () => keys?.fresh(), saved: (id) => cloud.pushSoon(id) });  // to his socials (render/publish.mjs)  // iPhone uploads (render/drop.mjs)
+const greetings = startGreetings({ app, ROOT, epDir, readJson, writeJson, recordJob, isStale: (id) => exportStale(id), saved: (id) => cloud.pushSoon(id) });  // personal greetings (render/greeting.mjs)
 const VIDEO = /\.(mp4|mov|m4v)$/i;
 app.get('/api/downloads', (_q, res) => {
   const out = [];
@@ -1039,6 +1042,7 @@ app.get('/api/jobs', (_q, res) => {
   const running = [
     ...drop.running(),  // files from the iPhone coming down
     ...publisher.running(),  // the video going to his socials
+    ...greetings.running(),  // a personal greeting: its page, his Telegram, the email
     ...Object.entries(jobs).filter(([, j]) => j?.running).map(([id, j]) => ({ id, kind: j.kind === 'preview' ? 'build' : j.kind || 'export', started: j.started, log: (j.log || []).slice(-30) })),
     ...Object.entries(shares).filter(([, s]) => s?.running).map(([key, s]) => ({ id: key.split(':')[0], kind: 'send', channel: s.channel, started: s.started, log: s.log.slice(-5) })),
   ];

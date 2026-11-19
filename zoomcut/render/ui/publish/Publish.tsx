@@ -6,6 +6,7 @@
 // (publish.json); a new project starts from his last picks.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './publish.css';
+import { GreetingWindow } from './Greeting';
 
 type Platform = { id: string; name: string; what: string; manual?: boolean; ok: boolean; handle?: string; note?: string; until?: string; limits: any };
 type Item = { state: string; log: string[]; url?: string | null; note?: string; error?: string };
@@ -31,7 +32,16 @@ export const Mark = ({ id, size = 34 }: { id: string; size?: number }) => {
 };
 const CHANNELS = [{ id: 'telegram', name: 'Telegram' }, { id: 'email', name: 'Email' }];
 
-export function PublishWindow({ ep, canTest, onExport, onTest, onClose }: {
+type SendProps = { ep: string; canTest: boolean; onExport: (send: string[]) => void; onTest: () => void; onClose: () => void };
+// a personal greeting (episode.json "greeting") gets its own Send - never the socials (render/greeting.mjs)
+export function PublishWindow(props: SendProps) {
+  const [g, setG] = useState<any>(undefined);
+  useEffect(() => { setG(undefined); api(`/api/ep/${props.ep}/greeting`).then((j) => setG(j.greeting || null)).catch(() => setG(null)); }, [props.ep]);
+  if (g === undefined) return null;
+  return g ? <GreetingWindow ep={props.ep} greeting={g} onExport={props.onExport} onClose={props.onClose} /> : <SendWindow {...props} />;
+}
+
+function SendWindow({ ep, canTest, onExport, onTest, onClose }: {
   ep: string;
   canTest: boolean;                        // (the old lesson engine has no quick export)
   onExport: (send: string[]) => void;      // export, then the server sends to these channels (the socials: publish.json afterExport)

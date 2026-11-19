@@ -36,9 +36,13 @@ is public) - never `git add` them, never copy real names into a tracked file.
 One take: start on the first word, end on the last, cut the silences inside (the monologue rhythm - `recipes/monologue.md`),
 the resident's own voice setting from earlier projects. Keep it short - a greeting, not a lesson.
 
-## Hand-over - nothing is sent from the Studio
-He exports (never you, rule 8). Then:
-`node scripts/greetings/greet.cjs add --video episodes/<id>/out/<id>.mp4 --char <resident id> --request <request id>`
-- uploads to the private bucket, makes https://shlomiverse.com/greeting/<greeting id> and prints the link. Give him the
-link. The email to the requester is the Voice session's job, only after he approves THAT greeting (`greet.cjs send <id>
---test`, then `--yes`) - never send it from a video session.
+## Hand-over - the studio's Send does all of it (his ask, 2026-11-19: "all of this part of the automated process")
+A greeting project (episode.json `greeting`) opens **its own Send window** ("Send · personal greeting", `ui/publish/Greeting.tsx`,
+`render/greeting.mjs`) - no socials, no Shlomiverse videos; the socials' publish and the verse publish both refuse it.
+Three steps, each HIS click (you never press them - you set the project up, he exports and sends):
+1. **Make the greeting page + send it to my Telegram** - exports first when needed, then `greet.cjs add` (the private page
+   https://shlomiverse.com/greeting/<gid>) and the video to his Telegram, to post as a story, with the page's link.
+2. **Test email to me** - `greet.cjs send <gid> --test`.
+3. **Send to <name>** - `greet.cjs send <gid> --yes`: the email to the person who asked. His click is the approval.
+State: `episodes/<id>/greeting-out.json` (gid, url, made, tested, sent); every step is a job in the Jobs list (`greeting`).
+A new export after a fix -> "Make again" (a new page; "Send" waits until the page is the newest export).
