@@ -42,7 +42,12 @@ the resident's own voice setting from earlier projects. Keep it short - a greeti
 - **No music from us - he adds the bed himself** (greet-maya, 2026-11-19: "I really don't want her bg music"). A song that
   played in his room while he filmed = **her voice clean with no background**: `vocal-split\.venv\Scripts\python.exe -m demucs
   --two-stems=vocals -n htdemucs -o <out> <take.wav>` (~30 s), the `vocals.wav` added as an asset, every voice clip's `asset`
-  switched to it (same `in` - same timing as the take). His words: "perfect". Laying the separated song as its own row did
+  switched to it (same `in` - same timing as the take). His words: "perfect". **Measure it** (the take vs vocals.wav before
+  her first word): a song WITH a singer stays in vocals.wav (greet-osher: only -4 dB) - then also RNNoise on the file
+  (`ffmpeg -af "aresample=48000,highpass=f=80,arnndn=m=models/rnnoise/cb.rnnn"`, -12 dB, speech untouched); the row's own
+  `clean` does nothing on an audio asset (its variants are made only for video sources).
+- **Start on her first word** - the first clip's head after the opening card had 0.4 s of quiet; he marked "תתחיל מכאן" on
+  both Hani greetings. Measure the onset in the db10, not the transcript's word start. Laying the separated song as its own row did
   NOT work for him.
 - **No noise cleaning on the voice** (he removed `clean` from both of Hani's voice rows on greet-maya, 2026-11-19).
 - A mic pop on a plosive (a "ת" 4x his speech in the raw) clips after the voice chain = a "boom": that 0.15 s as its own
