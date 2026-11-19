@@ -49,8 +49,8 @@ const tail = (n) => '...' + String(n).slice(-3);
 // the greeting's SMS (his note 2026-11-19: "we are Shlomiverse - cool and funny"; Terra's line, the sender name already says who):
 // one line + the link on its own line
 // + the name inside the words too (his note: "it must say Shlomiverse, or they won't know what it is")
-// and FIRST (his note): the verse reports, like its live broadcast
-const greetingText = (g) => `השלומיוורס מדווח: ברכה מ${g.charName} ל${String(g.forWho).replace(/^ל/, '')} חצתה את היקום ונחתה אצלכם.\nhttps://shlomiverse.com/greeting/${g.id}`;
+// and FIRST, light, no flowery words (his notes) - Terra's pick, his choice
+const greetingText = (g) => `שלומיוורס: הברכה של ${g.charName} ל${String(g.forWho).replace(/^ל/, '')} מוכנה!\nhttps://shlomiverse.com/greeting/${g.id}`;
 
 module.exports = { sendSms, phoneOf, greetingText, tail };
 
