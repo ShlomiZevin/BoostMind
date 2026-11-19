@@ -35,6 +35,7 @@
   .acts a { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 999px; border: 1.5px solid rgba(255,138,61,.55); color: #fff; text-decoration: none; font-weight: 700; }
   .acts svg { width: 20px; height: 20px; }
   .share { text-align: center; font-weight: 700; margin: 10px 0 2px; }
+  .share a { color: var(--acc2); text-decoration: none; direction: ltr; unicode-bidi: isolate; }
   .note { text-align: center; color: var(--dim); font-size: .88rem; margin: 6px 0 22px; }
   .ask { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px; text-align: center; }
   .ask p { margin: 0 0 12px; font-weight: 700; font-size: 1.05rem; }
@@ -72,7 +73,7 @@
     '<p class="from">מאת <b>' + esc(g.charName) + '</b>' + (g.event ? ' · ' + esc(g.event) : '') + '</p>' +
     '<div class="player"><video src="' + esc(g.video) + '" poster="' + esc(g.poster) + '" controls playsinline preload="metadata"></video></div>' +
     '<div class="acts"><a href="' + esc(g.download) + '" data-act="download">' + DL + 'להורדה</a><a href="' + esc(wa) + '" target="_blank" rel="noopener" data-act="whatsapp">' + WA + 'לשליחה בוואטסאפ</a></div>' +
-    '<p class="share">נשמח מאוד אם תשתפו את הברכה בסטורי שלכם, ובכל מקום שבא לכם.</p>' +
+    '<p class="share">נשמח מאוד אם תשתפו את הברכה עם העוקבים שלכם בסטורי, ובכל מקום שבא לכם, ותתייגו את <a href="https://www.instagram.com/shlomizevin/" target="_blank" rel="noopener" data-act="insta">@shlomizevin</a> באינסטגרם.</p>' +
     '<p class="note">ברכות עשויות לעלות לסטורי בשלומיוורס ובאינסטגרם.</p>' +
     '<div class="ask"><p>רוצים ברכה מתושב בשלומיוורס למישהו שאתם אוהבים?</p><a href="/community?do=personal" data-act="ask">לבקש ברכה</a></div>' +
     (g.char ? '<a class="meet" href="/c/' + esc(g.char) + '" data-act="meet">' + (g.charImg ? '<img src="' + esc(g.charImg) + '" alt="">' : '') + '<span>להכיר את ' + esc(first) + '<small>' + esc(g.world || 'השלומיוורס') + '</small></span></a>' : '') +

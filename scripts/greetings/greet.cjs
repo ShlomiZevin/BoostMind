@@ -70,7 +70,7 @@ async function build(g, first) {
     subject: `הברכה ל${g.forWho} מוכנה`, preheader: `ברכה מ${g.charName} ל${g.forWho}`,
     title: `הברכה ל${g.forWho} מוכנה`, line: `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`,
     paras: [`${first ? first + ', ' : ''}ביקשתם ברכה מ${g.charName} ל${g.forWho}, והיא כאן.`,
-      'ונשמח מאוד אם תשתפו אותה בסטורי שלכם, ובכל מקום שבא לכם. ברכה טובה צריכה להגיע רחוק.'],   // his ask 2026-11-19
+      'ונשמח מאוד אם תשתפו אותה עם העוקבים שלכם בסטורי, ובכל מקום שבא לכם, ותתייגו את @shlomizevin באינסטגרם. ברכה טובה צריכה להגיע רחוק.'],   // his ask 2026-11-19 (the tag: his Instagram, his words)
     poster: `${SITE}/greeting/${g.id}/poster.jpg`, href: `/greeting/${g.id}`,
     note: 'זו ברכה אישית מהשלומיוורס. אפשר להשיב למייל הזה.',
   };
