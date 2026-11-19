@@ -1,6 +1,6 @@
 // SMS from "Shlomiverse" (his ask 2026-11-19: a greeting's email can land in spam - the requester also gets an SMS with the link).
 // Twilio, his account (paid). Keys: TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_FROM (the sender name, "Shlomiverse") from the
-// environment, else zoomcut/.env (git-ignored). Never print the token.
+// environment, else zoomcut/.env (git-ignored), else Secret Manager (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN). Never print the token.
 //   node scripts/greetings/sms.cjs test <phone>                 a test SMS (to him)
 //   node scripts/greetings/sms.cjs greeting <greeting id> --yes the greeting's SMS to the requester (greet.cjs send --yes does it by itself)
 // Used by greet.cjs: const { sendSms, phoneOf } = require('./sms.cjs')
@@ -14,7 +14,11 @@ function keys() {
     const get = (n) => (env.match(new RegExp(`^${n}=(.*)$`, 'm')) || [])[1]?.trim().replace(/^["']|["']$/g, '');
     Object.assign(k, { sid: get('TWILIO_ACCOUNT_SID'), token: get('TWILIO_AUTH_TOKEN'), from: k.from || get('TWILIO_FROM') });
   }
-  if (!k.sid || !k.token) throw new Error('Twilio keys missing (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN in zoomcut/.env)');
+  if (!k.sid || !k.token) {   // any computer / the online studio: Secret Manager (his OK 2026-11-19)
+    const sm = (n) => { try { return require('child_process').execSync(`gcloud secrets versions access latest --secret=${n} --project=boostmind-b052c`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch (e) { return ''; } };
+    k.sid = k.sid || sm('TWILIO_ACCOUNT_SID'); k.token = k.token || sm('TWILIO_AUTH_TOKEN');
+  }
+  if (!k.sid || !k.token) throw new Error('Twilio keys missing (zoomcut/.env or Secret Manager TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN)');
   return { ...k, from: k.from || 'Shlomiverse' };
 }
 
