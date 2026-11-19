@@ -4,7 +4,7 @@
   "tagline": "הרב דמוקרטוביץ מרכיב קואליציה: הפילו סיעות על המגדל, בדיוק, עד 61 מנדטים – ומשם עד כנסת שלמה. ותיזהרו מהסקרים של הרבנית.",
   "character": "demokratovich",
   "world": "שערי בג״ץ",
-  "status": "draft",
+  "status": "live",
   "cover": "cover.jpg",
   "best": { "key": "shlomiverse:sixty-one:best", "label": "מנדטים" },
   "record": { "unit": "מנדטים", "better": "high", "max": 90 },
