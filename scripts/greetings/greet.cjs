@@ -4,7 +4,7 @@
 // its own link-only page https://shlomiverse.com/greeting/<id> (techietech-api/page.js streams it; v2/site/greeting/page.html).
 //
 //   node scripts/greetings/greet.cjs add --video <file.mp4> --char <resident id> [--request <requests doc id>] [--for "מאיה"] [--event "שנתיים ביחד"]
-//        [--to <requester email>] [--poster <jpg>] [--at <seconds for the poster frame>] [--name "how the resident signs"]   -> prints the greeting id + its page
+//        [--to <requester email>] [--poster <jpg>] [--at <seconds for the poster frame>] [--name "how the resident signs"] [--test = never messages him]   -> prints the greeting id + its page
 //   node scripts/greetings/greet.cjs mail <greeting id> [--out preview.html]     the email as HTML, to look at (nothing sent)
 //   node scripts/greetings/greet.cjs send <greeting id> --test                   the email to Shlomi's own inbox (how it looks in Gmail)
 //   node scripts/greetings/greet.cjs send <greeting id> --yes                    to the requester - ONLY after Shlomi approved THIS greeting.
@@ -53,7 +53,7 @@ async function add() {
   await bucket.upload(poster, { destination: `greetings/${id}/poster.jpg`, metadata: { contentType: 'image/jpeg' } });
   await db.collection('greetings').doc(id).set({
     char, charName: opt('name', NAME_AS[char] || c.name), charImg: img, world: c.world || '', techy: c.world === 'טקי-טק' || flag('techy'),
-    forWho, event, to, requestId: opt('request') || null, public: false,
+    forWho, event, to, requestId: opt('request') || null, public: false, ...(flag('test') ? { test: true } : {}),
     t: admin.firestore.FieldValue.serverTimestamp(), sentAt: null,
   });
   console.log(`greeting ${id}\n${SITE}/greeting/${id}`);

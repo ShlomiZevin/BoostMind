@@ -43,7 +43,10 @@
   .given p { margin: 0 0 6px; font-weight: 800; font-size: 1.05rem; } .given small { display: block; color: var(--dim); margin: 0 0 12px; }
   .given button { display: inline-flex; align-items: center; gap: 8px; height: 50px; padding: 0 26px; border-radius: 999px; border: 0; background: var(--acc); color: #fff; font: 800 1rem Heebo; cursor: pointer; }
   .given button svg { width: 20px; height: 20px; } .given button:disabled { opacity: .6; }
-  .given.done p { color: #8ee6a6; }
+  .given.done { padding: 12px 14px; border-color: rgba(107,214,138,.35); display: flex; align-items: center; gap: 10px; text-align: start; }
+  .given.done i { flex: none; width: 30px; height: 30px; border-radius: 50%; background: rgba(107,214,138,.16); color: #8ee6a6; display: grid; place-items: center; }
+  .given.done i svg { width: 18px; height: 18px; }
+  .given.done p { color: #8ee6a6; font-size: .95rem; margin: 0; } .given.done small { margin: 0; font-size: .82rem; }
   .ask { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px; text-align: center; }
   .ask p { margin: 0 0 12px; font-weight: 700; font-size: 1.05rem; }
   .ask a { display: inline-flex; align-items: center; height: 50px; padding: 0 28px; border-radius: 999px; background: var(--acc); color: #fff; text-decoration: none; font-weight: 800; }
@@ -77,7 +80,9 @@
   var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
   var wasShown = g.shown; try { wasShown = wasShown || localStorage.getItem('greet-shown-' + g.id) === '1'; } catch (e) {}
   function givenBox() {
-    return wasShown ? '<div class="given done" id="given"><p>תודה שסיפרתם!</p><small>עכשיו נוכל לשתף את הברכה גם בסטורי של השלומיוורס.</small></div>'
+    // once pressed it is done for everyone who opens the link (shownAt from the server; this browser's own press as the fallback)
+    var when = g.shownAt ? new Date(g.shownAt).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', timeZone: 'Asia/Jerusalem' }) : '';
+    return wasShown ? '<div class="given done" id="given"><i>' + CHECK + '</i><div><p>הברכה נמסרה ' + esc(g.forWho.replace(/^ל?/, 'ל')) + (when ? ' · ' + when : '') + '</p><small>תודה! עכשיו נוכל לשתף אותה גם בסטורי של השלומיוורס.</small></div></div>'
       : '<div class="given" id="given"><p>הברכה כבר הגיעה ' + esc(g.forWho.replace(/^ל?/, 'ל')) + '?</p><small>ספרו לנו כשהיא נמסרה. נשמח להעלות אותה גם לסטורי שלנו, ולא נעלה אותה לפני שהיא הגיעה ליעדה.</small><button id="givenBtn">' + CHECK + 'הברכה נמסרה</button></div>';
   }
   var wa = 'https://wa.me/?text=' + encodeURIComponent('ברכה ל' + g.forWho + ' מ' + g.charName + ' בשלומיוורס ' + g.url);

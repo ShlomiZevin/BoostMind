@@ -143,7 +143,7 @@ async function greetingShown(req, res, id) {
     return d.data();
   });
   if (first === null) return res.status(404).json({ error: 'no' });
-  if (first) {
+  if (first && !first.test) {   // a test greeting (greet.cjs add --test) never messages him
     try {
       const k = JSON.parse(STUDIO_KEYS.value() || '{}');
       const text = `הברכה ל${first.forWho} (מ${first.charName}) נמסרה - אפשר להעלות אותה לסטורי עכשיו.
@@ -161,12 +161,12 @@ async function greetingPage(req, res, id) {
   const url = `${SITE}/greeting/${id}`;
   if (g) {
     html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img: `${SITE}/greeting/${id}/poster.jpg` }, url);
-    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, shown: !!g.shownAt,
+    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, shown: !!g.shownAt, shownAt: g.shownAt?.toDate ? g.shownAt.toDate().toISOString() : null,
       video: `${FN}/greeting/${id}/video.mp4`, poster: `${SITE}/greeting/${id}/poster.jpg`, download: `${FN}/greeting/${id}/video.mp4?dl=1`, url };
     html = html.replace('<script id="g-data" type="application/json">null</script>', `<script id="g-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
     html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex">');
   }
-  res.set('Cache-Control', 'public, max-age=60, s-maxage=300');
+  res.set('Cache-Control', 'public, max-age=0, s-maxage=15');   // "הברכה נמסרה" shows to everyone within seconds
   res.set('Content-Type', 'text/html; charset=utf-8');
   res.status(g ? 200 : 404).send(html);
 }
