@@ -24,6 +24,12 @@ Light, gentle, subtle: the message is the main thing. Every part a layer in the 
 - **The first greeting sets the look; the next ones copy it** (the editor's "+ New video" `from` = the last greeting) -
   only the names, the event, the date and the take change.
 
+**The cards are ready-made pictures** (the Voice session makes them per greeting, 1080x1920, in the library with the tag
+"greeting"): `episodes/_assets/greetings/<slug>/open.png` (opening card ~1.5 s), `name.png` (a transparent overlay for
+the whole take - the bottom pill: name -> for whom, + the Techy-Tech mark), `end.png` (end card ~2 s). Each one = an image
+layer. **The prompter scripts `zoomcut/scripts/greet-*.txt` are git-ignored on purpose** (real people's names, the repo
+is public) - never `git add` them, never copy real names into a tracked file.
+
 ## Cutting
 One take: start on the first word, end on the last, cut the silences inside (the monologue rhythm - `recipes/monologue.md`),
 the resident's own voice setting from earlier projects. Keep it short - a greeting, not a lesson.
