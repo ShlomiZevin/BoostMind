@@ -1,6 +1,6 @@
 ---
 name: chat-story
-description: Turn a good real conversation a visitor had with a Shlomiverse resident (the wiki / app chat) into story posters - find the recent good chats, pick with Shlomi, clean out anything personal, draw them as chat bubbles (1080x1920, the date on it) and hand him the clean posters. Use whenever he says a story from a conversation / from the chat, "find good chats with <resident>", שיחה לסטורי, סטורי משיחה, or wants to show what people talk about with the residents.
+description: Turn a good real conversation a visitor had with a Shlomiverse resident (the wiki / app chat) into story posters - or, for a long chat, a story video with fast typing in numbered parts (under a minute) - find the recent good chats, pick with Shlomi, clean out anything personal, draw them as chat bubbles (1080x1920, the date on it) and hand him the clean posters. Use whenever he says a story from a conversation / from the chat, "find good chats with <resident>", שיחה לסטורי, סטורי משיחה, or wants to show what people talk about with the residents, or says a chat is long / make a movie / video of a chat.
 argument-hint: "[resident id] [days]"
 ---
 
@@ -28,10 +28,7 @@ them. First one: three posters of Hani's chats. Reply in English; the posters ar
    bubbles orange #ff6a1f beside the anonymous visitor's picture (scripts/stories/art/visitor.jpg - someone from our world
    peeking in through the portal, his pick 2026-11-18), the resident's dark glass #1f1f24 beside a face in an orange ring, Heebo,
    the planet logo in the header, an orange pill "דברו עם <first> בשלומיוורס" + shlomiverse.com at the bottom.
-   **A long chat** (his ask, 2026-11-19: "make a movie of it, with numbers, enough time to read"): a video instead -
-   the same spec with `"parts": [[msgs],[msgs]...]` (about 2 exchanges a part) -> `node scripts/stories/chat-video.cjs
-   spec.json out.mp4`: numbered parts (1/5 beside the date), every bubble TYPED fast, the whole video under a minute
-   (default 55 s, `--max`) - one story clip. His note: slow reading-time pacing was far too slow; never over 60 s.
+   **A long chat** (more than one poster's worth) = a typing VIDEO, not a pile of posters - see "Long chats" below.
 5. **Look** at every poster yourself at full size (nothing touching, nothing cut, Hebrew + English mixed lines right),
    then send him ONLY the clean posters (SendUserFile). He posts them himself; posting to the verse = the verse-story
    skill, only when he asks.
@@ -51,3 +48,18 @@ v2/site/wiki/index.html) - "without names" is the promise, so a poster carries n
 - Keep the visitor's own spelling (their typos are part of the charm); cut the resident's sign-offs and the sign-in
   wall ("[[signin]]", an answer cut mid-word, the "המשך" that followed it) - never invent a word.
 
+## Long chats - a typing video (his format, 2026-11-19; the Amir chat "went out great")
+When the chat needs more than one poster (5+ exchanges), make ONE vertical video instead:
+1. **Spec** = the poster spec with `"parts"` instead of `"msgs"`: `"parts": [[4 msgs], [4 msgs], ...]` - 2 exchanges
+   (visitor + resident, twice) a part, so the letters stay 40px+. Same cleaning as above (watch for the visitor's chat
+   handle inside the resident's first line - "היי Zero," became "היי,").
+2. **Render** - `node scripts/stories/chat-video.cjs spec.json out.mp4 [--max 55]` (~3 min to render; prints each part's
+   letter size and the final length). What it makes: the poster look, "1/5 ... 5/5" beside the date, every bubble
+   TYPED fast with a cursor (speed is set so the whole video fits --max), a short beat after each bubble, 2 s hold at
+   the end. Silent track - he adds the music in Instagram.
+3. **His rules for it**: never over 60 s (a story clip) - his first note was "much, much faster", slow reading-time
+   pacing was rejected; typing, not bubbles popping in; numbered parts.
+4. **Look** - pull 3-4 stills (`ffmpeg -ss <t> -i out.mp4 -frames:v 1 x.jpg`) and check them like posters, then
+   SendUserFile the mp4.
+5. **Music** - offer 2-3 ideas in one line when you send it. Office scheming / politics: Game of Thrones theme was his
+   pick for Amir (epic music on a petty fight = the joke); Succession theme for "real", Pink Panther for sneaky-light.
