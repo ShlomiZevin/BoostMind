@@ -206,3 +206,10 @@ Her lines are NOT a stand-in - they are the final voice (his ask: "real, not a m
 - Under the whole video: a night-park ambience row (`_assets/night-guy/reels/park-night-a.mp3`, 30 s loop, volume 0.7).
 - End card: the פסיכופת גינה poster (`_assets/night-guy/poster/` - the garden-gnome statue / gnome-hat versions,
   HTML + shoot.mjs, title in Rubik Wet Paint).
+- **When she has to FEEL something (night-guy-gta, 2026-11-19 - "a bit nice to him, even laugh at the craziness")**:
+  pure TTS works here, his pick from A/B samples = **Danit on `eleven_v4`** (stability 0.15, `language_code he`) with
+  ElevenLabs audio tags per line: `[friendly, curious] כן?`, `[smiling, warm] כן, בטח.`, `[amused, a small laugh]`,
+  `[bursts out laughing] [laughs] מה?!`, `[laughing, playful] דייי! [laughs] ...`. v3 laughs bigger but garbles more.
+  Spell English words in Hebrew (ג׳י-טי-איי). v4 doubles a bare "כן..." into "כן, כן" on every seed - give it a
+  lead-in ("אֶה... כֵּן."). Transcribe every take; level each line to -24 LUFS; same soft chain as above (tempo 1.2).
+  Files: `_assets/night-guy/gta/girl-gta-{1..6}.wav`.
