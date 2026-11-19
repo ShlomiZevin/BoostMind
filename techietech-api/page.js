@@ -5,6 +5,8 @@
 // anywhere else. Content comes from the live wiki data (no deploy for a new video / character); the CDN keeps each
 // answer a few minutes. If anything fails, the page goes out with the site's default preview - never an error page.
 const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
+const STUDIO_KEYS = defineSecret('studio-keys');   // only TELEGRAM_TOKEN / TELEGRAM_CHAT_ID are read: "the greeting was shown" to his Telegram
 
 const SITE = 'https://shlomiverse.com';
 const TEMPLATE = `${SITE}/wiki/index.html`;
@@ -126,6 +128,32 @@ async function greetingFile(req, res, id, name) {
   if (req.method === 'HEAD') { res.end(); return; }
   f.createReadStream({ start, end }).on('error', (e) => { console.error('greeting stream', id, e.message); res.end(); }).pipe(res);
 }
+// "the greeting was shown" (his ask, 2026-11-19): we can't post a greeting to our story before the person it's for has seen it, so
+// the requester presses "הברכה נמסרה" on the page -> greetings/<id> shownAt (once) + a Telegram to him with the page link
+async function greetingShown(req, res, id) {
+  if (req.method !== 'POST') return res.status(405).send('');
+  const admin = require('firebase-admin');
+  if (!admin.apps.length) admin.initializeApp();
+  const ref = admin.firestore().collection('greetings').doc(id);
+  const first = await admin.firestore().runTransaction(async (t) => {
+    const d = await t.get(ref);
+    if (!d.exists || d.data().off) return null;
+    if (d.data().shownAt) return false;
+    t.update(ref, { shownAt: admin.firestore.FieldValue.serverTimestamp() });
+    return d.data();
+  });
+  if (first === null) return res.status(404).json({ error: 'no' });
+  if (first) {
+    try {
+      const k = JSON.parse(STUDIO_KEYS.value() || '{}');
+      const text = `הברכה ל${first.forWho} (מ${first.charName}) נמסרה - אפשר להעלות אותה לסטורי עכשיו.
+${SITE}/greeting/${id}`;
+      if (k.TELEGRAM_TOKEN && k.TELEGRAM_CHAT_ID) await fetch(`https://api.telegram.org/bot${k.TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: k.TELEGRAM_CHAT_ID, text }) });
+    } catch (e) { console.error('greeting shown telegram', id, e.message); }
+  }
+  res.set('Cache-Control', 'no-store');
+  return res.json({ ok: true });
+}
 const FN = 'https://europe-west1-boostmind-b052c.cloudfunctions.net/versePage';   // the video straight from here (Range works without the CDN in between)
 async function greetingPage(req, res, id) {
   const g = greetId(id) ? await greetingRec(id).catch(() => null) : null;
@@ -133,7 +161,7 @@ async function greetingPage(req, res, id) {
   const url = `${SITE}/greeting/${id}`;
   if (g) {
     html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img: `${SITE}/greeting/${id}/poster.jpg` }, url);
-    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy,
+    const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, shown: !!g.shownAt,
       video: `${FN}/greeting/${id}/video.mp4`, poster: `${SITE}/greeting/${id}/poster.jpg`, download: `${FN}/greeting/${id}/video.mp4?dl=1`, url };
     html = html.replace('<script id="g-data" type="application/json">null</script>', `<script id="g-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
     html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex">');
@@ -143,11 +171,12 @@ async function greetingPage(req, res, id) {
   res.status(g ? 200 : 404).send(html);
 }
 
-exports.versePage = onRequest({ region: 'europe-west1', memory: '256MiB', timeoutSeconds: 300, concurrency: 80, maxInstances: 5 }, async (req, res) => {
+exports.versePage = onRequest({ region: 'europe-west1', memory: '256MiB', timeoutSeconds: 300, concurrency: 80, maxInstances: 5, secrets: [STUDIO_KEYS] }, async (req, res) => {
   const [, kind = '', raw = '', file = ''] = req.path.split('/');
   const id = decodeURIComponent(raw);
   if (kind === 'greeting') {   // timeoutSeconds 300: a video streams to a slow phone
     try {
+      if (file === 'shown') { if (!greetId(id)) return res.status(404).send(''); return await greetingShown(req, res, id); }
       if (file === 'video.mp4' || file === 'poster.jpg') { if (!greetId(id) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, file); }
       return await greetingPage(req, res, id);
     } catch (e) { console.error('versePage greeting', req.path, e.message); if (!res.headersSent) res.status(500).send(''); return; }
