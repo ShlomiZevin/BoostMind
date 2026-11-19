@@ -1,6 +1,7 @@
 # rewrite a GLB: constant animation channels -> 1 key, drop non-hips translation/scale channels; repack buffer
 import json,struct,sys,numpy as np
 src,dst=sys.argv[1],sys.argv[2]
+DROP=set(sys.argv[3].split(',')) if len(sys.argv)>3 else set()
 f=open(src,'rb').read(); l=struct.unpack('<I',f[12:16])[0]; j=json.loads(f[20:20+l])
 binoff=20+l+8; B=f[binoff:]
 bv=j['bufferViews']; acc=j['accessors']
@@ -42,6 +43,7 @@ for im in j.get('images',[]):
     v=bv[im['bufferView']]; data=B[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']]
     while len(blob)%4: blob.append(0)
     o=len(blob); blob.extend(data); newbv.append({'buffer':0,'byteOffset':o,'byteLength':len(data)}); im['bufferView']=len(newbv)-1
+j['animations']=[an for an in j['animations'] if an.get('name') not in DROP]
 for an in j['animations']:
     chans=[];samps=[]
     for c in an['channels']:

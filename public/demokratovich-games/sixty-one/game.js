@@ -154,7 +154,8 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { if 
 
 // ───────────────────────── three: the tower scene ─────────────────────────
 const cv = $('cv');
-const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+const PHONE = matchMedia('(hover:none)').matches;
+const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: !PHONE, alpha: true, powerPreference: 'high-performance' });
 renderer.setClearColor(0x000000, 0);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
@@ -162,8 +163,8 @@ const scene = new THREE.Scene();
 scene.add(new THREE.HemisphereLight(0xfff4e0, 0x6b4a2e, 1.15));
 const sun = new THREE.DirectionalLight(0xffe7c2, 1.9); sun.position.set(4, 9, 6); scene.add(sun); scene.add(sun.target);
 // real shadows: the slabs throw them onto each other and onto the room's floor
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.02;
+// no real-time shadows (too heavy for phones): a soft baked shadow sits under the tower instead
+sun.castShadow = false; sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.02;
 Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 0.5, far: 40 });
 const DIORAMA = { rot: +(new URLSearchParams(location.search).get('rot') ?? 0), width: 10, dx: 0, dz: 0 };
 const fill = new THREE.DirectionalLight(0xc9d8ff, 0.5); fill.position.set(-6, 3, -2); scene.add(fill);
@@ -177,7 +178,7 @@ let camY = 0, camYGoal = 0, viewW = 8.6;
 function cssPx(v) { const d = document.createElement('div'); d.style.cssText = `position:fixed;top:${v};visibility:hidden`; document.body.appendChild(d); const t = d.getBoundingClientRect().top; d.remove(); return t; }
 let safeT = 0, safeB = 0;
 function layout() {
-  W = innerWidth; H = innerHeight; DPR = Math.min(2, devicePixelRatio || 1);
+  W = innerWidth; H = innerHeight; DPR = Math.min(PHONE ? 1.5 : 2, devicePixelRatio || 1);
   renderer.setPixelRatio(DPR); renderer.setSize(W, H, false);
   safeT = cssPx('var(--safe-t)'); safeB = H - cssPx('calc(100% - var(--safe-b))') || 0;
   // the tower takes about half the width on a phone; a wide screen keeps the phone's proportions
@@ -247,7 +248,7 @@ function slabMats(L, w, d, seats) {
   const sz = new THREE.MeshStandardMaterial({ map: labelTex(L, w, seats), roughness: 0.5 });
   return [sx, plain, top, plain, sz, plain];
 }
-function slabMesh(L, w, d, seats) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, SH, d), slabMats(L, w, d, seats)); m.castShadow = true; m.receiveShadow = true; return m; }
+function slabMesh(L, w, d, seats) { return new THREE.Mesh(new THREE.BoxGeometry(w, SH, d), slabMats(L, w, d, seats)); }
 function disposeMats(ms) { [].concat(ms).forEach((x) => { if (x.map && !x.userData.shared) x.map.dispose(); x.dispose(); }); }
 function disposeMesh(m) { m.geometry.dispose(); disposeMats(m.material); if (m.userData.alt) disposeMats(m.userData.alt); }
 
@@ -285,7 +286,7 @@ const ped = []; { const before = new Set(scene.children); pedestal(); for (const
 let diorama = null;
 new GLTFLoader().load('assets/diorama.glb', (g) => {
   const root = g.scene; root.rotation.y = DIORAMA.rot;
-  root.traverse((o) => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; [].concat(o.material).forEach((m) => { if (m.map) m.map.anisotropy = 4; }); } });
+  root.traverse((o) => { if (o.isMesh) { [].concat(o.material).forEach((m) => { if (m.map) m.map.anisotropy = 2; }); } });
   const holder = new THREE.Group(); holder.add(root); scene.add(holder);
   let box = new THREE.Box3().setFromObject(holder), size = box.getSize(new THREE.Vector3());
   const k = DIORAMA.width / Math.max(size.x, size.z); holder.scale.setScalar(k);
@@ -312,6 +313,12 @@ new GLTFLoader().load('assets/diorama.glb', (g) => {
   holder.position.x -= bx; holder.position.z -= bz; holder.position.y += (-SH / 2 - 0.005) - topY;
   DIORAMA.floor = floorY - topY - SH / 2;
   diorama = holder; for (const o of ped) o.visible = false;
+  { // the tower's soft shadow on the bimah
+    const c2 = document.createElement('canvas'); c2.width = c2.height = 128; const g2 = c2.getContext('2d');
+    const r2 = g2.createRadialGradient(64, 64, 18, 64, 64, 64); r2.addColorStop(0, 'rgba(30,10,0,.55)'); r2.addColorStop(1, 'rgba(30,10,0,0)'); g2.fillStyle = r2; g2.fillRect(0, 0, 128, 128);
+    const bs = new THREE.Mesh(new THREE.PlaneGeometry(BASE * 1.9, BASE * 1.9), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c2), transparent: true, depthWrite: false }));
+    bs.rotation.x = -Math.PI / 2; bs.position.set(-0.25, -SH / 2 + 0.004, 0.25); scene.add(bs);
+  }
 }, undefined, () => {});
 
 // ───────────────────────── the rabbi: the verse's 3D resident, in his own little view ─────────────────────────
