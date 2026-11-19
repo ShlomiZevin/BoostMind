@@ -55,6 +55,12 @@ export function LayersEditor({ ep, top, job, setJob, jobLine, chars, epData, rel
     if (s && v) L.record(s.p, v.project, s.label);
     return v;
   };
+  // a change saved from outside (another session, a tool) shows here by itself within ~2 s - never a refresh. Not while
+  // a builder job runs (its own reload records it) or this tab is hidden.
+  const outsideOk = useRef<() => boolean>(() => false);
+  outsideOk.current = () => !document.hidden && !job?.running && !snap.current;
+  const outsideFn = useRef(L.outside); outsideFn.current = L.outside;
+  useEffect(() => { const t = setInterval(() => { if (outsideOk.current()) outsideFn.current(); }, 2000); return () => clearInterval(t); }, [ep]);
   const project = L.live;
   const player = useRef<PlayerRef>(null);
   const frameEl = useRef<HTMLDivElement>(null);

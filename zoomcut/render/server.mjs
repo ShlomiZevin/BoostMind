@@ -1174,6 +1174,8 @@ const projectView = (q, id) => {
   return { project, urls, stems, gainDb: sj.gain_db ?? 0, levels: sj.levels || {}, soundBusy: !!soundBusy[id],  // (levels: '<layer>|<asset>|<clean>' -> speech-level gain, applied live)
     output: exportDone(id) ? `/media/${id}/out` : null, outputStale: exportStale(id), job: pub(jobs[id]) };
 };
+// the project's rev alone (cheap - the editor asks every 2 s whether someone else, another session / a tool, changed it)
+app.get('/api/p/:id/rev', (q, res) => res.json({ rev: readProject(q.params.id)?.rev ?? null }));
 app.get('/api/p/:id', (q, res) => {
   const v = projectView(q, q.params.id);
   if (!v) return res.status(404).json({ error: 'not a layered project (no project.json)' });

@@ -76,13 +76,16 @@ export function useLayered(ep: string) {
   }, [ep]);
 
   // saves go one after the other (each carries the rev it was made on)
+  const pending = useRef(0);  // (saves not answered yet - the outside check waits for them)
   const save = (ops: any[]) => {
     setSaving((n) => n + 1);
+    pending.current++;
     queue.current = queue.current.then(async () => {
-      const r = await post(`/api/p/${ep}/ops`, { rev: rev.current, ops });
+      const r = await post(`/api/p/${ep}/ops`, { rev: rev.current, ops }).catch((e) => ({ ok: false, status: 0, json: { error: String(e?.message || e) } }));
       setSaving((n) => n - 1);
-      if (!r.ok) { setError(r.json?.problems?.join('\n') || r.json?.error || 'not saved'); await load(); return; }
+      if (!r.ok) { setError(r.json?.problems?.join('\n') || r.json?.error || 'not saved'); await load(); pending.current--; return; }
       rev.current = r.json.rev;
+      pending.current--;
       setError(r.json.soundError ? `sound: ${r.json.soundError}` : null);
       setView((v) => (v ? { ...v, project: { ...v.project, rev: r.json.rev } } : v));
       // a new sound's prepared source is made behind (soundBusy): it plays as it is meanwhile, the prepared one
@@ -133,6 +136,27 @@ export function useLayered(ep: string) {
     setUndo((u) => [...u.slice(-199), { ops, inv, label }]);
     setRedo([]);
   };
+  // a change made OUTSIDE this editor (another session's ops / a tool, while it is open - greet-maya 2026-11-19: the
+  // cards were added and he didn't see them until a refresh): the saved project is newer than ours -> load it, and the
+  // difference goes on the undo list like a builder's change. Never while a save of ours is on its way or a drag is on.
+  const checking = useRef(false);
+  const draftsRef = useRef(drafts); draftsRef.current = drafts;
+  const outside = async () => {
+    if (checking.current || pending.current || rev.current == null || draftsRef.current.drag?.length) return;
+    checking.current = true;
+    try {
+      const j = await (await fetch(`/api/p/${ep}/rev`)).json().catch(() => null);
+      if (j?.rev == null || pending.current || rev.current == null || j.rev <= rev.current) return;
+      const before = viewRef.current?.project;
+      let v = await load();
+      if (v && before) record(before, v.project, 'a change from outside the editor');
+      for (let i = 0; v?.soundBusy && i < 120; i++) {  // (a new sound from outside: its prepared source comes in when made)
+        await new Promise((res) => setTimeout(res, 1500));
+        v = await (await fetch(`/api/p/${ep}`)).json().catch(() => null);
+        if (v) setView((o) => (o ? { ...o, urls: v.urls, stems: v.stems, gainDb: v.gainDb, levels: v.levels } as any : o));
+      }
+    } finally { checking.current = false; }
+  };
   // what the preview shows: the saved project + the draft being dragged
   const live = useMemo(() => {
     if (!view) return null;
@@ -141,7 +165,7 @@ export function useLayered(ep: string) {
     if (!all.length) return view.project;
     try { return apply(view.project, all); } catch { return view.project; }
   }, [view?.project, drafts]);
-  return { view, live, send, load, record, undo: doUndo, redo: doRedo, canUndo: !!undo.length, canRedo: !!redo.length, error, setError, saving: saving > 0 };
+  return { view, live, send, load, record, outside, undo: doUndo, redo: doRedo, canUndo: !!undo.length, canRedo: !!redo.length, error, setError, saving: saving > 0 };
 }
 
 export const upload = async (ep: string, file: File) => {

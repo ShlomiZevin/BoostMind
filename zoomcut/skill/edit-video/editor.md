@@ -13,6 +13,12 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Format**: `episodes/<id>/project.json` - assets + layers of items. Changed ONLY by ops
   (`render/src/layers/ops.js`: apply, inverse = undo, validate); the studio (`server.mjs`, "layered projects")
   refuses a write that breaks the format, keeps `rev`, logs every op with its undo in `work/history/log.jsonl`.
+- **Changes from outside show by themselves** (2026-11-19, greet-maya: another session added the greeting cards through
+  ops while his editor was open - he didn't see them and thought they were added only at export): the open editor asks
+  `GET /api/p/<id>/rev` every 2 s; a newer rev (another session's / a tool's ops) is loaded within ~2 s and goes on his
+  undo list as one step ("a change from outside the editor") - never a refresh. Skipped while his own save is on its way,
+  a drag is on, a builder job runs (its own reload records it) or the tab is hidden (api.ts `outside`, LayersEditor).
+  So a session adding layers through ops = he sees them at once. Writing project.json by hand (no rev bump) is NOT seen - use ops.
 - **Geometry**: `render/src/layers/geometry.js` (editor) = `pipeline/layer_geometry.py` (export); keep them equal -
   `node tools/geometry_parity.mjs` must pass after any change.
 - **Picture**: `render/src/Layers.tsx` draws every layer; video layers through `layers/VideoTrack.tsx` (persistent
