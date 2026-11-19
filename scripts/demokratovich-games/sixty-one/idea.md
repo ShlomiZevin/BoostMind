@@ -26,3 +26,13 @@ Picked: **61 - רוב קואליציוני** (Stack), with **the 3D figure**.
 7. The Rabbanit's poll: the slab speeds up for a while.
 8. HUD: seats counter + bar to 61, best of the day.
 9. Ready?
+
+## Round 2 - his notes (19 Nov 2026, after the draft) - ON HOLD ("let's wait with the game for a moment")
+- Make it reflect the REAL coalition deadlock now (Oct 27 2026 election: Netanyahu bloc 53, Eisenkot bloc 48, Arab parties 19;
+  Eisenkot holds the mandate since Nov 8; Liberman vetoes Arab-backed govt, Golan prefers it, Ra'am / Joint List = support from outside,
+  UTJ talks quietly, Shas with Netanyahu, Bennett unclear, Eisenkot won't serve under Netanyahu). The Rabbi's rulings on every choice.
+- Names: REAL party names + real seat counts (his pick).
+- 3D figure: keep it for now (he may save 3D for a planned world; easy to swap to painted).
+- Gameplay: undecided. Offered: pick 1 of 2 parties + drop (vetoes crack the tower, Arabs prop from outside) / coalition Tetris / as now + real parties.
+  He wonders about Tetris-like ("things fall and you fit them in") - wants to see the gameplay first.
+- EVERY panel, menu and in-game piece designed and beautiful - nothing weird (HUD, next-party chip, poll chip, bubble -> the painted kit).

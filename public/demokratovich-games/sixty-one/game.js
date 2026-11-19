@@ -25,28 +25,44 @@ function rng(seed) {
 const pick = (a, r = Math.random) => a[Math.floor(r() * a.length)];
 function pickNo(list, key) { const last = pickNo[key]; let l = pick(list); if (list.length > 1 && l === last) l = list[(list.indexOf(l) + 1) % list.length]; pickNo[key] = l; return l; }
 
-// ───────────────────────── the parties (invented - never real ones) ─────────────────────────
-const PARTIES = [
-  { name: 'בית הימין', col: '#1d4ed8' },
-  { name: 'בית השמאל', col: '#c0262d' },
-  { name: 'גוש השינוי', col: '#0f8a7e' },
-  { name: 'רשימת הפשרה', col: '#d49b0a' },
-  { name: 'אחוז החסימה', col: '#7c3aed' },
-  { name: 'חזית שלטון החוק', col: '#ea6a0c' },
-  { name: 'הפרדת הרשויות', col: '#d63384' },
-  { name: 'דעת המיעוט', col: '#178a3e' },
-  { name: 'הרכב מורחב', col: '#0b84c6' },
-  { name: 'סיעת ההימנעות', col: '#7b8190', zero: true },
-];
-const SEATS = [2, 3, 3, 4, 4, 4, 5, 5, 6, 7];
+// ───────────────────────── the parties - the real Knesset after the 27 Oct 2026 election ─────────────────────────
+// You build Eisenkot's coalition (the change bloc, the rabbi's side: "מה עשיתי למען גוש השינוי?"). Real seats; the
+// other bloc must be disqualified (פסול!); the Arab parties support from outside but Liberman walks out over them (and
+// over the Haredim); the Haredim are the open question - their slab switches sides while it slides.
+const P = {
+  yashar: { name: 'ישר!', who: 'איזנקוט', seats: 21, col: '#1e88c9', bloc: 'us' },
+  yachad: { name: 'ביחד', who: 'בנט', seats: 12, col: '#3b4fd8', bloc: 'us' },
+  dem: { name: 'הדמוקרטים', who: 'גולן', seats: 8, col: '#e0245e', bloc: 'us' },
+  ib: { name: 'ישראל ביתנו', who: 'ליברמן', seats: 7, col: '#0aa5b8', bloc: 'us', liberman: true },
+  raam: { name: 'רע״ם', who: 'עבאס', seats: 8, col: '#1f9d55', bloc: 'arab' },
+  joint: { name: 'הרשימה המשותפת', who: 'ג׳בארין', seats: 11, col: '#c62828', bloc: 'arab' },
+  utj: { name: 'יהדות התורה', who: 'אשר', seats: 7, col: '#3d3d47', bloc: 'haredi', ours: 0.66 },
+  shas: { name: 'ש״ס', who: 'דרעי', seats: 6, col: '#1d6f8a', bloc: 'haredi', ours: 0.45 },
+  likud: { name: 'הליכוד', who: 'נתניהו', seats: 27, col: '#1b3a8f', bloc: 'them' },
+  otzma: { name: 'עוצמה יהודית', who: 'בן גביר', seats: 7, col: '#e07b12', bloc: 'them' },
+  rz: { name: 'הציונות הדתית', who: 'סמוטריץ׳', seats: 6, col: '#2f6b3a', bloc: 'them' },
+};
+for (const [id, v] of Object.entries(P)) v.id = id;
+const THEM_LOOK = { name: 'גוש נתניהו', col: '#1b3a8f' };
+const MAXSEATS = 73;                       // 48 + 19 + 13 - Liberman's 7 (he can't sit with them)
+function split(n, r) { const out = []; while (n > 0) { let k = Math.min(n, 2 + Math.floor(r() * 4)); if (n - k === 1) k = n - k === 1 && k > 2 ? k - 1 : k + 1; k = Math.min(k, n); out.push(k); n -= k; } return out; }
 function makeQueue(r) {
-  const q = []; let last = -1;
-  for (let i = 0; i < 80; i++) {
-    let k; do { k = Math.floor(r() * PARTIES.length); } while (k === last || (PARTIES[k].zero && (i < 3 || r() < 0.5)));
-    last = k; q.push({ ...PARTIES[k], seats: PARTIES[k].zero ? 0 : pick(SEATS, r) });
-  }
-  return q;
+  const own = [], arab = [], them = [];
+  for (const id of ['yashar', 'yachad', 'dem', 'ib']) for (const k of split(P[id].seats, r)) own.push({ p: P[id], seats: k });
+  for (const id of ['raam', 'joint']) for (const k of split(P[id].seats, r)) arab.push({ p: P[id], seats: k });
+  const likudChunks = [6, 7, 7, 7], th = [...likudChunks.map((k) => ({ p: P.likud, seats: k })), { p: P.otzma, seats: 4 }, { p: P.otzma, seats: 3 }, { p: P.rz, seats: 3 }, { p: P.rz, seats: 3 }];
+  const sh = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  sh(own); sh(arab); sh(th);
+  // the opening: three of ours (Yashar first), then everything mixed; the Haredim and the Arabs from the middle on
+  const yi = own.findIndex((x) => x.p.id === 'yashar'); const first = own.splice(yi, 1)[0];
+  const head = [first, own.shift(), own.shift()];
+  const rest = sh([...own, ...arab, ...th, { p: P.utj, seats: 7 }, { p: P.shas, seats: 6 }]);
+  // no two of theirs in a row, and the Haredim not before slab 6
+  for (let i = 1; i < rest.length; i++) if (rest[i].p.bloc === 'them' && rest[i - 1].p.bloc === 'them') { const j = rest.findIndex((x, k) => k > i && x.p.bloc !== 'them'); if (j > 0) [rest[i], rest[j]] = [rest[j], rest[i]]; }
+  for (let i = 0; i < 3 && i < rest.length; i++) if (rest[i].p.bloc === 'haredi') { const j = rest.length - 1 - i; [rest[i], rest[j]] = [rest[j], rest[i]]; }
+  return [...head, ...rest];
 }
+const TUT_QUEUE = [{ p: P.yashar, seats: 4 }, { p: P.yachad, seats: 3 }, { p: P.likud, seats: 7 }, { p: P.utj, seats: 7 }, { p: P.dem, seats: 3 }, { p: P.raam, seats: 4 }, { p: P.yashar, seats: 5 }, { p: P.yachad, seats: 4 }, { p: P.dem, seats: 3 }, { p: P.yashar, seats: 4 }];
 
 // ───────────────────────── his lines (his halachic voice, from his profile) ─────────────────────────
 const LINES = {
@@ -55,10 +71,22 @@ const LINES = {
   expand: ['הרכב מורחב! השופטים מתרחבים.', 'שלוש ברציפות – חזקה! הרכב מורחב.'],
   small: ['יש לו על מי לסמוך.', 'מנהג בעלמא. ממשיכים.', 'קצת נחתך – אבל הרוב קובע.', 'לא קשיא: הא במרכז, הא בצד.'],
   big: ['רחמנא ליצלן.', 'מיתיבי: והלא חתכת מנדטים!', 'חס ושלום, איבדנו מנדטים.', 'באימה וביראה, ברטט ובזיעה...'],
-  zero: ['בהימנעות שרי, ובישיבה אסור.', 'סיעת ההימנעות: לא בעד, לא נגד – אבל במגדל.'],
+  veto: ['פסול! כשמועה טמאה.', 'לא מכניסים הביתה את הגוש השני.', 'פסול לעדות – ופסול לקואליציה.', 'שב ואל תעשה – עדיף.'],
+  vetoOurs: ['פסלת את שלנו?! מיתיבי: והלא מגוש השינוי הוא!', 'חס ושלום, פסלת מנדטים שלנו.'],
+  stunt: ['רחמנא ליצלן! תרגיל מסריח!', 'הגוש השני נכנס – והמגדל יוצא.', 'מיתיבי: והלא אמרתי פסול!'],
+  arab: ['תמיכה מבחוץ – שרי. ישיבה בפנים – יש מחלוקת.', 'רע״ם ממליצה מבחוץ. יש לו על מי לסמוך.'],
+  libOut: ['ליברמן קם והלך. נחלקו בית ליברמן ובית רע״ם.', 'ליברמן יצא. ״אני לא יושב איתם״ – ואין אנו פוסקים כמותו.'],
+  libOutHaredi: ['ליברמן יצא! חוק הגיוס, רבותיי, חוק הגיוס.'],
+  libRefuse: ['ליברמן לא נכנס – יש פה מי שהוא לא יושב איתו.'],
+  joinUtj: ['יהדות התורה איתנו! בתמורה ל... נו, אתם יודעים.', 'הצטרפו! ייאוש שלא מדעת – הפך לייאוש מדעת.'],
+  joinShas: ['ש״ס איתנו?! דרעי חתם – הפעם.', 'ש״ס הצטרפה. מנהג בעלמא – עד הבחירות הבאות.'],
+  haredBack: ['חזרו לגוש של נתניהו. הימים שבין כסה לאסון...', 'עם נתניהו! תרגיל! הכל היה פלפול.'],
+  haredQ: ['{n} – איתנו או איתם? נחלקו בדבר.', '{n} – שאלה הלכתית פתוחה. תפילו כשהם בצבע שלהם.'],
+  impossible: ['אין רוב בלי לשבור הבטחה. הולכים לבחירות.'],
   m30: ['חצי כנסת. אין אנו פוסקים כמותה עדיין.'],
   m50: ['חמישים. הימים שבין כסה לאסון...'],
   gov: ['והלכתא: קמה ממשלה! בברכת הדמוקרטיה ושלטון החוק.'],
+  govDone: ['קמה ממשלה! ״כולם שווים בפני החוק״ – ומי שלא, יש בג״ץ.'],
   m90: ['תשעים! ״כולם שווים בפני החוק״ – ומי שלא, יש בג״ץ.'],
   full: ['כנסת שלמה! מאה ועשרים! שתפו לזיכוי הרבים.'],
   ring: ['רגע אחד, זו הרבנית דמוקרטוביץ.'],
@@ -71,7 +99,7 @@ const LINES = {
 };
 
 // ───────────────────────── sound ─────────────────────────
-const SFX = ['drop1', 'drop2', 'drop3', 'slice1', 'slice2', 'slice3', 'perfect1', 'perfect2', 'perfect3', 'fall', 'grow', 'ring', 'hangup', 'gavel61', 'collapse', 'milestone', 'click', 'newbest', 'music'];
+const SFX = ['stamp1', 'stamp2', 'walkout', 'stunt', 'join', 'drop1', 'drop2', 'drop3', 'slice1', 'slice2', 'slice3', 'perfect1', 'perfect2', 'perfect3', 'fall', 'grow', 'ring', 'hangup', 'gavel61', 'collapse', 'milestone', 'click', 'newbest', 'music'];
 const SND = { on: store.get(KEY.snd) !== '0', ctx: null, buf: {}, last: {}, loops: {}, master: null };
 function decode(n) {
   fetch(`assets/snd/${n}.mp3`).then((r) => r.arrayBuffer()).then((b) => SND.ctx.decodeAudioData(b)).then((d) => { SND.buf[n] = d; if (wantLoops[n]) loop(n, wantLoops[n]); }).catch(() => {});
@@ -161,40 +189,62 @@ function layout() {
 addEventListener('resize', layout);
 
 // slab labels: a canvas per visible side
-function labelTex(p, len, seats) {
+// a slab's look: its name, colour, a small tag and whether it carries the other bloc's warning stripes
+function lookOf(e, side) {
+  const p = e.p;
+  if (p.bloc === 'them') return { name: p.name, col: p.col, tag: 'גוש נתניהו', hazard: true };
+  if (p.bloc === 'haredi') return side === 'them' ? { name: p.name, col: THEM_LOOK.col, tag: 'עם נתניהו', hazard: true, q: true } : { name: p.name, col: p.col, tag: 'איתנו?', q: true, ours: true };
+  if (p.bloc === 'arab') return { name: p.name, col: p.col, tag: 'מבחוץ' };
+  return { name: p.name, col: p.col, tag: '' };
+}
+function labelTex(L, len, seats) {
   const pxu = 150, w = Math.max(32, Math.round(len * pxu)), h = Math.round(SH * pxu);
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d');
-  const grd = g.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, shade(p.col, 0.12)); grd.addColorStop(1, shade(p.col, -0.18));
+  const grd = g.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, shade(L.col, 0.12)); grd.addColorStop(1, shade(L.col, -0.18));
   g.fillStyle = grd; g.fillRect(0, 0, w, h);
-  g.fillStyle = '#f5c54299'; g.fillRect(0, 0, w, 3); g.fillStyle = '#00000044'; g.fillRect(0, h - 4, w, 4);
+  if (L.hazard) {                       // the other bloc: black-and-amber warning stripes along the bottom edge
+    g.save(); g.beginPath(); g.rect(0, h - 13, w, 13); g.clip(); g.fillStyle = '#111'; g.fillRect(0, h - 13, w, 13); g.fillStyle = '#f5b301';
+    for (let x = -20; x < w + 20; x += 22) { g.beginPath(); g.moveTo(x, h); g.lineTo(x + 11, h); g.lineTo(x + 24, h - 13); g.lineTo(x + 13, h - 13); g.fill(); }
+    g.restore();
+  }
+  g.fillStyle = '#f5c54299'; g.fillRect(0, 0, w, 3); if (!L.hazard) { g.fillStyle = '#00000044'; g.fillRect(0, h - 4, w, 4); }
   g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
-  g.shadowColor = '#0008'; g.shadowBlur = 4; g.shadowOffsetY = 2;
-  const num = String(seats);
-  let txt = `${p.name}  ${num}`, fs = 34;
-  g.font = `900 ${fs}px Rubik, system-ui, sans-serif`;
-  if (g.measureText(txt).width > w - 16) { txt = p.name; }
-  while (fs > 18 && g.measureText(txt).width > w - 12) { fs -= 2; g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; }
-  if (g.measureText(txt).width > w - 8) { txt = num; fs = 34; g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; }
-  g.fillText(txt, w / 2, h / 2 + 2);
+  g.shadowColor = '#0009'; g.shadowBlur = 4; g.shadowOffsetY = 2;
+  const num = String(seats), cy = L.hazard ? h / 2 - 4 : h / 2 + 2;
+  const tries = [L.tag ? `${L.name} ${num} · ${L.tag}` : `${L.name}  ${num}`, `${L.name}  ${num}`, L.name, num];
+  let txt = tries[0], fs = 32, i = 0;
+  const fit = () => { g.font = `900 ${fs}px Rubik, system-ui, sans-serif`; return g.measureText(txt).width <= w - 14; };
+  while (!fit()) { if (fs > 22) fs -= 2; else if (i < tries.length - 1) { txt = tries[++i]; fs = 32; } else { fs = Math.max(14, fs - 2); if (fs === 14) break; } }
+  g.fillText(txt, w / 2, cy);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
+}
+const topCache = {};
+function topTex(L) {                    // the top face: a plain colour, warning stripes for the other bloc, a "?" for the Haredim
+  const key = L.col + (L.hazard ? 'h' : '') + (L.q ? 'q' : '');
+  if (topCache[key]) return topCache[key];
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = shade(L.col, 0.08); g.fillRect(0, 0, 256, 256);
+  if (L.hazard) { g.fillStyle = '#0000002e'; for (let x = -256; x < 512; x += 48) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 22, 0); g.lineTo(x + 22 + 256, 256); g.lineTo(x + 256, 256); g.fill(); } }
+  if (L.q) { g.fillStyle = '#ffffffd0'; g.font = '900 150px Rubik, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', 128, 136); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; topCache[key] = t; return t;
 }
 function shade(hex, k) {
   const n = parseInt(hex.slice(1), 16); let r = n >> 16, gg = (n >> 8) & 255, b = n & 255;
   const f = (v) => clamp(Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k)), 0, 255);
   return `rgb(${f(r)},${f(gg)},${f(b)})`;
 }
-function slabMesh(p, w, d, seats) {
-  const plain = new THREE.MeshStandardMaterial({ color: new THREE.Color(p.col).multiplyScalar(0.8), roughness: 0.55 });
-  const top = new THREE.MeshStandardMaterial({ color: new THREE.Color(shade(p.col, 0.08)), roughness: 0.45 });
-  const sx = new THREE.MeshStandardMaterial({ map: labelTex(p, d, seats), roughness: 0.5 });
-  const tz = labelTex(p, w, seats);
-  const sz = new THREE.MeshStandardMaterial({ map: tz, roughness: 0.5 });
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, SH, d), [sx, plain, top, plain, sz, plain]);
-  return m;
+function slabMats(L, w, d, seats) {
+  const plain = new THREE.MeshStandardMaterial({ color: new THREE.Color(L.col).multiplyScalar(0.8), roughness: 0.55 });
+  const top = new THREE.MeshStandardMaterial({ map: topTex(L), roughness: 0.45 }); top.userData.shared = true;
+  const sx = new THREE.MeshStandardMaterial({ map: labelTex(L, d, seats), roughness: 0.5 });
+  const sz = new THREE.MeshStandardMaterial({ map: labelTex(L, w, seats), roughness: 0.5 });
+  return [sx, plain, top, plain, sz, plain];
 }
-function disposeMesh(m) { m.geometry.dispose(); [].concat(m.material).forEach((x) => { if (x.map) x.map.dispose(); x.dispose(); }); }
+function slabMesh(L, w, d, seats) { return new THREE.Mesh(new THREE.BoxGeometry(w, SH, d), slabMats(L, w, d, seats)); }
+function disposeMats(ms) { [].concat(ms).forEach((x) => { if (x.map && !x.userData.shared) x.map.dispose(); x.dispose(); }); }
+function disposeMesh(m) { m.geometry.dispose(); disposeMats(m.material); if (m.userData.alt) disposeMats(m.userData.alt); }
 
 // the pedestal: a wooden lectern block with the court's name
 function pedestal() {
@@ -209,9 +259,20 @@ function pedestal() {
   const side = new THREE.MeshStandardMaterial({ map: t, roughness: 0.7 });
   const topm = new THREE.MeshStandardMaterial({ color: 0x6b3a17, roughness: 0.6 });
   const m = new THREE.Mesh(new THREE.BoxGeometry(BASE + 0.4, 3.4, BASE + 0.4), [side, side, topm, topm, side, side]);
-  m.position.y = -1.7 - SH / 2; scene.add(m);
+  m.position.y = -1.7 - SH / 2 - 0.02; scene.add(m);          // its top 2 cm under the first slab (no shared plane = no flicker)
   const trim = new THREE.Mesh(new THREE.BoxGeometry(BASE + 0.6, 0.14, BASE + 0.6), new THREE.MeshStandardMaterial({ color: 0xd9a63a, metalness: 0.6, roughness: 0.35 }));
-  trim.position.y = -SH / 2 - 0.07; scene.add(trim);
+  trim.position.y = -SH / 2 - 0.12; scene.add(trim);
+  // it stands on the hall's floor: a painted rug under it and a soft contact shadow at its foot
+  const floorY = m.position.y - 1.7;
+  const rugTex = new THREE.TextureLoader().load('assets/rug.webp'); rugTex.colorSpace = THREE.SRGBColorSpace; rugTex.anisotropy = 4;
+  const rug = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 7.2), new THREE.MeshStandardMaterial({ map: rugTex, transparent: true, roughness: 0.95, depthWrite: false }));
+  rug.rotation.x = -Math.PI / 2; rug.position.y = floorY + 0.004; rug.renderOrder = -2; scene.add(rug);
+  const sc = document.createElement('canvas'); sc.width = sc.height = 256; const sg = sc.getContext('2d');
+  const rg = sg.createRadialGradient(128, 128, 40, 128, 128, 128); rg.addColorStop(0, 'rgba(20,8,0,.7)'); rg.addColorStop(0.55, 'rgba(20,8,0,.35)'); rg.addColorStop(1, 'rgba(20,8,0,0)');
+  sg.fillStyle = rg; sg.fillRect(0, 0, 256, 256);
+  const shT = new THREE.CanvasTexture(sc);
+  const shd = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 5.6), new THREE.MeshBasicMaterial({ map: shT, transparent: true, depthWrite: false }));
+  shd.rotation.x = -Math.PI / 2; shd.position.set(-0.35, floorY + 0.01, 0.35); shd.renderOrder = -1; scene.add(shd);          // the gold band sits below the table's top, never level with it
 }
 pedestal();
 
@@ -330,10 +391,12 @@ let paused = false, tutorial = false;
 let tower = [], cur = null, falling = [], rings = [];
 let seats = 0, drops = 0, streak = 0, queue = [], qi = 0, R = Math.random;
 let poll = { on: false, left: 0, next: 9, t: 0 }, govDone = false, milestones = {};
-let hintOn = false, idleTalk = 0, overReason = '';
+let hintOn = false, idleTalk = 0, overReason = '', busy = 0;
+let timers = [];                    // game-time delays (pause-safe, and the tests can fast-forward them)
+function later(sec, fn) { timers.push({ t: sec, fn }); }
 function speedNow() {
   if (tutorial) return 1.5;
-  return clamp(2.7 + drops * 0.1, 2.7, 7) * (poll.on ? 1.45 : 1);
+  return clamp(2.6 + drops * 0.1, 2.6, 6.6) * (poll.on ? 1.45 : 1);
 }
 function topSlab() { return tower[tower.length - 1]; }
 function clearScene() {
@@ -344,43 +407,65 @@ function clearScene() {
   tower = []; falling = []; rings = []; cur = null;
 }
 function reset(seed) {
-  clearScene();
+  clearScene(); timers = [];
   tower = [{ x: 0, z: 0, w: BASE, d: BASE, y: -SH, mesh: null }];
-  seats = 0; drops = 0; streak = 0; qi = 0; govDone = false; milestones = {};
-  R = rng(seed); queue = makeQueue(R);
+  seats = 0; drops = 0; streak = 0; qi = 0; govDone = false; milestones = {}; busy = 0;
+  R = rng(seed); queue = seed === 'tutorial' ? TUT_QUEUE.map((e) => ({ ...e })) : makeQueue(R);
   poll = { on: false, left: 0, next: 7 + Math.floor(R() * 4), t: 0 };
   camY = camYGoal = SH - camLift(); stopRing();
   spawn(); hud();
 }
 function camLift() { const halfH = (cam.top - cam.bottom) / 2; return 0.12 * 2 * halfH / 0.866; }
+const inTower = (f) => tower.filter((s) => s.e && f(s));
+const hasLib = () => inTower((s) => s.e.p.liberman).length > 0;
+const hasLibFoe = () => inTower((s) => s.e.p.bloc === 'arab' || s.e.p.bloc === 'haredi').length > 0;
 function spawn() {
-  const t = topSlab(), p = queue[qi % queue.length];
+  if (qi >= queue.length) { if (tutorial) qi = 0; else return finish(seats >= 61 ? 'gov' : 'lose'); }
+  const t = topSlab(), e = queue[qi];
   const axis = tower.length % 2 ? 'x' : 'z';
-  const mesh = slabMesh(p, t.w, t.d, p.seats);
+  const mesh = slabMesh(lookOf(e, 'us'), t.w, t.d, e.seats);
   const range = BASE * 1.25 + 0.6;
-  cur = { p, axis, w: t.w, d: t.d, x: t.x, z: t.z, y: t.y + SH, pos: -range, dir: 1, range, mesh };
+  cur = { e, axis, w: t.w, d: t.d, x: t.x, z: t.z, y: t.y + SH, dir: 1, range, mesh, side: 'us' };
+  if (e.p.bloc === 'haredi') {           // the open question: it switches sides while it slides
+    mesh.userData.alt = slabMats(lookOf(e, 'them'), t.w, t.d, e.seats);
+    cur.mats = [mesh.material, mesh.userData.alt]; cur.flick = R() * 2; cur.ours = e.p.ours;
+    say(pickNo(LINES.haredQ, 'hq').replace('{n}', e.p.name), 2.6);
+  }
   cur[axis] = (axis === 'x' ? t.x : t.z) - range;
   mesh.position.set(cur.x, cur.y, cur.z); scene.add(mesh);
   camYGoal = cur.y - camLift();
-  nextChip();
+  nextChip(); vetoGlow();
 }
 function nextChip() {
-  const p = queue[(qi + 1) % queue.length];
-  $('nextChip').innerHTML = `הבא: <i style="background:${p.col}"></i>${p.name} · <b>${p.seats}</b>`;
+  const e = queue[qi + 1];
+  if (!e) { $('nextChip').innerHTML = '<span>הסיעה האחרונה!</span>'; return; }
+  const tag = { them: '<em class="bad">לפסול!</em>', haredi: '<em class="q">?</em>', arab: '<em>מבחוץ</em>', us: '' }[e.p.bloc];
+  $('nextChip').innerHTML = `<small>הבא:</small><i style="background:${e.p.col}"></i><span>${e.p.name}</span><b>${e.seats}</b>${tag}`;
+}
+function vetoGlow() { $('vetoBtn').classList.toggle('glow', !!cur && (cur.e.p.bloc === 'them' || (cur.e.p.bloc === 'haredi' && cur.side === 'them'))); }
+// what a landing means, before the cut: 'stunt' (the other bloc got in), 'refuse' (Liberman won't sit) or 'join'
+function verdict(c) {
+  const b = c.e.p.bloc;
+  if (b === 'them' || (b === 'haredi' && c.side === 'them')) return 'stunt';
+  if (c.e.p.liberman && hasLibFoe()) return 'refuse';
+  return 'join';
 }
 function drop() {
-  if (!cur || paused) return;
-  if (state !== 'play' && !(state === 'tut' && tutCanDrop())) return;
+  if (!cur || paused || busy > 0) return;
+  if (state !== 'play' && !(state === 'tut' && tutCanDrop('drop'))) return;
   const t = topSlab(), a = cur.axis, size = a === 'x' ? cur.w : cur.d, delta = cur[a] - t[a];
   hint(false); idleTalk = 0;
   const over = Math.abs(delta), keep = size - over;
-  if (keep <= 0.02) return miss();
+  const v = verdict(cur);
+  if (keep <= 0.02) { if (v === 'stunt') return dismiss(); return miss(); }   // the other bloc beside the tower = harmless
+  if (v === 'stunt') return stunt();
+  if (v === 'refuse') return refuse();
   let newSize = keep, center = t[a] + delta / 2, perfect = false;
   if (over < 0.08) { perfect = true; newSize = size; center = t[a]; }
-  // the cut piece falls
-  if (!perfect) {
+  const L = lookOf(cur.e, 'us');
+  if (!perfect) {                                               // the cut piece falls: MKs who defected
     const cutW = a === 'x' ? over : cur.w, cutD = a === 'z' ? over : cur.d;
-    const cm = slabMesh(cur.p, cutW, cutD, cur.p.seats);
+    const cm = slabMesh(L, cutW, cutD, cur.e.seats);
     const cpos = { x: cur.x, z: cur.z }; cpos[a] = center + Math.sign(delta) * (newSize / 2 + over / 2);
     cm.position.set(cpos.x, cur.y, cpos.z); scene.add(cm);
     falling.push({ mesh: cm, vy: 0, vx: a === 'x' ? Math.sign(delta) * 1.2 : 0, vz: a === 'z' ? Math.sign(delta) * 1.2 : 0, rx: (Math.random() - .5) * 3, rz: (Math.random() - .5) * 3 });
@@ -389,50 +474,135 @@ function drop() {
   let grew = false;
   if (perfect && streak >= 3 && newSize < BASE - 0.01) { newSize = Math.min(BASE, newSize + 0.25); grew = true; }
   const frac = clamp(keep / size, 0, 1);
-  const gained = perfect ? cur.p.seats : Math.round(cur.p.seats * frac);
-  // the placed slab
+  // seats defect only on a real cut: a near miss keeps them all, a cut past a quarter costs one, past half - the cut share
+  const gained = perfect || frac >= 0.75 ? cur.e.seats : frac >= 0.5 ? Math.max(1, cur.e.seats - 1) : Math.max(1, Math.round(cur.e.seats * frac));
   scene.remove(cur.mesh); disposeMesh(cur.mesh);
   const nw = a === 'x' ? newSize : cur.w, nd = a === 'z' ? newSize : cur.d;
-  const s = { x: cur.x, z: cur.z, w: nw, d: nd, y: cur.y, p: cur.p, seats: gained };
+  const s = { x: cur.x, z: cur.z, w: nw, d: nd, y: cur.y, e: cur.e, seats: gained };
   s[a] = center;
-  s.mesh = slabMesh(cur.p, nw, nd, gained); s.mesh.position.set(s.x, s.y, s.z); scene.add(s.mesh);
+  s.mesh = slabMesh(L, nw, nd, gained); s.mesh.position.set(s.x, s.y, s.z); scene.add(s.mesh);
   s.bounce = 1; tower.push(s);
   const before = seats;
-  if (!tutorial) seats = Math.min(120, seats + gained);
+  if (!tutorial) seats += gained;
   drops++; qi++;
-  // feedback
-  const sp = toScreen(s.x, s.y + SH, s.z);
+  const e = cur.e, sp = toScreen(s.x, s.y + SH, s.z);
+  cur = null;
+  let talked = false;
+  if (e.p.bloc === 'haredi') { play('join', 0.8); banner(`${e.p.name} הצטרפה!<small>החרדים בקואליציה</small>`); say(pickNo(e.p.id === 'utj' ? LINES.joinUtj : LINES.joinShas, 'jh'), 3, 'gold'); act('clap'); talked = true; }
+  if (e.p.bloc === 'arab') { say(pickNo(LINES.arab, 'ar'), 2.8); act('talmud_thumb'); talked = true; }
   if (perfect) {
     play('perfect', 0.7, 1 + Math.min(streak - 1, 6) * 0.06); play('drop', 0.5);
-    ringFx(s); popAt(sp, `מדויק! +${gained}`, 'gold');
-    if (grew) { play('grow', 0.7); banner('הרכב מורחב!<small>הסיעה גדלה בחזרה</small>'); say(pickNo(LINES.expand, 'ex'), 2.4, 'gold'); act('clap'); }
-    else if (cur.p.zero) { say(pickNo(LINES.zero, 'z'), 2.6); act('lilmodcha'); }
-    else if (Math.random() < 0.55 || streak === 2) { say(pickNo(LINES.perfect, 'pf'), 2.2, 'gold'); act(Math.random() < 0.7 ? 'lilmodcha' : 'agree'); }
+    ringFx(s); popAt(sp, `${e.p.name} +${gained}`, 'gold');
+    if (grew) { play('grow', 0.7); if (!talked) { banner('הרכב מורחב!<small>הסיעה גדלה בחזרה</small>'); say(pickNo(LINES.expand, 'ex'), 2.4, 'gold'); act('clap'); } }
+    else if (!talked && (Math.random() < 0.5 || streak === 2)) { say(pickNo(LINES.perfect, 'pf'), 2.2, 'gold'); act(Math.random() < 0.7 ? 'lilmodcha' : 'agree'); }
   } else {
     play('drop', 0.75); play('slice', 0.6);
-    const lost = cur.p.seats - gained;
-    popAt(sp, cur.p.zero ? '0 – נמנעים' : `+${gained}` + (lost ? `  (−${lost} בחיתוך)` : ''), lost >= 2 ? 'bad' : '');
-    if (cur.p.zero && Math.random() < 0.7) { say(pickNo(LINES.zero, 'z'), 2.6); }
-    else if (frac < 0.6) { say(pickNo(LINES.big, 'bg'), 2.4, 'loud'); act('rachmana'); }
-    else if (Math.random() < 0.3) { say(pickNo(LINES.small, 'sm'), 2.2); if (Math.random() < 0.5) act('talmud_thumb'); }
+    const lost = e.seats - gained;
+    popAt(sp, `${e.p.name} +${gained}` + (lost ? `  (−${lost} ערקו)` : ''), lost >= 2 ? 'bad' : '');
+    if (!talked && frac < 0.6) { say(pickNo(LINES.big, 'bg'), 2.4, 'loud'); act('rachmana'); }
+    else if (!talked && Math.random() < 0.3) { say(pickNo(LINES.small, 'sm'), 2.2); if (Math.random() < 0.5) act('talmud_thumb'); }
   }
+  // Liberman can't sit with the Arab parties or the Haredim: he walks out (his slabs fly off the tower)
+  if ((e.p.bloc === 'arab' || e.p.bloc === 'haredi') && hasLib()) { busy++; later(0.8, () => { busy--; libWalkout(e.p.bloc); }); }
   if (!tutorial) milestonesCheck(before);
-  if (!tutorial) pollStep();
-  if (tutorial) tutDid('drop', { perfect });
-  cur = null;
+  pollStepMaybe();
+  if (tutorial) tutDid('drop');
   if (state === 'over') return;
-  if (seats >= 120 && !tutorial) return finish('full');
-  spawn(); hud();
+  next();
 }
+function next() {
+  hud();
+  if (!tutorial && checkHopeless()) return;
+  if (busy > 0) { later(0.12, next); return; }
+  if (!cur && (state === 'play' || state === 'tut')) spawn();
+}
+function remainingPossible() {
+  let n = seats; const foeIn = hasLibFoe();
+  for (let i = qi; i < queue.length; i++) { const p = queue[i].p; if (p.bloc === 'them') continue; if (p.liberman && foeIn) continue; n += queue[i].seats; }
+  return n;
+}
+function checkHopeless() {
+  if (seats >= 61 || state !== 'play') return false;
+  if (remainingPossible() < 61) {
+    state = 'falling'; if (cur) { scene.remove(cur.mesh); disposeMesh(cur.mesh); cur = null; }
+    say(LINES.impossible[0], 3.2, 'loud'); act('frustrated_01'); play('collapse', 0.5);
+    later(1.9, () => finish('lose', 'hopeless')); return true;
+  }
+  return false;
+}
+// the other bloc landed (or the Haredim landed on Netanyahu's colour): a stunt - it and the two slabs under it blow off
+function stunt() {
+  const c = cur; cur = null; busy++;
+  const e = c.e; streak = 0; drops++; qi++;
+  play('stunt', 0.8); flash(true);
+  if (e.p.bloc === 'haredi') { banner(`${e.p.name} חזרה לנתניהו!<small>תרגיל!</small>`); say(pickNo(LINES.haredBack, 'hb'), 3, 'loud'); }
+  else { banner(`תרגיל מסריח!<small>${e.p.name} נכנסה – והפילה סיעה</small>`); say(pickNo(LINES.stunt, 'stn'), 2.8, 'loud'); }
+  act('rachmana');
+  c.mesh.position.y = c.y;
+  later(0.45, () => {
+    falling.push({ mesh: c.mesh, vy: 4, vx: (Math.random() - .5) * 4, vz: (Math.random() - .5) * 4, rx: 5, rz: 4 });
+    const victims = tower.slice(1).slice(-1);
+    let lost = 0; for (const v of victims) lost += v.seats;
+    removeSlabs(victims);
+    if (!tutorial) seats = Math.max(0, seats - lost);
+    if (lost) popAt(toScreen(topSlab().x, topSlab().y + SH, topSlab().z), `−${lost} מנדטים`, 'bad');
+    if (tutorial) tutDid('stunt');
+    busy--; next();
+  });
+  pollStepMaybe();
+}
+function refuse() {                      // Liberman won't sit with them: his slab hops off
+  const c = cur; cur = null; drops++; qi++; streak = 0;
+  falling.push({ mesh: c.mesh, vy: 6, vx: c.axis === 'x' ? 2 : 0, vz: c.axis === 'z' ? 2 : 0, rx: 2, rz: 3 });
+  play('walkout', 0.7); banner('ליברמן לא נכנס!<small>הוא לא יושב עם הערבים והחרדים</small>');
+  say(pickNo(LINES.libRefuse, 'lr'), 2.6, 'loud'); act('complain_01');
+  pollStepMaybe(); next();
+}
+function libWalkout(why) {
+  const libs = inTower((s) => s.e.p.liberman);
+  if (!libs.length || state === 'over') return;
+  let lost = 0; for (const v of libs) lost += v.seats;
+  play('walkout', 0.8); flash(true);
+  banner(`ליברמן קם והלך!<small>−${lost} מנדטים</small>`);
+  say(pickNo(why === 'haredi' ? LINES.libOutHaredi : LINES.libOut, 'lo'), 3, 'loud'); act('complain_01');
+  removeSlabs(libs);
+  if (!tutorial) seats = Math.max(0, seats - lost);
+  hud();
+}
+// pull slabs out of the tower; everything above them settles down
+function removeSlabs(list) {
+  for (const v of list) {
+    const i = tower.indexOf(v); if (i <= 0) continue;
+    tower.splice(i, 1);
+    falling.push({ mesh: v.mesh, vy: 3, vx: (Math.random() < .5 ? -1 : 1) * (2 + Math.random() * 2), vz: (Math.random() - .5) * 3, rx: (Math.random() - .5) * 6, rz: (Math.random() - .5) * 6 });
+  }
+  for (let i = 1; i < tower.length; i++) { const s = tower[i]; const y = tower[i - 1].y + SH; if (Math.abs(s.y - y) > 1e-4) { s.settleFrom = s.mesh.position.y; s.y = y; s.settle = 0; } }
+  if (cur) { cur.y = topSlab().y + SH; cur.mesh.position.y = cur.y; }
+  camYGoal = topSlab().y + SH - camLift();
+}
+// the פסול! button: throw the sliding slab out
+function veto(ev) {
+  if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+  if (!cur || paused || busy > 0) return;
+  if (state !== 'play' && !(state === 'tut' && tutCanDrop('veto'))) return;
+  const c = cur, b = c.e.p.bloc, theirs = b === 'them' || (b === 'haredi' && c.side === 'them');
+  cur = null; qi++; hint(false); idleTalk = 0;
+  play('stamp', 0.9); stampFx();
+  falling.push({ mesh: c.mesh, vy: 9, vx: (Math.random() - .5) * 3, vz: -3, rx: 4, rz: -3 });
+  if (theirs) { say(pickNo(LINES.veto, 'vt'), 2.4, 'gold'); act(Math.random() < .6 ? 'lilmodcha' : 'point'); popAt({ x: W / 2, y: H * 0.35 }, `${c.e.p.name} – פסול!`, 'gold'); }
+  else { say(pickNo(LINES.vetoOurs, 'vo'), 2.6, 'loud'); act('rachmana'); popAt({ x: W / 2, y: H * 0.35 }, `פסלתם ${c.e.seats} מנדטים שלנו`, 'bad'); }
+  if (tutorial) tutDid('veto');
+  pollStepMaybe(); next();
+}
+function pollStepMaybe() { if (!tutorial) pollStep(); }
 function milestonesCheck(before) {
   const hit = (n) => before < n && seats >= n && !milestones[n] && (milestones[n] = true);
   if (hit(61)) {
-    govDone = true; play('gavel61', 0.9); flash(); banner('והלכתא: קמה ממשלה!<small>61 מנדטים – ממשיכים עד 120</small>');
+    govDone = true; play('gavel61', 0.9); flash(); banner('והלכתא: קמה ממשלה!<small>61 מנדטים – עכשיו להגדיל את הרוב</small>');
     say(LINES.gov[0], 3.2, 'gold'); act('cheer'); return;
   }
   if (hit(30)) { play('milestone', 0.8); say(LINES.m30[0], 2.6); act('beard_stroke'); }
   if (hit(50)) { play('milestone', 0.8); say(LINES.m50[0], 2.6); }
-  if (hit(90)) { play('milestone', 0.8); banner('90 מנדטים!'); say(LINES.m90[0], 3); act('lilmodcha'); }
 }
 function pollStep() {
   if (poll.on) {
@@ -446,20 +616,28 @@ function startPoll() {
   poll.on = true; poll.left = 4;
   stopRing(); ringSrc = play('ring', 0.55);
   say(LINES.ring[0], 1.8); act('phone_call');
-  setTimeout(() => { if (poll.on && state !== 'over') { stopRing(); say(pickNo(LINES.call, 'cl'), 2.6); } }, 1600);
+  later(1.6, () => { if (poll.on && state !== 'over') { stopRing(); say(pickNo(LINES.call, 'cl'), 2.6); } });
   $('pollChip').hidden = false;
+}
+function dismiss() {                     // the other bloc dropped beside the tower: gone, no harm
+  const c = cur; cur = null; qi++;
+  falling.push({ mesh: c.mesh, vy: 0, vx: c.axis === 'x' ? 1.5 : 0, vz: c.axis === 'z' ? 1.5 : 0, rx: 3, rz: 2 });
+  play('fall', 0.6); say('נפלו מחוץ למגדל. גם זו דרך לפסול.', 2.2);
+  if (tutorial) tutDid('veto');
+  pollStepMaybe(); next();
 }
 function miss() {
   const c = cur; cur = null;
   falling.push({ mesh: c.mesh, vy: 0, vx: c.axis === 'x' ? Math.sign(c[c.axis] - topSlab()[c.axis]) * 1.5 : 0, vz: c.axis === 'z' ? Math.sign(c[c.axis] - topSlab()[c.axis]) * 1.5 : 0, rx: (Math.random() - .5) * 4, rz: (Math.random() - .5) * 4 });
   play('fall', 0.8); streak = 0;
-  if (tutorial) { say(LINES.tutMiss[0], 2.4); setTimeout(() => { if (state === 'tut' && !cur) spawn(); }, 700); return; }
+  if (tutorial) { say(LINES.tutMiss[0], 2.4); later(0.7, () => { if (state === 'tut' && !cur) spawn(); }); return; }
   state = 'falling'; stopRing(); $('pollChip').hidden = true; poll.on = false;
   flash(true); play('collapse', 0.7);
   if (seats < 61) { say(pickNo(LINES.lose, 'ls'), 3.2, 'loud'); act('frustrated_01'); }
   else { say(pickNo(LINES.fell, 'fl'), 3.2, 'loud'); act('rachmana'); }
-  setTimeout(() => finish(seats >= 61 ? 'fell' : 'lose'), 1700);
+  later(1.7, () => finish(seats >= 61 ? 'fell' : 'lose'));
 }
+function stampFx() { const d = document.createElement('div'); d.className = 'stampfx'; d.textContent = 'פסול!'; fxEl.appendChild(d); setTimeout(() => d.remove(), 900); }
 
 // ───────────────────────── fx ─────────────────────────
 const fxEl = $('fx');
@@ -472,20 +650,20 @@ function ringFx(s) {
   const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xfff1b0, transparent: true, opacity: 0.9, depthWrite: false }));
   m.position.set(s.x, s.y + SH / 2 + 0.01, s.z); scene.add(m); rings.push({ mesh: m, t: 0, k: Math.max(s.w, s.d) });
 }
-function hint(on) { hintOn = on; $('hint').classList.toggle('on', on); }
+function hint(on, text) { hintOn = on; if (text) $('hint').textContent = text; $('hint').classList.toggle('on', on); }
 
 // ───────────────────────── HUD + screens ─────────────────────────
 function best() { return +store.get(KEY.best) || 0; }
 function dayBest() { const v = (store.get(KEY.day) || '').split('|'); return v[0] === today() ? +v[1] || 0 : 0; }
 function hud() {
-  const goal = seats >= 61 ? 120 : 61;
-  $('seatNum').textContent = `${tutorial ? 0 : seats} / ${goal}`;
-  $('seatBar').style.width = (clamp(seats / 120, 0, 1) * 100) + '%';
-  $('seatGoal').style.right = (61 / 120 * 100) + '%';
+  $('seatNum').textContent = `${tutorial ? 0 : seats} / 61`;
+  $('seatBar').style.width = (clamp(seats / MAXSEATS, 0, 1) * 100) + '%';
+  $('seatGoal').style.right = (5.5 + 89 * 61 / MAXSEATS) + '%';
+  $('seatBox').classList.toggle('gov', seats >= 61);
   $('bestNum').textContent = dayBest();
 }
 function show(id) { document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id)); }
-function showHUD(on) { $('hud').classList.toggle('on', on); $('nextRow').classList.toggle('on', on); }
+function showHUD(on) { $('hud').classList.toggle('on', on); $('nextRow').classList.toggle('on', on); $('vetoBtn').classList.toggle('on', on); }
 function showBest() {
   const b = dayBest(), all = best();
   $('bestStart').innerHTML = `<span><small>השיא שלכם היום</small><b>${b} מנדטים</b></span>`;
@@ -495,7 +673,7 @@ function showBest() {
 function startGame() {
   tutorial = false; paused = false; show(null); showHUD(true); bubble.className = '';
   reset(`${SLUG}|${today()}`);
-  state = 'play'; hint(true);
+  state = 'play'; hint(true, 'הקישו כדי להפיל');
   window.track && window.track('game_start', SLUG);
   loop('music', 0.32);
   setTimeout(() => { if (state === 'play') { say(pickNo(LINES.start, 'st'), 3); act('greet_01'); } }, 300);
@@ -509,15 +687,18 @@ function finish(reason) {
   if (seats > prevDay) store.set(KEY.day, `${today()}|${seats}`);
   window.track && window.track('game_over', SLUG);
   if (seats > 0) window.VerseFrame && window.VerseFrame.score(seats);
-  const heads = { lose: 'הולכים לבחירות!', fell: 'הממשלה נפלה', full: 'כנסת שלמה!' };
+  const heads = { lose: 'הולכים לבחירות!', fell: 'הממשלה נפלה', gov: 'קמה ממשלה!' };
   $('overH').textContent = heads[reason];
-  $('overLine').textContent = reason === 'full' ? LINES.full[0] : reason === 'fell' ? `${seats} מנדטים – והייתה ממשלה. ללמדך שגם ממשלה צריכה מגדל ישר.` : `${seats} מנדטים. חסרו ${61 - seats} לרוב. הימים שבין כסה לאסון...`;
+  $('overLine').textContent = reason === 'gov' ? LINES.govDone[0] : reason === 'fell' ? `${seats} מנדטים – והייתה ממשלה. ללמדך שגם ממשלה צריכה מגדל ישר.` : `${seats} מנדטים. חסרו ${61 - seats} לרוב. הימים שבין כסה לאסון...`;
   $('overScore').innerHTML = `${seats}<small>מנדטים</small>`;
+  // the coalition you built, party by party
+  const by = {}; for (const t of tower) if (t.e && t.seats) by[t.e.p.id] = (by[t.e.p.id] || 0) + t.seats;
+  $('overCoal').innerHTML = Object.keys(by).length ? Object.entries(by).sort((x, y) => y[1] - x[1]).map(([id, n]) => `<span><i style="background:${P[id].col}"></i>${P[id].name} <b>${n}</b></span>`).join('') : '';
   $('overRec').innerHTML = seats > prevDay && seats > 0 ? '<span class="newrec">שיא יומי חדש!</span>' : '';
   $('bestOver').innerHTML = `השיא שלכם היום: <b>${Math.max(seats, prevDay)}</b> מנדטים`;
-  if (reason === 'full') { play('gavel61', 0.9); act('cheer'); }
+  if (reason === 'gov') { play('gavel61', 0.9); act('cheer'); }
   if (seats > prevDay && seats > 0) setTimeout(() => play('newbest', 0.6), 500);
-  setTimeout(() => { showHUD(false); show('over'); hud(); }, reason === 'full' ? 1600 : 200);
+  setTimeout(() => { showHUD(false); show('over'); hud(); }, reason === 'gov' ? 1600 : 200);
 }
 function toMenu() {
   state = 'menu'; paused = false; tutorial = false; tut.on = false; $('tutCard').classList.remove('on'); $('tutDim').classList.remove('on');
@@ -541,16 +722,19 @@ $('quitBtn').onclick = () => { finishQuiet(); toMenu(); };
 function finishQuiet() { stopRing(); }
 // a tap anywhere drops (not on the HUD / the cards)
 cv.addEventListener('pointerdown', (e) => { e.preventDefault(); drop(); });
+$('vetoBtn').addEventListener('pointerdown', veto);
 $('hall').addEventListener('pointerdown', () => drop());
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && paused) return pause(false);
   if (tut.on) {
+    if (e.key === 'x' || e.key === 'X' || e.key === 'ArrowUp' || e.key === 'Backspace') { e.preventDefault(); return veto(); }
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (tutWait && !tutWait.done) drop(); else tut.next(); }
     if (e.key === 'Escape') tut.end();
     return;
   }
   if (e.key === 'Escape' && state === 'play') return pause(true);
   if ((e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowDown') && state === 'play') { e.preventDefault(); drop(); }
+  if ((e.key === 'x' || e.key === 'X' || e.key === 'ArrowUp' || e.key === 'Backspace') && state === 'play') { e.preventDefault(); veto(); }
 });
 
 // ───────────────────────── tutorial ─────────────────────────
@@ -560,17 +744,19 @@ const spotEl = (id) => () => { const r = $(id).getBoundingClientRect(); return r
 const spotRabbi = () => ({ x: RB.x + RB.w * 0.15, y: RB.y + RB.h * 0.05, w: RB.w * 0.75, h: RB.h * 0.95 });
 const spotTop = () => { const t = topSlab(); const p = toScreen(t.x, t.y, t.z); return { x: p.x - W * 0.3, y: p.y - H * 0.12, w: W * 0.6, h: H * 0.2 }; };
 const STEPS = [
-  { text: 'זה <b>הרב דמוקרטוביץ</b>, רב קהילת ״שערי בג״ץ״. הוא מרכיב קואליציה – ואתם בונים לו אותה.', spot: spotRabbi, say: 'טוב, רבותיי. תנן: שישים ואחד – רוב.' },
-  { text: '<b>המטרה: 61 מנדטים.</b> כל סיעה שמונחת על המגדל מוסיפה את המנדטים שלה. אחרי 61 – ממשיכים עד 120.', spot: spotEl('seatBox') },
-  { text: 'סיעה זזה מעל המגדל. <b>הקישו בכל מקום</b> כדי להפיל אותה. <b>נסו עכשיו!</b>', try: 'drop' },
-  { text: 'מה שבולט מחוץ למגדל – <b>נחתך ונופל</b>, ואיתו גם חלק מהמנדטים. המגדל נהיה צר יותר.', spot: spotTop },
-  { text: '<b>הנחה מדויקת</b> = בלי חיתוך, כל המנדטים. 3 מדויקות ברצף = <b>הרכב מורחב</b>: הסיעה גדלה בחזרה. <b>הפילו עוד אחת!</b>', try: 'drop' },
-  { text: 'כאן כתוב <b>מי הסיעה הבאה</b> וכמה מנדטים היא מביאה. <b>סיעת ההימנעות</b> מביאה 0 – ״בהימנעות שרי״.', spot: spotEl('nextChip') },
+  { text: 'זה <b>הרב דמוקרטוביץ</b>, רב קהילת ״שערי בג״ץ״. הוא מרכיב את הקואליציה של <b>גוש השינוי</b> – ואתם בונים לו אותה.', spot: spotRabbi, say: 'טוב, רבותיי. תנן: שישים ואחד – רוב.' },
+  { text: '<b>המטרה: 61 מנדטים.</b> כל סיעה שנכנסת למגדל מוסיפה את המנדטים האמיתיים שלה מהבחירות.', spot: spotEl('seatBox') },
+  { text: '<b>ישר!</b> זזה מעל המגדל. <b>הקישו בכל מקום</b> כדי להפיל אותה. <b>נסו עכשיו!</b>', try: 'drop', hint: 'הקישו כדי להפיל' },
+  { text: 'מה שבולט מחוץ למגדל – <b>נחתך ונופל</b>: חברי כנסת שערקו. המנדטים האלה הולכים לאיבוד.', spot: spotTop },
+  { text: '<b>הנחה מדויקת</b> = כל המנדטים. 3 מדויקות ברצף = <b>הרכב מורחב</b>. <b>הפילו את ביחד!</b>', try: 'drop', hint: 'הקישו כדי להפיל' },
+  { text: '<b>הליכוד – מהגוש השני</b> (פסים שחורים-צהובים). אל תפילו אותו! לחצו <b>פסול!</b> והוא עף.', try: 'veto', hint: 'לחצו פסול!', spotBtn: true },
+  { text: '<b>החרדים – השאלה הגדולה.</b> הסיעה מחליפה צבע: בצבע שלה – <b>מצטרפת</b>. בכחול-פסים של נתניהו – <b>תרגיל</b>. הפילו בזמן, או פסלו.', try: 'any', hint: 'הפילו בצבע שלה' },
+  { text: '<b>רע״ם והמשותפת</b> – תמיכה מבחוץ. אבל <b>ליברמן</b> לא יושב איתן, וגם לא עם החרדים: הן נכנסות – הוא קם והולך.', spot: spotEl('nextChip') },
   { text: 'לפעמים <b>הרבנית מתקשרת עם סקר.</b> הרב עונה – והסיעות זזות <b>מהר יותר</b> לכמה הנחות.', setup: 'poll', spot: spotEl('pollChip') },
-  { text: '<b>סיעה שמפספסת את המגדל</b> – הקואליציה נופלת. מתחת ל-61 הולכים לבחירות. מוכנים?', last: true },
+  { text: '<b>סיעה שלנו שמפספסת את המגדל</b> – הקואליציה נופלת. נגמרו הסיעות מתחת ל-61 – בחירות. מוכנים?', last: true },
 ];
-function tutCanDrop() { return !!(tutWait && !tutWait.done); }
-function tutDid(id) { if (tutWait && tutWait.id === id && !tutWait.done) tutWait.done = true; }
+function tutCanDrop(kind) { return !!(tutWait && !tutWait.done && (tutWait.id === kind || tutWait.id === 'any')); }
+function tutDid(id) { if (tutWait && (tutWait.id === id || tutWait.id === 'any') && !tutWait.done) tutWait.done = true; }
 const tut = {
   on: false, i: 0,
   begin() {
@@ -589,7 +775,7 @@ const tut = {
     $('tutCount').textContent = `${this.i + 1} / ${STEPS.length}`;
     $('tutBar').firstElementChild.style.width = ((this.i + 1) / STEPS.length * 100) + '%';
     $('tutNext').querySelector('span').textContent = s.last ? 'שחקו!' : 'הבא';
-    hint(!!s.try);
+    hint(!!s.try, s.hint);
   },
   next() {
     if (tutWait && !tutWait.done) return;
@@ -614,6 +800,7 @@ const tut = {
     else if (sp) { tutCard.style.top = 'auto'; tutCard.style.bottom = `calc(var(--safe-b) + 10px)`; }
     else { tutCard.style.top = `calc(var(--safe-t) + 96px)`; tutCard.style.bottom = 'auto'; }
     if (H < 520) { tutCard.style.top = 'auto'; tutCard.style.bottom = `calc(var(--safe-b) + 6px)`; }
+    if (tutWait && !tutWait.done && H >= 520) { tutCard.style.top = `calc(var(--safe-t) + 4px)`; tutCard.style.bottom = 'auto'; }   // trying: over the HUD, the slab stays in sight
     if (tutWait && tutWait.done && !tutWait.shown) { tutWait.shown = true; $('tutText').innerHTML = s.text + ' <span class="ok">יופי!</span>'; hint(false); }
     $('tutNext').disabled = !!(tutWait && !tutWait.done);
   },
@@ -624,6 +811,7 @@ $('tutSkip').onclick = (e) => { e.stopPropagation(); tut.end(); };
 // ───────────────────────── loop ─────────────────────────
 let lastT = performance.now();
 function step(dt) {
+  if (timers.length) { const due = []; timers = timers.filter((x) => { x.t -= dt; if (x.t <= 0) { due.push(x); return false; } return true; }); for (const x of due) x.fn(); }
   if (cur && (state === 'play' || state === 'tut')) {
     const sp = speedNow();
     let p = cur[cur.axis] - topSlab()[cur.axis];
@@ -631,6 +819,10 @@ function step(dt) {
     if (p > cur.range) { p = cur.range; cur.dir = -1; } else if (p < -cur.range) { p = -cur.range; cur.dir = 1; }
     cur[cur.axis] = topSlab()[cur.axis] + p;
     cur.mesh.position.set(cur.x, cur.y, cur.z);
+    if (cur.mats) {                      // the Haredim: our colour part of each 1.7 s, Netanyahu's the rest
+      cur.flick += dt; const ph = (cur.flick % 2.2) / 2.2, side = ph < cur.ours ? 'us' : 'them';
+      if (side !== cur.side) { cur.side = side; cur.mesh.material = cur.mats[side === 'us' ? 0 : 1]; vetoGlow(); play('click', 0.25, side === 'us' ? 1.2 : 0.8); }
+    }
   }
   for (const f of falling) {
     f.vy -= 22 * dt; f.mesh.position.y += f.vy * dt; f.mesh.position.x += f.vx * dt; f.mesh.position.z += f.vz * dt;
@@ -639,7 +831,11 @@ function step(dt) {
   falling = falling.filter((f) => { if (f.mesh.position.y < camY - 16) { scene.remove(f.mesh); disposeMesh(f.mesh); return false; } return true; });
   for (const r of rings) { r.t += dt; const k = (r.k / 1.15) * (1 + r.t * 0.9); r.mesh.scale.set(k, 1, k); r.mesh.material.opacity = Math.max(0, 0.9 - r.t * 1.6); }
   rings = rings.filter((r) => { if (r.t > 0.6) { scene.remove(r.mesh); r.mesh.geometry.dispose(); r.mesh.material.dispose(); return false; } return true; });
-  for (const s of tower) if (s.bounce) { s.bounce = Math.max(0, s.bounce - dt * 5); s.mesh.position.y = s.y - Math.sin(s.bounce * Math.PI) * 0.06; }
+  for (const s of tower) {
+    if (!s.mesh) continue;
+    if (s.settle !== undefined && s.settle < 1) { s.settle = Math.min(1, s.settle + dt * 5); const k = 1 - Math.pow(1 - s.settle, 3); s.mesh.position.y = lerp(s.settleFrom, s.y, k); continue; }
+    if (s.bounce) { s.bounce = Math.max(0, s.bounce - dt * 5); s.mesh.position.y = s.y - Math.sin(s.bounce * Math.PI) * 0.06; }
+  }
   camY = lerp(camY, camYGoal, 1 - Math.exp(-dt * 4));
   if (state === 'play' && !paused) { idleTalk += dt; if (idleTalk > 9) { idleTalk = -6; say(pickNo(LINES.idle, 'id'), 2.4); } }
   animStep(dt);
@@ -679,7 +875,21 @@ layout(); toMenu(); fitWords(); document.fonts && document.fonts.ready.then(() =
 window.SIXTYONE = {
   get state() { return state; }, get seats() { return seats; }, get drops() { return drops; }, get streak() { return streak; },
   get tower() { return tower.map((s) => ({ x: s.x, z: s.z, w: s.w, d: s.d })); }, get poll() { return { ...poll }; },
-  get cur() { return cur && { axis: cur.axis, off: cur[cur.axis] - topSlab()[cur.axis], size: cur.axis === 'x' ? cur.w : cur.d, name: cur.p.name, seats: cur.p.seats }; },
+  get cur() { return cur && { axis: cur.axis, off: cur[cur.axis] - topSlab()[cur.axis], size: cur.axis === 'x' ? cur.w : cur.d, name: cur.e.p.name, seats: cur.e.seats, bloc: cur.e.p.bloc, side: cur.side }; },
+  get busy() { return busy; }, veto, get queue() { return queue; },
+  // a player bot: disqualify the other bloc (and Liberman when he can't sit), wait for the Haredim's colour, drop within `want`
+  bot(want = 0.05, opts = {}) {
+    for (let i = 0; i < 400 && busy > 0; i++) step(1 / 60);
+    if (!cur) return;
+    const b = cur.e.p.bloc;
+    if (b === 'them' || (cur.e.p.liberman && hasLibFoe()) || (opts.noArab && b === 'arab')) return veto();
+    if (b === 'arab' && hasLib() && opts.keepLib) return veto();
+    for (let i = 0; i < 6000 && cur; i++) {
+      const ok = Math.abs(cur[cur.axis] - topSlab()[cur.axis]) < want && (b !== 'haredi' || cur.side === 'us');
+      if (ok && i > 3) break; step(1 / 240);
+    }
+    drop();
+  },
   get tut() { return tut.on; }, get tutStep() { return tut.i; }, get tutTry() { return (STEPS[tut.i] || {}).try; }, get tutDone() { return !!(tutWait && tutWait.done); },
   get rabbi() { return !!rabbi; }, get anim() { return anim.cur ? 'busy' : 'idle'; }, get clips() { return Object.keys(anim.clips); }, get paused() { return paused; },
   get dbg() { if (!rabbi) return null; const out = []; rabbi.root.traverse((o) => { if (o.isMesh) out.push([o.name, o.isSkinnedMesh, o.visible]); }); const b = new THREE.Box3().setFromObject(rabbi.root); return { out, min: b.min.toArray(), max: b.max.toArray(), scale: rabbi.root.scale.x, pos: rabbi.root.position.toArray() }; },

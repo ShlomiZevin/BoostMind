@@ -22,17 +22,17 @@ const SIZES = [[320, 568], [360, 640], [390, 844], [412, 915], [844, 390], [1280
     const chk = await pg.evaluate(() => [...document.querySelectorAll('#start .sign, #start .rec')].map((el) => { const r = el.getBoundingClientRect(); return { c: el.className, ok: r.top >= 0 && r.bottom <= innerHeight + 1 && r.left >= 0 && r.right <= innerWidth + 1, h: Math.round(r.height) }; }));
     for (const c of chk) { if (!c.ok) fail(`${tag} off screen: ${c.c}`); if (c.h < 44 && !/rec/.test(c.c)) fail(`${tag} small button ${c.c} ${c.h}`); }
     await pg.click('#howBtn', { force: true }); await sleep(500);
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 14; i++) {
       const s = await pg.evaluate(() => ({ on: SIXTYONE.tut, tr: SIXTYONE.tutTry, step: SIXTYONE.tutStep }));
       if (!s.on) break;
       const card = await pg.evaluate(() => { const r = document.getElementById('tutCard').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight + 1; });
       if (!card) fail(`${tag} tutorial card off screen at step ${s.step}`);
       if ([0, 3, 6].includes(s.step)) await pg.screenshot({ path: path.join(OUT, `p-${tag}-2tut${s.step}.png`) });
-      if (s.tr) { await pg.evaluate(() => SIXTYONE.botDrop(0.3)); await sleep(200); }
+      if (s.tr) { if (s.tr === 'veto') await pg.evaluate(() => SIXTYONE.veto()); else await pg.evaluate(() => SIXTYONE.bot(0.3)); await sleep(700); }
       await pg.click('#tutNext', { force: true }); await sleep(250);
     }
     await sleep(800);
-    for (let n = 0; n < 12; n++) { await pg.evaluate(() => SIXTYONE.botDrop(0.08)); await sleep(60); }
+    for (let n = 0; n < 12; n++) { await pg.evaluate(() => SIXTYONE.bot(0.08)); await sleep(60); }
     await sleep(500);
     await pg.screenshot({ path: path.join(OUT, `p-${tag}-3play.png`) });
     const m = await pg.evaluate(() => { const hud = document.getElementById('hud').getBoundingClientRect(); return { hudR: hud.right, hudL: hud.left, sw: document.documentElement.scrollWidth, W: innerWidth }; });

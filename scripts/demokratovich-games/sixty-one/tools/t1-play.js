@@ -9,7 +9,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
 (async () => {
   const br = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
-  const pg = await br.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  const pg = await br.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true }); await pg.addInitScript(() => { try { localStorage.setItem('t-ignore', '1'); } catch (e) {} });
   const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await pg.goto(URL);
   await pg.waitForFunction(() => window.SIXTYONE && window.SIXTYONE.rabbi, null, { timeout: 60000 }).catch(() => fail('rabbi never loaded'));
@@ -23,7 +23,10 @@ const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
     if (!s.on) break;
     await pg.screenshot({ path: path.join(OUT, `t1-2tut-${s.step}.png`) });
     if (s.tr) {
-      await pg.touchscreen.tap(w * 0.3, h * 0.5); await sleep(700);
+      if (s.tr === 'veto') { const b = await pg.locator('#vetoBtn').boundingBox(); await pg.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2); }
+      else if (s.tr === 'any') await pg.evaluate(() => SIXTYONE.bot(0.1));
+      else await pg.touchscreen.tap(w * 0.3, h * 0.5);
+      await sleep(900);
       if (!(await pg.evaluate(() => SIXTYONE.tutDone))) fail('try step not done ' + s.step);
       await pg.screenshot({ path: path.join(OUT, `t1-2tut-${s.step}-done.png`) });
     }
@@ -36,10 +39,10 @@ const fail = (m) => { console.log('FAIL', m); process.exitCode = 1; };
   let shots = 0;
   for (let n = 0; n < 80; n++) {
     if (await pg.evaluate(() => SIXTYONE.state) !== 'play') break;
-    await pg.evaluate((w) => SIXTYONE.botDrop(w), n % 5 === 4 ? 0.3 : 0.06); await sleep(160);
+    await pg.evaluate((w) => SIXTYONE.bot(w), n % 5 === 4 ? 0.3 : 0.06); await sleep(400);
     const st = await pg.evaluate(() => ({ seats: SIXTYONE.seats, drops: SIXTYONE.drops, poll: SIXTYONE.poll.on }));
     if (st.drops === 6 || (st.poll && shots < 2) || (st.seats >= 61 && shots < 3)) { shots++; await sleep(700); await pg.screenshot({ path: path.join(OUT, `t1-4play-${st.drops}.png`) }); }
-    if (st.seats >= 80) break;
+    if (st.seats >= 66) break;
   }
   console.log('after bot', JSON.stringify(await pg.evaluate(() => ({ seats: SIXTYONE.seats, drops: SIXTYONE.drops, tower: SIXTYONE.tower.length }))));
   await pg.screenshot({ path: path.join(OUT, `t1-5high.png`) });
