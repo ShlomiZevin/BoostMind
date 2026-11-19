@@ -39,8 +39,11 @@ the resident's own voice setting from earlier projects. Keep it short - a greeti
   a greeting is a talk to the lens (his ask, 2026-11-19: "we need to fix the eyes - we didn't do it for the last few ones").
 - **The resident's place, as in their videos**: Hani = haredit-6's rows (set-wall-a + the kids' drawing + the family photo,
   mirrored, voice pitch 0.5); Yotam = `seat-yotam` + his voice from haredit-5-dialogue.
-- **Music under it = the resident's own bed, like their videos** (his note on greet-maya, 2026-11-19: "I can't hear the
-  music in the bg" - I had left it out as "gentle"; wrong): Hani = `music-hasidic-freilach.mp3` at volume 0.37 (haredit-6).
+- **No music from us - he adds the bed himself** (greet-maya, 2026-11-19: "I really don't want her bg music"). A song that
+  played in his room while he filmed = **her voice clean with no background**: `vocal-split\.venv\Scripts\python.exe -m demucs
+  --two-stems=vocals -n htdemucs -o <out> <take.wav>` (~30 s), the `vocals.wav` added as an asset, every voice clip's `asset`
+  switched to it (same `in` - same timing as the take). His words: "perfect". Laying the separated song as its own row did
+  NOT work for him.
 - **No noise cleaning on the voice** (he removed `clean` from both of Hani's voice rows on greet-maya, 2026-11-19).
 - A mic pop on a plosive (a "ת" 4x his speech in the raw) clips after the voice chain = a "boom": that 0.15 s as its own
   voice clip at gain ~0.3 (greet-lior).
