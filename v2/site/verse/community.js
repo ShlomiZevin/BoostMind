@@ -64,8 +64,11 @@ function lovedFaces() {
   const p = W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).map((c) => [c, score(c)]).sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, 5);
   return [p[3], p[1], p[0], p[2], p[4]].filter(Boolean);   // the 3rd face is the big one
 }
+let doOnce = '';
 export function communityPage(q = {}) {
-  if (q.do === 'personal') setTimeout(() => personalSheet(), 250);   // "לבקש ברכה" from a greeting's page / mail (/community?do=personal)
+  // "לבקש ברכה" from a greeting's page / mail (/community?do=personal) - once: the page re-renders as the data arrives, and
+  // every render opened another sheet (5 stacked on the live site, 2026-11-19)
+  if (q.do === 'personal' && doOnce !== location.href) { doOnce = location.href; setTimeout(() => personalSheet(), 250); }
   if (q.idea) { focusIdea = q.idea; setTimeout(() => document.getElementById('idea-' + q.idea)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120); }
   const top = appShell() ? lovedFaces() : W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0)).slice(0, 5);
   const list = sorted();
@@ -337,6 +340,8 @@ async function vote(b) {
 // the browser's: its "required" bubbles can point at a field scrolled out of sight inside the body, and then a tap on send
 // seems to do nothing (a visitor wrote her whole request by email instead). A missing step turns red, says what it needs,
 // and scrolls into view.
+// The phone is a must (his rule 2026-11-19): the ready greeting goes to them on WhatsApp too - an email alone can land in spam.
+const PHONE = /^\+?\d{9,15}$/;
 function personalSheet() {
   const chars = W.characters.filter((c) => c.img).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0));
   let pick = '';
@@ -356,7 +361,7 @@ function personalSheet() {
         ${step(4, 'date', P.date, `<input name="date" type="date" min="${today}">`)}
       </div>
       ${step(5, 'text', P.about, `<textarea name="text" maxlength="3000" placeholder="${esc(P.ph)}"></textarea><small class="pv-count"><span>0</span>/3000</small>`)}
-      <label class="pv-contact"><span>${esc(P.contact)}</span><input name="contact" maxlength="160" placeholder="${esc(P.contactPh)}"></label>
+      ${step(6, 'phone', P.phone, `<input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="${esc(P.phonePh)}" dir="ltr"><small class="pv-hint">${esc(P.phoneHint)}</small>`)}
     </div>
     <div class="pv-foot"><p class="rqs-note">${esc(P.note)}</p><button class="vx-btn main block" type="submit">${esc(P.send)}</button></div></form>`, { cls: 'rqs-sheet pv-sheet' });
   const f = h.el.querySelector('form'), body = f.querySelector('.pv-body');
@@ -385,14 +390,14 @@ function personalSheet() {
     if (n && e.target.value.trim()) ok(n);
   });
   const miss = () => (!pick ? 'char' : !f.event.value.trim() ? 'event' : !f.forWho.value.trim() ? 'forWho'
-    : !f.date.value || f.date.value < today ? 'date' : f.text.value.trim().length < 3 ? 'text' : '');
+    : !f.date.value || f.date.value < today ? 'date' : f.text.value.trim().length < 3 ? 'text' : !PHONE.test(f.phone.value.replace(/[\s\-().]/g, '')) ? 'phone' : '');
   f.onsubmit = async (e) => {
     e.preventDefault();
     const m = miss();
     if (m) {
       const s = f.querySelector(`[data-step="${m}"]`);
       s.classList.add('bad');
-      s.querySelector('.pv-err').textContent = m === 'date' && f.date.value ? P.past : P.miss[m];
+      s.querySelector('.pv-err').textContent = m === 'date' && f.date.value ? P.past : m === 'phone' && f.phone.value.trim() ? P.phoneBad : P.miss[m];
       s.scrollIntoView({ block: 'center', behavior: 'smooth' });
       const input = s.querySelector('input:not([hidden]), textarea');
       if (input && m !== 'date') setTimeout(() => input.focus({ preventScroll: true }), 350);
@@ -402,10 +407,14 @@ function personalSheet() {
     const btn = f.querySelector('button[type=submit]');
     btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
     try {
-      await call('request', { kind: 'personal', text: f.text.value.trim(), char: C[pick]?.name || pick, forWho: f.forWho.value.trim(), event: f.event.value.trim(), date: f.date.value, contact: f.contact.value.trim() });
+      await call('request', { kind: 'personal', text: f.text.value.trim(), char: C[pick]?.name || pick, forWho: f.forWho.value.trim(), event: f.event.value.trim(), date: f.date.value, phone: f.phone.value.trim() });
       track('request', 'personal');
       f.innerHTML = `<div class="rqs-done">${I.check}<h2 class="vx-h">${esc(P.done)}</h2><p class="vx-sub">${esc(P.doneSub)}</p></div>`;
-    } catch (err) { btn.disabled = false; btn.textContent = P.send; toast(err.code === 'slow_down' ? T.cmSlow : T.errGeneric); }
+    } catch (err) {
+      btn.disabled = false; btn.textContent = P.send;
+      if (/phone/.test(err.message || '')) { const s = f.querySelector('[data-step="phone"]'); s.classList.add('bad'); s.querySelector('.pv-err').textContent = P.phoneBad; s.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+      toast(err.code === 'slow_down' ? T.cmSlow : T.errGeneric);
+    }
   };
 }
 

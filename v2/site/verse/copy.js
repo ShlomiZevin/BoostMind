@@ -371,8 +371,9 @@ export const T = {
     note: 'השלומיוורס יעשה מאמץ להכין ולשלוח. לא התחייבות. מדי פעם ברכות עולות גם לסטורי של השלומיוורס.', send: 'לשלוח לשלומיוורס', needChar: 'בחרו תושב',
     // the form in steps (his note 2026-11-16): short labels, what each step needs when it's missing
     forWhoPh: 'שם', about: 'ספרו לנו עליו או עליה', other: 'אחר', otherPh: 'איזה אירוע?', close: 'סגירה',
-    contact: 'איך לחזור אליכם? (לא חובה)', contactPh: 'אימייל או טלפון',
-    miss: { char: 'בחרו תושב', event: 'בחרו אירוע', forWho: 'כתבו למי הסרטון', date: 'בחרו תאריך', text: 'ספרו לנו קצת עליו או עליה' },
+    // the phone is a must (his rule 2026-11-19): the ready greeting reaches them on WhatsApp, not only by email
+    phone: 'הטלפון שלכם', phonePh: '050-1234567', phoneHint: 'לכאן נשלח לכם את הברכה בוואטסאפ כשהיא מוכנה', phoneBad: 'המספר לא נראה תקין',
+    miss: { char: 'בחרו תושב', event: 'בחרו אירוע', forWho: 'כתבו למי הסרטון', date: 'בחרו תאריך', text: 'ספרו לנו קצת עליו או עליה', phone: 'כתבו מספר טלפון, כדי שהברכה תגיע אליכם' },
     past: 'התאריך כבר עבר',
     done: 'קיבלנו! השלומיוורס יעשה מאמץ.', doneSub: 'שלחנו לכם מייל עם כל הפרטים.' },
   ideaWeek: 'רעיון השבוע',

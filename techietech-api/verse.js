@@ -699,8 +699,13 @@ async function request(d, auth, ip) {
   if (['video', 'contact'].includes(kind)) doc.from = d.from === 'community' ? 'community' : 'chat';
   // a personal video (his ask 2026-11-12, the community page): which character, for whom, what event, when - the text is
   // everything they told about that person. The Shlomiverse makes an effort, no promise.
-  if (kind === 'personal') Object.assign(doc, { from: 'community', char: oneLine(d.char, 40), forWho: oneLine(d.forWho, 80), event: oneLine(d.event, 80),
-    date: /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || '')) ? String(d.date) : null });
+  // the phone is a must (his rule 2026-11-19): the ready greeting goes to them on WhatsApp too - an email alone can land in spam
+  if (kind === 'personal') {
+    const phone = String(d.phone || '').replace(/[\s\-().]/g, '');
+    if (!/^\+?\d{9,15}$/.test(phone)) fail('invalid-argument', 'phone');
+    Object.assign(doc, { from: 'community', char: oneLine(d.char, 40), forWho: oneLine(d.forWho, 80), event: oneLine(d.event, 80), phone,
+      date: /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || '')) ? String(d.date) : null });
+  }
   if (auth?.uid) doc.nick = ((await db.collection('fans').doc(auth.uid).get()).data() || {}).nick || null;
   const ref = await db.collection('requests').add(doc);
   // the person hears back right away (mailer.js), from the Shlomiverse
@@ -715,7 +720,7 @@ async function request(d, auth, ip) {
   // in words, the errors; the raw string goes last, for whoever fixes it
   const body = [...(kind === 'bug' ? [`דף: ${doc.page}`, `מכשיר: ${deviceText(doc.ua, doc.screen)}`, ...(doc.errors.length ? ['שגיאות: ' + doc.errors.join(' | ')] : []), ''] : []),
     ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, ''] : []),
-    ...(kind === 'personal' ? [`דמות: ${doc.char || '-'} · עבור: ${doc.forWho || '-'} · אירוע: ${doc.event || '-'} · תאריך: ${doc.date || '-'}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
+    ...(kind === 'personal' ? [`דמות: ${doc.char || '-'} · עבור: ${doc.forWho || '-'} · אירוע: ${doc.event || '-'} · תאריך: ${doc.date || '-'}`, `טלפון: ${doc.phone}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
     `חשבון Google: ${doc.email}${doc.nick ? ` · בשלומיוורס: ${doc.nick}` : ''}`, '', `${where} · ${ilTime()} · ${ref.id}`,
     ...(kind === 'bug' && doc.ua ? ['', `פרטים טכניים: ${doc.ua}`] : [])].join('\n');
   // a business inquiry also reaches him as a Mind task, waiting for him (his ask 2026-11-10: "a form I get a notification on")
@@ -731,7 +736,7 @@ async function request(d, auth, ip) {
     try {
       const { addItem, updateItem } = require('./mind')._mind;
       const it = await addItem({ text: `סרטון אישי: ${doc.event || 'אירוע'}${doc.forWho ? ' ל' + doc.forWho : ''}${doc.char ? ' · ' + doc.char : ''}${doc.date ? ' · ' + doc.date : ''}`, body, type: 'task', project: 'BoostMind', tags: ['personal-video'] }, 'סרטון אישי');
-      await updateItem(it.id, { status: 'waiting', note: `${doc.nick || ''} - ${contact}`.trim() }, 'סרטון אישי');
+      await updateItem(it.id, { status: 'waiting', note: `${doc.nick || ''} - ${doc.phone} - ${contact}`.trim() }, 'סרטון אישי');
     } catch (e) { console.error('personal -> mind', e.message); }
   }
   if (LOCAL) console.log('[local] request mail not sent:', subject, '\n' + body);

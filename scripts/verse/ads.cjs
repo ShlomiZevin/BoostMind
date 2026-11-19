@@ -4,7 +4,9 @@
 //   node scripts/verse/ads.cjs put scripts/verse/ads/<id>.json   upload the pictures, write the record (live)
 //   node scripts/verse/ads.cjs off <id> | on <id>                take it down / put it back
 //   node scripts/verse/ads.cjs list                              what's up, where, and how many citizens took the coupon
-// json: { id, sponsor, href, alt, look: "strip" (a thin ~6.4:1 banner, optional), places: ["home", "c/<character>"], order, wide: <file ~7:1 strip>, card: <file 3:1 for phones>,
+// The home's notice board (verse/board.js, 2026-11-19) uses the same records: places ["board"], look "notice", one 3:2 picture = the whole notice
+// (e.g. ads/police-night-guy.json); `off <id>` takes a notice down.
+// json: { id, sponsor, href, alt, look: "strip" (a thin ~6.4:1 banner, optional), places: ["home", "c/<character>", "board"], order, wide: <file ~7:1 strip>, card: <file 3:1 for phones>,
 //         coupon: { code, title, line, fine, logo: <file>, pic: <file> } } - file paths are relative to the json, or ~/...
 const fs = require('fs');
 const path = require('path');

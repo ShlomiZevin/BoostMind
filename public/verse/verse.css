@@ -3108,7 +3108,8 @@ button:hover > .lk { color: #d8d4de; filter: none; }
 .pv input[type=date]::-webkit-date-and-time-value { text-align: right; }
 .pv textarea { min-height: 150px; line-height: 1.5; display: block; }
 .pv-count { display: block; text-align: left; margin-top: 6px; font-size: .74rem; color: rgba(255, 255, 255, .42); direction: ltr; }
-.pv-contact { display: grid; gap: 6px; padding: 0 4px; font-size: .84rem; color: rgba(255, 255, 255, .6); font-weight: 700; }
+.pv-hint { display: block; margin-top: 6px; font-size: .78rem; color: rgba(255, 255, 255, .5); }
+.pv input[type=tel] { text-align: right; }   /* the number types left-to-right, but sits on the form's right like the other fields */
 .pv-foot { flex: none; padding: 10px 18px 14px; border-top: 1px solid var(--vx-glass-line); background: rgba(16, 15, 19, .92); box-shadow: 0 -10px 22px -14px rgba(0, 0, 0, .8); }
 .pv-foot .rqs-note { margin: 0 0 8px; text-align: center; font-size: .76rem; }
 .pv-foot .vx-btn { margin: 0; }
@@ -3182,3 +3183,32 @@ button:hover > .lk img.pl { filter: grayscale(.4) brightness(1.2) opacity(.85); 
   .live-bg i, .live-glitch, .live-dot { animation: none !important; }
   .live-bg.frames i:nth-child(1) { opacity: 1; }
 }
+
+/* ---------- the notice board - "לוח המודעות" (board.js, his pick 2026-11-19: mockup board/1-board.jpg A) ----------
+   a dark card with a thin orange edge, a cork panel inside, the notice = a paper picture pinned (red pushpin + a strip of tape),
+   slightly tilted; the next one pins itself in. Every layer rounds its own corners (iPhone: reference_ios_rounded_clip). */
+.bd-slot:empty { display: none; }
+.bd { margin-top: 22px; padding: 10px 10px 12px; border-radius: 22px; background: #15100c; box-shadow: 0 0 0 1.5px rgba(255, 106, 31, .75), 0 0 16px rgba(255, 106, 31, .18); }
+.bd-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 6px 9px; }
+.bd-t { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 900; color: #fff; }
+.bd-t svg { width: 17px; height: 17px; color: var(--accent, #ff6a1f); }
+.bd-dots { display: inline-flex; gap: 2px; direction: rtl; }
+.bd-dots button { width: 22px; height: 22px; padding: 0; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+.bd-dots button::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .28); transition: background .2s, transform .2s; }
+.bd-dots button.on::before { background: var(--accent, #ff6a1f); transform: scale(1.15); }
+.bd-cork { position: relative; display: grid; place-items: center; padding: 16px 14px 18px; border-radius: 14px; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, .45)), url(/verse/art/cork.jpg) 0 0 / 160px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, .55), inset 0 0 0 1px rgba(0, 0, 0, .4); }
+.bd-note { grid-area: 1 / 1; position: relative; display: block; width: min(100%, 420px); transform: rotate(var(--tilt)) translateY(0); opacity: 1; transition: opacity .45s ease, transform .55s cubic-bezier(.2, .8, .2, 1);
+  -webkit-tap-highlight-color: transparent; }
+.bd-note:not(.on) { opacity: 0; transform: rotate(calc(var(--tilt) * -2)) translateY(-14px) scale(.96); pointer-events: none; }
+.bd-note img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 3px; box-shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 8px 18px rgba(0, 0, 0, .5); }
+.bd-note:active img { transform: scale(.99); }
+/* the red pushpin, top middle */
+.bd-pin { position: absolute; top: -9px; left: 46%; width: 18px; height: 18px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff9a8a 0 14%, #e5302a 30%, #a8161a 75%); box-shadow: 2px 4px 5px rgba(0, 0, 0, .5); }
+.bd-pin::after { content: ''; position: absolute; left: 7px; top: 15px; width: 3px; height: 6px; border-radius: 0 0 2px 2px; background: linear-gradient(#b9b9b9, #6d6d6d); transform: rotate(14deg); z-index: -1; }
+/* a strip of tape on the top corner (left - Hebrew paper hangs from its right with the pin in the middle) */
+.bd-tape { position: absolute; top: -8px; left: -12px; width: 64px; height: 20px; transform: rotate(-32deg); background: rgba(236, 222, 186, .78);
+  clip-path: polygon(3% 0, 97% 4%, 100% 50%, 97% 100%, 2% 96%, 0 50%); box-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
+@media (prefers-reduced-motion: reduce) { .bd-note { transition: none; } }
