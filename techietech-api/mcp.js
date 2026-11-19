@@ -195,6 +195,8 @@ const TOOLS = [
     inputSchema: S({ character: str('Optional: a character id or name'), series: str('Optional: a series id or name') }) },
   { name: 'get_video', title: 'Video with transcript', description: 'A video: date, cast, what happens, and its full transcript.', inputSchema: S({ id: str('The video id') }, ['id']) },
   { name: 'sites_and_games', title: 'Sites and games', description: 'The characters\' own sites (shops, companies, services) and their games.', inputSchema: S({}) },
+  { name: 'get_personal_requests', title: 'Personal video requests', description: 'The requests for a personal video (a greeting from a resident - birthday, anniversary...) exactly as they arrived to the verse: for whom, the occasion and its date, which resident they asked for, and everything they wrote. Open ones by default, oldest event first. To discuss with Shlomi how to make each greeting.',
+    inputSchema: S({ all: { type: 'boolean', description: 'Also the ones already handled (done)' } }) },
 ].map((t) => ({ ...t, annotations: RO }));
 // the writes (his ask, 2026-11-17) - only when Shlomi asks for them; show him exactly what will change first
 const W = { readOnlyHint: false, openWorldHint: false, destructiveHint: false, idempotentHint: false };
@@ -433,6 +435,19 @@ async function openNotes(id) {
 }
 const sameText = (x, y) => norm(x).replace(/\s+/g, ' ').trim() === norm(y).replace(/\s+/g, ' ').trim();
 const findItem = (arr, t) => { const i = arr.findIndex((x) => sameText(x, t)); return i >= 0 ? i : arr.findIndex((x) => norm(t).trim().length > 3 && norm(x).includes(norm(t).trim())); };
+// the personal-video requests as they arrived (his ask, 2026-11-19: "give the MCP the requests as they arrived to the verse, the raw
+// data - I'll discuss them with ChatGPT"): Firestore requests, kind 'personal' (+ a community 'video' request - the older form for it).
+// Everything they wrote, as stored; the sender's address, phone and account id stay out (ChatGPT doesn't need them to write a greeting).
+async function personalRequests(all) {
+  const s = await admin.firestore().collection('requests').where('kind', 'in', ['personal', 'video']).get();
+  const ts = (v) => (v?.toDate ? v.toDate().toISOString() : v);
+  const reach = (c) => (!c || /@|^[+\d][\d\s-]{6,}$/.test(String(c).trim()) ? undefined : c);   // "לא לחזור" stays, an address or a phone doesn't
+  const rows = s.docs.map((d) => ({ id: d.id, ...d.data() }))
+    .filter((r) => (r.kind === 'personal' || r.from === 'community') && (all || !r.done))
+    .map(({ uid, email, phone, contact, of, ...r }) => JSON.parse(JSON.stringify({ ...r, contact: reach(contact), t: ts(r.t), answeredAt: ts(r.answeredAt) })))
+    .sort((x, y) => String(x.date || x.t || '').localeCompare(String(y.date || y.t || '')));
+  return { json: { count: rows.length, requests: rows } };
+}
 async function afterWrite() { await require('./catalog').compose(admin); checked = 0; }   // the site, the chat and this server read the new sheet
 
 async function editSheet(b, a) {
@@ -514,6 +529,7 @@ async function run(b, name, a = {}, key = '') {
       return `${vs.length} videos (id | date | title | cast | what happens):\n` + vs.map((v) => [v.id, v.date || '', v.title, (v.cast || []).map((id) => nameOf(b, id)).join(', '), v.card || v.teaser || ''].join(' | ')).join('\n');
     }
     case 'get_video': return videoText(b, b.vById[a.id] || b.videos.find((v) => v.id.toLowerCase() === String(a.id || '').toLowerCase()) || fail(`No video "${a.id}" - try search`));
+    case 'get_personal_requests': return personalRequests(!!a.all);
     case 'sites_and_games':
       return `## Sites\n${(b.sites || []).map((s) => `- ${s.title} | ${pub(s.url)} | ${s.about || ''} | whose: ${(s.whose || []).join(', ')}`).join('\n')}\n\n## Games\n${(b.games || []).map((g) => `- ${g.title} | ${pub(g.url)} | ${g.tagline || ''} | with: ${(g.chars || []).map((id) => nameOf(b, id)).join(', ')}`).join('\n')}`;
     case 'search': {
@@ -538,7 +554,7 @@ async function run(b, name, a = {}, key = '') {
 
 // ---- MCP over HTTP (stateless JSON-RPC) ----
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide; a new character -> read get_new_character_guide, then create_character and set_character_picture.';
+const INSTRUCTIONS = 'The Shlomiverse - Shlomi Zevin\'s Hebrew comedy universe. Before writing a script, read get_writing_guide (how we write scripts here - follow it), then each character\'s sheet with get_character (who they are, how they talk, what is funny, catchphrases, their life) and the transcripts of their videos with get_video. Content is in Hebrew. Writes only when Shlomi asks: what was learned about a character -> update_character_sheet; about how we write -> update_writing_guide; a new character -> read get_new_character_guide, then create_character and set_character_picture. Greetings people asked for (personal videos) -> get_personal_requests.';
 async function answer(msg, key = '') {
   const { id, method, params = {} } = msg || {};
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
