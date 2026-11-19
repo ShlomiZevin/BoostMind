@@ -172,10 +172,11 @@ body.turn #turn{display:flex}
 .keyhint{font-size:11px;opacity:.75;font-weight:500;margin-inline-start:3px}
 @media (hover:none){.keyhint{display:none}}
 html.in-verse .verse-hide{display:none!important}
-#loadBar{position:relative;width:min(70vw,300px,46vh);height:30px;background:url(assets/hud-meter.webp) center/100% 100% no-repeat;margin-top:-6px}
-#loadBar i{position:absolute;right:5.5%;top:30%;bottom:30%;width:0;max-width:89%;background:linear-gradient(270deg,#b8860b,#f5c542 60%,#ffe58a);border-radius:3px;transition:width .3s}
-#loadBar span{position:absolute;left:0;right:0;top:100%;margin-top:2px;text-align:center;color:#fff3d0;font-size:13px;font-weight:700;text-shadow:0 1px 3px #000}
-#loadBar.done{display:none}
+#loadWrap{display:flex;flex-direction:column;align-items:center;gap:4px;margin:-4px 0 6px}
+#loadWrap.done{display:none}
+#loadBar{position:relative;width:min(66vw,280px,44vh);height:26px;background:url(assets/hud-meter.webp) center/100% 100% no-repeat}
+#loadFill{position:absolute;z-index:1;right:5.5%;top:31%;height:38%;width:0;max-width:89%;background:linear-gradient(270deg,#b8860b,#f5c542 60%,#ffe58a);border-radius:3px;box-shadow:0 0 6px #f5c54288;transition:width .3s}
+#loadWrap span{color:#fff3d0;font-size:13px;font-weight:700;text-shadow:0 1px 3px #000;line-height:1.2}
 .sign.play.wait{filter:grayscale(.7) brightness(.8);animation:none;cursor:wait}
 @media (max-height:520px){#over .p-quote,#paused .p-quote,#overCoal{display:none!important}.p-score{font-size:34px}#bestOver{display:none}.panel{gap:6px;padding-top:44px}.panel .sign.play{width:min(56vw,210px)}#tutText{font-size:13px}}
 </style>
@@ -202,7 +203,7 @@ html.in-verse .verse-hide{display:none!important}
   <img class="st-title" src="assets/title.webp" alt="61 – רוב קואליציוני">
   <div class="st-bottom">
     <button class="sign play wait" id="playBtn"><span>שחקו</span></button>
-    <div id="loadBar"><i></i><span>מכינים את בית המשפט… <b id="loadPct">0%</b></span></div>
+    <div id="loadWrap"><div id="loadBar"><i id="loadFill"></i></div><span>מכינים את בית המשפט… <b id="loadPct">0%</b></span></div>
     <div class="st-row">
       <button class="sign mid" id="howBtn"><span>איך משחקים</span></button>
       <a class="sign back" href="/games" target="_top" data-verse-back aria-label="חזרה למשחקים"><span>חזרה<br>למשחקים</span></a>
@@ -243,6 +244,6 @@ html.in-verse .verse-hide{display:none!important}
     <button id="tutNext" class="sign mid"><span>הבא</span></button>
   </div>
 </div>
-<script type="module" src="game.js?v=8"></script>
+<script type="module" src="game.js?v=9"></script>
 </body>
 </html>

@@ -291,14 +291,14 @@ function loadProgress() {
   if (LOAD.ready) return;
   const bytes = LOAD.room * 0.4 + LOAD.rabbi * 0.6, creep = 0.9 * (1 - Math.exp(-(performance.now() - LOAD.t0) / 6000));
   const p = LOAD.roomDone && LOAD.rabbiDone ? 1 : Math.max(bytes, creep * (LOAD.roomDone ? 1 : 0.85));
-  $('loadBar').firstElementChild.style.width = Math.round(p * 100) + '%';
+  $('loadFill').style.width = (Math.round(p * 100) * 0.89) + '%';
   $('loadPct').textContent = Math.round(p * 100) + '%';
   // the room is enough to play - the rabbi steps in when he arrives
   if (LOAD.roomDone && !LOAD.ready) {
     LOAD.ready = true;
     try { renderer.compile(scene, cam); } catch (e) {}
     warm = 3;
-    setTimeout(() => { $('loadBar').classList.add('done'); $('playBtn').classList.remove('wait'); }, 200);
+    setTimeout(() => { $('loadWrap').classList.add('done'); $('playBtn').classList.remove('wait'); }, 200);
   }
 }
 const loadTick = setInterval(() => { if (LOAD.ready) clearInterval(loadTick); else loadProgress(); }, 120);
