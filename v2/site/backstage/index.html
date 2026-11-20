@@ -2853,7 +2853,7 @@ function storyWindow(edit) {
 let VC = null, vcQ = '';
 // "מבוקשים מהארכיון" (2026-11-10): old Instagram posts marked on /archive/ to bring into the verse (verse.js wishes) - his marks,
 // and once the archive opens, the residents'. insta-to-verse brings them; the residents who asked hear by themselves.
-let WS = null;
+let WS = null, wsLoading = false;
 const IGT = (ig) => `https://storage.googleapis.com/shlomiverse-media/insta/t/${ig}.jpg`;
 function wishCard() {
   if (!WS) return '<div class="card"><div class="card-h"><h2>מבוקשים מהארכיון</h2></div><div class="empty">טוען…</div></div>';
@@ -2886,7 +2886,12 @@ async function videos() {
     const inp = $('[data-vc-q]'); if (inp) inp.oninput = (e) => { vcQ = e.target.value; const pos = e.target.selectionStart; draw(); const n = $('[data-vc-q]'); n.focus(); n.setSelectionRange(pos, pos); };
   };
   draw();
-  if (!WS) api('wishes', {}).then((r) => { WS = r; if (tab === 'videos') draw(); }).catch(() => { WS = { wishes: [] }; });
+  // the list again whenever the open ones changed on the server (his note 2026-11-20: brought posts still showed as open -
+  // the list was read once per page load; the minute beat refreshes L.wishes, so a difference = read it again)
+  if (!wsLoading && (!WS || (L && (L.wishes || []).map((w) => w.ig).sort().join() !== (WS.wishes || []).map((w) => w.ig).sort().join()))) {
+    wsLoading = true;
+    api('wishes', {}).then((r) => { WS = r; if (tab === 'videos') draw(); }).catch(() => { WS ||= { wishes: [] }; }).finally(() => { wsLoading = false; });
+  }
   if (!VC) { VC = (await api('catalogList', {}).catch(() => ({ videos: [] }))).videos; if (tab === 'videos') draw(); }
 }
 async function vcHide(b) {

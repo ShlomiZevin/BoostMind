@@ -56,8 +56,11 @@ op `wish`, the 2.0 session's backend: `wishes/<ig>`). Marks are open to every re
   every batch so the badges are right.
 - **"Bring what I marked":** `node scripts/insta/wishes.mjs` (Firestore, this computer's login - no owner key) = the open
   marks, most-asked first, each with its ig media id and the notes people wrote -> the steps below per id (reel.py <id>, to_wiki.py <id> <cast>).
-  The wish closes and whoever asked is told (bell, push, mail) by itself within 15 minutes of `ig-<id>` going live;
-  `verseOwner?op=wishFound` (owner key - ask him) only to tell them at once.
+  **Close every wish yourself right after publishing** (his rule 2026-11-20: "next time close the request, I don't want to
+  see it in backstage"): POST `verseOwner?op=wishFound` {ig, videoId: 'ig-<id>'} with `authorization: Key <owner key>`
+  (scripts/owner-key.mjs finds it - never ask him) = done + whoever asked hears (bell, push, mail) + its Mind task done.
+  The 15-minute sweep is only the safety net. Then check `verseOwner?op=wishes` - the only open ones left are the ones
+  still waiting (say which and why in the report).
 
 ## Steps for one reel (from c:\workspace\BoostMind)
 1. **The list** (refresh now and then): `node scripts/insta/list.mjs` -> `scripts/insta/work/media.json` (every post,
