@@ -69,10 +69,12 @@ writes it from Secret Manager). Read it from that file inside your script; never
   takes real faces, ~5x cheaper than Leonardo). Other tools call the same API with their own key (`scripts/piko/client.mjs`).
 - Already wired: `openai.js` - the OpenAI helper, any model (the openai-leonardo skill, in `zoomcut/skill/openai-leonardo`; a computer installs it once with `node zoomcut/skill/openai-leonardo/install.mjs`; inside this folder it always takes the design key), `oai-image.js` (stories, games),
   `clean-words.mjs`, `build.py`, `reel.py` and the design scripts under `scripts/`.
-- **Changed a Secret Manager key a function uses? Redeploy EVERY function that uses it** (`grep -l "<secret name>" techietech-api/*.js`)
-  before the old version is destroyed. A function stays pinned to the version it was deployed with; when that version is
-  destroyed it can't start. 2026-11-19: `studio-keys` got v6 and v5 was destroyed, `versePage` was left on v5, and every /v/, /c/
-  and /play/ link was a 500 for ~11 hours.
+- **A function never binds `studio-keys` (`secrets: [...]`)** - read it at the moment it's needed, version `latest` (as
+  `techietech-api/page.js` `studioKeys()` does). A bound secret pins the version live at deploy, and the Studio replaces
+  `studio-keys` and destroys the old versions on every key change (`zoomcut/render/cloud/keys.mjs`: any edit to `zoomcut/.env`,
+  its own Instagram / TikTok token renewals). 2026-11-19: adding the Twilio keys to `zoomcut/.env` destroyed the version
+  `versePage` was pinned to, and every /v/, /c/ and /play/ link was a 500 for ~11 hours. A function's own secret that only
+  gets a new version by hand: after changing it, redeploy every function that uses it (`grep -l "<name>" techietech-api/*.js`).
 
 ## Plans for his approval - Backstage → תוכניות (since 2026-11-06)
 

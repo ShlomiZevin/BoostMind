@@ -5,8 +5,21 @@
 // anywhere else. Content comes from the live wiki data (no deploy for a new video / character); the CDN keeps each
 // answer a few minutes. If anything fails, the page goes out with the site's default preview - never an error page.
 const { onRequest } = require('firebase-functions/v2/https');
-const { defineSecret } = require('firebase-functions/params');
-const STUDIO_KEYS = defineSecret('studio-keys');   // only TELEGRAM_TOKEN / TELEGRAM_CHAT_ID are read: "the greeting was shown" to his Telegram
+// studio-keys (only TELEGRAM_TOKEN / TELEGRAM_CHAT_ID are read: "the greeting was shown" to his Telegram) is read at the moment
+// it is needed, its LATEST version - never bound to the function (secrets: [...]). A bound secret pins the version that was live at
+// deploy, and the studio replaces studio-keys and destroys the old versions on every key change (zoomcut/render/cloud/keys.mjs):
+// 2026-11-19 a new version destroyed the pinned one, versePage couldn't start, and every /v/ /c/ /play/ link was a 500 for ~11 h.
+// (the function's service account keeps its secretAccessor role on studio-keys from the old binding)
+let SK = null;
+async function studioKeys() {
+  if (SK && Date.now() - SK.t < 10 * 60e3) return SK.v;
+  const tok = await (await fetch('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', { headers: { 'Metadata-Flavor': 'Google' } })).json();
+  const r = await fetch('https://secretmanager.googleapis.com/v1/projects/boostmind-b052c/secrets/studio-keys/versions/latest:access', { headers: { authorization: `Bearer ${tok.access_token}` } });
+  if (!r.ok) throw new Error('studio-keys ' + r.status);
+  const v = JSON.parse(Buffer.from((await r.json()).payload.data, 'base64').toString('utf8'));
+  SK = { v, t: Date.now() };
+  return v;
+}
 
 const SITE = 'https://shlomiverse.com';
 const TEMPLATE = `${SITE}/wiki/index.html`;
@@ -153,7 +166,7 @@ async function greetingShown(req, res, id) {
   if (first === null) return res.status(404).json({ error: 'no' });
   if (first && !first.test) {   // a test greeting (greet.cjs add --test) never messages him
     try {
-      const k = JSON.parse(STUDIO_KEYS.value() || '{}');
+      const k = await studioKeys();
       const text = `הברכה ל${first.forWho} (מ${first.charName}) נמסרה - אפשר להעלות אותה לסטורי עכשיו.
 ${SITE}/greeting/${id}`;
       if (k.TELEGRAM_TOKEN && k.TELEGRAM_CHAT_ID) await fetch(`https://api.telegram.org/bot${k.TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: k.TELEGRAM_CHAT_ID, text }) });
@@ -211,7 +224,7 @@ async function greetingPage(req, res, id) {
   res.status(g ? 200 : 404).send(html);
 }
 
-exports.versePage = onRequest({ region: 'europe-west1', timeoutSeconds: 300, concurrency: 80, maxInstances: 5, memory: '512MiB', secrets: [STUDIO_KEYS] }, async (req, res) => {
+exports.versePage = onRequest({ region: 'europe-west1', timeoutSeconds: 300, concurrency: 80, maxInstances: 5, memory: '512MiB' }, async (req, res) => {
   const [, kind = '', raw = '', file = ''] = req.path.split('/');
   const id = decodeURIComponent(raw);
   if (kind === 'greeting') {   // timeoutSeconds 300: a video streams to a slow phone
