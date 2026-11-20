@@ -374,7 +374,7 @@ const minutes = (hhmm) => +hhmm.slice(0, 2) * 60 + +hhmm.slice(3, 5);
 // (item.places = Google place types; [] = nowhere, e.g. a phone call), and a Places nearby search (≤ every 20 min) finds
 // an open one within NEAR_M -> "סופר-פארם ממש לידך (250 מ׳) / קנית כבר אקמול?". ~3 cents a search, only with errands.
 const WHERE = META.doc('where');
-const NEAR_M = 400, NEAR_EVERY = 20 * 60e3;
+const NEAR_M = 400, NEAR_EVERY = 30 * 60e3, NEAR_MOVE = 150;
 const PLACE_TYPES = ['pharmacy', 'drugstore', 'supermarket', 'grocery_store', 'convenience_store', 'hardware_store', 'home_improvement_store',
   'electronics_store', 'cell_phone_store', 'clothing_store', 'shoe_store', 'book_store', 'pet_store', 'florist', 'gift_shop', 'bakery',
   'liquor_store', 'sporting_goods_store', 'furniture_store', 'department_store', 'shopping_mall', 'post_office', 'bank', 'atm',
@@ -419,18 +419,22 @@ async function here(lat, lng) {
   await WHERE.set({ lat, lng, at: now, n: (w.n || 0) + 1 }, { merge: true });
   const t = ilHM(new Date());
   if (t < '08:00' || t > '22:00') return { ok: true, skip: 'night' };
-  if (w.checkAt && now - w.checkAt < NEAR_EVERY) return { ok: true, skip: 'checked ' + Math.round((now - w.checkAt) / 60e3) + ' min ago' };
+  // search again when he moved (> NEAR_MOVE m since the last search) or after NEAR_EVERY standing in one place
+  // (2026-11-20: a flat 20 min wait + 1 h per errand missed the Super-Pharm he stood next to, 17 min after an earlier one)
+  const moved = w.checkAt ? distM({ lat: w.checkLat, lng: w.checkLng }, at) : Infinity;
+  if (w.checkAt && (now - w.checkAt < 2 * 60e3 || (moved < NEAR_MOVE && now - w.checkAt < NEAR_EVERY))) return { ok: true, skip: `checked ${Math.round((now - w.checkAt) / 60e3)} min ago, moved ${Math.round(moved)} m` };
   const items = (await ITEMS.where('nag', '>', '').get()).docs.map(shapeItem).filter((i) => ['open', 'active', 'waiting'].includes(i.status));
   if (!items.length) return { ok: true, skip: 'no errands' };
   await placesFor(items.filter((i) => !Array.isArray(i.places)));
-  const want = items.filter((i) => i.places?.length && !(i.nearAt && now - i.nearAt < 60 * 60e3));
+  const want = items.filter((i) => i.places?.length && !(i.nearAt && now - i.nearAt < 10 * 60e3));   // ≤ 1 place push per errand / 10 min
   if (!want.length) return { ok: true, skip: 'no errand needs a place now' };
   await WHERE.set({ checkAt: now, checkLat: lat, checkLng: lng }, { merge: true });
   const found = await nearby(lat, lng, [...new Set(want.flatMap((i) => i.places))]);
   const told = [];
   for (const i of want) {
-    const p = found.find((x) => (x.types || []).some((ty) => i.places.includes(ty)));
-    if (!p || (i.nearPlace === p.id && now - (i.nearAt || 0) < 6 * 3600e3)) continue;
+    // the nearest fitting place he wasn't just told about (the same place again only after 6 h)
+    const p = found.find((x) => (x.types || []).some((ty) => i.places.includes(ty)) && !(x.id === i.nearPlace && now - (i.nearAt || 0) < 6 * 3600e3));
+    if (!p) continue;
     const d = Math.max(10, Math.round(distM(at, { lat: p.location.latitude, lng: p.location.longitude }) / 10) * 10);
     await ITEMS.doc(i.id).update({ nearAt: now, nearPlace: p.id, nagAt: now });
     await pushMe('nag', { title: `${oneLine(p.displayName?.text, 60)} ממש לידך (${d} מ׳)`, body: i.nag, url: '/mind/#nag=' + i.id, tag: 'near:' + i.id }, null, { urgency: 'high', ttl: 1200 });
@@ -752,7 +756,7 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
     const num = (v) => parseFloat(String(v ?? '').trim().replace(',', '.'));
     const lat = num(q.lat), lng = num(q.lng);
     if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180) || (!lat && !lng)) return res.status(400).json({ error: 'lat/lng' });
-    try { return res.json(await here(lat, lng)); } catch (e) { console.error('mind here', e.message); return res.status(500).json({ error: e.message }); }
+    try { const r = await here(lat, lng); console.log('mind here', JSON.stringify(r)); return res.json(r); } catch (e) { console.error('mind here', e.message); return res.status(500).json({ error: e.message }); }
   }
   if (req.method !== 'POST') return res.status(405).end();
   const role = await who(req);
