@@ -54,7 +54,7 @@ mechanism, and keeps tuning it with him over time.
 5. **The words** - `zoomcut/skill/shlomiverse-content/words.md` is the vocabulary for every line a visitor reads: תושבים (never
    דמות/דמויות), המייסדים, no פרק/מערכון/סדרה/פרודיה/מעריצים, never "של שלומי". In a resident's mouth it's the same world.
 
-## Where else a resident speaks (keep the voice right there too)
+## Where else a resident speaks - also yours (his answer, 2026-11-20: ציפציפ and greeting texts are owned, not just watched)
 - **ChatGPT, through the MCP** (techietech-api/mcp.js, function verseMcp; the key is in the URL - never in git). He writes
   scripts with his ChatGPT: `get_character` returns the sheet; `update_character_sheet` / `undo_sheet_change` change it (full
   before kept in Firestore sheetEdits); `get_writing_guide` / `update_writing_guide` = how we write scripts (scriptcraft.js,
@@ -64,8 +64,8 @@ mechanism, and keeps tuning it with him over time.
   (greetvoice.js, MCP get/update/undo_greeting_voice) - never on the sheet, never in the chat, never in their life
   (his "very, very important" rule, 2026-11-19). The MCP refuses greeting text on update_character_sheet. When a greeting
   text is weak, use the chat's mechanism to suggest it (his note: "even our chat answers better").
-- **ציפציפ** (techietech-api/tz.js) - the residents' own posts on the news, one call per resident in their own voice. When
-  the chat improves and the posts don't, say so (he noticed, 2026-11-16).
+- **ציפציפ** (techietech-api/tz.js) - the residents' own posts on the news, one call per resident in their own voice. Yours
+  to improve: the posts must read like that person tweeting, as good as the chat (he noticed they weren't, 2026-11-16).
 - **Chat stories** - the best real conversations become stories (the `chat-story` skill; he marks them in Backstage → שיחות).
   Good conversations are the proof the voice works; bad ones are your next fix.
 
@@ -81,8 +81,10 @@ mechanism, and keeps tuning it with him over time.
   conversation (2026-11-16).
 - **Real people, real world.** Residents are real people in a real parallel universe. Haredi residents: every name, custom
   and phrase must hold up for someone from that world (he knows it); Hani is very professional, not a geek (2026-11-14).
+- **The chain is his call.** Any change to how the chain works - models, steps, what each step sees, the director's job - is
+  proposed and waits for his OK (his answer, 2026-11-20). Pages and closing comments are yours once he agreed.
 - **Small proposals.** He called early versions "way too far". Discuss the direction until he OKs it; don't re-open an
-  agreed direction; don't add steps back to the chain without his word.
+  agreed direction.
 - **Cost.** A chat answer ~1-2¢ today; a flow ≤ 5¢ (his rule); before a batch (drafting sheets for all residents, a test
   run over many conversations) say the cost and stay under the cap he gives. Paid batch reports end with the running total.
 
@@ -92,8 +94,8 @@ mechanism, and keeps tuning it with him over time.
    `node scripts/characters/notes.mjs open --out <scratch>/n.md` (`char <id>` for one resident). Read the files with the Read
    tool (Hebrew). The owner key is found by the tools (scripts/owner-key.mjs) - never ask him for it.
 2. **Find the cause** of each one in what the steps received. Say it in a line or two: what went wrong, where it came from,
-   what you'll change (the page / the chain / nothing). When he said "read and discuss" or the fix is a chain change -
-   discuss first. When he said "handle" - handle.
+   what you'll change (the page / the chain / nothing). **Always discuss first** - every comment, before any change (his
+   answer, 2026-11-20: it's too delicate to fix on your own). Change only what he agreed to.
 3. **Fix at the right level.**
    - A page: put it in order from his messy notes (he writes brainstorm notes; you make them clean and short) and write it
      with `node scripts/verse/content.mjs put` (Hebrew through a file; read the `shlomiverse-content` skill first). Keep
