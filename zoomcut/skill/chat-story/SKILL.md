@@ -10,6 +10,11 @@ His idea (2026-11-18): from time to time, find good conversations people had wit
 them. First one: three posters of Hani's chats. Reply in English; the posters are Hebrew.
 
 ## The flow
+0. **His picks first** (since 2026-11-20): in Backstage he marks a conversation "לסטורי" (the button in an open chat,
+   the filter "לסטורי" in שיחות). The server keeps a copy (Firestore storyPicks - chat_logs expire). Start with
+   `node scripts/stories/chat-find.cjs --picked --out <scratch>/picked.md` - those are already chosen by him: skip step 2's
+   asking, clean and draw them (long = the typing video). When a story is made: `node scripts/stories/chat-find.cjs
+   --done <key>` (Backstage then shows "סטורי נעשה"). No picks and he asks for a story = the search below.
 1. **Find** - `node scripts/stories/chat-find.cjs <resident id> --days 2 --out <scratch>/chats.md` (his rule: only
    recent ones - the last 2 days unless he says otherwise; every conversation shows its date, Israel time). It lists every
    conversation with 2+ exchanges (at least 2 ping-pongs = 4 messages), longest first.
