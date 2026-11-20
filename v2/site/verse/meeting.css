@@ -3,13 +3,15 @@
 html:has(#mt) body { overflow: hidden; }
 html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 
-/* the page: exactly between the top bar and the tab bar (a phone in the app); one phone-wide column on a computer */
-.mt { position: fixed; top: 64px; bottom: 0; left: 0; right: 0; z-index: 31; max-width: 520px; margin-inline: auto; display: flex; flex-direction: column;
-  background: #0b0b0e; color: #f5f4f1; border-inline: 1px solid rgba(255, 255, 255, .06); overflow: hidden; }
-@media (max-width: 760px) {
-  .mt { top: 58px; }
-  html.app .mt { top: var(--th); bottom: var(--tb); max-width: none; border: 0; }
-}
+/* full screen like an app (his note round 3): the verse's top bar and tab bar step aside on /syncs (html.syncs, meeting.js); the
+   page is the whole screen, clear of the iPhone's status bar and home indicator; one phone-wide column on a computer */
+html.syncs, html.syncs.app { --th: 0px !important; --tb: 0px !important; }
+html.syncs .top, html.syncs .tabbar, html.syncs body > footer, html.syncs .fab { display: none !important; }
+html.syncs body { background: #0b0b0e; }
+.mt { position: fixed; top: 0; bottom: 0; left: 0; right: 0; z-index: 95; max-width: 520px; margin-inline: auto; display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top); background: #0b0b0e; color: #f5f4f1; border-inline: 1px solid rgba(255, 255, 255, .06); overflow: hidden; }
+@media (max-width: 760px) { .mt { max-width: none; border: 0; } }
+.mt.kb { padding-top: 0; }
 .mt > .vx-loader { margin: auto; }
 .mt button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
@@ -20,8 +22,11 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 .mt-ttl { display: flex; flex-direction: column; line-height: 1.1; white-space: nowrap; }
 .mt-ttl b { font-size: 19px; font-weight: 900; letter-spacing: -.01em; align-self: flex-start; }
 .mt-ttl small { font-size: 12px; font-weight: 600; color: #a6a3ad; }
-.mt-tag { margin-inline-start: auto; font-size: 12px; font-style: italic; font-weight: 600; color: #ffb27a; white-space: nowrap; }
-@media (max-width: 370px) { .mt-tag { display: none; } }
+.mt-ttl small { font-style: italic; color: #ffb27a; }
+/* the way out: small, at the other end of the head */
+.mt-out { margin-inline-start: auto; flex: none; display: inline-flex; align-items: center; gap: 5px; height: 34px; padding: 0 12px; border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, .16); background: #1a1a20; color: #e9e6ee; font-size: 13.5px; font-weight: 700; }
+.mt-out svg { width: 17px; height: 17px; }
 .mt-ttl i { font-style: normal; color: #8f8c97; margin: 0 7px; }
 .mt-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 0 0 rgba(255, 59, 59, .6); animation: mt-live 1.6s infinite; }
 @keyframes mt-live { 70% { box-shadow: 0 0 0 7px rgba(255, 59, 59, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
@@ -33,22 +38,22 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 /* ---------- 2a: who is in the meeting ---------- */
 .mt-pk { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 10px; }
 .mt-pk h1 { text-align: center; font-size: 30px; font-weight: 900; line-height: 1.1; color: #fff; }
-.mt-pk-sub { text-align: center; color: #a6a3ad; font-size: 14.5px; margin: 6px 0 12px; }
+.mt-pk h1 { margin-bottom: 14px; }
 .mt-pk-list { display: flex; flex-direction: column; gap: 8px; }
 .mt-pk-row { position: relative; display: flex; align-items: center; gap: 12px; padding: 7px; padding-inline-end: 14px; border-radius: 18px; cursor: pointer;
   border: 1.5px solid rgba(255, 255, 255, .13); background: #141418; transition: border-color .15s, background .15s; -webkit-tap-highlight-color: transparent; }
 .mt-pk-row > img { flex: none; width: clamp(54px, 16vw, 66px); height: clamp(54px, 16vw, 66px); border-radius: 12px; object-fit: cover; object-position: 50% 18%; background: #222; }
-.mt-pk-who { flex: none; width: 76px; display: flex; flex-direction: column; line-height: 1.15; }
+.mt-pk-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
 .mt-pk-who b { font-size: 19px; font-weight: 900; color: #fff; }
 .mt-pk-who small { font-size: 13px; color: #a6a3ad; font-weight: 600; margin-top: 2px; }
-.mt-pk-what { flex: 1; min-width: 0; padding-inline-start: 12px; border-inline-start: 1px solid rgba(255, 255, 255, .15); font-size: 15.5px; font-weight: 600; color: #ebe8e3; line-height: 1.3; }
+.mt-pk-row.host input:checked + .mt-pk-box { background: rgba(255, 106, 31, .25); color: #ffb27a; }
 .mt-pk-row input { position: absolute; opacity: 0; pointer-events: none; }
 .mt-pk-box { flex: none; width: 28px; height: 28px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, .42); display: grid; place-items: center; color: transparent; transition: background .15s, border-color .15s; }
 .mt-pk-box svg { width: 18px; height: 18px; }
 .mt-pk-row:has(input:checked) { border-color: #ff6a1f; background: rgba(255, 106, 31, .08); }
 .mt-pk-row input:checked + .mt-pk-box { background: #ff6a1f; border-color: #ff6a1f; color: #fff; }
 .mt-pk-row.host { border-color: #ff6a1f; background: linear-gradient(90deg, rgba(255, 106, 31, .2), rgba(255, 106, 31, .1)); cursor: default; }
-.mt-foot { flex: none; padding: 8px 14px 12px; }
+.mt-foot { flex: none; padding: 8px 14px max(12px, env(safe-area-inset-bottom)); }
 .mt-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 99px; white-space: nowrap; font-weight: 800; }
 .mt-btn svg { width: 18px; height: 18px; flex: none; }
 .mt-btn.go { background: #ff6a1f; color: #fff; box-shadow: 0 6px 22px rgba(255, 106, 31, .35); }
@@ -79,13 +84,15 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 .mt-tiles[data-n="7"] .mt-nm b { font-size: 11px; }
 .mt-tile.talk { border: 2.5px solid #ff6a1f; box-shadow: 0 0 16px rgba(255, 106, 31, .55); }
 .mt-tile.talk .mt-nm { background: #2a1509; }
-.mt-un { position: absolute; bottom: 28px; inset-inline: 0; padding: 3px 2px; background: rgba(10, 10, 12, .8); color: #fff; font-size: 10.5px; font-weight: 700; text-align: center;
+.mt-un { position: absolute; bottom: 28px; inset-inline: 0; padding: 3px 3px; background: rgba(10, 10, 12, .82); color: #fff; font-size: 10.5px; line-height: 1.15; font-weight: 700; text-align: center; white-space: normal !important;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s; }
 .mt-tile.un { border-color: rgba(255, 106, 31, .75); animation: mt-un 1.2s ease-in-out infinite; }
 .mt-tile.un .mt-un { opacity: 1; }
 @keyframes mt-un { 50% { box-shadow: 0 0 12px rgba(255, 106, 31, .4); } }
-.mt-tile.me { display: grid; place-items: center; background: #17171c; }
-.mt-me { font-size: 17px; font-weight: 900; color: #fff; }
+.mt-tile.me { background: #17171c; }
+.mt-me-face { position: absolute; top: 0; inset-inline: 0; width: 100%; height: calc(100% - 28px); object-fit: cover; }
+.mt-me-face.ini { display: grid; place-items: center; background: linear-gradient(160deg, #3a2618, #1d1611); color: #ffb27a; font-size: 30px; font-weight: 900; }
+.mt.kb .mt-me-face { height: 100%; }
 .mt-me-hand { position: absolute; top: 6px; inset-inline-start: 6px; width: 24px; height: 24px; color: #ff6a1f; display: none; }
 .mt-me-hand svg { width: 100%; height: 100%; }
 .mt-tile.me.hand { border-color: #ff6a1f; }
@@ -116,8 +123,9 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 .mt-row.cut .mt-tx { color: #e2dfe8; }
 .mt-row.me { align-self: flex-end; background: rgba(255, 106, 31, .1); border-color: rgba(255, 106, 31, .35); }
 .mt-row.me .mt-who b { color: #ffb27a; }
-.mt-av.me { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #2a1d15; color: #ffb27a; }
-.mt-av.me svg { width: 22px; height: 22px; }
+.mt-av.me { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+.mt-av.me.ini, .mt-rc-av.me.ini, .mt-rc-faces .me.ini, .mt-q-av.ini { display: grid; place-items: center; background: #3a2618; color: #ffb27a; font-weight: 900; }
+.mt-av.me.ini { font-size: 19px; }
 .mt-sys { align-self: center; display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: 99px; background: #141418; border: 1px solid rgba(255, 255, 255, .09);
   color: #a6a3ad; font-size: 13.5px; font-weight: 600; text-align: center; }
 .mt-sys svg { width: 16px; height: 16px; flex: none; }
@@ -135,13 +143,33 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
   font-size: 13px; font-weight: 800; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); }
 
 /* 4a: the raised hand */
+/* the speakers queue (his ask round 3): who is up next, the moment it is decided - a slim strip under the tiles, like a real Zoom
+   feature: the face, the name, the pre-talk moment; a cut-in in orange; you, with your hand up */
+.mt-queue { flex: none; display: flex; align-items: center; gap: 6px; margin: 6px 12px 0; overflow-x: auto; scrollbar-width: none; }
+.mt-queue::-webkit-scrollbar { display: none; }
+.mt-queue[hidden] { display: none; }
+.mt-q-k { flex: none; font-size: 12px; font-weight: 800; color: #8f8c97; }
+.mt-q-it { flex: none; max-width: 100%; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 4px; border-radius: 99px; background: #17171c;
+  border: 1px solid rgba(255, 255, 255, .12); white-space: nowrap; animation: mt-q-in .3s cubic-bezier(.2, 1.3, .4, 1); }
+.mt-q-av { flex: none; width: 26px; height: 26px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; font-size: 13px; }
+.mt-q-it b { font-size: 13.5px; font-weight: 800; color: #fff; }
+.mt-q-it i { font-style: normal; font-size: 13px; font-weight: 600; color: #b9b5bf; overflow: hidden; text-overflow: ellipsis; animation: mt-breathe 1.6s ease-in-out infinite; }
+.mt-q-it svg { width: 18px; height: 18px; color: #ff6a1f; flex: none; }
+.mt-q-it.cut { border-color: #ff6a1f; background: rgba(255, 106, 31, .14); }
+.mt-q-it.cut i { color: #ffb27a; }
+.mt-q-it.you { border-color: rgba(255, 106, 31, .55); }
+@keyframes mt-q-in { from { transform: translateX(-14px); opacity: 0; } }
 .mt-handbar { flex: none; display: flex; align-items: center; gap: 10px; margin: 6px 12px 0; padding: 8px 14px; border-radius: 14px; border: 1.5px solid rgba(255, 106, 31, .75);
   background: rgba(255, 106, 31, .12); color: #ff9a5c; font-size: 15px; font-weight: 800; line-height: 1.25; }
 .mt-handbar svg { width: 26px; height: 26px; flex: none; }
 .mt-handbar[hidden], .mt-cue[hidden], .mt-new[hidden] { display: none; }
 
 /* the box: write to the meeting; the hand by it (the send arrow once there are words) */
-.mt-box { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 12px 10px; }
+.mt-box { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 12px max(10px, env(safe-area-inset-bottom)); }
+.mt.kb .mt-box { padding-bottom: 8px; }
+.mt.demo .mt-box input { color: #8f8c97; }
+.mt.demo .mt-box input::placeholder { color: #6f6c77; }
+.mt-box button[disabled] { opacity: .45; }
 .mt-box input { flex: 1; min-width: 0; height: 50px; padding: 0 16px; border-radius: 16px; border: 1.5px solid rgba(255, 255, 255, .17); background: #121216; color: #fff; font: inherit; font-size: 16px; outline: 0; }
 .mt-box input:focus { border-color: rgba(255, 106, 31, .7); }
 .mt-box input::placeholder { color: #8f8c97; }
@@ -165,8 +193,7 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 .mt-rc-faces { display: inline-flex; margin-inline-end: 4px; }
 .mt-rc-faces img, .mt-rc-faces .me { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; border: 2px solid #17120f; margin-inline-start: -8px; }
 .mt-rc-faces img:first-child { margin-inline-start: 0; }
-.mt-rc-faces .me { display: grid; place-items: center; background: #2a1d15; color: #ffb27a; }
-.mt-rc-faces .me svg { width: 14px; height: 14px; }
+.mt-rc-faces .me.ini { font-size: 12px; }
 .mt-rc-min { display: inline-flex; align-items: center; gap: 4px; }
 .mt-rc-min svg { width: 14px; height: 14px; }
 .mt-rc-sum { margin-top: 10px; font-size: 16px; line-height: 1.5; color: #ebe8e3; }
@@ -177,8 +204,7 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 .mt-rc-pts li { display: flex; align-items: flex-start; gap: 8px; font-size: 15px; line-height: 1.4; color: #e2dfe8; }
 .mt-rc-pts b { color: #ff9a5c; font-weight: 800; }
 .mt-rc-av { flex: none; width: 28px; height: 28px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; }
-.mt-rc-av.me { display: grid; place-items: center; background: #2a1d15; color: #ffb27a; }
-.mt-rc-av.me svg { width: 16px; height: 16px; }
+.mt-rc-av.me.ini { font-size: 13px; }
 .mt-rc-items li { display: grid; grid-template-columns: 22px 1fr; column-gap: 8px; row-gap: 5px; padding: 9px 10px; border-radius: 14px; background: #1b1b21; border: 1px solid rgba(255, 255, 255, .07); }
 .mt-rc-items .bx { grid-row: span 2; color: #ff6a1f; padding-top: 1px; }
 .mt-rc-items .bx svg { width: 22px; height: 22px; }
@@ -196,7 +222,7 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 .mt-rc-wait { display: flex; align-items: center; gap: 10px; color: #b9b5bf; font-size: 15px; font-weight: 600; animation: mt-breathe 1.6s ease-in-out infinite; }
 .mt-rc-wait img { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; object-position: 50% 18%; }
 @keyframes mt-breathe { 50% { opacity: .55; } }
-.mt-acts { flex: none; display: flex; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid rgba(255, 255, 255, .07); }
+.mt-acts { flex: none; display: flex; gap: 8px; padding: 10px 12px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid rgba(255, 255, 255, .07); }
 .mt-acts .mt-btn { height: 48px; padding: 0 12px; font-size: 15px; flex: 1 1 auto; min-width: 0; }
 .mt-acts .mt-btn.go { flex-grow: 1.4; }
 @media (max-width: 370px) { .mt-acts .mt-btn { font-size: 14px; padding: 0 8px; } .mt-acts .mt-btn svg { display: none; } }

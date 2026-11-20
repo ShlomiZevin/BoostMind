@@ -2,8 +2,9 @@
 // function, verseMeeting; the page (v2/site/verse/meeting.js) reads its answer as an ndjson stream - the very events the engine
 // emits (meeting.js round()).
 //   {op:'peek'}            -> {ok, owner, booked}   - may this account hold a meeting now (the page asks before the picker)
-//   {op:'start', room}     -> stream: {t:'meeting', id, room}, then the first round (Amir opens)
-//   {op:'say', id, text}   -> stream: {t:'guest', text} (the guest's line first, so the order is true), then a round answering it
+//   {op:'start', room}     -> stream: {t:'meeting', id, room}, {t:'visitor', name, title} (their name + the title the meeting gives them),
+//                             then the first round (Amir opens)
+//   {op:'say', id, text}   -> stream: {t:'guest', text} (the visitor's line first, so the order is true), then a round answering it
 //   {op:'hand', id}        -> {ok} - the guest is typing: a raised hand, the floor is theirs after the line in the air
 // Stateless across instances: the meeting lives in Firestore (meetings/<id>: uid, room, log, run, phrases, hand, ended, recap,
 // cost, t, exp - 7 days, TTL) and is loaded / saved per request; the round reads the doc's `hand` before every next speaker.
@@ -77,7 +78,9 @@ exports.verseMeeting = onRequest({
     const room = (Array.isArray(b.room) ? b.room : []).filter((id) => meeting.TEAM.includes(id));
     if (!(await takeDay(who))) return res.status(429).json({ error: 'booked' });
     ref = db().collection('meetings').doc();
-    M = meeting.newMeeting({ ...keys, room });
+    // the visitor's Shlomiverse name (their fans record) - the team calls them by it, with the title the meeting gives them
+    const nick = await db().collection('fans').doc(who.uid).get().then((g) => String((g.data() || {}).nick || '')).catch(() => '');
+    M = meeting.newMeeting({ ...keys, room, visitor: { name: nick } });
     await ref.set({ uid: who.uid, t: Timestamp.now(), exp: Timestamp.fromMillis(Date.now() + KEEP_DAYS * 864e5), busy: Timestamp.now(), ...meeting.stateOf(M) });
   } else {
     ref = meetRef(String(b.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 30));
