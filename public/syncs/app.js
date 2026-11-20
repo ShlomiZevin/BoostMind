@@ -132,7 +132,7 @@ function watchFit() {
 function bar(kind = '') {
   return `<header class="mt-bar"><div class="mt-brand"><img src="/verse/art/syncs-icon.png" alt="" width="36" height="36"><span><b dir="ltr">Syncs</b><small dir="ltr">Let's circle back</small></span></div>
     <div class="mt-meta" id="mt-meta">${kind ? meta(kind) : ''}</div>
-    <button class="mt-out" id="mt-out" aria-label="${esc(M_().out)}">${LEAVE}<span>${esc(M_().out)}</span></button></header>`;
+    <button class="mt-out${kind === 'live' || kind === 'rec' ? ' hang' : ''}" id="mt-out" aria-label="${esc(M_().out)}" title="${esc(M_().out)}">${kind === 'live' || kind === 'rec' ? PHONE_OFF : LEAVE}</button></header>`;
 }
 // the state: a live meeting you are in / a recording playing / a meeting that ended / a shared wrap-up
 function meta(kind) {
@@ -174,8 +174,11 @@ function pick() {
       return `<label class="mt-pk-row${host ? ' host' : ''}"><img src="${esc(PIC(id))}" alt=""><span class="mt-pk-who"><b>${esc(NAME(id))}</b><small>${esc(M_().roleFull[id])}</small></span>
         <input type="checkbox" value="${id}"${host || was.has(id) ? ' checked' : ''}${host ? ' disabled' : ''}><span class="mt-pk-box">${host ? LOCK : CHECK}</span></label>`;
     }).join('')}</div></div>
-    <div class="mt-foot"><button class="mt-btn go" id="mt-go">${esc(M_().start)}</button></div>`;
+    <div class="mt-foot"><div class="mt-foot-faces" id="mt-faces" aria-hidden="true"></div><button class="mt-btn go" id="mt-go">${esc(M_().start)}</button></div>`;
   bindOut(el);
+  const faces = () => { el.querySelector('#mt-faces').innerHTML = [...el.querySelectorAll('.mt-pk-row input:checked')].map((i) => `<img src="${esc(PIC(i.value))}" alt="">`).join(''); };
+  el.querySelector('.mt-pk-list').addEventListener('change', faces);
+  faces();
   el.querySelector('#mt-go').onclick = () => {
     const room = [...el.querySelectorAll('.mt-pk-row input:checked')].map((i) => i.value);
     track('meeting', 'start:' + room.join(','));
@@ -188,7 +191,7 @@ function live(room, opts = {}) {
   const el = root(); if (!el) return;
   const demoMode = !!opts.demo;
   Object.assign(S, { room, everyone: room.slice(), id: null, ended: false, streaming: null, queue: [], playing: false, row: null, speaking: null, typing: null,
-    hand: false, handSent: false, pending: null, floor: false, stick: true, t0: Date.now(), recap: null, ender: null, next: null, notes: {}, muted: {}, evs: {},
+    hand: false, handSent: false, pending: null, floor: false, stick: true, t0: Date.now(), recap: null, ender: null, next: null, notes: {}, muted: {}, evs: {}, pend: {},
     nudged: false, nudgeT: null,
     abort: new AbortController(), mode: demoMode ? 'demo' : 'live', started: false });
   if (!demoMode) S.rec = [];   // every event with its time: "לצפות שוב" replays THIS meeting (no server), and record-demo.cjs records the demo
@@ -212,7 +215,7 @@ function live(room, opts = {}) {
   el.querySelector('#mt-box').onsubmit = (e) => { e.preventDefault(); const t = inp.value.trim(); if (!t || S.ended || S.pending) return; inp.value = ''; el.querySelector('#mt-box').classList.remove('has'); say(t); };
   stream({ op: 'start', room });
 }
-// a tile: the face, the name; a tag on top (next / cutting in) and a band over the face for what they are doing right now
+// a tile: the face, the name; a tag on top (next) and a band over the face for what they are doing right now
 const tile = (id) => `<div class="mt-tile" data-id="${id}"><img src="${esc(PIC(id))}" alt=""><span class="mt-tag"></span><span class="mt-un"></span><span class="mt-ic"></span><span class="mt-nm"><b>${esc(NAME(id))}</b></span></div>`;
 const meFace = (cls) => (VIS().photo ? `<img class="${cls}" src="${esc(VIS().photo)}" alt="" referrerpolicy="no-referrer">` : `<span class="${cls} ini">${esc((vName() || '?').trim()[0] || '?')}</span>`);
 const meTile = () => `<div class="mt-tile me" data-id="user">${meFace('mt-me-face')}<span class="mt-tag"></span><span class="mt-un"></span><span class="mt-ic"></span><span class="mt-nm"><b>${esc(vName() || M_().you)}</b></span></div>`;
@@ -292,7 +295,11 @@ function line(me, who) {
   if (me.row && me.row.who === who && !me.row.closed) return me.row;
   const r = { who, target: '', shown: 0, cut: false, final: false, closed: false };
   r.done = new Promise((ok) => (r.ok = ok));
-  r.el = addRow(me, who, '', false);
+  // their bubble is already there, carrying their action (round 5c): the words take its place, in the same bubble
+  const p = me.pend[who];
+  delete me.pend[who];
+  if (p && p.isConnected) { p.classList.remove('pend'); p.classList.add('now'); p.querySelector('.mt-tx').innerHTML = ''; r.el = p; }
+  else r.el = addRow(me, who, '', false);
   if (me.next === who) me.next = null;
   delete me.notes[who];   // next time, another moment
   me.row = r; me.typing = null; me.speaking = who; paintTiles(me);
@@ -342,25 +349,40 @@ function rowHtml(who, text, cls = '') {
   return `<div class="mt-row${who === 'user' ? ' me' : ''}${cls ? ' ' + cls : ''}">${who === 'user' ? meFace('mt-av me') : `<img class="mt-av" src="${esc(PIC(who))}" alt="">`}
     <div class="mt-bub"><div class="mt-who"><b>${esc(NAME(who))}</b>${role ? `<small>${esc(role)}</small>` : ''}</div><div class="mt-tx">${fmt(text)}</div></div></div>`;
 }
-function addRow(me, who, text, done) {
+// a new row goes in at the end - above a bubble still waiting for its words (that one is always the last thing in the conversation)
+function put(html) {
   const rows = root()?.querySelector('#mt-rows'); if (!rows) return null;
-  rows.insertAdjacentHTML('beforeend', rowHtml(who, text, done ? '' : 'now'));
-  if (done && who === 'user') me.stick = true;
+  const t = document.createElement('div'); t.innerHTML = html.trim();
+  const el = t.firstElementChild;
+  rows.insertBefore(el, rows.querySelector(':scope > .mt-row.pend'));
   pin();
-  return rows.lastElementChild;
+  return el;
 }
-function sys(me, text, icon = '', cls = '') {
+function addRow(me, who, text, done) {
+  const el = put(rowHtml(who, text, done ? '' : 'now'));
+  if (el && done && who === 'user') me.stick = true;
+  return el;
+}
+function sys(me, text, icon = '', cls = '') { put(`<div class="mt-sys ${cls}">${icon}<span>${esc(text)}</span></div>`); }
+// the next speaker's bubble (round 5c - his notes): the moment the director picks them, their bubble is in the conversation with what
+// they are doing (their tile's band - "מבטל השתקה…"), shown as an action, not words; their words replace it when they start. Gone
+// without a trace when they don't get to speak after all.
+const DOING = '<svg class="mt-dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>';
+const doingHtml = (text) => `<span class="mt-doing">${DOING}<span>${esc(text)}</span></span>`;
+function pendRow(me, id, text) {
+  if (!me.started) return;
+  const el = me.pend[id];
+  if (el && el.isConnected) { const d = el.querySelector('.mt-doing > span'); if (d && d.textContent !== text) d.textContent = text; return; }
   const rows = root()?.querySelector('#mt-rows'); if (!rows) return;
-  rows.insertAdjacentHTML('beforeend', `<div class="mt-sys ${cls}">${icon}<span>${esc(text)}</span></div>`);
+  rows.insertAdjacentHTML('beforeend', rowHtml(id, '', 'pend'));
+  me.pend[id] = rows.lastElementChild;
+  me.pend[id].querySelector('.mt-tx').innerHTML = doingHtml(text);
   pin();
 }
+function dropPend(me, id) { const el = me.pend[id]; delete me.pend[id]; if (el) el.remove(); }
 // an event line: the tile's band as a small line in the conversation - their face, the band's own words (secondary to speech)
-const evHtml = (id, ev) => `<div class="mt-ev${ev.cut ? ' cutin' : ''}${id === 'user' ? ' me' : ''}">${id === 'user' ? meFace('mt-ev-av') : `<img class="mt-ev-av" src="${esc(PIC(id))}" alt="">`}${ev.icon || ''}<span>${esc(ev.text)}</span></div>`;
-function evLine(me, id, ev) {
-  const rows = root()?.querySelector('#mt-rows'); if (!rows || !me.started) return;
-  rows.insertAdjacentHTML('beforeend', evHtml(id, ev));
-  pin();
-}
+const evHtml = (id, ev) => `<div class="mt-ev${id === 'user' ? ' me' : ''}">${id === 'user' ? meFace('mt-ev-av') : `<img class="mt-ev-av" src="${esc(PIC(id))}" alt="">`}${ev.icon || ''}<span>${esc(ev.text)}</span></div>`;
+function evLine(me, id, ev) { if (me.started) put(evHtml(id, ev)); }
 
 // ---------- the history stays on its last line (his note round 4: he once didn't see the end) ----------
 // Every change of the rows' size (a word, a row, a picture that loaded, the wrap-up) pins the scroll to the bottom - unless they
@@ -388,8 +410,9 @@ function pin(force) {
 }
 
 // ---------- the tiles row is the speakers queue (his note round 4) ----------
-// who talks now: lit and wider · who is next: marked "הבא/ה" with their pre-talk moment on the tile (a cut-in in orange: "נכנס
-// באמצע…") · the one just cut: "על השתק" · the one leaving fades out · you: your hand up / your turn
+// who talks now: lit and wider · who is next: marked "הבא/ה" with their pre-talk moment on the tile (and in their waiting bubble) ·
+// a cut-in has no moment of its own - "<who> שם את <who> על השתק" says it · the one just cut: "על השתק" · the one leaving fades
+// out · you: your hand up. No "turn" anywhere (his note round 5c: a real meeting has no turn to speak).
 let lastNote = -1;
 function preNote(id) {
   const all = M_().pre;
@@ -402,7 +425,7 @@ function upNext(me, who, cut) {
   if (!who || me.ended) return;
   if (who === 'user') { me.next = 'user'; paintTiles(me); return; }
   me.next = who;
-  if (cut) me.notes[who] = { cut: true, t: M_().cutting(FEM.has(who)) };
+  if (cut) me.notes[who] = { cut: true };
   else if (!me.notes[who]) me.notes[who] = { t: preNote(who) };
   paintTiles(me);
 }
@@ -415,28 +438,21 @@ function paintTiles(me) {
     const note = me.notes[id];
     let tag = '', band = '', ic = '';
     if (mute) { band = M_().onMute; ic = MUTE; }
-    else if (id === 'user') {
-      if (me.floor && !me.ended) band = M_().yourTurn1;
-      else if (handUp) { band = M_().handUp; ic = HAND; }   // the hand says it (no tag beside it on a narrow tile)
-      else if (me.next === 'user') { band = M_().youNext; tag = M_().nextTag('you'); }
-    } else if (next) { tag = note && note.cut ? '' : M_().nextTag(f); band = note ? note.t : M_().pre[0](f); }
-    // the same moment in the conversation (his note round 5): one quiet line each time a tile's band really changes - the visitor's
-    // turn (next in line or the floor: one state), their hand, a resident about to talk / cutting in. The cut and the one leaving
-    // have their own lines (muted, left). A state already said is never said again until it is gone.
-    let ev = null;
-    if (!mute && !talk) {
-      if (id === 'user') { if (band && !ic) ev = { key: 'turn', text: band }; else if (handUp) ev = { key: 'hand', text: band, icon: HAND }; }
-      else if (next) ev = { key: 'n:' + band, text: `${NAME(id)} ${band}`, cut: !!(note && note.cut) };
-    }
+    else if (id === 'user') { if (handUp) { band = M_().handUp; ic = HAND; } }   // the hand says it (no tag beside it on a narrow tile)
+    else if (next && !(note && note.cut)) { tag = M_().nextTag(f); band = note ? note.t : M_().pre[0](f); }
+    // the same moment in the conversation (his notes round 5 / 5c), one action per thing: a resident about to talk = their own bubble,
+    // waiting with that action (gone if they don't talk after all); the visitor's raised hand = one quiet line. The cut and the one
+    // leaving have their own lines (muted, left).
+    if (me.pend) { if (id !== 'user' && band && !mute && !talk) pendRow(me, id, band); else if (me.pend[id]) dropPend(me, id); }
+    const ev = id === 'user' && handUp && !mute ? { key: 'hand', text: band, icon: HAND } : null;
     if (me.evs) {
       if (ev && me.evs[id] !== ev.key) evLine(me, id, ev);
       me.evs[id] = ev ? ev.key : '';
     }
+    const waits = next && !(note && note.cut) && id !== 'user';
     t.classList.toggle('talk', talk);
-    t.classList.toggle('next', next || (id === 'user' && (me.next === 'user' || (me.floor && !me.ended))));
-    t.classList.toggle('cutin', !!(next && note && note.cut));
+    t.classList.toggle('next', waits || (id === 'user' && handUp));
     t.classList.toggle('muted', mute);
-    t.classList.toggle('turn', id === 'user' && me.floor && !me.ended);
     t.querySelector('.mt-tag').textContent = tag;
     t.querySelector('.mt-un').textContent = band;
     t.querySelector('.mt-ic').innerHTML = ic;
@@ -465,7 +481,8 @@ function raise() {
 }
 function placeholder(me) {
   const inp = root()?.querySelector('#mt-in');
-  if (inp) inp.placeholder = me.floor && !me.ended ? M_().yourTurn : M_().placeholder;
+  if (inp) inp.placeholder = M_().placeholder;
+  const el = root(); if (el) el.dataset.floor = me.floor && !me.ended ? '1' : '';   // the floor is theirs (no word for it on screen - a hook for the test drivers)
 }
 // sending while the team still talks: the hand is up, the line in the air ends, that round's stream ends - then your words
 async function say(text) {
@@ -628,26 +645,19 @@ function playbar(full) {
 }
 
 // ---------- /syncs/m/<id>: a shared meeting - its wrap-up and the whole conversation, read-only ----------
-// the conversation with its moments, as the live page showed them (his note round 5), from the meeting's log: before each resident
-// line who was about to talk (cutting in, after a line that was cut - then who muted whom), before each turn of the visitor theirs
-// (their hand first when they raised it); the visitor's silence (the nudge) is just their turn that passed
+// the conversation as the live page left it (his notes round 5 / 5c), from the meeting's log: the lines, who muted whom at a cut, who
+// left, the visitor's raised hand - a bubble's waiting action never stays behind, and the visitor's silence (the nudge) leaves nothing
 function sharedLines(log) {
-  const out = [], pre = M_().pre;
+  const out = [];
   let last = null;   // the last line said
-  log.forEach((l, i) => {
-    if (l.left) { out.push(`<div class="mt-sys left">${LEAVE}<span>${esc(M_().left(NAME(l.who), FEM.has(l.who)))}</span></div>`); return; }
-    if (l.who === 'user') {
-      if (l.hand) out.push(evHtml('user', { text: M_().handUp, icon: HAND }));
-      out.push(evHtml('user', { text: M_().yourTurn1 }));
-      if (!l.silent) { out.push(rowHtml('user', l.text)); last = l; }
-      return;
-    }
-    const f = FEM.has(l.who), cutIn = !!(last && last.cut && last.who !== 'user');
-    out.push(evHtml(l.who, { text: `${NAME(l.who)} ${cutIn ? M_().cutting(f) : pre[(i * 3) % pre.length](f)}`, cut: cutIn }));
-    if (cutIn) out.push(`<div class="mt-sys cut">${MUTE}<span>${esc(M_().mute(NAME(l.who), NAME(last.who), f))}</span></div>`);
+  for (const l of log) {
+    if (l.left) { out.push(`<div class="mt-sys left">${LEAVE}<span>${esc(M_().left(NAME(l.who), FEM.has(l.who)))}</span></div>`); continue; }
+    if (l.silent) continue;
+    if (l.who === 'user') { if (l.hand) out.push(evHtml('user', { text: M_().handUp, icon: HAND })); out.push(rowHtml('user', l.text)); last = l; continue; }
+    if (last && last.cut && last.who !== 'user') out.push(`<div class="mt-sys cut">${MUTE}<span>${esc(M_().mute(NAME(l.who), NAME(last.who), FEM.has(l.who)))}</span></div>`);
     out.push(rowHtml(l.who, l.text, l.cut ? 'cut' : ''));
     last = l;
-  });
+  }
   return out.join('');
 }
 function sharedView(d) {

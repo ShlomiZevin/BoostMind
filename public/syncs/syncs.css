@@ -33,9 +33,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 @media (prefers-reduced-motion: reduce) { .sy-arrows, .sy-cam { animation-duration: 4s; } }
 
 /* ---------- the app bar: brand (right) · the state, running time, people (middle) · the way out (left) ---------- */
-.mt-top { flex: none; margin: 8px 10px 0; border-radius: 22px; border: 1px solid rgba(255, 255, 255, .12); background: #111115; overflow: hidden; }
-.mt-bar { flex: none; display: flex; align-items: center; gap: 10px; height: 62px; padding: 0 12px; border-bottom: 1px solid rgba(255, 255, 255, .08); }
-.mt > .mt-bar { margin: 8px 10px 0; border: 1px solid rgba(255, 255, 255, .12); border-radius: 22px; background: #111115; }
+/* the fixed top (his note round 5): a full-width bar with one straight, crisp bottom edge - the conversation scrolls below it, never
+   around or under a floating card */
+.mt-top, .mt > .mt-bar { position: relative; z-index: 2; flex: none; background: #121217; border-bottom: 2px solid #ff6a1f;
+  box-shadow: 0 10px 18px -10px rgba(0, 0, 0, .9); }
+.mt-bar { flex: none; display: flex; align-items: center; gap: 10px; height: 62px; padding: 0 14px; }
+.mt-top .mt-bar { border-bottom: 1px solid rgba(255, 255, 255, .07); }
 .mt-brand { flex: none; display: flex; align-items: center; gap: 9px; min-width: 0; }
 .mt-brand img { width: 36px; height: 36px; border-radius: 10px; flex: none; }
 .mt-brand span { display: flex; flex-direction: column; line-height: 1.05; }
@@ -54,12 +57,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .mt-info svg { width: 13px; height: 13px; }
 .mt-info b { font-weight: 700; font-variant-numeric: tabular-nums; direction: ltr; }
 .mt-info i { font-style: normal; opacity: .5; }
-.mt-out { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .16);
-  background: #1a1a20; color: #e9e6ee; font-size: 13.5px; font-weight: 700; }
-.mt-out svg { width: 17px; height: 17px; }
-@media (max-width: 380px) { .mt-out { width: 36px; padding: 0; justify-content: center; } .mt-out span { display: none; } }
+/* the way out: a compact icon button - the red hang-up in a meeting (his note round 5: no "יציאה" pill), the leave arrow elsewhere */
+.mt-out { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .16); background: #1a1a20; color: #e9e6ee; }
+.mt-out svg { width: 20px; height: 20px; }
+.mt-out.hang { background: #e5383b; border-color: #e5383b; color: #fff; box-shadow: 0 3px 12px rgba(229, 56, 59, .4); }
+.mt-out.hang svg { width: 27px; height: 27px; }
+.mt-out:active { transform: scale(.94); }
 .mt.kb .mt-bar { display: none; }
-.mt.kb .mt-top { margin-top: 6px; }
 
 /* ---------- who is in the meeting ---------- */
 .mt-pk { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 14px 10px; }
@@ -78,7 +82,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .mt-pk-row input:checked + .mt-pk-box { background: #ff6a1f; border-color: #ff6a1f; color: #fff; }
 .mt-pk-row.host { background: linear-gradient(90deg, rgba(255, 106, 31, .2), rgba(255, 106, 31, .1)); cursor: default; }
 .mt-pk-row.host input:checked + .mt-pk-box { background: rgba(255, 106, 31, .25); color: #ffb27a; }
-.mt-foot { flex: none; padding: 8px 14px max(12px, env(safe-area-inset-bottom)); }
+/* the picker's bottom (his pick: round5b C): its own section - another surface, a top border, the faces picked so far over the button */
+.mt-foot { flex: none; padding: 10px 14px max(12px, env(safe-area-inset-bottom)); background: #22170f; border-top: 1.5px solid rgba(255, 106, 31, .55);
+  box-shadow: 0 -10px 18px -10px rgba(0, 0, 0, .9); }
+.mt-foot-faces { display: flex; justify-content: center; height: 30px; margin-bottom: 9px; }
+.mt-foot-faces img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; border: 2px solid #22170f; margin-inline-start: -9px; background: #222; }
+.mt-foot-faces img:first-child { margin-inline-start: 0; }
 .mt-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 99px; white-space: nowrap; font-weight: 800; }
 .mt-btn svg { width: 18px; height: 18px; flex: none; }
 .mt-btn.go { background: #ff6a1f; color: #fff; box-shadow: 0 6px 22px rgba(255, 106, 31, .35); }
@@ -98,7 +107,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ---------- the tiles row = the speakers queue ---------- */
 /* who talks: lit and wider; who is next: "הבא/ה" on top and their pre-talk moment over the face; a cut-in in orange; the one just cut:
    a muted mic + "על השתק"; leaving: fades out; you: your face, your hand, your turn */
-.mt-tiles { flex: none; display: flex; gap: 6px; padding: 10px; height: 132px; }
+.mt-tiles { flex: none; display: flex; gap: 6px; padding: 9px 10px; height: 112px; }
 .mt-tile { position: relative; flex: 1 1 0; min-width: 0; border-radius: 14px; overflow: hidden; border: 1.5px solid rgba(255, 255, 255, .14); background: #1b1b20;
   transition: flex-grow .35s cubic-bezier(.3, .9, .3, 1), border-color .2s, box-shadow .2s, opacity .6s, transform .6s; }
 .mt-tile > img, .mt-me-face { position: absolute; top: 0; inset-inline: 0; width: 100%; height: calc(100% - 26px); object-fit: cover; object-position: 50% 18%; }
@@ -119,12 +128,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .mt-tile.talk .mt-nm { background: #2a1509; }
 .mt-tile.next { flex-grow: 1.25; border: 2px dashed rgba(255, 138, 61, .85); }
 .mt-tile.next .mt-un { animation: mt-breathe 1.6s ease-in-out infinite; }
-.mt-tile.cutin { border: 2px dashed #ff6a1f; }
-.mt-tile.cutin .mt-un { background: rgba(255, 106, 31, .88); }
 .mt-tile.muted { border-color: rgba(255, 90, 90, .7); }
 .mt-tile.muted .mt-un { background: rgba(120, 20, 20, .85); }
 .mt-tile.muted .mt-ic { color: #ff7b7b; }
-.mt-tile.turn { border: 2px dashed rgba(255, 106, 31, .9); }
 .mt-tile.bye { flex-grow: .001; opacity: 0; transform: scale(.8); }
 .mt.done .mt-tile { filter: grayscale(.45) brightness(.85); }
 @keyframes mt-breathe { 50% { opacity: .6; } }
@@ -148,6 +154,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .mt-tx { font-size: 17px; line-height: 1.45; font-weight: 500; color: #fff; margin-top: 2px; overflow-wrap: anywhere; min-height: 1.45em; }
 .mt-act { color: #a6a3ad; font-size: .88em; }
 .mt-row.now { border: 1.5px solid #ff6a1f; box-shadow: 0 0 18px rgba(255, 106, 31, .3); }
+/* the next speaker's bubble before their words (round 5c): what they are doing, as an action - dim, slanted, three dots breathing;
+   their words replace it in the same bubble */
+.mt-row.pend { border-style: dashed; border-color: rgba(255, 138, 61, .45); animation: mt-fade .3s ease-out; }
+.mt-doing { display: inline-flex; align-items: center; gap: 7px; color: #a6a3ad; font-size: 15px; font-style: italic; font-weight: 500; }
+.mt-dots { flex: none; width: 18px; height: 18px; fill: #ff8a3d; }
+.mt-dots circle { animation: mt-dot 1.2s ease-in-out infinite; }
+.mt-dots circle:nth-child(2) { animation-delay: .15s; }
+.mt-dots circle:nth-child(3) { animation-delay: .3s; }
+@keyframes mt-dot { 0%, 60%, 100% { opacity: .3; } 30% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mt-dots circle { animation: none; opacity: .8; } }
 .mt-row.cut .mt-tx { color: #e2dfe8; }
 .mt-row.me { align-self: flex-end; background: rgba(255, 106, 31, .1); border-color: rgba(255, 106, 31, .35); }
 .mt-row.me .mt-who b { color: #ffb27a; }
@@ -174,7 +190,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .mt-ev-av.ini { display: grid; place-items: center; background: #3a2618; color: #ffb27a; font-size: 10px; font-weight: 900; }
 .mt-ev svg { flex: none; width: 14px; height: 14px; color: #ff8a3d; }
 .mt-ev.me { color: #c9a184; }
-.mt-ev.cutin { color: #e8935c; }
 @keyframes mt-fade { from { opacity: 0; } }
 .mt-new { position: absolute; bottom: 10px; left: 50%; z-index: 3; transform: translateX(-50%); padding: 6px 14px; border-radius: 99px; background: #ff6a1f; color: #fff;
   font-size: 13px; font-weight: 800; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); }

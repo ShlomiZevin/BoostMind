@@ -31,7 +31,7 @@ const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
   await page.waitForSelector('.mt-pk', { timeout: 40000 });
   for (const id of ROOM) await page.click(`.mt-pk-row:has(input[value="${id}"])`);
   await page.click('#mt-go');
-  const floor = () => page.waitForFunction(() => { const i = document.querySelector('#mt-in'); return !i || /תורכם/.test(i.placeholder) || document.querySelector('.mt.done'); }, null, { timeout: 300000, polling: 300 });
+  const floor = () => page.waitForFunction(() => { const i = document.querySelector('#mt-in'); return !i || document.querySelector('#mt')?.dataset.floor === '1' || document.querySelector('.mt.done'); }, null, { timeout: 300000, polling: 300 });
   for (let i = 0; i < LINES.length; i++) {
     await floor();
     if (await page.$('.mt.done')) break;
