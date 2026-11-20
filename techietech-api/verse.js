@@ -1394,6 +1394,25 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       await db.collection('owner').doc('chatStars').set({ keys: b.on === false ? FieldValue.arrayRemove(k) : FieldValue.arrayUnion(k) }, { merge: true });
       return res.json({ ok: true });
     }
+    // "לסטורי" (his ask, 2026-11-20): conversations he marks to become a chat story. The marked thread's exchanges are
+    // COPIED into storyPicks/<key> (chat_logs expire), so any session finds them later: scripts/stories/chat-find.cjs --picked
+    // (the chat-story skill). done = a session made the story from it.
+    if (op === 'storyPicks') {
+      const snap = await db.collection('storyPicks').get();
+      return res.json({ picks: snap.docs.map((d) => { const x = d.data(); return { key: x.key, mode: x.mode, done: !!x.done, t: x.t, n: (x.msgs || []).length }; }) });
+    }
+    if (op === 'storyPick') {
+      const k = String(b.key || '').slice(0, 80);
+      if (!k) return res.status(400).json({ error: 'key' });
+      const ref = db.collection('storyPicks').doc(encodeURIComponent(k));
+      if (b.on === false) { await ref.delete(); return res.json({ ok: true }); }
+      const ids = (Array.isArray(b.ids) ? b.ids : []).map((x) => String(x).slice(0, 60)).filter(Boolean).slice(0, 80);
+      const docs = ids.length ? await db.getAll(...ids.map((id) => db.collection('chat_logs').doc(id))) : [];
+      const msgs = docs.filter((d) => d.exists).map((d) => { const x = d.data(); return { t: x.t.toMillis(), q: x.q || '', a: x.a || '' }; }).sort((x, y) => x.t - y.t);
+      if (!msgs.length) return res.status(400).json({ error: 'empty' });
+      await ref.set({ key: k, mode: String(b.mode || '').slice(0, 40), msgs, t: Date.now(), done: false });
+      return res.json({ ok: true, n: msgs.length });
+    }
     // "שאלו את הנתונים": a question in plain words, answered by Terra from a compact pack of the real numbers
     if (op === 'ask') {
       const q = String(b.q || '').trim().slice(0, 600);

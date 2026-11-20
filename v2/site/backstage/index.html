@@ -717,12 +717,14 @@
 .sw{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:.86rem;cursor:pointer}.sw input{display:none}.sw span{width:38px;height:22px;border-radius:99px;background:var(--line2);position:relative;transition:background .15s}.sw span::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}
 .sw input:checked+span{background:#4a8cff}.sw input:checked+span::after{transform:translateX(-16px)}
 .cv-sw{font-size:.8rem;flex:none;flex-direction:column;gap:3px;color:var(--dim)}.cv-h .star{flex:none}
-.cv-acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:2px 14px 12px;border-bottom:1px solid var(--line)}
+.cv-acts{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;padding:2px 14px 12px;border-bottom:1px solid var(--line)}
 .cv-b{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:62px;border-radius:16px;border:1px solid var(--line2);background:var(--card);font-weight:800;font-size:.82rem;color:var(--dim)}
 .cv-b svg{width:24px;height:24px}.cv-b.good svg{color:#4cc27a}.cv-b.bad svg{color:#ff5a5a}.cv-b.note svg{color:var(--text)}
 .cv-b.good.on{background:rgba(76,194,122,.16);border-color:#4cc27a;color:#8fe3ad}.cv-b.good.on svg{fill:rgba(76,194,122,.35)}
 .cv-b.bad.on{background:rgba(255,90,90,.15);border-color:#ff5a5a;color:#ff9a9a}.cv-b.bad.on svg{fill:rgba(255,90,90,.35)}
 .cv-b.note.has{border-color:rgba(255,106,31,.6);color:var(--text)}
+.cv-b.story svg{color:var(--accent)}.cv-b.story.on{background:rgba(255,106,31,.16);border-color:var(--accent);color:#ffb074}.cv-b.story.on svg{fill:rgba(255,106,31,.3)}
+.tag.sp{background:rgba(255,106,31,.16);color:#ffb074;border:1px solid rgba(255,106,31,.45);margin-inline-end:6px}
 .cv-b em,.an-b em{position:absolute;top:6px;inset-inline-end:10px;font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--accent);color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center}
 .cv-b-body{flex:1;overscroll-behavior:contain}
 .bub.them{position:relative}.bub.them p{-webkit-user-select:text;user-select:text}
@@ -879,7 +881,7 @@ const LOADERS = {
   S: () => api('stats&days=45').then((r) => { S = r; }),
   EV: () => api('events').then((r) => { EVS = r.events || []; }).catch(() => {}),   // never holds a tab up: no events = no markers
   PL: () => api('plans').then((r) => { PL = r; }),
-  CH: () => Promise.all([loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {})]),
+  CH: () => Promise.all([loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {}), api('storyPicks').then((r) => { picks = new Map(r.picks.map((p) => [p.key, p])); }).catch(() => {})]),
   SEEN: () => api('seenMap').then((r) => { SEEN = { ...r.seen, ...SEEN }; }),
   CR: () => api('charList', {}).then((r) => { CR = r; }),
   CN: () => api('chatNotes', {}).then((r) => { CN = r; }),
@@ -1725,6 +1727,14 @@ function kpi(m, extra) {
   return `<button class="k" data-metric="${m}"><span class="kh">${IC[icon]}${label}${IC.chev.replace('<svg', '<svg class="chev"')}</span>
     <b>${extra ?? fmt(v)}</b>${extra == null ? fcLine(m) : ''}${m === 'cz_start' ? `<span class="fc">סה״כ ${fmt(czAll('s'))} יצאו</span>` : m === 'cz_done' ? `<span class="fc">סה״כ ${fmt(czAll('c'))} אזרחים</span>` : tzNote(m, list) ? `<span class="fc">${tzNote(m, list)}</span>` : ''}<span class="kf"><span class="trend ${tr.c}">${tr.diff ? `${tr.t}<span class="tw"> מאז ${dm(since.day)}</span>` : tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${tr.since ? `מול כ-${fmt(Math.round(tr.before))} באותן שעות לפני` : tr.same ? 'מאתמול באותה שעה' : range === 1 ? 'מאתמול' : range === 0 ? 'משלשום' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
 }
+// the totals on top of the home (his ask, 2026-11-20): how many people have an account, how many residents live in the verse
+function totalsKpis() {
+  const all = accounts(), today = dayIL(), res = (W.characters || []).filter((c) => c.id !== 'verse' && !c.hidden);
+  return `<button class="k" data-tab="people"><span class="kh">${IC.people}רשומים${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>${fmt(all.length)}</b>
+      <span class="kf"><small class="note"><bdi dir="ltr">+${fmt(all.filter((p) => dayIL(p.created) === today).length)}</bdi> היום · ${fmt(all.filter((p) => p.citizen).length)} אזרחים</small></span></button>
+    <button class="k" data-tab="chars"><span class="kh">${IC.cast}תושבים${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>${fmt(res.length)}</b>
+      <span class="kf"><small class="note">חיים בשלומיוורס</small></span></button>`;
+}
 function overview() {
   const list = period(), msgs = mval('chat_message', list);
   const open = L.requests.filter((r) => !r.done).sort((a, b) => (b.t || 0) - (a.t || 0));
@@ -1746,7 +1756,7 @@ function overview() {
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>${since ? `מאז ${dm(since.day)} ${hhmm(since.from)} · כל מספר מול אותן שעות ב-7 הימים שלפני` : `מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}`}</p>
       ${since ? `<button class="since-pill" data-sinceoff title="חזרה לתקופות הרגילות">${IC.x}<span>מאז: ${esc(since.title)}</span></button>` : ''}</div>
       <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']].map(([v, l]) => [since ? NaN : v, l, v]))}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
-    <div class="kgrid">${kpi('visitors')}${timeKpi()}${ALL.slice(1).map((m) => kpi(m)).join('')}
+    <div class="kgrid">${totalsKpis()}${kpi('visitors')}${timeKpi()}${ALL.slice(1).map((m) => kpi(m)).join('')}
       <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer).toFixed(2)}</b>
         <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה${FC('chat_message') ? ` · צפי $${(FC('chat_message').proj * avgAnswer).toFixed(2)}` : ''}</small>${spark('chat_message')}</span></button></div>
     <div class="cols">
@@ -1755,6 +1765,7 @@ function overview() {
       <div class="card nowcard"><div class="card-h"><h2><span class="dot"></span> מה קורה עכשיו</h2><button data-tab="chats">לכל השיחות ${IC.back}</button></div>
         <div class="rows">${live.map(row).join('') || '<div class="empty">עוד שקט היום.</div>'}</div></div>
     </div>
+    <div class="ov-games" style="margin-top:16px">${barList('משחקים', byPrefix(sel ? [sel] : list, 'game_start'), `סיבובים ${sel ? dayName(sel.d) : since ? `מאז ${dm(since.day)}` : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`}`, { label: (k) => GAME[k] || k, n: 30 })}</div>
     <div id="ov-metric" class="tool" style="margin-top:16px"><select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     ${todayCard(metric, 'ov-fc').replace('margin-top:16px', 'margin:0 0 14px')}
     <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="ov-ch"></div></div>
@@ -1777,6 +1788,9 @@ function overview() {
 
 // ---------- שיחות: every conversation, as it happened ----------
 let CH = [], chRange = 'today', chChar = '', chFilter = 'all', chQuery = '', chShown = 60, stars = new Set();
+// conversations marked "לסטורי" (his ask, 2026-11-20): key -> { done } - the server copies the thread (verse.js storyPick),
+// a session makes the story from it (chat-story skill: scripts/stories/chat-find.cjs --picked)
+let picks = new Map();
 const chFrom = { today: () => dayStart(dayIL()), yesterday: () => dayStart(dayBack(1)), week: () => dayStart(dayBack(6)), month: () => dayStart(dayBack(29)) };
 async function loadChats(r) {
   chRange = r;
@@ -1812,19 +1826,19 @@ function chats() {
   const counts = {};
   for (const th of all) counts[th.mode] = (counts[th.mode] || 0) + 1;
   const list = all.filter((th) => (!chChar || th.mode === chChar)
-    && (chFilter === 'all' || (chFilter === 'star' && stars.has(th.key)) || (chFilter === 'long' && th.items.length >= 4) || (chFilter === 'signed' && th.signed) || (chFilter === 'notes' && cnAllOf(th.key)) || (chFilter === 'good' && markOf(th.key) === 'good') || (chFilter === 'bad' && markOf(th.key) === 'bad') || (chFilter === 'new' && !markOf(th.key) && !cnAllOf(th.key)))
+    && (chFilter === 'all' || (chFilter === 'star' && stars.has(th.key)) || (chFilter === 'story' && picks.has(th.key)) || (chFilter === 'long' && th.items.length >= 4) || (chFilter === 'signed' && th.signed) || (chFilter === 'notes' && cnAllOf(th.key)) || (chFilter === 'good' && markOf(th.key) === 'good') || (chFilter === 'bad' && markOf(th.key) === 'bad') || (chFilter === 'new' && !markOf(th.key) && !cnAllOf(th.key)))
     && (!q || th.items.some((c) => (c.q + ' ' + c.a).toLowerCase().includes(q))));
   const msgs = all.reduce((a, th) => a + th.items.length, 0);
   $('#pane').innerHTML = `${chSegBar()}
     <div class="top"><div><h1>שיחות</h1><p>${fmt(all.length)} שיחות · ${fmt(msgs)} הודעות · עלות $${all.reduce((a, th) => a + th.cost, 0).toFixed(2)}</p></div>
       <div class="rng">${[['today', 'היום'], ['yesterday', 'אתמול'], ['week', '7 ימים'], ['month', '30 ימים']].map(([k, l]) => `<button data-chrange="${k}" class="${k === chRange ? 'on' : ''}">${l}</button>`).join('')}</div></div>
     <label class="search" style="margin-bottom:12px">${IC.search}<input id="ch-q" placeholder="חיפוש בשיחות - מילה מהשאלה או מהתשובה" value="${esc(chQuery)}"></label>
-    <div class="chips">${[['all', 'הכול'], ['new', 'לא נבדקו'], ['good', 'טובות'], ['bad', 'גרועות'], ['notes', 'עם הערות'], ['star', 'מסומנות בכוכב'], ['long', 'ארוכות'], ['signed', 'של רשומים']].map(([k, l]) => `<button data-chf="${k}" class="${k === chFilter ? 'on' : ''}">${l}${k === 'star' && stars.size ? `<small>${all.filter((th) => stars.has(th.key)).length}</small>` : ''}</button>`).join('')}</div>
+    <div class="chips">${[['all', 'הכול'], ['new', 'לא נבדקו'], ['good', 'טובות'], ['bad', 'גרועות'], ['notes', 'עם הערות'], ['star', 'מסומנות בכוכב'], ['story', 'לסטורי'], ['long', 'ארוכות'], ['signed', 'של רשומים']].map(([k, l]) => `<button data-chf="${k}" class="${k === chFilter ? 'on' : ''}">${l}${k === 'star' && stars.size ? `<small>${all.filter((th) => stars.has(th.key)).length}</small>` : ''}${k === 'story' && picks.size ? `<small>${all.filter((th) => picks.has(th.key)).length}</small>` : ''}</button>`).join('')}</div>
     <div class="faces-row"><button data-chchar="" class="${chChar ? '' : 'on'}"><span class="all">${IC.people}</span>הכול<b>${all.length}</b></button>
       ${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([id, n]) => `<button data-chchar="${esc(id)}" class="${chChar === id ? 'on' : ''}">${face(id)}${esc(cname(id))}<b>${n}</b></button>`).join('')}</div>
     <div>${list.slice(0, chShown).map((th) => `<button class="th" data-chat="${esc(th.key)}">${face(th.mode)}
       <div class="body"><div class="q">${esc(th.items[0].q)}</div><div class="a">${esc(cname(th.mode))}: ${esc(th.items[0].a.replace(/\[\[[^\]]*\]\]/g, '').slice(0, 120))}</div></div>
-      <div class="meta"><span>${hhmm(th.last)}${chRange !== 'today' ? ` · ${dm(dayIL(th.last))}` : ''}</span><span><span data-thn="${esc(th.key)}">${markBadge(th.key)}${cnBadge(th.key)}</span>${th.items.length} הודעות${th.person ? `<span class="who-pill">${esc(personName(th.person))}</span>` : th.signed ? '<span class="who-pill">רשום/ה</span>' : ''}</span></div>
+      <div class="meta"><span>${hhmm(th.last)}${chRange !== 'today' ? ` · ${dm(dayIL(th.last))}` : ''}</span><span><span data-thn="${esc(th.key)}">${markBadge(th.key)}${cnBadge(th.key)}</span><span data-spb="${esc(th.key)}">${pickBadge(th.key)}</span>${th.items.length} הודעות${th.person ? `<span class="who-pill">${esc(personName(th.person))}</span>` : th.signed ? '<span class="who-pill">רשום/ה</span>' : ''}</span></div>
       <span class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" role="button" aria-label="כוכב">${IC.star}</span></button>`).join('') || '<div class="empty">אין שיחות כאלה.</div>'}</div>
     ${list.length > chShown ? `<button class="btn more" data-chmore>עוד ${fmt(list.length - chShown)} שיחות</button>` : ''}`;
   const inp = $('#ch-q');
@@ -1906,6 +1920,8 @@ function thinkHtml(c) {
 }
 const cvNoteBtn = (th) => { const n = cnOf(th.key, '').length + cnOf(th.key).filter((x) => x.msg).length; return `<button class="cv-b note ${n ? 'has' : ''}" data-cvnote="">${IC.comment}<span>הערה</span>${n ? `<em>${n}</em>` : ''}</button>`; };
 const ansNoteBtn = (th, id) => { const n = cnOf(th.key, id).length; return `<button class="an-b ${n ? 'has' : ''}" data-cvnote="${esc(id)}" aria-label="הערה על התשובה">${IC.comment}${n ? `<em>${n}</em>` : ''}</button>`; };
+const pickBadge = (k) => (picks.has(k) ? `<span class="tag sp">${picks.get(k).done ? 'סטורי נעשה' : 'לסטורי'}</span>` : '');
+const pickBtn = (th) => `<button class="cv-b story ${picks.has(th.key) ? 'on' : ''}" data-storypick="">${IC.story}<span>${picks.get(th.key)?.done ? 'סטורי נעשה' : 'לסטורי'}</span></button>`;
 const markBtns = (th) => { const m = markOf(th.key); return `<button class="cv-b good ${m === 'good' ? 'on' : ''}" data-mark="good">${IC.up}<span>שיחה טובה</span></button><button class="cv-b bad ${m === 'bad' ? 'on' : ''}" data-mark="bad">${IC.down}<span>שיחה גרועה</span></button>`; };
 
 function openThread(k, list, focus) {
@@ -1918,7 +1934,7 @@ function openThread(k, list, focus) {
       <div class="t"><b>${esc(cname(th.mode))}</b><small>${th.person ? `<button data-person="${th.person.uid}">${esc(personName(th.person))}</button> · ` : th.signed ? 'רשום/ה · ' : 'אורח/ת · '}${c0.m ? 'טלפון' : 'מחשב'} · ${th.items.length} הודעות · ${hhmm(c0.t)}${chRange !== 'today' ? ' ' + dm(dayIL(c0.t)) : ''}${th.cost ? ` · $${th.cost.toFixed(3)}` : ''}</small></div>
       ${anyThink ? `<label class="sw cv-sw"><input type="checkbox" data-thinksw ${thinkOn ? 'checked' : ''}><span></span>חשיבה</label>` : ''}
       <button class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" title="מצחיק">${IC.star}</button></div>
-    <div class="cv-acts">${markBtns(th)}${cvNoteBtn(th)}</div>
+    <div class="cv-acts">${markBtns(th)}${pickBtn(th)}${cvNoteBtn(th)}</div>
     <div class="sh-b cv-b-body ${thinkOn ? 'thinking' : ''}">${th.items.map((c) => { const d = dayIL(c.t), sep = d !== lastDay ? `<div class="day-sep">${dayName(d)}</div>` : ''; lastDay = d;
       return `${sep}<div class="cmsg" data-msg="${esc(c.id)}"><div class="bub me"><p>${esc(c.q)}</p><time>${hhmm(c.t)}</time></div>
         <div class="bub them" data-lp="${esc(c.id)}">${face(th.mode)}<p>${cardsIn(c.a)}</p>${ansNoteBtn(th, c.id)}</div>
@@ -2013,6 +2029,19 @@ async function tnSend(b) {
   } catch (e) { say('לא נשמר - לנסות שוב'); }
   b.disabled = false;
 }
+// "לסטורי": mark / unmark the open conversation; the server keeps a copy of it for the session that makes the story
+async function pickSet(b) {
+  const th = TH; if (!th) return;
+  const on = !picks.has(th.key);
+  b.disabled = true;
+  try {
+    await api('storyPick', on ? { key: th.key, on: true, mode: th.mode, ids: th.items.map((x) => x.id).filter(Boolean) } : { key: th.key, on: false });
+    on ? picks.set(th.key, { key: th.key, mode: th.mode, done: false }) : picks.delete(th.key);
+    b.outerHTML = pickBtn(th);
+    document.querySelectorAll(`[data-spb="${CSS.escape(th.key)}"]`).forEach((x) => { x.innerHTML = pickBadge(th.key); });
+    say(on ? 'סומנה לסטורי - סשן יכין ממנה סטורי' : 'הסימון לסטורי הוסר');
+  } catch (e) { b.disabled = false; say('לא נשמר - לנסות שוב'); }
+}
 async function markSet(v) {
   if (!TH) return;
   const k = TH.key, was = markOf(k), nv = was === v ? '' : v;   // the same button again takes the mark off
@@ -2101,6 +2130,7 @@ document.addEventListener('click', async (e) => {
   else if (d.cnf) { cnFilter = d.cnf; cnView(); }
   else if (d.cvnote != null) cpOpen(d.cvnote);
   else if (d.mark) await markSet(d.mark);
+  else if (d.storypick != null) await pickSet(b);
   else if (d.cpjump) { const m = d.cpjump; cpClose(); const el = document.querySelector(`.sheet [data-msg="${CSS.escape(m)}"]`); if (el) { msgCenter(el, true); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800); } }
   else if (d.tnsend != null) await tnSend(b);
   else if (d.tndone) await tnDone(b);
@@ -2182,7 +2212,6 @@ function breakdown(list, label) {
     ${barList('סרטונים', byPrefix(list, 'video'), 'צפיות', { label: vName })}
     ${barList('הורדות', byPrefix(list, 'download'), 'הורדות', { label: vName })}
     ${barList('אתרים', merge(list, 'site'), 'כניסות', { label: (k) => SITE[k] || k })}
-    ${barList('משחקים', byPrefix(list, 'game_start'), 'סיבובים', { label: (k) => GAME[k] || k })}
     ${barList('מכשיר', merge(list, 'dev'), 'מבקרים', { label: (k) => ({ phone: 'טלפון', desktop: 'מחשב' }[k] || k) })}
     ${barList('הקהילה', Object.fromEntries(Object.keys(EV).map((e) => [e, sum(list, (d) => d.n?.[e])])), 'פעולות', { label: (k) => EV[k] || k, n: 14 })}
     <div class="card"><div class="card-h"><h2>נרשמו ${label}</h2><small class="hint">${ppl.length}</small></div>
