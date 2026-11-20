@@ -2446,10 +2446,14 @@
   "wiki_id": "ig-18105599755529800"
  },
  "17884045215287720": {
-  "status": "asked",
+  "status": "on-wiki",
   "asked": "2026-11-20T06:19:12.669Z",
   "permalink": "https://www.instagram.com/reel/DRFeeoniA2j/",
   "likes": 936,
-  "guess": "רופא המיון"
+  "guess": "רופא המיון",
+  "cast": [
+   "dr-samer"
+  ],
+  "wiki_id": "ig-17884045215287720"
  }
 }
