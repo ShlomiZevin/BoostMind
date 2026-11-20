@@ -31,7 +31,9 @@ const CPS = Math.max(35, letters / Math.max(10, MAX - fixed));   // letters per 
     const fsz = await p.evaluate(() => {
       const c = document.getElementById('chat'); let s;
       for (s = 46; s >= 26; s -= 1) { c.style.setProperty('--fs', s + 'px'); c.style.setProperty('--g', Math.round(s * 0.7) + 'px'); if (c.scrollHeight <= c.clientHeight) break; }
-      c.style.paddingTop = Math.max(0, (c.clientHeight - c.scrollHeight) / 2) + 'px'; c.style.justifyContent = 'flex-start'; c.style.boxSizing = 'border-box';
+      // the bubbles' own height (scrollHeight is never below clientHeight, so it can't centre a short part)
+      const rows = c.querySelectorAll('.row'), contentH = rows[rows.length - 1].getBoundingClientRect().bottom - rows[0].getBoundingClientRect().top;
+      c.style.justifyContent = 'flex-start'; c.style.boxSizing = 'border-box'; c.style.paddingTop = Math.max(0, (c.clientHeight - contentH) / 2) + 'px';
       const st = document.createElement('style'); st.textContent = '.caret{display:inline-block;width:.08em;height:1em;margin-inline-start:.06em;vertical-align:-.12em;background:currentColor;opacity:.8}'; document.head.appendChild(st);
       window.__full = [...document.querySelectorAll('#chat .row .b')].map((e) => e.textContent);
       document.querySelectorAll('#chat .row').forEach((r) => { r.style.visibility = 'hidden'; });
