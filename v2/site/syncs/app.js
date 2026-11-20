@@ -48,7 +48,10 @@ const TT = '<span class="mt-tt" dir="ltr"><b>Syncs</b><i>·</i><span class="m">&
 export const LOADER_SVG = `<svg class="sy-logo" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="syg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a2e"/><stop offset="1" stop-color="#ff5508"/></linearGradient></defs>
 <rect x="6" y="6" width="108" height="108" rx="30" fill="url(#syg)"/><g class="sy-arrows" fill="#ffd21f" stroke="#ffd21f" stroke-width="7" stroke-linecap="round"><path fill="none" d="M27 39 A39 39 0 0 1 89 35"/><path stroke="none" d="M97.5 44 L84.5 41 L93 30.5Z"/><path fill="none" d="M93 81 A39 39 0 0 1 31 85"/><path stroke="none" d="M22.5 76 L35.5 79 L27 89.5Z"/></g>
 <g class="sy-cam"><rect x="31" y="46" width="44" height="28" rx="7" fill="#fff"/><path d="M76.5 56 L89 48.5 V71.5 L76.5 64 Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="53" cy="56.5" r="4.6" fill="#ff6a1f"/><path d="M45 70.5a8 7 0 0 1 16 0Z" fill="#ff6a1f"/><circle cx="42.5" cy="58.5" r="3.4" fill="#ffab6b"/><path d="M37 70.5a5.5 5.5 0 0 1 11 0Z" fill="#ffab6b"/><circle cx="63.5" cy="58.5" r="3.4" fill="#ffab6b"/><path d="M58 70.5a5.5 5.5 0 0 1 11 0Z" fill="#ffab6b"/></g></svg>`;
-const loaderHtml = (line = '') => `<div class="sy-load" role="status" aria-label="Syncs">${LOADER_SVG}<b dir="ltr">Syncs</b>${line ? `<span>${esc(line)}</span>` : ''}</div>`;
+// the full-screen loader's byline ("another product from Techy-Tech", the company's blue "</>") is the one index.html paints first -
+// taken from there, so the app's loader is the same markup to the pixel (no jump) and its words live in one place
+const BYLINE = document.querySelector('#mt .sy-by')?.outerHTML || '';
+const loaderHtml = (line = '') => `<div class="sy-load" role="status" aria-label="Syncs">${LOADER_SVG}<b dir="ltr">Syncs</b>${line ? `<span>${esc(line)}</span>` : BYLINE}</div>`;
 
 // ---------- the page ----------
 let S = null;          // the screen's state
@@ -185,7 +188,8 @@ function live(room, opts = {}) {
   const el = root(); if (!el) return;
   const demoMode = !!opts.demo;
   Object.assign(S, { room, everyone: room.slice(), id: null, ended: false, streaming: null, queue: [], playing: false, row: null, speaking: null, typing: null,
-    hand: false, handSent: false, pending: null, floor: false, stick: true, t0: Date.now(), recap: null, ender: null, next: null, notes: {}, muted: {},
+    hand: false, handSent: false, pending: null, floor: false, stick: true, t0: Date.now(), recap: null, ender: null, next: null, notes: {}, muted: {}, evs: {},
+    nudged: false, nudgeT: null,
     abort: new AbortController(), mode: demoMode ? 'demo' : 'live', started: false });
   if (!demoMode) S.rec = [];   // every event with its time: "לצפות שוב" replays THIS meeting (no server), and record-demo.cjs records the demo
   el.className = `mt mt-live${demoMode ? ' demo' : ''}`;
@@ -203,7 +207,7 @@ function live(room, opts = {}) {
   tick();
   if (demoMode) { el.querySelector('#mt-replay').onclick = () => { track('meeting', 'demo-again'); demo(); }; return; }
   const inp = el.querySelector('#mt-in');
-  inp.addEventListener('input', () => { el.querySelector('#mt-box').classList.toggle('has', !!inp.value.trim()); if (inp.value.trim()) raise(); });
+  inp.addEventListener('input', () => { el.querySelector('#mt-box').classList.toggle('has', !!inp.value.trim()); if (inp.value.trim()) raise(); armNudge(S); });
   el.querySelector('#mt-hand').onclick = () => { raise(); inp.focus(); };
   el.querySelector('#mt-box').onsubmit = (e) => { e.preventDefault(); const t = inp.value.trim(); if (!t || S.ended || S.pending) return; inp.value = ''; el.querySelector('#mt-box').classList.remove('has'); say(t); };
   stream({ op: 'start', room });
@@ -222,6 +226,7 @@ async function stream(body) {
     try {
       const res = await api(body, me.abort.signal);
       if (res.status === 429) { me.booked = true; return booked(); }
+      if (res.status === 409 && body.op === 'nudge') { push(me, { t: 'floor', _g: gen }); return; }   // not now (a round runs / it ended): the floor stays theirs, quietly
       if (!res.ok || !res.body) throw new Error('http ' + res.status);
       const rd = res.body.getReader(), dec = new TextDecoder();
       let buf = '';
@@ -243,7 +248,7 @@ async function stream(body) {
 }
 function push(me, e) {
   if (S !== me) return;
-  if (me.rec) { const { _g, ...x } = e; me.rec.push({ at: Date.now() - me.t0, e: x }); }   // recording a demo (?rec=1)
+  if (me.rec) { const { _g, ...x } = e, it = { at: Date.now() - me.t0, e: x }; me.rec.push(it); e._rec = it; }   // the recording (replay, the demo)
   me.queue.push(e); if (!me.playing) play(me);
 }
 
@@ -253,6 +258,7 @@ async function play(me) {
   me.playing = true;
   while (me.queue.length && S === me) {
     const e = me.queue.shift();
+    if (e._rec) me.recNow = e._rec;   // what is playing now (a raised hand is recorded right after it)
     if (!me.started && e.t !== 'meeting' && e.t !== 'visitor') { me.started = true; root()?.querySelector('#mt-wait')?.remove(); sys(me, M_().starting); }
     if (e.t === 'delta') { line(me, e.who).target += e.text; kick(me); continue; }
     if (e.t === 'cut') { const r = line(me, e.who); r.target = e.text; r.cut = true; r.by = e.by; kick(me); continue; }
@@ -265,12 +271,15 @@ async function play(me) {
     }
     if (e.t === 'meeting') { me.id = e.id; continue; }
     if (e.t === 'visitor') { me.visitor = { ...me.visitor, name: e.name || me.visitor.name || '', title: e.title || '' }; paintMe(); continue; }
-    if (e.t === 'next') { upNext(me, e.who, e.cut); continue; }
+    // who is next after <after>: decided while <after> talks - sometimes before their first word; it waits for their row, so the queue
+    // and its event line come after the line they follow
+    if (e.t === 'next') { if (e.after && !(me.row && me.row.who === e.after && !me.row.closed)) me.heldNext = e; else upNext(me, e.who, e.cut); continue; }
     if (e.t === 'typing') { me.typing = e.who; if (!me.notes[e.who]) upNext(me, e.who, false); paintTiles(me); continue; }
     if (e.t === 'guest') { if (me.next === 'user') me.next = null; me.floor = false; me.hand = false; addRow(me, 'user', e.text, true); paintTiles(me); continue; }
     if (e.t === 'away') { sys(me, M_().away(NAME(e.who), FEM.has(e.who), e.holy), '', 'left'); gone(me, e.who); continue; }   // Shabbat / a holiday they keep (the chat's [[away]])
     if (e.t === 'left') { await wait(250); sys(me, M_().left(NAME(e.who), FEM.has(e.who)), LEAVE, 'left'); gone(me, e.who); await wait(500); continue; }
-    if (e.t === 'floor') { if (e._g !== me.gen) continue; me.floor = true; me.typing = null; me.speaking = null; if (me.next !== 'user') me.next = null; paintTiles(me); placeholder(me); continue; }
+    if (e.t === 'floor') { if (e._g !== me.gen) continue; me.floor = true; me.typing = null; me.speaking = null; if (me.next !== 'user') me.next = null; paintTiles(me); placeholder(me); armNudge(me); continue; }
+    if (e.t === 'silence') { clearTimeout(me.nudgeT); me.floor = false; if (me.next === 'user') me.next = null; paintTiles(me); placeholder(me); continue; }   // the visitor's silence went to the room (the nudge)
     if (e.t === 'end') { ended(me, e.who); continue; }
     if (e.t === 'recap') { me.recap = e.recap; recapCard(me); continue; }
     if (e.t === 'error') { sys(me, M_().drop, '', 'err'); continue; }
@@ -287,6 +296,8 @@ function line(me, who) {
   if (me.next === who) me.next = null;
   delete me.notes[who];   // next time, another moment
   me.row = r; me.typing = null; me.speaking = who; paintTiles(me);
+  const h = me.heldNext;
+  if (h) { me.heldNext = null; if (h.after === who) upNext(me, h.who, h.cut); }
   return r;
 }
 // the words appear one by one at a talking pace (faster when far behind the stream)
@@ -341,6 +352,13 @@ function addRow(me, who, text, done) {
 function sys(me, text, icon = '', cls = '') {
   const rows = root()?.querySelector('#mt-rows'); if (!rows) return;
   rows.insertAdjacentHTML('beforeend', `<div class="mt-sys ${cls}">${icon}<span>${esc(text)}</span></div>`);
+  pin();
+}
+// an event line: the tile's band as a small line in the conversation - their face, the band's own words (secondary to speech)
+const evHtml = (id, ev) => `<div class="mt-ev${ev.cut ? ' cutin' : ''}${id === 'user' ? ' me' : ''}">${id === 'user' ? meFace('mt-ev-av') : `<img class="mt-ev-av" src="${esc(PIC(id))}" alt="">`}${ev.icon || ''}<span>${esc(ev.text)}</span></div>`;
+function evLine(me, id, ev) {
+  const rows = root()?.querySelector('#mt-rows'); if (!rows || !me.started) return;
+  rows.insertAdjacentHTML('beforeend', evHtml(id, ev));
   pin();
 }
 
@@ -402,6 +420,18 @@ function paintTiles(me) {
       else if (handUp) { band = M_().handUp; ic = HAND; }   // the hand says it (no tag beside it on a narrow tile)
       else if (me.next === 'user') { band = M_().youNext; tag = M_().nextTag('you'); }
     } else if (next) { tag = note && note.cut ? '' : M_().nextTag(f); band = note ? note.t : M_().pre[0](f); }
+    // the same moment in the conversation (his note round 5): one quiet line each time a tile's band really changes - the visitor's
+    // turn (next in line or the floor: one state), their hand, a resident about to talk / cutting in. The cut and the one leaving
+    // have their own lines (muted, left). A state already said is never said again until it is gone.
+    let ev = null;
+    if (!mute && !talk) {
+      if (id === 'user') { if (band && !ic) ev = { key: 'turn', text: band }; else if (handUp) ev = { key: 'hand', text: band, icon: HAND }; }
+      else if (next) ev = { key: 'n:' + band, text: `${NAME(id)} ${band}`, cut: !!(note && note.cut) };
+    }
+    if (me.evs) {
+      if (ev && me.evs[id] !== ev.key) evLine(me, id, ev);
+      me.evs[id] = ev ? ev.key : '';
+    }
     t.classList.toggle('talk', talk);
     t.classList.toggle('next', next || (id === 'user' && (me.next === 'user' || (me.floor && !me.ended))));
     t.classList.toggle('cutin', !!(next && note && note.cut));
@@ -428,7 +458,8 @@ function raise() {
   if (!me || me.mode !== 'live' || me.ended || me.floor || !me.id || me.handSent) return;
   me.handSent = true; me.hand = true;
   track('meeting', 'hand');
-  if (me.rec) me.rec.push({ at: Date.now() - me.t0, e: { t: '_hand' } });
+  // recorded where the visitor saw it - right after the event playing now (the stream itself is usually ahead of what plays)
+  if (me.rec) { const i = me.recNow ? me.rec.indexOf(me.recNow) : -1; const it = { at: i >= 0 ? me.recNow.at : Date.now() - me.t0, e: { t: '_hand' } }; if (i >= 0) me.rec.splice(i + 1, 0, it); else me.rec.push(it); }
   api({ op: 'hand', id: me.id }).catch(() => {});
   paintTiles(me);
 }
@@ -440,18 +471,44 @@ function placeholder(me) {
 async function say(text) {
   const me = S;
   me.pending = text;
+  clearTimeout(me.nudgeT); me.nudged = false;   // they spoke: the next silence may be nudged again
   track('meeting', 'say');
+  const hand = !me.floor || me.handSent;   // they raised a hand before the floor was theirs (the shared page shows it)
   if (!me.floor) raise();
   while (me.streaming && S === me) await me.streaming.catch(() => {});
   while (!me.id && S === me) await wait(200);
   if (S !== me || me.ended) return;
   me.pending = null; me.hand = false; me.handSent = false; me.floor = false;
+  if (me.next === 'user') me.next = null;   // they are speaking now - no "your turn" left over for the event lines
   paintTiles(me); placeholder(me);
-  stream({ op: 'say', id: me.id, text });
+  stream({ op: 'say', id: me.id, text, ...(hand ? { hand: true } : {}) });
 }
+
+// ---------- the silence nudge (his note round 5): the floor is theirs and NUDGE_MS go by without a word - the page asks the room to go
+// on (the director decides: someone turns to them, or the team carries on). Only from the page (a visitor who left never makes the
+// server talk), once per silence (again only after they sent something), never once it ends or in a recording, never while the tab is
+// hidden or the box has anything in it (typing = a raised hand).
+const NUDGE_MS = 10000;
+const nudgeOk = (me) => !!me && S === me && me.mode === 'live' && !!me.id && me.floor && !me.ended && !me.nudged && !me.pending && !document.hidden
+  && !(root()?.querySelector('#mt-in')?.value || '').trim();
+function armNudge(me) {
+  if (!me) return;
+  clearTimeout(me.nudgeT);
+  if (nudgeOk(me)) me.nudgeT = setTimeout(() => nudge(me), NUDGE_MS);
+}
+function nudge(me) {
+  if (!nudgeOk(me)) return;
+  if (me.streaming || me.queue.length) { me.nudgeT = setTimeout(() => nudge(me), 1500); return; }   // the last round still closing
+  me.nudged = true; me.floor = false;
+  track('meeting', 'nudge');
+  paintTiles(me); placeholder(me);
+  stream({ op: 'nudge', id: me.id });
+}
+document.addEventListener('visibilitychange', () => { if (S && S.mode === 'live') { if (document.hidden) clearTimeout(S.nudgeT); else armNudge(S); } });
 
 // ---------- the end: the closing line, "<who> סיים את הפגישה", Amir's wrap-up, back to the Shlomiverse / share ----------
 function ended(me, who) {
+  clearTimeout(me.nudgeT);
   me.ended = true; me.ender = who; me.floor = false; me.hand = false; me.typing = null; me.speaking = null; me.next = null;
   me.endMs = (me.mode === 'demo' ? me.demoNow() : Date.now()) - me.t0;
   paintTiles(me);
@@ -571,12 +628,34 @@ function playbar(full) {
 }
 
 // ---------- /syncs/m/<id>: a shared meeting - its wrap-up and the whole conversation, read-only ----------
+// the conversation with its moments, as the live page showed them (his note round 5), from the meeting's log: before each resident
+// line who was about to talk (cutting in, after a line that was cut - then who muted whom), before each turn of the visitor theirs
+// (their hand first when they raised it); the visitor's silence (the nudge) is just their turn that passed
+function sharedLines(log) {
+  const out = [], pre = M_().pre;
+  let last = null;   // the last line said
+  log.forEach((l, i) => {
+    if (l.left) { out.push(`<div class="mt-sys left">${LEAVE}<span>${esc(M_().left(NAME(l.who), FEM.has(l.who)))}</span></div>`); return; }
+    if (l.who === 'user') {
+      if (l.hand) out.push(evHtml('user', { text: M_().handUp, icon: HAND }));
+      out.push(evHtml('user', { text: M_().yourTurn1 }));
+      if (!l.silent) { out.push(rowHtml('user', l.text)); last = l; }
+      return;
+    }
+    const f = FEM.has(l.who), cutIn = !!(last && last.cut && last.who !== 'user');
+    out.push(evHtml(l.who, { text: `${NAME(l.who)} ${cutIn ? M_().cutting(f) : pre[(i * 3) % pre.length](f)}`, cut: cutIn }));
+    if (cutIn) out.push(`<div class="mt-sys cut">${MUTE}<span>${esc(M_().mute(NAME(l.who), NAME(last.who), f))}</span></div>`);
+    out.push(rowHtml(l.who, l.text, l.cut ? 'cut' : ''));
+    last = l;
+  });
+  return out.join('');
+}
 function sharedView(d) {
   const el = root(); if (!el) return;
   S = { mode: 'shared', visitor: d.visitor || {}, everyone: d.room || [], room: d.room || [], t0: 0 };
   document.title = d.recap && d.recap.title ? `${d.recap.title} · Syncs` : 'Syncs';
   el.className = 'mt mt-live mt-shared done';
-  const lines = (d.log || []).map((l) => (l.left ? `<div class="mt-sys left">${LEAVE}<span>${esc(M_().left(NAME(l.who), FEM.has(l.who)))}</span></div>` : rowHtml(l.who, l.text, l.cut ? 'cut' : ''))).join('');
+  const lines = sharedLines(d.log || []);
   el.innerHTML = `<div class="mt-top">${bar()}<div class="mt-tiles">${S.room.map(tile).join('')}${meTile()}</div></div>
     <div class="mt-stage"><div class="mt-log" id="mt-log"><div class="mt-rows" id="mt-rows">
       ${d.recap ? `<section class="mt-recap">${recapHtml(d.recap, S.room, d.ms || 0, d.t ? today(new Date(d.t)) : today())}</section>` : ''}

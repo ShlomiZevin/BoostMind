@@ -18,6 +18,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .sy-load .sy-logo { width: 92px; height: 92px; filter: drop-shadow(0 8px 26px rgba(255, 106, 31, .45)); }
 .sy-load b { font-size: 26px; font-weight: 900; letter-spacing: -.01em; color: #fff; }
 .sy-load span { font-size: 14.5px; font-weight: 600; color: #b9b5bf; margin-top: -6px; }
+/* the byline under the full-screen loader (his note: "another product from Techy-Tech") - the company's own mark, the blue "</>" of
+   public/techietech/ (its footer colour on dark); the same rules sit inline in index.html for the first paint */
+.sy-by { display: inline-flex; align-items: center; gap: 7px; margin-top: -4px; font-size: 13px; font-weight: 600; color: #8f8c97; }
+.sy-by i { font-style: normal; font-weight: 800; font-size: 15px; letter-spacing: -2px; color: #6fa8f0; direction: ltr; }
 .sy-arrows { transform-box: view-box; transform-origin: 60px 60px; animation: sy-spin 1.8s cubic-bezier(.55, .1, .35, .95) infinite; }
 .sy-cam { transform-box: view-box; transform-origin: 60px 60px; animation: sy-cam 1.8s ease-in-out infinite; }
 @keyframes sy-spin { to { transform: rotate(360deg); } }
@@ -161,6 +165,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .mt-sys.end { color: #fff; font-weight: 800; border-color: rgba(255, 255, 255, .2); }
 .mt-sys.err { color: #ff9b9b; }
 @keyframes mt-pop { from { transform: scale(.7); opacity: 0; } }
+/* an event line (his note round 5): what a tile's band says, said once in the conversation too - small, quiet, no box: a tiny face
+   and the band's words; secondary to every speech row */
+.mt-ev { align-self: center; display: inline-flex; align-items: center; gap: 6px; max-width: 94%; margin: -2px 0; padding: 0 4px; color: #8f8c97;
+  font-size: 12.5px; font-weight: 600; line-height: 1.3; animation: mt-fade .35s ease-out; }
+.mt-ev span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mt-ev-av { flex: none; width: 18px; height: 18px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; background: #222; opacity: .9; }
+.mt-ev-av.ini { display: grid; place-items: center; background: #3a2618; color: #ffb27a; font-size: 10px; font-weight: 900; }
+.mt-ev svg { flex: none; width: 14px; height: 14px; color: #ff8a3d; }
+.mt-ev.me { color: #c9a184; }
+.mt-ev.cutin { color: #e8935c; }
+@keyframes mt-fade { from { opacity: 0; } }
 .mt-new { position: absolute; bottom: 10px; left: 50%; z-index: 3; transform: translateX(-50%); padding: 6px 14px; border-radius: 99px; background: #ff6a1f; color: #fff;
   font-size: 13px; font-weight: 800; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); }
 .mt-new[hidden] { display: none; }

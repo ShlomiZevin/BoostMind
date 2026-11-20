@@ -27,6 +27,7 @@ const { DIRECTOR, RULES, sheetText, ALL, scriptsOf, sonnet, call, PLAN_FORMAT, N
 const TEAM = ['amir', 'ofer', 'daniel', 'ronit', 'gilad', 'yaniv'];
 const HOST = 'amir', BOSS = 'gilad';
 const MAX_RUN = 4;          // resident lines in a row before the floor is the visitor's (a guard, not the organizer's taste)
+const SILENT_S = 10;        // the visitor's silence on their own floor before the page asks the room to go on (the page's nudge)
 const DANIEL = 'daniel';   // never finishes a sentence: Amir always cuts him off and picks up his last words (his rule, 2026-11-20)
 const ender = (room) => (room.includes(BOSS) ? BOSS : HOST);
 // the visitor: no "guest" anywhere (his note 2026-11-20, "a real product"). At the start of every meeting they get a made-up
@@ -49,8 +50,11 @@ function forces(cur, room, me = null) {
   }).join('\n');
 }
 function transcript(cur, log) {
-  return log.map((l) => (l.left ? `(${nameOf(cur, l.who)} left the call)` : `${nameOf(cur, l.who)}: ${l.text}${l.cut ? ' [נקטע באמצע המשפט]' : ''}`)).join('\n') || '(the meeting has not started)';
+  return log.map((l) => (l.left ? `(${nameOf(cur, l.who)} left the call)`
+    : l.silent ? `(the floor was ${nameOf(cur, 'user')}'s - ${SILENT_S} seconds went by and they said nothing)`
+    : `${nameOf(cur, l.who)}: ${l.text}${l.cut ? ' [נקטע באמצע המשפט]' : ''}`)).join('\n') || '(the meeting has not started)';
 }
+const spoken = (l) => l && !l.left && !l.silent;   // a line someone said (not someone leaving, not the visitor's silence)
 const short = (v, n) => { const t = (Array.isArray(v) ? v.join(' · ') : String(v || '')).trim(); return t.length > n ? t.slice(0, t.lastIndexOf(' ', n)) + '…' : t; };
 const clean = (t) => String(t || '').replace(/\[\[[^\]]*\]\]/g, '').trim();
 
@@ -94,7 +98,7 @@ async function organize(M, inAir) {
   if (inAir && inAir.who === DANIEL && M.room.includes(HOST) && !inAir.leaving)
     return { next: HOST, cut: true, leave: false, end: false, forced: true, cue: `${nameOf(cur, HOST)} cuts ${nameOf(cur, DANIEL)} off before he finishes and picks up his last words`, why: 'Daniel never finishes a sentence (his rule)' };
   const room = M.room.filter((id) => !(inAir && inAir.leaving && id === inAir.who));   // the one leaving now is not on the call after their line
-  const user = `Team lines since the visitor last spoke: ${M.run}.${M.left.length ? `\nLeft the call (gone): ${M.left.map((id) => nameOf(cur, id)).join(', ')}.` : ''}
+  const user = `Team lines since the visitor's last turn: ${M.run}.${M.left.length ? `\nLeft the call (gone): ${M.left.map((id) => nameOf(cur, id)).join(', ')}.` : ''}
 The meeting so far:
 ${transcript(cur, log)}
 ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAir.say}${inAir.leaving ? `\n(${nameOf(cur, inAir.who)} drops off the call after this line.)` : ''}\n\nWho speaks after ${nameOf(cur, inAir.who)}?` : '\nWho speaks now?'}`;
@@ -106,6 +110,10 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
   const speaking = inAir ? inAir.who : (log[log.length - 1] || {}).who;
   let next = room.includes(o.next) && o.next !== speaking ? o.next : 'user';
   if (M.run + (inAir ? 1 : 0) >= MAX_RUN) next = 'user';   // the guard: the floor goes back to the visitor
+  // the floor was the visitor's and they let it pass (the page's nudge): it doesn't go straight back to them with nobody saying a word -
+  // the room goes on; when the organizer still names the visitor, the host (he drives the meeting) takes it
+  if (!inAir && next === 'user' && silentLast(log) && room.includes(HOST))
+    return { next: HOST, cut: false, leave: false, end: false, cue: String(o.cue || ''), why: `the visitor let the floor pass - ${nameOf(cur, HOST)} drives the meeting on (${String(o.why || '')})`, ms: r.ms };
   const end = next === ender(room) && o.end === true;
   // leaving: a team member who isn't the host or the one who ends it, after the first few lines, never on the meeting's last line
   const leave = next !== 'user' && !end && o.leave === true && next !== HOST && next !== DANIEL && next !== ender(room) && log.length >= 3;
@@ -143,7 +151,7 @@ function cutOff(text, said = '', force = false) {
 async function speak(M, plan, emit, handNow) {
   const { cur } = M, id = plan.next, c = cur.byId[id];
   const now = nowIL();
-  const prev = M.log.filter((l) => !l.left).slice(-1)[0];
+  const prev = M.log.filter(spoken).slice(-1)[0];
   const why = plan.opening
     ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - greeting them by their name and title, ${nameOf(cur, 'user')} - and what this meeting is about${M.log.length ? '' : ' - or ask them what brought them'}.`
     : `Why ${c.name} speaks now: ${plan.cue || 'the line that was just said'}`
@@ -158,7 +166,7 @@ async function speak(M, plan, emit, handNow) {
   // 1 · direct - the same director as the chat (their page + every script, cached per resident), the meeting as the moment
   // parity with the chat (his rule 2026-11-20: "every agent replies exactly as in the chat"): the same director system as wiki-deep
   // reply() - their page, every script, the world + the legend (from the visitor's own words) - only the moment differs
-  const turns = M.log.filter((l) => l.who === 'user').map((l) => ({ role: 'user', content: l.text }));
+  const turns = M.log.filter((l) => l.who === 'user' && spoken(l)).map((l) => ({ role: 'user', content: l.text }));
   const world = chain.world(cur) + chain.legend(cur, turns);
   const system = DIRECTOR(c, chain.known(cur, id).map((x) => cur.byId[x].name), scriptsOf(cur, c), world);
   const ask = `${NOW(now)}${phrases.length ? `\nCatchphrases ${c.name} already said in this meeting (never again): ${JSON.stringify(phrases)}` : ''}
@@ -299,11 +307,20 @@ const genderLine = (M) => {
 };
 const lastWords = (t, n = 4) => String(t || '').replace(/<[^<>]*>/g, '').replace(/[—-]\s*$/, '').trim().split(/\s+/).slice(-n).join(' ');
 
-// the visitor says something: on the log, the count starts again, and the next round answers it
-function guestSays(M, text) {
-  M.log.push({ who: 'user', text: String(text).slice(0, 600) });
+// the visitor says something: on the log, the count starts again, and the next round answers it (hand: they raised a hand before
+// the floor was theirs - the shared page shows it)
+function guestSays(M, text, { hand = false } = {}) {
+  M.log.push({ who: 'user', text: String(text).slice(0, 600), ...(hand ? { hand: true } : {}) });
   M.run = 0; M.next = null; M.hand = false;
 }
+// the floor was the visitor's and they said nothing for SILENT_S seconds (his ask 2026-11-20: the page asks the room to go on): the
+// silence goes on the log as it happened - the organizer and every speaker see it in the transcript and decide what to do with it
+// (someone turns to them, the team carries on); it counts as the visitor's turn
+function guestSilent(M) {
+  M.log.push({ who: 'user', silent: true });
+  M.run = 0; M.next = null; M.hand = false;
+}
+const silentLast = (log) => !!((log || [])[(log || []).length - 1] || {}).silent;
 
 // ---------- the wrap-up (his notes on the end screen: "action items + share"; then "a real, good-looking wrap-up"): Amir's
 // summary of THIS meeting, the one he sends everyone after the call - what it was about, who said / decided what, who owns what.
@@ -337,4 +354,4 @@ points: 2 to 3. items: 3 to 5, each with its owner (ids from: ${ids.join(', ')})
     items: (o.items || []).slice(0, 5).map(row).filter((x) => x.text), next: s(o.next, 200), by: HOST };
 }
 
-module.exports = { TEAM, HOST, BOSS, MAX_RUN, newMeeting, round, guestSays, stateOf, fromState, ender, _test: { organizerSystem, cutOff, transcript, recap } };
+module.exports = { TEAM, HOST, BOSS, MAX_RUN, SILENT_S, newMeeting, round, guestSays, guestSilent, silentLast, stateOf, fromState, ender, _test: { organizerSystem, cutOff, transcript, recap } };

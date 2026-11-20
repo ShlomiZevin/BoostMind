@@ -5,6 +5,10 @@
 //   {op:'start', room}     -> stream: {t:'meeting', id, room}, {t:'visitor', name, title} (their name + the title the meeting gives them),
 //                             then the first round (Amir opens)
 //   {op:'say', id, text}   -> stream: {t:'guest', text} (the visitor's line first, so the order is true), then a round answering it
+//   {op:'nudge', id}       -> stream: {t:'silence'}, then a round - the floor was the visitor's and they said nothing for ~10 s (the
+//                             page asks, once per silence, only while it is open and they typed nothing); the silence goes on the log
+//                             and the room decides what to do with it. 409 when the meeting ended / wraps up, a round is running, or
+//                             the last thing on the log is already a silence (a page that left never makes the server talk)
 //   {op:'hand', id}        -> {ok} - the visitor is typing: a raised hand, the floor is theirs after the line in the air
 //   {op:'share', id}       -> {url} - the owner shares THIS meeting: it becomes public (shared: true, kept a year) at /syncs/m/<id>
 // GET /syncs/m/<id>          the shared meeting's own page (hosting sends it here): public/syncs/index.html with the meeting in #s-data
@@ -76,7 +80,8 @@ const NAMES = { amir: 'אמיר', ofer: 'עופר', daniel: 'דניאל', ronit:
 // what the page gets: the meeting, read-only - who was in it, the conversation, the wrap-up (never the owner's uid)
 function publicOf(id, d) {
   const ended = d.ended ? meeting.ender(d.all || d.room || []) : null;
-  return { id, room: d.all || d.room || [], log: (d.log || []).map((l) => (l.left ? { who: l.who, left: true } : { who: l.who, text: l.text, cut: !!l.cut })),
+  return { id, room: d.all || d.room || [], log: (d.log || []).map((l) => (l.left ? { who: l.who, left: true } : l.silent ? { who: l.who, silent: true }
+    : { who: l.who, text: l.text, cut: !!l.cut, ...(l.hand ? { hand: true } : {}) })),
     recap: d.recap || null, visitor: { name: (d.visitor || {}).name || '', title: (d.visitor || {}).title || '', photo: (d.visitor || {}).photo || '' },
     t: d.t && d.t.toDate ? d.t.toDate().toISOString() : null, ms: d.ms || (d.endedAt && d.t ? d.endedAt.toMillis() - d.t.toMillis() : 0), ender: ended };
 }
@@ -157,12 +162,25 @@ exports.verseMeeting = onRequest({
     }
     return res.json({ ok: true, url: `${SITE}/syncs/m/${ref.id}` });
   }
-  if (b.op !== 'start' && b.op !== 'say') return res.status(400).json({ error: 'op' });
+  if (b.op !== 'start' && b.op !== 'say' && b.op !== 'nudge') return res.status(400).json({ error: 'op' });
 
   const cur = await require('./wiki')._canon();
   const keys = { cur, key: OPENAI.value(), akey: ANTHROPIC.value() || null };
   let ref, M, guest = null;
-  if (b.op === 'start') {
+  if (b.op === 'nudge') {   // the visitor's silence: the guards and the round's claim in one transaction (two nudges never both run)
+    ref = meetRef(String(b.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 30));
+    const d = await db().runTransaction(async (tx) => {
+      const x = (await tx.get(ref)).data();
+      if (!x || x.uid !== who.uid) return { no: 404 };
+      if (x.ended || (x.busy && Date.now() - x.busy.toMillis() < 240e3) || !(x.log || []).length || meeting.silentLast(x.log)) return { no: 409 };
+      tx.update(ref, { busy: Timestamp.now() });
+      return x;
+    });
+    if (d.no) return res.status(d.no).json({ error: d.no === 409 ? 'not_now' : undefined });
+    M = meeting.fromState(d, keys);
+    meeting.guestSilent(M);
+    await ref.update({ hand: false, log: M.log, run: M.run });
+  } else if (b.op === 'start') {
     const room = (Array.isArray(b.room) ? b.room : []).filter((id) => meeting.TEAM.includes(id));
     if (!(await takeDay(who))) return res.status(429).json({ error: 'booked' });
     ref = db().collection('meetings').doc();
@@ -182,13 +200,14 @@ exports.verseMeeting = onRequest({
     guest = String(b.text || '').trim().slice(0, 600);
     if (!guest) return res.status(400).json({ error: 'text' });
     M = meeting.fromState(d, keys);
-    meeting.guestSays(M, guest);
+    meeting.guestSays(M, guest, { hand: b.hand === true });
     await ref.update({ busy: Timestamp.now(), hand: false, log: M.log, run: M.run });
   }
 
   res.set({ 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' });
   const out = (e) => { try { res.write(JSON.stringify(e) + '\n'); } catch (x) { /* the page went away - the round still finishes and is saved */ } };
   if (b.op === 'start') out({ t: 'meeting', id: ref.id, room: M.room });
+  else if (b.op === 'nudge') out({ t: 'silence' });
   else out({ t: 'guest', text: guest });
   const before = M.cost, t0 = Date.now();
   let lines = 0;

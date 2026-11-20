@@ -610,7 +610,7 @@ export const T = {
     role: { amir: 'CSO', ofer: 'VP BD', daniel: 'הטכנולוגי', ronit: 'COO', gilad: 'CEO', yaniv: 'אבטחת מידע' },
     roleFull: { amir: 'סמנכ"ל אסטרטגיה וחדשנות', ofer: 'סמנכ"ל פיתוח עסקי', daniel: 'AI Technology Enablement Specialist II', ronit: 'סמנכ"לית תפעול וניהול סיכונים', gilad: 'מנכ"ל ונשיא', yaniv: 'מהנדס אבטחת מידע' },
     // the app bar's state (his note round 4: a live meeting you are in vs a recording)
-    live: 'בשידור חי', recorded: 'הקלטה', endedBadge: 'הסתיימה',
+    live: 'פגישה פעילה', recorded: 'הקלטה', endedBadge: 'הסתיימה',
     pickTitle: 'מי בישיבה?', start: 'להתחיל את הישיבה', starting: 'הישיבה מתחילה', joining: 'מחברים אתכם לישיבה…',
     you: 'אתם',
     // the moment before someone talks, like on Zoom - on their tile in the row (the speakers queue) - f = Ronit
