@@ -22,7 +22,7 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
-const { Timestamp } = require('firebase-admin/firestore');
+const { Timestamp, FieldValue } = require('firebase-admin/firestore');
 const meeting = require('./meeting');
 
 if (!admin.apps.length) admin.initializeApp();
@@ -45,6 +45,18 @@ const db = () => admin.firestore();
 const meetRef = (id) => db().collection('meetings').doc(id);
 const dayRef = (uid) => db().collection('quota').doc(`meet_${uid}_${dayIL()}`);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// Syncs' AI spend (his ask 2026-11-20: its own line on Backstage → הוצאות and in the home's AI cost): one record per meeting, written
+// with absolute values after every round (so it is counted once, whatever is retried), and kept after the meeting's own 7 days.
+// costs.js reads it by the providers' day (UTC), verse.js stats by the Israel day. The meeting's day = the day it started.
+const r4 = (v) => Math.round((v || 0) * 1e6) / 1e6;
+async function ledger(ref, M, who) {
+  const t = ((await ref.get()).data() || {}).t, at = t && t.toDate ? t.toDate() : new Date(), by = M.costBy || {};
+  await db().collection('syncsCost').doc(ref.id).set({ t: Timestamp.fromDate(at), dUTC: at.toISOString().slice(0, 10), dIL: dayIL(at),
+    usd: r4(M.cost), openai: r4(by.openai), anthropic: r4(by.anthropic), unsplit: r4(by.unsplit), owner: !!who.owner, preview: !!who.preview, ended: !!M.ended, at: Timestamp.now() });
+}
+// a visitor's meeting that just ended -> the analytics day's counter (the page itself never says it ended); his own meetings don't
+// count, as his own devices don't (t.js)
+const countEnded = (who) => (who.owner ? null : db().collection('analytics_days').doc(dayIL()).set({ d: dayIL(), n: { 'meeting|ended': FieldValue.increment(1) } }, { merge: true }));
 
 // a few dozen requests per address per hour, per instance
 const recent = new Map();
@@ -209,7 +221,7 @@ exports.verseMeeting = onRequest({
   if (b.op === 'start') out({ t: 'meeting', id: ref.id, room: M.room });
   else if (b.op === 'nudge') out({ t: 'silence' });
   else out({ t: 'guest', text: guest });
-  const before = M.cost, t0 = Date.now();
+  const before = M.cost, t0 = Date.now(), wasEnded = !!M.ended;
   let lines = 0;
   const emit = (e) => { if (e.t === 'line') lines++; out(e); };
   // the guest's hand: read from the doc before every next speaker (the hand op sets it from another request / instance)
@@ -223,6 +235,8 @@ exports.verseMeeting = onRequest({
     if (b.op === 'start' && !lines) await giveBackDay(who);   // nothing was said: the day's meeting isn't spent
   }
   await ref.update({ ...meeting.stateOf(M), busy: null, ...(M.ended ? { endedAt: Timestamp.now(), ms: Date.now() - ((await ref.get()).data()?.t?.toMillis() || Date.now()) } : {}) }).catch((e) => console.error('verseMeeting save failed', ref.id, e.message));
+  await ledger(ref, M, who).catch((e) => console.error('verseMeeting ledger failed', ref.id, e.message));
+  if (M.ended && !wasEnded) await Promise.resolve(countEnded(who)).catch((e) => console.error('verseMeeting ended count failed', e.message));
   console.log('verseMeeting round', ref.id, b.op, `${lines} lines`, `${((Date.now() - t0) / 1000).toFixed(1)}s`, `$${(M.cost - before).toFixed(4)} (meeting $${M.cost.toFixed(4)})`, M.ended ? 'ENDED' : '');
   res.end();
 });

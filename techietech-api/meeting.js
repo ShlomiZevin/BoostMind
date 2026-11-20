@@ -57,6 +57,16 @@ function transcript(cur, log) {
 const spoken = (l) => l && !l.left && !l.silent;   // a line someone said (not someone leaving, not the visitor's silence)
 const short = (v, n) => { const t = (Array.isArray(v) ? v.join(' · ') : String(v || '')).trim(); return t.length > n ? t.slice(0, t.lastIndexOf(' ', n)) + '…' : t; };
 const clean = (t) => String(t || '').replace(/\[\[[^\]]*\]\]/g, '').trim();
+// every model call's cost, counted once: M.cost (the total) + M.costBy by provider (Backstage → הוצאות shows Syncs as its own line:
+// the OpenAI part is taken out of the chat key's line - meetings use WIKI_OPENAI_KEY - and the Anthropic part, which no provider
+// report gives us, is added; costs.js). Sonnet calls come back with a claude-* model, Terra's with gpt-*. `unsplit` = what a meeting
+// had spent before the split existed (2026-11-20), provider unknown.
+function spend(M, r) {
+  const c = (r && r.cost) || 0;
+  M.cost += c;
+  const by = (M.costBy ||= { openai: 0, anthropic: 0, unsplit: 0 });
+  by[/^claude/.test(String((r && r.model) || '')) ? 'anthropic' : 'openai'] += c;
+}
 
 // ---------- the organizer ----------
 function organizerSystem(cur, room) {
@@ -105,7 +115,7 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
   let r = null;
   if (M.akey) r = await sonnet(M.akey, organizerSystem(cur, room), user).catch((e) => { console.error('organizer on Sonnet failed - Terra', e.message); return null; });
   if (!r) r = await call(M.key, 'direct', organizerSystem(cur, room), [{ role: 'user', content: user }], { max: 600 });
-  M.cost += r.cost || 0;
+  spend(M, r);
   const o = r.out || {};
   const speaking = inAir ? inAir.who : (log[log.length - 1] || {}).who;
   let next = room.includes(o.next) && o.next !== speaking ? o.next : 'user';
@@ -180,7 +190,7 @@ ${PLAN_FORMAT(c)}`;
   let d = null;
   if (M.akey) d = await sonnet(M.akey, system, ask).catch((e) => { console.error('meeting director on Sonnet failed - Terra', e.message); return null; });
   if (!d) d = await call(M.key, 'direct', system, [{ role: 'user', content: ask }], { max: 1600, cacheKey: 'dir-' + id });
-  M.cost += d.cost || 0;
+  spend(M, d);
   const D = d.out || {};
   const holy = holyNow(new Date());
   if (holy && D.rest === true) return { away: holy, text: '', after: { next: 'user' }, sent: '', cut: false, plan: D };   // the chat's [[away]]: they keep it, they're not here
@@ -213,7 +223,7 @@ ${PLAN_FORMAT(c)}`;
     return a;
   });
   const [t, after] = await Promise.all([writer, org]);
-  M.cost += t.cost || 0;
+  spend(M, t);
   const text = clean(t.out);
   M.phrases[id] = [...new Set([...phrases, ...(c.sheet?.catchphrases || []).filter((p) => text.includes(p))])];
   return { text, after, sent, cut: hold || forced, plan: D };
@@ -226,13 +236,13 @@ ${PLAN_FORMAT(c)}`;
 function newMeeting({ cur, key, akey, room, visitor = {}, visitorNote = '' }) {
   const r = [HOST, ...TEAM.filter((id) => id !== HOST && (room || []).includes(id) && cur.byId[id])];
   const v = { name: String(visitor.name || '').trim().slice(0, 40), title: '' };
-  return { cur: withVisitor(cur, v), visitor: v, visitorNote: String(visitorNote || '').slice(0, 3000), key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, next: null, recap: null };
+  return { cur: withVisitor(cur, v), visitor: v, visitorNote: String(visitorNote || '').slice(0, 3000), key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, costBy: { openai: 0, anthropic: 0, unsplit: 0 }, next: null, recap: null };
 }
 // what is kept between requests (meeting-fn.js puts it in Firestore) and how it comes back
-const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 'cost', 'recap', 'visitor', 'visitorNote'];
+const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 'cost', 'costBy', 'recap', 'visitor', 'visitorNote'];
 const stateOf = (M) => Object.fromEntries(STATE.map((k) => [k, M[k] ?? null]));
 const fromState = (s, { cur, key, akey }) => ({ cur: withVisitor(cur, s.visitor || {}), key, akey, visitor: {}, room: [], all: [], left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, recap: null,
-  ...Object.fromEntries(STATE.filter((k) => s[k] != null).map((k) => [k, s[k]])), next: null });
+  ...Object.fromEntries(STATE.filter((k) => s[k] != null).map((k) => [k, s[k]])), costBy: s.costBy || { openai: 0, anthropic: 0, unsplit: s.cost || 0 }, next: null });
 
 async function round(M, emit, opts = {}) {
   const handNow = opts.hand || (async () => M.hand);
@@ -294,7 +304,7 @@ Answer JSON only: {"title": "..."}`;
   let r = null;
   if (M.akey) r = await sonnet(M.akey, sys, ask).catch(() => null);
   if (!r) r = await call(M.key, 'talk', sys, [{ role: 'user', content: ask }], { max: 300 });
-  M.cost += r.cost || 0;
+  spend(M, r);
   return String((r.out || {}).title || '').replace(/["“”]/g, '').trim().slice(0, 60);
 }
 // how to talk TO the visitor (his note 2026-11-20: Amir said "ברוכה הבאה" to "צוות השיווק"): their gender only when the account says it
@@ -346,7 +356,7 @@ Answer JSON only:
  "next": "one short line about the follow-up, or \\"\\""}
 points: 2 to 3. items: 3 to 5, each with its owner (ids from: ${ids.join(', ')}). Everything in Hebrew.` }],
     { json: true, max: 1400 });
-  M.cost += r.cost || 0;
+  spend(M, r);
   const o = r.out || {};
   const s = (v, n) => String(v || '').replace(/\[\[[^\]]*\]\]/g, '').trim().slice(0, n);
   const row = (x) => ({ who: ids.includes(x?.who) ? x.who : HOST, text: s(x?.text, 220) });

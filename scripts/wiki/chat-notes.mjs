@@ -7,6 +7,7 @@
 //   node scripts/wiki/chat-notes.mjs open --out c.md       every open comment + its whole conversation + what the chain's steps decided (read with the Read tool - Hebrew)
 //   node scripts/wiki/chat-notes.mjs all --out c.md              handled ones too
 //   node scripts/wiki/chat-notes.mjs marks [good|bad] --out m.md  the conversations he marked 👍 / 👎 (with or without a comment)
+//   (a Syncs meeting he marked / commented shows as "KIND: SYNCS MEETING" - key m:<meeting id> - with every speaker's lines and the wrap-up)
 //   node scripts/wiki/chat-notes.mjs reply <id> --file r.txt     answer under his comment - closes it
 //   node scripts/wiki/chat-notes.mjs done <id> [--open]          handled without an answer (or open again)
 import fs from 'node:fs';
@@ -26,6 +27,25 @@ async function api(op, body) {
 const write = (text) => { const f = opt('out'); if (f) { fs.writeFileSync(f, text, 'utf8'); console.log('written to', f); } else console.log(text); };
 const when = (t) => (t ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') : '');
 const [cmd, id] = argv;
+// a Syncs meeting is a conversation too (since 2026-11-20): key 'm:<meeting id>' - chatThread gives the whole meeting. Its lines,
+// by speaker, with the mute / left / silence moments and the wrap-up; a comment on one line marks it with >>>.
+const NAMES = { amir: 'AMIR', ofer: 'OFER', daniel: 'DANIEL', ronit: 'RONIT', gilad: 'GILAD', yaniv: 'YANIV' };
+const isMeeting = (k) => /^m:/.test(String(k || ''));
+function meetingLines(M, hit = '') {
+  if (!M) return ['(no longer kept)', ''];
+  const v = M.visitor || {}, who = (w) => (w === 'user' ? `VISITOR (${v.name || '?'})` : NAMES[w] || String(w).toUpperCase());
+  const out = [`KIND: SYNCS MEETING - with ${(M.room || []).map(who).join(', ')} + the visitor ${v.name || '?'}${v.title ? ` ("${v.title}")` : ''} - ${when(M.t)}${M.ended ? '' : ' - did not end'}`, ''];
+  (M.log || []).forEach((l, i) => {
+    const prev = M.log[i - 1], mark = `${M.id}L${i}` === hit ? '>>> ' : '';
+    if (prev && prev.cut && prev.text && !l.left && !l.silent && prev.who !== 'user') out.push(`   [${who(l.who)} muted ${who(prev.who)}]`);
+    if (l.left) out.push(`   [${who(l.who)} left the meeting]`);
+    else if (l.silent) out.push('   [the visitor stayed silent - the room went on]');
+    else out.push(`${mark}${who(l.who)}: ${l.text}${l.cut ? ' —' : ''}`);
+  });
+  if (M.ended && M.ender) out.push(`   [${who(M.ender)} ended the meeting]`);
+  if (M.recap) out.push('', `WRAP-UP: ${JSON.stringify(M.recap)}`);
+  return [...out, ''];
+}
 
 if (cmd === 'open' || cmd === 'all') {
   const { notes, marks = {} } = await api('chatNotes');
@@ -39,6 +59,7 @@ if (cmd === 'open' || cmd === 'all') {
       `On: ${n.msg ? 'one answer (marked >>> below)' : 'the whole conversation'}${marks[n.key] ? ` · he marked the conversation ${marks[n.key].toUpperCase()}` : ''}`, '', `HIS COMMENT: ${n.text}`, '');
     for (const r of notes.filter((x) => x.by === 'claude' && x.reply === n.id)) out.push(`Answered (${when(r.t)}): ${r.text}`, '');
     out.push('### The conversation', '');
+    if (isMeeting(n.key)) { out.push(...meetingLines((await api('chatThread', { key: n.key }).catch(() => ({}))).meeting, n.msg)); continue; }
     if (!th.length) out.push(`(no longer kept - the message: Q: ${n.q} / A: ${n.a})`, '');
     for (const c of th) {
       const mark = c.id === n.msg ? '>>> ' : '';
@@ -55,7 +76,12 @@ if (cmd === 'open' || cmd === 'all') {
   for (const k of keys) {
     const c = k.startsWith('c:') ? k.slice(2) : '';
     const n = notes.find((x) => x.key === k);
-    const th = (await api('chatThread', { c, ids: n?.ids || [] }).catch(() => ({ chats: [] }))).chats.sort((a, b) => a.t - b.t);
+    if (isMeeting(k)) {
+      const M = (await api('chatThread', { key: k }).catch(() => ({}))).meeting;
+      out.push(`## ${marks[k].toUpperCase()} - syncs meeting - ${when(M?.t)} - ${k}${notes.some((x) => x.key === k && x.by !== 'claude') ? ' (has comments)' : ''}`, '', ...meetingLines(M));
+      continue;
+    }
+    const th =(await api('chatThread', { c, ids: n?.ids || [] }).catch(() => ({ chats: [] }))).chats.sort((a, b) => a.t - b.t);
     out.push(`## ${marks[k].toUpperCase()} - ${th[0]?.mode || n?.mode || '?'} - ${when(th[0]?.t)} - ${k}${notes.some((x) => x.key === k && x.by !== 'claude') ? ' (has comments)' : ''}`, '');
     if (!th.length) out.push('(no longer kept)', '');
     for (const m of th) out.push(`VISITOR: ${m.q}`, `${String(m.mode).toUpperCase()}: ${m.a}`, ...(m.think ? [`   (the chain's steps decided: ${JSON.stringify(m.think)})`] : []), '');

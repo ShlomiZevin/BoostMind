@@ -1024,7 +1024,7 @@ const wrongKey = new Map();
 let followCache = null;   // how many follow each character (the 'list' op)
 // Backstage's pulse (2026-11-20). The ops that only read; any other op that answers OK is a write, stamped in owner/pulse by
 // its area (the page's areas: list / plans / chars / chatnotes / events / tz / mail / catalog / stars / seen / wishes)
-const OWNER_READS = new Set(['pulse', 'list', 'stats', 'chats', 'stars', 'storyPicks', 'seenMap', 'people', 'hours', 'visits', 'ask', 'costs', 'citizenStats',
+const OWNER_READS = new Set(['pulse', 'list', 'stats', 'chats', 'meetings', 'stars', 'storyPicks', 'seenMap', 'people', 'hours', 'visits', 'ask', 'costs', 'citizenStats',
   'simStats', 'aboutStats', 'catalogList', 'wishes', 'plans', 'plan', 'charList', 'charNotes', 'events', 'chatNotes', 'chatThread', 'tzList', 'tzReports',
   'tzCast', 'mailState', 'mailLog', 'mailSamples', 'mailBounces', 'mailView']);
 function pulseArea(op) {
@@ -1047,10 +1047,13 @@ async function ownerPulse() {
     top('requests'), top('comments'), top('ideas'), top('stickers'), top('stories'), top('chat_logs'), top('chatNotes'), top('charNotes'), top('catalogLog'),
     top('greetingVoice'), top('plans', 'updated'), top('tzRuns', 'at'), top('tzReports'), top('mailLog'), top('mailBounces', 'last'), top('wishes', 'last'),
   ]);
+  // Syncs meetings grow line by line (their t is when they started): the newest one's lines too, so a meeting going on shows up
+  const meet = await db.collection('meetings').orderBy('t', 'desc').limit(1).get()
+    .then((q) => { const d = q.docs[0]; if (!d) return '0'; const x = d.data(); return `${x.t?.toMillis?.() || 0}:${d.id}:${(x.log || []).length}:${x.ended ? 1 : 0}`; }).catch(() => 'x');
   const o = (k) => String(own[k] || 0);
   return { t: Date.now(), v: {
     list: [requests, comments, ideas, stickers, stories, o('list')].join('|'),
-    chats: chats, stars: o('stars'), seen: o('seen'),
+    chats: chats, meetings: meet, stars: o('stars'), seen: o('seen'),
     chatnotes: [chatnotes, o('chatnotes')].join('|'),
     chars: [charnotes, catalog, greet, o('chars')].join('|'),
     catalog: [catalog, o('catalog')].join('|'),
@@ -1415,6 +1418,9 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
         db.collection('citizens').select('created', 'stamped', 'own', 'test').get(),
         tzSince(Timestamp.fromMillis(Date.now() - days * 2 * 864e5)),
       ]);
+      // Syncs' AI spend per Israel day (meeting-fn.js syncsCost - the home's AI cost tile adds it to the chat's)
+      const syncs = {};
+      await db.collection('syncsCost').where('dIL', '>=', from).get().then((q) => q.docs.forEach((x) => { const c = x.data(); syncs[c.dIL] = (syncs[c.dIL] || 0) + (c.usd || 0); })).catch((e) => console.error('syncsCost', e.message));
       // how today will end (forecast.js): learned from the per-hour counters of every day it has, fresh on each load
       const all = d.docs.map((x) => x.data());
       let forecast = null;
@@ -1423,7 +1429,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
       // passport (s) and when they got their number (c) - the page counts them per day like the sign-ups
       const ms = (t) => (t && t.toMillis ? t.toMillis() : null);
       const journey = cz.docs.map((x) => x.data()).filter((x) => !x.own && !x.test).map((x) => ({ s: ms(x.created), c: ms(x.stamped) }));
-      return res.json({ days: all.map(({ h, ...x }) => x), people, forecast, journey, tz,
+      return res.json({ days: all.map(({ h, ...x }) => x), people, forecast, journey, tz, syncs,
         events: ev.docs.map((x) => { const e = x.data(); delete e.exp; return { ...e, t: e.t.toMillis() }; }) });
     }
     // the conversations (wiki.js keeps them): a time range (from / to in ms), or everything one account said (uid)
@@ -1434,12 +1440,21 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
           .where('t', '<', Timestamp.fromMillis(+req.query.to || Date.now() + 6e4)).orderBy('t', 'desc').limit(3000).get();
       return res.json({ chats: snap.docs.map((x) => { const c = x.data(); delete c.exp; return { id: x.id, ...c, t: c.t.toMillis() }; }) });
     }
+    // Syncs meetings, listed with the conversations (his ask 2026-11-20: "eventually it's just a conversation"): the same time range,
+    // or one account's (uid). Each is a conversation 'm:<id>' in שיחות (chatnotes.js meetingOut). The recorded demo is not one.
+    if (op === 'meetings') {
+      const M = db.collection('meetings'), cn = require('./chatnotes');
+      const snap = req.query.uid ? await M.where('uid', '==', String(req.query.uid)).limit(200).get()
+        : await M.where('t', '>=', Timestamp.fromMillis(+req.query.from || Date.now() - 864e5)).where('t', '<', Timestamp.fromMillis(+req.query.to || Date.now() + 6e4)).orderBy('t', 'desc').limit(300).get();
+      return res.json({ meetings: snap.docs.filter((d) => d.id !== 'demo' && d.data().uid !== 'demo').map(cn.meetingOut) });
+    }
     // conversations he starred (the funny ones) - one list in owner/chatStars, by thread key (session|character)
     if (op === 'stars') return res.json({ stars: ((await db.collection('owner').doc('chatStars').get()).data() || {}).keys || [] });
     if (op === 'star') {
       const k = String(b.key || '').slice(0, 80);
       if (!k) return res.status(400).json({ error: 'key' });
       await db.collection('owner').doc('chatStars').set({ keys: b.on === false ? FieldValue.arrayRemove(k) : FieldValue.arrayUnion(k) }, { merge: true });
+      if (b.on !== false) await require('./chatnotes').keepMeeting(k).catch((e) => console.error('keep meeting', e.message));   // a Syncs meeting: kept a year
       return res.json({ ok: true });
     }
     // "לסטורי" (his ask, 2026-11-20): conversations he marks to become a chat story. The marked thread's exchanges are
@@ -1447,13 +1462,23 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
     // (the chat-story skill). done = a session made the story from it.
     if (op === 'storyPicks') {
       const snap = await db.collection('storyPicks').get();
-      return res.json({ picks: snap.docs.map((d) => { const x = d.data(); return { key: x.key, mode: x.mode, done: !!x.done, t: x.t, n: (x.msgs || []).length }; }) });
+      return res.json({ picks: snap.docs.map((d) => { const x = d.data(); return { key: x.key, mode: x.mode, kind: x.kind || 'chat', done: !!x.done, t: x.t, n: x.meeting ? (x.meeting.log || []).length : (x.msgs || []).length }; }) });
     }
     if (op === 'storyPick') {
       const k = String(b.key || '').slice(0, 80);
       if (!k) return res.status(400).json({ error: 'key' });
       const ref = db.collection('storyPicks').doc(encodeURIComponent(k));
       if (b.on === false) { await ref.delete(); return res.json({ ok: true }); }
+      // a Syncs meeting (key 'm:<id>'): the whole meeting is copied - who was in it, the visitor, every line, the wrap-up (kind 'meeting')
+      const cn = require('./chatnotes');
+      if (cn.meetIdOf(k)) {
+        const m = await cn.meetingGet(cn.meetIdOf(k));
+        if (!m || !m.log.some((l) => l.text)) return res.status(400).json({ error: 'empty' });
+        delete m.uid;
+        await ref.set({ key: k, mode: 'syncs', kind: 'meeting', meeting: m, msgs: [], t: Date.now(), done: false });
+        await cn.keepMeeting(k).catch(() => {});
+        return res.json({ ok: true, n: m.log.length });
+      }
       const ids = (Array.isArray(b.ids) ? b.ids : []).map((x) => String(x).slice(0, 60)).filter(Boolean).slice(0, 80);
       const docs = ids.length ? await db.getAll(...ids.map((id) => db.collection('chat_logs').doc(id))) : [];
       const msgs = docs.filter((d) => d.exists).map((d) => { const x = d.data(); return { t: x.t.toMillis(), q: x.q || '', a: x.a || '' }; }).sort((x, y) => x.t - y.t);

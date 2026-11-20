@@ -739,6 +739,25 @@
 .cv-nothink{text-align:center;margin-top:14px}
 .mk-pill{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;margin-inline-start:6px;vertical-align:-6px}.mk-pill svg{width:13px;height:13px}
 .mk-pill.good{background:rgba(76,194,122,.18);color:#6bd68a}.mk-pill.bad{background:rgba(255,90,90,.16);color:#ff7a7a}
+/* a conversation row with many marks (👍, comments, לסטורי, the person) wraps its marks instead of pushing the star off the screen */
+.th .meta{flex:0 1 auto;max-width:calc(100% - 170px)}.th .meta>span:last-child{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;row-gap:4px}
+/* a Syncs meeting as a conversation (2026-11-20) - the chat's own bubbles and marks; only what a meeting adds */
+.tag.sy{height:20px;padding:0 7px;border-radius:7px;font-size:.7rem;background:rgba(255,122,26,.14);color:#ffa25c;border-color:rgba(255,122,26,.4);margin-inline-end:6px;vertical-align:1px}
+.bub p .bn{display:block;font-size:.76rem;font-weight:800;color:var(--dim);margin-bottom:2px}
+.bub p.cut{border-style:dashed}
+.sy-sys{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 2px;color:var(--faint);font-size:.78rem;font-weight:700;text-align:center}.sy-sys svg{width:15px;height:15px;flex:none}
+.sy-hand{display:inline-flex;vertical-align:-3px;margin-inline-end:5px}.sy-hand svg{width:16px;height:16px}
+.vx-av.me{display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:800;font-size:.8rem}
+.sy-who{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 2px}
+.sy-who>span{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 10px 0 4px;border-radius:99px;background:var(--card2);border:1px solid var(--line);font-size:.82rem}
+.sy-who .vx-av{width:26px;height:26px}.sy-who b{font-weight:800}.sy-who small{color:var(--dim);font-size:.72rem;max-width:12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sy-recap{margin:16px 0 8px;padding:14px;border-radius:18px;background:var(--card);border:1px solid var(--line2)}
+.sy-recap .k{font-size:.74rem;font-weight:800;color:#ffa25c}.sy-recap h3{font-size:1.08rem;font-weight:900;margin:4px 0 6px;line-height:1.3}
+.sy-recap>p{color:var(--dim);font-size:.9rem;line-height:1.55;margin:0 0 6px}.sy-recap p.nx{margin-top:10px;font-size:.84rem}
+.sy-recap h4{font-size:.82rem;font-weight:800;margin:12px 0 6px;color:var(--text)}
+.sy-recap ol,.sy-recap ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.sy-recap li{display:flex;gap:9px;align-items:flex-start}.sy-recap li .vx-av{width:28px;height:28px;flex:none}
+.sy-recap li b{display:block;font-size:.8rem;font-weight:800}.sy-recap li p{margin:1px 0 0;font-size:.88rem;line-height:1.45}
 /* the comment window */
 .cp-back{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);opacity:0;transition:opacity .2s}.cp-back.on{opacity:1}
 .cp{position:fixed;z-index:71;inset-inline:0;bottom:0;margin:0 auto;width:min(640px,100%);max-height:80svh;display:flex;flex-direction:column;background:#17171c;border:1px solid var(--line2);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.6);transform:translateY(100%);transition:transform .22s ease}
@@ -885,6 +904,7 @@ const setW = (w) => {
   W = w; C = {}; V = {};
   W.characters.forEach((c) => (C[c.id] = c));
   C.verse = { id: 'verse', name: 'שלומיוורס', img: '/verse/icon-192.png', color: '#ff6a1f' };   // a story from the Shlomiverse itself
+  C.syncs = { id: 'syncs', name: 'Syncs', img: '/verse/art/syncs-icon.png' };   // a Syncs meeting, as a conversation (mode 'syncs')
   W.videos.forEach((v) => (V[v.id] = v));
 };
 // what he already looked at, from the server and from here: the newer of the two, per mark (the server's newer mark used to be
@@ -955,7 +975,7 @@ async function refreshAll() {   // the refresh button: everything this page has,
 
 // ---------- the pulse: what changed on the server ----------
 // area (op pulse) -> what to read again; CH+ = only the conversations since the newest one here, CHM = stars + story marks
-const AREA = { list: ['L'], chats: ['CH+'], stars: ['CHM'], seen: ['SEEN'], chatnotes: ['CN'], chars: ['CR', 'CRS'], catalog: ['VC', 'W'],
+const AREA = { list: ['L'], chats: ['CH+'], meetings: ['MT'], stars: ['CHM'], seen: ['SEEN'], chatnotes: ['CN'], chars: ['CR', 'CRS'], catalog: ['VC', 'W'],
   plans: ['PL', 'PLAN'], events: ['EV'], tz: ['TZ'], mail: ['MST', 'MLG', 'MBO'], wishes: ['WS'] };
 const OLD = 5 * 60e3;   // the numbers (stats and the cards under them) change all the time: again every 5 minutes while shown
 let PV = null, pulsing = false, lastPulse = 0;
@@ -973,6 +993,7 @@ async function pulse() {
     if (HAVE.has('CH') && chRange === 'today' && chDay && chDay !== dayIL()) keys.add('CH');   // a new day: today's conversations
     const jobs = [...keys].map((k) => (k === 'CH+' ? (HAVE.has('CH') && !keys.has('CH') ? chatsSince() : null)
       : k === 'CHM' ? (HAVE.has('CH') ? loadChatMeta() : null)
+      : k === 'MT' ? (HAVE.has('CH') ? loadMeetings().then(() => cacheSave('CH')) : null)
       : k === 'PLAN' ? (planId && PLAN ? api('plan', { id: planId }).then((x) => { if (x.plan?.id === planId) PLAN = x; }) : null)
       : HAVE.has(k) ? refetch([k]) : null)).filter(Boolean);
     if (jobs.length) { await Promise.allSettled(jobs); later(); }
@@ -1082,8 +1103,8 @@ const redraw = () => { if (busy()) { dirty = true; frame(); } else draw(); };
 const CACHED = {
   W: [() => W, setW], L: [() => L, (v) => { L = v; mergeSeen(v.seen); }], S: [() => S, (v) => { S = v; }], EV: [() => EVS, (v) => { EVS = v; }],
   PL: [() => PL, (v) => { PL = v; }], SEEN: [() => SEEN, mergeSeen], CRS: [() => CRS, (v) => { CRS = v; }], CN: [() => CN, (v) => { CN = v; }],
-  CH: [() => (chRange === 'today' ? { CH, stars: [...stars], picks: [...picks.values()], day: chDay } : undefined),
-    (v) => { CH = v.CH; stars = new Set(v.stars); picks = new Map(v.picks.map((p) => [p.key, p])); chDay = v.day; chRange = 'today'; priceAvg(); }],
+  CH: [() => (chRange === 'today' ? { CH, MT, stars: [...stars], picks: [...picks.values()], day: chDay } : undefined),
+    (v) => { CH = v.CH; MT = v.MT || []; stars = new Set(v.stars); picks = new Map(v.picks.map((p) => [p.key, p])); chDay = v.day; chRange = 'today'; priceAvg(); }],
 };
 let idbP = null;
 const idb = () => (idbP ||= new Promise((ok, no) => { const r = indexedDB.open('backstage', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }));
@@ -1429,7 +1450,7 @@ document.addEventListener('click', async (e) => {
 // counted by us. ElevenLabs in credits (a monthly plan, no invented price per credit). EvoLink (Piko's videos): each job's
 // cost as EvoLink reported it, per client, + the balance he has left there (prepaid - he tops up by hand).
 let CS = null, csRange = 'month', csAsking = false;
-const CS_AREA = { tziftzif: 'ציפציפ (התושבים מצייצים)', charadot: 'ח24 (כתבות ותמונות)', piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
+const CS_AREA = { syncs: 'Syncs', tziftzif: 'ציפציפ (התושבים מצייצים)', charadot: 'ח24 (כתבות ותמונות)', piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
 const CS_KIND = { images: 'תמונות', video: 'וידאו', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
 const CS_EL = { Music: 'מוזיקה', 'Music - Stems': 'ערוצי מוזיקה', TTS: 'הקראה', STS: 'שינוי קול', STT: 'תמלול', 'Sound Effects': 'אפקטים', 'Voice Generation': 'יצירת קול', 'Voice Library': 'ספריית קולות', Dubbing: 'דיבוב' };
 const usd = (v) => `$${v >= 100 ? Math.round(v) : v.toFixed(2)}`;
@@ -1452,11 +1473,13 @@ function csBars(m, label, unit) {   // m: {key: value} -> bars, biggest first
 function costs() {
   const seg = `<div class="seg">${[['month', 'החודש'], ['30', '30 יום'], ['90', '90 יום']].map(([k, l]) => `<button data-csr="${k}" class="${k === csRange ? 'on' : ''}">${l}</button>`).join('')}</div>`;
   if (!want('CS')) {
-    paint(`${seg}${waitBox('CS', 'שואל את OpenAI, EvoLink ו-ElevenLabs…')}`);
+    paint(`${seg}${waitBox('CS', 'שואל את OpenAI, EvoLink ו-ElevenLabs…')}`);   // (+ Syncs' own count, costs.js)
     return csWire();
   }
-  // dollars: OpenAI + EvoLink (Piko's videos); ElevenLabs is credits, apart
-  const from = csFrom(), rows = CS.rows.filter((r) => r.d >= from), oa = rows.filter((r) => r.src === 'openai' || r.src === 'evolink');
+  // dollars: OpenAI + EvoLink (Piko's videos) + Syncs' own count (costs.js syncsRows: its Anthropic part, and meetings from before the
+  // split); ElevenLabs is credits, apart. Syncs' OpenAI part is moved out of chat on the server, so nothing is counted twice.
+  const from = csFrom(), rows = CS.rows.filter((r) => r.d >= from), oa = rows.filter((r) => ['openai', 'evolink', 'anthropic', 'ledger'].includes(r.src));
+  const syU = oa.filter((r) => r.area === 'syncs' && r.src === 'ledger').reduce((a, r) => a + r.usd, 0);
   const sum = (f) => oa.filter(f).reduce((a, r) => a + r.usd, 0);
   const by = (list, k) => list.reduce((m, r) => ((m[r[k]] = (m[r[k]] || 0) + (r.src === 'elevenlabs' || r.credits ? r.credits || 0 : r.usd || 0)), m), {});
   const verse = oa.filter((r) => r.group === 'shlomiverse'), plax = oa.filter((r) => r.group === 'plaxzy');
@@ -1478,7 +1501,7 @@ function costs() {
     </div>
     <div class="cols">
       <div class="card"><div class="card-h"><h2>שלומיוורס לפי תחום</h2></div>${csBars(by(verse, 'area'), CS_AREA, '$')}
-        <p class="cs-note">לכל תחום מפתח משלו, ו-OpenAI אומר כמה כל אחד הוציא. "המפתח הישן" = מה שהוצא לפני החלוקה.</p></div>
+        <p class="cs-note">לכל תחום מפתח משלו, ו-OpenAI אומר כמה כל אחד הוציא. "המפתח הישן" = מה שהוצא לפני החלוקה. Syncs = מה שכל ישיבה רשמה (Terra עובר מהצ'אט ל-Syncs, Sonnet נוסף - אין לו דוח מ-Anthropic)${syU >= 0.01 ? `; ${usd(syU)} מישיבות לפני 20.11 בערב בלי חלוקה - החלק של Terra בהן נמצא גם בצ'אט` : ''}.</p></div>
       <div class="card"><div class="card-h"><h2>לפי סוג</h2></div>${csBars(by(verse, 'kind'), CS_KIND, '$')}</div>
     </div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>שלומיוורס ביום</h2></div><div id="cs-ch" class="chart" data-own="chart"></div></div>
@@ -1783,8 +1806,31 @@ const METRICS = {
   sign_in: ['כניסות לחשבון', 'join', (d) => d.n?.sign_in || 0],
   comment: ['תגובות', 'comment', (d) => d.n?.comment || 0],
   site: ['מעברים לאתרי הדמויות', 'globe', (d) => d.n?.site || 0],
+  syncs_view: ['כניסות ל-Syncs', 'live', (d) => d.site?.syncs || 0],
+  syncs_meet: ['ישיבות ב-Syncs', 'people', (d) => syStarts(d)],
 };
 const mval = (m, list) => sum(list, METRICS[m][2]);
+// Syncs (his ask 2026-11-20): the page's own events (app.js track('meeting', ...): start:<who> / say / hand / nudge / replay / again /
+// share / reshare / demo-again), 'meeting|ended' from the server (meeting-fn.js - a visitor's meeting that ended; his own don't count,
+// like his own devices), the shared meetings' views (/syncs/m/<id>), and the AI spend (meeting-fn.js syncsCost -> stats op syncs)
+const syN = (d, k) => d.n?.['meeting|' + k] || 0;
+const syPre = (d, p) => Object.entries(d.n || {}).reduce((a, [k, v]) => a + (k.startsWith(p) ? v : 0), 0);
+const syStarts = (d) => syPre(d, 'meeting|start');
+const syCost = (list) => sum(list, (d) => S.syncs?.[d.d] || 0);
+function syncsCard(list, label) {
+  const n = (k) => sum(list, (d) => syN(d, k)), views = sum(list, (d) => d.site?.syncs || 0), shared = sum(list, (d) => syPre(d, 'view|_syncs_m_'));
+  const k = (h, v, sm) => `<div class="k"><span class="kh">${h}</span><b>${v}</b><small>${sm}</small></div>`;
+  return `<div class="card sim-st" style="margin-top:16px"><div class="card-h"><h2 dir="ltr">Syncs</h2><small class="hint">${label}</small></div>
+    <div class="kgrid sim-k">
+      ${k('כניסות', fmt(views), shared ? `${fmt(shared)} לישיבות ששותפו` : 'לדף של Syncs')}
+      ${k('ישיבות שהתחילו', fmt(sum(list, syStarts)), `${fmt(n('ended'))} הסתיימו`)}
+      ${k('הודעות שנכתבו', fmt(n('say')), `${fmt(n('hand'))} פעמים הרימו יד`)}
+      ${k('שתיקות', fmt(n('nudge')), 'החדר המשיך בלי המבקר/ת')}
+      ${k('צפו שוב', fmt(n('replay') + n('demo-again')), `${fmt(n('again'))} ביקשו ישיבה חדשה`)}
+      ${k('שיתפו', fmt(n('share') + n('reshare')), `${fmt(n('out') + n('back'))} יצאו לשלומיוורס`)}
+      ${k('עלות AI', '$' + syCost(list).toFixed(2), 'כל הישיבות, גם שלך')}</div>
+    <p class="hint">נספר מ-20.11. הישיבות שלך והמכשירים שלך לא נספרים (חוץ מהעלות). כל ישיבה גם ב<button data-tab="chats" style="color:var(--accent);font-weight:700">שיחות</button>.</p></div>`;
+}
 // the change against the period before it, as "+12%" (a day: against yesterday)
 function trend(m) {
   if (since) {
@@ -1925,26 +1971,29 @@ function overview() {
   ].sort((a, b) => (b.t || 0) - (a.t || 0)).slice(0, 4);
   // what's happening now: the newest conversations, sign-ups, comments
   const live = [
-    ...threads().slice(0, 6).map((th) => ({ k: 'th' + th.key, t: th.last, face: face(th.mode), h: `${th.person ? esc(personName(th.person)) : 'מישהו'} מדבר/ת עם ${esc(cname(th.mode))}`, p: `"${esc(th.items[0].q)}"`, chat: th.key })),
+    ...threads().slice(0, 6).map((th) => (th.kind === 'meeting'
+      ? { k: 'th' + th.key, t: th.last, face: face('syncs'), h: `${esc(syVisitor(th) || 'מישהו')} בישיבה ב-Syncs`, p: esc(syTitle(th)), chat: th.key }
+      : { k: 'th' + th.key, t: th.last, face: face(th.mode), h: `${th.person ? esc(personName(th.person)) : 'מישהו'} מדבר/ת עם ${esc(cname(th.mode))}`, p: `"${esc(th.items[0].q)}"`, chat: th.key })),
     ...accounts().filter((p) => p.created && Date.now() - p.created < 2 * 864e5).map((p) => ({ k: 'pp' + p.uid, t: p.created, face: personFace(p), h: `נרשם/ה: ${esc(personName(p))}`, p: `<bdi dir="ltr">${esc(p.email || '')}</bdi>`, person: p.uid })),
     ...L.comments.filter((c) => !c.hidden && !c.char).slice(0, 4).map((c) => ({ k: 'cm' + c.id, t: c.t, face: fanFace(c), h: `תגובה · ${esc(c.nick)}`, p: `"${esc(c.text)}"`, go: 'content' })),
   ].filter((x) => x.t).sort((a, b) => b.t - a.t).slice(0, 6);
   const row = (x) => `<button class="row" data-k="${esc(x.k || "")}" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
   const n = range, chartList = since ? days(dayGap(since.day, dayIL()) + 8) : days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
-  const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'download', 'game_start', 'sign_in', 'tz_view', 'ch_view'];
+  const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'download', 'game_start', 'sign_in', 'tz_view', 'ch_view', 'syncs_meet'];
   paint(`
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>${since ? `מאז ${dm(since.day)} ${hhmm(since.from)} · כל מספר מול אותן שעות ב-7 הימים שלפני` : `מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}`}</p>
       ${since ? `<button class="since-pill" data-sinceoff title="חזרה לתקופות הרגילות">${IC.x}<span>מאז: ${esc(since.title)}</span></button>` : ''}</div>
       <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']].map(([v, l]) => [since ? NaN : v, l, v]))}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
     <div class="kgrid">${totalsKpis()}${kpi('visitors')}${timeKpi()}${ALL.slice(1).map((m) => kpi(m)).join('')}
-      <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer).toFixed(2)}</b>
-        <span class="kf"><small class="note">בערך · $${avgAnswer.toFixed(3)} לתשובה${FC('chat_message') ? ` · צפי $${(FC('chat_message').proj * avgAnswer).toFixed(2)}` : ''}</small>${spark('chat_message')}</span></button></div>
+      <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט ו-Syncs${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer + syCost(list)).toFixed(2)}</b>
+        <span class="kf"><small class="note">צ'אט $${(msgs * avgAnswer).toFixed(2)} בערך ($${avgAnswer.toFixed(3)} לתשובה${FC('chat_message') ? ` · צפי $${(FC('chat_message').proj * avgAnswer).toFixed(2)}` : ''}) · Syncs $${syCost(list).toFixed(2)}</small>${spark('chat_message')}</span></button></div>
     <div class="cols">
       <div class="card"><div class="card-h"><h2>צריך את תשומת הלב שלך</h2></div>
         <div class="rows">${attn.map(row).join('') || '<div class="empty">הכול מטופל. שקט.</div>'}</div></div>
       <div class="card nowcard"><div class="card-h"><h2><span class="dot"></span> מה קורה עכשיו</h2><button data-tab="chats">לכל השיחות ${IC.back}</button></div>
         <div class="rows">${live.map(row).join('') || '<div class="empty">עוד שקט היום.</div>'}</div></div>
     </div>
+    ${syncsCard(sel ? [sel] : list, sel ? dayName(sel.d) : since ? `מאז ${dm(since.day)}` : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
     <div class="ov-games" style="margin-top:16px">${barList('משחקים', byPrefix(sel ? [sel] : list, 'game_start'), `סיבובים ${sel ? dayName(sel.d) : since ? `מאז ${dm(since.day)}` : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`}`, { label: (k) => GAME[k] || k, n: 30 })}</div>
     <div id="ov-metric" class="tool" style="margin-top:16px"><select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     ${todayCard(metric, 'ov-fc').replace('margin-top:16px', 'margin:0 0 14px')}
@@ -1972,10 +2021,16 @@ let CH = [], chRange = 'today', chChar = '', chFilter = 'all', chQuery = '', chS
 // a session makes the story from it (chat-story skill: scripts/stories/chat-find.cjs --picked)
 let picks = new Map();
 const chFrom = { today: () => dayStart(dayIL()), yesterday: () => dayStart(dayBack(1)), week: () => dayStart(dayBack(6)), month: () => dayStart(dayBack(29)) };
+// Syncs meetings in the same list (his ask 2026-11-20: "eventually it's just a conversation"): verse.js op meetings, the same range;
+// each one a conversation 'm:<id>' (meetThread) that takes the same marks. A meeting grows line by line: the pulse ('meetings')
+// reads the range again.
+let MT = [];
+const chTo = (r) => (r === 'yesterday' ? dayStart(dayIL()) : Date.now() + 6e4);
+const loadMeetings = (r = chRange) => api(`meetings&from=${chFrom[r]()}&to=${chTo(r)}`).then((x) => { if (r === chRange) MT = x.meetings || []; }).catch(() => {});
 async function loadChats(r) {
   chRange = r;
-  const to = r === 'yesterday' ? dayStart(dayIL()) : Date.now() + 6e4;
-  CH = (await api(`chats&from=${chFrom[r]()}&to=${to}`)).chats;
+  const [c] = await Promise.all([api(`chats&from=${chFrom[r]()}&to=${chTo(r)}`), loadMeetings(r)]);
+  CH = c.chats;
   chDay = dayIL();
   priceAvg();
 }
@@ -1993,8 +2048,9 @@ async function chatsSince() {
 }
 const peopleBy = () => Object.fromEntries(S.people.map((p) => [p.uid, p]));
 // a conversation = the chat's thread with one character, by its own id
-function threads(list = CH) {
+function threads(list = CH, mts = list === CH ? MT : []) {
   const by = {}, pb = peopleBy();
+  const meets = mts.map((m) => meetThread(m, pb)).filter((th) => th.items.length);
   // c = the conversation's own id (the chat sends it with every message, since 2026-11-10); older logs: the visit's session
   for (const c of list) { const k = c.c ? `c:${c.c}` : `${c.s || c.v || c.id}|${c.mode}`; (by[k] ||= { key: k, mode: c.mode, items: [] }).items.push(c); }
   return Object.values(by).map((th) => {
@@ -2005,8 +2061,57 @@ function threads(list = CH) {
     th.signed = th.items.some((c) => c.in);
     th.cost = th.items.reduce((a, c) => a + ANSWER(c), 0);
     return th;
-  }).sort((a, b) => b.last - a.last);
+  }).concat(meets).sort((a, b) => b.last - a.last);
 }
+// ---------- a Syncs meeting as a conversation (meeting-fn.js; chatnotes.js meetingOut) ----------
+// key 'm:<id>', mode 'syncs' (the Syncs face); lines = the whole log (each line's id = <meeting id>L<index>, so a comment on one line
+// finds it again); items = what was said (search, counts, "long"). The visitor's lines are the orange bubbles, as in a chat.
+const SY_NAME = (m, id) => (id === 'user' ? m.visitor?.name || (peopleBy()[m.uid] ? personName(peopleBy()[m.uid]) : '') || 'המבקר/ת' : cname(id));
+const SY_FEM = new Set(['ronit']);
+function meetThread(m, pb) {
+  const lines = (m.log || []).map((l, i) => ({ ...l, id: `${m.id}L${i}` }));
+  const items = lines.filter((l) => l.text).map((l) => ({ id: l.id, t: m.t, who: l.who, q: l.who === 'user' ? l.text : '', a: l.who === 'user' ? '' : l.text }));
+  return { key: 'm:' + m.id, kind: 'meeting', mode: 'syncs', meet: m, lines, items, last: m.t + (m.ms || 0), person: pb[m.uid] || null, signed: true, cost: m.cost || 0 };
+}
+// the list row's two lines: what it was about (the wrap-up's title, else the visitor's first line) and who was in it
+const syTitle = (th) => th.meet.recap?.title || th.items.find((x) => x.who === 'user')?.q || th.items[0]?.a || '';
+const syWho = (th) => `ישיבה ב-Syncs · ${th.meet.room.map((id) => cname(id)).join(', ')}`;
+const syVisitor = (th) => th.meet.visitor?.name || (th.person ? personName(th.person) : '');
+// a line in the meeting that isn't speech - the way the Syncs page shows it (v2/site/verse/copy.js meet.mute / left / ended)
+const sySys = (ic, t) => `<div class="sy-sys">${ic}<span>${esc(t)}</span></div>`;
+function meetBody(th) {
+  const m = th.meet, out = [], v = m.visitor || {}, vn = syVisitor(th) || 'המבקר/ת';
+  const vFace = th.person && !th.person.official && th.person.photo ? personFace(th.person) : `<span class="vx-av me">${esc(vn[0])}</span>`;
+  out.push(`<div class="sy-who">${m.room.map((id) => `<span>${face(id)}<b>${esc(cname(id))}</b></span>`).join('')}
+    <span class="vis">${vFace}<b>${esc(vn)}</b>${v.title ? `<small>${esc(v.title)}</small>` : ''}</span></div>`);
+  out.push(`<div class="day-sep">${dayName(dayIL(m.t))} · ${hhmm(m.t)}</div>`);
+  th.lines.forEach((l, i) => {
+    const prev = th.lines[i - 1];
+    if (prev && prev.cut && prev.text && prev.who !== 'user' && !l.left && !l.silent) out.push(sySys(SY_MUTE, `${SY_NAME(m, l.who)} ${SY_FEM.has(l.who) ? 'שמה' : 'שם'} את ${SY_NAME(m, prev.who)} על השתק`));
+    if (l.left) { out.push(sySys(SY_LEAVE, `${SY_NAME(m, l.who)} ${SY_FEM.has(l.who) ? 'עזבה' : 'עזב'} את הפגישה`)); return; }
+    if (l.silent) { out.push(sySys(SY_HUSH, 'שקט מהמבקר/ת - החדר המשיך')); return; }
+    out.push(`<div class="cmsg" data-msg="${esc(l.id)}">${l.who === 'user'
+      ? `<div class="bub me"><p>${l.hand ? `<span class="sy-hand">${SY_HAND}</span>` : ''}${esc(l.text)}</p></div>`
+      : `<div class="bub them" data-lp="${esc(l.id)}">${face(l.who)}<p class="${l.cut ? 'cut' : ''}"><b class="bn">${esc(cname(l.who))}</b>${esc(l.text)}${l.cut && !/[—-]\s*$/.test(l.text) ? '—' : ''}</p>${ansNoteBtn(th, l.id)}</div>`}</div>`);
+  });
+  if (m.ended && m.ender) out.push(sySys(SY_END, `${SY_NAME(m, m.ender)} ${SY_FEM.has(m.ender) ? 'סיימה' : 'סיים'} את הפגישה`));
+  else if (!m.ended) out.push(sySys(SY_HUSH, 'הישיבה לא הסתיימה'));
+  const R = m.recap;
+  if (R) {
+    const row = (x) => `<li>${x.who === 'user' ? vFace : face(x.who)}<div><b>${esc(SY_NAME(m, x.who))}</b><p>${esc(x.text)}</p></div></li>`;
+    out.push(`<section class="sy-recap"><div class="k">סיכום ישיבה · ${esc(cname(R.by || 'amir'))}</div><h3>${esc(R.title || '')}</h3>${R.summary ? `<p>${esc(R.summary)}</p>` : ''}
+      ${(R.items || []).length ? `<h4 dir="ltr">Action items</h4><ol>${R.items.map(row).join('')}</ol>` : ''}
+      ${(R.points || []).length ? `<h4>מה עלה בישיבה</h4><ul>${R.points.map(row).join('')}</ul>` : ''}
+      ${R.next ? `<p class="nx">${esc(R.next)}</p>` : ''}</section>`);
+  }
+  return out.join('');
+}
+// the Syncs page's own icons (v2/site/syncs/app.js), the Backstage line weight
+const SY_MUTE = s('<path d="M9 9v2.5a3 3 0 0 0 5.1 2.1M15 10.5V6a3 3 0 0 0-5.9-.8"/><path d="M18.5 11.5a6.5 6.5 0 0 1-1.2 3.8M5.5 11.5a6.5 6.5 0 0 0 10.2 5.3M12 18v3"/><path d="m4 4 16 16"/>');
+const SY_LEAVE = s('<path d="M14 4.5h4.5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H14"/><path d="M9 16.5 4.5 12 9 7.5M4.5 12H15"/>');
+const SY_END = s('<path d="M3.5 14.5c4.7-4.2 12.3-4.2 17 0l-1.8 2.4a1.2 1.2 0 0 1-1.5.3l-2.6-1.4a1.2 1.2 0 0 1-.6-1v-1.6a12 12 0 0 0-4 0v1.6a1.2 1.2 0 0 1-.6 1l-2.6 1.4a1.2 1.2 0 0 1-1.5-.3z"/>');
+const SY_HUSH = s('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>');
+const SY_HAND = s('<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5V4a1.5 1.5 0 0 1 3 0v7.5"/><path d="M14 11.5V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M17 9.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.6-2.8L3.3 15.4a1.6 1.6 0 0 1 2.5-2L8 15.5V8.5a1.5 1.5 0 0 1 3 0"/>');
 const cardsIn = (a) => esc(a).replace(/\[\[video:([\w-]+)\]\]/g, (_, id) => `<span class="card-pill">▶ ${esc(V[id]?.title || id)}</span>`)
   .replace(/\[\[char:([\w-]+)\]\]/g, (_, id) => `<span class="card-pill">→ ${esc(cname(id))}</span>`)
   .replace(/\[\[site:([\w-]+)\]\]/g, (_, id) => `<span class="card-pill">↗ אתר: ${esc(id)}</span>`)
@@ -2028,7 +2133,7 @@ function chats() {
     <div class="chips">${[['all', 'הכול'], ['new', 'לא נבדקו'], ['good', 'טובות'], ['bad', 'גרועות'], ['notes', 'עם הערות'], ['star', 'מסומנות בכוכב'], ['story', 'לסטורי'], ['long', 'ארוכות'], ['signed', 'של רשומים']].map(([k, l]) => `<button data-chf="${k}" class="${k === chFilter ? 'on' : ''}">${l}${k === 'star' && stars.size ? `<small>${all.filter((th) => stars.has(th.key)).length}</small>` : ''}${k === 'story' && picks.size ? `<small>${all.filter((th) => picks.has(th.key)).length}</small>` : ''}</button>`).join('')}</div>
     <div class="faces-row"><button data-chchar="" class="${chChar ? '' : 'on'}"><span class="all">${IC.people}</span>הכול<b>${all.length}</b></button>
       ${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([id, n]) => `<button data-chchar="${esc(id)}" class="${chChar === id ? 'on' : ''}">${face(id)}${esc(cname(id))}<b>${n}</b></button>`).join('')}</div>
-    <div>${list.slice(0, chShown).map((th) => `<button class="th" data-chat="${esc(th.key)}">${face(th.mode)}
+    <div>${list.slice(0, chShown).map((th) => th.kind === 'meeting' ? meetRow(th) : `<button class="th" data-chat="${esc(th.key)}">${face(th.mode)}
       <div class="body"><div class="q">${esc(th.items[0].q)}</div><div class="a">${esc(cname(th.mode))}: ${esc(th.items[0].a.replace(/\[\[[^\]]*\]\]/g, '').slice(0, 120))}</div></div>
       <div class="meta"><span>${hhmm(th.last)}${chRange !== 'today' ? ` · ${dm(dayIL(th.last))}` : ''}</span><span><span data-thn="${esc(th.key)}">${markBadge(th.key)}${cnBadge(th.key)}</span><span data-spb="${esc(th.key)}">${pickBadge(th.key)}</span>${th.items.length} הודעות${th.person ? `<span class="who-pill">${esc(personName(th.person))}</span>` : th.signed ? '<span class="who-pill">רשום/ה</span>' : ''}</span></div>
       <span class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" role="button" aria-label="כוכב">${IC.star}</span></button>`).join('') || '<div class="empty">אין שיחות כאלה.</div>'}</div>
@@ -2036,6 +2141,11 @@ function chats() {
   const inp = $('#ch-q');
   inp.oninput = () => { chQuery = inp.value; chShown = 60; chats(); };   // patched in place: the box keeps its focus
 }
+// a Syncs meeting's row: the same row as a chat - the Syncs face, what it was about, who was in it, the visitor, the marks
+const meetRow = (th) => `<button class="th sy" data-chat="${esc(th.key)}">${face('syncs')}
+      <div class="body"><div class="q">${esc(syTitle(th))}</div><div class="a"><span class="tag sy">Syncs</span>${esc(th.meet.room.map((id) => cname(id)).join(', '))}</div></div>
+      <div class="meta"><span>${hhmm(th.meet.t)}${chRange !== 'today' ? ` · ${dm(dayIL(th.meet.t))}` : ''}</span><span><span data-thn="${esc(th.key)}">${markBadge(th.key)}${cnBadge(th.key)}</span><span data-spb="${esc(th.key)}">${pickBadge(th.key)}</span>${th.items.length} הודעות${syVisitor(th) ? `<span class="who-pill">${esc(syVisitor(th))}</span>` : ''}</span></div>
+      <span class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" role="button" aria-label="כוכב">${IC.star}</span></button>`;
 // ---------- שיחות → reviewing a conversation (2026-11-12, his pick: mockup A - "my most used: reviewing and commenting from
 // the phone"). The conversation opens full screen: on top the character, a חשיבה switch (what the chain's steps decided, under
 // every answer), and three big buttons - 👍 שיחה טובה, 👎 שיחה גרועה, הערה. A comment opens a window from the bottom (above the
@@ -2117,10 +2227,11 @@ const pickBadge = (k) => (picks.has(k) ? `<span class="tag sp">${picks.get(k).do
 const pickBtn = (th) => `<button class="cv-b story ${picks.has(th.key) ? 'on' : ''}" data-storypick="">${IC.story}<span>${picks.get(th.key)?.done ? 'סטורי נעשה' : 'לסטורי'}</span></button>`;
 const markBtns = (th) => { const m = markOf(th.key); return `<button class="cv-b good ${m === 'good' ? 'on' : ''}" data-mark="good">${IC.up}<span>שיחה טובה</span></button><button class="cv-b bad ${m === 'bad' ? 'on' : ''}" data-mark="bad">${IC.down}<span>שיחה גרועה</span></button>`; };
 
-function openThread(k, list, focus) {
-  const th = threads(list || CH).find((x) => x.key === k);
+function openThread(k, list, focus, mts) {
+  const th = threads(list || CH, mts || (list ? [] : MT)).find((x) => x.key === k);
   if (!th) return;
   TH = th; tnEdit.clear();
+  if (th.kind === 'meeting') return openMeeting(th, focus);
   const c0 = th.items[0], anyThink = th.items.some((c) => c.think);
   let lastDay = '';
   sheet(`<div class="cv-h"><button class="cv-x" data-close aria-label="סגירה">${IC.prev}</button>${face(th.mode)}
@@ -2133,6 +2244,21 @@ function openThread(k, list, focus) {
         <div class="bub them" data-lp="${esc(c.id)}">${face(th.mode)}<p>${cardsIn(c.a)}</p>${ansNoteBtn(th, c.id)}</div>
         ${c.think ? `<div class="cthink">${thinkHtml(c)}</div>` : ''}</div>`; }).join('')}
       ${anyThink ? '' : '<p class="hint cv-nothink">החשיבה נשמרת מ-12.11 (תשובות של דמויות עם דף).</p>'}</div>`, 'sh-conv');
+  if (focus != null) requestAnimationFrame(() => {
+    const el = focus && document.querySelector(`.sheet [data-msg="${CSS.escape(focus)}"]`);
+    if (el) { msgCenter(el); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800); }
+    cpOpen(focus || '');
+  });
+}
+
+// a Syncs meeting opens like a conversation: the same screen, the same marks; on top the Syncs face, the visitor, when, how long
+function openMeeting(th, focus) {
+  const m = th.meet, vis = syVisitor(th);
+  sheet(`<div class="cv-h"><button class="cv-x" data-close aria-label="סגירה">${IC.prev}</button>${face('syncs')}
+      <div class="t"><b>ישיבה ב-<bdi>Syncs</bdi></b><small>${th.person ? `<button data-person="${th.person.uid}">${esc(vis)}</button>` : esc(vis || 'המבקר/ת')} · ${dm(dayIL(m.t))} ${hhmm(m.t)}${m.ms ? ` · ${Math.max(1, Math.round(m.ms / 60000))} דק׳` : ''} · ${th.items.length} הודעות${th.cost ? ` · $${th.cost.toFixed(3)}` : ''}</small></div>
+      <button class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" title="מצחיק">${IC.star}</button></div>
+    <div class="cv-acts">${markBtns(th)}${pickBtn(th)}${cvNoteBtn(th)}</div>
+    <div class="sh-b cv-b-body sy-body">${meetBody(th)}</div>`, 'sh-conv');
   if (focus != null) requestAnimationFrame(() => {
     const el = focus && document.querySelector(`.sheet [data-msg="${CSS.escape(focus)}"]`);
     if (el) { msgCenter(el); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1800); }
@@ -2164,7 +2290,7 @@ function cpOpen(msg) {
   const c = msg ? TH.items.find((x) => x.id === msg) : null;
   document.body.insertAdjacentHTML('beforeend', `<div class="cp-back" data-cpclose></div><div class="cp" role="dialog" aria-modal="true">
     <div class="cp-h"><b>${msg ? 'הערה על התשובה' : 'הערה על כל השיחה'}</b><button class="x" data-cpclose aria-label="סגירה">${IC.x}</button></div>
-    ${c ? `<div class="cp-q">${face(TH.mode)}<p>${cardsIn(c.a)}</p></div>` : ''}
+    ${c ? `<div class="cp-q">${face(c.who || TH.mode)}<p>${cardsIn(c.a)}</p></div>` : ''}
     <div class="cp-list">${cpList()}</div>
     <div class="cp-comp"><textarea data-tntext="${esc(msg)}" rows="2" placeholder="${msg ? 'מה מוזר בתשובה הזאת? מה היה צריך לקרות?' : 'מה לא אהבת, או שאלה - איך שבא'}">${esc(cnDraft(TH.key, msg))}</textarea>
       <button class="btn main" data-tnsend="${esc(msg)}">${IC.send}<span>שמירה</span></button></div></div>`);
@@ -2202,7 +2328,13 @@ async function tnSend(b) {
   const msg = b.dataset.tnsend, th = TH, ta = b.closest('.cp-comp')?.querySelector('textarea'), text = ta ? ta.value.trim() : '';
   if (!th || !text) { ta?.focus(); return; }
   const c = msg ? th.items.find((x) => x.id === msg) : null;
-  const body = { key: th.key, c: th.items.find((x) => x.c)?.c || '', mode: th.mode, msg, q: c ? c.q : th.items[0].q, a: c ? c.a : th.items[0].a, at: c ? c.t : th.items[0].t, ids: th.items.map((x) => x.id).filter(Boolean), text };
+  // a Syncs meeting: the comment keeps the line it is on (who said it) and the visitor's line before it; the whole meeting is read
+  // again by its key (chatnotes.js chatThread)
+  const said = (x) => (x ? `${cname(x.who)}: ${x.a}` : '');
+  const before = (x) => (x ? th.items.slice(0, th.items.indexOf(x)).reverse().find((y) => y.who === 'user')?.q || '' : '');
+  const body = th.kind === 'meeting'
+    ? { key: th.key, c: '', mode: 'syncs', msg, q: c ? before(c) : syTitle(th), a: c ? said(c) : syWho(th), at: th.meet.t, ids: [], text }
+    : { key: th.key, c: th.items.find((x) => x.c)?.c || '', mode: th.mode, msg, q: c ? c.q : th.items[0].q, a: c ? c.a : th.items[0].a, at: c ? c.t : th.items[0].t, ids: th.items.map((x) => x.id).filter(Boolean), text };
   b.disabled = true;
   try {
     const r = await api('chatNote', body);
@@ -2219,7 +2351,7 @@ async function pickSet(b) {
   const on = !picks.has(th.key);
   b.disabled = true;
   try {
-    await api('storyPick', on ? { key: th.key, on: true, mode: th.mode, ids: th.items.map((x) => x.id).filter(Boolean) } : { key: th.key, on: false });
+    await api('storyPick', on ? { key: th.key, on: true, mode: th.mode, ids: th.kind === 'meeting' ? [] : th.items.map((x) => x.id).filter(Boolean) } : { key: th.key, on: false });   // a meeting: the server copies the whole meeting
     on ? picks.set(th.key, { key: th.key, mode: th.mode, done: false }) : picks.delete(th.key);
     cnPaint(th.key);
     toast(on ? 'סומנה לסטורי - סשן יכין ממנה סטורי' : 'הסימון לסטורי הוסר');
@@ -2259,6 +2391,10 @@ async function tnDel(b) {
 async function tnThread(id) {
   const n = CN.notes.find((x) => x.id === id); if (!n) return;
   if (threads().some((t) => t.key === n.key)) return openThread(n.key, null, n.msg || '');
+  if (/^m:/.test(n.key)) {   // a Syncs meeting outside the range on screen: the whole meeting by its key
+    try { const r = await api('chatThread', { key: n.key }); if (r.meeting) return openThread(n.key, [], n.msg || '', [r.meeting]); } catch (e) {}
+    toast('הישיבה כבר לא נשמרת'); return;
+  }
   try {
     const r = await api('chatThread', { c: n.c, ids: n.ids });
     if (!r.chats.length) return toast('השיחה כבר לא שמורה (90 יום) - ההודעה שמורה בהערה');
@@ -2376,7 +2512,7 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 // ---------- נתונים: every number, a day's drill-down, and asking the data ----------
 let metric = 'visitors', drillDay = null;
 const SRC = { mail: 'מייל', tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', x: 'X', google: 'Google', whatsapp: 'WhatsApp', internal: 'מעבר פנימי', direct: 'ישיר', other: 'אחר' };
-const SITE = { links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'yaniv-games': 'המשחקים של יניב', 'asaf-games': 'המשחקים של אסף', 'sagi-games': 'המשחקים של שגיא', 'yotam-games': 'המשחקים של יותם', 'osnat-games': 'המשחקים של אסנת', 'rosenblum-games': 'המשחקים של רוזנבלום', 'lola-games': 'המשחקים של לולה', 'techytech-games': 'המשחקים של טקי-טק', 'night-guy-games': 'פסיכופת גינה', 'demokratovich-games': 'המשחקים של הרב דמוקרטוביץ', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', other: 'אחר' };
+const SITE = { syncs: 'Syncs', links: 'דף הלינקים', wiki: 'שלומיוורס', ayelet: 'איילת השחר', demokratovich: 'שערי בג״ץ', hindsight: 'HINDSIGHT VIP', dorit: 'דורית מרקורי', 'ofnat-hani': 'אופנת חני', 'shefa-ad': 'שפע עד', 'birkat-hashefa': 'ברכת השפע', friedman: 'משפחת פרידמן', 'hani-games': 'המשחקייה של חני', 'yaniv-games': 'המשחקים של יניב', 'asaf-games': 'המשחקים של אסף', 'sagi-games': 'המשחקים של שגיא', 'yotam-games': 'המשחקים של יותם', 'osnat-games': 'המשחקים של אסנת', 'rosenblum-games': 'המשחקים של רוזנבלום', 'lola-games': 'המשחקים של לולה', 'techytech-games': 'המשחקים של טקי-טק', 'night-guy-games': 'פסיכופת גינה', 'demokratovich-games': 'המשחקים של הרב דמוקרטוביץ', 'homo-useless': 'Homo Useless', techytech: 'Techy-Tech', yotamverse: 'YOTAMVERSE', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', other: 'אחר' };
 const GAME = { 'sixty-one': '61 רוב קואליציוני (דמוקרטוביץ)', millimeters: 'מילימטרים (יניב)', sofa: 'מה אני אגיד לך? (אסף)', 'scooter-snake': 'שמעת על הקורקינט שלי? (שגיא)', pacman: 'פקי-טק (יותם)', deadlock: 'דדלוק (יותם)', 'not-a-cog': 'אתה לא בורג (אסנת)', drill: 'הקטר המאסף (רוזנבלום)', pills: 'התרופות של שמונה (לולה)', meetings: 'אז אנחנו מסונכרנים (טקי-טק)', 'not-the-question': 'לא זו השאלה (טקי-טק)', garden: 'פסיכופת גינה', ketoret: 'מזבח הקטורת', 'nisei-nissim': 'ניסי ניסים!', 'gan-run': '4:20 רצים לגן', 'shekel-tov': 'שקל טוב', yosef: 'יוסף מוקיר שבת', pilai: 'פילאי פלואים', 'shabbat-door': 'דלת של שבת', 'zot-hani': 'זוט חני', 'zot-hani-clip': 'זוט חני - הקליפ' };
 const EV = { sign_in: 'כניסות לחשבון', follow: 'מעקב אחרי דמות', push_optin: 'התראות', comment: 'תגובות', like: 'אהבתי', save: 'שמירות', share: 'שיתופים', download: 'הורדות', st_copy: 'סטיקרים שהועתקו', game: 'משחקים שנפתחו', heart: 'לייקים למשחקים', app_offer: 'הצעות למסך הבית', app_yes: 'רצו לשמור למסך', app_guide: 'מדריך מסך הבית', app_install: 'התקנות (אנדרואיד)', sticker_create: 'סטיקרים', stamp: 'החתמות', story_view: 'צפיות בסטורי', idea: 'רעיונות', vote: 'הצבעות', request: 'פניות', chat_new: 'שיחה חדשה' };
 function barList(title, obj, unit, opts = {}) {
@@ -2702,19 +2838,20 @@ async function openPerson(uid) {
   if (!p) return;
   const head = `<div class="sh-h">${personFace(p)}<div class="t"><b>${esc(personName(p))}${p.official ? OFC : ''}</b><small><a href="mailto:${esc(p.email || '')}" dir="ltr" style="color:#ff9a5c">${esc(p.email || '')}</a></small></div><button class="x" data-close>${IC.x}</button></div>`;
   sheet(`${head}<div class="sh-b"><div class="empty">טוען…</div></div>`);
-  let mine = [];
-  try { mine = (await api(`chats&uid=${encodeURIComponent(uid)}`)).chats; } catch (e) {}
+  let mine = [], meets = [];
+  await Promise.all([api(`chats&uid=${encodeURIComponent(uid)}`).then((r) => { mine = r.chats; }).catch(() => {}),
+    api(`meetings&uid=${encodeURIComponent(uid)}`).then((r) => { meets = r.meetings || []; }).catch(() => {})]);   // their Syncs meetings too
   if (!$('.sheet')) return;
-  const ths = threads(mine);
+  const ths = threads(mine, meets);
   const com = L.comments.filter((c) => c.uid === uid), ids = (L.ideas || []).filter((x) => x.uid === uid), rq = L.requests.filter((r) => r.uid === uid || (p.email && r.email === p.email));
   const tl = [
-    ...ths.map((th) => ({ t: th.last, ic: IC.comment, h: `שיחה עם ${esc(cname(th.mode))}: "${esc(th.items[0].q)}"`, chat: th.key })),
+    ...ths.map((th) => ({ t: th.last, ic: IC.comment, h: th.kind === 'meeting' ? `ישיבה ב-Syncs: ${esc(syTitle(th))}` : `שיחה עם ${esc(cname(th.mode))}: "${esc(th.items[0].q)}"`, chat: th.key })),
     ...com.map((c) => ({ t: c.t, ic: IC.comment, h: `הגיב/ה על "${esc(V[c.videoId]?.title || c.videoId)}": ${esc(c.text)}` })),
     ...ids.map((x) => ({ t: x.t, ic: IC.idea, h: `רעיון: ${esc(x.text)}` })),
     ...rq.map((r) => ({ t: r.t, ic: IC.inbox, h: `פנייה (${(RQ[r.kind] || RQ.contact)[0]}): ${esc(r.text || r.choice || '')}` })),
     ...(p.created ? [{ t: p.created, ic: IC.join, h: `נרשם/ה${p.sites.length ? ` (דרך ${p.sites.map((x) => esc(SITES[x] || x)).join(', ')})` : ''}` }] : []),
   ].filter((x) => x.t).sort((a, b) => b.t - a.t);
-  window._personChats = mine;
+  window._personChats = mine; window._personMeets = meets;
   $('.sheet .sh-b').innerHTML = `<p class="hint" style="margin-bottom:12px">נרשם/ה ${stamp(p.created)} · נראה/תה לאחרונה ${p.last ? ago(p.last) : '-'}${p.fan ? ' · בשלומיוורס' : ''}</p>
     <div class="pstats"><div><b>${ths.length}</b><small>שיחות</small></div><div><b>${com.length}</b><small>תגובות</small></div><div><b>${ids.length}</b><small>רעיונות</small></div><div><b>${rq.length}</b><small>פניות</small></div></div>
     <div class="card-h"><h2>הכול לפי הסדר</h2></div>
@@ -3309,7 +3446,7 @@ document.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.dataset.person) { openPerson(b.dataset.person); return; }
-  if (b.dataset.pchat) { openThread(b.dataset.pchat, window._personChats); return; }
+  if (b.dataset.pchat) { openThread(b.dataset.pchat, window._personChats, null, window._personMeets); return; }
   if (b.dataset.chat) { openThread(b.dataset.chat); return; }
   if (b.dataset.tab) { closeSheet(); go(b.dataset.tab); }
   else if (b.dataset.range) { since = null; range = +b.dataset.range; drillDay = null; overview(); }

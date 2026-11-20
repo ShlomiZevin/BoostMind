@@ -24,7 +24,7 @@ const HOUR = 3600e3;
 
 // which area a key belongs to - by its project and name (new keys: name them <area>, or shlomiverse-<area>)
 const AREAS = {
-  studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', tziftzif: 'ציפציפ', charadot: 'ח24 (חרדות)', plaxzy: 'Plaxzy',
+  syncs: 'Syncs', studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', tziftzif: 'ציפציפ', charadot: 'ח24 (חרדות)', plaxzy: 'Plaxzy',
 };
 function areaOf(project, name) {
   const p = String(project || '').toLowerCase(), n = String(name || '').toLowerCase();
@@ -75,6 +75,27 @@ async function openai(key) {
   return rows;
 }
 
+// Syncs (his ask 2026-11-20: its own line, counted exactly once): meeting-fn.js keeps each meeting's spend in syncsCost/<id> (absolute,
+// rewritten after every round). Meetings call OpenAI on the chat's key (WIKI_OPENAI_KEY), so OpenAI already reports that part under
+// "chat": it is MOVED from chat to Syncs (a minus row on chat, a plus row on Syncs - the day's total doesn't change). The Anthropic
+// part (Sonnet: the organizer, the director, the title) is in no provider report we read, so it is ADDED (src 'anthropic').
+// Meetings saved before the split (2026-11-20 evening) only have a total: src 'ledger', area syncs (kind text) - part of it
+// (their Terra share) is also inside chat's line, and Backstage says so.
+async function syncsRows(days) {
+  const from = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
+  const snap = await admin.firestore().collection('syncsCost').where('dUTC', '>=', from).get();
+  const rows = [];
+  for (const x of snap.docs.map((d) => d.data())) {
+    const base = { d: x.dUTC, group: 'shlomiverse' };
+    if (x.openai) rows.push({ ...base, src: 'openai', area: 'syncs', kind: 'text', usd: x.openai }, { ...base, src: 'openai', area: 'chat', kind: 'text', usd: -x.openai });
+    if (x.anthropic) rows.push({ ...base, src: 'anthropic', area: 'syncs', kind: 'text', usd: x.anthropic });
+    if (x.unsplit) rows.push({ ...base, src: 'ledger', area: 'syncs', kind: 'text', usd: x.unsplit });
+  }
+  return rows;
+}
+// the sources that are dollars (ElevenLabs is credits)
+const DOLLARS = new Set(['openai', 'evolink', 'anthropic', 'ledger']);
+
 // ElevenLabs: credits per key per day; dollars = credits x what a credit costs on his plan
 async function eleven(key) {
   const get = async (u) => {
@@ -105,10 +126,12 @@ async function owner(op, b) {
   const db = admin.firestore(), ref = db.collection('owner').doc('costs'), was = (await ref.get()).data();
   if (was && !b.fresh && Date.now() - was.at < (b.maxAge || HOUR)) return was;
   const out = { at: Date.now(), days: DAYS, areas: AREAS, rows: [], errors: [] };
-  const [oa, el, pk] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS)]);
+  const [oa, el, pk, sy] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS), syncsRows(DAYS)]);
   if (oa.status === 'fulfilled') out.rows.push(...oa.value); else out.errors.push(String(oa.reason?.message || oa.reason));
   if (el.status === 'fulfilled') { out.rows.push(...el.value.rows); out.eleven = { ...el.value.plan, keys: el.value.keys }; } else out.errors.push(String(el.reason?.message || el.reason));
   if (pk.status === 'fulfilled') { out.rows.push(...pk.value.rows); out.evolink = pk.value.balance; } else out.errors.push('evolink: ' + String(pk.reason?.message || pk.reason));
+  // Syncs moves its OpenAI part out of chat - only when OpenAI itself answered (else the minus rows would stand alone)
+  if (sy.status === 'fulfilled') out.rows.push(...sy.value.filter((r) => oa.status === 'fulfilled' || r.src !== 'openai')); else out.errors.push('syncs: ' + String(sy.reason?.message || sy.reason));
   // one row per day / source / group / area / kind (/ client - Piko's jobs know who made them)
   const sum = {};
   for (const r of out.rows) {
@@ -140,7 +163,7 @@ function dayTotal(rows, day) {
   const lines = {};
   let total = 0;
   for (const r of rows || []) {
-    if (r.d !== day || (r.src !== 'openai' && r.src !== 'evolink') || !r.usd) continue;
+    if (r.d !== day || !DOLLARS.has(r.src) || !r.usd) continue;
     total += r.usd;
     const name = areaName(r), l = (lines[name] ||= { name, usd: 0, kinds: {} });
     l.usd += r.usd; l.kinds[r.kind] = (l.kinds[r.kind] || 0) + r.usd;
@@ -207,4 +230,4 @@ const costAlert = onSchedule({ schedule: '0 * * * *', timeZone: 'Asia/Jerusalem'
   console.log('costAlert', JSON.stringify(await alert()));
 });
 
-module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD, LEVELS };
+module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD, LEVELS, syncsRows, DOLLARS };

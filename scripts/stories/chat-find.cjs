@@ -3,6 +3,9 @@
 //   node scripts/stories/chat-find.cjs --picked [--all] [--out file.md]   the ones he marked "לסטורי" in Backstage (storyPicks,
 //                                                                          a copy of the thread), not made yet (--all: also done)
 //   node scripts/stories/chat-find.cjs --done <key>                        a pick made into a story (Backstage shows "סטורי נעשה")
+// A pick can be a Syncs meeting (since 2026-11-20 - Backstage lists meetings with the conversations): key 'm:<meeting id>', kind
+// 'meeting', with the whole meeting copied - who was in it, the visitor (name + the title the meeting gave them), every line with
+// its speaker, who muted whom / who left / the visitor's silences, and Amir's wrap-up. The file marks it "KIND: SYNCS MEETING".
 // Lists every conversation (chat_logs, one thread per `c`) with that resident that had at least --min exchanges and
 // ended within the last --days days, longest first, with its date in Israel time. Never prints visitor ids or uids.
 const fs = require('fs'), path = require('path');
@@ -21,6 +24,7 @@ async function picked() {
   const list = snap.docs.map((d) => d.data()).filter((x) => all || !x.done).sort((x, y) => y.t - x.t);
   let txt = `# ${list.length} conversations marked for a story${all ? '' : ' (not made yet)'}\n\n`;
   for (const x of list) {
+    if (x.kind === 'meeting' && x.meeting) { txt += meetingText(x); continue; }
     const m = x.msgs || [];
     txt += `## ${x.key} - ${x.mode} - ${m.length} exchanges - ${m[0] ? il(m[0].t) : ''}${x.done ? ' - DONE' : ''}\n`;
     for (const e of m) txt += `V: ${e.q}\nR: ${String(e.a).replace(/\n+/g, ' ')}\n`;
@@ -28,6 +32,29 @@ async function picked() {
   }
   if (out) { fs.writeFileSync(out, txt); console.log(txt.split('\n')[0], '->', out); } else process.stdout.write(txt);
   process.exit(0);
+}
+// a Syncs meeting as text: the speakers by name, the moments the page shows (a mute, someone leaving), the wrap-up
+const NAMES = { amir: 'אמיר', ofer: 'עופר', daniel: 'דניאל', ronit: 'רונית', gilad: 'גלעד', yaniv: 'יניב' };
+function meetingText(x) {
+  const M = x.meeting, v = M.visitor || {}, who = (id) => (id === 'user' ? `${v.name || 'המבקר/ת'} (המבקר/ת)` : NAMES[id] || id);
+  const out = [`## ${x.key} - KIND: SYNCS MEETING - ${(M.log || []).filter((l) => l.text).length} lines - ${M.t ? il(M.t) : ''}${x.done ? ' - DONE' : ''}`,
+    `In the meeting: ${(M.room || []).map(who).join(', ')} + the visitor ${v.name || '?'}${v.title ? ` ("${v.title}")` : ''}${M.ms ? ` · ${Math.max(1, Math.round(M.ms / 60000))} min` : ''}${M.ended ? '' : ' · did not end'}`, ''];
+  (M.log || []).forEach((l, i) => {
+    const prev = M.log[i - 1];
+    if (prev && prev.cut && prev.text && !l.left && !l.silent && prev.who !== 'user') out.push(`   [${who(l.who)} muted ${who(prev.who)}]`);
+    if (l.left) out.push(`   [${who(l.who)} left the meeting]`);
+    else if (l.silent) out.push('   [the visitor stayed silent - the room went on]');
+    else out.push(`${who(l.who)}: ${l.text}${l.cut ? ' —' : ''}`);
+  });
+  if (M.ended && M.ender) out.push(`   [${who(M.ender)} ended the meeting]`);
+  const R = M.recap;
+  if (R) {
+    out.push('', `WRAP-UP (by ${who(R.by || 'amir')}): ${R.title || ''}`, R.summary || '');
+    for (const q of R.points || []) out.push(`- said: ${who(q.who)} - ${q.text}`);
+    for (const q of R.items || []) out.push(`- action item: ${who(q.who)} - ${q.text}`);
+    if (R.next) out.push(`Next: ${R.next}`);
+  }
+  return out.join('\n') + '\n\n';
 }
 const il = (t) => new Date(t).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', dateStyle: 'short', timeStyle: 'short' });
 if (char === '--picked' || char === '--done') picked();
