@@ -482,6 +482,8 @@ ${TOPICS.map(box).join('')}<button class="go" type="submit">לשמור</button><
 
 // ---------- for /backstage/ (through verseOwner, with his key) ----------
 // every kind of mail we send, rendered with real data, so he sees them all in one place
+// the previews show the stop link the way a real account's mail does (a sample link - it opens the "invalid link" page)
+const SAMPLE_LINK = { unsub: PREFS_URL + '?u=sample&t=sample' };
 async function samples() {
   const w = await wiki();
   const now = Date.now();
@@ -492,10 +494,10 @@ async function samples() {
   const P = { uid: 'sample', email: OWNER, name: 'שלומי' };
   const ev = (kind, ref, extra = {}) => ({ id: `${kind}_${ref}`, kind, ref, t: now, ...extra });
   const out = [];
-  const add = async (label, p, tz = false) => { const x = await mailFor(p, w, now, tz); if (x) out.push({ key: label, label, kind: x.kind, ...mail.render(x.kind, x.d) }); };
+  const add = async (label, p, tz = false) => { const x = await mailFor(p, w, now, tz); if (x) out.push({ key: label, label, kind: x.kind, ...mail.render(x.kind, x.d, SAMPLE_LINK) }); };
   // the welcome and the letter as they go out once ציפציפ and ח24 open (verseMeta/tz.open) - until then without those lines
   await add('ברוכים הבאים', { ...P, kind: 'welcome', events: [] }, true);
-  { const d = citizenData(P.name, true); out.push({ key: 'אזרחות', label: 'הזמנה למסע האזרחות (שגרירות)', kind: 'citizen', from: d.from, ...mail.render('citizen', d) }); }
+  { const d = citizenData(P.name, true); out.push({ key: 'אזרחות', label: 'הזמנה למסע האזרחות (שגרירות)', kind: 'citizen', from: d.from, ...mail.render('citizen', d, SAMPLE_LINK) }); }
   if (games[0]) await add('משחק חדש', { ...P, kind: 'game', events: [ev('game', games[0].id)] });
   if (videos[0]) await add('סרטון חדש', { ...P, kind: 'video', events: [ev('video', videos[0].id)] });
   if (stories[0]) await add('סטורי חדש', { ...P, kind: 'story', events: [ev('story', stories[0].id)] });
@@ -503,11 +505,11 @@ async function samples() {
     ...stories.map((d) => ev('story', d.id))].filter(Boolean) });
   const sampleIdea = { ideaId: 'sample', text: 'מה עם תושב נוסף - הדתי מחמד, זה שמנדבים אותו להדליק נרות חנוכה ושואלים אותו על ההכשרים?', videoId: videos[0]?.id };
   for (const [status, label] of [['liked', 'רעיון: השלומיוורס אהב'], ['making', 'רעיון: בעבודה'], ['live', 'רעיון: עלה לאוויר']]) {
-    out.push({ key: 'idea:' + status, label, kind: 'idea', ...ideaRender({ ...sampleIdea, status }, 'ישראל') });
+    out.push({ key: 'idea:' + status, label, kind: 'idea', ...ideaRender({ ...sampleIdea, status }, 'ישראל', SAMPLE_LINK) });
   }
   for (const key of Object.keys(replies())) {
     const x = replyMail(key, { name: 'ישראל ישראלי', choice: '', when: '' }, w);
-    if (x) out.push({ key: 'reply:' + key, label: `תשובה: ${x.r.site || key} (${x.r.fromName})`, kind: 'reply', from: x.r.fromName, ...mail.render('reply', x.d) });
+    if (x) out.push({ key: 'reply:' + key, label: `תשובה: ${x.r.site || key} (${x.r.fromName})`, kind: 'reply', from: x.r.fromName, ...mail.render('reply', x.d, SAMPLE_LINK) });
   }
   return out;
 }

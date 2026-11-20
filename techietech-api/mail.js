@@ -254,12 +254,16 @@ function citizen(d, k) {
 const KINDS = { game: newGame, story, video, digest, welcome, reply, idea, citizen, greeting };
 
 // one mail: { subject, html, text, headers } - `unsub` is this reader's own link, `unsubPost` the one-click address
+// A mail to an account always carries that account's own link (the caller passes it). No link = no account behind this address:
+// the footer says it is a one-off and nothing more will come (his rule 2026-11-20 - a way to stop on EVERY mail; the old fallback
+// pointed at /mail/off, a page that never existed)
+const ONE_OFF = 'זה מייל חד־פעמי בעקבות פנייה שלך. לא נשלח לך מיילים נוספים.';
 function render(kind, d, { unsub, unsubPost } = {}) {
-  if (kind !== 'reply') unsub = unsub || SITE + '/mail/off';
   const body = KINDS[kind]({ prefs: unsub, ...d }, kind);
   const note = kind === 'reply' ? `זו תשובה אוטומטית מ${esc(d.site || 'השלומיוורס')}, בשלומיוורס – עולם של תושבים.<br>אפשר להשיב למייל הזה.` : d.note ? esc(d.note) : null;
-  const html = shell({ kind, subject: d.subject, preheader: d.preheader || '', body, unsub, note });
-  const text = [d.subject, '', ...(d.paras || [d.preheader || '']), '', abs(d.url || d.href || d.cta?.href || '/'), ...(unsub ? ['', 'לבחור על מה לקבל מיילים או להפסיק: ' + unsub] : [])].join('\n');
+  const noteFull = unsub ? note : `${note ? note + '<br>' : ''}${ONE_OFF}`;
+  const html = shell({ kind, subject: d.subject, preheader: d.preheader || '', body, unsub, note: noteFull });
+  const text = [d.subject, '', ...(d.paras || [d.preheader || '']), '', abs(d.url || d.href || d.cta?.href || '/'), '', unsub ? 'לבחור על מה לקבל מיילים או להפסיק: ' + unsub : ONE_OFF].join('\n');
   const headers = unsub ? { 'List-Unsubscribe': `<${unsubPost || unsub}>`, ...(unsubPost ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}) } : {};
   return { subject: d.subject, html, text, headers };
 }

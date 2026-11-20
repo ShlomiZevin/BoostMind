@@ -83,7 +83,8 @@ async function load(id) {
   if (!d.exists) die('no such greeting');
   return { id: d.id, ...d.data() };
 }
-async function build(g, first) {
+async function build(g, first, uid = null) {
+  const unsub = prefsLink(uid);
   const { render } = require(path.join(API, 'mail.js'));
   const d = {
     subject: `הברכה ל${g.forWho} מוכנה`, preheader: `ברכה מ${g.charName} ל${g.forWho}`,
@@ -94,11 +95,18 @@ async function build(g, first) {
     poster: `${SITE}/greeting/${g.id}/poster.jpg`, href: `/greeting/${g.id}`,
     note: 'זו ברכה אישית מהשלומיוורס. אפשר להשיב למייל הזה.',
   };
-  return render('greeting', d);
+  return render('greeting', d, unsub ? { unsub, unsubPost: unsub + '&one=1' } : {});
 }
 async function requester(g) {
   const r = g.requestId ? (await db.collection('requests').doc(g.requestId).get()).data() || {} : {};
-  return { first: String(r.name || r.nick || '').split(' ')[0], email: g.to || r.email };
+  return { first: String(r.name || r.nick || '').split(' ')[0], email: g.to || r.email, uid: r.uid || null };
+}
+// the requester's own "choose what to get / stop" link - the same signed link every Shlomiverse mail carries (mailer.js prefsLink;
+// his rule 2026-11-20: a way to stop at the bottom of EVERY mail we send). No account = no link (render says it is a one-off).
+function prefsLink(uid) {
+  if (!uid) return null;
+  const { unsubUrl } = require(path.join(API, 'mail.js'));
+  return unsubUrl('https://europe-west1-boostmind-b052c.cloudfunctions.net/verseMail', uid, 'mail|' + secret('VERSE_VAPID_PRIVATE'));
 }
 // the newest mail this person sent us (his rule: answer inside their thread)
 async function theirThread(email) {
@@ -123,7 +131,7 @@ async function send(id) {
   const user = secret('GMAIL_USER');
   const to = test ? user : who.email;
   if (!to) die('no address for the requester (--to on add)');
-  const m = await build(g, who.first);
+  const m = await build(g, who.first, test ? null : who.uid);
   let subject = m.subject, headers = { ...m.headers };
   const th = test ? null : await theirThread(to);
   if (th && th.messageId) {
