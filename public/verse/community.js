@@ -485,7 +485,7 @@ const bizForm = () => `<form class="biz-form"><h2>${esc(T.bizFormTitle)}</h2><p>
       <input name="name" maxlength="80" required placeholder="${esc(T.bizName)}" autocomplete="name">
       <input name="company" maxlength="120" placeholder="${esc(T.bizCompany)}" autocomplete="organization">
       <input name="email" type="email" maxlength="160" required placeholder="${esc(T.bizEmail)}" dir="ltr" autocomplete="email">
-      <input name="phone" type="tel" maxlength="40" placeholder="${esc(T.bizPhone)}" dir="ltr" autocomplete="tel">
+      <input name="phone" type="tel" inputmode="tel" maxlength="20" required placeholder="${esc(T.bizPhone)}" dir="ltr" autocomplete="tel">
       <textarea name="text" maxlength="3000" required placeholder="${esc(T.bizMsg)}"></textarea>
       <button class="vx-btn main block">${esc(T.bizSend)}</button></form>`;
 export function bizSheet() {
@@ -514,16 +514,17 @@ document.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = f.email.value.trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast(T.bizBadEmail); f.email.focus(); return; }
+  // the phone is a must (his rule 2026-11-20: an email alone can be too weak)
+  if (!PHONE.test(f.phone.value.replace(/[\s\-().]/g, ''))) { toast(T.bizBadPhone); f.phone.focus(); return; }
   if (!(await bizSignIn())) return;
   const btn = f.querySelector('button:not([data-topic])');
   btn.disabled = true; btn.innerHTML = '<span class="vx-spin"></span>';
   try {
-    const phone = f.phone ? f.phone.value.trim() : '';
-    await call('request', { kind: 'business', name: f.name.value.trim(), company: f.company.value.trim(), contact: email, text: f.text.value.trim() + (phone ? `\n\nטלפון: ${phone}` : ''),
+    await call('request', { kind: 'business', name: f.name.value.trim(), company: f.company.value.trim(), contact: email, text: f.text.value.trim(), phone: f.phone.value.trim(),
       topic: f.querySelector('[data-topic].on')?.dataset.topic || '' });
     track('request', 'business');
     f.innerHTML = `<div class="rqs-done">${I.check}<h2>${esc(T.bizDone)}</h2><p>${esc(T.bizDoneSub)}</p></div>`;
-  } catch (x) { btn.disabled = false; btn.textContent = T.bizSend; toast(x.code === 'slow_down' ? T.cmSlow : T.errGeneric); }
+  } catch (x) { btn.disabled = false; btn.textContent = T.bizSend; toast(x.code === 'slow_down' ? T.cmSlow : /phone/.test(x.message || '') ? T.bizBadPhone : T.errGeneric); }
 });
 
 // ---------- one place for the clicks ----------

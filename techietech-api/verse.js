@@ -692,7 +692,12 @@ async function request(d, auth, ip) {
   const contact = oneLine(d.contact, 160) || auth.token.email;
   const doc = { kind, text, contact, email: auth.token.email, uid: auth.uid, nick: null, t: FieldValue.serverTimestamp(), done: false };
   // the business page: who, which company, about what (the email is the way back)
-  if (kind === 'business') Object.assign(doc, { name: oneLine(d.name, 80), company: oneLine(d.company, 120), topic: oneLine(d.topic, 40) });
+  // the phone is a must here too (his rule 2026-11-20: "emails might be too weak sometimes")
+  if (kind === 'business') {
+    const phone = String(d.phone || '').replace(/[\s\-().]/g, '');
+    if (!/^\+?\d{9,15}$/.test(phone)) fail('invalid-argument', 'phone');
+    Object.assign(doc, { name: oneLine(d.name, 80), company: oneLine(d.company, 120), topic: oneLine(d.topic, 40), phone });
+  }
   // "something isn't working": the page, the device and the page's last errors, so it can be fixed without asking back
   if (kind === 'bug') Object.assign(doc, { page: oneLine(d.page, 300), ua: oneLine(d.ua, 300), screen: oneLine(d.screen, 20),
     errors: (Array.isArray(d.errors) ? d.errors : []).slice(0, 5).map((x) => oneLine(x, 200)) });
@@ -719,7 +724,7 @@ async function request(d, auth, ip) {
   // a bug: what he needs at a glance (his note 2026-11-16, a report mail of a raw browser string) - the page, the phone
   // in words, the errors; the raw string goes last, for whoever fixes it
   const body = [...(kind === 'bug' ? [`דף: ${doc.page}`, `מכשיר: ${deviceText(doc.ua, doc.screen)}`, ...(doc.errors.length ? ['שגיאות: ' + doc.errors.join(' | ')] : []), ''] : []),
-    ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, ''] : []),
+    ...(kind === 'business' ? [`${doc.name || '-'} · ${doc.company || '-'}${doc.topic ? ' · ' + doc.topic : ''}`, `טלפון: ${doc.phone}`, ''] : []),
     ...(kind === 'personal' ? [`דמות: ${doc.char || '-'} · עבור: ${doc.forWho || '-'} · אירוע: ${doc.event || '-'} · תאריך: ${doc.date || '-'}`, `טלפון: ${doc.phone}`, ''] : []), text, '', `איך לחזור: ${contact || '-'}`,
     `חשבון Google: ${doc.email}${doc.nick ? ` · בשלומיוורס: ${doc.nick}` : ''}`, '', `${where} · ${ilTime()} · ${ref.id}`,
     ...(kind === 'bug' && doc.ua ? ['', `פרטים טכניים: ${doc.ua}`] : [])].join('\n');
@@ -728,7 +733,7 @@ async function request(d, auth, ip) {
     try {
       const { addItem, updateItem } = require('./mind')._mind;
       const it = await addItem({ text: `פנייה עסקית: ${doc.company || doc.name || contact}${doc.topic ? ' · ' + doc.topic : ''}`, body, type: 'task', project: 'BoostMind', tags: ['business'] }, 'פנייה עסקית');
-      await updateItem(it.id, { status: 'waiting', note: `${doc.name || ''} ${doc.company ? '(' + doc.company + ')' : ''} - ${contact}`.trim() }, 'פנייה עסקית');
+      await updateItem(it.id, { status: 'waiting', note: `${doc.name || ''} ${doc.company ? '(' + doc.company + ')' : ''} - ${contact} · ${doc.phone}`.trim() }, 'פנייה עסקית');
     } catch (e) { console.error('business -> mind', e.message); }
   }
   // a personal video too: it has a date, so it reaches him as a Mind task with the date in its name
