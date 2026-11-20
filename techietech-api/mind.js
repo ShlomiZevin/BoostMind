@@ -32,7 +32,8 @@ const PUSH = db.collection('mind_push');
 // ask = a site form opened a task waiting for him; remind = 9 am reminders. (Session pings are gone, 2026-11-12.)
 // session = a session asks him for something (type 'session' - his ask 2026-11-17: "if you need anything from me, tell me on Mind")
 // meet = his meetings: the day's digests (07:30 / 11:00 / 15:00) and a heads-up before each one (the PA, 2026-11-20)
-const PUSH_KINDS = { ask: true, remind: true, session: true, meet: true };
+// nag = "did you already...?" about the things he asked to be chased about (item.nag), every 2 hours 10:00-20:30
+const PUSH_KINDS = { ask: true, remind: true, session: true, meet: true, nag: true };
 
 const STATUSES = ['open', 'active', 'waiting', 'done', 'parked'];
 const STATUS_HE = { open: 'פתוח', active: 'בטיפול', waiting: 'מחכה לך', done: 'בוצע', parked: 'בהקפאה' };
@@ -49,6 +50,9 @@ const DEFAULT_TYPES = [
 const ilDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const todayVal = (v) => (v === true || v === 'yes' ? ilDay() : /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : '');
 const LOG_MAX = 80;
+// "ask me from time to time if I bought it" (his ask 2026-11-20): item.nag = the question his phone asks until it's done
+// ('' = off). 'on' / true from the page's switch = a plain question from the title; the AI writes a real one ("קנית כבר אקמול?").
+const nagVal = (v, text) => (v === true || v === 'on' ? 'כבר עשית? ' + oneLine(text, 90) : oneLine(v, 120));
 
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
 const oneLine = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -104,6 +108,7 @@ async function addItem(f, by) {
     type: types.has(f.type) ? f.type : 'idea',
     status: STATUSES.includes(f.status) ? f.status : 'open',
     project: oneLine(f.project, 60), pin: !!f.pin, due: /^\d{4}-\d{2}-\d{2}$/.test(f.due || '') ? f.due : '', today: todayVal(f.today),
+    nag: nagVal(f.nag, f.text), nagAt: 0,
     tags: Array.isArray(f.tags) ? f.tags.map((t) => oneLine(t, 30)).filter(Boolean).slice(0, 10) : [],
     sessions: f.session ? [oneLine(f.session, 80)] : [], by: oneLine(by, 80) || 'שלומי', c: now, u: now,
     log: [logEntry(by, f.note || 'נוצר', { st: STATUSES.includes(f.status) ? f.status : 'open', ...(f.session ? { s: oneLine(f.session, 80) } : {}) })],
@@ -129,6 +134,7 @@ async function updateItem(id, f, by, quiet) {
     if (f.pin != null) ch.pin = !!f.pin;
     if (f.due != null) ch.due = /^\d{4}-\d{2}-\d{2}$/.test(f.due) ? f.due : '';
     if (f.today != null) ch.today = todayVal(f.today);
+    if (f.nag != null && nagVal(f.nag, ch.text || it.text) !== (it.nag || '')) { ch.nag = nagVal(f.nag, ch.text || it.text); ch.nagAt = Date.now(); }
     if (Array.isArray(f.tags)) ch.tags = f.tags.map((t) => oneLine(t, 30)).filter(Boolean).slice(0, 10);
     if (f.status != null && STATUSES.includes(f.status) && f.status !== it.status) { ch.status = f.status; said.push(STATUS_HE[f.status]); }
     if (f.session) { const s = oneLine(f.session, 80); if (!(it.sessions || []).includes(s)) ch.sessions = [...(it.sessions || []), s].slice(-10); }
@@ -273,14 +279,25 @@ const meetLine = (m) => `${hm(m)} ${m.title}`;
 // a heads-up MEET_LEAD minutes before each meeting. What was sent is kept per day in mind_meta/agenda_<day>.
 const DIGESTS = ['07:30', '11:00', '15:00'];
 const MEET_LEAD = 10;
+const NAG_FROM = '10:00', NAG_TO = '20:30', NAG_EVERY = 2 * 3600e3;
 async function agendaTick(now = new Date()) {
   const day = ilDayOf(now), t = ilHM(now);
   const sentRef = META.doc('agenda_' + day), sent = (await sentRef.get()).data() || {};
   const g = (await GOOGLE.get()).data();
-  if (!Object.keys(g?.accounts || {}).length) return { off: 'no calendars' };
-  const { meetings } = await agenda(ilStart(day), new Date(ilStart(day).getTime() + 36 * 3600e3), true);
+  const { meetings } = Object.keys(g?.accounts || {}).length ? await agenda(ilStart(day), new Date(ilStart(day).getTime() + 36 * 3600e3), true) : { meetings: [] };
   const today = meetings.filter((m) => (m.allDay ? m.start === day : ilDayOf(new Date(m.start)) === day));
   const mark = {}, did = [];
+  // the things he asked to be chased about (item.nag): awake hours only, every NAG_EVERY, never in the middle of a meeting
+  const inMeeting = today.some((m) => !m.allDay && new Date(m.start) <= now && new Date(m.end) > now);
+  if (t >= NAG_FROM && t <= NAG_TO && !inMeeting) {
+    for (const d of (await ITEMS.where('nag', '>', '').get()).docs) {
+      const it = d.data();
+      if (!['open', 'active', 'waiting'].includes(it.status) || now - (it.nagAt || it.c) < NAG_EVERY) continue;
+      await d.ref.update({ nagAt: now.getTime(), nagN: (it.nagN || 0) + 1 });
+      await pushMe('nag', { title: it.nag, body: 'לחץ כדי לענות', url: '/mind/#nag=' + d.id, tag: 'nag:' + d.id }, null, { ttl: 3600 });
+      did.push('nag ' + it.text);
+    }
+  }
   // digest: the latest slot that came (within the hour after it), not sent yet
   const slot = DIGESTS.filter((s) => s <= t && minutes(t) - minutes(s) < 60).pop();
   if (slot && !sent['d' + slot]) {
@@ -510,7 +527,8 @@ async function pageOp(b) {
       const line = (i) => `#${i.id} [${i.type}, ${i.status}${i.pin ? ', starred' : ''}${i.due ? ', due ' + i.due : ''}${i.project ? ', project ' + i.project : ''}] ${oneLine(i.text, 100)}${i.body ? ' - ' + oneLine(i.body, 120) : ''}`;
       const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
       const schema = { type: 'object', additionalProperties: false, required: ['reply', 'actions'], properties: { reply: { type: 'string' }, actions: { type: 'array', items: { type: 'object', additionalProperties: false,
-        required: ['do', 'id', 'text', 'body', 'note', 'type', 'project', 'status', 'pin', 'due'], properties: {
+        required: ['do', 'id', 'text', 'body', 'note', 'type', 'project', 'status', 'pin', 'due', 'today', 'nag'], properties: {
+          today: { type: 'string', enum: ['', 'yes', 'no'] }, nag: { type: 'string' },
           do: { type: 'string', enum: ['add', 'update'] }, id: { type: 'string' },
           text: { type: 'string' }, body: { type: 'string' }, note: { type: 'string' },
           type: { type: 'string', enum: ['', ...cfg.types.map((t) => t.id)] }, project: { type: 'string' },
@@ -529,6 +547,8 @@ When what he says is about something already on his table (more details, a thoug
   text = a new title only if he renames it; body = new details he dictates for it (they are ADDED under the existing details); type; project ("-" = remove the project); status: done when he finished it / it happened, parked when he wants it off the table / deleted / not relevant any more (never delete), open to bring it back, active / waiting; pin yes / no; due YYYY-MM-DD ("none" = remove the date).
   note: always - one short line in his language saying what happened, e.g. "סיים - נשלח ללקוח", "נדחה למחר", "עודכן: דיברתי עם דני".
 - due on add: YYYY-MM-DD if he gives a time ("מחר", "ביום ראשון", "עד סוף החודש"), else "". Today is ${today} (Israel).
+- today (add and update): "yes" when he says it's for today ("היום אני צריך...", "להיום"), "no" when he takes it off today, else "".
+- nag (add and update): you are also his PA - when he wants to be chased about something until it's done ("תזכיר לי", "תשאל אותי", "תציק לי", "תוודא שאני...") or it is a concrete errand he must get done today (buy something, call someone, send something), write the short friendly question his phone will ask him from time to time until he marks it done - in his language, about the thing itself: "קנית כבר אקמול?", "התקשרת לדני?", "שלחת את ההצעה ליוסי?". "off" when he says to stop asking about it. Else "".
 - note on add: "".
 - reply: one short line in his language. If he asked a question about his table ("מה פתוח לי?", "מה עם X?") answer it here from the list, briefly (a list = one thing per line, no numbers), and return no actions. Otherwise "" - the screen already shows what changed.${focus ? `\nHe is looking at item #${focus.id} right now - "this" / "זה" / "את זה" means it.` : ''}
 
@@ -546,7 +566,7 @@ ${gone.map(line).join('\n') || '(none)'}`,
         if (a.do === 'add') {
           if (!oneLine(a.text, 300)) continue;
           items.push(await addItem({ text: a.text, body: a.body, type: a.type || 'idea', project: a.project === '-' ? '' : a.project, status: a.status || 'open',
-            pin: a.pin === 'yes', due: a.due, note: (adds.length > 1 ? 'מתוך: ' : 'נאמר: ') + said }, 'שלומי'));
+            pin: a.pin === 'yes', due: a.due, today: a.today === 'yes', nag: a.nag === 'off' ? '' : a.nag, note: (adds.length > 1 ? 'מתוך: ' : 'נאמר: ') + said }, 'שלומי'));
           continue;
         }
         const cur = all.find((i) => i.id === oneLine(a.id, 20).replace(/^#/, ''));
@@ -559,6 +579,8 @@ ${gone.map(line).join('\n') || '(none)'}`,
         if (a.status && a.status !== cur.status) { f.status = a.status; before.status = cur.status; }
         if (a.pin) { f.pin = a.pin === 'yes'; before.pin = !!cur.pin; }
         if (a.due) { f.due = a.due === 'none' ? '' : a.due; before.due = cur.due || ''; }
+        if (a.today) { f.today = a.today === 'yes' ? ilDay() : ''; before.today = cur.today || ''; }
+        if (a.nag) { f.nag = a.nag === 'off' ? '' : a.nag; before.nag = cur.nag || ''; }
         f.note = oneLine(a.note, 300) || 'עודכן';
         changed.push({ item: await updateItem(cur.id, f, 'שלומי'), before, note: f.note });
       }

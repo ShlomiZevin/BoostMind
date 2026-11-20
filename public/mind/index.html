@@ -348,7 +348,12 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .done-today { display: flex; flex-direction: column; gap: 6px; }
 .done-today .dt { display: flex; align-items: center; gap: 8px; color: var(--ink3); text-decoration: line-through; font-size: 14px; cursor: pointer; padding: 4px 6px; }
 .done-today .dt svg { width: 15px; height: 15px; color: var(--green); flex: none; }
-.tabs b.tb-today { background: var(--amber) !important; } .tabs b.tb-meet { background: var(--brand) !important; }
+.tabs b.tb-today { background: var(--amber) !important; }
+.nagmark { color: var(--violet); display: inline-flex; vertical-align: -2px; margin-inline-end: 5px; } .nagmark svg { width: 15px; height: 15px; }
+.pchip.nagc.on { color: var(--violet); background: var(--violetSoft); }
+.nagq h3 { display: flex; gap: 8px; align-items: center; } .nagq h3 svg { color: var(--violet); width: 22px; height: 22px; }
+.nagbtns { display: flex; gap: 10px; } .nagbtns .btn { flex: 1; justify-content: center; padding: 14px; font-size: 16px; font-weight: 700; }
+.nagstop { display: block; margin: 14px auto 0; color: var(--ink3); font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; } .tabs b.tb-meet { background: var(--brand) !important; }
 /* ---------- meetings (the PA, 2026-11-20): his two calendars, today first ---------- */
 .meet-v .hello h1 svg, .agstrip h4 svg { width: 26px; height: 26px; color: var(--brand); vertical-align: -3px; }
 .mday { margin: 22px 0 8px; font-size: 13px; font-weight: 800; color: var(--ink2); display: flex; gap: 8px; align-items: baseline; }
@@ -755,7 +760,7 @@ function tableRow(e) {
   const td = isToday(it) && S.view !== 'today';   // inside היום every row is for today - no mark, no highlight (his note 2026-11-17)
   return `<div class="trow k-${e.k} ${td ? 'today' : ''} ${isNew(e) ? 'new' : ''}" data-item="${it.id}" data-tid="i:${it.id}">
     <span class="tk">${e.k === 'task' ? `<button class="tick" data-done="${it.id}" title="בוצע">${ic('check')}</button>` : tic}<em>${esc(t.name)}</em></span>
-    <div class="tm"><b>${td ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
+    <div class="tm"><b>${it.nag && !['done', 'parked'].includes(it.status) ? `<span class="nagmark" title="${esc(it.nag)}">${ic('bell')}</span>` : ''}${td ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
     ${it.images?.[0]?.url ? `<img class="tthumb" src="${esc(it.images[0].url)}" alt="" loading="lazy">` : ''}
     <div class="te">${end}<small>${ago(it.u)}</small></div>
     <div class="ta">${e.k !== 'task' ? `<button data-done="${it.id}" title="בוצע">${ic('check')}</button>` : ''}<button data-today="${it.id}" class="${td ? 'on' : ''}" title="להיום">${ic('sun')}</button><button data-pin="${it.id}" class="${it.pin ? 'on' : ''}" title="סמן בכוכב">${ic('star')}</button><button data-park="${it.id}" title="הורד מהשולחן">${ic('x')}</button></div>
@@ -867,6 +872,17 @@ document.addEventListener('click', (e) => {
   const r = e.target.closest('[data-meet]'); if (!r || e.target.closest('a')) return;
   openMeet(r.dataset.meet);
 });
+
+// "did you already...?" (his ask 2026-11-20): the push opens this - one tap answers it
+function openNag(id) {
+  const it = itemById(id); if (!it) return;
+  if (['done', 'parked'].includes(it.status)) { openItem(id); return; }
+  $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet nagq" role="dialog">
+    <header><h3>${ic('bell')}${esc(it.nag || it.text)}</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
+    <div class="sb"><p class="hint" style="margin:0 0 14px">${esc(it.text)}</p>
+      <div class="nagbtns"><button class="btn pri" data-nagans="${id}:yes">${ic('check')}כן, בוצע</button><button class="btn" data-nagans="${id}:no">עוד לא</button></div>
+      <button class="nagstop" data-nagans="${id}:stop">תפסיק לשאול על זה</button></div></div></div>`;
+}
 
 function viewHome() {
   const all = (() => { const keep = S.hf; S.hf = 'all'; const l = tableEntries(); S.hf = keep; return l; })();
@@ -1063,6 +1079,7 @@ function itemPanel(it) {
         <input class="proj-in" id="pp" list="projlist" placeholder="פרויקט" value="${esc(it.project || '')}">
         <button class="pchip plain star ${it.pin ? 'on' : ''}" data-pin="${it.id}">${ic('star')}כוכב</button>
         <button class="pchip plain today ${isToday(it) ? 'on' : ''}" data-today="${it.id}">${ic('sun')}להיום</button>
+        <button class="pchip plain nagc ${it.nag ? 'on' : ''}" data-nag="${it.id}" title="${esc(it.nag || 'הטלפון ישאל אותך כל שעתיים (10:00-20:30) עד שזה נעשה')}">${ic('bell')}תשאל אותי</button>
         <span class="pchip plain">${ic('clock')}${it.due ? esc(it.due.split('-').reverse().join('/')) : 'תאריך'}<input type="date" data-field="due" value="${esc(it.due || '')}"></span>
         <span class="pchip plain addpic">${ic('plus')}תמונה<input type="file" accept="image/*" multiple data-addpic="${it.id}"></span>
       </div>
@@ -1337,6 +1354,8 @@ document.addEventListener('click', (e) => {
   if (t.classList.contains('scrim') && e.target !== t) return;
   if (t.closest('.trow')?.dataset.swiped) return;
   if (d.today) { e.stopPropagation(); const it = itemById(d.today), on = isToday(it); setItem(d.today, { today: on ? '' : ilDay() }, on ? 'הוסר מהיום' : 'סומן להיום'); return; }
+  if (d.nag) { e.stopPropagation(); const it = itemById(d.nag); setItem(d.nag, { nag: it.nag ? '' : 'on' }, it.nag ? 'לא אשאל יותר' : 'אשאל אותך מדי פעם עד שזה נעשה'); renderPanel(true); return; }
+  if (d.nagans) { const [id, a] = d.nagans.split(':'); closeModal(); if (a === 'yes') setItem(id, { status: 'done', note: 'ענה: כן' }, 'יופי, סימנתי שבוצע'); else if (a === 'stop') setItem(id, { nag: '' }, 'לא אשאל יותר'); else toast('אשאל שוב בעוד שעתיים'); return; }
   if (d.pin) { e.stopPropagation(); const it = itemById(d.pin); setItem(d.pin, { pin: !it.pin }, it.pin ? '' : 'סומן בכוכב'); return; }
   if (d.done) { offTable('i', d.done, 'done'); return; }
   if (d.park) { offTable('i', d.park, 'parked'); return; }
@@ -1535,7 +1554,7 @@ async function pushOff() {
   if (sub) { await api('push_off', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
   LS('push', 0); toast('ההתראות כבויות במכשיר הזה'); pushDraw();
 }
-const PUSH_LABELS = [['meet', 'פגישות: כל פגישות היום ב-07:30, מה שנשאר ב-11:00 וב-15:00, ותזכורת 10 דקות לפני כל פגישה'], ['ask', 'פנייה מהאתר (עסקית, סרטון אישי, בקשה מהארכיון)'], ['session', 'סשן צריך ממך משהו (בקשה מסשן)'], ['remind', 'תזכורות ומשימות שהגיע היום שלהן (ב-9 בבוקר)']];
+const PUSH_LABELS = [['nag', 'לשאול אותי מדי פעם (כל שעתיים, 10:00-20:30) על מה שביקשתי - עד שזה נעשה'], ['meet', 'פגישות: כל פגישות היום ב-07:30, מה שנשאר ב-11:00 וב-15:00, ותזכורת 10 דקות לפני כל פגישה'], ['ask', 'פנייה מהאתר (עסקית, סרטון אישי, בקשה מהארכיון)'], ['session', 'סשן צריך ממך משהו (בקשה מסשן)'], ['remind', 'תזכורות ומשימות שהגיע היום שלהן (ב-9 בבוקר)']];
 async function pushDraw() {
   const el = $('#pushsec'); if (!el) return;
   const st = !pushOk() ? (isIOS && !isApp() ? 'needapp' : 'nosupport') : Notification.permission === 'denied' ? 'denied' : (await pushSub().catch(() => null)) ? 'on' : 'off';
@@ -1559,10 +1578,12 @@ function boot() {
   if (h === 'archive') S.view = h;
   if (h === 'today' || h === 'meet') S.view = h;
   if (h.startsWith('m=')) { S.view = 'meet'; S.wantMeet = decodeURIComponent(h.slice(2)); }   // a meeting push was tapped
+  if (h.startsWith('nag=')) S.wantNag = h.slice(4);   // a "did you already...?" push was tapped
   loadAgenda();
   pushHeal();
   load().then(() => {
-    if (!h && S.view === 'home' && S.items.some(isToday)) go('today');   // the day starts on היום when something is marked
+    if (!h && S.view === 'home' && S.items.some(isToday)) go('today');
+    if (S.wantNag) { const id = S.wantNag; S.wantNag = ''; openNag(id); }   // the day starts on היום when something is marked
     if (h.startsWith('s=')) openSess(decodeURIComponent(h.slice(2)));
     else if (/^[a-z0-9]{6}$/.test(h) && itemById(h)) openItem(h);
   });
@@ -1570,6 +1591,7 @@ function boot() {
 addEventListener('hashchange', () => {
   const h = location.hash.slice(1);
   if (h === 'meet') { go('meet'); return; }
+  if (h.startsWith('nag=')) { openNag(h.slice(4)); return; }
   if (h.startsWith('m=')) { const k = decodeURIComponent(h.slice(2)); if (S.view !== 'meet') go('meet'); if (!openMeet(k)) { S.wantMeet = k; loadAgenda(true); } return; }
   if (h.startsWith('s=')) openSess(decodeURIComponent(h.slice(2)));
   else if (/^[a-z0-9]{6}$/.test(h) && itemById(h)) openItem(h);
