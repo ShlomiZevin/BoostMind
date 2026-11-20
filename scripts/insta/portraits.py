@@ -36,6 +36,9 @@ C = {  # id: (description, ref)
                 "light grey zip-up track jacket, a gold chain. Big friendly grin - talkative and warm. IMPORTANT: the reference has a cartoon 'googly eyes' filter - give him normal, natural human eyes of normal size, a real face with no filter at all.", None),
  'lior-slime': ("A spiritual life coach in his 40s: curly ginger hair, light stubble, white t-shirt, a small clip-on microphone. "
                 "Wide-eyed, enthusiastic, slightly too intense smile.", None),
+ 'hood-guy': ("The neighbourhood guy who thinks he is in charge of the whole block, an Israeli man around 40: a big thick dark horseshoe-style mustache, "
+              "light stubble, thin clear-framed glasses, a black baseball cap worn backwards, a black sleeveless tank top. Self-important, "
+              "squinting 'I know exactly what is going on here' look, chin slightly up - the self-appointed supervisor of the street.", None),
  'lola': ("Lola, a Filipina caregiver in her 30s, a woman: straight black bob with bangs, black zip-up track jacket. "
           "Sweet, patient, cheerful smile. Smooth, clean-shaven feminine face - no beard, no stubble, no beard shadow; no marks on the face.", None),
  'matan': ("A futurist influencer in his mid 30s: grey knit beanie, short beard, dark sweater. Calm, very sure of his predictions "
