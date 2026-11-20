@@ -116,6 +116,7 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
   color: #a6a3ad; font-size: 13.5px; font-weight: 600; text-align: center; }
 .mt-sys svg { width: 16px; height: 16px; flex: none; }
 .mt-sys.left { color: #ffb27a; border-color: rgba(255, 178, 122, .3); }
+.mt-sys.cut { color: #fff; font-weight: 800; background: rgba(255, 106, 31, .16); border-color: rgba(255, 106, 31, .6); }
 .mt-sys.end { color: #fff; font-weight: 800; border-color: rgba(255, 255, 255, .2); }
 .mt-sys.err { color: #ff9b9b; }
 

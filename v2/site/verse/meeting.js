@@ -213,7 +213,7 @@ const behind = (r) => r.target.split(/(\s+)/).length - r.shown;
 function finish(me, r) {
   r.closed = true;
   r.el.classList.remove('now');
-  if (r.cut) { r.el.classList.add('cut'); if (r.by) cue(M_().cut(NAME(r.by), NAME(r.who), FEM.has(r.by))); }
+  if (r.cut) { r.el.classList.add('cut'); if (r.by) sys(me, M_().cut(NAME(r.by), NAME(r.who), FEM.has(r.by)), '', 'cut'); }   // its own line in the history, under the cut line (a floating pill covered the rows - his first look 2026-11-20)
   if (me.speaking === r.who) me.speaking = null;
   paintTiles(me);
 }
