@@ -36,9 +36,12 @@ C = {  # id: (description, ref)
                 "light grey zip-up track jacket, a gold chain. Big friendly grin - talkative and warm. IMPORTANT: the reference has a cartoon 'googly eyes' filter - give him normal, natural human eyes of normal size, a real face with no filter at all.", None),
  'lior-slime': ("A spiritual life coach in his 40s: curly ginger hair, light stubble, white t-shirt, a small clip-on microphone. "
                 "Wide-eyed, enthusiastic, slightly too intense smile.", None),
- 'hood-guy': ("The neighbourhood guy who thinks he is in charge of the whole block, an Israeli man around 40: a big thick dark horseshoe-style mustache, "
-              "light stubble, thin clear-framed glasses, a black baseball cap worn backwards, a black sleeveless tank top. Self-important, "
-              "squinting 'I know exactly what is going on here' look, chin slightly up - the self-appointed supervisor of the street.", None),
+ 'hood-guy': ("The self-appointed inspector of the neighbourhood, an Israeli man around 45 (two references = the same man): COMPLETELY BALD, shiny shaved head, "
+              "no hat. Thin black rectangular half-rim metal glasses. A thick, bushy, drooping brown horseshoe mustache that runs down past the corners "
+              "of his mouth toward the chin, light stubble on the cheeks and chin. Wide, bulging, intense eyes staring right into the camera, "
+              "eyebrows up, mouth slightly open mid-lecture - the know-it-all who is about to tell you that you picked the wrong product. "
+              "Lean, sinewy shoulders, a plain light teal sleeveless tank top. Keep his real face from the references (nose, eyes, mustache shape).",
+              'zoomcut/characters/hood-guy/frame2.jpg'),
  'mole-man': ("A loud Israeli man around 50 who shouts his phone calls in the middle of the street: completely bald, a short reddish-grey beard, "
               "half-rim glasses with red-and-black frames, a small dark mole just under his left eye, a grey zip jacket. Mouth half open "
               "mid-sentence, indignant 'you will learn how to talk' look. Background: plain light-grey studio.", None),
