@@ -209,7 +209,7 @@ TOOLS.push(
       changes: { type: 'array', minItems: 1, maxItems: 12, description: 'The changes, applied in order',
         items: S({ field: { type: 'string', enum: [...SHEET_TEXT, ...SHEET_LIST] }, action: { type: 'string', enum: ['replace', 'append', 'add', 'remove', 'edit'] },
           text: str('The new text / the item to add or remove / the edited item'), old: str('For edit: the existing list item to change') }, ['field', 'action', 'text']) } },
-      ['character', 'why', 'about', 'changes']) },
+      ['character', 'why', 'changes']) },
   { name: 'undo_sheet_change', title: 'Undo the last sheet change', annotations: W,
     description: 'Put a character\'s sheet back as it was before the last update_character_sheet - when Shlomi says a change was wrong.',
     inputSchema: S({ character: str('The character id, name or nickname') }, ['character']) },
@@ -483,7 +483,11 @@ async function afterWrite() { await require('./catalog').compose(admin); checked
 
 async function editSheet(b, a) {
   // greetings never go into the sheet (his rule, 2026-11-19, after a greetings session wrote Hani's blessing style into her sheet)
-  if (a.about !== 'character') fail('Not written. How a resident blesses for an event (personal videos) is a separate layer - "איך מברך" - and never goes into the character sheet, which is what the site chat answers from. Use update_greeting_voice (after showing Shlomi the text). If this really is about who the resident is everywhere, set about = "character".');
+  // about is optional since 2026-11-20: a ChatGPT chat opened before `about` existed keeps the old tool form and cannot send it
+  // ("the tool doesn't let me send about"). Missing = a character change, unless the change itself talks about blessing.
+  const GREET = /ברכ|מברך|מברכת|greeting|bless/i;
+  const greety = a.about == null && GREET.test([a.why, ...(a.changes || []).map((x) => x && x.text)].join(' '));
+  if (a.about === 'greeting' || (a.about != null && a.about !== 'character') || greety) fail('Not written. How a resident blesses for an event (personal videos) is a separate layer - "איך מברך" - and never goes into the character sheet, which is what the site chat answers from. Use update_greeting_voice (after showing Shlomi the text). If this really is about who the resident is everywhere, set about = "character".');
   const c = findCharacter(b, a.character || '') || fail(`No character "${a.character}" - try list_characters`);
   const rec = await content.get('character', c.id);
   if (rec.error) fail(`Could not read ${c.name}'s record (${rec.error})`);
