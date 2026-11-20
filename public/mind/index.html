@@ -391,6 +391,8 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .mk.video { background: var(--blueSoft); color: var(--brand); } .mk.phone { background: var(--graySoft); color: var(--ink2); }
 .mwhere { display: flex !important; align-items: center; gap: 4px; font-weight: 700; color: var(--ink) !important; }
 .mwhere svg { width: 14px; height: 14px; color: var(--amber); flex: none; }
+.mwhere i { font-style: normal; min-width: 0; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; text-align: right; line-height: 1.3; }
+.tm .mwhere { white-space: normal; }
 .btn.waze { background: var(--amber); border-color: var(--amber); color: #1a1205; font-weight: 800; text-decoration: none; }
 .mplace { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--amber) 16%, var(--card)); border: 2px solid var(--amber); }
 .mplace > svg { width: 24px; height: 24px; color: var(--amber); flex: none; }
@@ -845,7 +847,7 @@ function meetRow(m, now, nextKey) {
   return `<div class="mrow ${past ? 'past' : ''} ${live ? 'live' : ''} ${next ? 'next' : ''} ${place ? 'inperson' : ''}" data-meet="${esc(mKey(m))}">
     <div class="mt">${m.allDay ? '<b class="ad">כל היום</b>' : `<b>${hmOf(m.start)}</b><small>${hmOf(m.end)}</small>`}</div>
     <i class="mbar" style="background:${place ? 'var(--amber)' : accColor(m.acc)}"></i>
-    <div class="tm">${kindBadge(m)}<b>${esc(m.title)}</b>${place && m.where ? `<span class="mwhere">${ic('pin')}${esc(m.where)}</span>` : ''}<span>${accs}${esc(sub)}</span></div>
+    <div class="tm">${kindBadge(m)}<b>${esc(m.title)}</b>${place && m.where ? `<span class="mwhere">${ic('pin')}<i dir="auto">${esc(m.where)}</i></span>` : ''}<span>${accs}${esc(sub)}</span></div>
     <div class="me">${live ? '<span class="tag green">עכשיו</span>' : next && untilTxt(new Date(m.start) - now) ? `<span class="tag blue">${untilTxt(new Date(m.start) - now)}</span>` : ''}${past ? '' : place && m.where ? `<a class="btn join waze" href="${esc(wazeUrl(m.where))}" target="_blank" rel="noopener">${ic('pin')}<span>נווט</span></a>` : m.link ? `<a class="btn pri join" href="${esc(m.link)}" target="_blank" rel="noopener">${ic('video')}<span>הצטרף</span></a>` : ''}</div>
   </div>`;
 }
