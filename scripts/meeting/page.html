@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ישיבת זום - ניסוי</title>
+<style>
+/* the ENGINE's try-out (scripts/meeting/server.mjs) - not the design; the real look comes after he tries it */
+* { box-sizing: border-box; } body { margin: 0; background: #1a1a1a; color: #eee; font: 16px/1.45 system-ui, Arial, sans-serif; }
+.pick { max-width: 420px; margin: 40px auto; padding: 16px; } .pick h1 { font-size: 22px; } .pick label { display: flex; gap: 10px; align-items: center; padding: 10px; background: #262626; border-radius: 10px; margin: 8px 0; }
+.pick img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; } .pick small { color: #999; }
+button { font: inherit; } .go { width: 100%; padding: 14px; border: 0; border-radius: 10px; background: #2d8cff; color: #fff; font-weight: 700; margin-top: 12px; }
+.room { display: none; height: 100vh; flex-direction: column; } .room.on { display: flex; }
+.bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #111; font-size: 14px; color: #aaa; }
+.bar label { display: flex; gap: 6px; align-items: center; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 6px; background: #111; }
+.tile { position: relative; aspect-ratio: 4/3; background: #2a2a2a; border-radius: 8px; overflow: hidden; border: 3px solid transparent; }
+.tile img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.tile.talk { border-color: #2ecc71; } .tile .nm { position: absolute; bottom: 4px; right: 6px; font-size: 12px; background: rgba(0,0,0,.6); padding: 1px 6px; border-radius: 4px; }
+.tile .st { position: absolute; top: 4px; right: 6px; font-size: 11px; background: rgba(0,0,0,.6); padding: 1px 6px; border-radius: 4px; display: none; } .tile.typing .st { display: block; }
+.tile.me { display: flex; align-items: center; justify-content: center; font-size: 28px; color: #777; }
+.log { flex: 1; overflow-y: auto; padding: 10px 12px; }
+.ln { margin: 8px 0; } .ln b { color: #7fb8ff; } .ln.guest b { color: #f5c26b; } .ln .cut { color: #e67e22; font-size: 12px; }
+.org { color: #777; font-size: 12px; margin: 2px 0 6px; display: none; } .dbg .org { display: block; }
+.sys { color: #999; font-size: 13px; text-align: center; margin: 10px 0; }
+.box { display: flex; gap: 8px; padding: 8px; background: #111; } .box input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #222; color: #eee; font: inherit; }
+.box button { padding: 0 18px; border: 0; border-radius: 10px; background: #2d8cff; color: #fff; }
+.floor { color: #2ecc71; font-size: 13px; padding: 0 12px 4px; min-height: 18px; }
+</style></head><body>
+<div class="pick" id="pick">
+  <h1>ישיבת זום עם טקי-טק</h1>
+  <p><small>אמיר מנהל את הפגישה ותמיד בפנים. בחרו מי עוד מצטרף:</small></p>
+  <div id="who"></div>
+  <button class="go" id="go">להתחיל את הפגישה</button>
+</div>
+<div class="room" id="room">
+  <div class="bar"><span id="title">ישיבת זום · טקי-טק</span><label><input type="checkbox" id="dbg" checked> מה המארגן חושב</label><span id="usd"></span></div>
+  <div class="grid" id="grid"></div>
+  <div class="log" id="log"></div>
+  <div class="floor" id="floor"></div>
+  <form class="box" id="box"><input id="msg" placeholder="לכתוב לפגישה..." autocomplete="off"><button>שליחה</button></form>
+</div>
+<script>
+const TEAM = { amir: 'אמיר', ofer: 'עופר', daniel: 'דניאל', ronit: 'רונית', gilad: 'גלעד' };
+const PIC = (id) => `https://storage.googleapis.com/shlomiverse-media/wiki/img/c/${id}.jpg`;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+$('#who').innerHTML = Object.entries(TEAM).map(([id, n]) => `<label><input type="checkbox" value="${id}" ${id === 'amir' ? 'checked disabled' : ''}><img src="${PIC(id)}" alt="">${n}${id === 'amir' ? ' <small>(מנהל את הפגישה)</small>' : ''}</label>`).join('');
+let MID = null, ended = false, handSent = false;
+const log = $('#log');
+const scroll = () => (log.scrollTop = log.scrollHeight);
+const add = (html, cls = 'ln') => { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; log.append(d); scroll(); return d; };
+
+// playback: lines arrive from the engine as fast as it makes them; they play one after another at a speaking pace
+const queue = []; let playing = false;
+function enqueue(e) { queue.push(e); if (!playing) play(); }
+async function play() {
+  playing = true;
+  while (queue.length) {
+    const e = queue.shift();
+    if (e.t === 'typing') { document.querySelectorAll('.tile').forEach((t) => t.classList.toggle('typing', t.dataset.id === e.who)); continue; }
+    if (e.t === 'org') { add(`המארגן: ${e.next === 'user' ? 'תורך' : TEAM[e.next] || e.next}${e.cut ? ' · קוטע' : ''}${e.end ? ' · מסיים את הפגישה' : ''} - ${esc(e.why || '')}`, 'org'); continue; }
+    if (e.t === 'guest') { add(`<b>את/ה:</b> ${esc(e.text)}`, 'ln guest'); continue; }
+    if (e.t === 'cost') { $('#usd').textContent = '$' + e.usd; continue; }
+    if (e.t === 'error') { add('תקלה: ' + esc(e.msg), 'sys'); continue; }
+    if (e.t === 'floor') { $('#floor').textContent = 'תורך לדבר'; document.querySelectorAll('.tile').forEach((t) => t.classList.remove('typing', 'talk')); continue; }
+    if (e.t === 'end') { ended = true; add(`${TEAM[e.who]} סיים את הפגישה`, 'sys'); $('#msg').disabled = true; $('#floor').textContent = ''; document.querySelectorAll('.tile').forEach((t) => t.classList.remove('typing', 'talk')); continue; }
+    if (e.t === 'line') {
+      const tile = document.querySelector(`.tile[data-id="${e.who}"]`);
+      document.querySelectorAll('.tile').forEach((t) => { t.classList.toggle('talk', t === tile); t.classList.remove('typing'); });
+      const d = add(`<b>${TEAM[e.who]}:</b> <span></span>`);
+      const span = d.querySelector('span'), words = e.text.split(' ');
+      for (let i = 0; i < words.length; i++) { span.textContent = words.slice(0, i + 1).join(' '); scroll(); await new Promise((r) => setTimeout(r, 140)); }
+      if (e.cut) d.insertAdjacentHTML('beforeend', ' <span class="cut">(נקטע)</span>');
+      await new Promise((r) => setTimeout(r, e.cut ? 150 : 700));
+      tile && tile.classList.remove('talk');
+    }
+  }
+  playing = false;
+}
+async function stream(url, data, first) {
+  const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+  if (first) MID = r.headers.get('x-meeting');
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '';
+  for (;;) {
+    const { value, done } = await rd.read(); if (done) break;
+    buf += dec.decode(value, { stream: true }); let i;
+    while ((i = buf.indexOf('\n')) >= 0) { const l = buf.slice(0, i); buf = buf.slice(i + 1); if (l.trim()) enqueue(JSON.parse(l)); }
+  }
+}
+$('#go').onclick = () => {
+  const room = [...document.querySelectorAll('#who input:checked')].map((i) => i.value);
+  $('#pick').style.display = 'none'; $('#room').classList.add('on');
+  $('#grid').innerHTML = room.map((id) => `<div class="tile" data-id="${id}"><img src="${PIC(id)}" alt=""><span class="st">מבטל השתקה…</span><span class="nm">${TEAM[id]}</span></div>`).join('') + '<div class="tile me">את/ה<span class="nm">האורח</span></div>';
+  add('הפגישה מתחילה', 'sys');
+  stream('/api/start', { room }, true);
+};
+$('#dbg').onchange = (e) => document.body.classList.toggle('dbg', e.target.checked);
+document.body.classList.add('dbg');
+// typing = a raised hand: the line in the air finishes, then the floor is yours
+$('#msg').addEventListener('input', () => { if (!handSent && MID && !ended) { handSent = true; fetch('/api/hand', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: MID }) }); } });
+$('#box').onsubmit = (e) => {
+  e.preventDefault();
+  const text = $('#msg').value.trim(); if (!text || !MID || ended) return;
+  $('#msg').value = ''; handSent = false; $('#floor').textContent = '';
+  $('#floor').textContent = 'הרמת יד - מדברים אחרי השורה שבאוויר';
+  stream('/api/say', { id: MID, text });   // the server sends the guest's line back first, after the line in the air - so the order is true
+};
+</script>
+</body></html>

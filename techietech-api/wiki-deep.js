@@ -331,4 +331,6 @@ ${PLAN_FORMAT(c)}`;
   return done(String(t.out || '').replace(/<[^<>\n]{1,80}>/g, '').replace(/[ \t]{2,}/g, ' ').replace(/\[\[[^\]]*\]\]/g, '').replace(/^["“”׳״']+|["“”׳״']+$/g, '').trim());
 }
 
-module.exports = { reply, post, STEPS, PRICE, SONNET, _nowIL: nowIL };
+module.exports = { reply, post, STEPS, PRICE, SONNET, _nowIL: nowIL,
+  // the chain's own parts, for a scene with several residents (meeting.js - the Zoom meeting): the same director and writer
+  _parts: { DIRECTOR, RULES, sheetText, ALL, scriptsOf, sonnet, call, PLAN_FORMAT, NOW, nowIL } };
