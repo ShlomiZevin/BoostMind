@@ -40,6 +40,9 @@ node ~/.claude/skills/openai-leonardo/scripts/openai.js --models      # what thi
 node ~/.claude/skills/openai-leonardo/scripts/openai.js --in brief.txt --out answer.md --image home.png --image ideas.png   # Terra looks at screenshots (design critique)
 ```
 
+**Thinking level (his call 2026-11-20):** every call thinks at `medium` unless you pass `--effort`. Use `--effort high` for copy that ships (product pages, mails, SMS, wrap-ups) - a few cents more, nobody waits. Never `low` for writing or judgement.
+
+
 Then read `answer.md` with the **Read** tool.
 
 ### Which model
