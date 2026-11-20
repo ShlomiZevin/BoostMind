@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0e">
+<title>Syncs</title>
+<meta name="description" content="Syncs by Techy-Tech - Let's circle back">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Syncs · טקי-טק">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="Syncs">
+<meta property="og:description" content="Syncs by Techy-Tech - Let's circle back">
+<meta property="og:url" content="https://shlomiverse.com/syncs">
+<meta property="og:image" content="https://shlomiverse.com/techietech/syncs/img/syncs-lockup.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://shlomiverse.com/techietech/syncs/img/syncs-lockup.jpg">
+<link rel="icon" href="/verse/art/syncs-icon.png">
+<link rel="apple-touch-icon" href="/verse/art/syncs-icon.png">
+<!-- Syncs - Techy-Tech's meeting app, its OWN page (his note round 4: no flash of the Shlomiverse - it loads only what Syncs needs).
+     /syncs (and /syncs?demo=1, a recorded meeting) -> this file; /syncs/m/<id> (a shared meeting) -> verseMeeting
+     (techietech-api/meeting-fn.js), which serves this file with the meeting in #s-data and its WhatsApp preview above.
+     The app: /syncs/app.js + /syncs/syncs.css (source v2/site/syncs/). Its loader is its own: the logo's sync arrows turning. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/syncs/syncs.css">
+<style>
+  /* the first paint, before syncs.css: Syncs' dark and its loader */
+  html, body { margin: 0; background: #0b0b0e; color: #fff; font-family: Heebo, system-ui, sans-serif; }
+  .mt { position: fixed; inset: 0; display: flex; flex-direction: column; background: #0b0b0e; }
+  .sy-load { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .sy-load .sy-logo { width: 92px; height: 92px; }
+  .sy-load b { font-size: 26px; font-weight: 900; }
+  .sy-arrows { transform-box: view-box; transform-origin: 60px 60px; animation: sy-spin 1.8s cubic-bezier(.55, .1, .35, .95) infinite; }
+  @keyframes sy-spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="mt" id="mt"><div class="sy-load" role="status" aria-label="Syncs"><svg class="sy-logo" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="syg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a2e"/><stop offset="1" stop-color="#ff5508"/></linearGradient></defs>
+<rect x="6" y="6" width="108" height="108" rx="30" fill="url(#syg)"/><g class="sy-arrows" fill="#ffd21f" stroke="#ffd21f" stroke-width="7" stroke-linecap="round"><path fill="none" d="M27 39 A39 39 0 0 1 89 35"/><path stroke="none" d="M97.5 44 L84.5 41 L93 30.5Z"/><path fill="none" d="M93 81 A39 39 0 0 1 31 85"/><path stroke="none" d="M22.5 76 L35.5 79 L27 89.5Z"/></g>
+<g class="sy-cam"><rect x="31" y="46" width="44" height="28" rx="7" fill="#fff"/><path d="M76.5 56 L89 48.5 V71.5 L76.5 64 Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="53" cy="56.5" r="4.6" fill="#ff6a1f"/><path d="M45 70.5a8 7 0 0 1 16 0Z" fill="#ff6a1f"/><circle cx="42.5" cy="58.5" r="3.4" fill="#ffab6b"/><path d="M37 70.5a5.5 5.5 0 0 1 11 0Z" fill="#ffab6b"/><circle cx="63.5" cy="58.5" r="3.4" fill="#ffab6b"/><path d="M58 70.5a5.5 5.5 0 0 1 11 0Z" fill="#ffab6b"/></g></svg><b dir="ltr">Syncs</b></div></div>
+<script id="s-data" type="application/json">null</script>
+<script src="/t.js" data-site="syncs" defer></script>
+<script type="module" src="/syncs/app.js"></script>
+</body>
+</html>

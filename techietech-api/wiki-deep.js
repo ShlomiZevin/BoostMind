@@ -333,4 +333,4 @@ ${PLAN_FORMAT(c)}`;
 
 module.exports = { reply, post, STEPS, PRICE, SONNET, _nowIL: nowIL,
   // the chain's own parts, for a scene with several residents (meeting.js - the Zoom meeting): the same director and writer
-  _parts: { DIRECTOR, RULES, sheetText, ALL, scriptsOf, sonnet, call, PLAN_FORMAT, NOW, nowIL } };
+  _parts: { DIRECTOR, RULES, sheetText, ALL, scriptsOf, sonnet, call, PLAN_FORMAT, NOW, nowIL, holyNow } };

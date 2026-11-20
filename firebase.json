@@ -198,8 +198,19 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/syncs/m/**",
+        "function": {
+          "functionId": "verseMeeting",
+          "region": "europe-west1"
+        }
+      },
+      {
         "source": "/syncs",
-        "destination": "/wiki/index.html"
+        "destination": "/syncs/index.html"
+      },
+      {
+        "source": "/syncs/**",
+        "destination": "/syncs/index.html"
       },
       {
         "source": "/business",

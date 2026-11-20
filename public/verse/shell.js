@@ -36,7 +36,7 @@ function tabOf(path = location.pathname) {
   if (!p) return 'home';
   if (p === 'videos' || p === 'archive') return 'videos';
   if (p === 'games') return 'games';
-  if (p === 'chat' || p === 'syncs') return 'chat';   // Syncs (ישיבת זום) lives under the chat tab (its mockups)
+  if (p === 'chat') return 'chat';
   if (p === 'community') return 'community';
   if (['characters', 'c', 'series', 's', 'sites'].includes(p)) return 'characters';
   return '';
@@ -92,7 +92,7 @@ if (bar) bar.addEventListener('click', (e) => {
   const s = history.state || {}, inPlace = layer && !!(s.vxl || (s.vxo && s.ul));
   const docked = !!document.querySelector('#cx.dock');
   if (chatOpen() && !docked) closeChat();   // the drawer (a computer-wide window)
-  if (!layer && tabOf() === tab && location.pathname !== '/syncs') {   // from Syncs, the chat tab opens the chat
+  if (!layer && tabOf() === tab) {
     // the tab already showing: back to its top (the feed to its first video / game, the chat to its last message)
     scrollTo({ top: 0, behavior: 'smooth' });
     document.querySelector('.fd, .gf')?.scrollTo({ top: 0, behavior: 'smooth' });

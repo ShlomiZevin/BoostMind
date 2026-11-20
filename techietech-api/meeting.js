@@ -22,7 +22,7 @@
 // runs beside it - when it decides the next speaker cuts this line, the deltas stop and the line is cut a little past its middle
 // (or where the stream already is, if that is further) - {t:'cut'}; the log keeps only what was said.
 const chain = require('./wiki-chain');
-const { DIRECTOR, RULES, sheetText, ALL, scriptsOf, sonnet, call, PLAN_FORMAT, NOW, nowIL } = require('./wiki-deep')._parts;
+const { DIRECTOR, RULES, sheetText, ALL, scriptsOf, sonnet, call, PLAN_FORMAT, NOW, nowIL, holyNow } = require('./wiki-deep')._parts;
 
 const TEAM = ['amir', 'ofer', 'daniel', 'ronit', 'gilad', 'yaniv'];
 const HOST = 'amir', BOSS = 'gilad';
@@ -81,9 +81,10 @@ How you choose who speaks next:
 ${room.includes(DANIEL) ? `- ${nameOf(cur, DANIEL)} never finishes a sentence: whenever he speaks, ${nameOf(cur, HOST)} cuts him off and picks up his last words (that part is set for you - after his line you are not asked).\n` : ''}- cut: the next speaker cuts the line being said off in the middle. That is ${room.includes(BOSS) ? nameOf(cur, BOSS) + "'s way; anyone else only very rarely" : 'rare in this meeting'}.
 - leave: true when the next speaker says their line and drops off the call right after it.
 - end: true only together with next = "${ender(room)}", when ${E} ends the meeting now.
+- closes: true when the line being said right now is ${E} closing the meeting ("we're synced, closing", "thanks everyone, that's it", a goodbye) - then the meeting ends after it, whatever comes next. Only ${E}'s line can close it.
 
 Answer JSON only:
-{"next": "<a team member's id> | user", "cut": true|false, "leave": true|false, "end": true|false,
+{"next": "<a team member's id> | user", "cut": true|false, "leave": true|false, "end": true|false, "closes": true|false,
  "cue": "for the next speaker: what they react to and what they do now, as content - one plain Hebrew sentence (never the wording). \\"\\" when next is user",
  "why": "one short English reason"}`;
 }
@@ -108,6 +109,9 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
   const end = next === ender(room) && o.end === true;
   // leaving: a team member who isn't the host or the one who ends it, after the first few lines, never on the meeting's last line
   const leave = next !== 'user' && !end && o.leave === true && next !== HOST && next !== DANIEL && next !== ender(room) && log.length >= 3;
+  // the line in the air closes the meeting (his note 2026-11-20: Amir said "סוגרים" and the floor went back to him): only the ender's
+  const closes = !!inAir && inAir.who === ender(room) && o.closes === true && log.length >= 2;
+  if (closes) return { next: 'user', cut: false, leave: false, end: false, closes: true, cue: '', why: String(o.why || 'the ender closed the meeting'), ms: r.ms };
   return { next, cut: next !== 'user' && !!inAir && o.cut === true, leave, end, cue: String(o.cue || ''), why: String(o.why || ''), ms: r.ms };
 }
 
@@ -115,7 +119,8 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
 function scene(cur, M, id) {
   const c = cur.byId[id], others = M.room.filter((x) => x !== id).map((x) => nameOf(cur, x));
   const rel = relIn(cur, id, M.room).map((r) => `${nameOf(cur, r.id)} - ${r.relation}`).join(' · ');
-  return `THIS TIME ${c.name} IS NOT IN A CHAT: ${c.name} is in a Zoom meeting of טקי-טק, on camera, with ${others.length ? others.join(', ') : 'nobody else from the team'} - people ${c.name} knows${outsider(cur, id, M.room) ? ' from work but doesn\'t work with; someone added ' + c.name + ' to this call and ' + c.name + ' has no idea why' : ' well'} - and a visitor from outside who joined, ${nameOf(cur, 'user')} (the title the team gave them when the call started), whom ${c.name} doesn't know. The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.
+  return `THIS TIME ${c.name} IS NOT IN A CHAT: ${c.name} is in a Zoom meeting of טקי-טק, on camera, with ${others.length ? others.join(', ') : 'nobody else from the team'} - people ${c.name} knows${outsider(cur, id, M.room) ? ' from work but doesn\'t work with; someone added ' + c.name + ' to this call and ' + c.name + ' has no idea why' : ' well'} - and a visitor from outside who joined, ${nameOf(cur, 'user')} (the title the team gave them when the call started) - not from the team.${M.visitorNote ? `
+What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`} The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.
 How ${c.name} stands with each of them: ${rel || '-'}
 The others, and how they stand with everyone here:
 ${forces(cur, M.room, id)}
@@ -146,10 +151,15 @@ async function speak(M, plan, emit, handNow) {
         : `\n${c.name} cuts ${nameOf(cur, prev.who)} off in the middle of the sentence.`) : '')
       + (plan.leave ? `\nAfter this line ${c.name} drops off the call - says it their own way (they don't get why they are on this call, they have had enough) and leaves.`
         : outsider(cur, id, M.room) ? `\n${c.name} stays on the call after this line, however little they want to be on it - they don't announce leaving now.` : '')
-      + (plan.end ? `\n${c.name} ends the meeting now - closes it in their own way, in one line.` : '');
+      + (plan.end ? `\n${c.name} ends the meeting now - closes it in their own way, in one line.`
+        : id === ender(M.room) ? `\nThe meeting goes on after this line: ${c.name} does not close, wrap up or end it now (no "סוגרים", no goodbye).` : '');
   const phrases = M.phrases[id] || [];
   // 1 · direct - the same director as the chat (their page + every script, cached per resident), the meeting as the moment
-  const system = DIRECTOR(c, chain.known(cur, id).map((x) => cur.byId[x].name), scriptsOf(cur, c), chain.world(cur));
+  // parity with the chat (his rule 2026-11-20: "every agent replies exactly as in the chat"): the same director system as wiki-deep
+  // reply() - their page, every script, the world + the legend (from the visitor's own words) - only the moment differs
+  const turns = M.log.filter((l) => l.who === 'user').map((l) => ({ role: 'user', content: l.text }));
+  const world = chain.world(cur) + chain.legend(cur, turns);
+  const system = DIRECTOR(c, chain.known(cur, id).map((x) => cur.byId[x].name), scriptsOf(cur, c), world);
   const ask = `${NOW(now)}${phrases.length ? `\nCatchphrases ${c.name} already said in this meeting (never again): ${JSON.stringify(phrases)}` : ''}
 
 ${scene(cur, M, id)}
@@ -163,6 +173,8 @@ ${PLAN_FORMAT(c)}`;
   if (!d) d = await call(M.key, 'direct', system, [{ role: 'user', content: ask }], { max: 1600, cacheKey: 'dir-' + id });
   M.cost += d.cost || 0;
   const D = d.out || {};
+  const holy = holyNow(new Date());
+  if (holy && D.rest === true) return { away: holy, text: '', after: { next: 'user' }, sent: '', cut: false, plan: D };   // the chat's [[away]]: they keep it, they're not here
 
   // 2 · in parallel: Terra writes the line (streamed out as it comes), and the organizer decides who comes after it (it knows
   // what is being said). A cut decided while the line still streams stops the stream there.
@@ -174,9 +186,13 @@ ${PLAN_FORMAT(c)}`;
   let sent = '', hold = false, forced = false;
   const words = (t) => t.replace(/<[^<>]*>?/g, ' ').trim().split(/\s+/).filter(Boolean).length;
   const onText = (dt) => { if (hold) return; sent += dt; emit({ t: 'delta', who: id, text: dt }); if (forced && words(sent) >= 9) hold = true; };
-  const writer = call(M.key, 'talk', `${RULES.replace('{{WORLD}}', chain.world(cur))}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}`,
-    [{ role: 'developer', content: `${NOW(now)}\n\n${scene(cur, M, id)}\n\n${why}\n\n${notes}\n\nWrite only your line in the meeting - said out loud on the call: one to three short spoken sentences, Hebrew, to whoever you are talking to (a name when you would say it). No cards, no [[...]] in a meeting.` }],
-    { json: false, max: 700, onText });
+  // how much they know about the subject (the chat's own words, wiki-deep reply())
+  const lvl = D.knows?.level;
+  const limit = lvl === 'no' || lvl === 'heard_of' ? `\n\nYou (${c.name}) ${lvl === 'no' ? "don't know what this is at all" : 'know this only by name'} - you do NOT know its content. Don't explain it, don't state any detail of it (not even what the visitor's question hints at), however well the writer behind you knows it. ${D.knows.how || ''}`
+    : lvl === 'some' ? `\n\nYou know this only a little, like an educated outsider - no details an expert would know, and you may get things wrong. ${D.knows.how || ''}` : '';
+  const writer = call(M.key, 'talk', `${RULES.replace('{{WORLD}}', world)}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}${c.site ? `\n\nYour site: ${chain.pub(c.site)}` : ''}`,
+    [{ role: 'developer', content: `${NOW(now)}\n\n${scene(cur, M, id)}\n\n${why}\n\n${notes}${limit}\n\nWrite only your line in the meeting - said out loud on the call: one to three short spoken sentences, Hebrew, to whoever you are talking to (a name when you would say it). No cards, no [[...]] in a meeting.` }],
+    { json: false, max: 900, onText });
   const org = organize(M, { who: id, say: D.say || '', leaving: !!plan.leave }).then(async (a) => {
     // the next speaker cuts this line - unless the visitor's hand is up (the floor is theirs after this line, nobody cuts); Daniel is
     // cut whatever happens (his rule)
@@ -184,7 +200,7 @@ ${PLAN_FORMAT(c)}`;
     if (a.forced) forced = true;
     else if (a.cut && !plan.end && !hand) hold = true;
     // the speakers queue (his ask 2026-11-20): who is up next shows the moment it is decided, while this line is still said
-    if (!plan.end) emit({ t: 'next', who: a.forced ? a.next : hand ? 'user' : a.next, cut: a.cut && (a.forced || !hand) && !plan.end, after: id });
+    if (!plan.end && !a.closes) emit({ t: 'next', who: a.forced ? a.next : hand ? 'user' : a.next, cut: a.cut && (a.forced || !hand) && !plan.end, after: id });
     return a;
   });
   const [t, after] = await Promise.all([writer, org]);
@@ -198,13 +214,13 @@ ${PLAN_FORMAT(c)}`;
 // emit(event): {t:'org', next, cut, leave, end, why} · {t:'typing', who} · {t:'delta', who, text} · {t:'cut', who, by, text} ·
 // {t:'line', who, text, cut} · {t:'left', who} · {t:'floor'} · {t:'end', who} · {t:'recap', recap} · {t:'cost', usd}
 // opts.hand: async () => is the visitor's hand up (the live function reads it from Firestore; the try-out from M.hand)
-function newMeeting({ cur, key, akey, room, visitor = {} }) {
+function newMeeting({ cur, key, akey, room, visitor = {}, visitorNote = '' }) {
   const r = [HOST, ...TEAM.filter((id) => id !== HOST && (room || []).includes(id) && cur.byId[id])];
   const v = { name: String(visitor.name || '').trim().slice(0, 40), title: '' };
-  return { cur: withVisitor(cur, v), visitor: v, key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, next: null, recap: null };
+  return { cur: withVisitor(cur, v), visitor: v, visitorNote: String(visitorNote || '').slice(0, 3000), key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, next: null, recap: null };
 }
 // what is kept between requests (meeting-fn.js puts it in Firestore) and how it comes back
-const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 'cost', 'recap', 'visitor'];
+const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 'cost', 'recap', 'visitor', 'visitorNote'];
 const stateOf = (M) => Object.fromEntries(STATE.map((k) => [k, M[k] ?? null]));
 const fromState = (s, { cur, key, akey }) => ({ cur: withVisitor(cur, s.visitor || {}), key, akey, visitor: {}, room: [], all: [], left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, recap: null,
   ...Object.fromEntries(STATE.filter((k) => s[k] != null).map((k) => [k, s[k]])), next: null });
@@ -225,6 +241,13 @@ async function round(M, emit, opts = {}) {
     if (plan.next === 'user' || (M.log.length && !plan.forced && await handNow())) { M.hand = false; M.next = null; emit({ t: 'floor' }); return; }
     emit({ t: 'typing', who: plan.next });
     const s = await speak(M, plan, emit, handNow);
+    if (s.away) {   // Shabbat / a holiday and their page keeps it: they are not on the call (as the chat answers for them)
+      M.room = M.room.filter((x) => x !== plan.next); M.left.push(plan.next);
+      M.log.push({ who: plan.next, left: true, away: s.away });
+      emit({ t: 'away', who: plan.next, holy: s.away });
+      if (plan.next === HOST || plan.end) { M.ended = true; emit({ t: 'end', who: plan.next }); return; }
+      plan = { next: 'user' }; continue;
+    }
     const line = { who: plan.next, text: s.text, cut: false };
     const after = s.after;
     if (s.cut) {
@@ -240,7 +263,7 @@ async function round(M, emit, opts = {}) {
       emit({ t: 'left', who: line.who });
     }
     cost();
-    if (plan.end) {
+    if (plan.end || after.closes) {   // ended by plan, or the ender's line closed it (the organizer heard it)
       M.ended = true; emit({ t: 'end', who: plan.next });
       try { M.recap = await recap(M); emit({ t: 'recap', recap: M.recap }); } catch (e) { console.error('meeting recap failed', e.message); }
       cost();

@@ -5,7 +5,11 @@
 //   {op:'start', room}     -> stream: {t:'meeting', id, room}, {t:'visitor', name, title} (their name + the title the meeting gives them),
 //                             then the first round (Amir opens)
 //   {op:'say', id, text}   -> stream: {t:'guest', text} (the visitor's line first, so the order is true), then a round answering it
-//   {op:'hand', id}        -> {ok} - the guest is typing: a raised hand, the floor is theirs after the line in the air
+//   {op:'hand', id}        -> {ok} - the visitor is typing: a raised hand, the floor is theirs after the line in the air
+//   {op:'share', id}       -> {url} - the owner shares THIS meeting: it becomes public (shared: true, kept a year) at /syncs/m/<id>
+// GET /syncs/m/<id>          the shared meeting's own page (hosting sends it here): public/syncs/index.html with the meeting in #s-data
+//                            and its WhatsApp preview in the <head> - 404 (the end of the verse) unless its owner shared it
+// GET /syncs/m/<id>/og.jpg   that preview's picture (syncs-og.js: the wrap-up's title + the faces), drawn once, kept by the CDN
 // Stateless across instances: the meeting lives in Firestore (meetings/<id>: uid, room, log, run, phrases, hand, ended, recap,
 // cost, t, exp - 7 days, TTL) and is loaded / saved per request; the round reads the doc's `hand` before every next speaker.
 // Owner only while MEETING_OPEN is false (anyone else: 404 - the page shows the end of the verse, nothing tells it exists).
@@ -21,6 +25,17 @@ if (!admin.apps.length) admin.initializeApp();
 const MEETING_OPEN = false;
 const OPENAI = defineSecret('WIKI_OPENAI_KEY'), ANTHROPIC = defineSecret('VERSE_ANTHROPIC_KEY');
 const KEEP_DAYS = 7, DAY_MEETINGS = 1;
+// the preview key (his ask 2026-11-20: a Marketing session with no Google account uses the live tool while Syncs is closed): sent as the
+// header x-syncs-key (the page takes it from /syncs?k=<key> into sessionStorage). Only its SHA-256 is here - the key is never in git.
+// A preview meeting: the visitor is "צוות השיווק", it has its own day limit (6), everything else as the owner's meeting.
+const PREVIEW_SHA = '262f279ea2099b04a6e5c725379effeaab694451ad1b9a2971638edea12b8358', PREVIEW_DAY = 6, PREVIEW_NAME = 'צוות השיווק';
+function previewKey(req) {
+  const k = String(req.get('x-syncs-key') || '');
+  if (!k || k.length > 100) return false;
+  const a = require('crypto').createHash('sha256').update(k).digest(), b = Buffer.from(PREVIEW_SHA, 'hex');
+  return require('crypto').timingSafeEqual(a, b);
+}
+const dayLimit = (who) => (who.preview ? PREVIEW_DAY : DAY_MEETINGS);
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
 const db = () => admin.firestore();
 const meetRef = (id) => db().collection('meetings').doc(id);
@@ -34,15 +49,72 @@ const tooMany = (ip) => {
   list.push(now); recent.set(ip, list);
   return list.length > 120;
 };
-const booked = async (who) => !who.owner && (((await dayRef(who.uid).get()).data() || {}).n || 0) >= DAY_MEETINGS;
+const booked = async (who) => !who.owner && (((await dayRef(who.uid).get()).data() || {}).n || 0) >= dayLimit(who);
 // the day's meeting, taken in a transaction: false = already used today
 const takeDay = (who) => (who.owner ? Promise.resolve(true) : db().runTransaction(async (tx) => {
   const ref = dayRef(who.uid), n = ((await tx.get(ref)).data() || {}).n || 0;
-  if (n >= DAY_MEETINGS) return false;
+  if (n >= dayLimit(who)) return false;
   tx.set(ref, { n: n + 1, kind: 'meeting', exp: Timestamp.fromMillis(Date.now() + 3 * 864e5) }, { merge: true });
   return true;
 }));
 const giveBackDay = (who) => (who.owner ? null : dayRef(who.uid).delete().catch(() => {}));
+
+// ---------- a shared meeting: its page and its picture (the link previews' pattern of page.js versePage) ----------
+const SITE = 'https://shlomiverse.com';
+const TEMPLATE = process.env.FUNCTIONS_EMULATOR === 'true' ? 'http://localhost:5050/syncs/index.html' : `${SITE}/syncs/index.html`;
+const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const one = (v, n) => { const t = String(v || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
+let tpl = null;
+async function template() {
+  if (tpl && Date.now() - tpl.t < 60e3) return tpl.v;
+  const r = await fetch(TEMPLATE, { headers: { 'cache-control': 'no-cache' } });
+  if (!r.ok) throw new Error('template ' + r.status);
+  tpl = { v: await r.text(), t: Date.now() };
+  return tpl.v;
+}
+const NAMES = { amir: 'אמיר', ofer: 'עופר', daniel: 'דניאל', ronit: 'רונית', gilad: 'גלעד', yaniv: 'יניב' };
+// what the page gets: the meeting, read-only - who was in it, the conversation, the wrap-up (never the owner's uid)
+function publicOf(id, d) {
+  const ended = d.ended ? meeting.ender(d.all || d.room || []) : null;
+  return { id, room: d.all || d.room || [], log: (d.log || []).map((l) => (l.left ? { who: l.who, left: true } : { who: l.who, text: l.text, cut: !!l.cut })),
+    recap: d.recap || null, visitor: { name: (d.visitor || {}).name || '', title: (d.visitor || {}).title || '', photo: (d.visitor || {}).photo || '' },
+    t: d.t && d.t.toDate ? d.t.toDate().toISOString() : null, ms: d.ms || (d.endedAt && d.t ? d.endedAt.toMillis() - d.t.toMillis() : 0), ender: ended };
+}
+async function sharedPage(req, res, id) {
+  const snap = /^[A-Za-z0-9]{3,30}$/.test(id) ? await meetRef(id).get() : null;
+  const d = snap && snap.exists ? snap.data() : null;
+  let html = await template();
+  if (d && d.shared) {
+    const R = d.recap || {}, data = publicOf(id, d), url = `${SITE}/syncs/m/${id}`;
+    const title = esc(one(R.title ? `${R.title} · סיכום ישיבה ב-Syncs` : 'סיכום ישיבה ב-Syncs', 90));
+    const people = data.room.map((x) => NAMES[x] || x).join(', ');
+    const desc = esc(one(R.summary || `ישיבה של טקי-טק עם ${people}`, 180));
+    const img = `${SITE}/syncs/m/${id}/og.jpg?v=${d.sharedAt && d.sharedAt.toMillis ? d.sharedAt.toMillis() : 1}`;
+    const set = (re, tag) => { html = re.test(html) ? html.replace(re, tag) : html.replace('</head>', tag + '\n</head>'); };
+    set(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
+    set(/<meta name="description"[^>]*>/, `<meta name="description" content="${desc}">`);
+    set(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${title}">`);
+    set(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${desc}">`);
+    set(/<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${esc(url)}">`);
+    set(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${esc(img)}">`);
+    set(/<meta property="og:image:width"[^>]*>/, '<meta property="og:image:width" content="1200">');
+    set(/<meta property="og:image:height"[^>]*>/, '<meta property="og:image:height" content="630">');
+    set(/<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${esc(img)}">`);
+    html = html.replace('<script id="s-data" type="application/json">null</script>', `<script id="s-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
+  }
+  res.set('Cache-Control', 'public, max-age=0, s-maxage=60');
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.status(d && d.shared ? 200 : 404).send(html);
+}
+async function sharedImage(req, res, id) {
+  const snap = /^[A-Za-z0-9]{3,30}$/.test(id) ? await meetRef(id).get() : null;
+  const d = snap && snap.exists ? snap.data() : null;
+  if (!d || !d.shared) return res.status(404).send('');
+  const jpg = await require('./syncs-og').drawShare(publicOf(id, d));
+  res.set('Cache-Control', 'public, max-age=3600, s-maxage=604800');
+  res.set('Content-Type', 'image/jpeg');
+  res.status(200).send(jpg);
+}
 
 exports.verseMeeting = onRequest({
   region: 'europe-west1',
@@ -53,14 +125,20 @@ exports.verseMeeting = onRequest({
   memory: '512MiB',
   timeoutSeconds: 300,
 }, async (req, res) => {
+  if (req.method === 'GET') {   // a shared meeting's page / picture (public, read-only)
+    const [, a, b, id, file] = req.path.split('/');
+    if (a !== 'syncs' || b !== 'm' || !id) return res.status(404).send('');
+    try { return file === 'og.jpg' ? await sharedImage(req, res, id) : await sharedPage(req, res, id); }
+    catch (e) { console.error('verseMeeting shared', req.path, e.message); if (!res.headersSent) res.status(500).send(''); return; }
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
   if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
-  const who = await require('./wiki')._whoAsks(req);
+  const who = previewKey(req) ? { uid: 'preview', owner: false, preview: true } : await require('./wiki')._whoAsks(req);
   // closed: only the owner - anyone else gets what an address that isn't there gets
-  if (!who.uid || (!MEETING_OPEN && !who.owner)) return res.status(404).json({});
+  if (!who.uid || (!MEETING_OPEN && !who.owner && !who.preview)) return res.status(404).json({});
   const b = req.body || {};
 
-  if (b.op === 'peek') return res.json({ ok: true, owner: who.owner, booked: await booked(who) });
+  if (b.op === 'peek') return res.json({ ok: true, owner: who.owner, preview: !!who.preview, more: who.owner || !!who.preview, booked: await booked(who), ...(who.preview ? { name: PREVIEW_NAME } : {}) });
 
   if (b.op === 'hand') {
     const ref = meetRef(String(b.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 30));
@@ -68,6 +146,16 @@ exports.verseMeeting = onRequest({
     if (!d || d.uid !== who.uid) return res.status(404).json({});
     if (!d.ended) await ref.update({ hand: true });
     return res.json({ ok: true });
+  }
+  if (b.op === 'share') {   // the owner shares this meeting: public at /syncs/m/<id>, kept a year (the visitor's face goes with it)
+    const ref = meetRef(String(b.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 30));
+    const d = (await ref.get()).data();
+    if (!d || d.uid !== who.uid) return res.status(404).json({});
+    if (!d.shared) {
+      const photo = await db().collection('fans').doc(who.uid).get().then((g) => String((g.data() || {}).photo || '')).catch(() => '');
+      await ref.update({ shared: true, sharedAt: Timestamp.now(), exp: Timestamp.fromMillis(Date.now() + 365 * 864e5), 'visitor.photo': photo });
+    }
+    return res.json({ ok: true, url: `${SITE}/syncs/m/${ref.id}` });
   }
   if (b.op !== 'start' && b.op !== 'say') return res.status(400).json({ error: 'op' });
 
@@ -79,8 +167,10 @@ exports.verseMeeting = onRequest({
     if (!(await takeDay(who))) return res.status(429).json({ error: 'booked' });
     ref = db().collection('meetings').doc();
     // the visitor's Shlomiverse name (their fans record) - the team calls them by it, with the title the meeting gives them
-    const nick = await db().collection('fans').doc(who.uid).get().then((g) => String((g.data() || {}).nick || '')).catch(() => '');
-    M = meeting.newMeeting({ ...keys, room, visitor: { name: nick } });
+    const nick = who.preview ? PREVIEW_NAME : await db().collection('fans').doc(who.uid).get().then((g) => String((g.data() || {}).nick || '')).catch(() => '');
+    // what the residents know about this person - the chat's own note (wiki.js visitorLine), its facts part (the meeting has its own scene)
+    const note = who.preview ? '' : await require('./wiki')._visitorLine(who).then((t) => (String(t || '').split('What you know about them:')[1] || '').trim()).catch(() => '');
+    M = meeting.newMeeting({ ...keys, room, visitor: { name: nick }, visitorNote: note });
     await ref.set({ uid: who.uid, t: Timestamp.now(), exp: Timestamp.fromMillis(Date.now() + KEEP_DAYS * 864e5), busy: Timestamp.now(), ...meeting.stateOf(M) });
   } else {
     ref = meetRef(String(b.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 30));
@@ -113,7 +203,7 @@ exports.verseMeeting = onRequest({
     out({ t: 'floor' });
     if (b.op === 'start' && !lines) await giveBackDay(who);   // nothing was said: the day's meeting isn't spent
   }
-  await ref.update({ ...meeting.stateOf(M), busy: null, ...(M.ended ? { endedAt: Timestamp.now() } : {}) }).catch((e) => console.error('verseMeeting save failed', ref.id, e.message));
+  await ref.update({ ...meeting.stateOf(M), busy: null, ...(M.ended ? { endedAt: Timestamp.now(), ms: Date.now() - ((await ref.get()).data()?.t?.toMillis() || Date.now()) } : {}) }).catch((e) => console.error('verseMeeting save failed', ref.id, e.message));
   console.log('verseMeeting round', ref.id, b.op, `${lines} lines`, `${((Date.now() - t0) / 1000).toFixed(1)}s`, `$${(M.cost - before).toFixed(4)} (meeting $${M.cost.toFixed(4)})`, M.ended ? 'ENDED' : '');
   res.end();
 });

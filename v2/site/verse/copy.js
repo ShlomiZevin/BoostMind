@@ -605,13 +605,15 @@ export const T = {
   },
   // Syncs - ישיבת זום עם טקי-טק (/syncs, verse/meeting.js - plan meeting-design, his choices 2א / 3ב / 4א; owner-only for now)
   meet: {
-    product: 'Syncs', brand: 'טקי-טק', out: 'יציאה',
-    pickTitle: 'מי בישיבה?',
+    product: 'Syncs', brand: 'טקי-טק', out: 'יציאה', back: 'חזרה לשלומיוורס',
+    names: { amir: 'אמיר', ofer: 'עופר', daniel: 'דניאל', ronit: 'רונית', gilad: 'גלעד', yaniv: 'יניב' },
     role: { amir: 'CSO', ofer: 'VP BD', daniel: 'הטכנולוגי', ronit: 'COO', gilad: 'CEO', yaniv: 'אבטחת מידע' },
     roleFull: { amir: 'סמנכ"ל אסטרטגיה וחדשנות', ofer: 'סמנכ"ל פיתוח עסקי', daniel: 'AI Technology Enablement Specialist II', ronit: 'סמנכ"לית תפעול וניהול סיכונים', gilad: 'מנכ"ל ונשיא', yaniv: 'מהנדס אבטחת מידע' },
-    start: 'להתחיל את הישיבה', starting: 'הישיבה מתחילה',
+    // the app bar's state (his note round 4: a live meeting you are in vs a recording)
+    live: 'בשידור חי', recorded: 'הקלטה', endedBadge: 'הסתיימה',
+    pickTitle: 'מי בישיבה?', start: 'להתחיל את הישיבה', starting: 'הישיבה מתחילה', joining: 'מחברים אתכם לישיבה…',
     you: 'אתם',
-    // the moment before someone talks, like on Zoom (his note: varied, the speakers queue) - f = Ronit
+    // the moment before someone talks, like on Zoom - on their tile in the row (the speakers queue) - f = Ronit
     pre: [
       (f) => (f ? 'מבטלת השתקה…' : 'מבטל השתקה…'),
       (f) => (f ? 'מסדרת את המיקרופון…' : 'מסדר את המיקרופון…'),
@@ -621,21 +623,25 @@ export const T = {
       () => 'מנסה להגיב…',
       (f) => (f ? 'מחפשת את כפתור ההשתקה…' : 'מחפש את כפתור ההשתקה…'),
     ],
+    nextTag: (f) => (f === 'you' ? 'בתור' : f ? 'הבאה' : 'הבא'),
     cutting: (f) => (f ? 'נכנסת באמצע…' : 'נכנס באמצע…'),
-    nextUp: 'הבאים', youNext: 'תורכם לדבר', handUp: 'יד מורמת',
+    onMute: 'על השתק', leaving: (f) => (f ? 'עוזבת…' : 'עוזב…'),
+    youNext: 'תורכם לדבר', handUp: 'יד מורמת', yourTurn1: 'תורכם',
     placeholder: 'לכתוב לישיבה…', yourTurn: 'תורכם. לכתוב לישיבה…',
     handLabel: 'להרים יד', sendLabel: 'שליחה', newer: 'הודעות חדשות',
-    cut: (a, b, f) => `${a} ${f ? 'קטעה' : 'קטע'} את ${b}`,
+    mute: (a, b, f) => `${a} ${f ? 'שמה' : 'שם'} את ${b} על השתק`,
     left: (n, f) => `${n} ${f ? 'עזבה' : 'עזב'} את הפגישה`,
+    away: (n, f, holy) => `${n} ${f ? 'לא זמינה' : 'לא זמין'} - ${holy}`,
     ended: (n, f) => `${n} ${f ? 'סיימה' : 'סיים'} את הפגישה`,
     drop: 'הקו נפל לרגע. נסו שוב.',
     recapKicker: 'סיכום ישיבה', recapWriting: 'אמיר כותב את הסיכום…', recapSaid: 'מה עלה בישיבה', recapItems: 'Action items',
     minutes: (m) => (m <= 1 ? 'דקה' : `${m} דקות`),
-    again: 'ישיבה חדשה', share: 'לשתף', talk: (n) => `לדבר עם ${n}`, copied: 'הסיכום הועתק',
-    shareHead: 'סיכום ישיבה ב-Syncs · טקי-טק',
-    demoBox: 'הקלטה של ישיבה', demoAgain: 'לצפות שוב',
+    again: 'ישיבה חדשה', share: 'לשתף', copied: 'הקישור הועתק', shareFail: 'השיתוף לא הצליח. נסו שוב.',
+    shareText: (t) => (t ? `סיכום הישיבה ב-Syncs: ${t}` : 'סיכום ישיבה ב-Syncs'),
+    demoBar: 'הקלטה של ישיבה', demoAgain: 'לצפות שוב', convo: 'השיחה המלאה', watch: 'לצפות בישיבה',
     bookedTitle: 'חדר הישיבות ב-Syncs תפוס עד מחר',
     bookedLine: 'ה-Sync של היום עם טקי-טק כבר התקיים. אמיר, המארח, שלח הזמנה לפגישת המשך מחר.',
-    bookedTalk: 'בינתיים, לדבר עם אמיר',
+    // what an address that isn't there shows (the verse's end of the verse)
+    nfDoc: 'דף לא נמצא · שלומיוורס', nfTitle: 'הגעתם לקצה הוורס', nfLine: 'אין פה כלום. כנראה שהדף הלך לאיבוד ביקום הגדול שלנו.', nfHome: 'חזרה ל',
   },
 };
