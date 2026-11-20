@@ -38,7 +38,7 @@ button { font: inherit; } .go { width: 100%; padding: 14px; border: 0; border-ra
   <form class="box" id="box"><input id="msg" placeholder="לכתוב לפגישה..." autocomplete="off"><button>שליחה</button></form>
 </div>
 <script>
-const TEAM = { amir: 'אמיר', ofer: 'עופר', daniel: 'דניאל', ronit: 'רונית', gilad: 'גלעד' };
+const TEAM = { amir: 'אמיר', ofer: 'עופר', daniel: 'דניאל', ronit: 'רונית', gilad: 'גלעד', yaniv: 'יניב' };
 const PIC = (id) => `https://storage.googleapis.com/shlomiverse-media/wiki/img/c/${id}.jpg`;
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -59,6 +59,9 @@ async function play() {
     if (e.t === 'org') { add(`המארגן: ${e.next === 'user' ? 'תורך' : TEAM[e.next] || e.next}${e.cut ? ' · קוטע' : ''}${e.end ? ' · מסיים את הפגישה' : ''} - ${esc(e.why || '')}`, 'org'); continue; }
     if (e.t === 'guest') { add(`<b>את/ה:</b> ${esc(e.text)}`, 'ln guest'); continue; }
     if (e.t === 'cost') { $('#usd').textContent = '$' + e.usd; continue; }
+    if (e.t === 'delta' || e.t === 'cut') continue;   // the live page writes the words as they stream; here the whole line plays at once
+    if (e.t === 'left') { add(`${TEAM[e.who]} עזב את הפגישה`, 'sys'); document.querySelector(`.tile[data-id="${e.who}"]`)?.remove(); continue; }
+    if (e.t === 'recap') { const R = e.recap || {}; add(`<b>סיכום ישיבה: ${esc(R.title || '')}</b><br>${esc(R.summary || '')}<br>${(R.items || []).map((x) => '- ' + esc(x.text) + ' (' + (TEAM[x.who] || 'האורח') + ')').join('<br>')}`, 'ln'); continue; }
     if (e.t === 'error') { add('תקלה: ' + esc(e.msg), 'sys'); continue; }
     if (e.t === 'floor') { $('#floor').textContent = 'תורך לדבר'; document.querySelectorAll('.tile').forEach((t) => t.classList.remove('typing', 'talk')); continue; }
     if (e.t === 'end') { ended = true; add(`${TEAM[e.who]} סיים את הפגישה`, 'sys'); $('#msg').disabled = true; $('#floor').textContent = ''; document.querySelectorAll('.tile').forEach((t) => t.classList.remove('typing', 'talk')); continue; }

@@ -280,6 +280,7 @@ exports._useBrain = (brain) => { current = fromBrain(brain, 'test'); checked = D
 exports._contact = { CONTACT_CHAR, CONTACT_TOURIST };
 exports._visitorText = visitorText; exports._visitorLine = visitorLine;   // tests: the visitor note
 exports._canon = canonNow;   // the Shlomiverse's social layer (verse.js): characters answering in the comments
+exports._whoAsks = (req) => whoAsks(req);   // who is asking + whether it is the owner (meeting-fn.js - ישיבת זום, owner-only for now)
 exports._test = { RULES, canon, modeText };
 // the very same character the chat speaks as, for the site's processes - Miriam's check-in, Demokratovich's booth, the simulation
 // test (his ask 2026-11-07: "exactly the chat we built for the characters, with a clear instruction that it runs a process").

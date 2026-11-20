@@ -197,6 +197,10 @@
         "destination": "/wiki/index.html"
       },
       {
+        "source": "/meeting",
+        "destination": "/wiki/index.html"
+      },
+      {
         "source": "/business",
         "destination": "/wiki/index.html"
       },
