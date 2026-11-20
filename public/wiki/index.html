@@ -960,12 +960,14 @@ function route() {
   const did = decodeURIComponent(id || '');
   if ((page === 'v' || page === 'videos') && HOOK.videoReturn && !HOOK.videoReturn.fresh) HOOK.videoReturn = null;   // APP SHELL: back on the video
   // APP SHELL on a phone (his rule: one video page): a video opens in the feed at that video - from a grid, the home, a
-  // character, search, a story, a link. In place of its own entry, so back goes where it came from. The player stays for
-  // what the feed doesn't hold (an old archive reel, a TikTok link) and for a comment / sticker link (it opens them)
-  const inFeed = (v) => v && v.src && !v.url && !v.archive;
-  if (page === 'v' && chatDock() && inFeed(V[did]) && !q.c && !q.sticker && !q.how) {
+  // character, search, a story, the archive, a link. In place of its own entry, so back goes where it came from. An old archive
+  // reel plays there too (feed.js puts it first - his bug 2026-11-20), and a comment / sticker link opens them in the feed.
+  // The player stays only for a video with no file of its own (a TikTok link - none today)
+  const inFeed = (v) => v && v.src && !v.url;
+  if (page === 'v' && chatDock() && inFeed(V[did])) {
     const s = { ...(history.state || {}) }; delete s.vxl; delete s.base;
-    history.replaceState(s, '', '/videos?at=' + encodeURIComponent(did));
+    const extra = q.c ? '&c=' + encodeURIComponent(q.c) : q.sticker ? '&sticker=' + encodeURIComponent(q.sticker) : q.how ? '&how=' + encodeURIComponent(q.how) : '';
+    history.replaceState(s, '', '/videos?at=' + encodeURIComponent(did) + extra);
     route(); return;
   }
   // the same for a game (his rule: ONE game page - the games feed's slide): a /play/ link on a phone lands on that slide (its

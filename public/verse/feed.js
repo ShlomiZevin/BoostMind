@@ -17,7 +17,7 @@ import { videoDone } from './status.js';
 const FT = T.feed;
 const SOUND = 'vx-feed-sound';
 let soundOn = (() => { try { return sessionStorage.getItem(SOUND) === '1'; } catch (e) { return false; } })();
-let FD = null, mountAt = null;
+let FD = null, mountAt = null, pendingOpen = null;
 
 const castOf = (v) => {
   const c = v.cast.filter((id) => C[id]);
@@ -100,7 +100,14 @@ function dropLanding(list) {
 export function videosFeed(q) {
   unmount();
   const list = fresh().filter((v) => v.src && !v.url);
+  // an old Instagram reel (archive) isn't in the feed's own list (fresh() leaves them out): opened at one - from the archive, a
+  // character, search, the chat - it plays here as the first slide, the feed goes on under it (his bug 2026-11-20: an archive
+  // video opened the old video page)
+  const atArc = q.at && V[q.at];
+  if (atArc && atArc.archive && atArc.src && !atArc.url) list.unshift(atArc);
   if (!list.length) return null;
+  // a comment / sticker link (?c= / ?sticker= / ?how=sticker - notifications, the home's "what you can do") opens it here too
+  pendingOpen = q.at && (q.c || q.sticker || q.how) ? { id: q.at, c: q.c, sticker: q.sticker, how: q.how } : null;
   let start = q.at ? list.findIndex((v) => v.id === q.at) : 0;
   if (start < 0) start = 0;
   // arrived from outside on a bare /videos (the drop card's typed address, his rule 2026-11-18: "wherever they copy it - /videos"):
@@ -266,6 +273,16 @@ function activate(i) {
   // the comment count of the video on screen, live
   statsNear(FD, [i - 1, i, i + 1].map((k) => FD.list[k] && FD.list[k].id).filter(Boolean), (id) => { if (FD && FD.list[FD.idx].id === id) paintRail(); });
   paintRail();
+  if (pendingOpen && pendingOpen.id === v.id) {
+    const o = pendingOpen, ctx = FD.ctx;
+    pendingOpen = null;
+    setTimeout(() => {
+      if (!FD || FD.ctx !== ctx) return;
+      if (o.c) openComments({ focus: o.c }, ctx);
+      else if (o.sticker) openComments({ tab: 's', focus: o.sticker }, ctx);
+      else if (o.how === 'sticker') stickerMenu(ctx);
+    }, 400);
+  }
   if (location.pathname === '/videos') history.replaceState(history.state, '', '/videos?at=' + encodeURIComponent(v.id));
   if (!blocked()) play();
   paintSound();
