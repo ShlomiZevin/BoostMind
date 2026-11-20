@@ -176,7 +176,7 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
     const remote = await list(prefix);
     // (the cloud's copy changed since this computer last synced - the other computer's work: never overwritten or
     // deleted from here; his Sync brings it - and keeps this computer's copy beside it if both changed)
-    const newerThere = (rel) => { const r = remote[prefix + rel], st = state.files[rel]; return !!r && !(st && st.fp === fp(r)) && r.meta?.host !== HOST; };  // (sent from this computer = never "the other computer's")
+    const newerThere = (rel) => { const r = remote[prefix + rel], st = state.files[rel]; return !!r && !(st && st.fp === fp(r)) && !!r.meta?.host && r.meta.host !== HOST; };  // (sent from this computer = never "the other computer's"; no host tag = sent before 2026-11-18, when only this computer existed - his own old copy, never "the other computer's": the false "changed on your other computer" he kept getting, 2026-11-20)
     const waiting = [];
     gone = gone.filter((rel) => !newerThere(rel));
     let up = 0, bytes = 0;
@@ -260,7 +260,7 @@ export function startSync({ app, jobs, heal = null, shared = null, log = (s) => 
           const rel = name.slice(prefix.length); if (!rel || skip(rel)) continue;
           const st = state.files[rel];
           const here = path.join(EPS, id, rel), ls = fs.existsSync(here) ? fs.statSync(here) : null;
-          if (ls && r.meta?.host === HOST) continue;  // (this computer sent it)
+          if (ls && (r.meta?.host === HOST || !r.meta?.host)) continue;  // (this computer sent it - or no host tag: an upload from before 2026-11-18, when only his one computer sent files)
           const t = +(r.meta?.mtime || 0);  // (the file here IS that copy - same size and time: e.g. an upload cut off before it was recorded)
           if (ls && ls.size === r.size && t && Math.abs(t - ls.mtimeMs) < 2000) continue;
           if (st ? st.fp !== fp(r) : !(state.thinned || []).includes(rel) && !ls) newer++;
