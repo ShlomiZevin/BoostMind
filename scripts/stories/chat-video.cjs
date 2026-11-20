@@ -25,7 +25,7 @@ const CPS = Math.max(35, letters / Math.max(10, MAX - fixed));   // letters per 
   for (let i = 0; i < N; i++) {
     const msgs = spec.parts[i];
     const p = await b.newPage(); await p.setViewport({ width: 1080, height: 1920 });   // a fresh page per part (a second setContent hangs on networkidle)
-    await p.setContent(buildHtml({ ...spec, msgs }, { part: `${i + 1}/${N}` }), { waitUntil: 'networkidle0' });
+    await p.setContent(buildHtml({ ...spec, msgs }, { part: N > 1 ? `${i + 1}/${N}` : "" }), { waitUntil: 'networkidle0' });
     await p.evaluate(() => document.fonts.ready);
     // the size that fits the WHOLE part; laid out top-down from where the full part sits centred, so nothing moves
     const fsz = await p.evaluate(() => {
@@ -59,6 +59,12 @@ const CPS = Math.max(35, letters / Math.max(10, MAX - fixed));   // letters per 
     await p.close();
   }
   await b.close();
+  // "outro": { "img": "cover.jpg", "sec": 3 } - a 1080x1920 picture after the chat (his Yotam story, 2026-11-20: the chat types,
+  // then the GTA-style cover). The chat's last hold is cut to 2 s so the cover comes right after the last bubble.
+  if (spec.outro && spec.outro.img) {
+    frames[frames.length - 1].n = Math.min(frames[frames.length - 1].n, Math.round(2 * FPS));
+    frames.push({ f: path.resolve(spec.outro.img), n: Math.round((spec.outro.sec || 3) * FPS) });
+  }
   const total = frames.reduce((a, x) => a + x.n, 0) / FPS;
   const list = frames.map((x) => `file '${x.f.replace(/\\/g, '/')}'\nduration ${(x.n / FPS).toFixed(4)}`).join('\n') + `\nfile '${frames[frames.length - 1].f.replace(/\\/g, '/')}'\n`;
   fs.writeFileSync(path.join(tmp, 'list.txt'), list);

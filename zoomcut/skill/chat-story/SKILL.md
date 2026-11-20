@@ -66,5 +66,10 @@ When the chat needs more than one poster (5+ exchanges), make ONE vertical video
    pacing was rejected; typing, not bubbles popping in; numbered parts.
 4. **Look** - pull 3-4 stills (`ffmpeg -ss <t> -i out.mp4 -frames:v 1 x.jpg`) and check them like posters, then
    SendUserFile the mp4.
-5. **Music** - offer 2-3 ideas in one line when you send it. Office scheming / politics: Game of Thrones theme was his
+5. **A cover at the end** (his Yotam story, 2026-11-20): `"outro": { "img": "cover.jpg", "sec": 3.5 }` in the spec - the
+   chat types, then a 1080x1920 cover holds (his pick: a painted GTA-style panel cover of the resident, our own title, no
+   game logo). Draw the resident from frames of THEIR VIDEOS (zoomcut/episodes/*/out, catalog videos) - a studio portrait
+   can look younger / softer than the real character (Yotam came out like a kid). Works for a short chat too (one part,
+   no "1/1").
+6. **Music** - offer 2-3 ideas in one line when you send it. Office scheming / politics: Game of Thrones theme was his
    pick for Amir (epic music on a petty fight = the joke); Succession theme for "real", Pink Panther for sneaky-light.
