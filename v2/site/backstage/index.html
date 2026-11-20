@@ -23,13 +23,14 @@
   :root { --bg: #0b0b0e; --card: rgba(255,255,255,.035); --card2: rgba(255,255,255,.06); --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.14);
     --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff6a1f; --red: #ff5a5a; color-scheme: dark; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scrollbar-gutter: stable; overflow-anchor: none; }   /* the page keeps his place itself (paint()) - the same on every browser */
+  html { overflow-anchor: none; }
+  @media (min-width: 901px) { html { scrollbar-gutter: stable; } }   /* a computer only: on an iPhone home-screen app a short tab (תוכניות) left the fixed tab bar half-way up (2026-11-20) */   /* the page keeps his place itself (paint()) - the same on every browser */
   body { background: radial-gradient(ellipse 60% 50% at 0% 100%, rgba(255,106,31,.10), transparent 70%), radial-gradient(ellipse 40% 40% at 100% 0%, rgba(255,106,31,.06), transparent 70%), var(--bg);
-    background-attachment: fixed; color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.5; min-height: 100svh; }
+    background-attachment: fixed; color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.5; min-height: 100vh; min-height: 100lvh; }   /* lvh: a short tab still fills the whole screen of a home-screen app (svh is shorter there) */
   button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
   a { color: inherit; text-decoration: none; }
   svg { flex: none; }
-  .app { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 100svh; }
+  .app { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 100vh; min-height: 100lvh; }
   /* the sidebar (desktop) */
   .side { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; padding: 22px 14px; border-inline-start: 1px solid var(--line); background: rgba(10,10,13,.6); backdrop-filter: blur(14px); }
   .side .brand { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 22px; }
