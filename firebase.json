@@ -94,7 +94,7 @@
         }
       },
       {
-        "source": "/mind/@(api|hook|mcp)",
+        "source": "/mind/@(api|hook|mcp|here)",
         "function": {
           "functionId": "mind",
           "region": "europe-west1"

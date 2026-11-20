@@ -327,6 +327,78 @@ async function agendaTick(now = new Date()) {
 }
 const minutes = (hhmm) => +hhmm.slice(0, 2) * 60 + +hhmm.slice(3, 5);
 
+// ---------- where he is (his ask 2026-11-20: "if you know I'm near a pharmacy, say go by"; he moves around all day,
+// no car Bluetooth, a native app is off the table) ----------
+// An iPhone Shortcuts automation - "when WhatsApp is opened", run silently - sends his location to /mind/here?k=&lat=&lng=.
+// With open errands he asked to be chased about (item.nag), the AI says once per errand which kinds of places can do it
+// (item.places = Google place types; [] = nowhere, e.g. a phone call), and a Places nearby search (≤ every 20 min) finds
+// an open one within NEAR_M -> "סופר-פארם ממש לידך (250 מ׳) / קנית כבר אקמול?". ~3 cents a search, only with errands.
+const WHERE = META.doc('where');
+const NEAR_M = 400, NEAR_EVERY = 20 * 60e3;
+const PLACE_TYPES = ['pharmacy', 'drugstore', 'supermarket', 'grocery_store', 'convenience_store', 'hardware_store', 'home_improvement_store',
+  'electronics_store', 'cell_phone_store', 'clothing_store', 'shoe_store', 'book_store', 'pet_store', 'florist', 'gift_shop', 'bakery',
+  'liquor_store', 'sporting_goods_store', 'furniture_store', 'department_store', 'shopping_mall', 'post_office', 'bank', 'atm',
+  'gas_station', 'car_wash', 'laundry', 'hair_salon', 'barber_shop', 'optician', 'dentist', 'doctor', 'butcher_shop', 'market', 'store'];
+async function locKey(create) {
+  const ref = META.doc('secret'), d = (await ref.get()).data() || {};
+  if (!d.loc && create) { d.loc = 'loc_' + crypto.randomBytes(18).toString('base64url'); await ref.set({ loc: d.loc }, { merge: true }); }
+  return d.loc || null;
+}
+const distM = (a, b) => { const R = 6371e3, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lng - a.lng) * r;
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
+// which kinds of places can do each errand - the AI decides, once per errand (kept on the item)
+async function placesFor(items) {
+  if (!items.length) return;
+  const schema = { type: 'object', additionalProperties: false, required: ['items'], properties: { items: { type: 'array', items: { type: 'object', additionalProperties: false,
+    required: ['id', 'types'], properties: { id: { type: 'string' }, types: { type: 'array', items: { type: 'string', enum: PLACE_TYPES } } } } } } };
+  const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + OPENAI.value(), 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'gpt-6.1-terra', reasoning: { effort: 'none' }, max_output_tokens: 1500, store: false, text: { format: { type: 'json_schema', name: 'places', schema, strict: true } },
+      instructions: 'For each errand of a man living in Israel, list the kinds of places where he could get it done in person (Google place types; Israeli reality - e.g. painkillers like Acamol: pharmacy, drugstore, supermarket). Most likely first, up to 4. [] when it is not done at a place (a call, an email, something at home or at work).',
+      input: [{ role: 'user', content: items.map((i) => `${i.id}: ${i.text}${i.body ? ' - ' + oneLine(i.body, 150) : ''}`).join('\n') }] }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error?.message || 'places ai ' + r.status);
+  const out = JSON.parse((j.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('') || '{"items":[]}');
+  for (const i of items) {
+    const types = ((out.items || []).find((x) => x.id === i.id)?.types || []).filter((t) => PLACE_TYPES.includes(t)).slice(0, 4);
+    i.places = types; await ITEMS.doc(i.id).update({ places: types });
+  }
+}
+async function nearby(lat, lng, types) {
+  const { access_token } = await admin.credential.applicationDefault().getAccessToken();
+  const r = await fetch('https://places.googleapis.com/v1/places:searchNearby', { method: 'POST',
+    headers: { authorization: 'Bearer ' + access_token, 'x-goog-user-project': 'boostmind-b052c', 'content-type': 'application/json',
+      'x-goog-fieldmask': 'places.id,places.displayName,places.types,places.location,places.currentOpeningHours.openNow' },
+    body: JSON.stringify({ includedTypes: types.slice(0, 50), maxResultCount: 10, rankPreference: 'DISTANCE', languageCode: 'he',
+      locationRestriction: { circle: { center: { latitude: lat, longitude: lng }, radius: NEAR_M } } }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error?.message || 'places ' + r.status);
+  return (j.places || []).filter((p) => p.currentOpeningHours?.openNow !== false);
+}
+async function here(lat, lng) {
+  const now = Date.now(), w = (await WHERE.get()).data() || {}, at = { lat, lng };
+  await WHERE.set({ lat, lng, at: now, n: (w.n || 0) + 1 }, { merge: true });
+  const t = ilHM(new Date());
+  if (t < '08:00' || t > '22:00') return { ok: true, skip: 'night' };
+  if (w.checkAt && now - w.checkAt < NEAR_EVERY) return { ok: true, skip: 'checked ' + Math.round((now - w.checkAt) / 60e3) + ' min ago' };
+  const items = (await ITEMS.where('nag', '>', '').get()).docs.map(shapeItem).filter((i) => ['open', 'active', 'waiting'].includes(i.status));
+  if (!items.length) return { ok: true, skip: 'no errands' };
+  await placesFor(items.filter((i) => !Array.isArray(i.places)));
+  const want = items.filter((i) => i.places?.length && !(i.nearAt && now - i.nearAt < 60 * 60e3));
+  if (!want.length) return { ok: true, skip: 'no errand needs a place now' };
+  await WHERE.set({ checkAt: now, checkLat: lat, checkLng: lng }, { merge: true });
+  const found = await nearby(lat, lng, [...new Set(want.flatMap((i) => i.places))]);
+  const told = [];
+  for (const i of want) {
+    const p = found.find((x) => (x.types || []).some((ty) => i.places.includes(ty)));
+    if (!p || (i.nearPlace === p.id && now - (i.nearAt || 0) < 6 * 3600e3)) continue;
+    const d = Math.max(10, Math.round(distM(at, { lat: p.location.latitude, lng: p.location.longitude }) / 10) * 10);
+    await ITEMS.doc(i.id).update({ nearAt: now, nearPlace: p.id, nagAt: now });
+    await pushMe('nag', { title: `${oneLine(p.displayName?.text, 60)} ממש לידך (${d} מ׳)`, body: i.nag, url: '/mind/#nag=' + i.id, tag: 'near:' + i.id }, null, { urgency: 'high', ttl: 1200 });
+    told.push(i.text + ' @ ' + p.displayName?.text);
+  }
+  return { ok: true, searched: found.length, told };
+}
+
 // ---------- pictures on an item (his ask 2026-11-17: "sessions send me images to approve") ----------
 // item.images = [{ path, name, caption, by, t }] - the files in the private bucket shlomiverse-studio/mind/<item>/, shown
 // to his page through signed links (made once, kept for 5 hours - the page polls)
@@ -502,6 +574,10 @@ async function pageOp(b) {
       return { ok: true, seen: now };
     }
     case 'connect': return { key: await mindKey(true) };
+    case 'lockey': {   // the settings' "by place" setup: his location key + when the last location came in
+      const w = (await WHERE.get()).data() || {};
+      return { key: await locKey(true), at: w.at || 0, n: w.n || 0 };
+    }
     case 'push_on': {   // this phone / computer gets notifications
       const sub = b.sub || {};
       if (!/^https:\/\//.test(sub.endpoint || '') || !sub.keys?.p256dh || !sub.keys?.auth) throw new Error('subscription');
@@ -612,6 +688,14 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
   res.set('cache-control', 'no-store');
   const door = req.path.replace(/\/+$/, '').split('/').pop();     // api | hook | mcp (through hosting: /mind/<door>)
   if (door === 'mcp' && req.method === 'GET') return res.status(405).set('allow', 'POST').end();
+  if (door === 'here') {   // his phone's Shortcuts automation: where he is now (GET or POST, its own key)
+    const q = { ...req.query, ...(typeof req.body === 'object' ? req.body : {}) }, key = await locKey();
+    if (!key || !same(String(q.k || ''), key)) return res.status(401).json({ error: 'key' });
+    const num = (v) => parseFloat(String(v ?? '').trim().replace(',', '.'));
+    const lat = num(q.lat), lng = num(q.lng);
+    if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180) || (!lat && !lng)) return res.status(400).json({ error: 'lat/lng' });
+    try { return res.json(await here(lat, lng)); } catch (e) { console.error('mind here', e.message); return res.status(500).json({ error: e.message }); }
+  }
   if (req.method !== 'POST') return res.status(405).end();
   const role = await who(req);
   if (role === 'blocked') return res.status(429).json({ error: 'too_many' });
@@ -625,7 +709,7 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
       return out ? res.json(out) : res.status(202).end();
     }
     if (door === 'api') {
-      if (['connect', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
+      if (['connect', 'lockey', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
       return res.json(await pageOp(req.body || {}));
     }
     res.status(404).json({ error: 'door' });
@@ -637,7 +721,8 @@ exports.mindAgenda = onSchedule({ schedule: '*/5 * * * *', timeZone: 'Asia/Jerus
   const r = await agendaTick();
   if (r.did?.length) console.log('mind agenda', JSON.stringify(r));
 });
-exports._agenda = { agenda, agendaTick, ilStart };   // for a local dry run
+exports._agenda = { agenda, agendaTick, ilStart };
+exports._here = (lat, lng) => here(lat, lng);   // for a local dry run   // for a local dry run
 
 // every morning at 9: reminders and tasks whose day came (still open) -> one notification each (a few = one summary)
 exports.mindDaily = onSchedule({ schedule: '0 9 * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1', secrets: [VAPID_PRIVATE], memory: '256MiB', timeoutSeconds: 60 }, async () => {

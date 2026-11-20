@@ -349,6 +349,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .done-today .dt { display: flex; align-items: center; gap: 8px; color: var(--ink3); text-decoration: line-through; font-size: 14px; cursor: pointer; padding: 4px 6px; }
 .done-today .dt svg { width: 15px; height: 15px; color: var(--green); flex: none; }
 .tabs b.tb-today { background: var(--amber) !important; }
+.locsteps { margin: 4px 0 10px; padding-inline-start: 20px; font-size: 14px; line-height: 1.55; color: var(--ink2); } .locsteps li { margin-bottom: 6px; } .locsteps b { color: var(--ink); }
 .nagmark { color: var(--violet); display: inline-flex; vertical-align: -2px; margin-inline-end: 5px; } .nagmark svg { width: 15px; height: 15px; }
 .pchip.nagc.on { color: var(--violet); background: var(--violetSoft); }
 .nagq h3 { display: flex; gap: 8px; align-items: center; } .nagq h3 svg { color: var(--violet); width: 22px; height: 22px; }
@@ -1313,6 +1314,8 @@ function settings() {
         <div style="display:flex;gap:8px;margin-top:6px"><button class="btn" data-act="tadd">${ic('plus')}סוג חדש</button><button class="btn pri" data-act="tsave">שמור סוגים</button></div>
         ${ms.length ? `<div class="set-sec"><h4>שמות המחשבים</h4>${ms.map((m) => `<div class="set-row"><span style="min-width:120px;direction:ltr;text-align:right" class="hint">${esc(m)}</span><input type="text" data-mname="${esc(m)}" value="${esc(S.config.machines?.[m] || '')}" placeholder="למשל: מחשב בבית"></div>`).join('')}<button class="btn pri" data-act="msave">שמור שמות</button></div>` : ''}
         <div class="set-sec" id="pushsec"></div>
+        <div class="set-sec"><h4>תזכורות לפי מקום</h4><div class="hint">כשיש לך סידור פתוח ("לקנות אקמול") ואתה עובר ליד מקום שאפשר לעשות בו אותו - בית מרקחת, סופר - הטלפון יגיד לך. המיקום נשלח כשאתה פותח וואטסאפ (קיצור של אייפון, פעם אחת להגדיר).</div>
+          <div id="locbox" style="margin-top:8px"><button class="btn" data-act="locsetup">${ic('pin')}איך מגדירים</button></div></div>
         <div class="set-sec"><h4>חיבור מחשב</h4><div class="hint">מחשב נוסף? תן לסשן של Claude Code שם את השורה הזאת. הוא יתקין את הסקיל וה-MCP - כדי שסשן יוכל לרשום כאן כשאתה אומר לו.</div>
           <div id="conn" style="margin-top:8px"><button class="btn" data-act="connect">${ic('link')}הצג את שורת החיבור</button></div></div>
         <div class="set-sec"><h4>מראה</h4><div class="seg">${[['auto', 'אוטומטי'], ['light', 'בהיר'], ['dark', 'כהה']].map(([k, t]) => `<button class="${(LS('theme') || 'auto') === k ? 'on' : ''}" data-theme-set="${k}">${t}</button>`).join('')}</div></div>
@@ -1320,6 +1323,23 @@ function settings() {
       </div></div></div>`;
   };
   settings.types = types; settings.draw = draw; draw(); pushDraw();
+}
+// "by place" (his ask 2026-11-20): an iPhone Shortcuts automation - WhatsApp opened -> his location to /mind/here
+async function showLoc() {
+  const el = $('#locbox'); el.innerHTML = '<span class="hint">רגע...</span>';
+  try {
+    const { key, at } = await api('lockey');
+    const url = `https://shlomiverse.com/mind/here?k=${key}&lat=LAT&lng=LNG`;
+    const steps = ['פתח את האפליקציה <b>קיצורים</b> (Shortcuts) ← <b>אוטומציה</b> ← <b>+</b> (אוטומציה חדשה) ← <b>אפליקציה</b> (App).',
+      'בחר <b>WhatsApp</b>, סמן <b>נפתחת</b> (Is Opened), בחר <b>הרץ מיד</b> (Run Immediately) וכבה את <b>הודע בעת הרצה</b>. ← הבא.',
+      '<b>אוטומציה ריקה חדשה</b> ← הוסף פעולה <b>קבל את המיקום הנוכחי</b> (Get Current Location).',
+      'הוסף פעולה <b>קבל תוכן של URL</b> (Get Contents of URL) והדבק בה את הכתובת שלמטה.',
+      'בכתובת: מחק את <b>LAT</b> ובמקומו הכנס משתנה <b>מיקום נוכחי</b> ← לחץ עליו ובחר <b>קו רוחב</b> (Latitude). אותו דבר במקום <b>LNG</b> עם <b>קו אורך</b> (Longitude).',
+      'סיום. פתח וואטסאפ פעם אחת (אם שואלים - אפשר לקיצורים גישה למיקום), וחזור לכאן: למטה יהיה כתוב שהמיקום הגיע.'];
+    el.innerHTML = `<ol class="locsteps">${steps.map((t) => `<li>${t}</li>`).join('')}</ol>
+      <div class="code"><span>${esc(url)}</span><button data-copy="${esc(url)}">${ic('copy')}</button></div>
+      <div class="hint" style="margin-top:6px">${at ? `${ic('check')} המיקום האחרון הגיע ${esc(ago(at))}` : 'עוד לא הגיע מיקום מהטלפון.'} · הכתובת הזאת אישית - לא לשלוח לאף אחד.</div>`;
+  } catch (e) { el.innerHTML = '<span class="hint">לא הצליח - ' + esc(e.message) + '</span>'; }
 }
 async function showConnect() {
   const el = $('#conn'); el.innerHTML = '<span class="hint">רגע...</span>';
@@ -1398,6 +1418,7 @@ document.addEventListener('click', (e) => {
     case 'recscreen': recScreen(); break;
     case 'seenall': markSeen(newEntries()); render(); toast('הכל סומן כנקרא'); break;
     case 'toarchive': closeModal(); go('archive'); break;   // the phone's tab bar has no room for it since פגישות (2026-11-20)
+    case 'locsetup': showLoc(); break;
     case 'agrefresh': loadAgenda(true).then(() => toast('היומן עודכן')); break;
     case 'recclose': recClose(); break;
     case 'recagain': clearTimeout(recClose.t); recScreen(); break;
