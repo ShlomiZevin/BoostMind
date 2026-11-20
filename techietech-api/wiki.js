@@ -536,6 +536,7 @@ exports.wikiChat = onRequest({
       try {
         const r = await deep.reply({ key, akey, cur, mode, turns, convo, extra: rules, contact, onText: (t) => { wrote = true; reply += t; res.write(t); } });
         u = r.usage; extra = r.log;
+        require('./ai-ledger').addAnthropic('chat', require('./ai-ledger').anthropicOf(r.log && r.log.steps)).catch((e) => console.error('ai ledger', e.message));   // the director's Sonnet - no provider report has it (Backstage → הוצאות)
         if (ref) await ref.set({ convo: r.convo, t: Timestamp.now(), exp: Timestamp.fromMillis(Date.now() + KEEP_DAYS * 864e5) }).catch(() => {});
         console.log('wikiChat deep', mode, (r.first / 1000).toFixed(1) + 's', '$' + r.cost.toFixed(4), r.steps.map((s) => s.step).join('>'));
       } catch (e) {

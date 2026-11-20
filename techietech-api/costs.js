@@ -24,7 +24,7 @@ const HOUR = 3600e3;
 
 // which area a key belongs to - by its project and name (new keys: name them <area>, or shlomiverse-<area>)
 const AREAS = {
-  syncs: 'Syncs', studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', tziftzif: 'ציפציפ', charadot: 'ח24 (חרדות)', plaxzy: 'Plaxzy',
+  syncs: 'Syncs', garden: 'הגינה', studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', tziftzif: 'ציפציפ', charadot: 'ח24 (חרדות)', plaxzy: 'Plaxzy',
 };
 function areaOf(project, name) {
   const p = String(project || '').toLowerCase(), n = String(name || '').toLowerCase();
@@ -93,6 +93,34 @@ async function syncsRows(days) {
   }
   return rows;
 }
+// Anthropic (his ask 2026-11-20: "everything should be collected, the director too"): no Anthropic report we can read (no admin key),
+// so every Sonnet / Opus call is counted from our own records, each in exactly one place, on its feature's line (src 'anthropic'):
+//   chat      chat_logs steps (model + usd per step) until ai-ledger.js started counting every answer (owner/aiLedger.chatFrom), then aiSpend
+//   tziftzif  aiSpend (tz.js, per post - nothing was recorded before it)
+//   garden    each visit's own usage (gardeners/*/visits) priced here
+//   syncs     syncsRows above
+// The OpenAI side of all of them is OpenAI's own report, per key - never added here.
+const AN_PRICE = { opus: { in: 4, read: 0.2, write: 5, out: 20 }, sonnet: { in: 2, read: 0.1, write: 2.5, out: 10 } };   // $ / 1M (Claude Opus 5.5, Sonnet 5.5)
+const anCost = (u) => { const P = /sonnet/.test(String(u.model || '')) ? AN_PRICE.sonnet : AN_PRICE.opus;
+  return ((u.input_tokens || 0) * P.in + (u.cache_read_input_tokens || 0) * P.read + (u.cache_creation_input_tokens || 0) * P.write + (u.output_tokens || 0) * P.out) / 1e6; };
+async function anthropicRows(days) {
+  const db = admin.firestore(), fromMs = Date.now() - days * 864e5, from = new Date(fromMs).toISOString().slice(0, 10);
+  const add = {}, put = (area, d, usd) => { if (usd > 0) { const k = area + '|' + d; add[k] = (add[k] || 0) + usd; } };
+  const led = (await db.collection('owner').doc('aiLedger').get()).data() || {};
+  // the chat before its ledger: chat_logs (the director runs on Sonnet since 2026-11-12)
+  const chatTo = led.chatFrom || Date.now() + 6e4, chatFrom = Math.max(fromMs, Date.parse('2026-11-12T00:00:00Z'));
+  if (chatTo > chatFrom) {
+    const q = await db.collection('chat_logs').where('t', '>=', admin.firestore.Timestamp.fromMillis(chatFrom)).where('t', '<', admin.firestore.Timestamp.fromMillis(chatTo)).select('t', 'steps').get();
+    for (const x of q.docs.map((d) => d.data())) for (const st of x.steps || []) if (/^claude/.test(String(st.model || ''))) put('chat', x.t.toDate().toISOString().slice(0, 10), st.usd || 0);
+  }
+  (await db.collection('aiSpend').where('d', '>=', from).get()).docs.forEach((d) => { const x = d.data(); for (const [area, v] of Object.entries(x)) if (v && typeof v === 'object') put(area, x.d, v.anthropic || 0); });
+  // the garden doctor: Claude looks at each photo (garden.js keeps the usage on the visit)
+  for (const g of (await db.collection('gardeners').select().get()).docs) {
+    const vs = await g.ref.collection('visits').where('at', '>=', admin.firestore.Timestamp.fromMillis(fromMs)).select('at', 'usage').get();
+    for (const v of vs.docs.map((d) => d.data())) if (v.usage && /^claude/.test(String(v.usage.model || '')) && v.at) put('garden', v.at.toDate().toISOString().slice(0, 10), anCost(v.usage));
+  }
+  return Object.entries(add).map(([k, usd]) => { const [area, d] = k.split('|'); return { d, src: 'anthropic', group: 'shlomiverse', area, kind: 'text', usd }; });
+}
 // the sources that are dollars (ElevenLabs is credits)
 const DOLLARS = new Set(['openai', 'evolink', 'anthropic', 'ledger']);
 
@@ -126,12 +154,13 @@ async function owner(op, b) {
   const db = admin.firestore(), ref = db.collection('owner').doc('costs'), was = (await ref.get()).data();
   if (was && !b.fresh && Date.now() - was.at < (b.maxAge || HOUR)) return was;
   const out = { at: Date.now(), days: DAYS, areas: AREAS, rows: [], errors: [] };
-  const [oa, el, pk, sy] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS), syncsRows(DAYS)]);
+  const [oa, el, pk, sy, an] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS), syncsRows(DAYS), anthropicRows(DAYS)]);
   if (oa.status === 'fulfilled') out.rows.push(...oa.value); else out.errors.push(String(oa.reason?.message || oa.reason));
   if (el.status === 'fulfilled') { out.rows.push(...el.value.rows); out.eleven = { ...el.value.plan, keys: el.value.keys }; } else out.errors.push(String(el.reason?.message || el.reason));
   if (pk.status === 'fulfilled') { out.rows.push(...pk.value.rows); out.evolink = pk.value.balance; } else out.errors.push('evolink: ' + String(pk.reason?.message || pk.reason));
   // Syncs moves its OpenAI part out of chat - only when OpenAI itself answered (else the minus rows would stand alone)
   if (sy.status === 'fulfilled') out.rows.push(...sy.value.filter((r) => oa.status === 'fulfilled' || r.src !== 'openai')); else out.errors.push('syncs: ' + String(sy.reason?.message || sy.reason));
+  if (an.status === 'fulfilled') out.rows.push(...an.value); else out.errors.push('anthropic: ' + String(an.reason?.message || an.reason));
   // one row per day / source / group / area / kind (/ client - Piko's jobs know who made them)
   const sum = {};
   for (const r of out.rows) {
@@ -230,4 +259,4 @@ const costAlert = onSchedule({ schedule: '0 * * * *', timeZone: 'Asia/Jerusalem'
   console.log('costAlert', JSON.stringify(await alert()));
 });
 
-module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD, LEVELS, syncsRows, DOLLARS };
+module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD, LEVELS, syncsRows, anthropicRows, DOLLARS };

@@ -336,6 +336,8 @@ async function writeOne(c, what, angle, last) {
   const alias = AL[c.id] && AL[c.id].name;
   const scene = what + (alias && alias !== c.name ? `\nOn ציפציפ they are called "${alias}" - never the name "${c.name}".` : '');
   const r = await deep.post({ key: tzKey(), akey: anKey(), cur: curNow(await brainNow()), mode: c.id, scene, last, name: alias || '' });
+  // the director's Sonnet: no provider report has it - counted here, once per post (ai-ledger.js -> Backstage → הוצאות, ציפציפ's line)
+  await require('./ai-ledger').addAnthropic('tziftzif', require('./ai-ledger').anthropicOf(r.steps)).catch((e) => console.error('ai ledger', e.message));
   return { out: { text: r.text }, u: r.u };
 }
 
