@@ -1022,6 +1022,45 @@ async function wishSweep() {
 // ---------- Shlomi's page ----------
 const wrongKey = new Map();
 let followCache = null;   // how many follow each character (the 'list' op)
+// Backstage's pulse (2026-11-20). The ops that only read; any other op that answers OK is a write, stamped in owner/pulse by
+// its area (the page's areas: list / plans / chars / chatnotes / events / tz / mail / catalog / stars / seen / wishes)
+const OWNER_READS = new Set(['pulse', 'list', 'stats', 'chats', 'stars', 'storyPicks', 'seenMap', 'people', 'hours', 'visits', 'ask', 'costs', 'citizenStats',
+  'simStats', 'aboutStats', 'catalogList', 'wishes', 'plans', 'plan', 'charList', 'charNotes', 'events', 'chatNotes', 'chatThread', 'tzList', 'tzReports',
+  'tzCast', 'mailState', 'mailLog', 'mailSamples', 'mailBounces', 'mailView']);
+function pulseArea(op) {
+  op = String(op || '');
+  if (!op || OWNER_READS.has(op)) return null;
+  if (op === 'seen') return 'seen';
+  if (op === 'star' || op === 'storyPick') return 'stars';
+  if (op === 'catalogHide') return 'catalog';
+  if (op === 'wishOpen' || op === 'wishFound') return 'wishes';
+  for (const [p, a] of [['plan', 'plans'], ['char', 'chars'], ['event', 'events'], ['chatNote', 'chatnotes'], ['chatMark', 'chatnotes'], ['tz', 'tz'], ['mail', 'mail']]) if (op.startsWith(p)) return a;
+  return 'list';   // hide, done, found, ideaStatus, ideaReply, announce, autoAnnounce, story, storyEdit
+}
+// the newest stamp of each thing Backstage shows - what visitors add (requests, comments, ideas, stickers, chats, archive marks),
+// what the background jobs do (ציפציפ runs, the mailer, a publish), what sessions write - plus owner/pulse (his own writes)
+async function ownerPulse() {
+  const top = (col, f = 't') => db.collection(col).orderBy(f, 'desc').limit(1).get()
+    .then((s) => { const d = s.docs[0]; if (!d) return '0'; const v = d.get(f); return `${v?.toMillis?.() ?? v ?? 0}:${d.id}`; }).catch(() => 'x');
+  const [own, requests, comments, ideas, stickers, stories, chats, chatnotes, charnotes, catalog, greet, plans, tzRuns, tzReports, mail, bounces, wishes] = await Promise.all([
+    db.collection('owner').doc('pulse').get().then((d) => d.data() || {}).catch(() => ({})),
+    top('requests'), top('comments'), top('ideas'), top('stickers'), top('stories'), top('chat_logs'), top('chatNotes'), top('charNotes'), top('catalogLog'),
+    top('greetingVoice'), top('plans', 'updated'), top('tzRuns', 'at'), top('tzReports'), top('mailLog'), top('mailBounces', 'last'), top('wishes', 'last'),
+  ]);
+  const o = (k) => String(own[k] || 0);
+  return { t: Date.now(), v: {
+    list: [requests, comments, ideas, stickers, stories, o('list')].join('|'),
+    chats: chats, stars: o('stars'), seen: o('seen'),
+    chatnotes: [chatnotes, o('chatnotes')].join('|'),
+    chars: [charnotes, catalog, greet, o('chars')].join('|'),
+    catalog: [catalog, o('catalog')].join('|'),
+    plans: [plans, o('plans')].join('|'),
+    events: o('events'),
+    tz: [tzRuns, tzReports, o('tz')].join('|'),
+    mail: [mail, bounces, o('mail')].join('|'),
+    wishes: [wishes, o('wishes'), o('list')].join('|'),
+  } };
+}
 function ownerOk(req, res) {
   const auth = req.get('authorization') || '';
   if (!auth.startsWith('Key ')) { res.status(401).json({ error: 'key' }); return false; }
@@ -1266,7 +1305,14 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRE
   if (!ownerOk(req, res)) return;
   const op = req.query.op;
   const b = req.body || {};
+  // every write he (or a session with the owner key) makes here is stamped in owner/pulse, by area, before the answer goes
+  // out - so Backstage on his other devices sees it on its next pulse (2026-11-20: "updating from the server, not patch on patch")
+  const area = pulseArea(op);
+  if (area) { const json = res.json.bind(res); res.json = (x) => (res.statusCode < 400 ? db.collection('owner').doc('pulse').set({ [area]: Date.now() }, { merge: true }).catch((e) => console.error('pulse bump', e.message)).then(() => json(x)) : json(x)); }
   try {
+    // what changed, cheaply (Backstage asks every ~20 s while it is on screen): the newest stamp of each area - a handful of
+    // one-document reads + owner/pulse. The page re-reads only the areas whose stamp moved and patches them in place.
+    if (op === 'pulse') return res.json(await ownerPulse());
     // the mails: what we send, what was sent, the switch (mailer.js)
     if (String(op).startsWith('mail')) { const r = await require('./mailer').owner(op, b); if (r) return res.json(r); }
     // what he already looked at (פניות / רעיונות / תוכן / תוכניות), kept here so his phone, his computer and the home-screen

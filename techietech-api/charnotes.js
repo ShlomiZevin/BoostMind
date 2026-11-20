@@ -23,6 +23,24 @@ async function owner(op, b) {
   const notes = db().collection('charNotes');
   // everything the tab needs in one call: the characters, their videos (from the chat's brain - the same one the chat
   // answers from), the sites, every note, and when each field of each character last changed
+  // slim (Backstage's menu number, 2026-11-20): only what says "something new for him" - each character's id / hidden, when each
+  // field last changed, and the sessions' answers' times; a few KB instead of the whole tab (~600 KB)
+  if (op === 'charList' && b.slim) {
+    const [chars, ns, log] = await Promise.all([
+      db().collection('catalogCharacters').select('hidden').get(),
+      notes.where('by', '==', 'claude').select('char', 't').get(),
+      db().collection('catalogLog').orderBy('t', 'desc').limit(1500).get(),
+    ]);
+    const changed = {};
+    for (const d of log.docs) {
+      const x = d.data();
+      if (x.kind !== 'character' || !x.id) continue;
+      const t = ms(x.t), m = (changed[x.id] = changed[x.id] || {});
+      for (const f of x.fields || []) if (['sheet', 'life', 'love', 'viral'].includes(f) && !m[f]) m[f] = t;
+    }
+    return { slim: true, chars: chars.docs.map((d) => ({ id: d.id, ...(d.get('hidden') ? { hidden: true } : {}) })), changed,
+      notes: ns.docs.map((d) => ({ id: d.id, char: d.get('char'), by: 'claude', t: ms(d.get('t')) })) };
+  }
   if (op === 'charList') {
     const [chars, brainBuf, sites, ns, log] = await Promise.all([
       db().collection('catalogCharacters').get(),
