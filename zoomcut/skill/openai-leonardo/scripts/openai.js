@@ -77,7 +77,7 @@ async function main() {
   const inFile = arg('--in');
   const outFile = arg('--out');
   const systemFile = arg('--system');
-  const effort = arg('--effort') || 'medium'; // low | medium | high - medium unless asked (his call 2026-11-20: the API felt dumber than ChatGPT because it barely thought)
+  const effort = arg('--effort'); // low | medium | high
 
   if (!outFile) throw new Error('--out <file> is required (Hebrew must not go through stdout)');
 
