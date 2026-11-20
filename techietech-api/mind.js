@@ -494,7 +494,7 @@ async function pageOp(b) {
     case 'push_off': if (b.endpoint) await PUSH.doc(crypto.createHash('sha256').update(String(b.endpoint)).digest('hex').slice(0, 32)).delete(); return { ok: true };
     case 'push_test': {
       const on = { ...(await config()).push }, why = [];
-      const sent = await pushMe(Object.keys(on).find((x) => on[x]) || 'ask', { title: 'המוח השני', body: 'ככה תיראה התראה. לחיצה פותחת את המוח.', url: '/mind/', tag: 'test' }, why);
+      const sent = await pushMe(Object.keys(on).find((x) => on[x]) || 'ask', { title: 'PA', body: 'ככה תיראה התראה. לחיצה פותחת את האפליקציה.', url: '/mind/', tag: 'test' }, why);
       return { sent, why };
     }
     case 'organize': {   // what he said / typed -> anything on his table: new items, and changes to the ones he has

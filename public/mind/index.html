@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#05070d">
-<title>המוח השני</title>
-<link rel="manifest" href="/mind/manifest.webmanifest">
-<link rel="icon" href="/mind/icon-64.png">
-<link rel="apple-touch-icon" href="/mind/icon-180.png">
+<title>PA</title>
+<link rel="manifest" href="/mind/manifest.webmanifest?v=pa">
+<link rel="icon" href="/mind/icon-64.png?v=pa">
+<link rel="apple-touch-icon" href="/mind/icon-180.png?v=pa">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="המוח השני">
+<meta name="apple-mobile-web-app-title" content="PA">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- "המוח השני" - Shlomi's second brain (his ask, 2026-11-04): his own notebook - his ideas, to-dos, notes, reminders.
+<!-- "PA" (was "המוח השני" until 2026-11-20 - his call: "a terrible name", and English so he finds it on the iPhone) - Shlomi's PA + second brain (his ask, 2026-11-04): his own notebook - his ideas, to-dos, notes, reminders.
      Since 2026-11-12 no session tracking: a Claude session writes here only when he tells it to (MCP, setup/). Data only
      through the mind function (techietech-api/mind.js) with his private code - the same one as /backstage/ and /all/. -->
 <style>
@@ -461,8 +461,8 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 <body>
 <div id="gate" class="hidden">
   <form id="gf">
-    <img src="/mind/logo-512.png" alt="המוח השני">
-    <p>כל מה שבראש, במקום אחד</p>
+    <img src="/mind/logo-512.png?v=pa" alt="PA">
+    <p>הפגישות, התזכורות וכל מה שבראש</p>
     <input id="gi" type="password" inputmode="numeric" autocomplete="current-password" placeholder="הקוד שלך">
     <button>כניסה</button>
     <div class="err" id="ge"></div>
@@ -471,7 +471,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
 <div id="app" class="hidden">
   <aside class="side">
-    <div class="brand"><img src="/mind/logo-512.png" alt="המוח השני"><small>כל מה שבראש, במקום אחד</small></div>
+    <div class="brand"><img src="/mind/logo-512.png?v=pa" alt="PA"><small>הפגישות, התזכורות וכל מה שבראש</small></div>
     <button class="cap-btn" data-act="capture"><svg class="i"><use href="#i-plus"/></svg>לכידה חדשה <kbd>N</kbd></button>
     <nav class="nav" id="nav"></nav>
     <h4>פרויקטים</h4><div class="qf" id="projs"></div>
@@ -479,7 +479,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   </aside>
   <main>
     <div class="top">
-      <img class="mlogo" src="/mind/logo-200.png" alt="המוח השני">
+      <img class="mlogo" src="/mind/logo-200.png?v=pa" alt="PA">
       <label class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" placeholder="חיפוש בכל מה שבראש... ( / )" autocomplete="off"></label>
       <div class="live" id="live"><i></i><span>מחובר</span></div>
       <button class="ic" data-act="theme" title="מראה"><svg class="i"><use href="#i-moon"/></svg></button>
@@ -656,7 +656,7 @@ function renderChrome() {
     <span class="gap"></span>
     <button class="${S.view === 'home' ? 'on' : ''}" data-view="home">${ic('home')}השולחן${waitN ? `<b>${waitN}</b>` : ''}</button>
     <button data-act="settings">${ic('settings')}עוד</button>`;
-  document.title = waitN ? `(${waitN}) המוח השני` : 'המוח השני';
+  document.title = waitN ? `(${waitN}) PA` : 'PA';
 }
 
 // ---------- views ----------
@@ -770,7 +770,7 @@ function viewToday() {
   const nice = new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   return `<div class="wrap home today-v">
     <div class="hello"><h1>${ic('sun')} היום</h1><p>${esc(nice)} · ${list.length ? `${list.length} להיום` : 'עוד לא סימנת כלום להיום'}${done.length ? ` · ${done.length} בוצעו` : ''}</p></div>
-    ${agStrip()}
+    ${pushInvite()}${agStrip()}
     <form class="qc" id="tdf"><input id="td" autocomplete="off" placeholder="להוסיף משהו להיום"><button class="qmic" title="הוסף">${ic('plus')}</button></form>
     <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>אין עדיין כלום להיום</b>פתח פריט בשולחן ולחץ "להיום" (או ${ic('sun')} בשורה), והוא יופיע כאן</div>`}</div>
     ${done.length ? `<div class="lbl" style="margin-top:18px">בוצעו היום</div><div class="done-today">${done.map((i) => `<div class="dt" data-item="${i.id}">${ic('check')}<span>${esc(i.text)}</span></div>`).join('')}</div>` : ''}
@@ -834,7 +834,7 @@ function viewMeet() {
   const days = {}; for (const m of S.ag.meetings) if (mDay(m) > day) (days[mDay(m)] ||= []).push(m);
   const tmr = dayOf(new Date(Date.now() + 86400e3)).slice(0, 10);
   const sum = !today.length ? 'אין פגישות היום' : ahead.length ? `${ahead.length === 1 ? 'עוד פגישה אחת' : `עוד ${ahead.length} פגישות`} היום${nx ? ` · הבאה ${hmOf(nx.start)}` : ''}` : 'סיימת את הפגישות של היום';
-  return `<div class="wrap home meet-v">${head(esc(sum))}
+  return `<div class="wrap home meet-v">${head(esc(sum))}${pushInvite()}
     <div class="mday">היום</div>
     <div class="mlist">${today.length ? today.map((m) => meetRow(m, now, nx && mKey(nx))).join('') : '<div class="mempty">היומן פנוי היום</div>'}</div>
     ${Object.entries(days).map(([d, l]) => `<div class="mday">${d === tmr ? 'מחר' : esc(nice(d, { weekday: 'long' }))}<small>${esc(nice(d, { day: 'numeric', month: 'numeric' }))} · ${l.length === 1 ? 'פגישה אחת' : l.length + ' פגישות'}</small></div>
@@ -1312,7 +1312,7 @@ async function showConnect() {
     const cmd = `curl -fsSL https://shlomiverse.com/mind/setup/install.mjs -o mind-install.mjs && node mind-install.mjs --key ${key} --machine "Laptop"`;
     el.innerHTML = `<div class="lbl" style="margin-top:4px">להגיד לסשן של Claude במחשב השני</div><div class="code"><span>${esc(say)}</span><button data-copy="${esc(say)}">${ic('copy')}</button></div>
       <div class="lbl">או להריץ בעצמך בטרמינל</div><div class="code"><span>${esc(cmd)}</span><button data-copy="${esc(cmd)}">${ic('copy')}</button></div>
-      <div class="hint" style="margin-top:6px">המפתח הזה פותח את המוח השני - אל תשלח אותו לאף אחד.</div>`;
+      <div class="hint" style="margin-top:6px">המפתח הזה פותח את ה-PA - אל תשלח אותו לאף אחד.</div>`;
   } catch (e) { el.innerHTML = '<span class="hint">לא הצליח</span>'; }
 }
 
@@ -1511,7 +1511,7 @@ const b64u = (k) => Uint8Array.from(atob((k + '='.repeat((4 - k.length % 4) % 4)
 async function pushOn() {
   if (!pushOk()) { toast(isIOS && !isApp() ? 'פתח את המוח מהאייקון במסך הבית ונסה שוב' : 'הדפדפן הזה לא תומך בהתראות'); return; }
   const perm = await Notification.requestPermission();   // first thing in the tap - the iPhone insists
-  if (perm !== 'granted') { toast('ההתראות חסומות - הגדרות › התראות › המוח השני'); pushDraw(); render(); return; }
+  if (perm !== 'granted') { toast('ההתראות חסומות - הגדרות › התראות › PA'); pushDraw(); render(); return; }
   try {
     const reg = (await swReady) || (await navigator.serviceWorker.ready);
     const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) }));
@@ -1543,14 +1543,14 @@ async function pushDraw() {
   el.innerHTML = `<h4>התראות</h4>` + {
     needapp: '<div class="hint">באייפון התראות עובדות רק כשהמוח פתוח מהאייקון שלו במסך הבית. פתח אותו משם והפעל כאן.</div>',
     nosupport: '<div class="hint">הדפדפן הזה לא תומך בהתראות.</div>',
-    denied: '<div class="hint">ההתראות חסומות במכשיר הזה. באייפון: הגדרות › התראות › המוח השני › לאפשר התראות.</div>',
+    denied: '<div class="hint">ההתראות חסומות במכשיר הזה. באייפון: הגדרות › התראות › PA › לאפשר התראות.</div>',
     off: `<div class="hint">המכשיר הזה לא מקבל התראות.</div><button class="btn pri" data-act="pushon" style="margin-top:8px">${ic('bell')}הפעל התראות במכשיר הזה</button>`,
     on: `<div class="hint">המכשיר הזה מקבל התראות.</div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" data-act="pushtest">${ic('bell')}שלח התראת בדיקה</button><button class="btn" data-act="pushoff">כבה במכשיר הזה</button></div>`,
   }[st] + `<div class="lbl" style="margin-top:14px">על מה להתריע</div>${PUSH_LABELS.map(([k, t]) => `<label class="pk"><input type="checkbox" data-pkind="${k}" ${on[k] ? 'checked' : ''}><span>${t}</span></label>`).join('')}`;
 }
 // on the table, once, in the phone app: the invite (a tap there is what the iPhone needs)
 const pushInvite = () => isApp() && pushOk() && Notification.permission === 'default' && !LS('pushlater')
-  ? `<div class="pushinv">${ic('bell')}<div><b>התראות לטלפון</b><span>תזכורות, ופניות מהאתר</span></div><button class="btn pri" data-act="pushon">הפעל</button><button class="btn icon" data-act="pushlater" title="לא עכשיו">${ic('x')}</button></div>` : '';
+  ? `<div class="pushinv">${ic('bell')}<div><b>התראות לטלפון</b><span>פגישות, תזכורות ופניות מהאתר</span></div><button class="btn pri" data-act="pushon">הפעל</button><button class="btn icon" data-act="pushlater" title="לא עכשיו">${ic('x')}</button></div>` : '';
 function boot() {
   if (!ownerKey()) return showGate();
   $('#app').classList.remove('hidden');

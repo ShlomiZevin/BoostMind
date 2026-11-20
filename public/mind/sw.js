@@ -6,9 +6,9 @@ self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data && e.data.text() }; }
-  e.waitUntil(self.registration.showNotification(d.title || 'המוח השני', {
+  e.waitUntil(self.registration.showNotification(d.title || 'PA', {
     body: d.body || '',
-    icon: '/mind/icon-192.png',
+    icon: '/mind/icon-192.png?v=pa',
     tag: d.tag,
     renotify: !!d.tag,
     dir: 'rtl',
