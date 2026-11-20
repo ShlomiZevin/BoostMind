@@ -393,7 +393,7 @@
     .msg { flex-wrap: wrap; } .msg .body { flex: 1 1 calc(100% - 62px); }
     .msg .check { width: 100%; flex-direction: row; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
     .msg .check span { width: 38px; height: 38px; } .msg .check svg { width: 18px; height: 18px; }
-    .tabbar { position: fixed; bottom: 0; inset-inline: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    .tabbar { position: fixed; bottom: 0; inset-inline: 0; z-index: 30; transform: translateZ(0); -webkit-transform: translateZ(0); display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
       background: rgba(11,11,14,.92); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
     .tabbar button { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: .74rem; font-weight: 700; color: var(--dim); position: relative; padding-top: 4px; }
     .tabbar svg { width: 25px; height: 25px; }
@@ -1196,7 +1196,7 @@ function draw() {
   // the tab is on screen: now the menu's numbers (what's new in each part), quietly
   if (MENU.some((k) => !HAVE.has(k))) need(MENU).then(frame, frame);
 }
-const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } document.querySelector('.new-pill')?.remove(); tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
+const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } document.querySelector('.new-pill')?.remove(); tab = t; scrollTo(0, 0); draw(); scrollTo(0, 0); };   // to the top BEFORE the short tab replaces a long one: an iPhone left the fixed tab bar half-way up the screen (his screenshot 2026-11-20)   // the תוכניות tab always opens the list (his note 2026-11-07)
 const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
