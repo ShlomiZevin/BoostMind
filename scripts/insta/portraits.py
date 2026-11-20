@@ -39,6 +39,9 @@ C = {  # id: (description, ref)
  'hood-guy': ("The neighbourhood guy who thinks he is in charge of the whole block, an Israeli man around 40: a big thick dark horseshoe-style mustache, "
               "light stubble, thin clear-framed glasses, a black baseball cap worn backwards, a black sleeveless tank top. Self-important, "
               "squinting 'I know exactly what is going on here' look, chin slightly up - the self-appointed supervisor of the street.", None),
+ 'mole-man': ("A loud Israeli man around 50 who shouts his phone calls in the middle of the street: completely bald, a short reddish-grey beard, "
+              "half-rim glasses with red-and-black frames, a small dark mole just under his left eye, a grey zip jacket. Mouth half open "
+              "mid-sentence, indignant 'you will learn how to talk' look. Background: plain light-grey studio.", None),
  'lola': ("Lola, a Filipina caregiver in her 30s, a woman: straight black bob with bangs, black zip-up track jacket. "
           "Sweet, patient, cheerful smile. Smooth, clean-shaven feminine face - no beard, no stubble, no beard shadow; no marks on the face.", None),
  'matan': ("A futurist influencer in his mid 30s: grey knit beanie, short beard, dark sweater. Calm, very sure of his predictions "
