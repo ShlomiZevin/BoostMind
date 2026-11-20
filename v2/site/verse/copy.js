@@ -621,7 +621,7 @@ export const T = {
     recapKicker: 'סיכום ישיבה', recapWriting: 'אמיר כותב את הסיכום…', recapSaid: 'מה עלה בישיבה', recapItems: 'Action items',
     minutes: (m) => (m <= 1 ? 'דקה' : `${m} דקות`), people: (n) => `${n} משתתפים`,
     again: 'ישיבה חדשה', share: 'לשתף', talk: (n) => `לדבר עם ${n}`, copied: 'הסיכום הועתק',
-    shareHead: 'סיכום ישיבת זום · טקי-טק',
+    shareHead: 'סיכום ישיבה ב-Syncs · טקי-טק',
     bookedTitle: 'חדר הישיבות תפוס עד מחר',
     bookedLine: 'כל יום יש ישיבה אחת עם טקי-טק, וזו של היום כבר הייתה. אמיר שלח זימון לישיבת המשך מחר.',
     bookedTalk: 'בינתיים, לדבר עם אמיר',

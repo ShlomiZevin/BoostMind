@@ -16,7 +16,12 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 /* the head: the meeting's name, Techy-Tech's own mark (its tool) */
 .mt-head { flex: none; display: flex; align-items: center; gap: 8px; margin: 10px 12px 0; height: 48px; padding: 0 14px; border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, .15); background: #121216; }
-.mt-ttl { font-size: 19px; font-weight: 900; letter-spacing: -.01em; white-space: nowrap; }
+.mt-logo { width: 32px; height: 32px; flex: none; border-radius: 8px; }
+.mt-ttl { display: flex; flex-direction: column; line-height: 1.1; white-space: nowrap; }
+.mt-ttl b { font-size: 19px; font-weight: 900; letter-spacing: -.01em; align-self: flex-start; }
+.mt-ttl small { font-size: 12px; font-weight: 600; color: #a6a3ad; }
+.mt-tag { margin-inline-start: auto; font-size: 12px; font-style: italic; font-weight: 600; color: #ffb27a; white-space: nowrap; }
+@media (max-width: 370px) { .mt-tag { display: none; } }
 .mt-ttl i { font-style: normal; color: #8f8c97; margin: 0 7px; }
 .mt-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 0 0 rgba(255, 59, 59, .6); animation: mt-live 1.6s infinite; }
 @keyframes mt-live { 70% { box-shadow: 0 0 0 7px rgba(255, 59, 59, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }

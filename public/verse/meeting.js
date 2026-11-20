@@ -77,7 +77,9 @@ function watchFit() { if (fitOn) return; fitOn = true; vv?.addEventListener('res
 function unwatchFit() { fitOn = false; vv?.removeEventListener('resize', fit); vv?.removeEventListener('scroll', fit); removeEventListener('focusin', later); removeEventListener('focusout', later); }
 function later() { setTimeout(fit, 60); setTimeout(fit, 350); }
 
-const head = (extra = '') => `<header class="mt-head"><span class="mt-ttl">${esc(M_().title)}<i>·</i>${esc(M_().brand)}</span>${extra}${TT}</header>`;
+// Syncs - the Shlomiverse's Zoom (his name and his logo pick 2026-11-20: 'I' - the orange camera in sync arrows, 'Let's circle back'):
+// the icon, the name, and under it that this is a Zoom meeting with Techy-Tech; the tagline in the corner
+const head = (extra = '') => `<header class="mt-head"><img class="mt-logo" src="/verse/art/syncs-icon.png" alt=""><span class="mt-ttl"><b dir="ltr">Syncs</b><small>${esc(M_().title)} עם ${esc(M_().brand)}</small></span>${extra}<span class="mt-tag" dir="ltr">Let's circle back</span></header>`;
 
 // ---------- the room is booked (a resident's one meeting of the day was used) ----------
 function booked() {
