@@ -603,9 +603,9 @@ export const T = {
     gridAsk: "מחפשים סרטון? תשאלו בצ'אט, הוא ימצא לכם", gridAskGame: "מחפשים משחק? תשאלו בצ'אט, הוא ימצא לכם",
     qLeft: (n) => (n === 1 ? 'נשארה שאלה אחת' : n ? `נשארו ${n} שאלות` : 'השאלות נגמרו'), signUp: 'הרשמה = בלי הגבלה', gridArc: 'לא מצאתם? בארכיון המלא יש גם סרטונים שעוד לא בשלומיוורס', fold: 'לקפל את שורת התושבים', unfold: 'לפתוח את שורת התושבים',
   },
-  // ישיבת זום · טקי-טק (/meeting, verse/meeting.js - plan meeting-design, his choices 2א / 3ב / 4א; owner-only for now)
+  // Syncs - ישיבת זום עם טקי-טק (/syncs, verse/meeting.js - plan meeting-design, his choices 2א / 3ב / 4א; owner-only for now)
   meet: {
-    title: 'ישיבת זום', brand: 'טקי-טק',
+    product: 'Syncs', title: 'ישיבת זום', brand: 'טקי-טק',
     pickTitle: 'מי בישיבה?', pickSub: 'אמיר מנהל את הישיבה. בחרו מי עוד עולה לזום.',
     bring: { amir: 'מנהל את הישיבה', ofer: 'מסכים עם אמיר', daniel: 'מנסה להגיד משהו טכני', ronit: 'מתקנת את עופר', gilad: 'קוטע ומסיים את הישיבה', yaniv: 'לא מבין למה העלו אותו' },
     role: { amir: 'CSO', ofer: 'VP BD', daniel: 'הטכנולוגי', ronit: 'COO', gilad: 'CEO', yaniv: 'אבטחת מידע' },
@@ -622,8 +622,8 @@ export const T = {
     minutes: (m) => (m <= 1 ? 'דקה' : `${m} דקות`), people: (n) => `${n} משתתפים`,
     again: 'ישיבה חדשה', share: 'לשתף', talk: (n) => `לדבר עם ${n}`, copied: 'הסיכום הועתק',
     shareHead: 'סיכום ישיבה ב-Syncs · טקי-טק',
-    bookedTitle: 'חדר הישיבות תפוס עד מחר',
-    bookedLine: 'כל יום יש ישיבה אחת עם טקי-טק, וזו של היום כבר הייתה. אמיר שלח זימון לישיבת המשך מחר.',
+    bookedTitle: 'חדר הישיבות ב-Syncs תפוס עד מחר',
+    bookedLine: 'ה-Sync של היום עם טקי-טק כבר התקיים. אמיר, המארח, שלח הזמנה לפגישת המשך מחר.',
     bookedTalk: 'בינתיים, לדבר עם אמיר',
   },
 };

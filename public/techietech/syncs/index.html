@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Syncs | Techy-Tech</title>
+<meta name="description" content="Syncs של טקי-טק היא אפליקציית פגישות מבוססת טקסט, עם ניהול דיון באמצעות AI, תור דוברים וסיכום משימות.">
+<meta property="og:title" content="Syncs by Techy-Tech">
+<meta property="og:description" content="Let's circle back. פגישות ממוקדות עם הצוות של טקי-טק.">
+<meta property="og:image" content="img/syncs-lockup.jpg">
+<link rel="icon" href="img/syncs-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<!-- Syncs - the Shlomiverse's Zoom, a Techy-Tech product (his ask 2026-11-20). Built to mockup A (scripts/v2-design/syncs-page.mjs,
+     .../shlomiverse-v2-design/syncs/page-mockups.jpg): the Techy-Tech site's own system, the product's dark lockup hero and its orange.
+     Copy by Terra; the site's rule: a serious corporate page, played completely straight. The app itself: shlomiverse.com/syncs -->
+<style>
+  :root {
+    --navy: #0b2545;
+    --navy-2: #13315c;
+    --blue: #0a5cc2;
+    --blue-dark: #084a9c;
+    --sky: #e8f0fb;
+    --ink: #1c2633;
+    --muted: #5b6878;
+    --line: #dde3ea;
+    --bg: #ffffff;
+    --bg-2: #f4f6f9;
+    --amber: #f2a900;
+    --orange: #ff6a1f;
+    --orange-dark: #e9560c;
+    --orange-soft: #fff3eb;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: 'Heebo', Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.6; font-size: 16px; overflow-x: hidden; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .en { direction: ltr; unicode-bidi: isolate; }
+  svg { flex: none; }
+
+  /* utility bar + header: the Techy-Tech site's own */
+  .util { background: var(--navy); color: #c9d4e3; font-size: 13px; }
+  .util .wrap { display: flex; justify-content: space-between; align-items: center; height: 36px; gap: 16px; }
+  .util a { color: #c9d4e3; }
+  .util nav { display: flex; gap: 18px; }
+  header.main { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 50; }
+  header.main .wrap { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+  .logo { display: flex; align-items: center; gap: 10px; color: var(--navy); }
+  .logo:hover { text-decoration: none; }
+  .logo .mark { height: 38px; display: grid; place-items: center; color: var(--blue); font-weight: 800; font-size: 30px; letter-spacing: -2px; direction: ltr; }
+  footer .logo .mark { color: #6fa8f0; }
+  .logo .name { display: flex; flex-direction: column; line-height: 1.05; }
+  .logo .name b { font-size: 21px; font-weight: 800; letter-spacing: -.3px; direction: ltr; }
+  .logo .name small { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; direction: ltr; }
+  .menu { display: flex; gap: 26px; align-items: center; font-weight: 500; font-size: 15px; }
+  .menu a { color: var(--ink); }
+  .menu a:hover { color: var(--blue); text-decoration: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 22px; border-radius: 4px; font-weight: 500; font-size: 15px; border: 1px solid transparent; cursor: pointer; font-family: inherit; transition: background .15s, color .15s; }
+  .btn:hover { text-decoration: none; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:hover { background: var(--blue-dark); }
+  .btn.go { background: var(--orange); color: #fff; font-weight: 700; }
+  .btn.go:hover { background: var(--orange-dark); }
+  .btn.ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.55); }
+  .btn.ghost:hover { background: rgba(255,255,255,.1); }
+  .btn.line { background: #fff; color: var(--blue); border-color: var(--blue); }
+  .btn.line:hover { background: var(--sky); }
+  .btn.big { padding: 14px 30px; font-size: 17px; }
+  .burger { display: none; background: none; border: 1px solid var(--line); border-radius: 4px; width: 42px; height: 38px; cursor: pointer; color: var(--navy); place-items: center; }
+
+  /* breadcrumb */
+  .crumbs { background: var(--bg-2); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .crumbs .wrap { display: flex; gap: 8px; align-items: center; height: 38px; }
+  .crumbs a { color: var(--muted); }
+  .crumbs b { color: var(--navy); font-weight: 500; }
+
+  /* hero: the product's own lockup on its own black */
+  .hero { background: #010101; color: #fff; text-align: center; padding: 26px 0 64px; position: relative; overflow: hidden; }
+  .hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--orange), transparent); }
+  .hero .lockup { width: 300px; height: auto; margin: 0 auto -14px; }
+  .hero .kicker { display: inline-flex; align-items: center; gap: 12px; font-size: 14px; letter-spacing: 1.5px; color: #e9d7c8; margin-bottom: 14px; direction: ltr; }
+  .hero .kicker::before, .hero .kicker::after { content: ''; width: 3px; height: 16px; background: var(--orange); }
+  .hero h1 { font-size: 48px; line-height: 1.15; font-weight: 800; margin: 0 auto 16px; max-width: 920px; }
+  .hero p { font-size: 19px; max-width: 640px; margin: 0 auto 30px; color: #d9dde3; font-weight: 300; }
+  .hero .ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .hero .free { margin-top: 16px; font-size: 14px; color: #bfc6cf; display: inline-flex; align-items: center; gap: 8px; }
+  .hero .free svg { color: var(--orange); }
+
+  section { padding: 84px 0; }
+  section.alt { background: var(--bg-2); }
+  .eyebrow { color: var(--blue); font-weight: 700; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; direction: ltr; text-align: right; }
+  h2 { font-size: 36px; line-height: 1.2; margin: 0 0 14px; color: var(--navy); font-weight: 800; }
+  .lead { font-size: 18px; color: var(--muted); max-width: 720px; margin: 0 0 44px; }
+
+  /* features */
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .feat { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 26px 24px; transition: border-color .15s, box-shadow .15s; }
+  .feat:hover { border-color: #b9c9de; box-shadow: 0 6px 18px rgba(11,37,69,.06); }
+  .ico { width: 46px; height: 46px; border-radius: 6px; background: var(--sky); color: var(--blue); display: grid; place-items: center; margin-bottom: 16px; }
+  .feat h3 { margin: 0 0 6px; font-size: 19px; color: var(--navy); line-height: 1.35; }
+  .feat p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* how it works */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: s; }
+  .step { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 26px 24px 24px; }
+  .step .n { width: 38px; height: 38px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 800; font-size: 18px; display: grid; place-items: center; margin-bottom: 14px; }
+  .step h3 { margin: 0 0 6px; font-size: 19px; color: var(--navy); }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; }
+  .step:not(:last-child)::after { content: ''; position: absolute; top: 44px; left: -20px; width: 20px; height: 1px; background: #c3cedb; }
+
+  /* who is on the call */
+  .team { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .mem { background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+  .mem .ph { aspect-ratio: 1 / 1; background: #e9edf2; position: relative; }
+  .mem .ph img { width: 100%; height: 100%; object-fit: cover; }
+  .mem .host { position: absolute; top: 8px; right: 8px; background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+  .mem .tx { padding: 12px 14px 14px; flex: 1; display: flex; flex-direction: column; }
+  .mem h4 { margin: 0; font-size: 16px; color: var(--navy); }
+  .mem .role { font-size: 13px; color: var(--ink); line-height: 1.4; }
+  .mem .role-en { font-size: 12px; color: var(--muted); direction: ltr; text-align: right; }
+  .mem .does { margin-top: auto; padding-top: 8px; font-size: 13px; color: var(--blue); line-height: 1.4; }
+
+  /* the app, in phones */
+  .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; align-items: start; }
+  .shot { margin: 0; }
+  .phone { background: #0b0b0e; border-radius: 34px; padding: 10px; box-shadow: 0 18px 40px rgba(11,37,69,.18), inset 0 0 0 1px #2b2b33; max-width: 330px; margin: 0 auto; }
+  .phone .scr { border-radius: 26px; overflow: hidden; background: #0b0b0e; }
+  .phone .bar { height: 26px; display: flex; justify-content: center; align-items: center; }
+  .phone .bar i { width: 84px; height: 20px; border-radius: 12px; background: #000; display: block; }
+  .apphead { display: flex; align-items: center; gap: 9px; margin: 2px 10px 6px; padding: 8px 12px; border: 1px solid #2a2a31; border-radius: 14px; color: #fff; }
+  .apphead img { width: 30px; height: 30px; border-radius: 8px; }
+  .apphead .t { display: flex; flex-direction: column; line-height: 1.1; text-align: right; }
+  .apphead .t b { font-size: 15px; font-weight: 800; direction: ltr; text-align: right; }
+  .apphead .t small { font-size: 10px; color: #a6a3ad; }
+  .apphead .tag { margin-inline-start: auto; font-size: 10px; font-style: italic; color: #ffb27a; direction: ltr; white-space: nowrap; }
+  .phone .scr > img { width: 100%; }
+  .shot figcaption { text-align: center; margin-top: 16px; font-weight: 500; color: var(--navy); font-size: 15px; }
+  .shot figcaption span { display: block; font-size: 12px; color: var(--blue); font-weight: 700; letter-spacing: 1.5px; direction: ltr; }
+
+  /* management quote */
+  .quote { background: var(--navy); color: #fff; }
+  .quote .wrap { display: grid; grid-template-columns: 1.6fr 1fr; gap: 48px; align-items: center; }
+  .q-main { display: flex; gap: 26px; align-items: flex-start; }
+  .q-main img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,.18); flex: none; }
+  .q-main blockquote { margin: 0; font-size: 24px; line-height: 1.5; font-weight: 500; }
+  .q-main blockquote::before { content: ''; display: block; width: 40px; height: 3px; background: var(--amber); margin-bottom: 18px; }
+  .q-by { margin-top: 16px; font-size: 15px; color: #c9d4e3; }
+  .q-by b { color: #fff; font-weight: 700; }
+  .q-side { border-right: 1px solid rgba(255,255,255,.18); padding-right: 32px; }
+  .q-side blockquote { margin: 0; font-size: 17px; line-height: 1.6; color: #e3ebf6; }
+  .q-side .q-by { display: flex; align-items: center; gap: 12px; }
+  .q-side .q-by img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
+  .q-side .q-by span { display: flex; flex-direction: column; line-height: 1.3; }
+
+  /* plans */
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 900px; }
+  .plan { border: 1px solid var(--line); border-radius: 8px; padding: 30px 28px; background: #fff; display: flex; flex-direction: column; }
+  .plan.personal { border: 2px solid var(--orange); background: linear-gradient(180deg, var(--orange-soft), #fff 46%); }
+  .plan.ent { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .plan .tag { align-self: flex-start; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 3px; background: var(--orange); color: #fff; margin-bottom: 14px; }
+  .plan.ent .tag { background: rgba(255,255,255,.14); }
+  .plan h3 { margin: 0; font-size: 28px; direction: ltr; text-align: right; color: var(--navy); }
+  .plan.ent h3 { color: #fff; }
+  .plan .price { font-size: 18px; font-weight: 700; margin: 4px 0 18px; color: var(--orange-dark); }
+  .plan.ent .price { color: #9ec5f5; }
+  .plan ul { list-style: none; padding: 0; margin: 0 0 26px; flex: 1; }
+  .plan li { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .plan.ent li { border-color: rgba(255,255,255,.12); }
+  .plan li svg { color: var(--orange); }
+  .plan.ent li svg { color: #6fa8f0; }
+  .plan .btn { width: 100%; }
+  .plan.ent .btn { background: #fff; color: var(--navy); }
+  .plan.ent .btn:hover { background: var(--sky); }
+
+  /* FAQ */
+  .faq { max-width: 860px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  .faq details { border-bottom: 1px solid var(--line); }
+  .faq details:last-child { border-bottom: 0; }
+  .faq summary { list-style: none; cursor: pointer; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-weight: 500; font-size: 17px; color: var(--navy); }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary svg { color: var(--blue); transition: transform .2s; }
+  .faq details[open] summary svg { transform: rotate(180deg); }
+  .faq details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
+
+  /* closing band */
+  .band { background: #010101; color: #fff; text-align: center; padding: 70px 0; position: relative; overflow: hidden; }
+  .band::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(255,106,31,.32), transparent 70%); }
+  .band .wrap { position: relative; }
+  .band img { width: 68px; height: 68px; margin: 0 auto 18px; border-radius: 16px; }
+  .band h2 { color: #fff; }
+  .band p { color: #c9ced6; font-size: 18px; margin: 0 0 28px; }
+
+  footer { background: var(--navy); color: #a9b7ca; font-size: 14px; padding: 56px 0 26px; }
+  footer .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
+  footer h5 { color: #fff; font-size: 15px; margin: 0 0 12px; }
+  footer a { color: #a9b7ca; display: block; margin: 6px 0; }
+  footer a.on { color: #fff; }
+  footer .prods a { direction: ltr; text-align: right; }
+  footer .logo { color: #fff; margin-bottom: 14px; }
+  footer .logo .name small { color: #8fa1b8; }
+  footer .legal { border-top: 1px solid rgba(255,255,255,.12); margin-top: 40px; padding-top: 20px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+
+  @media (max-width: 1000px) {
+    .team { grid-template-columns: repeat(3, 1fr); }
+    .feats { grid-template-columns: 1fr 1fr; }
+    .quote .wrap { grid-template-columns: 1fr; gap: 36px; }
+    .q-side { border-right: 0; padding-right: 0; border-top: 1px solid rgba(255,255,255,.18); padding-top: 28px; }
+    footer .cols { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 860px) {
+    .menu { display: none; position: absolute; top: 76px; right: 0; left: 0; background: #fff; flex-direction: column; align-items: stretch; gap: 0; border-bottom: 1px solid var(--line); }
+    .menu.open { display: flex; }
+    .menu a { padding: 14px 24px; border-top: 1px solid var(--line); }
+    .menu .btn { margin: 12px 24px; }
+    .burger { display: grid; }
+    .util nav a:not(.keep) { display: none; }
+    .steps { grid-template-columns: 1fr; gap: 14px; }
+    .step { display: grid; grid-template-columns: auto 1fr; column-gap: 16px; padding: 20px; }
+    .step .n { grid-row: span 2; margin: 0; }
+    .step:not(:last-child)::after { top: auto; bottom: -15px; left: auto; right: 38px; width: 1px; height: 15px; }
+    /* the phones: one beside the next, swiped inside their own row (the page itself never scrolls sideways) */
+    .shots { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 76%; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 24px 18px; margin: 0 -24px; scrollbar-width: none; }
+    .shots::-webkit-scrollbar { display: none; }
+    .shot { scroll-snap-align: center; }
+    .plans { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 0 16px; }
+    section { padding: 56px 0; }
+    .hero { padding: 14px 0 48px; }
+    .hero .lockup { width: 240px; margin-bottom: -10px; }
+    .hero h1 { font-size: 32px; }
+    .hero p { font-size: 17px; margin-bottom: 24px; }
+    .hero .ctas .btn { flex: 1 1 100%; }
+    h2 { font-size: 28px; }
+    .lead { font-size: 17px; margin-bottom: 30px; }
+    .feats { grid-template-columns: 1fr; gap: 12px; }
+    .feat { display: grid; grid-template-columns: auto 1fr; column-gap: 16px; padding: 20px; }
+    .feat .ico { grid-row: span 2; margin: 0; }
+    .team { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mem .tx { padding: 10px 12px 12px; }
+    .shots { padding: 4px 16px 18px; margin: 0 -16px; grid-auto-columns: 80%; }
+    .q-main { flex-direction: column; gap: 18px; }
+    .q-main img { width: 88px; height: 88px; }
+    .q-main blockquote { font-size: 20px; }
+    .plan { padding: 26px 22px; }
+    .faq summary { padding: 16px 18px; font-size: 16px; }
+    .faq details p { padding: 0 18px 18px; }
+    .band { padding: 56px 0; }
+    .band p { font-size: 17px; }
+    .band .btn { width: 100%; }
+    footer .cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="util">
+  <div class="wrap">
+    <nav>
+      <a href="../#investors" class="keep">קשרי משקיעים</a>
+      <a href="../#careers" class="keep">קריירה</a>
+      <a href="../#news">חדר חדשות</a>
+      <a href="../#contact">צור קשר</a>
+    </nav>
+    <div class="lang"><b style="color:#fff;font-weight:500">עב</b></div>
+  </div>
+</div>
+
+<header class="main">
+  <div class="wrap">
+    <a class="logo" href="../">
+      <span class="mark">&lt;/&gt;</span>
+      <span class="name"><b>Techy-Tech</b><small>Enterprise Solutions</small></span>
+    </a>
+    <nav class="menu" id="menu">
+      <a href="#features">יכולות</a>
+      <a href="#how">איך זה עובד</a>
+      <a href="#team">מי משתתף</a>
+      <a href="#plans">תוכניות</a>
+      <a href="#faq">שאלות נפוצות</a>
+      <a class="btn go" href="https://shlomiverse.com/syncs">להצטרף לסינק</a>
+    </nav>
+    <button class="burger" aria-label="תפריט" onclick="document.getElementById('menu').classList.toggle('open')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="crumbs">
+  <div class="wrap"><a href="../">טקי-טק</a><span>/</span><a href="../#solutions">פתרונות</a><span>/</span><b class="en">Syncs</b></div>
+</div>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <img class="lockup" src="img/syncs-lockup.jpg" alt="Syncs - Let's circle back" width="720" height="720">
+      <div class="kicker">Syncs by Techy-Tech</div>
+      <h1>פגישות ממוקדות עם הצוות של <span style="white-space:nowrap">טקי-טק</span></h1>
+      <p><span class="en">Syncs</span> מרכזת את האנשים, הדיון והמשימות בפגישה אחת מבוססת טקסט, עם ניהול דיון באמצעות AI.</p>
+      <div class="ctas">
+        <a class="btn go big" href="https://shlomiverse.com/syncs">להצטרף לסינק</a>
+        <a class="btn ghost big" href="#how">איך זה עובד</a>
+      </div>
+      <div class="free"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>תוכנית <span class="en">Personal</span> ללא עלות לתושבי השלומיוורס</span></div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="eyebrow">Features</div>
+      <h2>מה אפשר לעשות עם <span class="en">Syncs</span></h2>
+      <p class="lead">מניהול תור הדוברים ועד לסיכום הפגישה, <span class="en">Syncs</span> מסייעת לשמור על דיון ממוקד ועל צעדי המשך ברורים.</p>
+      <div class="feats">
+        <div class="feat">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></div>
+          <h3>ניהול דיון באמצעות <span class="en">AI</span></h3>
+          <p>מנוע ה-AI קובע מי ידבר הבא ולכמה זמן. אמיר פותח ומנהל את הפגישה.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12h6"/></svg></div>
+          <h3>התערבות הנהלה מובנית</h3>
+          <p>המנכ"ל יכול לעצור כל משתתף באמצע משפט, לכוון את הדיון לשאלה העסקית ולסיים את הפגישה.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 11l1.5 1.5 3-3"/><path d="M8.5 16.5h7"/></svg></div>
+          <h3><span class="en">Wrap-up</span> ו-<span class="en">Action items</span></h3>
+          <p>בסיום הפגישה, אמיר כותב סיכום הכולל את עיקרי הדיון, משימות עם אחראי לכל משימה וצעד הבא. אפשר לשתף את הסיכום.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M9 8l-4 4 4 4"/><path d="M5 12h10"/></svg></div>
+          <h3>ניהול נוכחות</h3>
+          <p>משתתף שאינו נדרש עוד בפגישה יכול לעזוב, והמערכת מתעדת את יציאתו.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-2a2 2 0 0 0-4 0"/></svg></div>
+          <h3><span class="en">Raise hand</span> ותור דוברים</h3>
+          <p>הרימו יד כדי לקבל מקום בתור הדוברים ולהשתתף בדיון.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M11 14l1.5-1v5"/></svg></div>
+          <h3>סינק אחד ביום</h3>
+          <p>לכל משתמש פגישה ממוקדת אחת ביום. אם הפגישה כבר התקיימה, החדר תפוס עד מחר ואמיר שולח הזמנה לפגישת המשך.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="alt">
+    <div class="wrap">
+      <div class="eyebrow">How it works</div>
+      <h2>איך זה עובד</h2>
+      <p class="lead">שלושה שלבים, מהזימון ועד ה-<span class="en">Action items</span>.</p>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><h3>בוחרים משתתפים</h3><p>בחרו מי מצוות טקי-טק יצטרף לפגישה. אמיר משתתף בכל פגישה.</p></div>
+        <div class="step"><div class="n">2</div><h3>מנהלים את הדיון</h3><p>אמיר פותח את הפגישה. כתבו בתורכם או הרימו יד כדי להצטרף לתור הדוברים.</p></div>
+        <div class="step"><div class="n">3</div><h3>מקבלים סיכום</h3><p>בסיום הפגישה אמיר כותב <span class="en">Wrap-up</span> עם עיקרי הדיון, משימות, אחראים וצעד הבא.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="team">
+    <div class="wrap">
+      <div class="eyebrow">Who's on the call</div>
+      <h2>מי משתתף בשיחה</h2>
+      <p class="lead">בחרו את המשתתפים בהתאם לנושא הפגישה. אמיר לביא פותח ומנהל כל דיון.</p>
+      <div class="team" id="teamGrid"></div>
+    </div>
+  </section>
+
+  <section id="shots" class="alt">
+    <div class="wrap">
+      <div class="eyebrow">Product tour</div>
+      <h2><span class="en">Syncs</span> בפעולה</h2>
+      <p class="lead">שלושה מסכים מתוך פגישה אחת.</p>
+      <div class="shots" id="shotsRow"></div>
+    </div>
+  </section>
+
+  <section class="quote">
+    <div class="wrap">
+      <div class="q-main">
+        <img src="https://storage.googleapis.com/shlomiverse-media/wiki/img/c/amir.jpg" alt="אמיר לביא" loading="lazy">
+        <div>
+          <blockquote>"דיון אפקטיבי דורש סדר ברור, השתתפות רלוונטית ואחריות על ההמשך. <span class="en">Syncs</span> מרכזת את שלושתם במסגרת פגישה ממוקדת."</blockquote>
+          <div class="q-by"><b>אמיר לביא</b> · סמנכ"ל אסטרטגיה וחדשנות, ספונסר המוצר</div>
+        </div>
+      </div>
+      <div class="q-side">
+        <blockquote>"מיקוד בשאלה העסקית מאפשר לנו לקיים דיון ענייני ולהגדיר את הצעד הבא."</blockquote>
+        <div class="q-by"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/img/c/gilad.jpg" alt="גלעד שחר" loading="lazy"><span><b>גלעד שחר</b>מנכ"ל ונשיא טקי-טק</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="plans">
+    <div class="wrap">
+      <div class="eyebrow">Plans</div>
+      <h2>תוכניות</h2>
+      <p class="lead">תוכנית אישית לתושבי השלומיוורס ותוכנית לארגונים.</p>
+      <div class="plans">
+        <div class="plan personal">
+          <span class="tag">לשימוש אישי</span>
+          <h3>Personal</h3>
+          <div class="price">ללא עלות לתושבי השלומיוורס</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>סינק אחד ביום</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>בחירת משתתפים</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>תור דוברים</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>סיכום ומשימות</li>
+          </ul>
+          <a class="btn go big" href="https://shlomiverse.com/syncs">להצטרף לסינק</a>
+        </div>
+        <div class="plan ent">
+          <span class="tag">לארגונים</span>
+          <h3>Enterprise</h3>
+          <div class="price">תמחור לפי בקשה</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="en">SSO</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="en">Governance</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>מנהל הצלחת לקוח ייעודי</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="en">SLA</span></li>
+          </ul>
+          <a class="btn big" href="../#contact">צרו קשר</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="alt">
+    <div class="wrap">
+      <div class="eyebrow">FAQ</div>
+      <h2>שאלות נפוצות</h2>
+      <p class="lead" style="margin-bottom:30px">התשובות לשאלות שעולות לפני הפגישה הראשונה.</p>
+      <div class="faq" id="faqList"></div>
+    </div>
+  </section>
+
+  <div class="band">
+    <div class="wrap">
+      <img src="img/syncs-icon.png" alt="">
+      <h2>מתקדמים עם דיון ממוקד</h2>
+      <p>בחרו משתתפים והצטרפו לפגישה.</p>
+      <a class="btn go big" href="https://shlomiverse.com/syncs">להצטרף לסינק</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="logo" href="../"><span class="mark">&lt;/&gt;</span><span class="name"><b>Techy-Tech</b><small>Enterprise Solutions</small></span></a>
+        <p style="margin:0;max-width:300px">פתרונות Enterprise, סנכרון אסטרטגי ו-AI כמנוע צמיחה. מאז 1999.</p>
+      </div>
+      <div><h5>החברה</h5><a href="../#about">אודות</a><a href="../#leadership">הנהלה</a><a href="../#people">האנשים שלנו</a><a href="../#news">חדר חדשות</a></div>
+      <div class="prods"><h5>פתרונות</h5><a href="../#solutions">TechyCore™</a><a href="../#solutions">SyncPoint™</a><a href="../#solutions">AlignAI™</a><a href="../#solutions">RiskView™</a><a class="on" href="./">Syncs</a></div>
+      <div><h5>מידע</h5><a href="../#careers">קריירה</a><a href="../#investors">קשרי משקיעים</a><a href="../#contact">צור קשר</a></div>
+    </div>
+    <div class="legal">
+      <span>© 1999–2026 Techy-Tech Ltd. כל הזכויות שמורות.</span>
+      <span class="en">Syncs · Let's circle back</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // who can be on the call - the wiki's portraits, their Techy-Tech titles (the corporate site's), and what they do in a Sync
+  const IMG = (id) => `https://storage.googleapis.com/shlomiverse-media/wiki/img/c/${id}.jpg`;
+  const TEAM = [
+    { id: 'amir', name: 'אמיר לביא', role: 'סמנכ"ל אסטרטגיה וחדשנות', en: 'CSO', does: 'פותח ומנהל את הדיון', host: true },
+    { id: 'ofer', name: 'עופר דהן', role: 'סמנכ"ל פיתוח עסקי', en: 'VP Business Development', does: 'היבטי פיתוח עסקי' },
+    { id: 'ronit', name: 'רונית אלמוג', role: 'סמנכ"לית תפעול וניהול סיכונים', en: 'COO & Chief Risk Officer', does: 'תפעול וניהול סיכונים' },
+    { id: 'daniel', name: 'דניאל פרידמן', role: 'מומחה טכנולוגיות AI', en: 'AI Technology Enablement Specialist II', does: 'היבטי AI' },
+    { id: 'gilad', name: 'גלעד שחר', role: 'מנכ"ל ונשיא', en: 'CEO & President', does: 'הכוונה עסקית' },
+    { id: 'yaniv', name: 'יניב אזולאי', role: 'מהנדס אבטחת מידע', en: 'Information Security Engineer', does: 'היבטי אבטחה' },
+  ];
+  document.getElementById('teamGrid').innerHTML = TEAM.map((p) => `<div class="mem"><div class="ph"><img src="${IMG(p.id)}" alt="${p.name}" loading="lazy">${p.host ? '<span class="host">מארח</span>' : ''}</div>
+    <div class="tx"><h4>${p.name}</h4><div class="role">${p.role}</div><div class="role-en">${p.en}</div><div class="does">${p.does}</div></div></div>`).join('');
+
+  // the app's own screens (from a real meeting), each in a phone with the app's header
+  const SHOTS = [
+    ['shot-pick.jpg', 'בחירת המשתתפים בפגישה', 'Step 1'],
+    ['shot-live.jpg', 'דיון חי עם התערבות המנכ"ל', 'Step 2'],
+    ['shot-recap.jpg', 'סיכום הפגישה ו-Action items', 'Step 3'],
+  ];
+  document.getElementById('shotsRow').innerHTML = SHOTS.map(([f, cap, k]) => `<figure class="shot"><div class="phone"><div class="scr"><div class="bar"><i></i></div>
+    <div class="apphead"><img src="img/syncs-icon.png" alt=""><span class="t"><b>Syncs</b><small>ישיבת זום עם טקי-טק</small></span><span class="tag">Let's circle back</span></div>
+    <img src="img/${f}" alt="${cap}"></div></div><figcaption><span>${k}</span>${cap}</figcaption></figure>`).join('');
+
+  const FAQ = [
+    ['האם צריך מצלמה או מיקרופון?', 'לא. הפגישה מתנהלת בטקסט, עם תמלול חי, ללא צורך במצלמה או במיקרופון.'],
+    ['מי מנהל את הפגישה?', 'אמיר לביא, סמנכ"ל אסטרטגיה וחדשנות, פותח ומנהל כל פגישה. מנוע ה-AI קובע מי ידבר הבא ולכמה זמן.'],
+    ['למה רק פגישה אחת ביום?', 'Syncs מיועדת לפגישה ממוקדת אחת ביום לכל משתמש. לאחר שהפגישה מתקיימת, החדר תפוס עד למחרת ואמיר שולח הזמנה לפגישת המשך.'],
+    ['מה קורה בסיום הפגישה?', 'אמיר כותב סיכום עם עיקרי הדיון, משימות ואחראי לכל משימה, והצעד הבא. ניתן לשתף את הסיכום.'],
+    ['האם אפשר לבחור מי יצטרף?', 'כן. בוחרים מי מצוות טקי-טק יצטרף לפגישה. אמיר משתתף בכל פגישה.'],
+  ];
+  const CHEV = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  document.getElementById('faqList').innerHTML = FAQ.map(([q, a]) => `<details><summary>${q}${CHEV}</summary><p>${a}</p></details>`).join('');
+
+  document.querySelectorAll('.menu a').forEach((a) => a.addEventListener('click', () => document.getElementById('menu').classList.remove('open')));
+</script>
+<script src="https://boostmind-b052c.web.app/t.js" data-site="techytech" defer></script>
+</body>
+</html>

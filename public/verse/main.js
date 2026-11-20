@@ -91,8 +91,9 @@ pages.simulation = simPage;
 pages.citizenship = citizenPage;
 pages.archive = archivePage;   // הארכיון - every Instagram post, for residents (archive.js)
 pages.records = recordsPage;   // שיאי היום, the full board (records.js)
-// ישיבת זום · טקי-טק (meeting.js) - hidden: no link anywhere, the server answers only the owner; its file loads only here
-pages.meeting = () => { import('./meeting.js').then((m) => { if (document.getElementById('mt')) m.mountMeeting(); }); return `<div class="mt" id="mt">${loader()}</div>`; };
+// Syncs - ישיבת זום עם טקי-טק (meeting.js), at /syncs since 2026-11-20 (/meeting 301s here, firebase.json) - hidden: no link
+// anywhere in the app, the server answers only the owner; its file loads only here. Its product page: /techietech/syncs/
+pages.syncs = () => { import('./meeting.js').then((m) => { if (document.getElementById('mt')) m.mountMeeting(); }); return `<div class="mt" id="mt">${loader()}</div>`; };
 
 onState(() => { renderTop(); paintFollow(); refresh(); });
 startRowArrows();   // a computer: arrows on the rows that move sideways (rows.js)

@@ -28,6 +28,7 @@ html:has(#mt) body > footer, html:has(#mt) .fab { display: none !important; }
 .mt-tt { display: inline-flex; align-items: center; gap: 5px; margin-inline-start: auto; font-size: 13.5px; color: #fff; white-space: nowrap; }
 .mt-tt .m { color: #7fb2f5; font-weight: 800; letter-spacing: -.08em; }
 .mt-tt b { font-weight: 800; letter-spacing: -.01em; }
+.mt-tt i { font-style: normal; opacity: .55; }
 
 /* ---------- 2a: who is in the meeting ---------- */
 .mt-pk { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 10px; }

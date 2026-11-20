@@ -55,6 +55,7 @@ EXTRA = [
     ('verse', 'שלומידגם - ליל הבחירות', 'https://shlomidgam.web.app', 'אתר'),
     ('verse', 'מבחן הסימולציה - "אתם חיים בסימולציה?"', SITE + '/simulation', 'אתר'),
     ('verse', 'מסע האזרחות (לתושבים) - מרים, דמוקרטוביץ, תעודת זהות', SITE + '/citizenship', 'אתר'),
+    ('verse', 'Syncs - ישיבת זום עם טקי-טק (רק לך עד שייפתח; עמוד המוצר: /techietech/syncs/)', SITE + '/syncs', 'אפליקציה'),
     # his tools
     # personal tools - their own repo (c:\workspace\shlomi-tools) and project (shlomi-tools) since 2026-10-31
     ('tools', 'Vault', 'https://shlomi-vault.web.app', 'כספת'),

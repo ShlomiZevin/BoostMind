@@ -15,6 +15,7 @@
       { "source": "/new{,/**}", "destination": "/", "type": 302 },
       { "source": "/c/neve-dugi{,/**}", "destination": "/c/neve-tzafoni", "type": 301 },
       { "source": "/c/neve-dromi{,/**}", "destination": "/c/neve-tzafoni", "type": 301 },
+      { "source": "/meeting{,/**}", "destination": "/syncs", "type": 301 },
       {
         "source": "/zvin-collab{,/**}",
         "destination": "/micro-comedy/",
@@ -197,7 +198,7 @@
         "destination": "/wiki/index.html"
       },
       {
-        "source": "/meeting",
+        "source": "/syncs",
         "destination": "/wiki/index.html"
       },
       {

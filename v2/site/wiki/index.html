@@ -846,7 +846,7 @@ const pages = {
 
 // ---------- router ----------
 // the verse's pages, by their first part (shlomiverse.com/<page>/...): anything else is another site of his (/links/, /hani-games/)
-const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation', 'citizenship', 'records', 'archive', 'meeting']);
+const PAGES = new Set(['c', 's', 'v', 'play', 'story', 'chat', 'games', 'characters', 'series', 'videos', 'sites', 'community', 'business', 'notes', 'me', 'saved', 'my-characters', 'my-stickers', 'install', 'simulation', 'citizenship', 'records', 'archive', 'syncs']);
 const isPage = (pathname) => pathname === '/' || PAGES.has(pathname.split('/')[1]);
 // ---------- APP SHELL (plan app-shell phase 2): the back button moves like an app's - only under html.app ----------
 // Every entry remembers where its page was scrolled ({y}, {fy} = a feed's own scroller). A video / game / story opened from

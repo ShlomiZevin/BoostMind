@@ -1,4 +1,4 @@
-// ישיבת זום · טקי-טק - /meeting (his idea 2026-11-20; plan meeting-design - his picks: 2א the picker "מי בישיבה?", 3ב the live
+// Syncs - ישיבת זום עם טקי-טק - /syncs (was /meeting until the name; his idea 2026-11-20; plan meeting-design - his picks: 2א the picker "מי בישיבה?", 3ב the live
 // screen: the tiles on top and the whole conversation below as rows, written word by word as it streams; from 3ג the speaker's
 // tile lit and the cue pill "גלעד קטע את אמיר"; 4א the raised hand; 4ב "מבטל השתקה…"; the end redone in 3ב's style with
 // Amir's wrap-up (summary + action items) and share / a new meeting / talk to the one who ended it).
@@ -25,12 +25,13 @@ const PHONE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
 const BOX = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/></svg>';
 // Techy-Tech's own mark (its site's logo: "</> Techy-Tech", the greetings carry the same)
-const TT = '<span class="mt-tt" dir="ltr"><span class="m">&lt;/&gt;</span><b>Techy-Tech</b></span>';
+// the wrap-up card's brand line: the product, by Techy-Tech (its mark)
+const TT = '<span class="mt-tt" dir="ltr"><b>Syncs</b><i>·</i><span class="m">&lt;/&gt;</span><b>Techy-Tech</b></span>';
 
 // ---------- the page ----------
 let S = null;          // the screen's state; null = not on the page
 let unsubState = null;
-// main.js draws the page's box (with the loader) and loads this file only on /meeting - then mountMeeting() fills it
+// main.js draws the page's box (with the loader) and loads this file only on /syncs - then mountMeeting() fills it
 export function mountMeeting() {
   if (!document.querySelector('link[href="/verse/meeting.css"]')) document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: '/verse/meeting.css' }));
   S = null;
@@ -41,7 +42,7 @@ async function api(body, signal) {
   const tok = await token();
   return fetch(API, { method: 'POST', signal, headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify(body) });
 }
-const here = () => location.pathname.replace(/\/$/, '') === '/meeting';
+const here = () => location.pathname.replace(/\/$/, '') === '/syncs';
 function root() { return document.getElementById('mt'); }
 
 // who is this: the page waits for Firebase, then asks the server (owner only for now) - nothing on the page tells it exists
@@ -54,7 +55,7 @@ async function boot() {
   if (!here() || !root()) return;
   if (!r || !r.ok) return window.showNotFound();
   const p = await r.json().catch(() => ({}));
-  document.title = `${M_().title} · ${M_().brand} · שלומיוורס`;
+  document.title = `${M_().product} · ${M_().title} עם ${M_().brand} · שלומיוורס`;
   S = { owner: !!p.owner, booked: !!p.booked };
   watchFit();
   if (S.booked) booked(); else pick();
