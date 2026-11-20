@@ -15,6 +15,12 @@ them. First one: three posters of Hani's chats. Reply in English; the posters ar
    `node scripts/stories/chat-find.cjs --picked --out <scratch>/picked.md` - those are already chosen by him: skip step 2's
    asking, clean and draw them (long = the typing video). When a story is made: `node scripts/stories/chat-find.cjs
    --done <key>` (Backstage then shows "סטורי נעשה"). No picks and he asks for a story = the search below.
+   **Syncs meetings** (since 2026-11-20) come in the same list: key `m:<meetingId>`, tagged `KIND: SYNCS MEETING`, with
+   the room, the visitor {name, title}, the full log (lines, `cut` = muted mid-sentence, left, silence) and the recap.
+   A meeting is a GROUP chat: several residents, each bubble with its own name + face, the mute cut / someone leaving /
+   the visitor's silence as small system lines, the recap as the closing card. chat-poster / chat-video draw one resident
+   today - add multi-speaker support the first time he marks a meeting. The visitor's made-up title from Amir is part of
+   the joke and may stay; their real name never (the cleaning rules below).
 1. **Find** - `node scripts/stories/chat-find.cjs <resident id> --days 2 --out <scratch>/chats.md` (his rule: only
    recent ones - the last 2 days unless he says otherwise; every conversation shows its date, Israel time). It lists every
    conversation with 2+ exchanges (at least 2 ping-pongs = 4 messages), longest first.

@@ -71,6 +71,9 @@ mechanism, and keeps tuning it with him over time.
   leave, a recap at the end). Every line comes from the same chain (wiki-deep `_parts`), so the voice is yours; his comments
   on meetings are voice material like chat comments. Meetings: Firestore `meetings/<id>` (log entries {who, text, cut} /
   {who, left} / {who:'user', silent}, plus recap and visitor {name, title}). The Conversion session owns the product.
+  In Backstage → שיחות a meeting is a conversation `m:<id>` (mode syncs) with the same marks as a chat: his comments on a
+  line show in `chat-notes.mjs open` (`>>>` on the line), thumbs in `chat-notes.mjs marks`, story picks in
+  `chat-find.cjs --picked`. Any mark keeps the meeting a year (otherwise 7 days).
 - **Chat stories** - the best real conversations become stories (the `chat-story` skill; he marks them in Backstage → שיחות).
   Good conversations are the proof the voice works; bad ones are your next fix.
 
