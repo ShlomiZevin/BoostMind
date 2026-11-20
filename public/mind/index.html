@@ -655,7 +655,6 @@ function renderChrome() {
     <button class="${S.view === 'today' ? 'on' : ''}" data-view="today">${ic('sun')}היום${nT ? `<b class="tb-today">${nT}</b>` : ''}</button>
     <span class="gap"></span>
     <button class="${S.view === 'home' ? 'on' : ''}" data-view="home">${ic('home')}השולחן${waitN ? `<b>${waitN}</b>` : ''}</button>
-    <button class="${S.view === 'archive' ? 'on' : ''}" data-view="archive">${ic('archive')}ארכיון</button>
     <button data-act="settings">${ic('settings')}עוד</button>`;
   document.title = waitN ? `(${waitN}) המוח השני` : 'המוח השני';
 }
@@ -846,7 +845,7 @@ function viewMeet() {
 function openMeet(key) {
   const m = (S.ag?.meetings || []).find((x) => mKey(x) === key);
   if (!m) return false;
-  const when = m.allDay ? 'כל היום' : `${hmOf(m.start)}–${hmOf(m.end)}`;
+  const when = m.allDay ? 'כל היום' : `<bdi dir="ltr">${hmOf(m.start)}–${hmOf(m.end)}</bdi>`;
   const dayTxt = new Intl.DateTimeFormat('he-IL', { timeZone: IL, weekday: 'long', day: 'numeric', month: 'numeric' }).format(new Date(m.allDay ? m.start + 'T12:00:00Z' : m.start));
   const rs = { accepted: 'מגיע', declined: 'לא מגיע', tentative: 'אולי', needsAction: 'לא ענה' };
   const people = [...m.people].sort((a, b) => (a.rsvp === 'declined') - (b.rsvp === 'declined'));
@@ -1289,6 +1288,7 @@ function settings() {
     $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet" role="dialog">
       <header><h3>הגדרות</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
       <div class="sb">
+        <button class="btn" data-act="toarchive" style="width:100%;justify-content:center;margin:2px 0 14px">${ic('archive')}ארכיון - מה שבוצע והורד מהשולחן</button>
         <h4 style="margin:4px 0 2px;font-size:15px">סוגי מחשבות</h4><div class="hint">אתה מחליט אילו סוגים יש. לכל סוג צבע וסמל.</div>
         <div id="tlist">${types.map((t, i) => `<div class="set-row" data-ti="${i}"><input type="color" value="${t.color}" data-tc="${i}"><input type="text" value="${esc(t.name)}" data-tn="${i}" placeholder="שם הסוג">
           <button class="btn icon" data-ticon="${i}" style="color:${t.color}">${ic(t.icon)}</button><button class="btn icon danger" data-tdel="${i}">${ic('trash')}</button></div>
@@ -1378,6 +1378,7 @@ document.addEventListener('click', (e) => {
     case 'capture': capture(); break;
     case 'recscreen': recScreen(); break;
     case 'seenall': markSeen(newEntries()); render(); toast('הכל סומן כנקרא'); break;
+    case 'toarchive': closeModal(); go('archive'); break;   // the phone's tab bar has no room for it since פגישות (2026-11-20)
     case 'agrefresh': loadAgenda(true).then(() => toast('היומן עודכן')); break;
     case 'recclose': recClose(); break;
     case 'recagain': clearTimeout(recClose.t); recScreen(); break;

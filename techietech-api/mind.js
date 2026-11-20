@@ -261,7 +261,9 @@ async function agenda(from, to, fresh) {
   agendaCache = { key, at: Date.now(), data };
   return data;
 }
-const hm = (m) => (m.allDay ? 'כל היום' : ilHM(new Date(m.start)));
+// times inside an LTR isolate - in a Hebrew notification "09:00–10:00" would flip to "10:00–09:00"
+const ltr = (s) => '⁦' + s + '⁩';
+const hm = (m) => (m.allDay ? 'כל היום' : ltr(ilHM(new Date(m.start))));
 // the line a digest shows for one meeting: "09:30 שיחה עם דני"
 const meetLine = (m) => `${hm(m)} ${m.title}`;
 
@@ -299,7 +301,7 @@ async function agendaTick(now = new Date()) {
     if (mins > MEET_LEAD || mins < -2 || sent[k]) continue;
     mark[k] = Date.now();
     const inMin = Math.max(0, Math.round(mins));
-    await pushMe('meet', { title: (inMin ? `בעוד ${inMin} דק׳: ` : 'מתחיל עכשיו: ') + m.title, body: [hm(m) + '–' + ilHM(new Date(m.end)), m.link ? 'יש קישור לשיחה - לחץ' : m.where].filter(Boolean).join(' · '),
+    await pushMe('meet', { title: (inMin ? `בעוד ${inMin} דק׳: ` : 'מתחיל עכשיו: ') + m.title, body: [m.allDay ? 'כל היום' : ltr(ilHM(new Date(m.start)) + '–' + ilHM(new Date(m.end))), m.link ? 'יש קישור לשיחה - לחץ' : m.where].filter(Boolean).join(' · '),
       url: '/mind/#m=' + encodeURIComponent(m.uid + '|' + m.start), tag: k }, null, { urgency: 'high', ttl: 900 });
     did.push('pre ' + m.title);
   }
