@@ -45,9 +45,9 @@ C = {  # id: (description, ref)
  'mole-man': ("A loud Israeli man around 50 who shouts his phone calls in the middle of the street: completely bald, a short reddish-grey beard, "
               "half-rim glasses with red-and-black frames, a small dark mole just under his left eye, a grey zip jacket. Mouth half open "
               "mid-sentence, indignant 'you will learn how to talk' look. Background: plain light-grey studio.", None),
- 'alex-infra': ("Alex from the Infrastructure team at an Israeli enterprise software company, a man around 40: completely bald shaved head, thin "
-              "rectangular metal glasses, light stubble, a small dark mole in the middle of his forehead, a plain black t-shirt (no logo). "
-              "A slightly lost, hesitant look, lips parted as if searching for the next word - the colleague who never finishes a sentence. "
+ 'alex-infra': ("Alex from the Infrastructure team at an Israeli enterprise software company, a Russian-Israeli man in his mid 50s: bald on top "
+              "with short grey hair at the sides, dark rectangular full-rim glasses, short grey stubble, a plain black polo shirt. "
+              "A blunt, impatient, unimpressed squint - the veteran Russian engineer who has no time for nonsense. "
               "Same look as a corporate team headshot.", None),
  'lola': ("Lola, a Filipina caregiver in her 30s, a woman: straight black bob with bangs, black zip-up track jacket. "
           "Sweet, patient, cheerful smile. Smooth, clean-shaven feminine face - no beard, no stubble, no beard shadow; no marks on the face.", None),
