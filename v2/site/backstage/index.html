@@ -155,9 +155,9 @@
   .chips button { flex: none; height: 40px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--line2); background: var(--card); font-weight: 700; font-size: .92rem; color: var(--dim); }
   .chips button.on { background: var(--accent); border-color: transparent; color: #fff; }
   .chips small { margin-inline-start: 6px; opacity: .85; }
-  .search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); min-width: 240px; }
-  .search input { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }
-  .search svg { width: 18px; height: 18px; color: var(--dim); }
+  .bs-search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); min-width: 240px; }
+  .bs-search input { flex: 1; min-width: 0; width: 100%; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }   /* (on an iPhone it ran off the side of פניות) */
+  .bs-search svg { width: 18px; height: 18px; color: var(--dim); }
   .msgs { display: flex; flex-direction: column; gap: 12px; }
   .msg { position: relative; display: flex; gap: 14px; padding: 18px 20px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
   .msg::before { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px; background: var(--k, var(--line2)); }
@@ -388,7 +388,7 @@
     .cols { grid-template-columns: 1fr; }
     .card { padding: 16px; border-radius: 22px; }
     .story { grid-template-columns: 1fr; } .phone { width: 230px; margin: 0 auto; }
-    .search { min-width: 0; width: 100%; }
+    .bs-search { min-width: 0; width: 100%; }   /* (bs-: the site's verse.css has its own .search - a 38 px icon - that squeezed these boxes) */
     .msg { padding: 16px; gap: 12px; } .msg .ini { width: 46px; height: 46px; font-size: 1rem; }
     .msg { flex-wrap: wrap; } .msg .body { flex: 1 1 calc(100% - 62px); }
     .msg .check { width: 100%; flex-direction: row; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
@@ -992,7 +992,7 @@ addEventListener('pageshow', back);
 // (KEYS - data-k, id or the row's own id), so a new row on top doesn't rewrite the ones under it.
 // data-own = a box its own code fills (a chart, a frame, a card that loads by itself): the page's patch leaves it alone.
 const KEYS = ['data-k', 'id', 'data-chat', 'data-person', 'data-plan', 'data-cropen', 'data-story-open', 'data-mlog', 'data-cncard', 'data-evopen', 'data-msample', 'data-chchar', 'data-stchar'];
-const keyOf = (n) => { if (n.nodeType !== 1) return null; for (const a of KEYS) { const v = n.getAttribute(a); if (v) return a + '=' + v; } return null; };
+const keyOf = (n) => { if (n.nodeType !== 1) return null; const own = n.getAttribute('data-own'); if (own) return 'own=' + own + ':' + (n.id || ''); for (const a of KEYS) { const v = n.getAttribute(a); if (v) return a + '=' + v; } return null; };
 function patch(el, html) {
   const t = document.createElement('template');
   t.innerHTML = html;
@@ -1042,7 +1042,10 @@ function paint(html) {
   if (!pane) return;
   let chain = null;
   if (bgPaint && lockY == null && (scrollY > 0 || !booting)) {
-    const r = pane.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, Math.min(innerHeight * 0.33, 260));
+    const r = pane.getBoundingClientRect(), line = Math.min(innerHeight * 0.33, 260);
+    let hit = document.elementFromPoint(r.left + r.width / 2, line);
+    // a gap between rows hits their box: go down to the row at (or right under) the reading line - the box itself doesn't move
+    while (hit && hit.firstElementChild && !hit.hasAttribute('data-own')) { const c = [...hit.children].find((x) => x.getBoundingClientRect().bottom > line); if (!c) break; hit = c; }
     if (hit && hit !== pane && pane.contains(hit)) { chain = []; for (let n = hit; n && n !== pane; n = n.parentElement) chain.push([n, n.getBoundingClientRect().top]); }
   }
   patch(pane, html);
@@ -1090,24 +1093,36 @@ function cacheRead() {
     rq.onerror = () => ok({});
   })).catch(() => ({}));
 }
+// saved later, when the page is idle, all at once (copying the data blocked the first paint)
+const toSave = new Set();
+let saveT = 0;
 function cacheSave(k) {
   if (!CACHED[k]) return;
-  let v; try { v = CACHED[k][0](); } catch (e) { return; }
-  if (v === undefined || v === null) return;
-  idb().then((db) => db.transaction('kv', 'readwrite').objectStore('kv').put({ at: Date.now(), day: dayIL(), v }, k)).catch(() => {});
+  toSave.add(k);
+  if (!saveT) saveT = setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(cacheFlush, { timeout: 3000 }) : cacheFlush()), 2500);
+}
+function cacheFlush() {
+  saveT = 0;
+  const keys = [...toSave]; toSave.clear();
+  idb().then((db) => {
+    const st = db.transaction('kv', 'readwrite').objectStore('kv');
+    for (const k of keys) { let v; try { v = CACHED[k][0](); } catch (e) { continue; } if (v != null) st.put({ at: Date.now(), day: dayIL(), v }, k); }
+  }).catch(() => {});
 }
 function cacheClear() { try { idb().then((db) => db.transaction('kv', 'readwrite').objectStore('kv').clear()).catch(() => {}); } catch (e) {} }
 async function boot() {
   await null;   // after the whole script ran
-  pulse();      // the first stamps, before the data: what changes after this, the next pulse catches
-  const c = await Promise.race([cacheRead(), new Promise((r) => setTimeout(() => r({}), 600))]);
+  booting = true;
+  const cache = Promise.race([cacheRead(), new Promise((r) => setTimeout(() => r({}), 3000))]);   // (nothing waits for it)
+  draw();       // the tab's data is asked for at once - the device's copy, if it comes first, is shown meanwhile
+  // the first stamps once the tab's data is here (the server answers one call at a time - the screen's data goes first)
+  need(NEED[tab] || []).catch(() => {}).finally(() => pulse());
+  const c = await cache;
   for (const [k, x] of Object.entries(c)) {
-    if (!CACHED[k] || !x || !x.v || Date.now() - x.at > 2 * 864e5 || ((k === 'S' || k === 'CH') && x.day !== dayIL())) continue;
+    if (HAVE.has(k) || !CACHED[k] || !x || !x.v || Date.now() - x.at > 2 * 864e5 || ((k === 'S' || k === 'CH') && x.day !== dayIL())) continue;
     try { CACHED[k][1](x.v); HAVE.add(k); STALE.add(k); } catch (e) {}
   }
-  booting = true;
-  draw();
-  if (STALE.size) { refreshing = true; frame(); await refetch([...STALE]); refreshing = false; }
+  if (STALE.size) { refreshing = true; bgRender(); await refetch([...STALE]); refreshing = false; }
   STALE.clear();
   bgRender();
   booting = false;
@@ -1160,6 +1175,7 @@ function frame() {
 }
 const reBadge = () => frame();
 // the one way a tab is drawn: the frame, then the tab's own view (when its data is here), patched in place
+let drawWait = '';
 function draw() {
   if (gated) return;
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
@@ -1172,7 +1188,8 @@ function draw() {
   if (miss.length) {
     const t = tab, todo = miss.filter((k) => !ERR[k]);
     paint(waitBox(miss.join(',')));
-    if (todo.length) need(todo).then(() => { if (tab === t) draw(); }, () => { if (tab === t) draw(); });
+    // one waiter per tab (two draws while loading used to draw the tab twice when the data came)
+    if (todo.length && drawWait !== t) { drawWait = t; const done = () => { if (drawWait === t) drawWait = ''; if (tab === t) draw(); }; need(todo).then(done, done); }
     return;
   }
   ({ overview, plans, chars, chats, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
@@ -1552,7 +1569,7 @@ function planView() {
   const p = PLAN.plan, cs = PLAN.comments || [];
   const open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
   // the frame keeps the version it shows: a newer one that comes while he reads is offered, never loaded under him
-  const fr0 = $('#pane .pl-frame'), shown = fr0 && fr0.dataset.plan === p.id ? +fr0.dataset.v || 0 : 0;
+  const fr0 = $('#pane .pl-frame'), shown = fr0 && fr0.dataset.pid === p.id ? +fr0.dataset.v || 0 : 0;
   paint(`<div class="pl-head"><button class="pill" data-pl-back>${IC.prev}כל התוכניות</button>
       <div class="pl-t"><b>${esc(p.title)}</b><div>${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small>${shown && shown < p.version ? `<button class="pill" data-pl-reload>${IC.refresh}גרסה ${p.version} חדשה · לטעון</button>` : ''}</div></div>
       <div class="pl-acts">${planRead(p) ? `<button class="btn" disabled>${IC.check}נקרא</button>` : `<button class="btn" data-pl-read>${IC.check}קראתי</button>`}<button class="btn main" data-pl-st="approved">${IC.check}מאשר</button><button class="btn" data-pl-st="changes">צריך שינויים</button><button class="btn" data-pl-c="">${IC.comment}הערה כללית</button></div></div>
@@ -1561,7 +1578,7 @@ function planView() {
     <div class="card pl-cs"><div class="card-h"><h2>הערות והחלטות</h2><small class="dim">${open ? `${open} פתוחות` : 'אין הערות פתוחות'}</small></div>
       ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}</div>`);
   const fr = $('#pane .pl-frame');
-  if (fr.dataset.plan !== p.id) planFrame(fr, p);   // a new frame: the plan's page (a patch never reloads it)
+  if (fr.dataset.pid !== p.id) planFrame(fr, p);   // a new frame: the plan's page (a patch never reloads it)
   const counts = () => { const n = {}; (PLAN.comments || []).forEach((c) => { if (c.kind === 'comment' && c.anchor) n[c.anchor] = (n[c.anchor] || 0) + 1; }); return n; };
   fr.contentWindow?.postMessage({ t: 'n', n: counts() }, '*');   // the comment buttons' numbers
   window.onmessage = (e) => {
@@ -1584,7 +1601,7 @@ function planView() {
 function planFrame(fr, p) {
   let html = p.html.replace(/(src|href|poster)="img\/([\w.-]+)"/g, (m, a, n) => (p.files[n] ? `${a}="${p.files[n]}"` : m));
   html = html.includes('</body>') ? html.replace('</body>', PLAN_FRAME + '</body>') : html + PLAN_FRAME;
-  fr.dataset.plan = p.id; fr.dataset.v = p.version;
+  fr.dataset.pid = p.id; fr.dataset.v = p.version;   // (not data-plan: that is a row key - the frame would be taken for a new one)
   fr.srcdoc = html;
 }
 // after a comment is saved / handled: the plan and the list again, then the tab patched - only the comments card and the
@@ -2006,7 +2023,7 @@ function chats() {
   paint(`${chSegBar()}
     <div class="top"><div><h1>שיחות</h1><p>${fmt(all.length)} שיחות · ${fmt(msgs)} הודעות · עלות $${all.reduce((a, th) => a + th.cost, 0).toFixed(2)}</p></div>
       <div class="rng">${[['today', 'היום'], ['yesterday', 'אתמול'], ['week', '7 ימים'], ['month', '30 ימים']].map(([k, l]) => `<button data-chrange="${k}" class="${k === chRange ? 'on' : ''}">${l}</button>`).join('')}</div></div>
-    <label class="search" style="margin-bottom:12px">${IC.search}<input id="ch-q" placeholder="חיפוש בשיחות - מילה מהשאלה או מהתשובה" value="${esc(chQuery)}"></label>
+    <label class="bs-search" style="margin-bottom:12px">${IC.search}<input id="ch-q" placeholder="חיפוש בשיחות - מילה מהשאלה או מהתשובה" value="${esc(chQuery)}"></label>
     <div class="chips">${[['all', 'הכול'], ['new', 'לא נבדקו'], ['good', 'טובות'], ['bad', 'גרועות'], ['notes', 'עם הערות'], ['star', 'מסומנות בכוכב'], ['story', 'לסטורי'], ['long', 'ארוכות'], ['signed', 'של רשומים']].map(([k, l]) => `<button data-chf="${k}" class="${k === chFilter ? 'on' : ''}">${l}${k === 'star' && stars.size ? `<small>${all.filter((th) => stars.has(th.key)).length}</small>` : ''}${k === 'story' && picks.size ? `<small>${all.filter((th) => picks.has(th.key)).length}</small>` : ''}</button>`).join('')}</div>
     <div class="faces-row"><button data-chchar="" class="${chChar ? '' : 'on'}"><span class="all">${IC.people}</span>הכול<b>${all.length}</b></button>
       ${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([id, n]) => `<button data-chchar="${esc(id)}" class="${chChar === id ? 'on' : ''}">${face(id)}${esc(cname(id))}<b>${n}</b></button>`).join('')}</div>
@@ -2667,7 +2684,7 @@ function people() {
       <div class="k"><span class="kh">${IC.join}השבוע</span><b><bdi dir="ltr">+${fmt(all.filter((p) => p.created >= weekAgo).length)}</bdi></b></div>
       <div class="k"><span class="kh">${IC.join}היום</span><b><bdi dir="ltr">+${fmt(all.filter((p) => dayIL(p.created) === today).length)}</bdi></b></div></div>
     <div class="card" style="margin-bottom:14px"><div class="card-h"><h2>הרשמות ביום</h2><small class="hint">${pDay ? `${dayName(pDay)} · <button data-pday="" style="color:#ff9a5c;font-weight:700">כל הימים</button>` : 'לחיצה על יום מציגה מי נרשם בו'}</small></div><div class="chart" id="p-ch" data-own="chart"></div></div>
-    <label class="search" style="margin-bottom:12px">${IC.search}<input id="pp-q" placeholder="חיפוש לפי שם, מייל או אתר" value="${esc(pQuery)}"></label>
+    <label class="bs-search" style="margin-bottom:12px">${IC.search}<input id="pp-q" placeholder="חיפוש לפי שם, מייל או אתר" value="${esc(pQuery)}"></label>
     <div class="chips">${[['all', 'הכול'], ['verse', 'שלומיוורס'], ['citizens', 'אזרחים'], ['sites', 'מהאתרים'], ['today', 'היום'], ['week', 'השבוע']].map(([k, l]) => `<button data-pf="${k}" class="${k === pFilter ? 'on' : ''}">${l}</button>`).join('')}</div>
     <div>${list.map((p) => `<button class="person" data-person="${p.uid}">${personFace(p)}
       <div class="body"><b>${esc(personName(p))}</b>${p.official ? OFC : ''}<div class="em">${esc(p.email || '')}</div><div class="when">נרשם/ה ${stamp(p.created)}${p.last ? ` · נראה/תה ${ago(p.last)}` : ''}</div></div>
@@ -2720,7 +2737,7 @@ function requests() {
   const list = all.filter((r) => (rqKind === 'all' || r.kind === rqKind) && (!q || [r.text, r.name, r.company, r.contact, r.nick, r.siteName, r.choice, r.email, r.forWho, r.event, r.char].join(' ').toLowerCase().includes(q)));
   paint(`
     <div class="top"><div><h1>פניות</h1><p>כל מה שהגיע אליך, לפי סוג. הפתוחות קודם.</p></div>
-      <label class="search">${IC.search}<input id="rq-q" placeholder="חיפוש בפניות" value="${esc(rqQuery)}"></label></div>
+      <label class="bs-search">${IC.search}<input id="rq-q" placeholder="חיפוש בפניות" value="${esc(rqQuery)}"></label></div>
     <div class="chips">${[['all', 'הכל'], ...Object.entries(RQ).map(([k, [l]]) => [k, l])].map(([k, l]) => `<button data-rqk="${k}" class="${k === rqKind ? 'on' : ''}">${l}${count(k) ? `<small>${count(k)}</small>` : ''}</button>`).join('')}</div>
     <div class="msgs">${list.map((r) => { const [l, cls, color] = RQ[r.kind] || RQ.contact; return `<div class="msg ${r.done ? 'done' : ''}" data-k="rq${esc(r.id)}" style="--k:${color}">${ini(whoOf(r))}
       <div class="body"><div class="l1"><div class="who"><b>${esc(whoOf(r))}</b><small>${ago(r.t)}${r.kind === 'site' ? ` · ${esc(r.siteName || SITES[r.site] || r.site)}` : r.from === 'community' ? ' · מעמוד הקהילה' : r.from === 'chat' ? ' · מהצ׳אט' : r.kind === 'business' ? ' · מעמוד העסקים' : ''}</small></div><span class="tag ${cls}">${l}</span></div>
