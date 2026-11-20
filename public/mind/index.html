@@ -350,6 +350,17 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .done-today .dt svg { width: 15px; height: 15px; color: var(--green); flex: none; }
 .tabs b.tb-today { background: var(--amber) !important; }
 .locsteps { margin: 4px 0 10px; padding-inline-start: 20px; font-size: 14px; line-height: 1.55; color: var(--ink2); } .locsteps li { margin-bottom: 6px; } .locsteps b { color: var(--ink); }
+.vault-v .hello h1 svg { width: 26px; height: 26px; color: var(--brand); vertical-align: -3px; }
+.vtools { display: flex; gap: 8px; margin: 0 0 14px; } .vtools .qc { flex: 1; } .vtools > .btn { flex: none; }
+.vrow { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; cursor: pointer; }
+@media (hover: hover) { .vrow:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); } }
+.vav { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 17px; flex: none; }
+.vq { display: flex; gap: 6px; flex: none; } .vq .btn { padding: 8px 10px; }
+.vdet { display: flex; flex-direction: column; gap: 14px; }
+.vf small { display: block; color: var(--ink3); font-weight: 700; font-size: 12.5px; margin-bottom: 4px; }
+.vf > div { display: flex; align-items: center; gap: 8px; } .vv { flex: 1; min-width: 0; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; text-align: right; unicode-bidi: plaintext; } .vv a { color: var(--brand); }
+.vin { display: flex; gap: 8px; } .vin input, #vef textarea, .vimp input { flex: 1; width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--card2); font-size: 16px; }
+.vimp { display: flex; flex-direction: column; gap: 10px; max-width: 420px; } .vimp .btn { justify-content: center; padding: 12px; }
 .nagmark { color: var(--violet); display: inline-flex; vertical-align: -2px; margin-inline-end: 5px; } .nagmark svg { width: 15px; height: 15px; }
 .pchip.nagc.on { color: var(--violet); background: var(--violetSoft); }
 .nagq h3 { display: flex; gap: 8px; align-items: center; } .nagq h3 svg { color: var(--violet); width: 22px; height: 22px; }
@@ -534,6 +545,8 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h3M7.5 17h3M13.5 13.5h3"/></symbol>
   <symbol id="i-video" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="m15.5 10.5 6-3.5v10l-6-3.5"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2.5 2.5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
   <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6M12 19h8"/></symbol>
@@ -651,7 +664,7 @@ function renderChrome() {
   const nT = S.items.filter(isToday).length;
   const nM = agToday().filter((m) => !m.allDay && new Date(m.end) > new Date()).length;
   $('#nav').innerHTML = [
-    ['meet', 'cal', 'פגישות', nM], ['today', 'sun', 'היום', nT], ['home', 'home', 'השולחן', waitN, true], ['archive', 'archive', 'ארכיון'],
+    ['meet', 'cal', 'פגישות', nM], ['today', 'sun', 'היום', nT], ['vault', 'key', 'כספת'], ['home', 'home', 'השולחן', waitN, true], ['archive', 'archive', 'ארכיון'],
   ].map(([v, i, t, n, hot]) => `<button class="${S.view === v ? 'on' : ''}" data-view="${v}">${ic(i)}${t}${n ? `<span class="n ${hot && n ? 'hot' : ''}">${n}</span>` : ''}</button>`).join('');
   const qf = [['waiting', 'מחכה לך', waitN, 'alert', true], ['active', 'בטיפול', c.active.length, 'play'], ['open', 'פתוחים', c.open.length, 'dot'], ['pin', 'מסומנים בכוכב', c.pinned.length, 'star']];
   const cur = S.view === 'items' ? (S.f.pin ? 'pin' : S.f.status) : '';
@@ -885,6 +898,107 @@ function openNag(id) {
       <button class="nagstop" data-nagans="${id}:stop">תפסיק לשאול על זה</button></div></div></div>`;
 }
 
+// ---------- the Vault: his saved logins, inside PA (his call 2026-11-20: "if I'm in the PA I see my vault - very easy").
+// Kept on the server (mind.js 'vault' / 'vault_save'); the old shlomi-vault app's logins come over once with its master password.
+const unb64 = (str) => Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+async function vaultLoad(force) {
+  if (S.vBusy || (S.vault && !force)) return;
+  S.vBusy = true;
+  try { S.vault = await api('vault'); } catch (e) { S.vErr = e.message; }
+  S.vBusy = false; if (S.view === 'vault' && !$('#modal').innerHTML) render();
+}
+const vHost = (u) => { try { return new URL(/^https?:/.test(u) ? u : 'https://' + u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+const vColor = (n) => { let h = 0; for (const c of String(n)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 55% 46%)`; };
+const vMatch = (e, q) => !q || [e.name, e.url, e.username, e.notes].some((f) => f && f.toLowerCase().includes(q));
+function vRows() {
+  const q = (S.vq || '').trim().toLowerCase();
+  const list = (S.vault?.entries || []).filter((e) => vMatch(e, q)).sort((a, b) => a.name.localeCompare(b.name, 'he'));
+  return list.length ? list.map((e) => `<div class="vrow" data-vopen="${esc(e.id)}"><span class="vav" style="background:${vColor(e.name)}">${esc((e.name.trim()[0] || '?').toUpperCase())}</span>
+    <div class="tm"><b>${esc(e.name)}</b><span>${esc(e.username || vHost(e.url) || ' ')}</span></div>
+    <div class="vq">${e.username ? `<button class="btn" data-vcopy="${esc(e.id)}:username" title="העתק שם משתמש">${ic('users')}</button>` : ''}${e.password ? `<button class="btn" data-vcopy="${esc(e.id)}:password" title="העתק סיסמה">${ic('key')}</button>` : ''}</div></div>`).join('')
+    : `<div class="mempty">${q ? 'לא נמצא' : 'הכספת ריקה - הוסף כניסה ראשונה'}</div>`;
+}
+function viewVault() {
+  if (!S.vault) { vaultLoad(); return `<div class="wrap home vault-v"><div class="hello"><h1>${ic('key')} כספת</h1></div><div class="mempty">${S.vErr ? esc(S.vErr) : 'פותח...'}</div></div>`; }
+  if (S.vault.needImport) return `<div class="wrap home vault-v"><div class="hello"><h1>${ic('key')} כספת</h1><p>פעם אחת בלבד: להעביר לכאן את הכניסות מהכספת הישנה</p></div>
+    <form class="vimp" id="vimpf"><label class="lbl" style="margin-top:0">הסיסמה הראשית של הכספת הישנה</label><input id="vimp" type="password" autocomplete="current-password" placeholder="הסיסמה הראשית">
+    <button class="btn pri">${ic('key')}פתח והעבר</button><div class="hint" id="vimperr"></div><div class="hint">אחרי זה הכספת נפתחת כאן ישר, בלי סיסמה.</div></form></div>`;
+  const n = S.vault.entries.length;
+  return `<div class="wrap home vault-v"><div class="hello"><h1>${ic('key')} כספת</h1><p>${n === 1 ? 'כניסה אחת' : n + ' כניסות'}</p></div>
+    <div class="vtools"><div class="qc"><input id="vq" autocomplete="off" placeholder="חיפוש בכספת" value="${esc(S.vq || '')}"></div><button class="btn pri" data-act="vadd">${ic('plus')}חדש</button></div>
+    <div class="table" id="vlist">${vRows()}</div></div>`;
+}
+async function vCopy(text, what) {
+  try { await navigator.clipboard.writeText(text); toast(what + ' הועתק'); } catch (e) { toast('לא הצליח להעתיק'); }
+}
+function vaultOpen(id) {
+  const e = S.vault.entries.find((x) => x.id === id); if (!e) return;
+  const host = vHost(e.url), href = e.url ? (/^https?:/.test(e.url) ? e.url : 'https://' + e.url) : '';
+  const row = (lbl, val, btns) => `<div class="vf"><small>${lbl}</small><div><span class="vv" dir="ltr">${val}</span>${btns}</div></div>`;
+  $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet" role="dialog">
+    <header><span class="vav" style="background:${vColor(e.name)}">${esc((e.name.trim()[0] || '?').toUpperCase())}</span><h3>${esc(e.name)}</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
+    <div class="sb vdet">
+      ${e.username ? row('שם משתמש', esc(e.username), `<button class="btn" data-vcopy="${esc(e.id)}:username">${ic('copy')}העתק</button>`) : ''}
+      ${e.password ? row('סיסמה', '<span id="vpw">' + '•'.repeat(12) + '</span>', `<button class="btn icon" data-vshow="${esc(e.id)}" title="הצג">${ic('eye')}</button><button class="btn" data-vcopy="${esc(e.id)}:password">${ic('copy')}העתק</button>`) : ''}
+      ${href ? row('אתר', `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(host || e.url)}</a>`, '') : ''}
+      ${e.notes ? `<div class="vf"><small>הערות</small><div class="mnotes">${esc(e.notes)}</div></div>` : ''}
+    </div>
+    <footer><button class="btn" data-vedit="${esc(e.id)}">${ic('edit')}עריכה</button><span style="flex:1"></span><button class="btn danger" data-vdel="${esc(e.id)}">${ic('trash')}מחיקה</button></footer></div></div>`;
+}
+function vGen() {
+  const a = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*?', r = crypto.getRandomValues(new Uint32Array(18));
+  return [...r].map((x) => a[x % a.length]).join('');
+}
+function vaultEdit(id) {
+  const e = id ? S.vault.entries.find((x) => x.id === id) : { name: '', url: '', username: '', password: '', notes: '' };
+  const f = (k, lbl, extra = '') => `<label class="lbl">${lbl}</label><div class="vin"><input id="ve-${k}" type="text" value="${esc(e[k] || '')}" ${k === 'name' ? '' : 'dir="ltr"'} autocomplete="off">${extra}</div>`;
+  $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet" role="dialog">
+    <header><h3>${id ? 'עריכה' : 'כניסה חדשה'}</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
+    <form class="sb" id="vef" data-id="${esc(id || '')}">${f('name', 'שם')}${f('url', 'אתר')}${f('username', 'שם משתמש')}${f('password', 'סיסמה', `<button type="button" class="btn" data-vgen="1">צור סיסמה</button>`)}
+      <label class="lbl">הערות</label><textarea id="ve-notes" rows="3" dir="auto">${esc(e.notes || '')}</textarea>
+      <button class="btn pri" style="margin-top:14px;width:100%;justify-content:center">שמור</button></form></div></div>`;
+}
+async function vaultSave(entries, msg) {
+  const keep = S.vault.entries; S.vault.entries = entries; closeModal(); render();
+  try { await api('vault_save', { entries }); if (msg) toast(msg); }
+  catch (e) { S.vault.entries = keep; render(); toast('לא נשמר - ' + e.message); }
+}
+async function vaultImport(pw) {
+  const blob = S.vault.blob, err = $('#vimperr');
+  try {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: unb64(blob.salt), iterations: blob.kdf.iterations, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    let data;
+    try { data = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(blob.iv) }, key, unb64(blob.ct)))); }
+    catch (e) { err.textContent = 'הסיסמה לא נכונה - נסה שוב'; return; }
+    const entries = (data.entries || []).filter((x) => !x.deleted);
+    await api('vault_save', { entries, imported: true });
+    S.vault = { entries }; render(); toast(`הועברו ${entries.length} כניסות`);
+  } catch (e) { err.textContent = 'לא הצליח - ' + e.message; }
+}
+document.addEventListener('submit', (ev) => {
+  if (ev.target.id === 'vimpf') { ev.preventDefault(); const v = $('#vimp').value; if (v) vaultImport(v); }
+  if (ev.target.id === 'vef') {
+    ev.preventDefault();
+    const id = ev.target.dataset.id, now = Date.now(), val = (k) => $('#ve-' + k).value;
+    const fields = { name: val('name').trim(), url: val('url').trim(), username: val('username').trim(), password: val('password'), notes: val('notes'), updatedAt: now };
+    if (!fields.name) { toast('צריך שם'); return; }
+    const list = S.vault.entries;
+    vaultSave(id ? list.map((x) => (x.id === id ? { ...x, ...fields } : x)) : [...list, { id: crypto.randomUUID(), createdAt: now, ...fields }], 'נשמר');
+  }
+}, true);
+document.addEventListener('input', (ev) => { if (ev.target.id === 'vq') { S.vq = ev.target.value; $('#vlist').innerHTML = vRows(); } });
+document.addEventListener('click', (ev) => {
+  const t = ev.target.closest('[data-vopen],[data-vcopy],[data-vshow],[data-vedit],[data-vdel],[data-vgen]'); if (!t) return;
+  const d = t.dataset;
+  if (d.vcopy) { ev.stopPropagation(); const [id, k] = d.vcopy.split(':'), e = S.vault.entries.find((x) => x.id === id); if (e) vCopy(e[k], k === 'password' ? 'הסיסמה' : 'שם המשתמש'); return; }
+  if (d.vshow) { const e = S.vault.entries.find((x) => x.id === d.vshow), el = $('#vpw'); el.textContent = el.textContent.startsWith('•') ? e.password : '•'.repeat(12); return; }
+  if (d.vedit) { vaultEdit(d.vedit); return; }
+  if (d.vgen) { $('#ve-password').value = vGen(); return; }
+  if (d.vdel) { const e = S.vault.entries.find((x) => x.id === d.vdel); if (e && confirm(`למחוק את "${e.name}"?`)) vaultSave(S.vault.entries.filter((x) => x.id !== d.vdel), 'נמחק'); return; }
+  if (d.vopen) vaultOpen(d.vopen);
+});
+
 function viewHome() {
   const all = (() => { const keep = S.hf; S.hf = 'all'; const l = tableEntries(); S.hf = keep; return l; })();
   const list = tableEntries();
@@ -1043,10 +1157,11 @@ function viewSessions() {
 function render() {
   if (!S.loaded) return;
   renderChrome();
+  if (document.activeElement?.id === 'vq') { renderChrome(); return; }   // typing in the vault search
   const td = $('#td'); if (td && document.activeElement === td && td.value) { renderChrome(); renderPanel(); return; }   // he is typing a to-do for today
   const qc = $('#qc'); if (qc && (document.activeElement === qc && qc.value || qc.disabled || (rec && rec.btn.closest('.qc')) || $('.qc .mic[data-busy]'))) { renderChrome(); renderPanel(); return; }
   const v = $('#view'), top = v.scrollTop;
-  v.innerHTML = S.view === 'items' ? viewItems() : S.view === 'sessions' ? viewSessions() : S.view === 'archive' ? viewArchive() : S.view === 'today' ? viewToday() : S.view === 'meet' ? viewMeet() : viewHome();
+  v.innerHTML = S.view === 'items' ? viewItems() : S.view === 'sessions' ? viewSessions() : S.view === 'archive' ? viewArchive() : S.view === 'today' ? viewToday() : S.view === 'meet' ? viewMeet() : S.view === 'vault' ? viewVault() : viewHome();
   v.scrollTop = top;
   renderPanel();
 }
@@ -1306,7 +1421,7 @@ function settings() {
     $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet" role="dialog">
       <header><h3>הגדרות</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
       <div class="sb">
-        <button class="btn" data-act="toarchive" style="width:100%;justify-content:center;margin:2px 0 14px">${ic('archive')}ארכיון - מה שבוצע והורד מהשולחן</button>
+        <div style="display:flex;gap:8px;margin:2px 0 14px"><button class="btn pri" data-act="tovault" style="flex:1;justify-content:center">${ic('key')}כספת</button><button class="btn" data-act="toarchive" style="flex:1;justify-content:center">${ic('archive')}ארכיון</button></div>
         <h4 style="margin:4px 0 2px;font-size:15px">סוגי מחשבות</h4><div class="hint">אתה מחליט אילו סוגים יש. לכל סוג צבע וסמל.</div>
         <div id="tlist">${types.map((t, i) => `<div class="set-row" data-ti="${i}"><input type="color" value="${t.color}" data-tc="${i}"><input type="text" value="${esc(t.name)}" data-tn="${i}" placeholder="שם הסוג">
           <button class="btn icon" data-ticon="${i}" style="color:${t.color}">${ic(t.icon)}</button><button class="btn icon danger" data-tdel="${i}">${ic('trash')}</button></div>
@@ -1417,6 +1532,8 @@ document.addEventListener('click', (e) => {
     case 'capture': capture(); break;
     case 'recscreen': recScreen(); break;
     case 'seenall': markSeen(newEntries()); render(); toast('הכל סומן כנקרא'); break;
+    case 'tovault': closeModal(); go('vault'); break;
+    case 'vadd': vaultEdit(null); break;
     case 'toarchive': closeModal(); go('archive'); break;   // the phone's tab bar has no room for it since פגישות (2026-11-20)
     case 'locsetup': showLoc(); break;
     case 'agrefresh': loadAgenda(true).then(() => toast('היומן עודכן')); break;
@@ -1597,7 +1714,7 @@ function boot() {
   const h = location.hash.slice(1);
   if (h === 'rec') recScreen();
   if (h === 'archive') S.view = h;
-  if (h === 'today' || h === 'meet') S.view = h;
+  if (h === 'today' || h === 'meet' || h === 'vault') S.view = h;
   if (h.startsWith('m=')) { S.view = 'meet'; S.wantMeet = decodeURIComponent(h.slice(2)); }   // a meeting push was tapped
   if (h.startsWith('nag=')) S.wantNag = h.slice(4);   // a "did you already...?" push was tapped
   loadAgenda();

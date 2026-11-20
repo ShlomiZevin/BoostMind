@@ -574,6 +574,24 @@ async function pageOp(b) {
       return { ok: true, seen: now };
     }
     case 'connect': return { key: await mindKey(true) };
+    // the Vault (his saved logins) inside PA (his call 2026-11-20: "if I'm in the PA I see my vault - very easy, no
+    // security stuff"): the logins live in mind_meta/vault (server-only, opened by his PA code like everything else).
+    // The old shlomi-vault app's encrypted copy waits in mind_meta/vault_import until his page opens it once with the
+    // old master password and saves the logins here.
+    case 'vault': {
+      const v = (await META.doc('vault').get()).data();
+      if (v) return { entries: (v.entries || []).filter((e) => !e.deleted), u: v.u || 0 };
+      const imp = (await META.doc('vault_import').get()).data();
+      return imp ? { needImport: true, blob: imp.blob } : { entries: [], u: 0 };
+    }
+    case 'vault_save': {   // the whole list (small: a few dozen logins)
+      const clean = (e) => ({ id: oneLine(e.id, 40) || newId(), name: oneLine(e.name, 200), url: oneLine(e.url, 500), username: oneLine(e.username, 300),
+        password: String(e.password ?? '').slice(0, 500), notes: clip(e.notes, 4000), createdAt: +e.createdAt || Date.now(), updatedAt: +e.updatedAt || Date.now() });
+      const entries = (Array.isArray(b.entries) ? b.entries : []).filter((e) => e && !e.deleted && oneLine(e.name, 200)).slice(0, 2000).map(clean);
+      await META.doc('vault').set({ entries, u: Date.now() });
+      if (b.imported) await META.doc('vault_import').set({ done: Date.now() }, { merge: true });
+      return { ok: true, n: entries.length };
+    }
     case 'lockey': {   // the settings' "by place" setup: his location key + when the last location came in
       const w = (await WHERE.get()).data() || {};
       return { key: await locKey(true), at: w.at || 0, n: w.n || 0 };
@@ -709,7 +727,7 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
       return out ? res.json(out) : res.status(202).end();
     }
     if (door === 'api') {
-      if (['connect', 'lockey', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
+      if (['connect', 'lockey', 'vault', 'vault_save', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
       return res.json(await pageOp(req.body || {}));
     }
     res.status(404).json({ error: 'door' });
