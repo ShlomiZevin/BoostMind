@@ -1,0 +1,5 @@
+{"positive_global_styles":["modern corporate tech product launch trailer","confident","sleek electronic pulse","punchy drums","polished","instrumental"],
+ "negative_global_styles":["vocals","soft intro","fade in","ambient","lo-fi","sad"],
+ "sections":[
+  {"section_name":"drive","positive_local_styles":["starts at full energy on the first beat","driving synth bass and claps","rising tension","keynote reveal energy"],"negative_local_styles":["quiet start","fade in","breakdown"],"duration_ms":24200,"lines":[]},
+  {"section_name":"hit","positive_local_styles":["one huge cinematic impact hit on the first beat","then a short ringing tail that dies away to silence"],"negative_local_styles":["new melody","drums continuing"],"duration_ms":4300,"lines":[]}]}

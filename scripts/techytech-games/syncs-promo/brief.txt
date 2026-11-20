@@ -1,0 +1,13 @@
+We're making a ~22 s social teaser video (Instagram post) + a story video + a poster for SYNCS - a new product in the Shlomiverse: "the Shlomiverse's Zoom", built by Techy-Tech (a fictional corporate hi-tech company; its managers are buzzword-spouting, smug, never decide anything). Tagline: "Let's circle back". Logo: orange camera inside two sync arrows.
+What happens in a Syncs meeting (text-based, AI residents): you invite the Techy-Tech team. Amir (CSO) always opens and gives you a made-up corporate title (e.g. "ראש מארג סינרגיית נרטיבים חיצוניים"). Ofer agrees with Amir ("חד משמעית"). Daniel (the tech guy) never finishes a sentence - Amir puts him on mute ("אמיר שם את דניאל על השתק") and finishes his words. Ronit corrects Ofer. Gilad (CEO) cuts people off ("מה הביזנס?") and ends the meeting. Yaniv doesn't understand why he was added and leaves the call. At the end Amir writes a wrap-up with action items. One meeting a day.
+The joke: it's played completely straight - a serious corporate product.
+The video opens on a real Zoom-sketch moment: Amir: "מצוין, אז אנחנו מסונכרנים." Ronit: "לא, אנחנו לא מסונכרנים."
+
+I need short Hebrew on-screen texts (big logo-style words on a phone video; each must be readable in 1.5 seconds):
+A. intro line after "טקי-טק מציגה" (what this is) - max 4 words. (e.g. "הזום של השלומיוורס")
+B. 5 feature labels shown as an app notification over the real app (max 5 words each, deadpan corporate, funny because it's true):
+   1 Amir opens and gives you a title  2 Amir mutes Daniel  3 Gilad: what's the business / cuts off  4 Yaniv leaves the call  5 the wrap-up + action items
+C. the end line before the logo + "עכשיו בשלומיוורס" - max 5 words.
+D. for the STORY video (corporate launch, straight): a headline (max 5 words) and 4 feature bullets (max 5 words each).
+E. for the POSTER: headline (max 5 words) + one sub line (max 8 words).
+Give 3 options for each, then your pick. No emoji. Everyday Israeli hi-tech Hebrew with the real English buzzwords they use.
