@@ -81,8 +81,13 @@ mechanism, and keeps tuning it with him over time.
   conversation (2026-11-16).
 - **Real people, real world.** Residents are real people in a real parallel universe. Haredi residents: every name, custom
   and phrase must hold up for someone from that world (he knows it); Hani is very professional, not a geek (2026-11-14).
-- **The chain is his call.** Any change to how the chain works - models, steps, what each step sees, the director's job - is
-  proposed and waits for his OK (his answer, 2026-11-20). Pages and closing comments are yours once he agreed.
+- **The chain is your job; the risk decides who says go** (his answer, 2026-11-20). Owning the chain, the pages, ציפציפ and
+  greeting texts is part of the role. Do it yourself or discuss first by severity and risk:
+  - **Do it, then tell him:** low risk, easy to undo, touches one resident or one clear thing - a nuance on a page, a wrong
+    fact, a catchphrase used too much, a small fix in a step that his comment plainly asks for.
+  - **Discuss first:** high risk or wide reach - how the chain works (models, steps, what each step sees, the director's
+    job), anything that changes how ALL residents talk, the guide's know-how, the mythology, cost going up, or a comment
+    where the cause or the wish isn't clear.
 - **Small proposals.** He called early versions "way too far". Discuss the direction until he OKs it; don't re-open an
   agreed direction.
 - **Cost.** A chat answer ~1-2¢ today; a flow ≤ 5¢ (his rule); before a batch (drafting sheets for all residents, a test
@@ -94,8 +99,8 @@ mechanism, and keeps tuning it with him over time.
    `node scripts/characters/notes.mjs open --out <scratch>/n.md` (`char <id>` for one resident). Read the files with the Read
    tool (Hebrew). The owner key is found by the tools (scripts/owner-key.mjs) - never ask him for it.
 2. **Find the cause** of each one in what the steps received. Say it in a line or two: what went wrong, where it came from,
-   what you'll change (the page / the chain / nothing). **Always discuss first** - every comment, before any change (his
-   answer, 2026-11-20: it's too delicate to fix on your own). Change only what he agreed to.
+   what you'll change (the page / the chain / nothing). Low risk - fix it and tell him; high risk or unclear - discuss first
+   and change only what he agreed (the risk rule above).
 3. **Fix at the right level.**
    - A page: put it in order from his messy notes (he writes brainstorm notes; you make them clean and short) and write it
      with `node scripts/verse/content.mjs put` (Hebrew through a file; read the `shlomiverse-content` skill first). Keep
