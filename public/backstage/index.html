@@ -23,7 +23,7 @@
   :root { --bg: #0b0b0e; --card: rgba(255,255,255,.035); --card2: rgba(255,255,255,.06); --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.14);
     --text: #f5f4f1; --dim: #a6a3ad; --faint: #6f6c77; --accent: #ff6a1f; --red: #ff5a5a; color-scheme: dark; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scrollbar-gutter: stable; }
+  html { scrollbar-gutter: stable; overflow-anchor: none; }   /* the page keeps his place itself (paint()) - the same on every browser */
   body { background: radial-gradient(ellipse 60% 50% at 0% 100%, rgba(255,106,31,.10), transparent 70%), radial-gradient(ellipse 40% 40% at 100% 0%, rgba(255,106,31,.06), transparent 70%), var(--bg);
     background-attachment: fixed; color: var(--text); font-family: 'Heebo', sans-serif; line-height: 1.5; min-height: 100svh; }
   button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
@@ -155,9 +155,9 @@
   .chips button { flex: none; height: 40px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--line2); background: var(--card); font-weight: 700; font-size: .92rem; color: var(--dim); }
   .chips button.on { background: var(--accent); border-color: transparent; color: #fff; }
   .chips small { margin-inline-start: 6px; opacity: .85; }
-  .search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); min-width: 240px; }
-  .search input { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }
-  .search svg { width: 18px; height: 18px; color: var(--dim); }
+  .bs-search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card); min-width: 240px; }
+  .bs-search input { flex: 1; min-width: 0; width: 100%; background: none; border: 0; outline: 0; color: var(--text); font: inherit; }   /* (on an iPhone it ran off the side of פניות) */
+  .bs-search svg { width: 18px; height: 18px; color: var(--dim); }
   .msgs { display: flex; flex-direction: column; gap: 12px; }
   .msg { position: relative; display: flex; gap: 14px; padding: 18px 20px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
   .msg::before { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px; background: var(--k, var(--line2)); }
@@ -388,7 +388,7 @@
     .cols { grid-template-columns: 1fr; }
     .card { padding: 16px; border-radius: 22px; }
     .story { grid-template-columns: 1fr; } .phone { width: 230px; margin: 0 auto; }
-    .search { min-width: 0; width: 100%; }
+    .bs-search { min-width: 0; width: 100%; }   /* (bs-: the site's verse.css has its own .search - a 38 px icon - that squeezed these boxes) */
     .msg { padding: 16px; gap: 12px; } .msg .ini { width: 46px; height: 46px; font-size: 1rem; }
     .msg { flex-wrap: wrap; } .msg .body { flex: 1 1 calc(100% - 62px); }
     .msg .check { width: 100%; flex-direction: row; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
@@ -749,6 +749,7 @@
 .cp-comp{display:flex;gap:8px;align-items:flex-end;padding:10px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:8px}
 .cp-comp textarea{flex:1;min-height:48px;max-height:260px;resize:none;border-radius:16px;border:1px solid var(--line2);background:var(--card2);color:var(--text);font:inherit;font-size:16px;padding:12px 13px;line-height:1.45}
 .cp-comp .btn{height:48px;padding:0 16px;flex:none}.cp-comp .btn svg{width:18px;height:18px}
+.new-pill{position:fixed;z-index:45;top:calc(14px + env(safe-area-inset-top));left:50%;translate:-50% 0;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border-radius:99px;background:var(--accent);color:#fff;font-weight:800;font-size:.88rem;box-shadow:0 10px 30px rgba(0,0,0,.45)}.new-pill svg{width:16px;height:16px}
 .cp-comp .btn svg{transform:scaleX(-1)}.bs-toast.up{bottom:auto;top:calc(16px + env(safe-area-inset-top))}
 .tn-n .ch-comp textarea{font-size:16px}
 @media (max-width:900px){
@@ -813,6 +814,7 @@ const IC = {
   live: s('<circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4"/>'),
   game: s('<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/>'),
   refresh: s('<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4.5v4h-4"/>'),
+  upArrow: s('<path d="M12 19V5M6 11l6-6 6 6"/>', 2.2),
   cast: s('<circle cx="10" cy="8.5" r="3.8"/><path d="M3 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/><path d="m18.5 3 .9 1.9 2.1.3-1.5 1.5.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.5 2.1-.3z"/>'),
   globe: s('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>'),
 };
@@ -824,7 +826,9 @@ const key = (() => {
   try { if (m) { localStorage.setItem('owner-key', decodeURIComponent(m[1])); history.replaceState(null, '', location.pathname + location.hash.replace(/[#&]?k=[^&]+/, '')); } return localStorage.getItem('owner-key'); } catch (e) { return null; }
 })();
 function gate(bad) {
+  gated = true;
   try { localStorage.removeItem('owner-key'); } catch (e) {}
+  cacheClear();   // the device's copy of the data goes with the key
   $('#app').innerHTML = `<div class="gate"><div><img src="/verse/logo-512.png" alt="שלומיוורס"><h1>מאחורי הקלעים</h1>
     <p>${bad ? 'הקוד לא נכון. נסו שוב.' : 'הקוד פעם אחת, והמכשיר הזה יזכור.'}</p>
     <form id="kf"><input id="ki" type="password" placeholder="קוד גישה" autocomplete="current-password"><button class="btn main">כניסה</button></form></div></div>`;
@@ -866,165 +870,340 @@ const personFace = (p) => p.official ? GUIDE_FACE : p.photo ? `<span class="vx-a
 const personName = (p) => p.official ? 'שלומיוורס' : p.nick || p.name || (p.email || '').split('@')[0] || '?';
 const OFC = `<span class="ofc">${IC.check}</span>`;
 
-if (!key) gate(); else load().catch((e) => { if (e.message !== 'key') $('#app').innerHTML = `<div class="gate"><div><h1>משהו נתקע</h1><p>${esc(e.message)}</p><button class="btn" onclick="location.reload()">לנסות שוב</button></div></div>`; });
-// every tab loads only its own data (his note 2026-11-11: "now I'm working on characters and I'm fetching all data"): NEED says what
-// each one reads, need() fetches what's missing - in parallel, each piece once - and the tab draws when its own data is here.
-// The menu's numbers are the frame's own data: fetched after the tab is on screen, never holding it up.
+// ---------- the store: one place for everything the page shows (2026-11-20, his note: "my scrolling jumps... the backstage is
+// like a broken app... updating from the server process - not patch on patch on patch") ----------
+// Every piece of data is a resource with one loader (LOADERS). A tab says what it can't draw without (NEED) and is drawn when
+// that is here; a part that fills in by itself (a card, a box) asks with want() and is drawn when it comes. Nothing is fetched
+// on a timer: the pulse (op pulse, every ~20 s while the page is on screen) says which areas changed on the server, only those
+// are read again (only if a tab here uses them), and the screen is patched in place - see patch() / paint() below.
+// The last data stays on the device (IndexedDB): the app opens at once with it, and patches itself when the fresh data lands.
+let gated = false;
+if (!key) gate(); else boot().catch((e) => { if (e.message !== 'key') $('#app').innerHTML = `<div class="gate"><div><h1>משהו נתקע</h1><p>${esc(e.message)}</p><button class="btn" onclick="location.reload()">לנסות שוב</button></div></div>`; });
+let CRS = null, chDay = '';   // CRS = the characters' slim list (only what the menu's number needs); chDay = the day CH was read
+const setW = (w) => {
+  W = w; C = {}; V = {};
+  W.characters.forEach((c) => (C[c.id] = c));
+  C.verse = { id: 'verse', name: 'שלומיוורס', img: '/verse/icon-192.png', color: '#ff6a1f' };   // a story from the Shlomiverse itself
+  W.videos.forEach((v) => (V[v.id] = v));
+};
+// what he already looked at, from the server and from here: the newer of the two, per mark (the server's newer mark used to be
+// thrown away for this device's older one - a mark he cleared on the computer stayed on the phone until a reload)
+const mergeSeen = (s) => { const m = { ...SEEN }; for (const [k, v] of Object.entries(s || {})) m[k] = Math.max(+m[k] || 0, +v || 0); SEEN = m; };
+const loadChatMeta = () => Promise.all([api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {}), api('storyPicks').then((r) => { picks = new Map(r.picks.map((p) => [p.key, p])); }).catch(() => {})]);
 const LOADERS = {
-  W: () => fetch(DATA, { cache: 'no-cache' }).then((r) => r.json()).then((w) => {
-    W = w;
-    W.characters.forEach((c) => (C[c.id] = c));
-    C.verse = { id: 'verse', name: 'שלומיוורס', img: '/verse/icon-192.png', color: '#ff6a1f' };   // a story from the Shlomiverse itself
-    W.videos.forEach((v) => (V[v.id] = v));
-  }),
-  L: () => api('list').then((r) => { L = r; SEEN = { ...r.seen, ...SEEN }; }),
+  W: () => fetch(DATA, { cache: 'no-cache' }).then((r) => { if (!r.ok) throw new Error('wiki ' + r.status); return r.json(); }).then(setW),
+  L: () => api('list').then((r) => { L = r; mergeSeen(r.seen); }),
   S: () => api('stats&days=45').then((r) => { S = r; }),
   EV: () => api('events').then((r) => { EVS = r.events || []; }).catch(() => {}),   // never holds a tab up: no events = no markers
   PL: () => api('plans').then((r) => { PL = r; }),
-  CH: () => Promise.all([loadChats(chRange), api('stars').then((r) => { stars = new Set(r.stars); }).catch(() => {}), api('storyPicks').then((r) => { picks = new Map(r.picks.map((p) => [p.key, p])); }).catch(() => {})]),
-  SEEN: () => api('seenMap').then((r) => { SEEN = { ...r.seen, ...SEEN }; }),
+  CH: () => Promise.all([loadChats(chRange), loadChatMeta()]),
+  SEEN: () => api('seenMap').then((r) => mergeSeen(r.seen)),
   CR: () => api('charList', {}).then((r) => { CR = r; }),
+  CRS: () => api('charList', { slim: true }).then((r) => { CRS = r; }),
   CN: () => api('chatNotes', {}).then((r) => { CN = r; }),
+  TZ: () => Promise.all([api('tzList', {}), api('tzReports', {})]).then(([l, r]) => { TZ = l; TZR = r; }),
+  TZC: () => api('tzCast', {}).then((r) => { TZC = r; }),
+  CS: () => api('costs', {}).then((r) => { CS = r; }),
+  MST: () => api('mailState', {}).then((r) => { MST = r; }),
+  MLG: () => api('mailLog', { limit: 300 }).then((r) => { MLG = r; }),
+  MSM: () => api('mailSamples', {}).then((r) => { MSM = r; }),
+  MBO: () => api('mailBounces', {}).then((r) => { MBO = r; }),
+  VC: () => api('catalogList', {}).then((r) => { VC = r.videos || []; }),
+  WS: () => api('wishes', {}).then((r) => { WS = r; }),
+  AB: () => api('aboutStats', {}).then((r) => { ABST = r; }),
+  CZ: () => api('citizenStats', {}).then((r) => { CZST = r; }),
+  SIM: () => api('simStats', { days: simDays }).then((r) => { SIMST = r; }),
 };
 const NEED = {
   overview: ['W', 'L', 'S', 'CH', 'EV'], chats: ['W', 'S', 'CH', 'CN'], people: ['W', 'S', 'L', 'EV'],
   requests: ['W', 'L'], ideas: ['W', 'L'], content: ['W', 'L'], videos: ['W', 'L'], publish: ['W', 'L', 'S'],
   plans: ['PL', 'SEEN'], chars: ['W', 'SEEN', 'CR'], tz: ['W'], mail: ['W'], costs: ['EV'], more: [],
 };
-const MENU = ['SEEN', 'PL', 'CR', 'L'];   // what the menu's numbers count (badges)
-const HAVE = new Set(), LOADING = {};
-const need = (keys) => Promise.all(keys.filter((k) => !HAVE.has(k)).map((k) => (LOADING[k] ||= LOADERS[k]().then(() => { HAVE.add(k); }).finally(() => { delete LOADING[k]; }))));
-// again from the server: only what was already loaded (a refresh never fetches what no tab asked for)
-const reload = (keys) => { keys.forEach((k) => HAVE.delete(k)); return need(keys); };
-async function load() { await null; draw(); }   // after the whole script ran (load() is called above TABS / TITLE)
-async function refresh() { await reload(['L', 'S'].filter((k) => HAVE.has(k))); draw(); }
-// the refresh button (top of the phone, the side menu on a computer): everything again - numbers, conversations, stars
+const MENU = ['SEEN', 'PL', 'CRS', 'L'];   // what the menu's numbers count (badges)
+const HAVE = new Set(), LOADING = {}, ERR = {}, AT = {}, STALE = new Set();
+// one load of one resource at a time; again = read it once more (what is on screen stays usable meanwhile - it is never
+// emptied first, so a refresh can't turn a tab into "טוען…" under his finger)
+function load1(k, again) {
+  if (LOADING[k]) return LOADING[k];
+  if (HAVE.has(k) && !again) return Promise.resolve();
+  return (LOADING[k] = LOADERS[k]().then(() => { HAVE.add(k); AT[k] = Date.now(); delete ERR[k]; STALE.delete(k); cacheSave(k); },
+    (e) => { if (!HAVE.has(k)) ERR[k] = e; throw e; }).finally(() => { delete LOADING[k]; }));
+}
+const need = (keys) => Promise.all(keys.map((k) => load1(k)));
+const refetch = (keys) => Promise.allSettled(keys.map((k) => load1(k, true)));
+// a part that fills in by itself: true when its data is here; otherwise it is asked for, and the tab is drawn again when it comes
+function want(...keys) {
+  const t = tab;
+  for (const k of keys) if (!HAVE.has(k) && !LOADING[k] && !ERR[k]) load1(k).then(() => { if (tab === t) later(); }, () => { if (tab === t) later(); });
+  return keys.every((k) => HAVE.has(k));
+}
+// the one loading / error state: "טוען…", or what failed and a button to try again
+const errOf = (k) => (ERR[k]?.message === 'key' ? 'הקוד' : ERR[k]?.message || 'שגיאה');
+const waitBox = (k, text = 'טוען…') => { const bad = String(k).split(',').filter((x) => ERR[x]); return bad.length ? `<div class="empty">לא נטען (${esc(bad.map(errOf).join(', '))}) · <button class="ev-more" data-retry="${bad.join(',')}">לנסות שוב</button></div>` : `<div class="empty">${text}</div>`; };
+// his tap = drawn now; a refresh from the server = drawn when he isn't in the middle of something (a window, a question)
+async function refresh() { await refetch(['L'].filter((k) => HAVE.has(k))); draw(); }
 let refreshing = false;
-async function refreshAll() {
+async function refreshAll() {   // the refresh button: everything this page has, again
   if (refreshing) return;
-  refreshing = true;
-  if (tab === 'mail') loadMail();
-  if (tab === 'costs') loadCosts(false);
-  document.querySelectorAll('[data-refresh]').forEach((x) => x.classList.add('spin'));
-  try {
-    await reload([...HAVE]);
-    if (planId) PLAN = await api('plan', { id: planId }).catch(() => PLAN);
-    draw();
-  } catch (e) {}
+  refreshing = true; frame();
+  await refetch([...HAVE]);
+  if (planId) PLAN = await api('plan', { id: planId }).catch(() => PLAN);
   refreshing = false;
-  const y = scrollY;
   draw();
-  scrollTo(0, y);
 }
 
-// ---------- fresh by itself (his ask 2026-11-17: "I always need to refresh it... when something is new I don't see it") ----------
-// Coming back to the page (the tab / the home-screen app shown again, the window focused) = everything this page has loaded
-// comes again, quietly, while the old screen stays usable; while it is open, the light parts (the menu's numbers, plans,
-// requests, characters + this tab's own data, never the heavy stats) every 60 s. The screen is drawn again only when
-// something really changed and he isn't in the middle of something (typing, a window open, a plan's comments) - otherwise
-// only the menu's numbers move, and the rest catches up the next time.
-const HEAVY = new Set(['S', 'W', 'EV', 'CH']);
-let freshBusy = false, lastFresh = Date.now();
-const busyHere = () => {
-  const a = document.activeElement;
-  if (a && (['TEXTAREA', 'SELECT', 'IFRAME'].includes(a.tagName) || (a.tagName === 'INPUT' && !['button', 'checkbox', 'radio'].includes(a.type)) || a.isContentEditable)) return true;
-  return !!document.querySelector('.ask-back, .sheet-back, .sheet');
-};
-const sigOf = () => { try { return JSON.stringify([L, PL, SEEN, CR, CN, EVS, PLAN && [PLAN.version, PLAN.status, (PLAN.comments || []).length]]); } catch (e) { return String(Date.now()); } };
-async function quietRefresh(all) {
-  if (freshBusy || refreshing || document.hidden || !key) return;
-  freshBusy = true;
+// ---------- the pulse: what changed on the server ----------
+// area (op pulse) -> what to read again; CH+ = only the conversations since the newest one here, CHM = stars + story marks
+const AREA = { list: ['L'], chats: ['CH+'], stars: ['CHM'], seen: ['SEEN'], chatnotes: ['CN'], chars: ['CR', 'CRS'], catalog: ['VC', 'W'],
+  plans: ['PL', 'PLAN'], events: ['EV'], tz: ['TZ'], mail: ['MST', 'MLG', 'MBO'], wishes: ['WS'] };
+const OLD = 5 * 60e3;   // the numbers (stats and the cards under them) change all the time: again every 5 minutes while shown
+let PV = null, pulsing = false, lastPulse = 0;
+async function pulse() {
+  if (pulsing || gated || document.hidden) return;
+  pulsing = true; lastPulse = Date.now();
   try {
-    const keys = [...HAVE].filter((k) => all || !HEAVY.has(k));
-    const before = sigOf();
-    await reload(keys);
-    if (planId) PLAN = await api('plan', { id: planId }).catch(() => PLAN);
-    lastFresh = Date.now();
-    if (all || sigOf() !== before) {
-      if (busyHere()) reBadge();
-      else { const y = scrollY; draw(); scrollTo(0, y); }
-    }
+    const r = await api('pulse');
+    const moved = PV ? Object.keys(r.v || {}).filter((a) => r.v[a] !== PV[a]) : [];
+    PV = r.v || {};
+    const keys = new Set(moved.flatMap((a) => AREA[a] || []));
+    const old = (k) => HAVE.has(k) && Date.now() - (AT[k] || 0) > OLD;
+    if ((NEED[tab] || []).includes('S') && old('S')) keys.add('S');
+    if (tab === 'overview') ['SIM', 'CZ', 'AB'].filter(old).forEach((k) => keys.add(k));
+    if (HAVE.has('CH') && chRange === 'today' && chDay && chDay !== dayIL()) keys.add('CH');   // a new day: today's conversations
+    const jobs = [...keys].map((k) => (k === 'CH+' ? (HAVE.has('CH') && !keys.has('CH') ? chatsSince() : null)
+      : k === 'CHM' ? (HAVE.has('CH') ? loadChatMeta() : null)
+      : k === 'PLAN' ? (planId && PLAN ? api('plan', { id: planId }).then((x) => { if (x.plan?.id === planId) PLAN = x; }) : null)
+      : HAVE.has(k) ? refetch([k]) : null)).filter(Boolean);
+    if (jobs.length) { await Promise.allSettled(jobs); later(); }
   } catch (e) {}
-  freshBusy = false;
+  pulsing = false;
 }
-// back after 20 s or more away = everything again; the 60 s beat = the light parts
-const back = () => { if (!document.hidden && Date.now() - lastFresh > 20e3) quietRefresh(true); };
+setInterval(pulse, 20e3);
+// back on the page (the tab / the home-screen app shown again, the window focused): ask at once
+const back = () => { if (!document.hidden && Date.now() - lastPulse > 4e3) pulse(); };
 document.addEventListener('visibilitychange', back);
 addEventListener('focus', back);
-addEventListener('pageshow', (e) => { if (e.persisted) quietRefresh(true); });
-setInterval(() => quietRefresh(false), 60e3);
+addEventListener('pageshow', back);
+
+// ---------- painting: patch the screen in place ----------
+// Every screen is still written as HTML from the data, but it never replaces what is on screen: patch() walks the new HTML
+// against the live page and changes only what differs - a new row is inserted, a changed number changes, everything else (a
+// picture, an open <details>, what he typed, a frame, a chart's box) stays the very same node. Rows are matched by their key
+// (KEYS - data-k, id or the row's own id), so a new row on top doesn't rewrite the ones under it.
+// data-own = a box its own code fills (a chart, a frame, a card that loads by itself): the page's patch leaves it alone.
+const KEYS = ['data-k', 'id', 'data-chat', 'data-person', 'data-plan', 'data-cropen', 'data-story-open', 'data-mlog', 'data-cncard', 'data-evopen', 'data-msample', 'data-chchar', 'data-stchar'];
+const keyOf = (n) => { if (n.nodeType !== 1) return null; const own = n.getAttribute('data-own'); if (own) return 'own=' + own + ':' + (n.id || ''); for (const a of KEYS) { const v = n.getAttribute(a); if (v) return a + '=' + v; } return null; };
+function patch(el, html) {
+  const t = document.createElement('template');
+  t.innerHTML = html;
+  kids(el, t.content);
+}
+function kids(from, to) {
+  const byKey = new Map();
+  for (let n = from.firstChild; n; n = n.nextSibling) { const k = keyOf(n); if (k && !byKey.has(k)) byKey.set(k, n); }
+  let cur = from.firstChild;
+  for (const nn of [...to.childNodes]) {
+    const k = keyOf(nn);
+    let m = null;
+    if (k) { m = byKey.get(k) || null; if (m && m.tagName !== nn.tagName) m = null; if (m) byKey.delete(k); }
+    else if (cur && !keyOf(cur) && cur.nodeType === nn.nodeType && (cur.nodeType !== 1 || cur.tagName === nn.tagName)) m = cur;
+    if (!m) { from.insertBefore(nn, cur); continue; }
+    if (m === cur) cur = cur.nextSibling; else from.insertBefore(m, cur);
+    morph(m, nn);
+  }
+  while (cur) { const nx = cur.nextSibling; cur.remove(); cur = nx; }
+}
+function morph(a, b) {
+  if (a.nodeType !== 1) { if (a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; return; }
+  if (a.hasAttribute('data-own') && a.getAttribute('data-own') === b.getAttribute('data-own')) return;
+  const tag = a.tagName, focused = a === document.activeElement;
+  for (const { name, value } of [...b.attributes]) {
+    if (a.getAttribute(name) === value) continue;
+    a.setAttribute(name, value);
+    // the data changed: a box / a switch follows it - unless he is in it right now
+    if (!focused && tag === 'INPUT' && name === 'value') a.value = value;
+    if (!focused && tag === 'INPUT' && name === 'checked') a.checked = true;
+    if (tag === 'OPTION' && name === 'selected') a.selected = true;
+  }
+  for (const { name } of [...a.attributes]) {
+    if (b.hasAttribute(name) || (name === 'open' && tag === 'DETAILS')) continue;   // a section he opened stays open
+    a.removeAttribute(name);
+    if (!focused && tag === 'INPUT' && name === 'checked') a.checked = false;
+  }
+  if (tag === 'TEXTAREA') { if (a.defaultValue !== b.defaultValue) a.defaultValue = b.defaultValue; return; }   // what he typed stays
+  kids(a, b);
+}
+// the place he is reading stays put: before a patch from the server, the element at the reading line and where it is on screen;
+// after it, the page moves by exactly what changed above it. (The browsers' own scroll anchoring is off - Safari has none, and
+// two would fight.) Something new above him = a small "חדש למעלה" pill, never a jump.
+let bgPaint = false, booting = false;
+function paint(html) {
+  const pane = $('#pane');
+  if (!pane) return;
+  let chain = null;
+  if (bgPaint && lockY == null && (scrollY > 0 || !booting)) {
+    const r = pane.getBoundingClientRect(), line = Math.min(innerHeight * 0.33, 260);
+    let hit = document.elementFromPoint(r.left + r.width / 2, line);
+    // a gap between rows hits their box: go down to the row at (or right under) the reading line - the box itself doesn't move
+    while (hit && hit.firstElementChild && !hit.hasAttribute('data-own')) { const c = [...hit.children].find((x) => x.getBoundingClientRect().bottom > line); if (!c) break; hit = c; }
+    if (hit && hit !== pane && pane.contains(hit)) { chain = []; for (let n = hit; n && n !== pane; n = n.parentElement) chain.push([n, n.getBoundingClientRect().top]); }
+  }
+  patch(pane, html);
+  if (!chain) return;
+  for (const [n, top] of chain) {
+    if (!n.isConnected || !pane.contains(n)) continue;
+    const d = Math.round(n.getBoundingClientRect().top - top);
+    if (d) scrollTo(0, scrollY + d);
+    if (d > 40 && !booting) newPill();
+    return;
+  }
+}
+function newPill() {
+  if ($('.new-pill')) return;
+  document.body.insertAdjacentHTML('beforeend', `<button class="new-pill" data-newpill>${IC.upArrow}חדש למעלה</button>`);
+}
+addEventListener('scroll', () => { if (scrollY < 60) document.querySelector('.new-pill')?.remove(); }, { passive: true });
+// a refresh from the server: drawn now, or - while a window / a question is open - once it closes (only the menu's numbers now)
+let laterT = 0, dirty = false;
+const later = () => { if (!laterT) laterT = setTimeout(() => { laterT = 0; bgRender(); }, 0); };
+const busy = () => lockY != null || !!document.querySelector('.ask-back, .pv');
+function bgRender() {
+  if (gated || !$('#pane')) return;
+  if (busy()) { dirty = true; frame(); return; }
+  dirty = false; bgPaint = true;
+  try { draw(); } finally { bgPaint = false; }
+}
+const unbusy = () => { if (dirty) later(); };
+// his own change: the tab drawn now (patched in place) - or, behind an open window, when it closes
+const redraw = () => { if (busy()) { dirty = true; frame(); } else draw(); };
+
+// ---------- the device's copy (IndexedDB): open at once with the last data, then patch to the fresh one ----------
+const CACHED = {
+  W: [() => W, setW], L: [() => L, (v) => { L = v; mergeSeen(v.seen); }], S: [() => S, (v) => { S = v; }], EV: [() => EVS, (v) => { EVS = v; }],
+  PL: [() => PL, (v) => { PL = v; }], SEEN: [() => SEEN, mergeSeen], CRS: [() => CRS, (v) => { CRS = v; }], CN: [() => CN, (v) => { CN = v; }],
+  CH: [() => (chRange === 'today' ? { CH, stars: [...stars], picks: [...picks.values()], day: chDay } : undefined),
+    (v) => { CH = v.CH; stars = new Set(v.stars); picks = new Map(v.picks.map((p) => [p.key, p])); chDay = v.day; chRange = 'today'; priceAvg(); }],
+};
+let idbP = null;
+const idb = () => (idbP ||= new Promise((ok, no) => { const r = indexedDB.open('backstage', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }));
+function cacheRead() {
+  return idb().then((db) => new Promise((ok) => {
+    const out = {}, rq = db.transaction('kv').objectStore('kv').openCursor();
+    rq.onsuccess = () => { const c = rq.result; if (c) { out[c.key] = c.value; c.continue(); } else ok(out); };
+    rq.onerror = () => ok({});
+  })).catch(() => ({}));
+}
+// saved later, when the page is idle, all at once (copying the data blocked the first paint)
+const toSave = new Set();
+let saveT = 0;
+function cacheSave(k) {
+  if (!CACHED[k]) return;
+  toSave.add(k);
+  if (!saveT) saveT = setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(cacheFlush, { timeout: 3000 }) : cacheFlush()), 2500);
+}
+function cacheFlush() {
+  saveT = 0;
+  const keys = [...toSave]; toSave.clear();
+  idb().then((db) => {
+    const st = db.transaction('kv', 'readwrite').objectStore('kv');
+    for (const k of keys) { let v; try { v = CACHED[k][0](); } catch (e) { continue; } if (v != null) st.put({ at: Date.now(), day: dayIL(), v }, k); }
+  }).catch(() => {});
+}
+function cacheClear() { try { idb().then((db) => db.transaction('kv', 'readwrite').objectStore('kv').clear()).catch(() => {}); } catch (e) {} }
+async function boot() {
+  await null;   // after the whole script ran
+  booting = true;
+  const cache = Promise.race([cacheRead(), new Promise((r) => setTimeout(() => r({}), 3000))]);   // (nothing waits for it)
+  draw();       // the tab's data is asked for at once - the device's copy, if it comes first, is shown meanwhile
+  // the first stamps once the tab's data is here (the server answers one call at a time - the screen's data goes first)
+  need(NEED[tab] || []).catch(() => {}).finally(() => pulse());
+  const c = await cache;
+  for (const [k, x] of Object.entries(c)) {
+    if (HAVE.has(k) || !CACHED[k] || !x || !x.v || Date.now() - x.at > 2 * 864e5 || ((k === 'S' || k === 'CH') && x.day !== dayIL())) continue;
+    try { CACHED[k][1](x.v); HAVE.add(k); STALE.add(k); } catch (e) {}
+  }
+  if (STALE.size) { refreshing = true; bgRender(); await refetch([...STALE]); refreshing = false; }
+  STALE.clear();
+  bgRender();
+  booting = false;
+}
 
 // ---------- the frame: sidebar (desktop), tab bar (phone) ----------
 const TABS = [['overview', 'סקירה', 'home'], ['plans', 'תוכניות', 'plan'], ['chars', 'דמויות', 'cast'], ['chats', 'שיחות', 'comment'], ['people', 'אנשים', 'people'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות', 'idea'], ['content', 'תוכן', 'content'], ['videos', 'סרטונים', 'video'], ['publish', 'פרסום', 'story'], ['mail', 'מיילים', 'mail'], ['tz', 'ציפציפ', 'spark'], ['costs', 'הוצאות', 'dollar']];
 const TITLE = { ...Object.fromEntries(TABS.map(([k, l]) => [k, l])), more: 'עוד' };   // more = the phone's menu of the rest
-const openReq = () => L.requests.filter((r) => !r.done).length;
-const newIdeas = () => (L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 7 * 864e5).length;
-const unchecked = () => L.comments.filter((c) => c.unchecked && !c.hidden).length;
-// the numbers on the menu = what is NEW since he last opened that part (his ask: "can I make the mark disappear?") -
-// opening פניות / תוכן clears it; something new brings it back. Kept on this device.
-// since 2026-11-06 also on the server (owner/seen): one look clears the mark on the phone, the computer and the home-screen app
+// the numbers on the menu = what is NEW since he last opened that part (his ask: "can I make the mark disappear?") - opening
+// פניות / רעיונות / תוכן / סרטונים clears it; something new brings it back. Kept on the server (owner/seen), so one look clears
+// the mark on the phone, the computer and the home-screen app (the pulse tells the others), and on this device too.
 const seenHere = (k) => { try { return +localStorage.getItem('bs-seen-' + k) || 0; } catch (e) { return 0; } };
 let SEEN = {};   // owner/seen - what he already looked at, on every device
 const seen = (k) => Math.max(seenHere(k), SEEN[k] || 0);
+// what each opened-to-clear number counts, from a given "seen" moment
+const COUNT = {
+  requests: (s) => L.requests.filter((r) => !r.done && (r.t || 0) > s).length,
+  content: (s) => L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > s).length,
+  ideas: (s) => (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(s, Date.now() - 7 * 864e5)).length,
+  // archive marks waiting to be brought (his ask 2026-11-17) - a resident marked a post on /archive/ since he last opened סרטונים
+  videos: (s) => (L.wishes || []).filter((w) => (w.last || 0) > s).length,
+};
 const markSeen = (k) => {
   const now = Date.now();
   try { localStorage.setItem('bs-seen-' + k, String(now)); } catch (e) {}
-  if ((HAVE.has('SEEN') || HAVE.has('L')) && (!SEEN[k] || now - SEEN[k] > 60e3)) { SEEN = { ...SEEN, [k]: now }; api('seen', { k }).catch(() => {}); }
+  // the server's mark moves whenever something here would still count on his other devices
+  if (L && COUNT[k](SEEN[k] || 0) > 0) { SEEN = { ...SEEN, [k]: now }; api('seen', { k }).catch(() => {}); }
 };
-const badges = () => !L ? { plans: (PL.plans || []).filter((p) => !planOld(p)).length, chars: crBadge() } : ({
-  requests: L.requests.filter((r) => !r.done && (r.t || 0) > seen('requests')).length,
-  content: L.comments.filter((c) => c.unchecked && !c.hidden && (c.t || 0) > seen('content')).length,
-  ideas: (L.ideas || []).filter((x) => !x.hidden && (x.t || 0) > Math.max(seen('ideas'), Date.now() - 7 * 864e5)).length,
+const badges = () => ({
+  ...(L ? Object.fromEntries(Object.entries(COUNT).map(([k, f]) => [k, f(seen(k))])) : {}),
   // plans waiting for his OK that he hasn't opened in their latest version - reading one clears it (his ask, 2026-11-07)
   // = exactly the "מחכה לך" list (his note 2026-11-08: the tab said 3, the list 2 - a replaced plan he never opened was counted)
   plans: (PL.plans || []).filter((p) => !planOld(p)).length,
   chars: crBadge(),   // characters with something new for him since he last opened them (a session's answer, a changed field)
-  // archive marks waiting to be brought (his ask 2026-11-17: "this should be a notification on my backstage") - a resident
-  // marked a post on /archive/ since he last opened סרטונים; opening it clears the number, a new mark brings it back
-  videos: (L.wishes || []).filter((w) => (w.last || 0) > seen('videos')).length,
 });
+const PHONE = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['plans', 'תוכניות', 'plan'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']];
+const IN_MORE = ['chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'];
+// the frame is drawn once and then patched: the active tab, the numbers, the refresh button turning
+function frame() {
+  const badge = badges(), phoneTab = IN_MORE.includes(tab) ? 'more' : tab, sp = refreshing ? ' spin' : '';
+  const moreBadge = IN_MORE.reduce((a, k) => a + (badge[k] || 0), 0);
+  const html = `<div class="app">
+    <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
+      <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
+      <nav class="nav foot"><button data-refresh class="${sp}">${IC.refresh}<span>רענון</span></button><a href="/wiki/" target="_blank">${IC.out}<span>לאתר</span></a><a href="/all/" target="_blank">${IC.globe}<span>כל הדפים שלי</span></a></nav></aside>
+    <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf${sp}" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane" data-own="pane"></div></main>
+    <nav class="tabbar">${PHONE.map(([k, l, i]) => { const n = k === 'more' ? moreBadge : badge[k];
+      return `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${n ? `<em>${n}</em>` : ''}</button>`; }).join('')}</nav></div>`;
+  if ($('#pane')) patch($('#app'), html); else $('#app').innerHTML = html;
+}
+const reBadge = () => frame();
+// the one way a tab is drawn: the frame, then the tab's own view (when its data is here), patched in place
+let drawWait = '';
 function draw() {
+  if (gated) return;
   // ideas have their own tab (his ask, 2026-11-05: "I need an ideas tab"); the old names open their part straight away
   if (['comments', 'stickers'].includes(tab)) contentSeg = tab;
   if (!TITLE[tab]) tab = { comments: 'content', stickers: 'content', story: 'publish', video: 'publish', stats: 'overview', data: 'overview' }[tab] || 'overview';
   const miss = (NEED[tab] || []).filter((k) => !HAVE.has(k));
-  if (!miss.length && (tab === 'requests' || tab === 'content' || tab === 'ideas' || tab === 'videos')) markSeen(tab);
-  const badge = badges();
-  const phoneTab = ['chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'].includes(tab) ? 'more' : tab;
-  const moreBadge = badge.requests + badge.ideas + badge.content + badge.chars + (badge.videos || 0);
-  $('#app').innerHTML = `<div class="app">
-    <aside class="side"><div class="brand"><img src="/verse/logo-512.png" alt="שלומיוורס"><b>מאחורי הקלעים</b></div>
-      <nav class="nav">${TABS.map(([k, l, i]) => `<button data-tab="${k}" class="${k === tab ? 'on' : ''}">${IC[i]}<span>${l}</span>${badge[k] ? `<em>${badge[k]}</em>` : ''}</button>`).join('')}</nav>
-      <nav class="nav foot"><button data-refresh>${IC.refresh}<span>רענון</span></button><a href="/wiki/" target="_blank">${IC.out}<span>לאתר</span></a><a href="/all/" target="_blank">${IC.globe}<span>כל הדפים שלי</span></a></nav></aside>
-    <main class="main"><div class="mtop"><img src="/verse/logo-160.png" alt=""><h1>${tab === 'overview' ? 'מאחורי הקלעים' : TITLE[tab]}</h1><button class="rf" data-refresh aria-label="רענון">${IC.refresh}</button><a href="/wiki/" target="_blank" aria-label="לאתר">${IC.out}</a></div><div id="pane"></div></main>
-    <nav class="tabbar">${[['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['plans', 'תוכניות', 'plan'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']].map(([k, l, i]) =>
-      `<button data-tab="${k}" class="${k === phoneTab ? 'on' : ''}">${IC[i]}<span>${l}</span>${k === 'more' && moreBadge ? `<em>${moreBadge}</em>` : ''}</button>`).join('')}</nav></div>`;
+  if (!miss.length && COUNT[tab]) markSeen(tab);
+  frame();
   history.replaceState(null, '', '#' + tab);
   if (miss.length) {
-    $('#pane').innerHTML = '<div class="empty">טוען…</div>';
-    const t = tab;
-    need(miss).then(() => { if (tab === t) draw(); }).catch((e) => { if (tab === t && e.message !== 'key') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; });
+    const t = tab, todo = miss.filter((k) => !ERR[k]);
+    paint(waitBox(miss.join(',')));
+    // one waiter per tab (two draws while loading used to draw the tab twice when the data came)
+    if (todo.length && drawWait !== t) { drawWait = t; const done = () => { if (drawWait === t) drawWait = ''; if (tab === t) draw(); }; need(todo).then(done, done); }
     return;
   }
   ({ overview, plans, chars, chats, people, requests, ideas, content, videos, publish, mail: mails, tz, costs, more })[tab]();
   // the tab is on screen: now the menu's numbers (what's new in each part), quietly
-  if (MENU.some((k) => !HAVE.has(k))) need(MENU).then(reBadge).catch(() => {});
+  if (MENU.some((k) => !HAVE.has(k))) need(MENU).then(frame, frame);
 }
-const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
-// the tab marks again without drawing the page (a plan he just opened stops counting)
-function reBadge() {
-  const b = badges(), more = b.requests + b.ideas + b.content + b.chars + (b.videos || 0);
-  const set = (btn, n) => { if (!btn) return; let em = btn.querySelector('em'); if (!n) { if (em) em.remove(); return; } if (!em) { em = document.createElement('em'); btn.append(em); } em.textContent = n; };
-  document.querySelectorAll('.nav button[data-tab]').forEach((btn) => set(btn, b[btn.dataset.tab]));
-  set(document.querySelector('.tabbar button[data-tab="more"]'), more);
-}
+const go = (t) => { if (t === 'plans') { planId = null; PLAN = null; window.onmessage = null; } if (t === 'chars') { crId = null; } document.querySelector('.new-pill')?.remove(); tab = t; draw(); scrollTo(0, 0); };   // the תוכניות tab always opens the list (his note 2026-11-07)
 const isPhone = () => matchMedia('(max-width: 900px)').matches;
 // the phone's "עוד": what doesn't fit in five tabs
 function more() {
   const b = badges();
-  $('#pane').innerHTML = `<div class="menu-list">${[['chars', 'דמויות: פרופיל, מה מצחיק, משפטי מחץ', 'cast'], ['tz', 'ציפציפ · ח24: הציוצים, הדיווחים, המתגים', 'spark'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
+  paint(`<div class="menu-list">${[['chars', 'דמויות: פרופיל, מה מצחיק, משפטי מחץ', 'cast'], ['tz', 'ציפציפ · ח24: הציוצים, הדיווחים, המתגים', 'spark'], ['requests', 'פניות', 'inbox'], ['ideas', 'רעיונות: הקיר של הצופים', 'idea'], ['content', 'תוכן: תגובות, סטיקרים', 'content'], ['videos', 'סרטונים: כל הסרטונים, להסתיר / להחזיר', 'video'], ['publish', 'פרסום: סטורי, סרטון חדש', 'story'], ['mail', 'מיילים: מה נשלח ומה יישלח', 'mail'], ['costs', 'הוצאות: כמה עולה ה-AI', 'dollar']].map(([k, l, i]) =>
     `<button data-tab="${k}">${IC[i]}<span>${l}</span>${b[k] ? `<em>${b[k]}</em>` : ''}</button>`).join('')}
-    <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`;
+    <a class="btn" href="/all/" target="_blank" style="justify-content:center">${IC.globe}כל הדפים שלי</a></div>`);
 }
 
 
@@ -1048,22 +1227,21 @@ const CR_LISTS = [['nuances', 'ניואנסים'], ['catchphrases', 'קאצ\'פ�
 const crFace = (c) => c.id === 'guide' ? '<img class="ch-av" src="/verse/logo-160.png" alt="" loading="lazy" style="object-fit:contain;background:#111">' : CR_TREE.has(c.id) ? `<img class="ch-av" src="/friedman/img/${c.id}.jpg" alt="" loading="lazy">` : C[c.id]?.img ? `<img class="ch-av" src="${abs(C[c.id].img)}" alt="" loading="lazy">` : `<span class="ch-av">${esc((c.name || '?')[0])}</span>`;
 const crSeen = (id) => SEEN['char:' + id] || 0;
 const crHasSheet = (c) => !!(c.sheet && c.sheet.person);
-const crNotesOf = (id) => (CR?.notes || []).filter((n) => n.char === id);
+const crX = () => CR || CRS;   // the tab's full list once loaded, else the slim one (the menu's number)
+const crNotesOf = (id) => (crX()?.notes || []).filter((n) => n.char === id);
 const crOpen = (id) => crNotesOf(id).filter((n) => n.by === 'shlomi' && !n.done).length;
 // the last time something in the character changed for him: the sheet / life / love, or a session's answer to his note
-const crLast = (c) => Math.max(0, ...['sheet', 'life', 'love', 'viral'].map((f) => CR?.changed?.[c.id]?.[f] || 0), ...crNotesOf(c.id).filter((n) => n.by === 'claude').map((n) => n.t || 0));
+const crLast = (c) => Math.max(0, ...['sheet', 'life', 'love', 'viral'].map((f) => crX()?.changed?.[c.id]?.[f] || 0), ...crNotesOf(c.id).filter((n) => n.by === 'claude').map((n) => n.t || 0));
 // the starting line (his note 2026-11-11: "all are new" - the 85 sheets and first scores went in at once): what changed before
 // it is nobody's news; after it, a change counts once he has seen the character, a session's answer to his note always
 const CR_SINCE = 1794409057234;   // 2026-11-11, the deploy that wrote the 85 sheets + first scores
 const crNew = (c) => { const seen = Math.max(crSeen(c.id), CR_SINCE); return seen > 0 ? crLast(c) > seen : crNotesOf(c.id).some((n) => n.by === 'claude'); };
-const crBadge = () => CR ? CR.chars.filter((c) => (!c.hidden || c.id === CR_GUIDE) && crNew(c)).length : 0;
+const crBadge = () => crX() ? crX().chars.filter((c) => (!c.hidden || c.id === CR_GUIDE) && crNew(c)).length : 0;
 // drafts: what he typed and didn't send yet, per box, kept on this device (his note: the text vanished on another tap)
 const crDraftKey = (id, anchor) => `cr-draft:${id}:${anchor}`;
 const crDraft = (id, anchor) => { try { return localStorage.getItem(crDraftKey(id, anchor)) || ''; } catch (e) { return ''; } };
 const crKeep = (id, anchor, v) => { try { v ? localStorage.setItem(crDraftKey(id, anchor), v) : localStorage.removeItem(crDraftKey(id, anchor)); } catch (e) {} };
-function crLoad(then) { return api('charList', {}).then((r) => { CR = r; reBadge(); if (then) then(); }).catch((e) => { if (e.message !== 'key' && tab === 'chars') $('#pane').innerHTML = `<div class="empty">לא נטען: ${esc(e.message)}</div>`; }); }
 function chars() {
-  if (!CR) { $('#pane').innerHTML = '<div class="empty">טוען את הדמויות…</div>'; crLoad(() => { if (tab === 'chars') chars(); }); return; }
   if (crId) return crView();
   const words = crQ.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const all = CR.chars.filter((c) => !c.hidden && c.id !== CR_GUIDE);
@@ -1074,7 +1252,7 @@ function chars() {
   const by = { love: (a, b) => (b.love || 0) - (a.love || 0), viral: (a, b) => (b.viral || 0) - (a.viral || 0), name: (a, b) => String(a.name).localeCompare(String(b.name), 'he') }[crSort];
   const list = all.filter((c) => seg(c) && words.every((w) => hay(c).includes(w))).sort(by);
   const n = (f) => all.filter(f).length;
-  $('#pane').innerHTML = `<div class="top"><div><h1>דמויות</h1><p>כל דמות כבן אדם: מי זה, איך מדבר, מה מצחיק, והחיים שלו. כותבים הערה אחת על הדמות, בבלגן - סשן מסדר אותה לדף ועונה מתחת, והשינוי מסומן בירוק בפעם הבאה שפותחים.</p></div></div>
+  paint(`<div class="top"><div><h1>דמויות</h1><p>כל דמות כבן אדם: מי זה, איך מדבר, מה מצחיק, והחיים שלו. כותבים הערה אחת על הדמות, בבלגן - סשן מסדר אותה לדף ועונה מתחת, והשינוי מסומן בירוק בפעם הבאה שפותחים.</p></div></div>
     <div class="ch-bar"><input class="vc-q" placeholder="חיפוש - שם, עולם, כל מילה" value="${esc(crQ)}" data-cr-q>
       <div class="seg sm">${[['all', 'הכול', all.length], ['news', 'עודכן מאז שראית', n(crNew)], ['open', 'הערות פתוחות', n((c) => crOpen(c.id))]].map(([k, l, c]) =>
         `<button data-crseg="${k}" class="${crSeg === k ? 'on' : ''}">${l} · ${c}</button>`).join('')}</div>
@@ -1083,8 +1261,8 @@ function chars() {
       return `<button class="item" data-cropen="${g.id}">${crFace(g)}<div class="body"><b>המדריך והמיתולוגיה</b><p>מי המדריך, איך הוא מדבר, והאגדות של השלומיוורס</p>
         <div class="ch-tags">${crNew(g) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}</div></div></button>`; })()}${list.map((c) => { const open = crOpen(c.id);
       return `<button class="item" data-cropen="${c.id}">${crFace(c)}<div class="body"><b>${esc(c.name)}</b><p>${esc(c.world || '')}${c.tagline ? ' · ' + esc(c.tagline) : ''}</p>
-        <div class="ch-tags">${c.love ? `<span class="tag">אהוב ${c.love}</span>` : ''}${c.viral ? `<span class="tag">ויראלי ${c.viral}</span>` : ''}${crNew(c) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${crHasSheet(c) ? '' : '<span class="tag red">בלי דף</span>'}</div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`;
-  const inp = $('[data-cr-q]'); if (inp) inp.oninput = (e) => { crQ = e.target.value; const pos = e.target.selectionStart; chars(); const x = $('[data-cr-q]'); x.focus(); x.setSelectionRange(pos, pos); };
+        <div class="ch-tags">${c.love ? `<span class="tag">אהוב ${c.love}</span>` : ''}${c.viral ? `<span class="tag">ויראלי ${c.viral}</span>` : ''}${crNew(c) ? '<span class="tag ok">עודכן מאז שראית</span>' : ''}${open ? `<span class="tag or">${open === 1 ? 'הערה פתוחה' : open + ' הערות פתוחות'}</span>` : ''}${crHasSheet(c) ? '' : '<span class="tag red">בלי דף</span>'}</div></div></button>`; }).join('') || '<div class="empty">אין דמות כזאת.</div>'}</div>`);
+  const inp = $('[data-cr-q]'); if (inp) inp.oninput = (e) => { crQ = e.target.value; chars(); };   // patched in place: the box keeps its focus and its text
 }
 // the notes on one box (his, with their answers under them) + the box to write one; the text is a draft until sent
 function crNotesHtml(c, anchor, open) {
@@ -1103,7 +1281,7 @@ function crView() {
   const lifeRows = life.map((x, i) => { const a = 'life:' + x.v, k = crNotesOf(c.id).filter((n) => n.anchor === a && n.by === 'shlomi' && !n.done).length, v = CR.videos[x.v];
     return `<div class="ch-f"><div class="ch-r ${fresh('life') ? 'new' : ''}"><div class="v ch-v"><span class="d"><b>${i + 1}</b><br>${esc(x.d ? dm(x.d) : '')}</span><span>${esc(x.e)}${v ? `<small>${esc(v.title)}</small>` : ''}</span></div>
       <button class="ch-nb ${k ? 'has' : ''}" data-crrow="${esc(a)}">${IC.comment}${k || 'הערה'}</button></div>${crNotesHtml(c, a, crOpenRows.has(a))}</div>`; }).join('');
-  $('#pane').innerHTML = `<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
+  paint(`<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
     <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}</div></div>
     ${(c.id === CR_GUIDE ? [] : [['love', 'כמה אהוב'], ['viral', 'כמה ויראלי כרגע']]).map(([f, l]) => `<div class="ch-love"><b>${l}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crscore="${f}" data-v="${i + 1}" class="${i + 1 <= (c[f] || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>`).join('')}
     <div class="ch-sec"><h3>ההערות שלך על ${esc(c.name)}</h3>${crNotesHtml(c, '', true)}</div>
@@ -1112,7 +1290,7 @@ function crView() {
       ${CR_LISTS.map(([k, l]) => `<h3>${l}</h3>${(s[k] || []).length ? `<ul class="ch-ul">${s[k].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="ch-p dim">אין עדיין</p>'}`).join('')}</div>`
       : '<div class="ch-sec"><p class="ch-p ch-miss">עוד אין דף לדמות הזאת. אפשר לכתוב עליה הערה, וסשן יכתוב לה דף.</p></div>'}
     ${c.id === CR_GUIDE ? '' : crGreetHtml(c)}
-    ${c.id === CR_GUIDE ? '' : `<div class="ch-sec"><h3>החיים - אירוע לכל סרטון${fresh('life') ? ' <span class="tag ok">עודכן</span>' : ''}</h3>${lifeRows || '<p class="ch-p dim">עוד אין סרטונים איתו בשלומיוורס.</p>'}</div>`}`;
+    ${c.id === CR_GUIDE ? '' : `<div class="ch-sec"><h3>החיים - אירוע לכל סרטון${fresh('life') ? ' <span class="tag ok">עודכן</span>' : ''}</h3>${lifeRows || '<p class="ch-p dim">עוד אין סרטונים איתו בשלומיוורס.</p>'}</div>`}`);
   // every keystroke is kept (his note: the text vanished when he tapped something else before sending)
   document.querySelectorAll('[data-ctext]').forEach((ta) => { ta.oninput = () => crKeep(c.id, ta.dataset.ctext, ta.value); });
   const gta = document.querySelector('[data-gtext]'); if (gta) gta.oninput = () => crKeep(c.id, '__greet', gta.value);
@@ -1140,7 +1318,7 @@ function crOpenChar(id) {
   api('seen', { k: 'char:' + id }).catch(() => {});
   reBadge();
 }
-const crRedraw = () => { const y = scrollY; crView(); scrollTo(0, y); };
+const crRedraw = () => crView();   // patched in place - the page stays where he was
 async function crSend(b) {
   const anchor = b.dataset.csend, ta = document.querySelector(`[data-ctext="${CSS.escape(anchor)}"]`), text = ta ? ta.value.trim() : '';
   if (!text) return;
@@ -1162,30 +1340,23 @@ async function crScore(b) {   // how loveable / how viral right now - a tap, int
 // The engine posts by itself 3 times a day (his call: no approval); here he sees what went up, takes down what he doesn't like,
 // answers the reports (a push brings him here), flips the switches (open to everyone / posts by itself / pictures / a silent
 // day) and decides who gets more room (stars) or none (out). "להריץ עכשיו" runs the engine once at once.
-const tzSay = (t) => { const d = document.createElement('div'); d.className = 'bs-toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 3200); };
-let TZ = null, TZC = null, TZR = null, tzBusy = false, tzSeg = 'runs';
+let TZ = null, TZC = null, TZR = null, tzSeg = 'runs', tzRunning = false;
 const TZ_ST = { live: ['באוויר', 'or'], draft: ['טיוטה', ''], skipped: ['דולג', ''], hidden: ['הוסתר', 'red'] };
-function loadTz() {
-  Promise.all([api('tzList', {}), api('tzReports', {})]).then(([l, r]) => { TZ = l; TZR = r; }, (e) => { TZ = { error: e.message }; })
-    .finally(() => { if (tab === 'tz') tz(); });
-}
 const tzName = (id) => (id === 'charadot' ? 'ח24' : C[id]?.name || id);
 const tzFace = (p) => (p.by === 'charadot' ? `<img class="vx-av" src="/charadot/img/avatar.png" alt="" style="width:40px;height:40px;border-radius:50%">` : p.by ? face(p.by) : fanFace({ nick: p.fan?.nick, photo: p.fan?.photo }));
 function tzPost(p) {
   const [l, cls] = TZ_ST[p.status] || [p.status, ''];
   const acts = p.status === 'draft' ? `<button class="btn" data-tzpub="${p.id}">לפרסם</button><button class="btn" data-tzskip="${p.id}">לדלג</button>`
     : p.status === 'live' ? `<button class="btn" data-tzhide="${p.id}">להוריד</button>` : '';
-  return `<div class="item">${tzFace(p)}<div class="body"><b>${esc(p.by ? tzName(p.by) : p.fan?.nick || '')}</b> <span class="tag ${cls}">${l}</span>${p.parent ? ' <span class="tag">תגובה</span>' : ''}${p.quote ? ' <span class="tag">מצטט את ח24</span>' : ''}${p.reports ? ` <span class="tag red">${p.reports} דיווחים</span>` : ''}
+  return `<div class="item" data-k="p${esc(p.id)}">${tzFace(p)}<div class="body"><b>${esc(p.by ? tzName(p.by) : p.fan?.nick || '')}</b> <span class="tag ${cls}">${l}</span>${p.parent ? ' <span class="tag">תגובה</span>' : ''}${p.quote ? ' <span class="tag">מצטט את ח24</span>' : ''}${p.reports ? ` <span class="tag red">${p.reports} דיווחים</span>` : ''}
     <small> · ${p.t ? (p.t > Date.now() ? 'יעלה ' + new Date(p.t).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) : ago(p.t)) : ''}</small><p>${esc(p.text)}</p>
     ${p.link ? `<p class="hint">${esc(p.link.src)}: ${esc(p.link.title)}</p>` : ''}</div>
     <div style="display:flex;flex-direction:column;gap:6px">${acts}<button class="btn" data-tzedit="${p.id}">לערוך</button>${p.status === 'live' ? `<a class="btn" href="/tziftzif/p/${p.id}" target="_blank">לראות</a>` : ''}</div></div>`;
 }
 function tz() {
-  if (!TZ && !tzBusy) { tzBusy = true; loadTz(); }
   const head = `<div class="top"><div><h1>ציפציפ · ח24</h1><p>מה התושבים צייצו, מה ח24 פרסם, הדיווחים והמתגים. <a href="/tziftzif" target="_blank" style="color:#ff9a5c">לציפציפ</a> · <a href="/charadot" target="_blank" style="color:#ff9a5c">לח24</a></p></div>
-    <button class="btn main" data-tzrun>${IC.spark}להריץ עכשיו</button></div>`;
-  if (!TZ || TZ.error) { $('#pane').innerHTML = head + `<div class="empty">${TZ?.error ? 'לא נטען: ' + esc(TZ.error) : 'טוען…'}</div>`; return; }
-  tzBusy = false;
+    <button class="btn main" data-tzrun ${tzRunning ? 'disabled' : ''}>${tzRunning ? 'רץ… (עד דקה וחצי)' : IC.spark + 'להריץ עכשיו'}</button></div>`;
+  if (!want('TZ')) { paint(head + waitBox('TZ')); return; }
   const cfg = TZ.cfg || {}, silent = cfg.silent === TZ.today, reports = TZR?.reports || [];
   const sw = (k, l, on, hint) => `<button class="item" data-tzsw="${k}" data-on="${on ? 0 : 1}" style="cursor:pointer;width:100%;text-align:start"><div class="body"><b>${l}</b><p class="hint">${hint}</p></div><span class="tag ${on ? 'or' : ''}">${on ? 'פועל' : 'כבוי'}</span></button>`;
   const seg = `<div class="seg">${[['runs', 'הריצות'], ['reports', `דיווחים${reports.length ? ` (${reports.length})` : ''}`], ['cast', 'מי מצייץ'], ['switch', 'מתגים']].map(([k, l]) => `<button data-tzseg="${k}" class="${tzSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
@@ -1203,7 +1374,7 @@ function tz() {
       <div style="margin:10px 4px">${rs.map((r) => `<p class="hint">${esc(r.email || r.uid)} · ${ago(r.t)}${r.why ? `: "${esc(r.why)}"` : ''}</p>`).join('')}</div>
       <div style="display:flex;gap:8px"><button class="btn main" data-tzkeep="${id}">להשאיר באתר</button><button class="btn" data-tzdrop="${id}">להוריד</button></div></div>`; }).join('') || '<div class="empty">אין דיווחים פתוחים.</div>';
   } else if (tzSeg === 'cast') {
-    if (!TZC) { api('tzCast', {}).then((r) => { TZC = r; if (tab === 'tz') tz(); }); body = '<div class="empty">טוען…</div>'; }
+    if (!want('TZC')) body = waitBox('TZC');
     else body = `<p class="hint" style="margin-bottom:12px">כוכב = מקבל יותר במה. בחוץ = לא מצייץ בכלל. השאר - לפי האלגוריתם (כמה סרטונים, איך הגיבו לציוצים שלו, מתי צייץ לאחרונה).</p>
       <div>${TZC.all.map((c) => `<div class="item">${face(c.id)}<div class="body"><b>${esc(c.name)}</b>${c.kid ? ' <span class="tag">ילד/ה</span>' : ''}<p class="hint">${esc(c.world || '')} · ${esc(c.role || '')}</p></div>
         <div class="seg"><button data-tzcast="${c.id}" data-v="star" class="${c.star ? 'on' : ''}">כוכב</button><button data-tzcast="${c.id}" data-v="reg" class="${!c.star && !c.off ? 'on' : ''}">רגיל</button><button data-tzcast="${c.id}" data-v="off" class="${c.off ? 'on' : ''}">בחוץ</button></div></div>`).join('')}</div>`;
@@ -1213,7 +1384,7 @@ function tz() {
       const ps = P.filter((p) => p.run === r.id).sort((a, b) => (a.t || a.made) - (b.t || b.made) || a.order - b.order), as = A.filter((a) => a.run === r.id);
       const state = r.bad ? `<span class="tag red">יום שקט</span>` : r.skipped ? `<span class="tag">דולג (שקט)</span>` : `<span class="tag or">${r.made} ציוצים${as.length ? ` · ${as.length} כתבות` : ''}</span>`;
       const drafts = ps.filter((p) => p.status === 'draft').map((p) => p.id);
-      return `<div class="card" style="margin-bottom:14px"><div class="card-h"><h2>${new Date(r.at).toLocaleString('he-IL', { weekday: 'short', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' })} · ${{ morning: 'בוקר', noon: 'צהריים', evening: 'ערב', manual: 'ידני' }[r.slot] || r.slot}</h2>${state}</div>
+      return `<div class="card" data-k="r${esc(r.id)}" style="margin-bottom:14px"><div class="card-h"><h2>${new Date(r.at).toLocaleString('he-IL', { weekday: 'short', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' })} · ${{ morning: 'בוקר', noon: 'צהריים', evening: 'ערב', manual: 'ידני' }[r.slot] || r.slot}</h2>${state}</div>
         ${r.why ? `<p class="hint">${esc(r.why)}</p>` : ''}${(r.cands || []).length ? `<p class="hint">המועמדים (האלגוריתם): ${r.cands.map(tzName).map(esc).join(', ')}</p>` : ''}
         ${as.map((a) => `<div class="item" style="border-color:#e3101b55"><img src="${esc(a.img || '/charadot/img/avatar.png')}" alt="" style="width:64px;height:44px;object-fit:cover;border-radius:8px"><div class="body"><b>ח24: ${esc(a.headline)}</b> <span class="tag ${TZ_ST[a.status]?.[1] || ''}">${TZ_ST[a.status]?.[0] || a.status}</span><p>${esc(a.sub)}</p></div>
           <div style="display:flex;flex-direction:column;gap:6px">${a.status === 'draft' ? `<button class="btn" data-tzpuba="${a.id}">לפרסם</button>` : a.status === 'live' ? `<a class="btn" href="/charadot/a/${a.id}" target="_blank">לראות</a>` : ''}</div></div>`).join('')}
@@ -1221,14 +1392,15 @@ function tz() {
         ${drafts.length ? `<div style="margin-top:10px"><button class="btn main" data-tzpuball="${r.id}">לפרסם את כל הריצה</button></div>` : ''}</div>`;
     }).join('') || '<div class="empty">עוד לא הייתה ריצה. "להריץ עכשיו" - והתושבים מתחילים.</div>';
   }
-  $('#pane').innerHTML = head + seg + `<div style="margin-top:14px">${body}</div>`;
+  paint(head + seg + `<div style="margin-top:14px">${body}</div>`);
 }
 document.addEventListener('click', async (e) => {
   if (tab !== 'tz') return;
   const t = e.target, q = (s) => t.closest(s);
-  const done = (p) => p.then(() => loadTz(), (er) => tzSay(er.message));
+  const again = () => refetch(['TZ']).then(() => { if (tab === 'tz') tz(); });
+  const done = (p) => p.then(again, (er) => toast(er.message));
   if (q('[data-tzseg]')) { tzSeg = q('[data-tzseg]').dataset.tzseg; return tz(); }
-  if (q('[data-tzrun]')) { const b = q('[data-tzrun]'); b.disabled = true; b.textContent = 'רץ… (עד דקה וחצי)'; return api('tzRun', {}).then((r) => { tzSay(r.bad ? 'יום שקט: ' + r.why : r.silent ? 'היום יום שקט' : `${r.made || 0} ציוצים חדשים`); loadTz(); }, (er) => { tzSay(er.message); tz(); }); }
+  if (q('[data-tzrun]')) { if (tzRunning) return; tzRunning = true; tz(); return api('tzRun', {}).finally(() => { tzRunning = false; }).then((r) => { toast(r.bad ? 'יום שקט: ' + r.why : r.silent ? 'היום יום שקט' : `${r.made || 0} ציוצים חדשים`); again(); }, (er) => { toast(er.message); tz(); }); }
   if (q('[data-tzsw]')) { const b = q('[data-tzsw]'); return done(api('tzConfig', { [b.dataset.tzsw]: b.dataset.on === '1' })); }
   if (q('[data-tzarc]')) return done(api('tzConfig', { arc: null }));
   if (q('[data-tzpub]')) return done(api('tzPublish', { posts: [q('[data-tzpub]').dataset.tzpub] }));
@@ -1247,7 +1419,7 @@ document.addEventListener('click', async (e) => {
     const b = q('[data-tzcast]'), id = b.dataset.tzcast, v = b.dataset.v;
     const stars = TZC.all.filter((c) => (c.id === id ? v === 'star' : c.star)).map((c) => c.id), off = TZC.all.filter((c) => (c.id === id ? v === 'off' : c.off)).map((c) => c.id);
     TZC.all.forEach((c) => { if (c.id === id) { c.star = v === 'star'; c.off = v === 'off'; } }); tz();
-    return api('tzConfig', { stars, off }).catch((er) => tzSay(er.message));
+    return api('tzConfig', { stars, off }).catch((er) => toast(er.message));
   }
 });
 
@@ -1255,16 +1427,16 @@ document.addEventListener('click', async (e) => {
 // one key per area (studio, chat, site, design; Mind and Plaxzy apart), so the providers say what each one spent - nothing
 // counted by us. ElevenLabs in credits (a monthly plan, no invented price per credit). EvoLink (Piko's videos): each job's
 // cost as EvoLink reported it, per client, + the balance he has left there (prepaid - he tops up by hand).
-let CS = null, csRange = 'month', csLoading = false;
+let CS = null, csRange = 'month', csAsking = false;
 const CS_AREA = { tziftzif: 'ציפציפ (התושבים מצייצים)', charadot: 'ח24 (כתבות ותמונות)', piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
 const CS_KIND = { images: 'תמונות', video: 'וידאו', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
 const CS_EL = { Music: 'מוזיקה', 'Music - Stems': 'ערוצי מוזיקה', TTS: 'הקראה', STS: 'שינוי קול', STT: 'תמלול', 'Sound Effects': 'אפקטים', 'Voice Generation': 'יצירת קול', 'Voice Library': 'ספריית קולות', Dubbing: 'דיבוב' };
 const usd = (v) => `$${v >= 100 ? Math.round(v) : v.toFixed(2)}`;
-function loadCosts(fresh) {
-  if (csLoading) return;
-  csLoading = true;
-  api('costs', fresh ? { fresh: true } : {}).then((r) => (CS = r), (e) => { if (e.message !== 'key') CS = { error: e.message }; })
-    .finally(() => { csLoading = false; if (tab === 'costs') costs(); });
+// 'לשאול עכשיו': the providers again, not the server's kept copy
+function loadCosts() {
+  if (csAsking) return;
+  csAsking = true; costs();
+  api('costs', { fresh: true }).then((r) => { CS = r; AT.CS = Date.now(); }, (e) => toast('לא נטען: ' + e.message)).finally(() => { csAsking = false; if (tab === 'costs') costs(); });
 }
 const ilDay = (ms) => new Date(ms + 2 * 3600e3).toISOString().slice(0, 10);   // the providers' days are UTC; close enough
 function csFrom() {
@@ -1277,10 +1449,9 @@ function csBars(m, label, unit) {   // m: {key: value} -> bars, biggest first
   return `<div class="cs-bars">${list.map(([k, v]) => `<div class="cs-bar"><span>${esc(label[k] || k)}</span><i style="width:${Math.max(1, v / top * 100)}%"></i><b>${unit === '$' ? usd(v) : `${fmt(Math.round(v))} <small>${unit}</small>`}</b></div>`).join('')}</div>`;
 }
 function costs() {
-  if (!CS && !csLoading) loadCosts(false);
   const seg = `<div class="seg">${[['month', 'החודש'], ['30', '30 יום'], ['90', '90 יום']].map(([k, l]) => `<button data-csr="${k}" class="${k === csRange ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-  if (!CS || CS.error) {
-    $('#pane').innerHTML = `${seg}<div class="empty">${CS?.error ? `לא נטען (${esc(CS.error)})` : 'שואל את OpenAI, EvoLink ו-ElevenLabs…'}</div>`;
+  if (!want('CS')) {
+    paint(`${seg}${waitBox('CS', 'שואל את OpenAI, EvoLink ו-ElevenLabs…')}`);
     return csWire();
   }
   // dollars: OpenAI + EvoLink (Piko's videos); ElevenLabs is credits, apart
@@ -1295,7 +1466,7 @@ function costs() {
   const el = rows.filter((r) => r.src === 'elevenlabs'), E = CS.eleven, elKeys = (E?.keys || []).filter((r) => r.d >= from);
   const pk = oa.filter((r) => r.area === 'piko'), pkVid = pk.filter((r) => r.src === 'evolink'), EV = CS.evolink;
   const pkClients = pkVid.reduce((m, r) => { const k = r.client || 'שלומי'; m[k] = (m[k] || 0) + r.usd; return m; }, {});
-  $('#pane').innerHTML = `${seg}
+  paint(`${seg}
     ${(CS.errors || []).map((e) => `<p class="cs-err">${esc(e)}</p>`).join('')}
     <div class="kpis">
       <div class="kpi"><span>סה"כ AI</span>${IC.dollar}<b>${usd(sum(() => true))}</b><small>שלומיוורס + Plaxzy${sum((r) => r.group === 'mind') ? ` + המוח ${usd(sum((r) => r.group === 'mind'))}` : ''}</small></div>
@@ -1309,7 +1480,7 @@ function costs() {
         <p class="cs-note">לכל תחום מפתח משלו, ו-OpenAI אומר כמה כל אחד הוציא. "המפתח הישן" = מה שהוצא לפני החלוקה.</p></div>
       <div class="card"><div class="card-h"><h2>לפי סוג</h2></div>${csBars(by(verse, 'kind'), CS_KIND, '$')}</div>
     </div>
-    <div class="card" style="margin-top:16px"><div class="card-h"><h2>שלומיוורס ביום</h2></div><div id="cs-ch"></div></div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h2>שלומיוורס ביום</h2></div><div id="cs-ch" class="chart" data-own="chart"></div></div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>פיקו</h2><b style="color:var(--accent)">${usd(pk.reduce((a, r) => a + r.usd, 0))}</b></div>
       ${csBars({ 'סרטונים (EvoLink)': pkVid.reduce((a, r) => a + r.usd, 0), 'תמונות ותמלול (OpenAI)': pk.filter((r) => r.src === 'openai').reduce((a, r) => a + r.usd, 0) }, {}, '$')}
       ${Object.keys(pkClients).length > 1 ? `<h3 style="margin:14px 0 8px;font-size:1rem">סרטונים לפי מי שיצר</h3>${csBars(pkClients, {}, '$')}` : ''}
@@ -1319,14 +1490,14 @@ function costs() {
         ${E ? `<div class="cs-meter"><i style="width:${Math.min(100, E.used / Math.max(1, E.limit) * 100)}%"></i></div><p class="cs-note" style="margin:0 0 12px">תוכנית ${esc(E.tier)} · ${fmt(E.used)} מתוך ${fmt(E.limit)} קרדיטים החודש · מתאפס ב-${new Date(E.resets * 1000).toLocaleDateString('he-IL')}</p>` : ''}
         ${csBars(by(el, 'kind'), CS_EL, 'קרדיטים')}
         ${elKeys.length ? `<h3 style="margin:14px 0 8px;font-size:1rem">לפי מפתח</h3>${csBars(by(elKeys.map((r) => ({ ...r, src: 'elevenlabs' })), 'area'), CS_AREA, 'קרדיטים')}` : '<p class="cs-note">לפי מפתח: יופיע כשלכל תחום יהיה מפתח ElevenLabs משלו.</p>'}</div>
-    <p class="cs-note">נשאל מ-OpenAI, EvoLink ו-ElevenLabs עצמם · עודכן ${ago(CS.at)} · <button data-csfresh style="color:var(--accent);font-weight:700">לשאול עכשיו</button></p>`;
+    <p class="cs-note">נשאל מ-OpenAI, EvoLink ו-ElevenLabs עצמם · עודכן ${ago(CS.at)} · <button data-csfresh style="color:var(--accent);font-weight:700" ${csAsking ? 'disabled' : ''}>${csAsking ? 'שואל…' : 'לשאול עכשיו'}</button></p>`);
   bars($('#cs-ch'), dayList.slice().reverse(), '$', null);   // newest first = on the right, like the other day charts
   csWire();
 }
 function csWire() {
   $('#pane').querySelectorAll('[data-csr]').forEach((b) => (b.onclick = () => { csRange = b.dataset.csr; costs(); }));
   const f = $('#pane').querySelector('[data-csfresh]');
-  if (f) f.onclick = () => { f.textContent = 'שואל…'; loadCosts(true); };
+  if (f) f.onclick = () => loadCosts();
 }
 
 // ---------- plans (2026-11-06, his ask): briefs + mockups from the sessions; he reads, comments on any part, approves ----------
@@ -1347,17 +1518,22 @@ function plans() {
       <div>${!isPast ? `<div class="pl-start">${i + 1} מתוך ${now.length}${i === 0 ? ' · מתחילים כאן' : ''}</div>` : ''}
       <div class="pl-top">${p.replacedBy ? '<span class="tag">הוחלפה</span>' : pTag(p.status)}${!isPast && !planRead(p) ? '<span class="pl-new">חדש</span>' : ''}<small>גרסה ${p.version} · ${ago(p.published || p.updated)}</small></div>
       <b>${esc(p.title)}</b>${p.replacedBy ? '<p>הוחלפה בתוכנית חדשה יותר - אין מה לבדוק כאן.</p>' : p.summary && !isPast ? `<p>${esc(p.summary)}</p>` : ''}${p.open ? `<small class="pl-open">${IC.comment}${p.open} הערות שלך מחכות לטיפול של הסשן</small>` : ''}</div></button>`;
-  $('#pane').innerHTML = `<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס. מה שמחכה לך למעלה, החדשה ביותר ראשונה. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים.</p>
+  paint(`<p class="pl-lead">תוכניות לדברים הבאים בשלומיוורס. מה שמחכה לך למעלה, החדשה ביותר ראשונה. פותחים, מעירים על כל חלק, ומאשרים או מבקשים שינויים.</p>
     ${all.length ? `${now.length ? `<h3 class="pl-sec">נשארו לך ${now.length === 1 ? 'תוכנית אחת' : now.length + ' תוכניות'} לבדוק</h3><p class="pl-how">תוכנית יוצאת מהרשימה כשלוחצים בה "קראתי", "מאשר" או "צריך שינויים". ההערות שלך עוברות לסשן שעובד עליה, הן לא מחזיקות אותה כאן.</p><div class="pl-list">${now.map((p, i) => card(p, i, false)).join('')}</div>` : '<div class="empty">אין כרגע שום דבר שמחכה לך.</div>'}
       ${past.length ? `<details class="pl-arch"><summary>ארכיון: נבדקו או הוחלפו (${past.length}) - אין בהן מה לבדוק</summary><div class="pl-list">${past.map((p, i) => card(p, i, true)).join('')}</div></details>` : ''}`
-      : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`;
+      : `<div class="empty">עוד אין תוכניות. כשסשן יכין תוכנית, היא תופיע כאן.</div>`}`);
   $('#pane').querySelectorAll('[data-plan]').forEach((b) => (b.onclick = () => openPlan(b.dataset.plan)));
 }
+let planErr = null, planLoading = null;
 async function openPlan(id) {
-  planId = id; PLAN = null;
-  $('#pane').innerHTML = '<div class="empty">טוען את התוכנית…</div>';
-  try { PLAN = await api('plan', { id }); } catch (e) { $('#pane').innerHTML = `<div class="empty">התוכנית לא נטענה (${esc(e.message)})</div>`; return; }
-  if (tab === 'plans') planView();
+  if (planId !== id) { planId = id; PLAN = null; planErr = null; }
+  if (planErr) return paint(`<button class="pill" data-tab="plans">${IC.prev}כל התוכניות</button><div class="empty">התוכנית לא נטענה (${esc(planErr)}) · <button class="ev-more" data-planretry>לנסות שוב</button></div>`);
+  paint('<div class="empty">טוען את התוכנית…</div>');
+  if (planLoading === id) return;
+  planLoading = id;
+  try { const x = await api('plan', { id }); if (planId === id) PLAN = x; } catch (e) { if (planId === id) planErr = e.message; }
+  planLoading = null;
+  if (tab === 'plans' && planId === id) planView();
 }
 // the frame's own script: every heading, mockup, table row and box gets a comment button; counts come from here
 const PLAN_FRAME = `<style>.zoom{display:none!important}img{cursor:pointer}.pc-b{position:absolute;top:6px;left:6px;z-index:5;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 9px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(11,11,14,.82);color:#fff;font:700 12px Heebo,Arial,sans-serif;cursor:pointer;opacity:.55;transition:opacity .15s}
@@ -1389,22 +1565,22 @@ function markPlanRead(p) {
   reBadge();
 }
 function planView() {
-  if (!PLAN) return openPlan(planId);
+  if (!PLAN || PLAN.plan?.id !== planId) return openPlan(planId);
   const p = PLAN.plan, cs = PLAN.comments || [];
-  // the session's pictures (img/NAME) -> their signed links
-  let html = p.html.replace(/(src|href|poster)="img\/([\w.-]+)"/g, (m, a, n) => (p.files[n] ? `${a}="${p.files[n]}"` : m));
-  html = html.includes('</body>') ? html.replace('</body>', PLAN_FRAME + '</body>') : html + PLAN_FRAME;
   const open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
-  $('#pane').innerHTML = `<div class="pl-head"><button class="pill" data-pl-back>${IC.prev}כל התוכניות</button>
-      <div class="pl-t"><b>${esc(p.title)}</b><div>${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small></div></div>
+  // the frame keeps the version it shows: a newer one that comes while he reads is offered, never loaded under him
+  const fr0 = $('#pane .pl-frame'), shown = fr0 && fr0.dataset.pid === p.id ? +fr0.dataset.v || 0 : 0;
+  paint(`<div class="pl-head"><button class="pill" data-pl-back>${IC.prev}כל התוכניות</button>
+      <div class="pl-t"><b>${esc(p.title)}</b><div>${pTag(p.status)}<small>גרסה ${p.version} · ${ago(p.updated)}</small>${shown && shown < p.version ? `<button class="pill" data-pl-reload>${IC.refresh}גרסה ${p.version} חדשה · לטעון</button>` : ''}</div></div>
       <div class="pl-acts">${planRead(p) ? `<button class="btn" disabled>${IC.check}נקרא</button>` : `<button class="btn" data-pl-read>${IC.check}קראתי</button>`}<button class="btn main" data-pl-st="approved">${IC.check}מאשר</button><button class="btn" data-pl-st="changes">צריך שינויים</button><button class="btn" data-pl-c="">${IC.comment}הערה כללית</button></div></div>
     <p class="pl-hint">${IC.comment} כל חלק בתוכנית (כותרת, סקיצה, שורה בטבלה) מסומן בכפתור הערה. לחיצה עליו, וכותבים מה לשנות.</p>
-    <iframe class="pl-frame" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" title="${esc(p.title)}"></iframe>
+    <iframe class="pl-frame" data-own="plan" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" title="${esc(p.title)}"></iframe>
     <div class="card pl-cs"><div class="card-h"><h2>הערות והחלטות</h2><small class="dim">${open ? `${open} פתוחות` : 'אין הערות פתוחות'}</small></div>
-      ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}</div>`;
+      ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}</div>`);
   const fr = $('#pane .pl-frame');
-  fr.srcdoc = html;
+  if (fr.dataset.pid !== p.id) planFrame(fr, p);   // a new frame: the plan's page (a patch never reloads it)
   const counts = () => { const n = {}; (PLAN.comments || []).forEach((c) => { if (c.kind === 'comment' && c.anchor) n[c.anchor] = (n[c.anchor] || 0) + 1; }); return n; };
+  fr.contentWindow?.postMessage({ t: 'n', n: counts() }, '*');   // the comment buttons' numbers
   window.onmessage = (e) => {
     if (e.source !== fr.contentWindow) return;
     const d = e.data || {};
@@ -1414,29 +1590,34 @@ function planView() {
     if (d.t === 'img') planViewer(d.list || [], d.i || 0);
   };
   $('#pane [data-pl-back]').onclick = () => { planId = null; PLAN = null; window.onmessage = null; plans(); scrollTo(0, 0); };
+  const rl = $('#pane [data-pl-reload]');
+  if (rl) rl.onclick = () => { planFrame(fr, p); planView(); };
   const rd = $('#pane [data-pl-read]');
-  if (rd) rd.onclick = () => { markPlanRead(p); rd.outerHTML = `<button class="btn" disabled>${IC.check}נקרא</button>`; };
+  if (rd) rd.onclick = () => { markPlanRead(p); planView(); };
   $('#pane').querySelectorAll('[data-pl-st]').forEach((b) => (b.onclick = () => planStatusSheet(b.dataset.plSt)));
   planBind($('#pane'));
+}
+// the plan's own page into its frame (the session's pictures img/NAME -> their signed links, the comment script added)
+function planFrame(fr, p) {
+  let html = p.html.replace(/(src|href|poster)="img\/([\w.-]+)"/g, (m, a, n) => (p.files[n] ? `${a}="${p.files[n]}"` : m));
+  html = html.includes('</body>') ? html.replace('</body>', PLAN_FRAME + '</body>') : html + PLAN_FRAME;
+  fr.dataset.pid = p.id; fr.dataset.v = p.version;   // (not data-plan: that is a row key - the frame would be taken for a new one)
+  fr.srcdoc = html;
+}
+// after a comment is saved / handled: the plan and the list again, then the tab patched - only the comments card and the
+// frame's counts change, the plan stays where he was reading (his note 2026-11-07: "saving a comment refreshes the whole page")
+async function planAgain() {
+  const [x, l] = await Promise.all([api('plan', { id: planId }), api('plans').catch(() => PL)]);
+  if (x.plan?.id === planId) PLAN = x;
+  PL = l;
+  if (tab === 'plans') draw();
 }
 function planBind(root) {
   root.querySelectorAll('[data-pl-c]').forEach((b) => (b.onclick = () => planCommentSheet(b.dataset.plC, b.dataset.plL || '')));
   root.querySelectorAll('[data-pl-done]').forEach((b) => (b.onclick = async () => {
     b.disabled = true;
-    try { await api('planDone', { id: planId, comment: b.dataset.plDone, done: b.dataset.v !== '0' }); PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL); planRefresh(); } catch (e) { b.disabled = false; }
+    try { await api('planDone', { id: planId, comment: b.dataset.plDone, done: b.dataset.v !== '0' }); await planAgain(); } catch (e) { b.disabled = false; }
   }));
-}
-// after a comment is saved / handled: only the comments card and the frame's counts change - the plan itself stays where he
-// was reading (his note 2026-11-07: "saving a comment refreshes the whole page and I lose my place")
-function planRefresh() {
-  const box = $('#pane .pl-cs'), fr = $('#pane .pl-frame');
-  if (!box || !PLAN) return planView();
-  const cs = PLAN.comments || [], open = cs.filter((c) => c.kind === 'comment' && !c.done).length;
-  box.innerHTML = `<div class="card-h"><h2>הערות והחלטות</h2><small class="dim">${open ? `${open} פתוחות` : 'אין הערות פתוחות'}</small></div>
-      ${cs.length ? cs.slice().reverse().map(planCommentRow).join('') : '<div class="empty">עוד אין הערות. לחצו על כפתור ההערה ליד כל חלק בתוכנית.</div>'}`;
-  planBind(box);
-  const n = {}; cs.forEach((c) => { if (c.kind === 'comment' && c.anchor) n[c.anchor] = (n[c.anchor] || 0) + 1; });
-  if (fr && fr.contentWindow) fr.contentWindow.postMessage({ t: 'n', n }, '*');
 }
 // the picture viewer (his phone, 2026-11-06): the screen at full width over everything, swipe / arrows between all the
 // plan's pictures, its title, and a comment on exactly this screen
@@ -1450,14 +1631,14 @@ function planViewer(list, at) {
   const n = (PLAN.comments || []).filter((c) => c.kind === 'comment');
   const draw = () => {
     const x = list[at], cnt = n.filter((c) => c.anchor === x.key).length;
-    el.innerHTML = `<div class="pv-top"><button class="pv-x" data-pv-x aria-label="סגירה">${IC.x}</button><b>${esc(x.label || '')}</b><small>${at + 1} / ${list.length}</small></div>
+    patch(el, `<div class="pv-top"><button class="pv-x" data-pv-x aria-label="סגירה">${IC.x}</button><b>${esc(x.label || '')}</b><small>${at + 1} / ${list.length}</small></div>
       <div class="pv-img"><img src="${esc(x.src)}" alt=""></div>
       <div class="pv-bot"><button class="pv-nav nx" data-pv="-1" ${at <= 0 ? 'disabled' : ''} aria-label="הקודם">${IC.back}</button>
         <button class="btn main pv-c" data-pv-c>${IC.comment}הערה על המסך הזה${cnt ? ` · ${cnt}` : ''}</button>
-        <button class="pv-nav" data-pv="1" ${at >= list.length - 1 ? 'disabled' : ''} aria-label="הבא">${IC.back}</button></div>`;
+        <button class="pv-nav" data-pv="1" ${at >= list.length - 1 ? 'disabled' : ''} aria-label="הבא">${IC.back}</button></div>`);
     el.querySelector('.pv-img').scrollTop = 0;
   };
-  const close = () => { el.remove(); document.body.style.overflow = ''; removeEventListener('keydown', key); };
+  const close = () => { el.remove(); document.body.style.overflow = ''; removeEventListener('keydown', key); unbusy(); };
   const move = (d) => { const t = at + d; if (t >= 0 && t < list.length) { at = t; draw(); } };
   const key = (e) => { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') move(1); if (e.key === 'ArrowRight') move(-1); };
   addEventListener('keydown', key);
@@ -1476,7 +1657,7 @@ function planCommentRow(c) {
   const who = c.by === 'claude' ? '<b class="pl-who cl">Claude</b>' : '<b class="pl-who">אתה</b>';
   if (c.kind === 'status') return `<div class="pl-c st"><div class="pl-cm">${who} ${pTag(c.status)}<small>${ago(c.t)}</small></div>${c.text ? `<p>${esc(c.text)}</p>` : ''}</div>`;
   if (c.kind === 'version') return `<div class="pl-c ver"><div class="pl-cm"><span class="tag">גרסה חדשה</span><small>${ago(c.t)}</small></div>${c.text ? `<p>${esc(c.text)}</p>` : ''}</div>`;
-  return `<div class="pl-c ${c.done ? 'done' : ''}"><div class="pl-cm">${who}${c.label || c.anchor ? `<button class="pl-on" data-pl-c="${esc(c.anchor || '')}" data-pl-l="${esc(c.label || '')}">על: ${esc(c.label || c.anchor)}</button>` : '<span class="pl-on">על כל התוכנית</span>'}<small>${ago(c.t)}</small>
+  return `<div class="pl-c ${c.done ? 'done' : ''}" data-k="${esc(c.id || '')}"><div class="pl-cm">${who}${c.label || c.anchor ? `<button class="pl-on" data-pl-c="${esc(c.anchor || '')}" data-pl-l="${esc(c.label || '')}">על: ${esc(c.label || c.anchor)}</button>` : '<span class="pl-on">על כל התוכנית</span>'}<small>${ago(c.t)}</small>
     <button class="pl-dn" data-pl-done="${esc(c.id)}" data-v="${c.done ? '0' : '1'}">${c.done ? 'לפתוח שוב' : 'טופל'}</button></div><p>${esc(c.text)}</p></div>`;
 }
 function planCommentSheet(anchor, label) {
@@ -1492,8 +1673,7 @@ function planCommentSheet(anchor, label) {
     $('#pl-send').disabled = true;
     try {
       await api('planComment', { id: planId, anchor, label, text });
-      PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL);
-      closeSheet(); planRefresh();
+      closeSheet(); await planAgain();
     } catch (e) { $('#pl-send').disabled = false; }
   };
 }
@@ -1507,8 +1687,7 @@ function planStatusSheet(st) {
     try {
       await api('planStatus', { id: planId, status: st, note: $('#pl-note').value.trim() });
       if (PLAN) markPlanRead(PLAN.plan);
-      PLAN = await api('plan', { id: planId }); PL = await api('plans').catch(() => PL);
-      closeSheet(); draw();
+      closeSheet(); await planAgain();
     } catch (e) { $('#pl-go').disabled = false; }
   };
 }
@@ -1644,7 +1823,7 @@ function todayCard(m, id) {
   if (!f) return '';
   return `<div class="card" style="margin-top:16px"><div class="card-h"><h2>${METRICS[m][0]} היום, שעה אחרי שעה</h2></div>
     <p class="hint" style="margin:-4px 0 8px">צפי לסוף היום: <b>כ-${about(f.proj)}</b>${f.lo != null ? ` · בדרך כלל בין ${about(f.lo)} ל-${about(f.hi)}` : ''}</p>
-    <div class="fc-ch" id="${id}"></div>
+    <div class="fc-ch" id="${id}" data-own="chart"></div>
     <div class="fc-leg"><span><i class="l-today"></i>היום עד עכשיו: ${fmt(f.sofar)}</span><span><i class="l-proj"></i>הצפי</span>
       <span><i class="l-y"></i>אתמול: ${f.yAt != null ? `${about(f.yAt)} עד השעה הזאת, ` : ''}${fmt(f.yTotal)} בכל היום</span>
       ${f.wAt != null && f.wTotal ? `<span>לפני שבוע: ${about(f.wAt)} עד השעה הזאת, ${fmt(f.wTotal)} בכל היום</span>` : ''}</div>
@@ -1663,12 +1842,12 @@ function hourChart(el, f) {
   const grid = [0, .5, 1].map((k) => { const v = Math.round(top / 1.08 * k), yy = Y(v); return `<line x1="0" x2="${W_}" y1="${yy}" y2="${yy}" stroke="rgba(255,255,255,.07)"/><text x="${W_}" y="${yy - 3}" fill="#6f6c77" font-size="10" text-anchor="end">${fmt(v)}</text>`; }).join('');
   const hrs = [6, 12, 18].map((h) => `<text x="${X(h)}" y="${H - 5}" fill="#6f6c77" font-size="10" text-anchor="middle">${h}:00</text>`).join('');
   const band = f.lo != null ? `<line x1="${X(24) + 3}" x2="${X(24) + 3}" y1="${Y(f.hi)}" y2="${Y(f.lo)}" stroke="rgba(255,106,31,.35)" stroke-width="6" stroke-linecap="round"/>` : '';
-  el.innerHTML = `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${hrs}
+  patch(el, `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${hrs}
     <line x1="${X(t)}" x2="${X(t)}" y1="${padT}" y2="${H - padB}" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 4"/>
     ${f.yest ? `<path d="${path([[0, 0], ...f.yest.map((v, i) => [i + 1, v])])}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linejoin="round"/>` : ''}
     ${band}<path d="${path(rest)}" fill="none" stroke="#ff6a1f" stroke-opacity=".75" stroke-width="2.5" stroke-dasharray="5 5" stroke-linejoin="round"/>
     <path d="${path(today)}" fill="none" stroke="#ff6a1f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${X(t)}" cy="${Y(f.sofar)}" r="4.5" fill="#ff6a1f"/><circle cx="${X(24) + 3}" cy="${Y(f.proj)}" r="4" fill="#0f0f12" stroke="#ff6a1f" stroke-width="2"/></svg>`;
+    <circle cx="${X(t)}" cy="${Y(f.sofar)}" r="4.5" fill="#ff6a1f"/><circle cx="${X(24) + 3}" cy="${Y(f.proj)}" r="4" fill="#0f0f12" stroke="#ff6a1f" stroke-width="2"/></svg>`);
 }
 const rangeSeg = (opts = RANGES) => `<div class="rng">${opts.map(([v, l, real = v]) => `<button data-range="${real}" class="${v === range ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 // what one chat answer cost on average (from the tokens wiki.js keeps on each answer) - the cost of a period is estimated from it
@@ -1739,20 +1918,20 @@ function overview() {
   const list = period(), msgs = mval('chat_message', list);
   const open = L.requests.filter((r) => !r.done).sort((a, b) => (b.t || 0) - (a.t || 0));
   const attn = [
-    ...open.slice(0, 3).map((r) => ({ t: r.t, face: ini(whoOf(r)), h: `${(RQ[r.kind] || RQ.contact)[0]} · ${esc(whoOf(r))}`, p: esc(r.text || r.choice || ''), go: 'requests' })),
-    ...L.comments.filter((c) => c.unchecked && !c.hidden).slice(0, 2).map((c) => ({ t: c.t, face: fanFace(c), h: `תגובה לבדיקה · ${esc(c.nick)}`, p: `"${esc(c.text)}"`, go: 'content' })),
-    ...(L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 3 * 864e5).slice(0, 2).map((x) => ({ t: x.t, face: (x.chars || []).length ? face(x.chars[0]) : fanFace(x), h: `רעיון חדש · ${esc(x.nick || '')}`, p: esc(x.text), go: 'content' })),
+    ...open.slice(0, 3).map((r) => ({ k: 'rq' + r.id, t: r.t, face: ini(whoOf(r)), h: `${(RQ[r.kind] || RQ.contact)[0]} · ${esc(whoOf(r))}`, p: esc(r.text || r.choice || ''), go: 'requests' })),
+    ...L.comments.filter((c) => c.unchecked && !c.hidden).slice(0, 2).map((c) => ({ k: 'cu' + c.id, t: c.t, face: fanFace(c), h: `תגובה לבדיקה · ${esc(c.nick)}`, p: `"${esc(c.text)}"`, go: 'content' })),
+    ...(L.ideas || []).filter((x) => !x.hidden && x.t && Date.now() - x.t < 3 * 864e5).slice(0, 2).map((x) => ({ t: x.t, face: (x.chars || []).length ? face(x.chars[0]) : fanFace(x), h: `רעיון חדש · ${esc(x.nick || '')}`, p: esc(x.text), go: 'ideas', k: 'id' + x.id })),
   ].sort((a, b) => (b.t || 0) - (a.t || 0)).slice(0, 4);
   // what's happening now: the newest conversations, sign-ups, comments
   const live = [
-    ...threads().slice(0, 6).map((th) => ({ t: th.last, face: face(th.mode), h: `${th.person ? esc(personName(th.person)) : 'מישהו'} מדבר/ת עם ${esc(cname(th.mode))}`, p: `"${esc(th.items[0].q)}"`, chat: th.key })),
-    ...accounts().filter((p) => p.created && Date.now() - p.created < 2 * 864e5).map((p) => ({ t: p.created, face: personFace(p), h: `נרשם/ה: ${esc(personName(p))}`, p: `<bdi dir="ltr">${esc(p.email || '')}</bdi>`, person: p.uid })),
-    ...L.comments.filter((c) => !c.hidden && !c.char).slice(0, 4).map((c) => ({ t: c.t, face: fanFace(c), h: `תגובה · ${esc(c.nick)}`, p: `"${esc(c.text)}"`, go: 'content' })),
+    ...threads().slice(0, 6).map((th) => ({ k: 'th' + th.key, t: th.last, face: face(th.mode), h: `${th.person ? esc(personName(th.person)) : 'מישהו'} מדבר/ת עם ${esc(cname(th.mode))}`, p: `"${esc(th.items[0].q)}"`, chat: th.key })),
+    ...accounts().filter((p) => p.created && Date.now() - p.created < 2 * 864e5).map((p) => ({ k: 'pp' + p.uid, t: p.created, face: personFace(p), h: `נרשם/ה: ${esc(personName(p))}`, p: `<bdi dir="ltr">${esc(p.email || '')}</bdi>`, person: p.uid })),
+    ...L.comments.filter((c) => !c.hidden && !c.char).slice(0, 4).map((c) => ({ k: 'cm' + c.id, t: c.t, face: fanFace(c), h: `תגובה · ${esc(c.nick)}`, p: `"${esc(c.text)}"`, go: 'content' })),
   ].filter((x) => x.t).sort((a, b) => b.t - a.t).slice(0, 6);
-  const row = (x) => `<button class="row" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
+  const row = (x) => `<button class="row" data-k="${esc(x.k || "")}" ${x.chat ? `data-chat="${esc(x.chat)}"` : x.person ? `data-person="${x.person}"` : `data-tab="${x.go}"`} style="width:100%;text-align:start">${x.face}<div class="body"><div class="l1"><b>${x.h}</b></div><div class="l2">${x.p}</div></div><time>${ago(x.t)}</time></button>`;
   const n = range, chartList = since ? days(dayGap(since.day, dayIL()) + 8) : days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
   const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'download', 'game_start', 'sign_in', 'tz_view', 'ch_view'];
-  $('#pane').innerHTML = `
+  paint(`
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>${since ? `מאז ${dm(since.day)} ${hhmm(since.from)} · כל מספר מול אותן שעות ב-7 הימים שלפני` : `מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}`}</p>
       ${since ? `<button class="since-pill" data-sinceoff title="חזרה לתקופות הרגילות">${IC.x}<span>מאז: ${esc(since.title)}</span></button>` : ''}</div>
       <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']].map(([v, l]) => [since ? NaN : v, l, v]))}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
@@ -1768,16 +1947,16 @@ function overview() {
     <div class="ov-games" style="margin-top:16px">${barList('משחקים', byPrefix(sel ? [sel] : list, 'game_start'), `סיבובים ${sel ? dayName(sel.d) : since ? `מאז ${dm(since.day)}` : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`}`, { label: (k) => GAME[k] || k, n: 30 })}</div>
     <div id="ov-metric" class="tool" style="margin-top:16px"><select id="metric">${Object.entries(METRICS).map(([k, [l]]) => `<option value="${k}" ${k === metric ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     ${todayCard(metric, 'ov-fc').replace('margin-top:16px', 'margin:0 0 14px')}
-    <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="ov-ch"></div></div>
+    <div class="card"><div class="card-h"><h2>${METRICS[metric][0]} ביום</h2><small class="hint">${fmt(mval(metric, chartList))} ב-${chartList.length} ימים · לחיצה על יום מפרטת אותו</small></div><div class="chart" id="ov-ch" data-own="chart"></div></div>
     ${sel ? `<div class="card drill" style="margin-top:14px"><div class="card-h"><h2>${dayName(sel.d)}</h2><button data-undrill>כל התקופה ${IC.x.replace('<svg', '<svg style="width:15px;height:15px"')}</button></div>
       <div class="kgrid" style="margin:4px 0 0">${ALL.map((m) => `<div class="k"><span class="kh">${IC[METRICS[m][1]]}${METRICS[m][0]}</span><b>${fmt(METRICS[m][2](sel))}</b></div>`).join('')}</div>
       ${evsOn(sel.d).length ? `<div class="rows" style="margin-top:8px">${evsOn(sel.d).map(evRow).join('')}</div>` : ''}</div>` : ''}
     ${evCard()}
     ${breakdown(sel ? [sel] : list, sel ? dayName(sel.d) : since ? `מאז ${dm(since.day)}` : n === 1 ? 'היום' : n === 0 ? 'אתמול' : `ב-${n} ימים`)}
-    <div class="card sim-st" id="sim-st" style="margin-top:14px"></div>
-    <div class="card sim-st" id="cz-st" style="margin-top:14px"></div>
-    <div class="card sim-st ab-st" id="ab-st" style="margin-top:14px"></div>
-    <div class="acts" style="margin-top:16px"><button class="btn" data-pub="video">${IC.video}להודיע על סרטון</button><button class="btn main" data-pub="story">${IC.plus}סטורי חדש</button></div>`;
+    <div class="card sim-st" id="sim-st" data-own="card" style="margin-top:14px"></div>
+    <div class="card sim-st" id="cz-st" data-own="card" style="margin-top:14px"></div>
+    <div class="card sim-st ab-st" id="ab-st" data-own="card" style="margin-top:14px"></div>
+    <div class="acts" style="margin-top:16px"><button class="btn" data-pub="video">${IC.video}להודיע על סרטון</button><button class="btn main" data-pub="story">${IC.plus}סטורי חדש</button></div>`);
   bars($('#ov-ch'), chartList.map((d) => [d.d, METRICS[metric][2](d)]), METRICS[metric][0], (d) => { drillDay = drillDay === d ? null : d; overview(); }, drillDay, ghostOf(metric));
   hourChart($('#ov-fc'), FC(metric));
   $('#metric').onchange = (e) => { metric = e.target.value; overview(); };
@@ -1796,8 +1975,20 @@ async function loadChats(r) {
   chRange = r;
   const to = r === 'yesterday' ? dayStart(dayIL()) : Date.now() + 6e4;
   CH = (await api(`chats&from=${chFrom[r]()}&to=${to}`)).chats;
+  chDay = dayIL();
+  priceAvg();
+}
+function priceAvg() {
   const priced = CH.filter((c) => typeof c.usd === 'number' || (Array.isArray(c.u) && c.u[0]));
   if (priced.length) avgAnswer = priced.reduce((a, c) => a + ANSWER(c), 0) / priced.length;
+}
+// a new conversation on the server (the pulse): only the messages since the newest one here, added on top
+async function chatsSince() {
+  if (chRange === 'yesterday' || !CH) return;
+  const from = CH.reduce((m, c) => Math.max(m, c.t || 0), 0) + 1;
+  const got = (await api(`chats&from=${from > 1 ? from : chFrom[chRange]()}&to=${Date.now() + 6e4}`)).chats || [];
+  const have = new Set(CH.map((c) => c.id)), add = got.filter((c) => !have.has(c.id));
+  if (add.length) { CH = [...add, ...CH]; priceAvg(); cacheSave('CH'); }
 }
 const peopleBy = () => Object.fromEntries(S.people.map((p) => [p.uid, p]));
 // a conversation = the chat's thread with one character, by its own id
@@ -1829,10 +2020,10 @@ function chats() {
     && (chFilter === 'all' || (chFilter === 'star' && stars.has(th.key)) || (chFilter === 'story' && picks.has(th.key)) || (chFilter === 'long' && th.items.length >= 4) || (chFilter === 'signed' && th.signed) || (chFilter === 'notes' && cnAllOf(th.key)) || (chFilter === 'good' && markOf(th.key) === 'good') || (chFilter === 'bad' && markOf(th.key) === 'bad') || (chFilter === 'new' && !markOf(th.key) && !cnAllOf(th.key)))
     && (!q || th.items.some((c) => (c.q + ' ' + c.a).toLowerCase().includes(q))));
   const msgs = all.reduce((a, th) => a + th.items.length, 0);
-  $('#pane').innerHTML = `${chSegBar()}
+  paint(`${chSegBar()}
     <div class="top"><div><h1>שיחות</h1><p>${fmt(all.length)} שיחות · ${fmt(msgs)} הודעות · עלות $${all.reduce((a, th) => a + th.cost, 0).toFixed(2)}</p></div>
       <div class="rng">${[['today', 'היום'], ['yesterday', 'אתמול'], ['week', '7 ימים'], ['month', '30 ימים']].map(([k, l]) => `<button data-chrange="${k}" class="${k === chRange ? 'on' : ''}">${l}</button>`).join('')}</div></div>
-    <label class="search" style="margin-bottom:12px">${IC.search}<input id="ch-q" placeholder="חיפוש בשיחות - מילה מהשאלה או מהתשובה" value="${esc(chQuery)}"></label>
+    <label class="bs-search" style="margin-bottom:12px">${IC.search}<input id="ch-q" placeholder="חיפוש בשיחות - מילה מהשאלה או מהתשובה" value="${esc(chQuery)}"></label>
     <div class="chips">${[['all', 'הכול'], ['new', 'לא נבדקו'], ['good', 'טובות'], ['bad', 'גרועות'], ['notes', 'עם הערות'], ['star', 'מסומנות בכוכב'], ['story', 'לסטורי'], ['long', 'ארוכות'], ['signed', 'של רשומים']].map(([k, l]) => `<button data-chf="${k}" class="${k === chFilter ? 'on' : ''}">${l}${k === 'star' && stars.size ? `<small>${all.filter((th) => stars.has(th.key)).length}</small>` : ''}${k === 'story' && picks.size ? `<small>${all.filter((th) => picks.has(th.key)).length}</small>` : ''}</button>`).join('')}</div>
     <div class="faces-row"><button data-chchar="" class="${chChar ? '' : 'on'}"><span class="all">${IC.people}</span>הכול<b>${all.length}</b></button>
       ${Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([id, n]) => `<button data-chchar="${esc(id)}" class="${chChar === id ? 'on' : ''}">${face(id)}${esc(cname(id))}<b>${n}</b></button>`).join('')}</div>
@@ -1840,9 +2031,9 @@ function chats() {
       <div class="body"><div class="q">${esc(th.items[0].q)}</div><div class="a">${esc(cname(th.mode))}: ${esc(th.items[0].a.replace(/\[\[[^\]]*\]\]/g, '').slice(0, 120))}</div></div>
       <div class="meta"><span>${hhmm(th.last)}${chRange !== 'today' ? ` · ${dm(dayIL(th.last))}` : ''}</span><span><span data-thn="${esc(th.key)}">${markBadge(th.key)}${cnBadge(th.key)}</span><span data-spb="${esc(th.key)}">${pickBadge(th.key)}</span>${th.items.length} הודעות${th.person ? `<span class="who-pill">${esc(personName(th.person))}</span>` : th.signed ? '<span class="who-pill">רשום/ה</span>' : ''}</span></div>
       <span class="star ${stars.has(th.key) ? 'on' : ''}" data-star="${esc(th.key)}" role="button" aria-label="כוכב">${IC.star}</span></button>`).join('') || '<div class="empty">אין שיחות כאלה.</div>'}</div>
-    ${list.length > chShown ? `<button class="btn more" data-chmore>עוד ${fmt(list.length - chShown)} שיחות</button>` : ''}`;
+    ${list.length > chShown ? `<button class="btn more" data-chmore>עוד ${fmt(list.length - chShown)} שיחות</button>` : ''}`);
   const inp = $('#ch-q');
-  inp.oninput = () => { chQuery = inp.value; chShown = 60; const pos = inp.selectionStart; chats(); const n = $('#ch-q'); n.focus(); n.setSelectionRange(pos, pos); };
+  inp.oninput = () => { chQuery = inp.value; chShown = 60; chats(); };   // patched in place: the box keeps its focus
 }
 // ---------- שיחות → reviewing a conversation (2026-11-12, his pick: mockup A - "my most used: reviewing and commenting from
 // the phone"). The conversation opens full screen: on top the character, a חשיבה switch (what the chain's steps decided, under
@@ -1863,7 +2054,8 @@ const cnDK = (k, m) => `bs-cn-${k}|${m}`;
 const cnDraft = (k, m) => { try { return localStorage.getItem(cnDK(k, m)) || ''; } catch (e) { return ''; } };
 const cnKeep = (k, m, v) => { try { v ? localStorage.setItem(cnDK(k, m), v) : localStorage.removeItem(cnDK(k, m)); } catch (e) {} };
 const grow = (ta) => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, 260) + 'px'; };
-const say = (t) => { document.querySelectorAll('.bs-toast.cn').forEach((x) => x.remove()); const d = document.createElement('div'); d.className = 'bs-toast cn' + (document.querySelector('.cp') ? ' up' : ''); d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 2400); };
+// the one toast (a short line at the bottom - at the top while the comment window is open, above the keyboard)
+const toast = (t) => { document.querySelectorAll('.bs-toast.cn').forEach((x) => x.remove()); const d = document.createElement('div'); d.className = 'bs-toast cn' + (document.querySelector('.cp') ? ' up' : ''); d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 2400); };
 const KIND_L = { small_talk: 'שיחת חולין', opinion: 'דעה', my_life: 'החיים שלו/ה', a_video: 'סרטון', someone_else: 'מישהו אחר', real_problem: 'בעיה אמיתית', other: 'אחר' };
 const KNOW_L = { expert: 'מבין/ה בזה', some: 'יודע/ת קצת', heard_of: 'רק שמע/ה על זה', no: 'לא יודע/ת מה זה' };
 
@@ -1996,23 +2188,14 @@ window.visualViewport?.addEventListener('scroll', cpFit);
 // a comment / mark changed: redraw only its own pieces - the window's list, the buttons, the list row, the counts
 function cnPaint(key) {
   if (TH && TH.key === key && document.querySelector('.sheet.sh-conv')) {
-    const nb = document.querySelector('.sheet [data-cvnote=""].cv-b'); if (nb) nb.outerHTML = cvNoteBtn(TH);
+    const acts = document.querySelector('.sheet .cv-acts'); if (acts) patch(acts, markBtns(TH) + pickBtn(TH) + cvNoteBtn(TH));   // (the לסטורי button used to vanish here)
     document.querySelectorAll('.sheet .an-b').forEach((b) => { b.outerHTML = ansNoteBtn(TH, b.dataset.cvnote); });
-    const acts = document.querySelector('.sheet .cv-acts'); if (acts) acts.innerHTML = markBtns(TH) + cvNoteBtn(TH);
     const l = document.querySelector('.cp .cp-list');
-    if (l) { l.innerHTML = cpList(); l.querySelectorAll('textarea').forEach(grow); }
+    if (l) { patch(l, cpList()); l.querySelectorAll('textarea').forEach(grow); }
   }
-  const row = document.querySelector(`[data-thn="${CSS.escape(key)}"]`);
-  if (row) row.innerHTML = markBadge(key) + cnBadge(key);
-  const seg = document.querySelector('.cn-seg');
-  if (seg) seg.outerHTML = chSegBar();
+  redraw();   // the list behind it (its marks, the number on הערות) - now, or when the conversation closes
 }
-function cnPaintCard(id) {
-  const el = document.querySelector(`[data-cncard="${CSS.escape(id)}"]`), n = CN.notes.find((x) => x.id === id);
-  if (el && n) { el.outerHTML = cnCard(n); document.querySelectorAll(`[data-cncard="${CSS.escape(id)}"] textarea`).forEach(grow); }
-  else if (el) el.remove();
-}
-const cnPaintNote = (n) => { cnPaint(n.key); cnPaintCard(n.id); };
+const cnPaintNote = (n) => cnPaint(n.key);
 
 async function tnSend(b) {
   const msg = b.dataset.tnsend, th = TH, ta = b.closest('.cp-comp')?.querySelector('textarea'), text = ta ? ta.value.trim() : '';
@@ -2024,9 +2207,9 @@ async function tnSend(b) {
     const r = await api('chatNote', body);
     CN.notes.unshift({ id: r.id, ...body, by: 'shlomi', done: false, t: Date.now() });
     cnKeep(th.key, msg, ''); ta.value = ''; grow(ta); ta.blur();
-    cnPaint(th.key); say('ההערה נשמרה');
+    cnPaint(th.key); toast('ההערה נשמרה');
     const l = document.querySelector('.cp .cp-list'); if (l) l.scrollTop = l.scrollHeight;
-  } catch (e) { say('לא נשמר - לנסות שוב'); }
+  } catch (e) { toast('לא נשמר - לנסות שוב'); }
   b.disabled = false;
 }
 // "לסטורי": mark / unmark the open conversation; the server keeps a copy of it for the session that makes the story
@@ -2037,30 +2220,29 @@ async function pickSet(b) {
   try {
     await api('storyPick', on ? { key: th.key, on: true, mode: th.mode, ids: th.items.map((x) => x.id).filter(Boolean) } : { key: th.key, on: false });
     on ? picks.set(th.key, { key: th.key, mode: th.mode, done: false }) : picks.delete(th.key);
-    b.outerHTML = pickBtn(th);
-    document.querySelectorAll(`[data-spb="${CSS.escape(th.key)}"]`).forEach((x) => { x.innerHTML = pickBadge(th.key); });
-    say(on ? 'סומנה לסטורי - סשן יכין ממנה סטורי' : 'הסימון לסטורי הוסר');
-  } catch (e) { b.disabled = false; say('לא נשמר - לנסות שוב'); }
+    cnPaint(th.key);
+    toast(on ? 'סומנה לסטורי - סשן יכין ממנה סטורי' : 'הסימון לסטורי הוסר');
+  } catch (e) { b.disabled = false; toast('לא נשמר - לנסות שוב'); }
 }
 async function markSet(v) {
   if (!TH) return;
   const k = TH.key, was = markOf(k), nv = was === v ? '' : v;   // the same button again takes the mark off
   CN.marks = { ...(CN.marks || {}) }; if (nv) CN.marks[k] = nv; else delete CN.marks[k];
   cnPaint(k);
-  try { await api('chatMark', { key: k, v: nv }); } catch (e) { if (was) CN.marks[k] = was; else delete CN.marks[k]; cnPaint(k); say('לא נשמר'); }
+  try { await api('chatMark', { key: k, v: nv }); } catch (e) { if (was) CN.marks[k] = was; else delete CN.marks[k]; cnPaint(k); toast('לא נשמר'); }
 }
 async function tnDone(b) {
   const n = CN.notes.find((x) => x.id === b.dataset.tndone); if (!n) return;
   const done = b.dataset.v === '1', was = n.done;
   n.done = done; cnPaintNote(n);
-  try { await api('chatNoteDone', { id: n.id, done }); } catch (e) { n.done = was; cnPaintNote(n); say('לא נשמר'); }
+  try { await api('chatNoteDone', { id: n.id, done }); } catch (e) { n.done = was; cnPaintNote(n); toast('לא נשמר'); }
 }
 async function tnSave(b) {
   const n = CN.notes.find((x) => x.id === b.dataset.tnsave); if (!n) return;
   const ta = document.querySelector(`[data-tnedittext="${CSS.escape(n.id)}"]`), text = ta ? ta.value.trim() : '';
   if (!text) return;
   b.disabled = true; b.textContent = 'שומר…';
-  try { await api('chatNoteEdit', { id: n.id, text }); n.text = text; n.edited = Date.now(); tnEdit.delete(n.id); cnPaintNote(n); say('נשמר'); }
+  try { await api('chatNoteEdit', { id: n.id, text }); n.text = text; n.edited = Date.now(); tnEdit.delete(n.id); cnPaintNote(n); toast('נשמר'); }
   catch (e) { b.disabled = false; b.textContent = 'לא נשמר - שוב'; }
 }
 async function tnDel(b) {
@@ -2069,8 +2251,8 @@ async function tnDel(b) {
   try {
     await api('chatNoteDel', { id: n.id });
     CN.notes = CN.notes.filter((x) => x.id !== n.id && x.reply !== n.id);
-    cnPaint(n.key); cnPaintCard(n.id);
-  } catch (e) { say('לא נמחק'); }
+    cnPaint(n.key);
+  } catch (e) { toast('לא נמחק'); }
 }
 // a comment's conversation, wherever it is in time
 async function tnThread(id) {
@@ -2078,9 +2260,9 @@ async function tnThread(id) {
   if (threads().some((t) => t.key === n.key)) return openThread(n.key, null, n.msg || '');
   try {
     const r = await api('chatThread', { c: n.c, ids: n.ids });
-    if (!r.chats.length) return say('השיחה כבר לא שמורה (90 יום) - ההודעה שמורה בהערה');
+    if (!r.chats.length) return toast('השיחה כבר לא שמורה (90 יום) - ההודעה שמורה בהערה');
     openThread(n.key, r.chats, n.msg || '');
-  } catch (e) { say('לא נטען'); }
+  } catch (e) { toast('לא נטען'); }
 }
 function cnCard(n) {
   return `<div class="cn-card" data-cncard="${n.id}"><div class="cn-h">${face(n.mode)}<div><b>${esc(cname(n.mode))}</b><small>${n.msg ? 'על תשובה' : 'על כל השיחה'} · ${stamp(n.at || n.t)}</small></div><button class="pill" data-tnthread="${n.id}"><span>לשיחה</span>${IC.back}</button></div>
@@ -2088,9 +2270,9 @@ function cnCard(n) {
 }
 function cnView() {
   const mine = cnMine(), list = mine.filter((n) => cnFilter === 'all' || (cnFilter === 'open' ? !n.done : n.done)).sort((a, b) => (b.t || 0) - (a.t || 0));
-  $('#pane').innerHTML = `${chSegBar()}<div class="top"><div><h1>הערות על שיחות</h1><p>${fmt(mine.filter((n) => !n.done).length)} פתוחות · ${fmt(mine.length)} בסך הכול. סשן קורא אותן ומחליט איתך מה כל אחת צריכה.</p></div></div>
+  paint(`${chSegBar()}<div class="top"><div><h1>הערות על שיחות</h1><p>${fmt(mine.filter((n) => !n.done).length)} פתוחות · ${fmt(mine.length)} בסך הכול. סשן קורא אותן ומחליט איתך מה כל אחת צריכה.</p></div></div>
     <div class="chips">${[['open', 'פתוחות'], ['done', 'טופלו'], ['all', 'הכול']].map(([k, l]) => `<button data-cnf="${k}" class="${k === cnFilter ? 'on' : ''}">${l}</button>`).join('')}</div>
-    <div class="cn-list">${list.map(cnCard).join('') || `<div class="empty">${cnFilter === 'open' ? 'אין הערות פתוחות. פותחים שיחה ולוחצים "הערה".' : 'אין.'}</div>`}</div>`;
+    <div class="cn-list">${list.map(cnCard).join('') || `<div class="empty">${cnFilter === 'open' ? 'אין הערות פתוחות. פותחים שיחה ולוחצים "הערה".' : 'אין.'}</div>`}</div>`);
 }
 // typing: drafts kept on every keystroke, boxes grow
 document.addEventListener('input', (e) => {
@@ -2163,6 +2345,7 @@ function pageUnlock() {
   const y = lockY; lockY = null;
   Object.assign(document.body.style, { overflow: '', position: '', top: '', left: '', right: '', width: '' });
   scrollTo(0, y);
+  unbusy();   // what came from the server while the window was open
 }
 // scroll a message to the middle of its conversation - only the conversation moves, never the page
 function msgCenter(el, smooth) {
@@ -2179,7 +2362,7 @@ function askBox(msg, { ok = 'כן', no = 'ביטול' } = {}) {
     document.body.insertAdjacentHTML('beforeend', `<div class="ask-back"><div class="ask" role="alertdialog" aria-modal="true"><img src="/verse/logo-160.png" alt=""><p>${esc(msg).split('\n').join('<br>')}</p>
       <div class="ask-acts"><button class="btn main" data-ask="1">${esc(ok)}</button><button class="btn" data-ask="0">${esc(no)}</button></div></div></div>`);
     const back = document.querySelector('.ask-back');
-    const done = (v) => { back.remove(); removeEventListener('keydown', key, true); resolve(v); };
+    const done = (v) => { back.remove(); removeEventListener('keydown', key, true); resolve(v); unbusy(); };
     const key = (e) => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } if (e.key === 'Enter') { e.preventDefault(); done(true); } };
     addEventListener('keydown', key, true);
     back.addEventListener('click', (e) => { const b = e.target.closest('[data-ask]'); if (b) done(b.dataset.ask === '1'); else if (e.target === back) done(false); });
@@ -2220,13 +2403,13 @@ function breakdown(list, label) {
 }
 // "מה למדנו" (plan cz-sim-r3, mockup r3-learned-1): what the residents told Miriam, Demokratovich and Yotam - one profile each
 // (about.js aboutStats). Real counts only; the faces from the wiki's data.
-let ABST = null, abAt = 0;
-async function learnedCard() {
+let ABST = null;
+function learnedCard() {
   const el = $('#ab-st');
   if (!el) return;
   const draw = () => {
     const x = ABST;
-    if (!x || x.error) { el.innerHTML = `<div class="card-h"><h2>מה למדנו</h2></div><div class="empty">${x && x.error ? 'לא נטען' : 'טוען…'}</div>`; return; }
+    if (!want('AB')) { patch(el, `<div class="card-h"><h2>מה למדנו</h2></div>${waitBox('AB')}`); return; }
     const F = x.fields || {}, c = (k) => (x.count || {})[k] || { asked: 0, skipped: 0, v: {} };
     const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '-');
     const push = c('push'), said = (k) => c(k).asked - c(k).skipped;
@@ -2237,7 +2420,7 @@ async function learnedCard() {
       return `<div class="ab-bl"><h3>${label}<small>${fmt(tot)} ענו${c(k).skipped ? ` · ${fmt(c(k).skipped)} דילגו` : ''}</small></h3>${e.length ? e.map(([v, n]) => `<div class="ab-b">${k === 'fav' ? face(v) : ''}<span>${esc(name(v))}</span><i><b style="width:${Math.max(4, Math.round((n / max) * 100))}%"></b></i><em>${opt.pct ? pct(n, tot) : fmt(n)}</em></div>`).join('') : '<p class="hint">עוד אין</p>'}</div>`;
     };
     const wishes = (x.recent || []).filter((p) => p.wish).slice(0, 12);
-    el.innerHTML = `<div class="card-h"><h2>מה למדנו</h2><small class="hint">מה שסיפרו למרים, לרב דמוקרטוביץ׳ וליותם - פרופיל אחד לכל אחד</small></div>
+    patch(el, `<div class="card-h"><h2>מה למדנו</h2><small class="hint">מה שסיפרו למרים, לרב דמוקרטוביץ׳ וליותם - פרופיל אחד לכל אחד</small></div>
       <div class="kgrid sim-k">
         <div class="k"><span class="kh">סיפרו משהו</span><b>${fmt(x.people)}</b><small>תושבים עם פרופיל</small></div>
         <div class="k"><span class="kh">הסכימו להתראות</span><b>${pct((push.v || {}).yes || 0, push.asked)}</b><small>${fmt((push.v || {}).yes || 0)} מתוך ${fmt(push.asked)} שנשאלו</small></div>
@@ -2247,23 +2430,20 @@ async function learnedCard() {
       <div class="ab-2">${bars('world', 'העולם שמצחיק אותם', { n: 6 })}${bars('first', 'מה עושים פה קודם', { pct: true })}</div>
       <div class="ab-2">${bars('channel', 'איך לספר להם על משהו חדש', { pct: true })}
         <div class="ab-bl"><h3>ימי הולדת השבוע</h3>${(x.week || []).length ? x.week.map((w) => `<div class="ab-bd"><b>${esc(w.nick || 'בלי שם')}</b><span>${w.bday.d}.${w.bday.m}</span></div>`).join('') : '<p class="hint">אין השבוע</p>'}</div></div>
-      <div class="ab-bl"><h3>מה הם רוצים לעשות כאן<small>${fmt(said('wish'))} כתבו</small></h3>${wishes.length ? `<div class="ab-q">${wishes.map((p) => `<p>"${esc(p.wish)}"<small>${esc(p.nick || '')}</small></p>`).join('')}</div>` : '<p class="hint">עוד אין</p>'}</div>`;
+      <div class="ab-bl"><h3>מה הם רוצים לעשות כאן<small>${fmt(said('wish'))} כתבו</small></h3>${wishes.length ? `<div class="ab-q">${wishes.map((p) => `<p>"${esc(p.wish)}"<small>${esc(p.nick || '')}</small></p>`).join('')}</div>` : '<p class="hint">עוד אין</p>'}</div>`);
   };
-  if (ABST && Date.now() - abAt < 300e3) return draw();
   draw();
-  try { ABST = await api('aboutStats', {}); abAt = Date.now(); } catch (e) { ABST = { error: true }; }
-  if ($('#ab-st')) draw();
 }
 // the citizenship journey (stage 3, citizen.js citizenStats): where the residents are in it
-let CZST = null, czAt = 0;
-async function czCard() {
+let CZST = null;
+function czCard() {
   const el = $('#cz-st');
   if (!el) return;
   const draw = () => {
     const x = CZST;
-    if (!x || x.error) { el.innerHTML = `<div class="card-h"><h2>מסע האזרחות</h2></div><div class="empty">${x && x.error ? 'לא נטען' : 'טוען…'}</div>`; return; }
+    if (!want('CZ')) { patch(el, `<div class="card-h"><h2>מסע האזרחות</h2></div>${waitBox('CZ')}`); return; }
     const STEP = [['boarding', 'כרטיס עלייה'], ['checkin', 'אצל מרים'], ['booth', 'בבוטקה'], ['flight', 'בטיסה'], ['done', 'סיימו']];
-    el.innerHTML = `<div class="card-h"><h2>מסע האזרחות</h2></div>
+    patch(el, `<div class="card-h"><h2>מסע האזרחות</h2></div>
       <div class="kgrid sim-k">
         <div class="k"><span class="kh">התחילו</span><b>${fmt(x.started)}</b><small>תושבים שנכנסו למסע</small></div>
         <div class="k"><span class="kh">אזרחים</span><b>${fmt(x.citizens)}</b><small>קיבלו מספר</small></div>
@@ -2272,25 +2452,22 @@ async function czCard() {
       <div class="sim-row"><b>למה הגיעו לשלומיוורס</b>${Object.entries(x.why || {}).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tag">${esc(k)} ${v}</span>`).join('') || '<span class="hint">עוד אין</span>'}</div>
       ${(x.answers || []).length ? `<details class="cz-ans"><summary>כל מה שענו למרים (${x.answers.length})</summary>${x.answers.map((r) => `<div class="cz-a"><div class="l1"><b>${esc(r.nick || 'בלי שם')}</b><time>${stamp(r.t)}</time>${r.n ? `<span class="tag">אזרח ${String(r.n).padStart(4, '0')}</span>` : ''}</div>
         ${r.qa.map((t) => `<div class="qa"><span>${esc(t.q)}</span><b>${t.a == null ? '<i>דילגו</i>' : esc(t.a) + (t.opt ? '' : ' <small>(כתבו)</small>')}</b></div>`).join('')}
-        ${r.dept ? `<div class="hint">מחלקה: ${esc(r.dept)} · סיווג: ${esc(r.cls || '')}</div>` : ''}</div>`).join('')}</details>` : ''}`;
+        ${r.dept ? `<div class="hint">מחלקה: ${esc(r.dept)} · סיווג: ${esc(r.cls || '')}</div>` : ''}</div>`).join('')}</details>` : ''}`);
   };
-  if (CZST && Date.now() - czAt < 300e3) return draw();
   draw();
-  try { CZST = await api('citizenStats', {}); czAt = Date.now(); } catch (e) { CZST = { error: true }; }
-  if ($('#cz-st')) draw();
 }
 // "אתם חיים בסימולציה?" (2026-11-06, stage 2 of the conversion plan): the funnel from the tests themselves (sim.js simStats)
-let SIMST = null, simAt = 0, simDays = 7;
-async function simCard(force) {
+let SIMST = null, simDays = 7;
+function simCard() {
   const el = $('#sim-st');
   if (!el) return;
   const draw = () => {
     const x = SIMST;
-    if (!x || x.error) { el.innerHTML = `<div class="card-h"><h2>מבחן הסימולציה</h2></div><div class="empty">${x && x.error ? 'לא נטען' : 'טוען…'}</div>`; return; }
+    if (!want('SIM')) { patch(el, `<div class="card-h"><h2>מבחן הסימולציה</h2></div>${waitBox('SIM')}`); return; }
     const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '-');
     const FROM = { home: 'בית', chat: "צ'אט", share: 'שיתוף', instagram: 'אינסטגרם', direct: 'ישיר', other: 'אחר' };
     const steps = x.drop.slice(0, 8), maxD = Math.max(1, ...steps);
-    el.innerHTML = `<div class="card-h"><h2>מבחן הסימולציה</h2><div class="seg sm">${[[1, 'היום'], [7, '7 ימים'], [30, '30 ימים']].map(([d, l]) => `<button data-simd="${d}" class="${simDays === d ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+    patch(el, `<div class="card-h"><h2>מבחן הסימולציה</h2><div class="seg sm">${[[1, 'היום'], [7, '7 ימים'], [30, '30 ימים']].map(([d, l]) => `<button data-simd="${d}" class="${simDays === d ? 'on' : ''}">${l}</button>`).join('')}</div></div>
       <div class="kgrid sim-k">
         <div class="k"><span class="kh">התחילו</span><b>${fmt(x.started)}</b><small>${fmt(x.touristsStarted)} תיירים</small></div>
         <div class="k"><span class="kh">סיימו</span><b>${fmt(x.finished)}</b><small>${pct(x.finished, x.started)}</small></div>
@@ -2301,13 +2478,10 @@ async function simCard(force) {
       <div class="sim-row"><b>איפה עצרו (שאלות שענו)</b></div>
       <div class="sim-drop">${steps.map((v, i) => `<div><span style="height:${Math.round((v / maxD) * 100)}%"></span><small>${i}</small><em>${v}</em></div>`).join('')}</div>
       <p class="hint">העלות: הוצאות ← המפתח "site" (נקרא מ-OpenAI).</p>
-      ${x.recent.length ? `<div class="sim-recent">${x.recent.map((r) => `<a href="https://shlomiverse.com/simulation?r=${r.rid}" target="_blank" rel="noopener">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="ph"></span>'}<span><b>${esc(r.name)}${r.dept ? ` · ${esc(r.dept)}` : ''}</b><small>${esc(r.host || '')} · ${esc(FROM[r.from] || r.from || '')} · ${ago(r.t)}${r.uid ? ' · תושב' : ''}${r.shared ? ' · שותף' : ''}</small></span></a>`).join('')}</div>` : ''}`;
-    el.querySelectorAll('[data-simd]').forEach((b) => (b.onclick = () => { simDays = +b.dataset.simd; simCard(true); }));
+      ${x.recent.length ? `<div class="sim-recent">${x.recent.map((r) => `<a data-k="${esc(r.rid)}" href="https://shlomiverse.com/simulation?r=${r.rid}" target="_blank" rel="noopener">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : '<span class="ph"></span>'}<span><b>${esc(r.name)}${r.dept ? ` · ${esc(r.dept)}` : ''}</b><small>${esc(r.host || '')} · ${esc(FROM[r.from] || r.from || '')} · ${ago(r.t)}${r.uid ? ' · תושב' : ''}${r.shared ? ' · שותף' : ''}</small></span></a>`).join('')}</div>` : ''}`);
+    el.querySelectorAll('[data-simd]').forEach((b) => (b.onclick = () => { simDays = +b.dataset.simd; simCard(); refetch(['SIM']).then(() => { if (tab === 'overview') simCard(); }); }));
   };
-  if (!force && SIMST && Date.now() - simAt < 300e3) return draw();
-  if (!SIMST) draw();
-  try { SIMST = await api('simStats', { days: simDays }); simAt = Date.now(); } catch (e) { SIMST = { error: true }; }
-  if ($('#sim-st')) draw();
+  draw();
 }
 // a small markdown: **bold**, - bullets, | tables |
 function md(t) {
@@ -2347,7 +2521,7 @@ function bars(el, rows, unit, onPick, on, ghost) {   // ghost: {day: projected t
     const cx = W_ - (i + 0.5) * step, col = es.some((x) => x.kind === 'incident') ? '#ff5a5a' : '#8fb8ff', hw = Math.max(12, step / 2), rx = Math.max(0, Math.min(W_ - 2 * hw, cx - hw));   // the tap area stays inside the chart
     return `<g class="evm" data-ev="${d}"><line x1="${cx}" x2="${cx}" y1="${padT - 2}" y2="${H - padB}" stroke="${col}" stroke-width="1.5" stroke-dasharray="3 3" pointer-events="none"/><circle cx="${cx}" cy="${padT - 4}" r="3.5" fill="${col}" pointer-events="none"/><rect x="${rx}" y="0" width="${2 * hw}" height="30" fill="transparent"/></g>`;
   }).join('');
-  el.innerHTML = `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${marks}${flags}</svg><div class="tip"></div>`;
+  patch(el, `<svg viewBox="0 0 ${W_} ${H}" preserveAspectRatio="none">${grid}${marks}${flags}</svg><div class="tip"></div>`);
   const tip = el.querySelector('.tip');
   // wrap = a tip with event titles: it wraps and stays inside the chart (a long Hebrew title on a phone)
   const show = (g, html, wrap) => {
@@ -2461,7 +2635,7 @@ function evNew() {
       <div class="ev-acts"><button class="btn main" data-evsave>שמירה</button><button class="btn" data-close>ביטול</button></div></div>`, 'ev-sheet');
 }
 // after a change: the list again from the server, the tab drawn where it was
-async function evAfter() { closeSheet(); await reload(['EV']); const y = scrollY; draw(); scrollTo(0, y); }
+async function evAfter() { closeSheet(); await refetch(['EV']); draw(); }
 async function evSave(b) {
   const v = (q) => $(q).value.trim(), err = $('#ev-err');
   const body = { day: v('#ev-day'), kind: v('#ev-kind'), title: v('#ev-title'), note: v('#ev-note'), link: v('#ev-link') };
@@ -2501,7 +2675,7 @@ function people() {
     && (!pDay || dayIL(p.created) === pDay)
     && (!q || [p.email, p.name, p.nick, ...p.sites.map((x) => SITES[x] || x)].join(' ').toLowerCase().includes(q)));
   const from = (p) => [p.citizen ? `<span class="tag or">אזרח/ית${p.czN ? ' #' + p.czN : ''}</span>` : '', p.fan ? '<span class="tag or">שלומיוורס</span>' : '', ...p.sites.map((x) => `<span class="tag wh">${esc(SITES[x] || x)}</span>`)].join('');
-  $('#pane').innerHTML = `
+  paint(`
     <div class="top"><div><h1>אנשים</h1><p>כל מי שנכנס עם חשבון Google, מהחדש לישן.</p></div>
       <button class="btn" id="pp-copy">${IC.mail}העתקת המיילים${q || pFilter !== 'all' || pDay ? ' (מהרשימה)' : ''}</button></div>
     <div class="kgrid k4">
@@ -2509,15 +2683,15 @@ function people() {
       <div class="k"><span class="kh">${IC.join}אזרחים</span><b>${fmt(all.filter((p) => p.citizen).length)}</b><span class="kf"><small class="note">${fmt(all.filter((p) => p.czStarted).length)} באמצע הדרך לדרכון</small></span></div>
       <div class="k"><span class="kh">${IC.join}השבוע</span><b><bdi dir="ltr">+${fmt(all.filter((p) => p.created >= weekAgo).length)}</bdi></b></div>
       <div class="k"><span class="kh">${IC.join}היום</span><b><bdi dir="ltr">+${fmt(all.filter((p) => dayIL(p.created) === today).length)}</bdi></b></div></div>
-    <div class="card" style="margin-bottom:14px"><div class="card-h"><h2>הרשמות ביום</h2><small class="hint">${pDay ? `${dayName(pDay)} · <button data-pday="" style="color:#ff9a5c;font-weight:700">כל הימים</button>` : 'לחיצה על יום מציגה מי נרשם בו'}</small></div><div class="chart" id="p-ch"></div></div>
-    <label class="search" style="margin-bottom:12px">${IC.search}<input id="pp-q" placeholder="חיפוש לפי שם, מייל או אתר" value="${esc(pQuery)}"></label>
+    <div class="card" style="margin-bottom:14px"><div class="card-h"><h2>הרשמות ביום</h2><small class="hint">${pDay ? `${dayName(pDay)} · <button data-pday="" style="color:#ff9a5c;font-weight:700">כל הימים</button>` : 'לחיצה על יום מציגה מי נרשם בו'}</small></div><div class="chart" id="p-ch" data-own="chart"></div></div>
+    <label class="bs-search" style="margin-bottom:12px">${IC.search}<input id="pp-q" placeholder="חיפוש לפי שם, מייל או אתר" value="${esc(pQuery)}"></label>
     <div class="chips">${[['all', 'הכול'], ['verse', 'שלומיוורס'], ['citizens', 'אזרחים'], ['sites', 'מהאתרים'], ['today', 'היום'], ['week', 'השבוע']].map(([k, l]) => `<button data-pf="${k}" class="${k === pFilter ? 'on' : ''}">${l}</button>`).join('')}</div>
     <div>${list.map((p) => `<button class="person" data-person="${p.uid}">${personFace(p)}
       <div class="body"><b>${esc(personName(p))}</b>${p.official ? OFC : ''}<div class="em">${esc(p.email || '')}</div><div class="when">נרשם/ה ${stamp(p.created)}${p.last ? ` · נראה/תה ${ago(p.last)}` : ''}</div></div>
-      <div class="tags">${from(p)}</div></button>`).join('') || '<div class="empty">אין כאן אף אחד.</div>'}</div>`;
+      <div class="tags">${from(p)}</div></button>`).join('') || '<div class="empty">אין כאן אף אחד.</div>'}</div>`);
   bars($('#p-ch'), days(30).map((d) => [d.d, joinedOn(d.d).length]), 'נרשמו', (d) => { pDay = pDay === d ? null : d; people(); }, pDay);
   const inp = $('#pp-q');
-  inp.oninput = () => { pQuery = inp.value; const pos = inp.selectionStart; people(); const n = $('#pp-q'); n.focus(); n.setSelectionRange(pos, pos); };
+  inp.oninput = () => { pQuery = inp.value; people(); };
   $('#pp-copy').onclick = () => navigator.clipboard.writeText(list.map((p) => p.email).filter(Boolean).join(', ')).then(() => { $('#pp-copy').textContent = `הועתקו ${list.filter((p) => p.email).length}`; });
 }
 // one person: who, since when, and everything they did here (conversations, comments, ideas, requests)
@@ -2561,11 +2735,11 @@ function requests() {
   const count = (k) => all.filter((r) => !r.done && (k === 'all' || r.kind === k)).length;
   const q = rqQuery.trim().toLowerCase();
   const list = all.filter((r) => (rqKind === 'all' || r.kind === rqKind) && (!q || [r.text, r.name, r.company, r.contact, r.nick, r.siteName, r.choice, r.email, r.forWho, r.event, r.char].join(' ').toLowerCase().includes(q)));
-  $('#pane').innerHTML = `
+  paint(`
     <div class="top"><div><h1>פניות</h1><p>כל מה שהגיע אליך, לפי סוג. הפתוחות קודם.</p></div>
-      <label class="search">${IC.search}<input id="rq-q" placeholder="חיפוש בפניות" value="${esc(rqQuery)}"></label></div>
+      <label class="bs-search">${IC.search}<input id="rq-q" placeholder="חיפוש בפניות" value="${esc(rqQuery)}"></label></div>
     <div class="chips">${[['all', 'הכל'], ...Object.entries(RQ).map(([k, [l]]) => [k, l])].map(([k, l]) => `<button data-rqk="${k}" class="${k === rqKind ? 'on' : ''}">${l}${count(k) ? `<small>${count(k)}</small>` : ''}</button>`).join('')}</div>
-    <div class="msgs">${list.map((r) => { const [l, cls, color] = RQ[r.kind] || RQ.contact; return `<div class="msg ${r.done ? 'done' : ''}" style="--k:${color}">${ini(whoOf(r))}
+    <div class="msgs">${list.map((r) => { const [l, cls, color] = RQ[r.kind] || RQ.contact; return `<div class="msg ${r.done ? 'done' : ''}" data-k="rq${esc(r.id)}" style="--k:${color}">${ini(whoOf(r))}
       <div class="body"><div class="l1"><div class="who"><b>${esc(whoOf(r))}</b><small>${ago(r.t)}${r.kind === 'site' ? ` · ${esc(r.siteName || SITES[r.site] || r.site)}` : r.from === 'community' ? ' · מעמוד הקהילה' : r.from === 'chat' ? ' · מהצ׳אט' : r.kind === 'business' ? ' · מעמוד העסקים' : ''}</small></div><span class="tag ${cls}">${l}</span></div>
         ${r.kind === 'business' && (r.company || r.topic) ? `<div class="co">${esc(r.company || '')}${r.topic ? ` · ${esc(r.topic)}` : ''}</div>` : ''}
         ${r.kind === 'personal' ? `<div class="co">${esc(r.event || 'אירוע')}${r.forWho ? ` ל${esc(r.forWho)}` : ''}${r.char ? ` · ${esc(r.char)}` : ''}${r.date ? ` · ${esc(r.date.split('-').reverse().join('.'))}` : ''}</div>` : ''}
@@ -2574,27 +2748,27 @@ function requests() {
         ${r.kind === 'bug' ? `<div class="tech">${r.page ? `<a href="${esc(r.page)}" target="_blank">${esc(r.page)}</a><br>` : ''}${esc(r.screen || '')} · ${esc(r.ua || '')}${(r.errors || []).length ? `<br>${r.errors.map(esc).join(' | ')}` : ''}</div>` : ''}
         ${r.contact ? `<div class="pills">${contactPills(r.contact)}</div>` : ''}</div>
       ${r.kind === 'video' ? (r.videoId ? `<a class="check" href="/v/${esc(r.videoId)}" target="_blank"><span>${IC.check}</span>נמצא: ${esc(r.videoId)}</a>` : `<button class="check" data-found="${r.id}"><span>${IC.check}</span>נמצא ← להודיע לו</button>`) : ''}
-      <button class="check" data-done="${r.id}" data-on="${r.done ? 0 : 1}"><span>${IC.check}</span>${r.done ? 'טופל' : 'לסמן טופל'}</button></div>`; }).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`;
+      <button class="check" data-done="${r.id}" data-on="${r.done ? 0 : 1}"><span>${IC.check}</span>${r.done ? 'טופל' : 'לסמן טופל'}</button></div>`; }).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`);
   const inp = $('#rq-q');
-  inp.oninput = () => { rqQuery = inp.value; const pos = inp.selectionStart; requests(); const n = $('#rq-q'); n.focus(); n.setSelectionRange(pos, pos); };
+  inp.oninput = () => { rqQuery = inp.value; requests(); };
 }
 
 // תוכן: comments, ideas and stickers in one place; פרסום: a character's story, a new video
 const contentSegHtml = () => `<div class="seg">${[['all', 'הכל'], ['comments', 'תגובות'], ['stickers', 'סטיקרים']].map(([k, l]) => `<button data-cseg="${k}" class="${contentSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 const publishSegHtml = () => `<div class="seg">${[['story', 'סטוריז'], ['video', 'סרטון חדש']].map(([k, l]) => `<button data-pseg="${k}" class="${publishSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 function content() { ({ all: allContent, comments, stickers })[contentSeg](); }
-const commentRow = (c) => `<div class="item ${c.hidden ? 'off' : ''}">${c.char ? face(c.char) : fanFace(c)}
+const commentRow = (c) => `<div class="item ${c.hidden ? 'off' : ''}" data-k="c${esc(c.id)}">${c.char ? face(c.char) : fanFace(c)}
       <div class="body"><b>${esc(c.nick)}</b> ${c.char ? '<span class="tag or">דמות</span>' : ''}${c.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${c.removedBy === 'fan' ? ' <span class="tag">נמחק ע״י המגיב</span>' : ''}
         <small> · ${ago(c.t)} · <a href="/v/${c.videoId}?c=${c.parentId || c.id}" target="_blank" style="color:#ff9a5c">${esc(V[c.videoId]?.title || c.videoId)}</a></small><p>${esc(c.text)}</p></div>${hideBtn('comment', c)}</div>`;
-const stickerRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}"><img class="st" src="${esc(x.img)}" alt="">
+const stickerRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}" data-k="s${esc(x.id)}"><img class="st" src="${esc(x.img)}" alt="">
       <div class="body"><b>${esc(x.text)}</b><p><span class="votes">${LOGO_LIKE}${x.stampCount || 0}</span> · ${esc(x.nick || '')} · ${ago(x.t)} · <a href="/v/${x.videoId}?sticker=${x.id}" target="_blank" style="color:#ff9a5c">${esc(V[x.videoId]?.title || x.videoId)}</a></p></div>${hideBtn('sticker', x)}</div>`;
 // תוכן opens on everything at once, newest first (his ask, 2026-11-05: the parts behind the buttons were easy to miss)
 function allContent() {
-  const ideaRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body"><b>${esc(x.nick || '')}</b> <span class="tag or">רעיון</span><small> · ${ago(x.t)}</small><p>${esc(x.text)}</p></div><button class="btn" data-tab="ideas">לרעיונות</button></div>`;
+  const ideaRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}" data-k="i${esc(x.id)}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body"><b>${esc(x.nick || '')}</b> <span class="tag or">רעיון</span><small> · ${ago(x.t)}</small><p>${esc(x.text)}</p></div><button class="btn" data-tab="ideas">לרעיונות</button></div>`;
   const rows = [...L.comments.map((c) => [c.t || 0, commentRow(c)]), ...L.stickers.map((x) => [x.t || 0, stickerRow(x)]), ...(L.ideas || []).map((x) => [x.t || 0, ideaRow(x)])]
     .sort((a, b) => b[0] - a[0]).slice(0, 150);
-  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>כל התוכן</h1><p>תגובות, רעיונות וסטיקרים יחד, החדשים קודם.</p></div></div>
-    <div>${rows.map((r) => r[1]).join('') || '<div class="empty">עוד אין כלום.</div>'}</div>`;
+  paint(`${contentSegHtml()}<div class="top"><div><h1>כל התוכן</h1><p>תגובות, רעיונות וסטיקרים יחד, החדשים קודם.</p></div></div>
+    <div>${rows.map((r) => r[1]).join('') || '<div class="empty">עוד אין כלום.</div>'}</div>`);
 }
 function publish() { ({ story, video })[publishSeg](); }
 // ---------- ideas ----------
@@ -2605,7 +2779,7 @@ function ideas() {
   // A card that works on the phone (his note: "terrible on mobile"): who + hide on top, the idea across the whole width,
   // the steps, the answer; "עלה לאוויר" asks which video in a window
   const STEP = { liked: 'השלומיוורס אהב', making: 'בעבודה', live: 'עלה לאוויר' };
-  const card = (x) => `<div class="ic ${x.hidden ? 'off' : ''}">
+  const card = (x) => `<div class="ic ${x.hidden ? 'off' : ''}" data-k="i${esc(x.id)}">
       <div class="ic-top">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="ic-who"><b>${esc(x.nick || '')}</b><small>${ago(x.t)}${KIND[x.kind] ? ` · ${KIND[x.kind]}` : ''}${x.unchecked ? ' · <span class="tag red">לא נבדק</span>' : ''}</small></div>
         <span class="votes">${LOGO_LIKE}${x.votes || 0}</span>${hideBtn('idea', x)}</div>
       <p class="ic-text">${esc(x.text)}</p>
@@ -2614,8 +2788,8 @@ function ideas() {
       ${x.status === 'live' && x.videoId ? `<p class="ic-video">הסרטון: ${esc(V[x.videoId]?.title || x.videoId)}</p>` : ''}
       <div class="idea-reply-box"><textarea rows="2" data-idea-reply-text="${x.id}" placeholder="תגובה של השלומיוורס (מתחת לרעיון בקיר; הכותב מקבל התראה)">${esc(x.reply?.text || '')}</textarea><button class="chip" data-idea-reply="${x.id}">${x.reply?.text ? 'לעדכן' : 'להגיב'}</button></div>`}
     </div>`;
-  $('#pane').innerHTML = `<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים. סימון וכל תגובה מגיעים לכותב.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר</a></div>
-    <div class="ic-list">${list.map(card).join('') || '<div class="empty">עוד אין רעיונות.</div>'}</div>`;
+  paint(`<div class="top"><div><h1>רעיונות</h1><p>הקיר של הצופים. סימון וכל תגובה מגיעים לכותב.</p></div><a class="btn" href="/community" target="_blank">${IC.out}לקיר</a></div>
+    <div class="ic-list">${list.map(card).join('') || '<div class="empty">עוד אין רעיונות.</div>'}</div>`);
 }
 // "עלה לאוויר": which video came of the idea - a window with the latest videos
 function pickVideo(current) {
@@ -2625,7 +2799,7 @@ function pickVideo(current) {
       <select class="ask-sel">${vids.map((v) => `<option value="${v.id}" ${current === v.id ? 'selected' : ''}>${esc(v.title)}</option>`).join('')}</select>
       <div class="ask-acts"><button class="btn main" data-ask="1">זה הסרטון</button><button class="btn" data-ask="0">ביטול</button></div></div></div>`);
     const back = document.querySelector('.ask-back:last-of-type');
-    back.addEventListener('click', (e) => { const b = e.target.closest('[data-ask]'); if (!b && e.target !== back) return; const v = b && b.dataset.ask === '1' ? back.querySelector('.ask-sel').value : null; back.remove(); resolve(v); });
+    back.addEventListener('click', (e) => { const b = e.target.closest('[data-ask]'); if (!b && e.target !== back) return; const v = b && b.dataset.ask === '1' ? back.querySelector('.ask-sel').value : null; back.remove(); resolve(v); unbusy(); });
     requestAnimationFrame(() => back.classList.add('on'));
   });
 }
@@ -2639,20 +2813,19 @@ async function ideaStep(b) {
     : `לסמן "${{ liked: 'השלומיוורס אהב', making: 'בעבודה', live: 'עלה לאוויר' }[s]}"? ${x.nick || 'הכותב'} יקבל/ת התראה ומייל${s === 'live' ? ', וכל מי שהצביע יקבל התראה' : ''}.`;
   if (!await askBox(msg)) return;
   b.disabled = true;
-  const say = (t) => { const d = document.createElement('div'); d.className = 'bs-toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 3200); };
-  try { const r = await api('ideaStatus', { id: x.id, status: s, videoId }); say(r.told ? `סומן ונשלח ל${x.nick || 'כותב הרעיון'}${r.voters ? ` ול-${r.voters} שהצביעו` : ''}` : 'עודכן'); } catch (e) { say('לא הצליח: ' + (e.message || '')); }
+  try { const r = await api('ideaStatus', { id: x.id, status: s, videoId }); toast(r.told ? `סומן ונשלח ל${x.nick || 'כותב הרעיון'}${r.voters ? ` ול-${r.voters} שהצביעו` : ''}` : 'עודכן'); } catch (e) { toast('לא הצליח: ' + (e.message || '')); }
   refresh();
 }
 const hideBtn = (kind, x) => `<button class="btn" data-hide="${kind}" data-id="${x.id}" data-on="${x.hidden ? 0 : 1}">${x.hidden ? 'להחזיר' : 'להסתיר'}</button>`;
 
 // ---------- comments / stickers ----------
 function comments() {
-  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>תגובות</h1><p>כל התגובות, החדשות קודם. תגובה שמסתירים נעלמת מהאתר.</p></div></div>
-    <div>${L.comments.map(commentRow).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`;
+  paint(`${contentSegHtml()}<div class="top"><div><h1>תגובות</h1><p>כל התגובות, החדשות קודם. תגובה שמסתירים נעלמת מהאתר.</p></div></div>
+    <div>${L.comments.map(commentRow).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`);
 }
 function stickers() {
-  $('#pane').innerHTML = `${contentSegHtml()}<div class="top"><div><h1>סטיקרים</h1><p>הסטיקרים שהצופים פרסמו. סטיקר שמסתירים יורד מהאתר.</p></div></div>
-    <div>${L.stickers.map(stickerRow).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`;
+  paint(`${contentSegHtml()}<div class="top"><div><h1>סטיקרים</h1><p>הסטיקרים שהצופים פרסמו. סטיקר שמסתירים יורד מהאתר.</p></div></div>
+    <div>${L.stickers.map(stickerRow).join('') || '<div class="empty">עוד אין סטיקרים.</div>'}</div>`);
 }
 
 // ---------- סטוריז: every story as a visitor saw it; a new one is written in a window on top (his ask 2026-11-02,
@@ -2686,7 +2859,7 @@ function story() {
   stList = list.map((x) => x.id);
   const chars = [...new Set(all.map((x) => x.char))].filter((id) => C[id]);
   const n = { all: all.length, live: all.filter(isLive).length, old: all.filter((x) => !x.hidden && !isLive(x)).length, hidden: all.filter((x) => x.hidden).length };
-  $('#pane').innerHTML = `${publishSegHtml()}<div class="top"><div><h1>סטוריז</h1><p>כל סטורי שעלה, בדיוק כמו שהצופים ראו אותו. פעיל = עדיין בעיגולים בדף הבית (3 ימים).</p></div>
+  paint(`${publishSegHtml()}<div class="top"><div><h1>סטוריז</h1><p>כל סטורי שעלה, בדיוק כמו שהצופים ראו אותו. פעיל = עדיין בעיגולים בדף הבית (3 ימים).</p></div>
       <button class="btn main" data-story-new>${IC.plus}סטורי חדש</button></div>
     <div class="sc-filters"><div class="seg">${[['all', 'הכול'], ['live', 'פעילים עכשיו'], ['old', 'ישנים'], ['hidden', 'מוסתרים']].map(([k, l]) =>
       `<button data-ststate="${k}" class="${stState === k ? 'on' : ''}">${l} <bdi>${n[k]}</bdi></button>`).join('')}</div>
@@ -2694,7 +2867,7 @@ function story() {
     <div class="sc-grid">${list.map((x) => `<button class="sc ${x.hidden ? 'off' : ''}" data-story-open="${x.id}">
         <div class="sc-art">${storyArt(x)}${isLive(x) ? '<span class="sc-badge live">פעיל</span>' : x.hidden ? '<span class="sc-badge">מוסתר</span>' : ''}</div>
         <div class="sc-meta">${face(x.char).replace(' ring', '')}<div><b>${esc(C[x.char]?.name || x.char)}</b><small>${ago(x.t)} · ${storyAud(x)}</small><small>${storyNums(x)}</small></div></div>
-      </button>`).join('') || `<div class="empty">${all.length ? 'אין סטוריז כאלה.' : 'עוד לא עלה סטורי.'}</div>`}</div>`;
+      </button>`).join('') || `<div class="empty">${all.length ? 'אין סטוריז כאלה.' : 'עוד לא עלה סטורי.'}</div>`}</div>`);
 }
 // one story, full size, as it played - with the next / previous in the same list, fix it, hide it
 function openStory(id) {
@@ -2882,15 +3055,15 @@ function storyWindow(edit) {
 let VC = null, vcQ = '';
 // "מבוקשים מהארכיון" (2026-11-10): old Instagram posts marked on /archive/ to bring into the verse (verse.js wishes) - his marks,
 // and once the archive opens, the residents'. insta-to-verse brings them; the residents who asked hear by themselves.
-let WS = null, wsLoading = false;
+let WS = null;
 const IGT = (ig) => `https://storage.googleapis.com/shlomiverse-media/insta/t/${ig}.jpg`;
 function wishCard() {
-  if (!WS) return '<div class="card"><div class="card-h"><h2>מבוקשים מהארכיון</h2></div><div class="empty">טוען…</div></div>';
+  if (!HAVE.has('WS')) return `<div class="card"><div class="card-h"><h2>מבוקשים מהארכיון</h2></div>${waitBox('WS')}</div>`;
   const list = WS.wishes || [];
   return `<div class="card"><div class="card-h"><h2>מבוקשים מהארכיון${list.length ? ` · ${fmt(list.length)}` : ''}</h2>
       <button class="btn" data-ws-open="${WS.open ? 0 : 1}">${WS.open ? 'פתוח לכל התושבים · לסגור' : 'רק אתה מסמן · לפתוח לכולם'}</button></div>
     <p style="color:var(--dim);margin:0 0 10px;font-size:.9rem">פוסטים ישנים שסימנו ב-<a href="/archive/" target="_blank">/archive/</a> כדי שיעלו לשלומיוורס. מי שביקש מקבל הודעה כשהסרטון עולה.</p>
-    ${list.length ? list.slice(0, 60).map((w) => `<div class="item"><img class="th" src="${IGT(w.ig)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div class="body"><b>${fmt(w.n)} ביקשו</b>
+    ${list.length ? list.slice(0, 60).map((w) => `<div class="item" data-k="w${esc(w.ig)}"><img class="th" src="${IGT(w.ig)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div class="body"><b>${fmt(w.n)} ביקשו</b>
       <p>${w.last ? 'אחרון ' + ago(w.last) : ''}</p>${(w.who || []).length ? `<p style="margin:4px 0 0">${w.who.map((p) => `${esc(p.nick || 'בלי שם')}${p.email ? ` <small style="color:var(--dim)">${esc(p.email)}</small>` : ''}`).join(' · ')}</p>` : ''}${(w.notes || []).map((n) => `<p style="margin:4px 0 0">"${esc(n.text)}"${n.nick ? ` <small style="color:var(--dim)">- ${esc(n.nick)}</small>` : ''}</p>`).join('')}</div>${w.permalink ? `<a class="btn" href="${esc(w.permalink)}" target="_blank" rel="noopener">לפוסט ${IC.out}</a>` : ''}</div>`).join('')
       : '<div class="empty">עוד אף אחד לא ביקש.</div>'}</div>`;
 }
@@ -2902,26 +3075,21 @@ async function wishOpen(b) {
   if (r) WS.open = r.open;
   videos();
 }
-async function videos() {
-  const draw = () => {
-    const q = vcQ.trim(), list = (VC || []).filter((v) => !q || (v.title || '').includes(q) || v.id.includes(q));
-    const hidden = (VC || []).filter((v) => v.hidden).length;
-    $('#pane').innerHTML = `<div class="top"><div><h1>סרטונים</h1><p>כל הסרטונים באתר${VC ? ` · ${fmt(VC.length - hidden)} באתר${hidden ? ` · ${hidden} מוסתרים` : ''}` : ''}. סרטון יורד מהאתר רק אם מסתירים אותו כאן.</p></div></div>
-      ${wishCard()}
-      <input class="vc-q" placeholder="חיפוש לפי שם" value="${esc(vcQ)}" data-vc-q>
-      <div>${!VC ? '<div class="empty">טוען…</div>' : list.slice(0, 200).map((v) => `<div class="item ${v.hidden ? 'off' : ''}">${v.poster ? `<img class="th" src="${esc(v.poster)}" alt="" loading="lazy">` : ''}<div class="body"><b>${esc(v.title || v.id)}</b>
-        <p>${(v.cast || []).map((id) => esc(C[id]?.name || id)).join(', ') || '&nbsp;'} · ${esc(v.date || '')}${v.archive ? ' · <span class="tag">אינסטגרם</span>' : ''}${v.hidden ? ' · <span class="tag red">מוסתר</span>' : ''}</p></div>
-        <a class="btn" href="/v/${encodeURIComponent(v.id)}" target="_blank">${IC.out}</a><button class="btn" data-vc-hide="${v.id}" data-on="${v.hidden ? 0 : 1}">${v.hidden ? 'להחזיר לאתר' : 'להסתיר'}</button></div>`).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`;
-    const inp = $('[data-vc-q]'); if (inp) inp.oninput = (e) => { vcQ = e.target.value; const pos = e.target.selectionStart; draw(); const n = $('[data-vc-q]'); n.focus(); n.setSelectionRange(pos, pos); };
-  };
-  draw();
-  // the list again whenever the open ones changed on the server (his note 2026-11-20: brought posts still showed as open -
-  // the list was read once per page load; the minute beat refreshes L.wishes, so a difference = read it again)
-  if (!wsLoading && (!WS || (L && (L.wishes || []).map((w) => w.ig).sort().join() !== (WS.wishes || []).map((w) => w.ig).sort().join()))) {
-    wsLoading = true;
-    api('wishes', {}).then((r) => { WS = r; if (tab === 'videos') draw(); }).catch(() => { WS ||= { wishes: [] }; }).finally(() => { wsLoading = false; });
-  }
-  if (!VC) { VC = (await api('catalogList', {}).catch(() => ({ videos: [] }))).videos; if (tab === 'videos') draw(); }
+let wsTried = '';
+function videos() {
+  want('VC', 'WS');
+  // the archive list again when the open ones in 'list' differ from it (a post brought by a session's sweep) - once per difference
+  const sig = (a) => (a || []).map((w) => w.ig).sort().join(), ls = sig(L.wishes);
+  if (HAVE.has('WS') && ls !== sig(WS.wishes) && wsTried !== ls) { wsTried = ls; refetch(['WS']).then(() => { if (tab === 'videos') later(); }); }
+  const q = vcQ.trim(), list = (VC || []).filter((v) => !q || (v.title || '').includes(q) || v.id.includes(q));
+  const hidden = (VC || []).filter((v) => v.hidden).length;
+  paint(`<div class="top"><div><h1>סרטונים</h1><p>כל הסרטונים באתר${VC ? ` · ${fmt(VC.length - hidden)} באתר${hidden ? ` · ${hidden} מוסתרים` : ''}` : ''}. סרטון יורד מהאתר רק אם מסתירים אותו כאן.</p></div></div>
+    ${wishCard()}
+    <input class="vc-q" placeholder="חיפוש לפי שם" value="${esc(vcQ)}" data-vc-q>
+    <div>${!HAVE.has('VC') ? waitBox('VC') : list.slice(0, 200).map((v) => `<div class="item ${v.hidden ? 'off' : ''}" data-k="v${esc(v.id)}">${v.poster ? `<img class="th" src="${esc(v.poster)}" alt="" loading="lazy">` : ''}<div class="body"><b>${esc(v.title || v.id)}</b>
+      <p>${(v.cast || []).map((id) => esc(C[id]?.name || id)).join(', ') || '&nbsp;'} · ${esc(v.date || '')}${v.archive ? ' · <span class="tag">אינסטגרם</span>' : ''}${v.hidden ? ' · <span class="tag red">מוסתר</span>' : ''}</p></div>
+      <a class="btn" href="/v/${encodeURIComponent(v.id)}" target="_blank">${IC.out}</a><button class="btn" data-vc-hide="${v.id}" data-on="${v.hidden ? 0 : 1}">${v.hidden ? 'להחזיר לאתר' : 'להסתיר'}</button></div>`).join('') || '<div class="empty">אין כאן כלום.</div>'}</div>`);
+  const inp = $('[data-vc-q]'); if (inp) inp.oninput = (e) => { vcQ = e.target.value; videos(); };
 }
 async function vcHide(b) {
   const v = (VC || []).find((x) => x.id === b.dataset.vcHide), hide = b.dataset.on === '1';
@@ -2933,19 +3101,19 @@ async function vcHide(b) {
 
 function video() {
   const list = W.videos.filter((v) => !v.archive && !v.url).slice(0, 30);
-  $('#pane').innerHTML = `${publishSegHtml()}<div class="top"><div><h1>סרטון חדש</h1><p>סרטונים חדשים יוצאים לעוקבים לבד, בדיקה כל רבע שעה. כאן רואים מה כבר נשלח, ואפשר לשלוח שוב.</p></div></div>
+  paint(`${publishSegHtml()}<div class="top"><div><h1>סרטון חדש</h1><p>סרטונים חדשים יוצאים לעוקבים לבד, בדיקה כל רבע שעה. כאן רואים מה כבר נשלח, ואפשר לשלוח שוב.</p></div></div>
     <div>${list.map((v) => {
       const done = L.announced[v.id];
-      return `<div class="item">${v.poster ? `<img class="th" src="${abs(v.poster)}" alt="">` : ''}<div class="body"><b>${esc(v.title)}</b>
+      return `<div class="item" data-k="v${esc(v.id)}">${v.poster ? `<img class="th" src="${abs(v.poster)}" alt="">` : ''}<div class="body"><b>${esc(v.title)}</b>
         <p>${(v.cast || []).map((id) => esc(C[id]?.name || id)).join(', ') || '&nbsp;'} · ${esc(v.date || '')}</p></div>
         ${done ? `<span class="tag or">נשלח ${ago(done)}</span><button class="btn" data-announce="${v.id}" data-again="1">לשלוח שוב</button>` : `<button class="btn main" data-announce="${v.id}">להודיע</button>`}</div>`;
-    }).join('')}</div>`;
+    }).join('')}</div>`);
 }
 
 // ---------- מיילים: the switch, every mail we send, what went out, what happened (mailer.js, 2026-11-04) ----------
 // mailState = the switch + counts + what happened + a dry run of the next run; mailLog = what went out; mailSamples = every
 // kind of mail rendered with real data. Each part draws into its own box as it arrives (the samples are slow to render).
-let MST = null, MLG = null, MSM = null, MBO = null, mlLoaded = false, mlKind = 'all', mlShown = 40, mlNote = '';
+let MST = null, MLG = null, MSM = null, MBO = null, mlKind = 'all', mlShown = 40, mlNote = '';
 const mlHtml = {};
 const MK = { welcome: ['ברוכים הבאים', 'or'], game: ['משחק חדש', 'gr'], video: ['סרטון חדש', 'bl'], story: ['סטורי חדש', 'pu'], digest: ['כמה דברים יחד', 'wh'], reply: ['תשובה מדמות', 'ye'] };
 const EVK = { game: ['משחק', 'gr', 'game'], video: ['סרטון', 'bl', 'video'], story: ['סטורי', 'pu', 'story'] };
@@ -2964,24 +3132,15 @@ const inHours = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('en
 // a phone's browser blows up the text of a frame (text autosizing) and the mail runs off the side - shown as sent, at 100%
 const mlDoc = (h = '') => { const fix = '<style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>'; return /<head[^>]*>/i.test(h) ? h.replace(/<head[^>]*>/i, (m) => m + fix) : fix + h; };
 const mlRO = new ResizeObserver((es) => es.forEach((x) => x.target.style.setProperty('--s', x.contentRect.width / 640)));
-function loadMail() {
-  mlLoaded = true;
-  const get = (op, body, set, draw) => api(op, body).then(set, (e) => { if (e.message !== 'key') set({ error: e.message }); }).finally(() => { if (tab === 'mail') draw(); });
-  get('mailState', {}, (r) => (MST = r), () => { mlStatus(); mlEvents(); });
-  get('mailLog', { limit: 300 }, (r) => (MLG = r), mlLog);
-  get('mailSamples', {}, (r) => (MSM = r), mlSamples);
-  get('mailBounces', {}, (r) => (MBO = r), mlBounces);
-}
-const mlWait = (x) => `<div class="empty">${x ? `לא נטען (${esc(x.error)})` : 'טוען…'}</div>`;
 function mails() {
-  if (!mlLoaded) loadMail();
-  $('#pane').innerHTML = `<div class="top"><div><h1>מיילים</h1><p>מה יוצא, למי, ומה ייצא בריצה הבאה.</p></div></div>
-    <div class="card" id="ml-st"></div>
-    <div class="card ml-bo" id="ml-bo"></div>
+  want('MST', 'MLG', 'MSM', 'MBO');   // each box draws itself when its part comes (the samples are slow to render)
+  paint(`<div class="top"><div><h1>מיילים</h1><p>מה יוצא, למי, ומה ייצא בריצה הבאה.</p></div></div>
+    <div class="card" id="ml-st" data-own="box"></div>
+    <div class="card ml-bo" id="ml-bo" data-own="box"></div>
     <div class="card-h ml-sec"><h2>כל המיילים שלנו</h2><button data-mtest="">${IC.mail}לשלוח אליי את כולם</button></div>
     <p class="hint">כל סוג מייל שאנחנו שולחים, עם נתונים אמיתיים. לחיצה פותחת בגודל מלא.</p>
-    <div id="ml-sm"></div>
-    <div class="cols"><div class="card ml-log" id="ml-lg"></div><div class="card ml-ev" id="ml-ev"></div></div>`;
+    <div id="ml-sm" data-own="box"></div>
+    <div class="cols"><div class="card ml-log" id="ml-lg" data-own="box"></div><div class="card ml-ev" id="ml-ev" data-own="box"></div></div>`);
   mlStatus(); mlSamples(); mlLog(); mlEvents(); mlBounces();
 }
 // addresses our mails don't reach (2026-11-06, his ask): Gmail's failure notices are read every run (mailer.js scanBounces);
@@ -2989,14 +3148,14 @@ function mails() {
 function mlBounces() {
   const el = $('#ml-bo');
   if (!el) return;
-  if (!MBO || MBO.error) { el.innerHTML = `<div class="card-h"><h2>לא מגיע</h2></div>${mlWait(MBO)}`; return; }
+  if (!HAVE.has('MBO')) { patch(el, `<div class="card-h"><h2>לא מגיע</h2></div>${waitBox('MBO')}`); return; }
   const list = MBO.bounces || [], stopped = list.filter((x) => x.stop);
-  el.innerHTML = `<div class="card-h"><h2>לא מגיע${stopped.length ? ` · ${stopped.length}` : ''}</h2><button data-mbscan>${IC.refresh}לבדוק עכשיו</button></div>
+  patch(el, `<div class="card-h"><h2>לא מגיע${stopped.length ? ` · ${stopped.length}` : ''}</h2><button data-mbscan>${IC.refresh}לבדוק עכשיו</button></div>
     <p class="hint">כתובות שהמייל חזר מהן. כתובת שלא קיימת נעצרת מיד, תיבה מלאה אחרי פעמיים. מי שנעצר לא מקבל יותר עדכונים.${MBO.at ? ` נבדק ${ago(MBO.at)}.` : ''}</p>
-    ${list.length ? list.map((x) => `<div class="row ml-b ${x.stop ? '' : 'old'}"><span class="ml-ic ${x.stop ? 'red' : ''}">${IC.mail}</span><div class="body">
+    ${list.length ? list.map((x) => `<div class="row ml-b ${x.stop ? '' : 'old'}" data-k="${esc(x.email)}"><span class="ml-ic ${x.stop ? 'red' : ''}">${IC.mail}</span><div class="body">
       <div class="l1"><b dir="ltr">${esc(x.email)}</b> ${x.stop ? '<span class="tag red">נעצר</span>' : `<span class="tag">פעם ${x.soft}</span>`} <span class="tag">${x.hard ? 'לא קיים / חסום' : 'זמני'}</span></div>
       <div class="l2">${ago(x.last)} · ${esc(x.reason || x.code || '')}</div></div>${x.stop ? `<button class="btn ml-back" data-mback="${esc(x.email)}">להחזיר</button>` : ''}</div>`).join('')
-      : '<div class="empty">אין כתובות שהמייל חזר מהן.</div>'}`;
+      : '<div class="empty">אין כתובות שהמייל חזר מהן.</div>'}`);
   el.querySelector('[data-mbscan]').onclick = async (e) => {
     e.currentTarget.disabled = true;
     try { await api('mailBounceScan', {}); MBO = await api('mailBounces', {}); } catch (err) {}
@@ -3012,11 +3171,11 @@ function mlBounces() {
 function mlStatus() {
   const el = $('#ml-st');
   if (!el) return;
-  if (!MST || MST.error) { el.className = 'card'; el.innerHTML = mlWait(MST); return; }
+  if (!HAVE.has('MST')) { el.className = 'card'; patch(el, waitBox('MST')); return; }
   const on = !!MST.cfg?.on, only = MST.cfg?.only || [], due = MST.plan?.due || [], kinds = {};
   due.forEach((p) => (kinds[p.kind] = (kinds[p.kind] || 0) + 1));
   el.className = `card ml-st${on ? ' on' : ''}`;
-  el.innerHTML = `<div class="ml-sw"><label class="toggle ml-tg" aria-label="שליחה לכולם"><input type="checkbox" id="ml-on" ${on ? 'checked' : ''}><i></i></label>
+  patch(el, `<div class="ml-sw"><label class="toggle ml-tg" aria-label="שליחה לכולם"><input type="checkbox" id="ml-on" ${on ? 'checked' : ''}><i></i></label>
       <div class="t"><b>${on ? 'שולחים לכולם' : 'מצב בדיקה'}</b><small>${on ? 'כל מי שנרשם מקבל מיילים, לפי הכללים.' : `המיילים יוצאים רק אל ${only.map((x) => `<bdi dir="ltr">${esc(x)}</bdi>`).join(', ') || 'אף אחד'}.`}</small></div>
       <span class="tag ${on ? 'gr' : ''}">${on ? 'פועל' : 'כבוי'}</span></div>
     <div class="kgrid k3 ml-k">
@@ -3024,7 +3183,7 @@ function mlStatus() {
       <div class="k"><span class="kh">${IC.x}הפסיקו</span><b>${fmt(MST.off)}</b><span class="kf"><small class="note">${MST.users ? `${Math.round(MST.off / MST.users * 100)}% מהם` : 'אף אחד'}</small></span></div>
       <div class="k"><span class="kh">${IC.mail}בתור</span><b>${fmt(due.length)}</b><span class="kf"><small class="note">${Object.entries(kinds).map(([k, n]) => `${fmt(n)} ${esc(MK[k]?.[0] || k)}`).join(' · ') || 'אין עכשיו מה לשלוח'}${due.length ? ' · בריצה הבאה' : ''}</small></span></div></div>
     <div class="ml-foot"><p class="hint">רק כשקורה משהו · לא יותר ממייל אחד ביום · ברוכים הבאים קודם · בלי שבת</p><button class="btn main" data-mrun>${IC.mail}להריץ עכשיו</button></div>
-    <p class="hint" id="ml-msg">${mlNote || (inHours() ? '' : 'עכשיו מחוץ לשעות השליחה (10:00-21:00, לא בשבת), אז ריצה עכשיו לא תשלח כלום.')}</p>`;
+    <p class="hint" id="ml-msg">${mlNote || (inHours() ? '' : 'עכשיו מחוץ לשעות השליחה (10:00-21:00, לא בשבת), אז ריצה עכשיו לא תשלח כלום.')}</p>`);
   $('#ml-on').onchange = mlSwitch;
 }
 // the switch: on = everyone; off = only the addresses in `only` (the test mode). Turning it on mails real people - asks first.
@@ -3042,7 +3201,7 @@ async function mlRun(b) {
   const n = MST?.plan?.due?.length || 0;
   if (!await askBox(`להריץ את המיילים עכשיו, באמת?\n${n ? `${fmt(n)} ${MST.cfg?.on ? 'אנשים' : 'כתובות בדיקה'} יקבלו מייל אמיתי.` : 'לפי התכנון אין עכשיו למי לשלוח.'}`)) return;
   b.disabled = true;
-  $('#ml-msg').textContent = 'מריץ…';
+  mlNote = 'מריץ…'; mlStatus();
   try {
     const r = await api('mailRunNow', {});
     mlNote = r.skipped ? 'לא נשלח כלום: עכשיו מחוץ לשעות השליחה (10:00-21:00, לא בשבת).' : `<span class="ok">הריצה עברה: נשלחו ${fmt(r.sent)} מתוך ${fmt(r.due)}.</span>`;
@@ -3054,35 +3213,36 @@ async function mlRun(b) {
 function mlSamples() {
   const el = $('#ml-sm');
   if (!el) return;
-  if (!MSM || MSM.error) { el.innerHTML = mlWait(MSM); return; }
-  el.innerHTML = `<div class="ml-grid">${MSM.samples.map((x) => `<div class="sc ml-card" role="button" tabindex="0" data-msample="${esc(x.key)}">
-      <div class="ml-thumb"><iframe sandbox="" tabindex="-1" aria-hidden="true" title=""></iframe></div>
-      <div class="ml-meta"><b>${esc(x.label)}</b><small>מאת ${esc(x.from)}</small><small>${esc(x.subject)}</small></div></div>`).join('') || '<div class="empty">אין דוגמאות.</div>'}</div>`;
-  el.querySelectorAll('.ml-card').forEach((c, i) => { c.querySelector('iframe').srcdoc = mlDoc(MSM.samples[i].html); mlRO.observe(c.querySelector('.ml-thumb')); });
+  if (!HAVE.has('MSM')) { patch(el, waitBox('MSM')); return; }
+  patch(el, `<div class="ml-grid">${MSM.samples.map((x) => `<div class="sc ml-card" role="button" tabindex="0" data-msample="${esc(x.key)}">
+      <div class="ml-thumb" data-own="thumb"><iframe sandbox="" tabindex="-1" aria-hidden="true" title=""></iframe></div>
+      <div class="ml-meta"><b>${esc(x.label)}</b><small>מאת ${esc(x.from)}</small><small>${esc(x.subject)}</small></div></div>`).join('') || '<div class="empty">אין דוגמאות.</div>'}</div>`);
+  // each sample's frame is filled once (a patch keeps the frame - it doesn't render the mail again)
+  el.querySelectorAll('.ml-card').forEach((c) => { const f = c.querySelector('iframe'), x = MSM.samples.find((m) => m.key === c.dataset.msample); if (f && x && f.dataset.html !== String(x.html.length)) { f.dataset.html = x.html.length; f.srcdoc = mlDoc(x.html); mlRO.observe(c.querySelector('.ml-thumb')); } });
 }
 function mlLog() {
   const el = $('#ml-lg');
   if (!el) return;
-  if (!MLG || MLG.error) { el.innerHTML = `<div class="card-h"><h2>מה נשלח</h2></div>${mlWait(MLG)}`; return; }
+  if (!HAVE.has('MLG')) { patch(el, `<div class="card-h"><h2>מה נשלח</h2></div>${waitBox('MLG')}`); return; }
   const all = MLG.log || [], list = all.filter((x) => mlKind === 'all' || mlGroup(x.kind) === mlKind), bad = all.filter((x) => !x.ok).length;
   const row = (x) => `<button class="row" data-mlog="${esc(x.id)}">${ini((x.to || '?').split('@')[0])}<div class="body">
       <div class="l1"><b>${esc(x.subject || '(בלי נושא)')}</b></div><div class="l2"><bdi dir="ltr">${esc(x.to)}</bdi> · מאת ${esc(x.fromName || 'השלומיוורס')}</div>
       <div class="ml-tags">${mkTag(x.kind, x.meta)}${x.ok ? '' : '<span class="tag red">לא נשלח</span>'}</div>${x.ok ? '' : `<div class="ml-err">${esc(x.error || 'שגיאה')}</div>`}</div><time>${ago(x.t)}</time></button>`;
-  el.innerHTML = `<div class="card-h"><h2>מה נשלח</h2><small class="hint">${fmt(all.length)} אחרונים${bad ? ` · <span style="color:#ff8a8a">${fmt(bad)} נכשלו</span>` : ''}</small></div>
+  patch(el, `<div class="card-h"><h2>מה נשלח</h2><small class="hint">${fmt(all.length)} אחרונים${bad ? ` · <span style="color:#ff8a8a">${fmt(bad)} נכשלו</span>` : ''}</small></div>
     <div class="chips">${ML_GROUPS.map(([k, l]) => { const n = k === 'all' ? all.length : all.filter((x) => mlGroup(x.kind) === k).length; return `<button data-mlk="${k}" class="${k === mlKind ? 'on' : ''}">${l}${n ? `<small>${fmt(n)}</small>` : ''}</button>`; }).join('')}</div>
     <div class="rows">${list.slice(0, mlShown).map(row).join('') || '<div class="empty">עוד לא נשלח כלום כזה.</div>'}</div>
-    ${list.length > mlShown ? `<button class="btn more" data-mlmore>עוד ${fmt(list.length - mlShown)}</button>` : ''}`;
+    ${list.length > mlShown ? `<button class="btn more" data-mlmore>עוד ${fmt(list.length - mlShown)}</button>` : ''}`);
 }
 function mlEvents() {
   const el = $('#ml-ev');
   if (!el) return;
   const head = '<div class="card-h"><h2>מה קרה</h2><small class="hint">מזה נבנים המיילים הבאים</small></div>';
-  if (!MST || MST.error) { el.innerHTML = head + mlWait(MST); return; }
-  el.innerHTML = head + `<div class="rows">${(MST.events || []).map((e) => {
+  if (!HAVE.has('MST')) { patch(el, head + waitBox('MST')); return; }
+  patch(el, head + `<div class="rows">${(MST.events || []).map((e) => {
     const [l, c, ic] = EVK[e.kind] || [e.kind, '', 'spark'], old = Date.now() - e.t > 7 * 864e5;
     return `<div class="row${old ? ' old' : ''}">${e.kind === 'story' && e.char ? face(e.char) : `<span class="ml-ic ${c}">${IC[ic]}</span>`}<div class="body">
       <div class="l1"><b>${esc(evTitle(e))}</b></div><div class="l2"><span class="tag ${c}">${l}</span>${e.kind === 'story' ? (e.everyone ? 'לכל השלומיוורס' : 'לעוקבים') : ''}${old ? '<span>ישן מדי למייל</span>' : ''}</div></div><time>${ago(e.t)}</time></div>`;
-  }).join('') || '<div class="empty">עוד לא קרה כלום מאז שהמיילים התחילו.</div>'}</div>`;
+  }).join('') || '<div class="empty">עוד לא קרה כלום מאז שהמיילים התחילו.</div>'}</div>`);
 }
 // one mail, full size, exactly as it goes out (scripts never run: a sandboxed frame)
 function mlSheet(id, title, sub, bar) {
@@ -3122,7 +3282,7 @@ async function mlTest(b) {
     const r = await api('mailTest', k ? { key: k } : {});
     b.innerHTML = `${IC.check}${k ? 'נשלח אליך' : `נשלחו ${fmt(r.sent)}`}`; b.title = r.to;
     api('mailLog', { limit: 300 }).then((x) => { MLG = x; if (tab === 'mail') mlLog(); }).catch(() => {});
-  } catch (x) { b.disabled = false; b.innerHTML = was; alert('לא נשלח: ' + x.message); }
+  } catch (x) { b.disabled = false; b.innerHTML = was; toast('לא נשלח: ' + x.message); }
 }
 addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset?.msample) { e.preventDefault(); mlOpenSample(e.target.dataset.msample); } });
 
@@ -3130,6 +3290,10 @@ addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') &&
 document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-close]')) { closeSheet(); return; }
   if (e.target.closest('[data-refresh]')) { refreshAll(); return; }
+  const rt = e.target.closest('[data-retry]');   // the one error state's button: try that part again
+  if (rt) { rt.dataset.retry.split(',').forEach((k) => delete ERR[k]); draw(); return; }
+  if (e.target.closest('[data-planretry]')) { planErr = null; openPlan(planId); return; }
+  if (e.target.closest('[data-newpill]')) { document.querySelector('.new-pill')?.remove(); scrollTo({ top: 0, behavior: 'smooth' }); return; }
   const st = e.target.closest('[data-star]');
   if (st) {   // a star on a conversation (in the list or in the open one) - kept on the server
     e.stopPropagation();
