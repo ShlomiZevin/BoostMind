@@ -26,6 +26,7 @@ const SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/calendar.rea
 const ref = admin.firestore().collection('mind_meta').doc('google');
 // no address given = re-connect every account already connected (no addresses kept in this file)
 const accounts = process.argv.slice(2).filter((a) => a.includes('@'));
+if (process.argv.includes('--pick')) accounts.push('');   // Google's account picker - he chooses the account himself
 if (!accounts.length) accounts.push(...Object.keys((await ref.get()).data()?.accounts || {}));
 if (!accounts.length) { console.log('usage: node scripts/mind/google-connect.mjs <google address> [<another>]'); process.exit(1); }
 let port, server, waiting;
@@ -51,8 +52,8 @@ port = server.address().port;
 
 for (const acc of accounts) {
   const url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: CLIENT_ID, redirect_uri: `http://127.0.0.1:${port}/cb`,
-    response_type: 'code', scope: SCOPES.join(' '), access_type: 'offline', prompt: 'consent', login_hint: acc, include_granted_scopes: 'true' });
-  console.log(`\n${acc}: sign in here ->\n${url}\n`);
+    response_type: 'code', scope: SCOPES.join(' '), access_type: 'offline', include_granted_scopes: 'true', ...(acc ? { prompt: 'consent', login_hint: acc } : { prompt: 'select_account consent' }) });
+  console.log(`\n${acc || 'pick an account'}: sign in here ->\n${url}\n`);
   exec(`start "" "${url}"`);
   try {
     const r = await new Promise((resolve, reject) => { waiting = { resolve, reject }; setTimeout(() => reject(new Error('timeout (15 min)')), 15 * 60e3); });
