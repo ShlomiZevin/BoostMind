@@ -90,6 +90,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .top .live { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9fb0cc; white-space: nowrap; }
 .top .live i { width: 8px; height: 8px; border-radius: 50%; background: #3ccf7e; box-shadow: 0 0 0 3px rgba(60,207,126,.18); }
 .top .live.off i { background: #f5b83d; box-shadow: 0 0 0 3px rgba(245,184,61,.18); }
+.top .live:not(.off) { visibility: hidden; }   /* his note 2026-11-20: no green dot - only a lost connection shows */
 .top .ic { color: #b9c6dd; padding: 6px; border-radius: 8px; } .top .ic:hover { background: rgba(255,255,255,.08); color: #fff; }
 .top .mlogo { display: none; }
 #view { flex: 1; overflow-y: auto; padding: 26px 28px 60px; }
@@ -379,9 +380,21 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .mrow .mbar { width: 4px; align-self: stretch; border-radius: 3px; flex: none; }
 .mrow .me { display: flex; align-items: center; gap: 8px; flex: none; }
 .mrow.past { opacity: .5; } .mrow.past .tm b { font-weight: 600; }
-.mrow.live { background: color-mix(in srgb, var(--green) 9%, var(--card)); border-color: color-mix(in srgb, var(--green) 45%, var(--line)); }
+.mrow.live .tm b { color: var(--green); }
 .mrow.next { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 12%, transparent); }
 .tag.blue { color: var(--brand); }
+.mrow.inperson { background: color-mix(in srgb, var(--amber) 16%, var(--card)); border: 2px solid var(--amber); }
+.mrow.inperson .mbar { width: 6px; }
+.mk { font-style: normal; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; border-radius: 7px; padding: 1px 8px 1px 7px; margin-bottom: 3px; align-self: flex-start; }
+.mk svg { width: 13px; height: 13px; stroke-width: 2.4; }
+.mk.place { background: var(--amber); color: #1a1205; font-size: 12.5px; padding: 2px 9px 2px 8px; }
+.mk.video { background: var(--blueSoft); color: var(--brand); } .mk.phone { background: var(--graySoft); color: var(--ink2); }
+.mwhere { display: flex !important; align-items: center; gap: 4px; font-weight: 700; color: var(--ink) !important; }
+.mwhere svg { width: 14px; height: 14px; color: var(--amber); flex: none; }
+.btn.waze { background: var(--amber); border-color: var(--amber); color: #1a1205; font-weight: 800; text-decoration: none; }
+.mplace { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--amber) 16%, var(--card)); border: 2px solid var(--amber); }
+.mplace > svg { width: 24px; height: 24px; color: var(--amber); flex: none; }
+.mplace > div { flex: 1; min-width: 0; display: flex; flex-direction: column; } .mplace b { font-size: 16px; } .mplace span { color: var(--ink2); font-size: 14px; unicode-bidi: plaintext; }
 .join { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; }
 .join svg { width: 17px; height: 17px; }
 .acc { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); border-radius: 6px; padding: 0 6px; margin-inline-end: 6px; direction: ltr; display: inline-block; }
@@ -826,15 +839,20 @@ async function loadAgenda(fresh) {
 function meetRow(m, now, nextKey) {
   const past = !m.allDay && new Date(m.end) <= now, live = !m.allDay && new Date(m.start) <= now && !past, next = mKey(m) === nextKey;
   const who = m.people.filter((p) => p.rsvp !== 'declined').map((p) => p.name || p.email.split('@')[0]);
-  const sub = [m.where && !(m.link && m.where.includes(m.link)) ? m.where : '', who.length ? 'עם ' + who.slice(0, 2).join(', ') + (who.length > 2 ? ` +${who.length - 2}` : '') : ''].filter(Boolean).join(' · ');
+  const place = m.kind === 'place';
+  const sub = [m.where && !place && !(m.link && m.where.includes(m.link)) ? m.where : '', who.length ? 'עם ' + who.slice(0, 2).join(', ') + (who.length > 2 ? ` +${who.length - 2}` : '') : ''].filter(Boolean).join(' · ');
   const accs = (m.accs || [m.acc]).map((a) => `<em class="acc" style="--c:${accColor(a)}">${esc(accName(a))}</em>`).join('');
-  return `<div class="mrow ${past ? 'past' : ''} ${live ? 'live' : ''} ${next ? 'next' : ''}" data-meet="${esc(mKey(m))}">
+  return `<div class="mrow ${past ? 'past' : ''} ${live ? 'live' : ''} ${next ? 'next' : ''} ${place ? 'inperson' : ''}" data-meet="${esc(mKey(m))}">
     <div class="mt">${m.allDay ? '<b class="ad">כל היום</b>' : `<b>${hmOf(m.start)}</b><small>${hmOf(m.end)}</small>`}</div>
-    <i class="mbar" style="background:${accColor(m.acc)}"></i>
-    <div class="tm"><b>${esc(m.title)}</b><span>${accs}${esc(sub)}</span></div>
-    <div class="me">${live ? '<span class="tag green"><i class="live"></i>עכשיו</span>' : next && untilTxt(new Date(m.start) - now) ? `<span class="tag blue">${untilTxt(new Date(m.start) - now)}</span>` : ''}${m.link && !past ? `<a class="btn pri join" href="${esc(m.link)}" target="_blank" rel="noopener">${ic('video')}<span>הצטרף</span></a>` : ''}</div>
+    <i class="mbar" style="background:${place ? 'var(--amber)' : accColor(m.acc)}"></i>
+    <div class="tm">${kindBadge(m)}<b>${esc(m.title)}</b>${place && m.where ? `<span class="mwhere">${ic('pin')}${esc(m.where)}</span>` : ''}<span>${accs}${esc(sub)}</span></div>
+    <div class="me">${live ? '<span class="tag green">עכשיו</span>' : next && untilTxt(new Date(m.start) - now) ? `<span class="tag blue">${untilTxt(new Date(m.start) - now)}</span>` : ''}${past ? '' : place && m.where ? `<a class="btn join waze" href="${esc(wazeUrl(m.where))}" target="_blank" rel="noopener">${ic('pin')}<span>נווט</span></a>` : m.link ? `<a class="btn pri join" href="${esc(m.link)}" target="_blank" rel="noopener">${ic('video')}<span>הצטרף</span></a>` : ''}</div>
   </div>`;
 }
+// in person / Zoom (his ask 2026-11-20: "physical should be super highlighted - I have to understand it"); the server's AI sets m.kind
+const wazeUrl = (where) => 'https://waze.com/ul?navigate=yes&q=' + encodeURIComponent(where);
+const kindBadge = (m) => m.kind === 'place' ? `<em class="mk place">${ic('pin')}פגישה פיזית</em>`
+  : m.kind === 'video' ? `<em class="mk video">${ic('video')}${esc(m.video || 'וידאו')}</em>` : m.kind === 'phone' ? `<em class="mk phone">${ic('phone')}טלפון</em>` : '';
 const nextOf = (list, now) => list.find((m) => !m.allDay && new Date(m.start) > now);
 // היום: today's meetings on top (the agenda he asked for), when there are any
 function agStrip() {
@@ -872,9 +890,10 @@ function openMeet(key) {
     <header><h3>${esc(m.title)}</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
     <div class="sb"><div class="mdet">
       <div class="when">${esc(dayTxt)} · ${when}</div>
+      ${m.kind === 'place' ? `<div class="mplace">${ic('pin')}<div><b>פגישה פיזית</b><span>${esc(m.where || 'אין כתובת ביומן')}</span></div>${m.where ? `<a class="btn waze" href="${esc(wazeUrl(m.where))}" target="_blank" rel="noopener">נווט ב-Waze</a>` : ''}</div>` : kindBadge(m) ? `<div>${kindBadge(m)}</div>` : ''}
       <div>${(m.accs || [m.acc]).map((a) => `<em class="acc" style="--c:${accColor(a)}">${esc(a)}</em>`).join('')}</div>
       ${m.link ? `<a class="btn pri join" href="${esc(m.link)}" target="_blank" rel="noopener">${ic('video')}הצטרף לשיחה</a>` : ''}
-      ${m.where ? `<div class="ln">${ic('pin')}<span>${esc(m.where)}</span></div>` : ''}
+      ${m.where && m.kind !== 'place' ? `<div class="ln">${ic('pin')}<span>${esc(m.where)}</span></div>` : ''}
       ${m.organizer ? `<div class="ln">${ic('users')}<span>מזמין: ${esc(m.organizer)}</span></div>` : ''}
       ${people.length ? `<div class="lbl" style="margin:4px 0 0">משתתפים (${people.length})</div><div class="ppl">${people.map((p) => `<div><i class="${esc(p.rsvp)}" title="${esc(rs[p.rsvp] || '')}"></i><span>${esc(p.name || p.email)}</span>${p.name ? `<small>${esc(p.email)}</small>` : ''}</div>`).join('')}</div>` : ''}
       ${m.notes.trim() ? `<div class="mnotes">${esc(m.notes.trim())}</div>` : ''}

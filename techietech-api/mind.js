@@ -263,22 +263,54 @@ async function agenda(from, to, fresh) {
     else { had.accs.push(m.acc); if (!had.link && m.link) Object.assign(had, { ...m, accs: had.accs }); }
   }
   const meetings = [...by.values()].sort((a, b) => (a.allDay === b.allDay ? 0 : a.allDay ? -1 : 1) || a.start.localeCompare(b.start));
+  await meetKinds(meetings);
   const data = { meetings, accounts: status.sort((a, b) => a.email.localeCompare(b.email)), connected: accs.length > 0 };
   agendaCache = { key, at: Date.now(), data };
   return data;
 }
+// in person or online (his ask 2026-11-20: "mark if a meeting is physical or Zoom - physical super highlighted, I have to
+// understand it"). The AI decides from the invite (a "location" can be an office room, a street, "Microsoft Teams Meeting",
+// a link...): place = he has to be there in person, video = Zoom / Meet / Teams, phone = a call, other = can't tell.
+// Kept per meeting in mind_meta/meetkinds (a meeting is asked about once; changed location/link = asked again).
+const KINDS = META.doc('meetkinds');
+let kindCache = null;
+const kindKey = (m) => crypto.createHash('sha1').update([m.uid, m.where, m.link ? 1 : 0, m.title].join('|')).digest('hex').slice(0, 14);
+const videoName = (link) => (/zoom\.us/i.test(link) ? 'Zoom' : /meet\.google/i.test(link) ? 'Meet' : /teams\./i.test(link) ? 'Teams' : link ? 'שיחת וידאו' : '');
+async function meetKinds(meetings) {
+  if (!kindCache) kindCache = (await KINDS.get()).data()?.k || {};
+  const todo = meetings.filter((m) => !m.allDay && !kindCache[kindKey(m)]);
+  if (todo.length) {
+    try {
+      const schema = { type: 'object', additionalProperties: false, required: ['items'], properties: { items: { type: 'array', items: { type: 'object', additionalProperties: false,
+        required: ['n', 'kind'], properties: { n: { type: 'integer' }, kind: { type: 'string', enum: ['place', 'video', 'phone', 'other'] } } } } } };
+      const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + OPENAI.value(), 'content-type': 'application/json' },
+        body: JSON.stringify({ model: 'gpt-6.1-terra', reasoning: { effort: 'none' }, max_output_tokens: 1500, store: false, text: { format: { type: 'json_schema', name: 'kinds', schema, strict: true } },
+          instructions: 'For each calendar meeting of an Israeli CTO, say how HE attends it: "place" = he must physically be somewhere (an address, an office or meeting room - even when the invite also has a video link, a room means people meet there), "video" = online only (Zoom / Google Meet / Teams, location empty or just the link / "Microsoft Teams Meeting"), "phone" = a phone call, "other" = can\'t tell (no location, no link).',
+          input: [{ role: 'user', content: todo.slice(0, 60).map((m, i) => `${i}: ${m.title} | location: ${m.where || '-'} | video link: ${m.link ? videoName(m.link) : 'none'} | notes: ${oneLine(m.notes, 160) || '-'}`).join('\n') }] }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error?.message || 'kinds ' + r.status);
+      const out = JSON.parse((j.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('') || '{"items":[]}');
+      const add = {};
+      for (const x of out.items || []) if (todo[x.n]) add[kindKey(todo[x.n])] = x.kind;
+      Object.assign(kindCache, add);
+      if (Object.keys(add).length) await KINDS.set({ k: add }, { merge: true });
+    } catch (e) { console.error('mind kinds', e.message); }
+  }
+  for (const m of meetings) { m.kind = m.allDay ? '' : kindCache[kindKey(m)] || (m.link && !m.where ? 'video' : 'other'); m.video = videoName(m.link); }
+}
+
 // times inside an LTR isolate - in a Hebrew notification "09:00–10:00" would flip to "10:00–09:00"
 const ltr = (s) => '⁦' + s + '⁩';
 const hm = (m) => (m.allDay ? 'כל היום' : ltr(ilHM(new Date(m.start))));
 // the line a digest shows for one meeting: "09:30 שיחה עם דני"
-const meetLine = (m) => `${hm(m)} ${m.title}`;
+const meetLine = (m) => `${hm(m)} ${m.title}${m.kind === 'place' ? ' - פיזית' + (m.where ? ', ' + m.where : '') : m.kind === 'video' ? ' - ' + m.video : ''}`;
 
 // The PA's rhythm (his ask 2026-11-20: "a reminder in the morning - I'm up at 6:30, around 7:30; another around 11:00 and so
 // on - for all the day's upcoming, not only the next one"): digests at 07:30 / 11:00 / 15:00 with every meeting still ahead
 // today (the morning one always comes - "nothing today" too, so a silent phone means a broken push, not a free day), and
 // a heads-up MEET_LEAD minutes before each meeting. What was sent is kept per day in mind_meta/agenda_<day>.
 const DIGESTS = ['07:30', '11:00', '15:00'];
-const MEET_LEAD = 10;
+const MEET_LEAD = 10, PLACE_LEAD = 45;
 const NAG_FROM = '10:00', NAG_TO = '20:30', NAG_EVERY = 2 * 3600e3;
 async function agendaTick(now = new Date()) {
   const day = ilDayOf(now), t = ilHM(now);
@@ -315,11 +347,19 @@ async function agendaTick(now = new Date()) {
   // heads-up before each meeting (also catches one added at the last minute: anything starting in the next MEET_LEAD min)
   for (const m of today.filter((x) => !x.allDay)) {
     const mins = (new Date(m.start) - now) / 60e3, k = 'm' + crypto.createHash('sha1').update(m.uid + m.start).digest('hex').slice(0, 12);
+    const url = '/mind/#m=' + encodeURIComponent(m.uid + '|' + m.start), when = ltr(ilHM(new Date(m.start)) + '–' + ilHM(new Date(m.end)));
+    // a meeting in person: one more heads-up PLACE_LEAD minutes before - time to leave
+    const kp = 'p' + k.slice(1);
+    if (m.kind === 'place' && mins <= PLACE_LEAD && mins > MEET_LEAD && !sent[kp]) {
+      mark[kp] = Date.now();
+      await pushMe('meet', { title: `פגישה פיזית בעוד ${Math.round(mins)} דק׳: ${m.title}`, body: [when, m.where || 'בלי כתובת ביומן'].join(' · '), url, tag: kp }, null, { urgency: 'high', ttl: 1800 });
+      did.push('leave ' + m.title);
+    }
     if (mins > MEET_LEAD || mins < -2 || sent[k]) continue;
     mark[k] = Date.now();
     const inMin = Math.max(0, Math.round(mins));
-    await pushMe('meet', { title: (inMin ? `בעוד ${inMin} דק׳: ` : 'מתחיל עכשיו: ') + m.title, body: [m.allDay ? 'כל היום' : ltr(ilHM(new Date(m.start)) + '–' + ilHM(new Date(m.end))), m.link ? 'יש קישור לשיחה - לחץ' : m.where].filter(Boolean).join(' · '),
-      url: '/mind/#m=' + encodeURIComponent(m.uid + '|' + m.start), tag: k }, null, { urgency: 'high', ttl: 900 });
+    const how = m.kind === 'place' ? 'פיזית' + (m.where ? ': ' + m.where : '') : m.link ? (m.video || 'וידאו') + ' - לחץ להצטרף' : m.where;
+    await pushMe('meet', { title: (inMin ? `בעוד ${inMin} דק׳: ` : 'מתחיל עכשיו: ') + m.title, body: [when, how].filter(Boolean).join(' · '), url, tag: k }, null, { urgency: 'high', ttl: 900 });
     did.push('pre ' + m.title);
   }
   if (Object.keys(mark).length) await sentRef.set(mark, { merge: true });
