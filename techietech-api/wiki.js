@@ -506,6 +506,8 @@ exports.wikiChat = onRequest({
   if (!turns.length || turns[turns.length - 1].role !== 'user') return res.status(400).json({ error: 'messages' });
 
   const who = await whoAsks(req);
+  // all mail turned off = no chat, as if the line failed (blocked.js - his call 2026-11-20)
+  if (who.uid && !who.owner && await require('./blocked').mailOff(who.uid)) { await new Promise((r) => setTimeout(r, 2500)); return res.status(502).json({ error: 'model' }); }
   const visitor = await visitorLine(who);
   const invite = who.owner ? null : await creditInvite(req, who);
   const ok = await spendQuestion(req, who).catch((e) => { console.error('quota failed', e.message); return true; });

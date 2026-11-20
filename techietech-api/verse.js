@@ -432,6 +432,8 @@ const ops = {
     if (!text) fail('invalid-argument', 'empty');
     const frame = String(d.frame || '').replace(/^data:image\/jpeg;base64,/, '');
     if (frame.length < 1000 || frame.length > 2.5e6) fail('invalid-argument', 'frame');
+    // all mail turned off = no sticker, as if the picture failed (blocked.js - his call 2026-11-20)
+    if (await require('./blocked').mailOff(uid)) { await new Promise((r) => setTimeout(r, 6000)); fail('unavailable', 'image_failed'); }
     const fan = await fanOf(uid);
     const m = await moderate(text);
     if (!m.ok) fail('invalid-argument', 'text_bad');
