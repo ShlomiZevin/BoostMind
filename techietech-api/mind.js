@@ -31,7 +31,8 @@ const PUSH = db.collection('mind_push');
 // what buzzes his phone - he turns each on / off in the page's settings (config.push)
 // ask = a site form opened a task waiting for him; remind = 9 am reminders. (Session pings are gone, 2026-11-12.)
 // session = a session asks him for something (type 'session' - his ask 2026-11-17: "if you need anything from me, tell me on Mind")
-const PUSH_KINDS = { ask: true, remind: true, session: true };
+// meet = his meetings: the day's digests (07:30 / 11:00 / 15:00) and a heads-up before each one (the PA, 2026-11-20)
+const PUSH_KINDS = { ask: true, remind: true, session: true, meet: true };
 
 const STATUSES = ['open', 'active', 'waiting', 'done', 'parked'];
 const STATUS_HE = { open: 'פתוח', active: 'בטיפול', waiting: 'מחכה לך', done: 'בוצע', parked: 'בהקפאה' };
@@ -164,22 +165,149 @@ async function listItems({ status, type, project, query, limit = 200, includeDon
 
 // ---------- notifications ----------
 // one notification to every device he turned them on (dead ones are dropped). kind = one of PUSH_KINDS.
-async function pushMe(kind, { title, body, url, tag }, why) {
+async function pushMe(kind, { title, body, url, tag }, why, opt = {}) {
   try {
     const on = { ...PUSH_KINDS, ...((await config()).push || {}) };
     if (!on[kind]) { if (why) why.push('kind off: ' + kind); return 0; }
     const subs = await PUSH.get();
     if (subs.empty) { if (why) why.push('no devices'); return 0; }
-    webpush.setVapidDetails('mailto:shlomi@boostart.io', VAPID_PUBLIC, VAPID_PRIVATE.value());
-    const payload = JSON.stringify({ title: oneLine(title, 120), body: oneLine(body, 240), url: url || '/mind/', tag: tag || kind });
+    webpush.setVapidDetails('https://shlomiverse.com/mind/', VAPID_PUBLIC, VAPID_PRIVATE.value());
+    const text = opt.lines ? String(body ?? '').split('\n').map((l) => oneLine(l, 90)).filter(Boolean).join('\n').slice(0, 600) : oneLine(body, 240);
+    const payload = JSON.stringify({ title: oneLine(title, 120), body: text, url: url || '/mind/', tag: tag || kind });
     let sent = 0;
     await Promise.all(subs.docs.map(async (d) => {
-      try { await webpush.sendNotification(d.data().sub, payload, { TTL: 86400, urgency: kind === 'ask' ? 'high' : 'normal' }); sent++; }
+      try { await webpush.sendNotification(d.data().sub, payload, { TTL: opt.ttl || 86400, urgency: opt.urgency || (kind === 'ask' ? 'high' : 'normal') }); sent++; }
       catch (e) { if (why) why.push(`${e.statusCode || ''} ${e.body || e.message}`.slice(0, 300)); if (e.statusCode === 404 || e.statusCode === 410) await d.ref.delete(); else console.error('mind push', e.statusCode, e.body || e.message); }
     }));
     return sent;
   } catch (e) { if (why) why.push(e.message); console.error('mind push', e.message); return 0; }
 }
+// ---------- his calendars: the PA (his ask 2026-11-20: "most most most important job of you and the app is remind me
+// about meetings" - his two Google accounts, work + Lybi) ----------
+// mind_meta/google = { client_id, client_secret, accounts: { email: { refresh, scopes, c, err } } } - written by
+// scripts/mind/google-connect.mjs (one browser sign-in per account). Each account's primary calendar, merged; the same
+// meeting on both calendars shows once (iCalUID).
+const GOOGLE = META.doc('google');
+const ACC_SHORT = (a) => (a.split('@')[1] || a).split('.')[0];   // boostart / lybi
+const tokCache = new Map();
+async function gAccess(email, g) {
+  const c = tokCache.get(email);
+  if (c && c.exp > Date.now() + 60e3) return c.tok;
+  const r = await (await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: g.client_id, client_secret: g.client_secret, refresh_token: g.accounts[email].refresh, grant_type: 'refresh_token' }) })).json();
+  if (!r.access_token) { const e = new Error(r.error_description || r.error || 'token'); e.gone = r.error === 'invalid_grant'; throw e; }
+  tokCache.set(email, { tok: r.access_token, exp: Date.now() + (r.expires_in || 3000) * 1000 });
+  return r.access_token;
+}
+// Israel's offset for a given moment ("+02:00" / "+03:00")
+const ilOffset = (d) => (new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jerusalem', timeZoneName: 'longOffset' }).formatToParts(d).find((p) => p.type === 'timeZoneName')?.value || 'GMT+02:00').replace('GMT', '') || '+00:00';
+const ilStart = (day) => new Date(`${day}T00:00:00${ilOffset(new Date(day + 'T12:00:00Z'))}`);   // 00:00 of that Israeli day
+const ilDayOf = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const ilHM = (d) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
+const VIDEO = /https:\/\/(?:[\w-]+\.)?(?:zoom\.us\/j\/|meet\.google\.com\/|teams\.microsoft\.com\/l\/meetup-join\/|teams\.live\.com\/meet\/)[^\s"<>)]+/i;
+function meeting(e, acc) {
+  const allDay = !e.start?.dateTime;
+  const self = (e.attendees || []).find((a) => a.self);
+  const link = e.hangoutLink || (e.conferenceData?.entryPoints || []).find((p) => p.entryPointType === 'video')?.uri
+    || (String(e.location || '').match(VIDEO) || String(e.description || '').match(VIDEO) || [])[0] || '';
+  return {
+    id: e.id, uid: e.iCalUID || e.id, acc, title: oneLine(e.summary, 200) || '(בלי כותרת)', allDay,
+    start: allDay ? e.start.date : new Date(e.start.dateTime).toISOString(), end: allDay ? e.end?.date : new Date(e.end?.dateTime || e.start.dateTime).toISOString(),
+    where: oneLine(e.location, 200), link, html: e.htmlLink || '', notes: clip(String(e.description || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' '), 1200),
+    people: (e.attendees || []).filter((a) => !a.self && !a.resource).slice(0, 30).map((a) => ({ name: oneLine(a.displayName, 60), email: oneLine(a.email, 120), rsvp: a.responseStatus })),
+    organizer: e.organizer?.self ? '' : oneLine(e.organizer?.displayName || e.organizer?.email, 120), rsvp: self?.responseStatus || '',
+  };
+}
+let agendaCache = { key: '', at: 0, data: null };
+// meetings from `from` to `to` (Dates) on all his connected calendars. -> { meetings, accounts: [{ email, ok, err }] }
+async function agenda(from, to, fresh) {
+  const key = from.toISOString() + to.toISOString();
+  if (!fresh && agendaCache.key === key && Date.now() - agendaCache.at < 90e3) return agendaCache.data;
+  const g = (await GOOGLE.get()).data();
+  const accs = Object.keys(g?.accounts || {});
+  const out = [], status = [];
+  await Promise.all(accs.map(async (email) => {
+    try {
+      const tok = await gAccess(email, g);
+      const q = new URLSearchParams({ timeMin: from.toISOString(), timeMax: to.toISOString(), singleEvents: 'true', orderBy: 'startTime', maxResults: '250', timeZone: 'Asia/Jerusalem' });
+      const r = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?' + q, { headers: { authorization: 'Bearer ' + tok } });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error?.message || 'calendar ' + r.status);
+      for (const e of j.items || []) {
+        if (e.status === 'cancelled' || ['workingLocation', 'birthday', 'fromGmail'].includes(e.eventType)) continue;
+        const m = meeting(e, email);
+        if (m.rsvp === 'declined') continue;
+        out.push(m);
+      }
+      status.push({ email, ok: true });
+      if (g.accounts[email].err) await GOOGLE.set({ accounts: { [email]: { err: admin.firestore.FieldValue.delete() } } }, { merge: true });
+    } catch (e) {
+      status.push({ email, ok: false, err: e.message, gone: !!e.gone });
+      if (!g.accounts[email].err) {   // tell him once that a calendar dropped (a re-connect line fixes it)
+        await GOOGLE.set({ accounts: { [email]: { err: e.message, errAt: Date.now() } } }, { merge: true });
+        await pushMe('meet', { title: 'היומן של ' + email + ' התנתק', body: 'הפגישות שלו לא יגיעו עד שיחובר שוב (scripts/mind/google-connect.mjs ' + email + ')', url: '/mind/#meet', tag: 'cal-err' });
+      }
+    }
+  }));
+  // the same meeting on both calendars = one (keep the copy that has a link / where he said yes)
+  const by = new Map();
+  for (const m of out) {
+    const k = m.uid + '|' + m.start, had = by.get(k);
+    if (!had) by.set(k, { ...m, accs: [m.acc] });
+    else { had.accs.push(m.acc); if (!had.link && m.link) Object.assign(had, { ...m, accs: had.accs }); }
+  }
+  const meetings = [...by.values()].sort((a, b) => (a.allDay === b.allDay ? 0 : a.allDay ? -1 : 1) || a.start.localeCompare(b.start));
+  const data = { meetings, accounts: status.sort((a, b) => a.email.localeCompare(b.email)), connected: accs.length > 0 };
+  agendaCache = { key, at: Date.now(), data };
+  return data;
+}
+const hm = (m) => (m.allDay ? 'כל היום' : ilHM(new Date(m.start)));
+// the line a digest shows for one meeting: "09:30 שיחה עם דני"
+const meetLine = (m) => `${hm(m)} ${m.title}`;
+
+// The PA's rhythm (his ask 2026-11-20: "a reminder in the morning - I'm up at 6:30, around 7:30; another around 11:00 and so
+// on - for all the day's upcoming, not only the next one"): digests at 07:30 / 11:00 / 15:00 with every meeting still ahead
+// today (the morning one always comes - "nothing today" too, so a silent phone means a broken push, not a free day), and
+// a heads-up MEET_LEAD minutes before each meeting. What was sent is kept per day in mind_meta/agenda_<day>.
+const DIGESTS = ['07:30', '11:00', '15:00'];
+const MEET_LEAD = 10;
+async function agendaTick(now = new Date()) {
+  const day = ilDayOf(now), t = ilHM(now);
+  const sentRef = META.doc('agenda_' + day), sent = (await sentRef.get()).data() || {};
+  const g = (await GOOGLE.get()).data();
+  if (!Object.keys(g?.accounts || {}).length) return { off: 'no calendars' };
+  const { meetings } = await agenda(ilStart(day), new Date(ilStart(day).getTime() + 36 * 3600e3), true);
+  const today = meetings.filter((m) => (m.allDay ? m.start === day : ilDayOf(new Date(m.start)) === day));
+  const mark = {}, did = [];
+  // digest: the latest slot that came (within the hour after it), not sent yet
+  const slot = DIGESTS.filter((s) => s <= t && minutes(t) - minutes(s) < 60).pop();
+  if (slot && !sent['d' + slot]) {
+    mark['d' + slot] = Date.now();
+    const ahead = today.filter((m) => !m.allDay && new Date(m.end) > now), allDay = today.filter((m) => m.allDay);
+    const morning = slot === DIGESTS[0];
+    if (morning || ahead.length) {
+      const list = (morning ? [...allDay, ...ahead] : ahead);
+      const title = !ahead.length ? 'אין פגישות היום' : morning ? `היום ${ahead.length === 1 ? 'פגישה אחת' : ahead.length + ' פגישות'}` : `עוד ${ahead.length === 1 ? 'פגישה אחת' : ahead.length + ' פגישות'} היום`;
+      const body = list.length ? list.map(meetLine).join('\n') : 'היומן פנוי. יום טוב.';
+      await pushMe('meet', { title, body, url: '/mind/#meet', tag: 'agenda' }, null, { lines: true, ttl: 3 * 3600 });
+      did.push('digest ' + slot);
+    }
+  }
+  // heads-up before each meeting (also catches one added at the last minute: anything starting in the next MEET_LEAD min)
+  for (const m of today.filter((x) => !x.allDay)) {
+    const mins = (new Date(m.start) - now) / 60e3, k = 'm' + crypto.createHash('sha1').update(m.uid + m.start).digest('hex').slice(0, 12);
+    if (mins > MEET_LEAD || mins < -2 || sent[k]) continue;
+    mark[k] = Date.now();
+    const inMin = Math.max(0, Math.round(mins));
+    await pushMe('meet', { title: (inMin ? `בעוד ${inMin} דק׳: ` : 'מתחיל עכשיו: ') + m.title, body: [hm(m) + '–' + ilHM(new Date(m.end)), m.link ? 'יש קישור לשיחה - לחץ' : m.where].filter(Boolean).join(' · '),
+      url: '/mind/#m=' + encodeURIComponent(m.uid + '|' + m.start), tag: k }, null, { urgency: 'high', ttl: 900 });
+    did.push('pre ' + m.title);
+  }
+  if (Object.keys(mark).length) await sentRef.set(mark, { merge: true });
+  return { day, t, today: today.length, did };
+}
+const minutes = (hhmm) => +hhmm.slice(0, 2) * 60 + +hhmm.slice(3, 5);
+
 // ---------- pictures on an item (his ask 2026-11-17: "sessions send me images to approve") ----------
 // item.images = [{ path, name, caption, by, t }] - the files in the private bucket shlomiverse-studio/mind/<item>/, shown
 // to his page through signed links (made once, kept for 5 hours - the page polls)
@@ -235,6 +363,8 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { project: { type: 'string', description: 'only this project (optional)' } } } },
   { name: 'mind_list_items', description: 'List his items (ideas, tasks, notes, reminders...). Default: not done and not parked. Use when he asks about something in Mind, and before adding (no duplicates).',
     inputSchema: { type: 'object', properties: { status: { type: 'string', enum: STATUSES }, type: { type: 'string' }, project: { type: 'string' }, query: { type: 'string', description: 'words to search in title/body/tags' }, include_done: { type: 'boolean' }, limit: { type: 'number' } } } },
+  { name: 'mind_agenda', description: "Shlomi's meetings from his two Google calendars (work + Lybi, merged): today and the next days. Read it when he asks what's on his day / calendar / when a meeting is.",
+    inputSchema: { type: 'object', properties: { days: { type: 'number', description: 'how many days from today (default 1 = today only)' } } } },
   { name: 'mind_get_item', description: 'One item with its body and full timeline (his notes on it included).', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
   { name: 'mind_add_item', description: "Put something in Shlomi's notebook: an idea, a to-do, a note, a reminder, or something from this session he wants to keep." + ASKED + ' Title short, in his words (Hebrew if he wrote Hebrew); details, paths and links in body.',
     inputSchema: { type: 'object', properties: { text: { type: 'string', description: 'short title' }, body: { type: 'string', description: 'details: what, where (paths/urls), why' }, type: { type: 'string', description: 'type id: idea | task | reminder | thought | wait | session (a session needs something from him), or one of his own (see mind_overview)' }, status: { type: 'string', enum: STATUSES }, project: { type: 'string' }, pin: { type: 'boolean' }, due: { type: 'string', description: 'YYYY-MM-DD' }, today: { type: 'boolean', description: 'mark it for today (highlighted on his page today)' }, tags: { type: 'array', items: { type: 'string' } }, note: { type: 'string', description: 'first timeline line' } }, required: ['text'] } },
@@ -265,6 +395,11 @@ async function callTool(name, a = {}) {
     case 'mind_list_items': {
       const items = await listItems({ status: a.status, type: a.type, project: a.project, query: a.query, includeDone: a.include_done, limit: a.limit || 100 });
       return items.length ? items.map((i) => itemLine(i, types)).join('\n') : 'No items match.';
+    }
+    case 'mind_agenda': {
+      const day = ilDay(), from = ilStart(day), r = await agenda(from, new Date(from.getTime() + Math.min(Math.max(+a.days || 1, 1), 31) * 86400e3));
+      const lines = r.meetings.map((m) => `${m.allDay ? m.start + ' all day' : ilDayOf(new Date(m.start)) + ' ' + ilHM(new Date(m.start)) + '-' + ilHM(new Date(m.end))} · ${m.title} [${m.accs.map(ACC_SHORT).join('+')}]${m.where ? ' · ' + m.where : ''}${m.link ? ' · ' + m.link : ''}${m.people.length ? ' · with ' + m.people.map((x) => x.name || x.email).slice(0, 6).join(', ') : ''}`);
+      return (r.connected ? lines.join('\n') || 'No meetings.' : 'No calendar connected yet (scripts/mind/google-connect.mjs).') + r.accounts.filter((x) => !x.ok).map((x) => `\n(calendar ${x.email} not reachable: ${x.err})`).join('');
     }
     case 'mind_get_item': {
       const d = await ITEMS.doc(oneLine(a.id, 20).replace(/^#/, '')).get();
@@ -316,6 +451,10 @@ async function pageOp(b) {
     case 'all': {
       const [items, cfg] = await Promise.all([listItems({ includeDone: true, limit: 1500 }), config()]);
       return { items: await withUrls(items), sessions: [], config: cfg, now: Date.now() };
+    }
+    case 'agenda': {   // the meetings view: today + the next days (his calendars)
+      const day = ilDay(), from = ilStart(day), n = Math.min(Math.max(+b.days || 8, 1), 31);
+      return { ...(await agenda(from, new Date(from.getTime() + n * 86400e3), !!b.fresh)), day, now: Date.now() };
     }
     case 'add': return { item: await addItem(b.item || {}, 'שלומי') };
     case 'update': return { item: (await withUrls([await updateItem(b.id, b.item || {}, 'שלומי')]))[0] };
@@ -468,6 +607,13 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
     res.status(404).json({ error: 'door' });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
+
+// the PA's clock: every 5 minutes - the day's meeting digests and the heads-up before each meeting (agendaTick)
+exports.mindAgenda = onSchedule({ schedule: '*/5 * * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1', secrets: [VAPID_PRIVATE], memory: '256MiB', timeoutSeconds: 60 }, async () => {
+  const r = await agendaTick();
+  if (r.did?.length) console.log('mind agenda', JSON.stringify(r));
+});
+exports._agenda = { agenda, agendaTick, ilStart };   // for a local dry run
 
 // every morning at 9: reminders and tasks whose day came (still open) -> one notification each (a few = one summary)
 exports.mindDaily = onSchedule({ schedule: '0 9 * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1', secrets: [VAPID_PRIVATE], memory: '256MiB', timeoutSeconds: 60 }, async () => {

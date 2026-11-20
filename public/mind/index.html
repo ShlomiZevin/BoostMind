@@ -348,7 +348,41 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .done-today { display: flex; flex-direction: column; gap: 6px; }
 .done-today .dt { display: flex; align-items: center; gap: 8px; color: var(--ink3); text-decoration: line-through; font-size: 14px; cursor: pointer; padding: 4px 6px; }
 .done-today .dt svg { width: 15px; height: 15px; color: var(--green); flex: none; }
-.tabs b.tb-today { background: var(--amber) !important; }
+.tabs b.tb-today { background: var(--amber) !important; } .tabs b.tb-meet { background: var(--brand) !important; }
+/* ---------- meetings (the PA, 2026-11-20): his two calendars, today first ---------- */
+.meet-v .hello h1 svg, .agstrip h4 svg { width: 26px; height: 26px; color: var(--brand); vertical-align: -3px; }
+.mday { margin: 22px 0 8px; font-size: 13px; font-weight: 800; color: var(--ink2); display: flex; gap: 8px; align-items: baseline; }
+.mday:first-of-type { margin-top: 6px; } .mday small { color: var(--ink3); font-weight: 600; }
+.mlist { display: flex; flex-direction: column; gap: 8px; }
+.mrow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; cursor: pointer; }
+@media (hover: hover) { .mrow:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); } }
+.mrow .mt { width: 50px; flex: none; display: flex; flex-direction: column; align-items: center; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.mrow .mt b { font-size: 16px; font-weight: 800; } .mrow .mt small { font-size: 12px; color: var(--ink3); }
+.mrow .mt b.ad { font-size: 12.5px; color: var(--ink2); }
+.mrow .mbar { width: 4px; align-self: stretch; border-radius: 3px; flex: none; }
+.mrow .me { display: flex; align-items: center; gap: 8px; flex: none; }
+.mrow.past { opacity: .5; } .mrow.past .tm b { font-weight: 600; }
+.mrow.live { background: color-mix(in srgb, var(--green) 9%, var(--card)); border-color: color-mix(in srgb, var(--green) 45%, var(--line)); }
+.mrow.next { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 12%, transparent); }
+.tag.blue { color: var(--brand); }
+.join { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; }
+.join svg { width: 17px; height: 17px; }
+.acc { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); border-radius: 6px; padding: 0 6px; margin-inline-end: 6px; direction: ltr; display: inline-block; }
+.mempty { padding: 16px; border: 1px dashed var(--line); border-radius: 14px; color: var(--ink3); text-align: center; font-size: 14px; }
+.accs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; align-items: center; }
+.accs span { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink3); direction: ltr; }
+.accs span i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); } .accs span.bad { color: var(--red); } .accs span.bad i { background: var(--red); }
+.agstrip { margin: 0 0 18px; } .agstrip h4 { margin: 0 0 8px; font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+.agstrip h4 svg { width: 19px; height: 19px; } .agstrip h4 button { margin-inline-start: auto; font-size: 13px; color: var(--brand); font-weight: 700; }
+.mdet { display: flex; flex-direction: column; gap: 12px; }
+.mdet .when { font-size: 15px; font-weight: 700; color: var(--ink2); }
+.mdet .ln { display: flex; gap: 8px; align-items: flex-start; color: var(--ink2); font-size: 14.5px; unicode-bidi: plaintext; } .mdet .ln svg { margin-top: 2px; color: var(--ink3); }
+.mdet .join { justify-content: center; padding: 13px; font-size: 16px; }
+.ppl { display: flex; flex-direction: column; gap: 4px; } .ppl div { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.ppl i { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--gray); } .ppl i.accepted { background: var(--green); } .ppl i.declined { background: var(--red); } .ppl i.tentative { background: var(--amber); }
+.ppl small { color: var(--ink3); direction: ltr; }
+.mnotes { white-space: pre-wrap; font-size: 14px; color: var(--ink2); background: var(--card2); border-radius: 12px; padding: 12px 14px; max-height: 260px; overflow: auto; unicode-bidi: plaintext; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .mrow { padding: 11px 12px; gap: 10px; } .mrow .join span { display: none; } .mrow .join { padding: 9px 10px; } .mrow .mt { width: 44px; } }
 .trow.sw-done { box-shadow: inset -6px 0 0 var(--green); } .trow.sw-off { box-shadow: inset 6px 0 0 var(--red); }
 .swipehint { display: none; text-align: center; margin-top: 14px; }
 #toast.act { pointer-events: auto; display: flex; align-items: center; gap: 14px; }
@@ -491,6 +525,9 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h3M7.5 17h3M13.5 13.5h3"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="m15.5 10.5 6-3.5v10l-6-3.5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
   <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6M12 19h8"/></symbol>
@@ -606,16 +643,18 @@ function counts() {
 function renderChrome() {
   const c = counts(), fresh = newEntries(), waitN = fresh.length, freshAsk = fresh.filter((e) => e.s).length;
   const nT = S.items.filter(isToday).length;
+  const nM = agToday().filter((m) => !m.allDay && new Date(m.end) > new Date()).length;
   $('#nav').innerHTML = [
-    ['today', 'sun', 'היום', nT], ['home', 'home', 'השולחן', waitN, true], ['archive', 'archive', 'ארכיון'],
+    ['meet', 'cal', 'פגישות', nM], ['today', 'sun', 'היום', nT], ['home', 'home', 'השולחן', waitN, true], ['archive', 'archive', 'ארכיון'],
   ].map(([v, i, t, n, hot]) => `<button class="${S.view === v ? 'on' : ''}" data-view="${v}">${ic(i)}${t}${n ? `<span class="n ${hot && n ? 'hot' : ''}">${n}</span>` : ''}</button>`).join('');
   const qf = [['waiting', 'מחכה לך', waitN, 'alert', true], ['active', 'בטיפול', c.active.length, 'play'], ['open', 'פתוחים', c.open.length, 'dot'], ['pin', 'מסומנים בכוכב', c.pinned.length, 'star']];
   const cur = S.view === 'items' ? (S.f.pin ? 'pin' : S.f.status) : '';
   $('#projs').innerHTML = projects().slice(0, 8).map(([p, n]) => `<button class="${S.view === 'items' && S.f.project === p ? 'on' : ''}" data-proj="${esc(p)}"><i class="dot" style="background:${projColor(p)}"></i>${esc(projName(p))}<span class="n">${n}</span></button>`).join('') || '<div class="hint" style="padding:0 11px">עוד אין</div>';
   $('#tabs').innerHTML = `
+    <button class="${S.view === 'meet' ? 'on' : ''}" data-view="meet">${ic('cal')}פגישות${nM ? `<b class="tb-meet">${nM}</b>` : ''}</button>
     <button class="${S.view === 'today' ? 'on' : ''}" data-view="today">${ic('sun')}היום${nT ? `<b class="tb-today">${nT}</b>` : ''}</button>
-    <button class="${S.view === 'home' ? 'on' : ''}" data-view="home">${ic('home')}השולחן${waitN ? `<b>${waitN}</b>` : ''}</button>
     <span class="gap"></span>
+    <button class="${S.view === 'home' ? 'on' : ''}" data-view="home">${ic('home')}השולחן${waitN ? `<b>${waitN}</b>` : ''}</button>
     <button class="${S.view === 'archive' ? 'on' : ''}" data-view="archive">${ic('archive')}ארכיון</button>
     <button data-act="settings">${ic('settings')}עוד</button>`;
   document.title = waitN ? `(${waitN}) המוח השני` : 'המוח השני';
@@ -732,6 +771,7 @@ function viewToday() {
   const nice = new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   return `<div class="wrap home today-v">
     <div class="hello"><h1>${ic('sun')} היום</h1><p>${esc(nice)} · ${list.length ? `${list.length} להיום` : 'עוד לא סימנת כלום להיום'}${done.length ? ` · ${done.length} בוצעו` : ''}</p></div>
+    ${agStrip()}
     <form class="qc" id="tdf"><input id="td" autocomplete="off" placeholder="להוסיף משהו להיום"><button class="qmic" title="הוסף">${ic('plus')}</button></form>
     <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>אין עדיין כלום להיום</b>פתח פריט בשולחן ולחץ "להיום" (או ${ic('sun')} בשורה), והוא יופיע כאן</div>`}</div>
     ${done.length ? `<div class="lbl" style="margin-top:18px">בוצעו היום</div><div class="done-today">${done.map((i) => `<div class="dt" data-item="${i.id}">${ic('check')}<span>${esc(i.text)}</span></div>`).join('')}</div>` : ''}
@@ -744,6 +784,91 @@ async function addToday(text) {
   try { const r = await api('add', { item: { text, type: 'task', today: ilDay() } }); Object.assign(temp, r.item); render(); }
   catch (e) { S.items = S.items.filter((i) => i !== temp); render(); toast('לא נשמר - ' + e.message); }
 }
+// ---------- meetings: the PA (his ask 2026-11-20: "most most most important job of you and the app is remind me about
+// meetings" - both calendars, a place for today's agenda). The server (mind.js agenda) merges the two calendars; the
+// pushes come from mindAgenda (07:30 / 11:00 / 15:00 + 10 minutes before each meeting).
+const IL = 'Asia/Jerusalem';
+const hmOf = (iso) => new Intl.DateTimeFormat('en-GB', { timeZone: IL, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(iso));
+const dayOf = (iso) => new Intl.DateTimeFormat('en-CA', { timeZone: IL, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+const mKey = (m) => m.uid + '|' + m.start;
+const mDay = (m) => (m.allDay ? m.start : dayOf(m.start));
+const accName = (a) => (String(a).split('@')[1] || a).split('.')[0];
+const accColor = (a) => ({ boostart: 'var(--brand)', lybi: 'var(--violet)' })[accName(a)] || 'var(--green)';
+const agToday = () => (S.ag?.meetings || []).filter((m) => mDay(m) === ilDay());
+const untilTxt = (ms) => { const m = Math.max(1, Math.round(ms / 60e3)); return m < 60 ? `בעוד ${m} דק׳` : m < 24 * 60 ? `בעוד ${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} שע׳` : ''; };
+async function loadAgenda(fresh) {
+  if (S.agBusy || (!fresh && S.agAt && Date.now() - S.agAt < 60e3)) return;
+  S.agBusy = true;
+  try { S.ag = await api('agenda', { days: 8, fresh: !!fresh }); S.agAt = Date.now(); S.agErr = ''; }
+  catch (e) { S.agErr = e.message; }
+  S.agBusy = false;
+  if (S.loaded && !$('#modal').innerHTML) render();
+  const want = S.wantMeet; if (want) { S.wantMeet = ''; openMeet(want); }
+}
+function meetRow(m, now, nextKey) {
+  const past = !m.allDay && new Date(m.end) <= now, live = !m.allDay && new Date(m.start) <= now && !past, next = mKey(m) === nextKey;
+  const who = m.people.filter((p) => p.rsvp !== 'declined').map((p) => p.name || p.email.split('@')[0]);
+  const sub = [m.where && !(m.link && m.where.includes(m.link)) ? m.where : '', who.length ? 'עם ' + who.slice(0, 2).join(', ') + (who.length > 2 ? ` +${who.length - 2}` : '') : ''].filter(Boolean).join(' · ');
+  const accs = (m.accs || [m.acc]).map((a) => `<em class="acc" style="--c:${accColor(a)}">${esc(accName(a))}</em>`).join('');
+  return `<div class="mrow ${past ? 'past' : ''} ${live ? 'live' : ''} ${next ? 'next' : ''}" data-meet="${esc(mKey(m))}">
+    <div class="mt">${m.allDay ? '<b class="ad">כל היום</b>' : `<b>${hmOf(m.start)}</b><small>${hmOf(m.end)}</small>`}</div>
+    <i class="mbar" style="background:${accColor(m.acc)}"></i>
+    <div class="tm"><b>${esc(m.title)}</b><span>${accs}${esc(sub)}</span></div>
+    <div class="me">${live ? '<span class="tag green"><i class="live"></i>עכשיו</span>' : next && untilTxt(new Date(m.start) - now) ? `<span class="tag blue">${untilTxt(new Date(m.start) - now)}</span>` : ''}${m.link && !past ? `<a class="btn pri join" href="${esc(m.link)}" target="_blank" rel="noopener">${ic('video')}<span>הצטרף</span></a>` : ''}</div>
+  </div>`;
+}
+const nextOf = (list, now) => list.find((m) => !m.allDay && new Date(m.start) > now);
+// היום: today's meetings on top (the agenda he asked for), when there are any
+function agStrip() {
+  const list = agToday(); if (!list.length) return '';
+  const now = new Date(), nx = nextOf(list, now);
+  return `<div class="agstrip"><h4>${ic('cal')}הפגישות של היום<button data-view="meet">כל היומן</button></h4><div class="mlist">${list.map((m) => meetRow(m, now, nx && mKey(nx))).join('')}</div></div>`;
+}
+function viewMeet() {
+  if (!S.agAt) loadAgenda();
+  const now = new Date(), day = ilDay();
+  const nice = (d, o) => new Intl.DateTimeFormat('he-IL', { timeZone: IL, ...o }).format(new Date(d + 'T12:00:00Z'));
+  const head = (p) => `<div class="hello"><h1>${ic('cal')} פגישות</h1><p>${esc(nice(day, { weekday: 'long', day: 'numeric', month: 'long' }))}${p ? ' · ' + p : ''}</p></div>`;
+  if (!S.ag) return `<div class="wrap home meet-v">${head('')}<div class="mempty">${S.agErr ? 'לא הצלחתי לקרוא את היומן - ' + esc(S.agErr) : 'קורא את היומנים...'}</div></div>`;
+  if (!S.ag.connected) return `<div class="wrap home meet-v">${head('')}<div class="empty"><b>היומנים עוד לא מחוברים</b>במחשב: node scripts/mind/google-connect.mjs - כניסה אחת לכל חשבון</div></div>`;
+  const today = agToday(), ahead = today.filter((m) => !m.allDay && new Date(m.end) > now), nx = nextOf(today, now);
+  const days = {}; for (const m of S.ag.meetings) if (mDay(m) > day) (days[mDay(m)] ||= []).push(m);
+  const tmr = dayOf(new Date(Date.now() + 86400e3)).slice(0, 10);
+  const sum = !today.length ? 'אין פגישות היום' : ahead.length ? `${ahead.length === 1 ? 'עוד פגישה אחת' : `עוד ${ahead.length} פגישות`} היום${nx ? ` · הבאה ${hmOf(nx.start)}` : ''}` : 'סיימת את הפגישות של היום';
+  return `<div class="wrap home meet-v">${head(esc(sum))}
+    <div class="mday">היום</div>
+    <div class="mlist">${today.length ? today.map((m) => meetRow(m, now, nx && mKey(nx))).join('') : '<div class="mempty">היומן פנוי היום</div>'}</div>
+    ${Object.entries(days).map(([d, l]) => `<div class="mday">${d === tmr ? 'מחר' : esc(nice(d, { weekday: 'long' }))}<small>${esc(nice(d, { day: 'numeric', month: 'numeric' }))} · ${l.length === 1 ? 'פגישה אחת' : l.length + ' פגישות'}</small></div>
+      <div class="mlist">${l.map((m) => meetRow(m, now, '')).join('')}</div>`).join('')}
+    <div class="accs">${S.ag.accounts.map((a) => `<span class="${a.ok ? '' : 'bad'}" title="${esc(a.err || '')}"><i></i>${esc(a.email)}${a.ok ? '' : ' - מנותק'}</span>`).join('')}<button class="btn" data-act="agrefresh" style="margin-inline-start:auto">רענן</button></div>
+  </div>`;
+}
+function openMeet(key) {
+  const m = (S.ag?.meetings || []).find((x) => mKey(x) === key);
+  if (!m) return false;
+  const when = m.allDay ? 'כל היום' : `${hmOf(m.start)}–${hmOf(m.end)}`;
+  const dayTxt = new Intl.DateTimeFormat('he-IL', { timeZone: IL, weekday: 'long', day: 'numeric', month: 'numeric' }).format(new Date(m.allDay ? m.start + 'T12:00:00Z' : m.start));
+  const rs = { accepted: 'מגיע', declined: 'לא מגיע', tentative: 'אולי', needsAction: 'לא ענה' };
+  const people = [...m.people].sort((a, b) => (a.rsvp === 'declined') - (b.rsvp === 'declined'));
+  $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet" role="dialog">
+    <header><h3>${esc(m.title)}</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
+    <div class="sb"><div class="mdet">
+      <div class="when">${esc(dayTxt)} · ${when}</div>
+      <div>${(m.accs || [m.acc]).map((a) => `<em class="acc" style="--c:${accColor(a)}">${esc(a)}</em>`).join('')}</div>
+      ${m.link ? `<a class="btn pri join" href="${esc(m.link)}" target="_blank" rel="noopener">${ic('video')}הצטרף לשיחה</a>` : ''}
+      ${m.where ? `<div class="ln">${ic('pin')}<span>${esc(m.where)}</span></div>` : ''}
+      ${m.organizer ? `<div class="ln">${ic('users')}<span>מזמין: ${esc(m.organizer)}</span></div>` : ''}
+      ${people.length ? `<div class="lbl" style="margin:4px 0 0">משתתפים (${people.length})</div><div class="ppl">${people.map((p) => `<div><i class="${esc(p.rsvp)}" title="${esc(rs[p.rsvp] || '')}"></i><span>${esc(p.name || p.email)}</span>${p.name ? `<small>${esc(p.email)}</small>` : ''}</div>`).join('')}</div>` : ''}
+      ${m.notes.trim() ? `<div class="mnotes">${esc(m.notes.trim())}</div>` : ''}
+      ${m.html ? `<a class="btn" href="${esc(m.html)}" target="_blank" rel="noopener" style="justify-content:center;text-decoration:none">${ic('cal')}פתח ביומן Google</a>` : ''}
+    </div></div></div></div>`;
+  return true;
+}
+document.addEventListener('click', (e) => {
+  const r = e.target.closest('[data-meet]'); if (!r || e.target.closest('a')) return;
+  openMeet(r.dataset.meet);
+});
+
 function viewHome() {
   const all = (() => { const keep = S.hf; S.hf = 'all'; const l = tableEntries(); S.hf = keep; return l; })();
   const list = tableEntries();
@@ -905,7 +1030,7 @@ function render() {
   const td = $('#td'); if (td && document.activeElement === td && td.value) { renderChrome(); renderPanel(); return; }   // he is typing a to-do for today
   const qc = $('#qc'); if (qc && (document.activeElement === qc && qc.value || qc.disabled || (rec && rec.btn.closest('.qc')) || $('.qc .mic[data-busy]'))) { renderChrome(); renderPanel(); return; }
   const v = $('#view'), top = v.scrollTop;
-  v.innerHTML = S.view === 'items' ? viewItems() : S.view === 'sessions' ? viewSessions() : S.view === 'archive' ? viewArchive() : S.view === 'today' ? viewToday() : viewHome();
+  v.innerHTML = S.view === 'items' ? viewItems() : S.view === 'sessions' ? viewSessions() : S.view === 'archive' ? viewArchive() : S.view === 'today' ? viewToday() : S.view === 'meet' ? viewMeet() : viewHome();
   v.scrollTop = top;
   renderPanel();
 }
@@ -1253,6 +1378,7 @@ document.addEventListener('click', (e) => {
     case 'capture': capture(); break;
     case 'recscreen': recScreen(); break;
     case 'seenall': markSeen(newEntries()); render(); toast('הכל סומן כנקרא'); break;
+    case 'agrefresh': loadAgenda(true).then(() => toast('היומן עודכן')); break;
     case 'recclose': recClose(); break;
     case 'recagain': clearTimeout(recClose.t); recScreen(); break;
     case 'aiundo': S.lastAI?.undo(); recClose(); break;
@@ -1393,12 +1519,22 @@ async function pushOn() {
   } catch (e) { toast('לא הצליח - ' + e.message); }
   pushDraw(); render();
 }
+// every open of the app (2026-11-20 - his push went quiet): permission given -> make sure the server has THIS device's
+// current subscription (iOS can drop / renew it, e.g. after an update or re-adding the icon); missing -> subscribe again
+async function pushHeal() {
+  try {
+    if (!pushOk() || Notification.permission !== 'granted' || LS('push') === 0) return;
+    const reg = (await swReady) || (await navigator.serviceWorker.ready);
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) }));
+    await api('push_on', { sub: sub.toJSON(), ua: navigator.userAgent });
+  } catch (e) { console.warn('push heal', e.message); }
+}
 async function pushOff() {
   const sub = await pushSub().catch(() => null);
   if (sub) { await api('push_off', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
   LS('push', 0); toast('ההתראות כבויות במכשיר הזה'); pushDraw();
 }
-const PUSH_LABELS = [['ask', 'פנייה מהאתר (עסקית, סרטון אישי, בקשה מהארכיון)'], ['session', 'סשן צריך ממך משהו (בקשה מסשן)'], ['remind', 'תזכורות ומשימות שהגיע היום שלהן (ב-9 בבוקר)']];
+const PUSH_LABELS = [['meet', 'פגישות: כל פגישות היום ב-07:30, מה שנשאר ב-11:00 וב-15:00, ותזכורת 10 דקות לפני כל פגישה'], ['ask', 'פנייה מהאתר (עסקית, סרטון אישי, בקשה מהארכיון)'], ['session', 'סשן צריך ממך משהו (בקשה מסשן)'], ['remind', 'תזכורות ומשימות שהגיע היום שלהן (ב-9 בבוקר)']];
 async function pushDraw() {
   const el = $('#pushsec'); if (!el) return;
   const st = !pushOk() ? (isIOS && !isApp() ? 'needapp' : 'nosupport') : Notification.permission === 'denied' ? 'denied' : (await pushSub().catch(() => null)) ? 'on' : 'off';
@@ -1420,7 +1556,10 @@ function boot() {
   const h = location.hash.slice(1);
   if (h === 'rec') recScreen();
   if (h === 'archive') S.view = h;
-  if (h === 'today') S.view = h;
+  if (h === 'today' || h === 'meet') S.view = h;
+  if (h.startsWith('m=')) { S.view = 'meet'; S.wantMeet = decodeURIComponent(h.slice(2)); }   // a meeting push was tapped
+  loadAgenda();
+  pushHeal();
   load().then(() => {
     if (!h && S.view === 'home' && S.items.some(isToday)) go('today');   // the day starts on היום when something is marked
     if (h.startsWith('s=')) openSess(decodeURIComponent(h.slice(2)));
@@ -1429,6 +1568,8 @@ function boot() {
 }
 addEventListener('hashchange', () => {
   const h = location.hash.slice(1);
+  if (h === 'meet') { go('meet'); return; }
+  if (h.startsWith('m=')) { const k = decodeURIComponent(h.slice(2)); if (S.view !== 'meet') go('meet'); if (!openMeet(k)) { S.wantMeet = k; loadAgenda(true); } return; }
   if (h.startsWith('s=')) openSess(decodeURIComponent(h.slice(2)));
   else if (/^[a-z0-9]{6}$/.test(h) && itemById(h)) openItem(h);
 });
@@ -1436,7 +1577,8 @@ applyTheme();
 boot();
 setInterval(() => { if (document.visibilityState === 'visible' && S.loaded) load(); }, 15000);
 setInterval(() => { if (S.loaded && document.visibilityState === 'visible' && !$('#modal').innerHTML) render(); }, 60000);   // "ago" labels
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) load(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.loaded) { load(); loadAgenda(); } });
+setInterval(() => { if (document.visibilityState === 'visible') loadAgenda(); }, 60000);   // the calendars (server caches 90 s)
 </script>
 </body>
 </html>
