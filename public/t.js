@@ -16,7 +16,7 @@
     var ck = new URLSearchParams(location.search).get('cookie');
     if ((ck || !localStorage.getItem('ck-seen')) && window.top === window
         && /(^|\.)shlomiverse\.com$|^boostmind-b052c\.web\.app$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)
-        && !/^\/(backstage|wholos|matzav|marketing|mind|stats|all|studio|drop|shoot|karaoke|piko|breathe|wellbeing|uploads|meeting-sergio|trial-options|brand-strip|play)(\/|$|-|\.)|^\/[\w-]+-games\/[\w-]+/.test(location.pathname)) {
+        && !/^\/(backstage|wholos|matzav|marketing|mind|stats|all|studio|drop|shoot|syncs|karaoke|piko|breathe|wellbeing|uploads|meeting-sergio|trial-options|brand-strip|play)(\/|$|-|\.)|^\/[\w-]+-games\/[\w-]+/.test(location.pathname)) {
       var cks = document.createElement('script'); cks.src = '/verse/cookie.js'; cks.async = true; document.head.appendChild(cks);
     }
   } catch (e) {}

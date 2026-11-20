@@ -121,6 +121,7 @@ function scene(cur, M, id) {
   const rel = relIn(cur, id, M.room).map((r) => `${nameOf(cur, r.id)} - ${r.relation}`).join(' · ');
   return `THIS TIME ${c.name} IS NOT IN A CHAT: ${c.name} is in a Zoom meeting of טקי-טק, on camera, with ${others.length ? others.join(', ') : 'nobody else from the team'} - people ${c.name} knows${outsider(cur, id, M.room) ? ' from work but doesn\'t work with; someone added ' + c.name + ' to this call and ' + c.name + ' has no idea why' : ' well'} - and a visitor from outside who joined, ${nameOf(cur, 'user')} (the title the team gave them when the call started) - not from the team.${M.visitorNote ? `
 What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`} The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.
+${genderLine(M)}
 How ${c.name} stands with each of them: ${rel || '-'}
 The others, and how they stand with everyone here:
 ${forces(cur, M.room, id)}
@@ -288,6 +289,14 @@ Answer JSON only: {"title": "..."}`;
   M.cost += r.cost || 0;
   return String((r.out || {}).title || '').replace(/["“”]/g, '').trim().slice(0, 60);
 }
+// how to talk TO the visitor (his note 2026-11-20: Amir said "ברוכה הבאה" to "צוות השיווק"): their gender only when the account says it
+// (none of the verse's accounts does today) - otherwise always the plural
+const genderLine = (M) => {
+  const g = (M.visitor || {}).gender;
+  if (g === 'm') return 'The visitor is a man: speak to him in the masculine singular.';
+  if (g === 'f') return 'The visitor is a woman: speak to her in the feminine singular.';
+  return "Nobody knows the visitor's gender (never guess it from their name or title): speak to them in the PLURAL - אתם, ברוכים הבאים, לפני שאתם זזים, תגידו, איתכם - never a masculine or feminine singular form for them.";
+};
 const lastWords = (t, n = 4) => String(t || '').replace(/<[^<>]*>/g, '').replace(/[—-]\s*$/, '').trim().split(/\s+/).slice(-n).join(' ');
 
 // the visitor says something: on the log, the count starts again, and the next round answers it
@@ -310,6 +319,7 @@ The whole meeting:
 ${transcript(cur, M.log)}
 
 Write the meeting summary you send everyone after the call ("סיכום ישיבה") - in your own corporate voice, the way you really write these: confident, full of your words, sure it was a productive meeting whatever happened in it - you spin everything that happened as progress (being cut off is "a valuable input", someone dropping off the call "took it offline", a question nobody answered is "an open item"). It is funny because it is true to THIS meeting: every point and every action item comes from what was really said here (who said what, who was cut off, who left, what the visitor said) - never invented topics. Short.
+${(M.visitor || {}).gender ? '' : "The visitor's gender is unknown (never guess it from their name or title): write about them in the plural (הציגו, ביקשו) or without a gendered verb."}
 
 Answer JSON only:
 {"title": "the meeting's subject as you would name it in the summary - 2 to 6 words",

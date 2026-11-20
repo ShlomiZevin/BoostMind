@@ -582,7 +582,7 @@ function sharedView(d) {
       ${d.recap ? `<section class="mt-recap">${recapHtml(d.recap, S.room, d.ms || 0, d.t ? today(new Date(d.t)) : today())}</section>` : ''}
       <h3 class="mt-convo">${esc(M_().convo)}</h3>${lines}
       ${d.ender ? `<div class="mt-sys end">${PHONE_OFF}<span>${esc(M_().ended(NAME(d.ender), FEM.has(d.ender)))}</span></div>` : ''}
-    </div></div><button class="mt-new" id="mt-new" hidden>${esc(M_().newer)}</button></div>
+    </div></div></div>
     <div class="mt-acts"><a class="mt-btn go" href="/">${esc(M_().back)}</a><button class="mt-btn ghost" id="mt-sh">${WA}${esc(M_().share)}</button>${d.id === 'demo' ? `<a class="mt-btn ghost" href="/syncs?demo=1">${PLAY}${esc(M_().watch)}</a>` : ''}</div>`;
   const m = root().querySelector('#mt-meta');
   if (m) m.innerHTML = `<span class="mt-badge rec">${esc(M_().recapKicker)}</span><span class="mt-info"><span>${PEOPLE}<b>${S.room.length + 1}</b></span>${d.ms ? `<i>·</i><span>${CLOCK}<b>${clock(d.ms)}</b></span>` : ''}</span>`;
