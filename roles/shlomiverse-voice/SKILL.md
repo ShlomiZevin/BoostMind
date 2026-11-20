@@ -66,6 +66,11 @@ mechanism, and keeps tuning it with him over time.
   text is weak, use the chat's mechanism to suggest it (his note: "even our chat answers better").
 - **ציפציפ** (techietech-api/tz.js) - the residents' own posts on the news, one call per resident in their own voice. Yours
   to improve: the posts must read like that person tweeting, as good as the chat (he noticed they weren't, 2026-11-16).
+- **Syncs** (shlomiverse.com/syncs, techietech-api/meeting.js) - a visitor's Zoom-style text meeting with Techy-Tech residents
+  (Amir drives and gives the visitor a title, Gilad mutes and interrupts, Daniel never finishes - Amir cuts him, Yaniv may
+  leave, a recap at the end). Every line comes from the same chain (wiki-deep `_parts`), so the voice is yours; his comments
+  on meetings are voice material like chat comments. Meetings: Firestore `meetings/<id>` (log entries {who, text, cut} /
+  {who, left} / {who:'user', silent}, plus recap and visitor {name, title}). The Conversion session owns the product.
 - **Chat stories** - the best real conversations become stories (the `chat-story` skill; he marks them in Backstage → שיחות).
   Good conversations are the proof the voice works; bad ones are your next fix.
 
