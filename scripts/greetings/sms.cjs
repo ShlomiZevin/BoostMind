@@ -3,6 +3,7 @@
 // environment, else zoomcut/.env (git-ignored), else Secret Manager (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN). Never print the token.
 //   node scripts/greetings/sms.cjs test <phone>                 a test SMS (to him)
 //   node scripts/greetings/sms.cjs greeting <greeting id> --yes the greeting's SMS to the requester (greet.cjs send --yes does it by itself)
+//   node scripts/greetings/sms.cjs send <phone> --file msg.txt --yes   any text (Hebrew ONLY through a file), after his OK for that message
 // Used by greet.cjs: const { sendSms, phoneOf } = require('./sms.cjs')
 const fs = require('fs'), path = require('path');
 
@@ -83,7 +84,15 @@ if (require.main === module) {
       const s = await sendSms(to, greetingText(g, firstOf(r)));
       await db.collection('greetings').doc(g.id).update({ smsAt: admin.firestore.FieldValue.serverTimestamp(), smsSid: s.sid });
       console.log(`sms ${s.status} to ${tail(s.to)} for greeting ${g.id}`);
-    } else console.log('test <phone> | greeting <id> --yes');
+    } else if (cmd === 'send') {
+      const fi = process.argv.indexOf('--file');
+      if (!process.argv.includes('--yes')) throw new Error('--yes: only after Shlomi approved this exact message');
+      if (fi < 0) throw new Error('--file msg.txt (Hebrew through a file, never the console)');
+      const body = fs.readFileSync(process.argv[fi + 1], 'utf8').trim();
+      if (!body) throw new Error('empty message');
+      const s = await sendSms(arg, body);
+      console.log(`sms ${s.status} to ${tail(s.to)} (${s.sid})`);
+    } else console.log('test <phone> | greeting <id> --yes | send <phone> --file msg.txt --yes');
     process.exit(0);
   })().catch((e) => { console.error(e.message); process.exit(1); });
 }

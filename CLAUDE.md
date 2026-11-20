@@ -131,6 +131,19 @@ release|mail|content|marketing|incident|other --title-file t.txt [--note-file n.
 from now on (a new player counting plays its own way) - Backstage then won't compare them across it.
 Data: Firestore `siteEvents` (techietech-api/siteevents.js, verseOwner ops `events`/`eventAdd`/`eventEdit`/`eventDel`).
 
+## SMS from "Shlomiverse" (since 2026-11-19)
+
+Any session can text a person from the sender name **Shlomiverse** (Twilio, his paid account; keys found by themselves -
+env, `zoomcut/.env`, else Secret Manager; never print them). `scripts/greetings/sms.cjs`:
+- a greeting: `node scripts/greetings/greet.cjs send <id> --yes` mails AND texts the requester by itself; a greeting already
+  sent without one: `node scripts/greetings/sms.cjs greeting <greeting id> --yes` (his own embassy text, the requester's first
+  name, תושב/תושבת by the resident's gender).
+- any other text: `node scripts/greetings/sms.cjs send <phone> --file msg.txt --yes` (Hebrew ONLY through a file).
+Rules: **only where we have a mobile number** on record (a request's `phone`, else a `contact` that is a number) - no number =
+no SMS, never guess or look one up; **only after his OK for that exact message** (`--yes` = he approved it); one-way - a reply
+to the SMS reaches nobody, so put the link in the text and never ask them to answer; Israeli 05x numbers become +972 by
+themselves. Test to himself: `sms.cjs test 0545567213`.
+
 ## Deploy
 
 ```bash
