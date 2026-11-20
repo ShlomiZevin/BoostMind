@@ -2,7 +2,7 @@
 // session uses - on any computer (his ask 2026-11-20: "skills should be part of our git").
 //   zoomcut/skill/<name>  the tools (editing videos, content, stories, games...)
 //   roles/<name>          the positions in the Shlomiverse - one folder per role: shlomiverse-conversion (Conversion Manager),
-//                         shlomiverse-marketing (Marketing Manager), and more to come (his words: "we will probably have more roles")
+//                         shlomiverse-marketing (Marketing Manager), shlomiverse-voice, shlomiverse-platform (the site coordinator), and more to come (his words: "we will probably have more roles")
 // Safe to run again: an existing link is left as it is; a real folder with the same name is NOT touched (reported).
 //   node scripts/skills-link.mjs
 import fs from 'node:fs';

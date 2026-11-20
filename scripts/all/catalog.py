@@ -29,6 +29,8 @@ FOLDER = {
     'links': 'verse', 'wiki': 'verse', 'archive': 'verse', 'tziftzif': 'verse', 'charadot': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'piko': 'tools', 'garden': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
     'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters', 'neve-tidhar': 'characters', 'ksa': 'characters',
+    'friedman': 'characters', 'birkat-hashefa': 'characters', 'shefa-ad': 'characters', 'syncs': 'verse', 'greeting': 'verse',
+    'studio': 'tools', 'shoot': 'tools', 'drop': 'tools',
     'sketch-studio': 'tools', 'karaoke': 'tools', 'sticker-lab': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
     'wholos': 'wholos', 'wholos-app': 'wholos', 'matzav': 'wholos', 'matzav-app': 'wholos', 'marketing-hub': 'wholos',
     'brand-strip': 'wholos', 'uploads': 'wholos', 'meeting-sergio': 'wholos', 'trial-options': 'wholos', 'wellbeing': 'wholos',
@@ -127,7 +129,7 @@ def main():
         m = re.search(r'<title>(.*?)</title>', head, re.S)
         title = re.sub(r'\s+', ' ', m.group(1)).strip() if m else rel
         folder = rel.split('/')[0]
-        group = FOLDER.get(folder) or folder_group.get(folder) or ('wholos' if folder.startswith('marketing') else 'proposals' if PROPOSAL.search(title) else 'new')
+        group = FOLDER.get(folder) or folder_group.get(folder) or ('verse' if folder.endswith('-games') else None) or ('wholos' if folder.startswith('marketing') else 'proposals' if PROPOSAL.search(title) else 'new')
         folder_group.setdefault(folder, group)
         path = '' if rel == 'wiki/index.html' else (rel[:-len('index.html')] if rel.endswith('index.html') else rel)   # the verse's home is the root now
         url = (WHOLOS if group == 'wholos' else SITE) + '/' + path

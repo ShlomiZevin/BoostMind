@@ -70,6 +70,10 @@ He separates **conversion** (getting the sign-in) from the **experience after it
 - Measurement: Backstage (סקירה, אנשים, שיחות, מיילים, הוצאות), own analytics t.js, events log.
 
 ## Working with other sessions
+**Platform** (shlomiverse-platform, "the site coordinator", since 2026-11-20) owns the app itself. The split: you own *why and
+what* (the two numbers, the ideas, the briefs); Platform owns *how it fits and that it doesn't break* (shell, routes, sign-in,
+verse.css, deploy, Backstage, /all/, analytics truth). Your modules go live only after Platform's plug-in checklist (in its
+skill) - run it yourself or ask the Platform session. A bug on the site that isn't about conversion = send it to Platform.
 Sessions are addressed by name (ListAgents / SendMessage): e.g. **Marketing** (Remote Control, another computer) prepares launch
 marketing; **Shlomiverse Bizdev**, **Studio Dialoug** (video), **insta-to-verse**. Tell another session what it needs and when -
 never do its work, never ship its files. When a tool is ready for marketing: give Marketing the links (demo, product page, access
