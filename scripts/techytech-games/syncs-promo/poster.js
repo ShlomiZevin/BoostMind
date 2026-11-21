@@ -7,13 +7,14 @@ const bg = d('look/bg-tall.png'), scr = d('look/poster-screen.png'), icon = 'dat
 const html = `<html><head><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#07060a;font-family:Heebo}
 .c{position:absolute;left:0;right:0;display:flex;justify-content:center}
-.phone{width:600px;height:880px;border-radius:64px;background:#0e0e12;border:3px solid #6e5a50;padding:16px;box-shadow:0 0 90px rgba(252,114,17,.35),0 40px 60px rgba(0,0,0,.7);transform:rotate(-3deg)}
-.scr{width:600px;height:880px;border-radius:50px;background:url(${scr}) 0 0/600px auto;overflow:hidden}
+.phone{width:600px;height:840px;border-radius:64px;background:#0e0e12;border:3px solid #6e5a50;padding:16px;box-shadow:0 0 90px rgba(252,114,17,.35),0 40px 60px rgba(0,0,0,.7);transform:rotate(-3deg)}
+.scr{width:600px;height:840px;border-radius:50px;background:url(${scr}) 0 -45px/600px auto;overflow:hidden}
 </style></head><body>
 <div style="position:absolute;left:0;top:-80px;width:1080px;height:1620px;background:url(${bg}) center/cover"></div>
 <div style="position:absolute;left:0;top:1440px;width:1080px;height:480px;background:linear-gradient(transparent,#07060a 60%)"></div>
 <div class="c" style="top:262px;flex-direction:column;align-items:center">
-  <div dir="rtl" style="font:800 40px/1 Heebo;color:#ffb27a;letter-spacing:2px;margin-bottom:22px">טקי-טק מציגה</div>
+  <div style="display:flex;align-items:center;gap:16px;direction:ltr;margin-bottom:8px"><span style="font:800 54px/1 Heebo;color:#6fa8f0;letter-spacing:-3px">&lt;/&gt;</span><span style="display:flex;flex-direction:column;line-height:1.05"><b style="font:800 38px/1.05 Heebo;color:#fff">Techy-Tech</b><small style="font:500 15px/1.3 Heebo;color:#8fa1b8;letter-spacing:3.5px">ENTERPRISE SOLUTIONS</small></span></div>
+  <div dir="rtl" style="font:800 34px/1 Heebo;color:#ffb27a;letter-spacing:2px;margin-bottom:22px">מציגה</div>
   <div style="display:flex;align-items:center;gap:22px;direction:ltr"><img src="${icon}" style="width:96px;height:96px;border-radius:22px;filter:drop-shadow(0 0 30px rgba(252,114,17,.7))">
     <div><div style="font:900 74px/0.95 Heebo;color:#fff;letter-spacing:-2px">Syncs</div><div style="font:500 24px/1.2 Heebo;color:#ffb27a;letter-spacing:2px">Let’s circle back</div></div></div>
   <div dir="rtl" style="font:900 70px/1.05 Heebo;color:#fff;margin-top:26px;text-shadow:0 10px 30px rgba(0,0,0,.7);white-space:nowrap">פגישות וידאו עם AI</div>
