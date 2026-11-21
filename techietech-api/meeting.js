@@ -139,7 +139,7 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
 function scene(cur, M, id) {
   const c = cur.byId[id], others = M.room.filter((x) => x !== id).map((x) => nameOf(cur, x));
   const rel = relIn(cur, id, M.room).map((r) => `${nameOf(cur, r.id)} - ${r.relation}`).join(' · ');
-  return `THIS TIME ${c.name} IS NOT IN A CHAT: ${c.name} is in a Zoom meeting of טקי-טק, on camera, with ${others.length ? others.join(', ') : 'nobody else from the team'} - people ${c.name} knows${outsider(cur, id, M.room) ? ' from work but doesn\'t work with; someone added ' + c.name + ' to this call and ' + c.name + ' has no idea why' : ' well'} - and a visitor from outside who joined, ${nameOf(cur, 'user')}${cur.titled ? ` (the title is the one they introduced themselves with when they joined, in their own words - nobody on the team gave it to them, and ${c.name} never makes up another one or describes them in their own words)` : ''} - not from the team.${M.visitorNote ? `
+  return `A Zoom call of טקי-טק, on camera. On the call: ${M.room.map((x) => `${nameOf(cur, x)}${x === id ? ' (you)' : ''} - ${cur.byId[x].role || ''}`).join(' · ')} · ${nameOf(cur, 'user')} (from outside the team).${outsider(cur, id, M.room) ? ` ${c.name} knows them from work but doesn't work with them; someone added ${c.name} to this call and ${c.name} has no idea why.` : ` ${c.name} knows the team well.`}${cur.titled ? ` (${nameOf(cur, 'user')}'s title is the one they introduced themselves with when they joined, in their own words - nobody on the team gave it to them, and ${c.name} never makes up another one or describes them in their own words.)` : ''}${M.visitorNote ? `
 What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`}${cur.titled ? ` The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.` : ''}
 ${M.topic ? `The meeting invite: "${M.topic.title}"${M.topic.desc ? ` - ${M.topic.desc}` : ''}
 ` : ''}${genderLine(M)}
@@ -147,7 +147,7 @@ How ${c.name} stands with each of them: ${rel || '-'}
 The others, and how they stand with everyone here:
 ${forces(cur, M.room, id)}
 
-On the call right now: ${M.room.map((x) => (x === id ? `${nameOf(cur, x)} (you)` : nameOf(cur, x))).join(', ')} and the visitor, ${nameOf(cur, 'user')}. ${c.name} talks to them - to their face, never about them in the third person; anyone else, ${c.name} only talks about.
+Everyone listed above is on the call: ${c.name} talks to them directly, never behind their back. People who are not on the call ${c.name} may talk about, never to.
 
 The meeting so far:
 ${transcript(cur, M.log)}`;
@@ -190,7 +190,7 @@ ${scene(cur, M, id)}
 
 ${why}
 
-"say" = what ${c.name} says now, out loud, in the meeting: a real reaction of this person to what was just said, said to whoever it is said to. One spoken line in a meeting - not a speech, not a chat answer. Whatever the director's job above says about answering "the visitor", here it is this meeting.
+"say" = ${c.name}'s next line in this call: the people on the call talk with each other, and ${c.name} reacts to the conversation - not necessarily to ${nameOf(cur, 'user')}. One spoken line in a meeting - not a speech, not a chat answer. Whatever the director's job above says about answering "the visitor", here it is this call.
 ${PLAN_FORMAT(c)}`;
   let d = null;
   if (M.akey) d = await sonnet(M.akey, system, ask).catch((e) => { console.error('meeting director on Sonnet failed - Terra', e.message); return null; });
