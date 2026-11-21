@@ -276,16 +276,22 @@ const KINDS = META.doc('meetkinds');
 let kindCache = null;
 const kindKey = (m) => crypto.createHash('sha1').update([m.uid, m.where, m.link ? 1 : 0, m.title].join('|')).digest('hex').slice(0, 14);
 const videoName = (link) => (/zoom\.us/i.test(link) ? 'Zoom' : /meet\.google/i.test(link) ? 'Meet' : /teams\./i.test(link) ? 'Teams' : link ? 'שיחת וידאו' : '');
+// His own corrections (his ask 2026-11-21: "you marked meetings physical that aren't - let me change it"): fix.<sha1(uid)>
+// wins over the AI for that meeting (all its repeats), and his latest corrections go to the AI as examples so it learns.
+let kindFix = null, kindAt = 0;   // re-read every 2 min: mindAgenda runs in its own instance and must see his fixes
+const fixKey = (uid) => crypto.createHash('sha1').update(String(uid)).digest('hex').slice(0, 16);
 async function meetKinds(meetings) {
-  if (!kindCache) kindCache = (await KINDS.get()).data()?.k || {};
-  const todo = meetings.filter((m) => !m.allDay && !kindCache[kindKey(m)]);
+  if (!kindCache || !kindFix || Date.now() - kindAt > 120e3) { const d = (await KINDS.get()).data() || {}; kindCache = d.k || {}; kindFix = d.fix || {}; kindAt = Date.now(); }
+  const todo = meetings.filter((m) => !m.allDay && !kindFix[fixKey(m.uid)] && !kindCache[kindKey(m)]);
+  const learned = Object.values(kindFix).sort((a, b) => b.at - a.at).slice(0, 25)
+    .map((f) => `- "${f.title}" | location: ${f.where || '-'} | video link: ${f.link || 'none'} -> ${f.kind}`).join('\n');
   if (todo.length) {
     try {
       const schema = { type: 'object', additionalProperties: false, required: ['items'], properties: { items: { type: 'array', items: { type: 'object', additionalProperties: false,
         required: ['n', 'kind'], properties: { n: { type: 'integer' }, kind: { type: 'string', enum: ['place', 'video', 'phone', 'other'] } } } } } };
       const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + OPENAI.value(), 'content-type': 'application/json' },
         body: JSON.stringify({ model: 'gpt-6.1-terra', reasoning: { effort: 'none' }, max_output_tokens: 1500, store: false, text: { format: { type: 'json_schema', name: 'kinds', schema, strict: true } },
-          instructions: 'For each calendar meeting of an Israeli CTO, say how HE attends it: "place" = he must physically be somewhere (an address, an office or meeting room - even when the invite also has a video link, a room means people meet there), "video" = online only (Zoom / Google Meet / Teams, location empty or just the link / "Microsoft Teams Meeting"), "phone" = a phone call, "other" = can\'t tell (no location, no link).',
+          instructions: 'For each calendar meeting of an Israeli CTO, say how HE attends it: "place" = he must physically be somewhere (an address, an office or meeting room - even when the invite also has a video link, a room means people meet there), "video" = online only (Zoom / Google Meet / Teams, location empty or just the link / "Microsoft Teams Meeting"), "phone" = a phone call, "other" = can\'t tell (no location, no link).' + (learned ? '\nHe corrected these himself - follow how he sees his meetings:\n' + learned : ''),
           input: [{ role: 'user', content: todo.slice(0, 60).map((m, i) => `${i}: ${m.title} | location: ${m.where || '-'} | video link: ${m.link ? videoName(m.link) : 'none'} | notes: ${oneLine(m.notes, 160) || '-'}`).join('\n') }] }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error?.message || 'kinds ' + r.status);
@@ -296,7 +302,22 @@ async function meetKinds(meetings) {
       if (Object.keys(add).length) await KINDS.set({ k: add }, { merge: true });
     } catch (e) { console.error('mind kinds', e.message); }
   }
-  for (const m of meetings) { m.kind = m.allDay ? '' : kindCache[kindKey(m)] || (m.link && !m.where ? 'video' : 'other'); m.video = videoName(m.link); }
+  for (const m of meetings) {
+    const f = kindFix[fixKey(m.uid)];
+    m.kind = m.allDay ? '' : f?.kind || kindCache[kindKey(m)] || (m.link && !m.where ? 'video' : 'other');
+    m.kindBy = f ? 'him' : 'ai'; m.video = videoName(m.link);
+  }
+}
+// op meetkind: he sets a meeting's kind ('' = back to the AI). The AI's other answers are dropped so it re-reads the
+// coming meetings with his correction as an example.
+async function setMeetKind({ uid, kind, title, where, link }) {
+  if (!uid) throw new Error('no meeting');
+  if (kind && !['place', 'video', 'phone', 'other'].includes(kind)) throw new Error('bad kind');
+  const k = fixKey(uid);
+  await KINDS.set({ fix: { [k]: kind ? { kind, title: oneLine(title, 120), where: oneLine(where, 160), link: link ? videoName(link) : '', at: Date.now() } : admin.firestore.FieldValue.delete() } }, { merge: true });
+  await KINDS.update({ k: {} });
+  kindCache = null; kindFix = null; agendaCache = { key: '', at: 0, data: null };
+  return { ok: true };
 }
 
 // times inside an LTR isolate - in a Hebrew notification "09:00–10:00" would flip to "10:00–09:00"
@@ -591,6 +612,7 @@ async function pageOp(b) {
       const day = ilDay(), from = ilStart(day), n = Math.min(Math.max(+b.days || 8, 1), 31);
       return { ...(await agenda(from, new Date(from.getTime() + n * 86400e3), !!b.fresh)), day, now: Date.now() };
     }
+    case 'meetkind': return setMeetKind(b);
     case 'add': return { item: await addItem(b.item || {}, 'שלומי') };
     case 'update': return { item: (await withUrls([await updateItem(b.id, b.item || {}, 'שלומי')]))[0] };
     case 'attach': return { item: (await withUrls([await attachImage(b.id, b, 'שלומי')]))[0] };
@@ -771,7 +793,7 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
       return out ? res.json(out) : res.status(202).end();
     }
     if (door === 'api') {
-      if (['connect', 'lockey', 'vault', 'vault_save', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
+      if (['connect', 'lockey', 'vault', 'vault_save', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test', 'meetkind'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
       return res.json(await pageOp(req.body || {}));
     }
     res.status(404).json({ error: 'door' });

@@ -394,6 +394,8 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .mwhere i { font-style: normal; min-width: 0; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; text-align: right; line-height: 1.3; }
 .tm .mwhere { white-space: normal; }
 .btn.waze { background: var(--amber); border-color: var(--amber); color: #1a1205; font-weight: 800; text-decoration: none; }
+.mkind { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .mkind small { color: var(--ink3); font-weight: 700; font-size: 13px; }
+.mkind .seg button svg { width: 15px; height: 15px; } .mkind .seg button[data-mkind="place"].on { background: var(--amber); color: #1a1205; }
 .mplace { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--amber) 16%, var(--card)); border: 2px solid var(--amber); }
 .mplace > svg { width: 24px; height: 24px; color: var(--amber); flex: none; }
 .mplace > div { flex: 1; min-width: 0; display: flex; flex-direction: column; } .mplace b { font-size: 16px; } .mplace span { color: var(--ink2); font-size: 14px; unicode-bidi: plaintext; }
@@ -884,6 +886,7 @@ function viewMeet() {
 function openMeet(key) {
   const m = (S.ag?.meetings || []).find((x) => mKey(x) === key);
   if (!m) return false;
+  S.openMeet = key;
   const when = m.allDay ? 'כל היום' : `<bdi dir="ltr">${hmOf(m.start)}–${hmOf(m.end)}</bdi>`;
   const dayTxt = new Intl.DateTimeFormat('he-IL', { timeZone: IL, weekday: 'long', day: 'numeric', month: 'numeric' }).format(new Date(m.allDay ? m.start + 'T12:00:00Z' : m.start));
   const rs = { accepted: 'מגיע', declined: 'לא מגיע', tentative: 'אולי', needsAction: 'לא ענה' };
@@ -892,6 +895,8 @@ function openMeet(key) {
     <header><h3>${esc(m.title)}</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
     <div class="sb"><div class="mdet">
       <div class="when">${esc(dayTxt)} · ${when}</div>
+      ${m.allDay ? '' : `<div class="mkind"><small>איך הפגישה?</small><div class="seg">${[['place', 'pin', 'פיזית'], ['video', 'video', 'וידאו'], ['phone', 'phone', 'טלפון'], ['other', '', 'לא ידוע']]
+        .map(([k, i, t]) => `<button data-mkind="${k}" class="${m.kind === k ? 'on' : ''}">${i ? ic(i) : ''}${t}</button>`).join('')}</div></div>`}
       ${m.kind === 'place' ? `<div class="mplace">${ic('pin')}<div><b>פגישה פיזית</b><span>${esc(m.where || 'אין כתובת ביומן')}</span></div>${m.where ? `<a class="btn waze" href="${esc(wazeUrl(m.where))}" target="_blank" rel="noopener">נווט ב-Waze</a>` : ''}</div>` : kindBadge(m) ? `<div>${kindBadge(m)}</div>` : ''}
       <div>${(m.accs || [m.acc]).map((a) => `<em class="acc" style="--c:${accColor(a)}">${esc(a)}</em>`).join('')}</div>
       ${m.link ? `<a class="btn pri join" href="${esc(m.link)}" target="_blank" rel="noopener">${ic('video')}הצטרף לשיחה</a>` : ''}
@@ -904,9 +909,20 @@ function openMeet(key) {
   return true;
 }
 document.addEventListener('click', (e) => {
+  const k = e.target.closest('[data-mkind]');
+  if (k) { setKind(k.dataset.mkind); return; }
   const r = e.target.closest('[data-meet]'); if (!r || e.target.closest('a')) return;
-  openMeet(r.dataset.meet);
+  S.openMeet = r.dataset.meet; openMeet(r.dataset.meet);
 });
+// he fixes how a meeting is held (the AI guessed wrong) - every repeat of that meeting follows; the server teaches the AI
+async function setKind(kind) {
+  const m = (S.ag?.meetings || []).find((x) => mKey(x) === S.openMeet); if (!m || m.kind === kind) return;
+  const same = S.ag.meetings.filter((x) => x.uid === m.uid), was = same.map((x) => x.kind);
+  same.forEach((x) => { x.kind = kind; x.kindBy = 'him'; });
+  openMeet(S.openMeet); render();
+  try { await api('meetkind', { uid: m.uid, kind, title: m.title, where: m.where, link: m.link }); toast('עודכן'); setTimeout(() => loadAgenda(true), 400); }
+  catch (er) { same.forEach((x, i) => { x.kind = was[i]; }); openMeet(S.openMeet); render(); toast('לא נשמר - ' + er.message); }
+}
 
 // "did you already...?" (his ask 2026-11-20): the push opens this - one tap answers it
 function openNag(id) {
