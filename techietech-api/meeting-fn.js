@@ -2,8 +2,10 @@
 // function, verseMeeting; the page (v2/site/verse/meeting.js) reads its answer as an ndjson stream - the very events the engine
 // emits (meeting.js round()).
 //   {op:'peek'}            -> {ok, owner, booked}   - may this account hold a meeting now (the page asks before the picker)
-//   {op:'start', room}     -> stream: {t:'meeting', id, room}, {t:'visitor', name, title} (their name + the title the meeting gives them),
-//                             then the first round (Amir opens)
+//   {op:'start', room, title} -> stream: {t:'meeting', id, room}, {t:'visitor', name, title} (their name + the title they typed for
+//                             this meeting - his ask 2026-11-21), then the first round (Amir opens). A title sent but empty after the
+//                             visitor-line check below -> 400 {error:'title'}, before the day's meeting is taken; no title sent at
+//                             all (an older page) -> the meeting starts with their name only
 //   {op:'say', id, text}   -> stream: {t:'guest', text} (the visitor's line first, so the order is true), then a round answering it
 //   {op:'nudge', id}       -> stream: {t:'silence'}, then a round - the floor was the visitor's and they said nothing for ~10 s (the
 //                             page asks, once per silence, only while it is open and they typed nothing); the silence goes on the log
@@ -45,6 +47,11 @@ const db = () => admin.firestore();
 const meetRef = (id) => db().collection('meetings').doc(id);
 const dayRef = (uid) => db().collection('quota').doc(`meet_${uid}_${dayIL()}`);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// the one check a visitor's words go through here (their meeting lines - op 'say' - and their title at op 'start'): a string, trimmed,
+// cut to its length; empty = refused. The title (his ask 2026-11-21: "you join a meeting, you must give a title") is one line in the
+// prompts: no newlines, no double quotes (the Hebrew geresh ' stays - ג'וניור), at most 40 characters.
+const said = (v, n) => String(v || '').trim().slice(0, n);
+const titleOf = (v) => said(String(v || '').replace(/[\r\n\t]+/g, ' ').replace(/["“”„«»״`]/g, '').replace(/\s+/g, ' '), 40).trim();
 // Syncs' AI spend (his ask 2026-11-20: its own line on Backstage → הוצאות and in the home's AI cost): one record per meeting, written
 // with absolute values after every round (so it is counted once, whatever is retried), and kept after the meeting's own 7 days.
 // costs.js reads it by the providers' day (UTC), verse.js stats by the Israel day. The meeting's day = the day it started.
@@ -194,13 +201,16 @@ exports.verseMeeting = onRequest({
     await ref.update({ hand: false, log: M.log, run: M.run });
   } else if (b.op === 'start') {
     const room = (Array.isArray(b.room) ? b.room : []).filter((id) => meeting.TEAM.includes(id));
+    // a page that sends a title must send a real one; an older page sends none - that meeting starts without one (nothing invented)
+    const title = titleOf(b.title);
+    if (b.title != null && !title) return res.status(400).json({ error: 'title' });
     if (!(await takeDay(who))) return res.status(429).json({ error: 'booked' });
     ref = db().collection('meetings').doc();
-    // the visitor's Shlomiverse name (their fans record) - the team calls them by it, with the title the meeting gives them
+    // the visitor's Shlomiverse name (their fans record) - the team calls them by it, with the title they gave themselves
     const nick = who.preview ? PREVIEW_NAME : await db().collection('fans').doc(who.uid).get().then((g) => String((g.data() || {}).nick || '')).catch(() => '');
     // what the residents know about this person - the chat's own note (wiki.js visitorLine), its facts part (the meeting has its own scene)
     const note = who.preview ? '' : await require('./wiki')._visitorLine(who).then((t) => (String(t || '').split('What you know about them:')[1] || '').trim()).catch(() => '');
-    M = meeting.newMeeting({ ...keys, room, visitor: { name: nick }, visitorNote: note });
+    M = meeting.newMeeting({ ...keys, room, visitor: { name: nick, title }, visitorNote: note });
     await ref.set({ uid: who.uid, t: Timestamp.now(), exp: Timestamp.fromMillis(Date.now() + KEEP_DAYS * 864e5), busy: Timestamp.now(), ...meeting.stateOf(M) });
   } else {
     ref = meetRef(String(b.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 30));
@@ -209,7 +219,7 @@ exports.verseMeeting = onRequest({
     // a round still running (the page waits for its stream to end; this is the guard): wait for it, up to a minute and a half
     for (let i = 0; d.busy && Date.now() - d.busy.toMillis() < 240e3 && i < 150; i++) { await wait(600); d = (await ref.get()).data(); }
     if (d.ended) return res.status(409).json({ error: 'ended' });
-    guest = String(b.text || '').trim().slice(0, 600);
+    guest = said(b.text, 600);
     if (!guest) return res.status(400).json({ error: 'text' });
     M = meeting.fromState(d, keys);
     meeting.guestSays(M, guest, { hand: b.hand === true });

@@ -30,11 +30,13 @@ const MAX_RUN = 4;          // resident lines in a row before the floor is the v
 const SILENT_S = 10;        // the visitor's silence on their own floor before the page asks the room to go on (the page's nudge)
 const DANIEL = 'daniel';   // never finishes a sentence: Amir always cuts him off and picks up his last words (his rule, 2026-11-20)
 const ender = (room) => (room.includes(BOSS) ? BOSS : HOST);
-// the visitor: no "guest" anywhere (his note 2026-11-20, "a real product"). At the start of every meeting they get a made-up
-// corporate title in Techy-Tech's world (entitle below) and everyone calls them by it - with their Shlomiverse name when we have it.
+// the visitor: no "guest" anywhere (his note 2026-11-20, "a real product"). They join with their Shlomiverse name (we have it - they
+// are signed in) and the title THEY typed for this meeting (his ask 2026-11-21: "he chooses his title, and Amir only refers to it" -
+// the AI-made titles were weird); everyone calls them by it. Nobody makes up a title or describes them in their own words.
 // Each meeting reads the brain through its own thin copy (Object.create) that knows how to call the visitor.
 const label = (v = {}) => [v.name, v.title].filter(Boolean).join(', ') || 'the visitor';
-const withVisitor = (cur, v) => Object.assign(Object.create(cur), { visitor: label(v) });
+// titled: they gave themselves a title when they joined (an older page sends none - then they are just their name)
+const withVisitor = (cur, v) => Object.assign(Object.create(cur), { visitor: label(v), titled: !!v.title });
 const nameOf = (cur, id) => (id === 'user' ? cur.visitor || 'the visitor' : cur.byId[id]?.name || id);
 const relIn = (cur, id, room) => (cur.byId[id].relations || []).filter((r) => room.includes(r.id) && r.id !== id);
 // someone with no relation to anyone in the room (Yaniv): an outsider who was added to the call and doesn't get why
@@ -76,7 +78,7 @@ function organizerSystem(cur, room) {
   const E = nameOf(cur, ender(room));
   return `You run a Zoom meeting of טקי-טק (Techy-Tech), a company in the Shlomiverse - a comedy world whose residents are real people living their lives. You are the meeting's organizer, like Zoom's host controls: you never write what anyone says. After every line you decide who has the floor next.
 
-In the meeting: the team members below, who know each other well, and a visitor from outside - ${nameOf(cur, 'user')} - a real person who joined; the team doesn't know them and calls them by that title.
+In the meeting: the team members below, who know each other well, and a visitor from outside - ${nameOf(cur, 'user')} - a real person who joined; the team doesn't know them.${cur.titled ? ' When they joined they introduced themselves with that title - their own words for who they are in this meeting (nobody on the team gave it to them).' : ''}
 
 ${cards}
 
@@ -137,8 +139,8 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
 function scene(cur, M, id) {
   const c = cur.byId[id], others = M.room.filter((x) => x !== id).map((x) => nameOf(cur, x));
   const rel = relIn(cur, id, M.room).map((r) => `${nameOf(cur, r.id)} - ${r.relation}`).join(' · ');
-  return `THIS TIME ${c.name} IS NOT IN A CHAT: ${c.name} is in a Zoom meeting of טקי-טק, on camera, with ${others.length ? others.join(', ') : 'nobody else from the team'} - people ${c.name} knows${outsider(cur, id, M.room) ? ' from work but doesn\'t work with; someone added ' + c.name + ' to this call and ' + c.name + ' has no idea why' : ' well'} - and a visitor from outside who joined, ${nameOf(cur, 'user')} (the title the team gave them when the call started) - not from the team.${M.visitorNote ? `
-What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`} The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.
+  return `THIS TIME ${c.name} IS NOT IN A CHAT: ${c.name} is in a Zoom meeting of טקי-טק, on camera, with ${others.length ? others.join(', ') : 'nobody else from the team'} - people ${c.name} knows${outsider(cur, id, M.room) ? ' from work but doesn\'t work with; someone added ' + c.name + ' to this call and ' + c.name + ' has no idea why' : ' well'} - and a visitor from outside who joined, ${nameOf(cur, 'user')}${cur.titled ? ` (the title is the one they introduced themselves with when they joined, in their own words - nobody on the team gave it to them, and ${c.name} never makes up another one or describes them in their own words)` : ''} - not from the team.${M.visitorNote ? `
+What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`}${cur.titled ? ` The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.` : ''}
 ${genderLine(M)}
 How ${c.name} stands with each of them: ${rel || '-'}
 The others, and how they stand with everyone here:
@@ -163,7 +165,7 @@ async function speak(M, plan, emit, handNow) {
   const now = nowIL();
   const prev = M.log.filter(spoken).slice(-1)[0];
   const why = plan.opening
-    ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - greeting them by their name and title, ${nameOf(cur, 'user')} - and what this meeting is about${M.log.length ? '' : ' - or ask them what brought them'}.`
+    ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - ${cur.titled ? `greeting them by their name and referring naturally to the title they introduced themselves with when they joined (${nameOf(cur, 'user')}): that title as they gave it, never a new title or ${c.name}'s own description of who they are` : `greeting them by their name, ${nameOf(cur, 'user')} - never a title or ${c.name}'s own description of who they are`} - and what this meeting is about${M.log.length ? '' : ' - or ask them what brought them'}.`
     : `Why ${c.name} speaks now: ${plan.cue || 'the line that was just said'}`
       + (plan.cut && prev ? (prev.who === DANIEL
         ? `\n${c.name} cuts ${nameOf(cur, DANIEL)} off before he finishes the sentence - as always - and picks up his last words ("${lastWords(prev.text)}"): ${c.name}'s line starts from exactly those words and reacts to them.`
@@ -235,7 +237,7 @@ ${PLAN_FORMAT(c)}`;
 // opts.hand: async () => is the visitor's hand up (the live function reads it from Firestore; the try-out from M.hand)
 function newMeeting({ cur, key, akey, room, visitor = {}, visitorNote = '' }) {
   const r = [HOST, ...TEAM.filter((id) => id !== HOST && (room || []).includes(id) && cur.byId[id])];
-  const v = { name: String(visitor.name || '').trim().slice(0, 40), title: '' };
+  const v = { name: String(visitor.name || '').trim().slice(0, 40), title: String(visitor.title || '').replace(/\s+/g, ' ').trim().slice(0, 40) };
   return { cur: withVisitor(cur, v), visitor: v, visitorNote: String(visitorNote || '').slice(0, 3000), key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, costBy: { openai: 0, anthropic: 0, unsplit: 0 }, next: null, recap: null };
 }
 // what is kept between requests (meeting-fn.js puts it in Firestore) and how it comes back
@@ -247,10 +249,6 @@ const fromState = (s, { cur, key, akey }) => ({ cur: withVisitor(cur, s.visitor 
 async function round(M, emit, opts = {}) {
   const handNow = opts.hand || (async () => M.hand);
   const cost = () => emit({ t: 'cost', usd: Math.round(M.cost * 10000) / 10000 });
-  if (!M.log.length && !M.visitor.title) {
-    M.visitor.title = await entitle(M).catch((e) => { console.error('meeting title failed', e.message); return ''; });
-    M.cur = withVisitor(M.cur, M.visitor);
-  }
   if (!M.log.length) emit({ t: 'visitor', name: M.visitor.name || '', title: M.visitor.title || '' });
   let plan = M.next;
   if (!plan) plan = M.log.length === 0 ? { next: HOST, opening: true, cue: '' } : await organize(M, null);
@@ -292,20 +290,6 @@ async function round(M, emit, opts = {}) {
     if (plan.next !== 'user' && !M.room.includes(plan.next)) plan = { next: 'user' };   // never someone who is gone
     emit({ t: 'org', next: plan.next, cut: plan.cut, leave: plan.leave, end: plan.end, why: plan.why });
   }
-}
-// the visitor's title for this meeting - fresh each meeting, the AI's (his note 2026-11-20: "the organizer gives the visitor a silly
-// corporate title"): the kind of title Techy-Tech would invent, in Hebrew, with no gender in it (we don't know theirs)
-async function entitle(M) {
-  const { cur } = M;
-  const sys = `You name people at טקי-טק (Techy-Tech), a corporate company in the Shlomiverse - a comedy world whose residents are real people. Its people talk in inflated corporate language: alignment, synergy, enablement, ownership, POC, roadmap, value proposition.`;
-  const ask = `Someone from outside${M.visitor.name ? ` named ${M.visitor.name}` : ''} is joining a Zoom meeting with ${M.room.map((id) => `${cur.byId[id].name} (${cur.byId[id].role || ''})`).join(', ')}.
-Give them a made-up corporate title for this call - the kind of title this company would invent for an outside visitor: inflated, full of buzzwords, sounds important and means nothing. Fresh and specific - never a generic "consultant". In Hebrew - the way this company talks: Hebrew words with one English buzzword at most. 2 to 6 words. No gender in it (we don't know theirs): a form like "ראש ...", "Head of ...", "VP ..." - never סמנכ"ל / סמנכ"לית or any word that is male or female.
-Answer JSON only: {"title": "..."}`;
-  let r = null;
-  if (M.akey) r = await sonnet(M.akey, sys, ask).catch(() => null);
-  if (!r) r = await call(M.key, 'talk', sys, [{ role: 'user', content: ask }], { max: 300 });
-  spend(M, r);
-  return String((r.out || {}).title || '').replace(/["“”]/g, '').trim().slice(0, 60);
 }
 // how to talk TO the visitor (his note 2026-11-20: Amir said "ברוכה הבאה" to "צוות השיווק"): their gender only when the account says it
 // (none of the verse's accounts does today) - otherwise always the plural
