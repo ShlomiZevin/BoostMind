@@ -77,6 +77,12 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
 - Bookends: `python zoomcut/tools/verse_bookends.py <project>` ("שלומיוורס מציגים" / "רק בשלומיוורס"). The logo
   source clips are in `zoomcut/episodes/_assets/shlomiverse/MASTER` (always used BACKWARDS, never delete).
 - Instagram version: often silent or SFX-only (he adds the music in Instagram). Ask which.
+- **Music fits WHAT is promoted.** A tool / product (Syncs) = upbeat corporate product-demo / tutorial music (piano,
+  plucks, claps, ~120 BPM), never a techno / trailer pulse ("annoying techno, it should be corporate", Syncs, 21 Nov).
+- **One piece, on the beat.** The hook must flow into the rest: one track from frame 0 (low under the hook's voices,
+  full from the cut), the hook's own words become the next card ("לא מסונכרנים?"), and EVERY cut sits on the track's
+  beat (find tempo + phase: `scripts/techytech-games/syncs-promo/beats.py`), the track's ending on the CTA. Hook +
+  bookend + title + logo glued one after another = "like pasting, not rhythmic". Fast: 1.5-2 s per shot.
 - Full rules: `zoomcut/skill/edit-video/` (recipes/teaser.md).
 
 ## Other roles
