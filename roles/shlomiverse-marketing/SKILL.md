@@ -28,6 +28,9 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
 - **Flaws you notice: fix them, then tell him.** Don't ask permission for an obvious fix.
 - **Deliver ONE file per result to his Telegram** (`node tools/tg-file.js <file> "<caption>"`, a document = full
   quality). Never the same thing twice, and never a preview with the story viewer around it: only the clean poster.
+  After several rounds his Telegram gets messy: send the current set as a batch between two markers
+  (`node tools/tg-text.js "<X> - the latest versions start here (n files)"` ... files numbered "1/n" ... `tg-text.js
+  "<X> - done"`), product video -> hook teaser -> poster (Syncs, 21 Nov).
 
 ## His taste (each line cost a round)
 **Posters and stories**
