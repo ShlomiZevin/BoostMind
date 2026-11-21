@@ -1,0 +1,5 @@
+{"positive_global_styles":["upbeat corporate background music","SaaS product demo video","software tutorial explainer","bright piano chords","plucked acoustic guitar and ukulele","hand claps on 2 and 4","glockenspiel melody","steady 120 BPM","optimistic, friendly, clean, polished","instrumental"],
+ "negative_global_styles":["vocals","techno","EDM","dubstep","heavy bass","dark","aggressive","cinematic trailer","distortion","slow"],
+ "sections":[
+  {"section_name":"demo","positive_local_styles":["starts right away on the first beat at 120 BPM","light bouncy groove","catchy friendly melody","steady tempo the whole way"],"negative_local_styles":["long intro","fade in","breakdown","tempo change"],"duration_ms":30000,"lines":[]},
+  {"section_name":"button","positive_local_styles":["one final bright full-band chord on the first beat, then it rings out to silence"],"negative_local_styles":["new melody","drums continuing"],"duration_ms":3000,"lines":[]}]}

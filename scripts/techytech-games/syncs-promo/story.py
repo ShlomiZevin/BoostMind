@@ -9,14 +9,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 P = lambda *a: os.path.join(HERE, *a)
 W, H, FPS = 1080, 1920, 30
 # title, recording, from, length, zoom, centre y (start, end)
-FEAT = [('f1', 'm2', 0.4, 2.8, 1.0, 844, 844),
-        ('f2', 'demo', 26.6, 2.8, 1.04, 880, 940),
-        ('f3', 'm2', 16.3, 2.6, 1.04, 560, 620),
-        ('f4', 'recap', 0.6, 3.4, 1.02, 700, 1100)]
-T_FEAT = 2.6
-T_END = T_FEAT + sum(f[3] for f in FEAT)
-T_NOW = T_END + 0.6
-DUR = T_END + 3.4
+# v2 (21 Nov): the corporate demo track (music/corp.mp3, 120 BPM) - every cut on its 0.5 s beat, its final chord on
+# "עכשיו בשלומיוורס"
+FEAT = [('f1', 'm2', 0.4, 3.0, 1.0, 844, 844),
+        ('f2', 'demo', 26.6, 3.0, 1.04, 880, 940),
+        ('f3', 'm2', 16.3, 2.5, 1.04, 560, 620),
+        ('f4', 'recap', 0.6, 3.0, 1.02, 700, 1100)]
+T_FEAT = 2.5
+T_END = T_FEAT + sum(f[3] for f in FEAT)     # 14.0
+T_NOW = T_END + 1.0                          # 15.0 = the track's final chord
+DUR = T_NOW + 2.5
+M_FROM = 30.0 - T_NOW
 
 def read_clip(path, ss=0, t=None, w=W, h=H):
     a = ['ffmpeg', '-v', 'error', '-ss', str(ss), '-i', path] + (['-t', str(t)] if t else []) + \
@@ -72,7 +75,7 @@ for i in range(N):
     pr.stdin.write((np.clip(fr, 0, 1) * 255).astype(np.uint8).tobytes())
 pr.stdin.close(); pr.wait()
 final = P('out', 'syncs-story.mp4')
-subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', vout, '-i', P('music', 'm2.mp3'), '-filter_complex',
-                f'[1:a]atrim=0.3:{0.3 + DUR},asetpts=PTS-STARTPTS,afade=t=out:st={DUR - 1.2}:d=1.2,volume=0.85[a]',
+subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', vout, '-i', P('music', 'corp.mp3'), '-filter_complex',
+                f'[1:a]atrim={M_FROM}:{M_FROM + DUR},asetpts=PTS-STARTPTS,afade=t=out:st={DUR - 0.8}:d=0.8,volume=0.9[a]',
                 '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', final], check=True)
 print('wrote', final, f'{DUR:.1f}s')
