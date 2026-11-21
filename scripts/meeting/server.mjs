@@ -33,10 +33,13 @@ async function run(res, m, guest = null) {
   res.writeHead(200, { 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-cache' });
   if (guest) res.write(JSON.stringify({ t: 'guest', text: guest }) + '\n');
   const emit = (e) => { res.write(JSON.stringify(e) + '\n'); if (e.t === 'line' || e.t === 'org') console.log(e.t === 'line' ? `  ${e.who}${e.cut ? ' (cut)' : ''}: ${e.text.slice(0, 80)}` : `  [org] ${e.next}${e.cut ? ' CUT' : ''}${e.end ? ' END' : ''} - ${e.why}`); };
+  const an0 = (m.M.costBy || {}).anthropic || 0;
   const p = meeting.round(m.M, emit).catch((e) => { console.error('round failed', e.message); emit({ t: 'error', msg: e.message.slice(0, 200) }); emit({ t: 'floor' }); });
   m.busy = p;
   await p;
   console.log(`  ($${m.M.cost.toFixed(4)} so far)`);
+  // its Sonnet runs on the Shlomiverse's Anthropic key: on Backstage → הוצאות as "sessions" (ai-ledger.js), not "לא משויך"
+  await require('./ai-ledger.js').addAnthropic('sessions', ((m.M.costBy || {}).anthropic || 0) - an0).catch((e) => console.error('ai ledger', e.message));
   res.end();
 }
 

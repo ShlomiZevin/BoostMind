@@ -1450,7 +1450,7 @@ document.addEventListener('click', async (e) => {
 // counted by us. ElevenLabs in credits (a monthly plan, no invented price per credit). EvoLink (Piko's videos): each job's
 // cost as EvoLink reported it, per client, + the balance he has left there (prepaid - he tops up by hand).
 let CS = null, csRange = 'month', csAsking = false;
-const CS_AREA = { syncs: 'Syncs', garden: 'הגינה (רופא הצמחים)', tziftzif: 'ציפציפ (התושבים מצייצים)', charadot: 'ח24 (כתבות ותמונות)', piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
+const CS_AREA = { syncs: 'Syncs', garden: 'הגינה (רופא הצמחים)', sessions: 'סשנים (בדיקות)', unassigned: 'Claude - לא משויך', tziftzif: 'ציפציפ (התושבים מצייצים)', charadot: 'ח24 (כתבות ותמונות)', piko: 'פיקו (תמונות וסרטונים)', studio: 'סטודיו (סרטונים)', chat: "הצ'אט עם הדמויות", site: 'האתר (סטיקרים, בדיקות, ניתוח)', design: 'עיצוב וסשנים', 'shlomiverse-old': 'המפתח הישן', mind: 'המוח', plaxzy: 'Plaxzy' };
 const CS_KIND = { images: 'תמונות', video: 'וידאו', text: 'טקסט', audio: 'קול', transcription: 'תמלול', moderation: 'סינון' };
 const CS_EL = { Music: 'מוזיקה', 'Music - Stems': 'ערוצי מוזיקה', TTS: 'הקראה', STS: 'שינוי קול', STT: 'תמלול', 'Sound Effects': 'אפקטים', 'Voice Generation': 'יצירת קול', 'Voice Library': 'ספריית קולות', Dubbing: 'דיבוב' };
 const usd = (v) => `$${v >= 100 ? Math.round(v) : v.toFixed(2)}`;
@@ -1480,6 +1480,9 @@ function costs() {
   // split); ElevenLabs is credits, apart. Syncs' OpenAI part is moved out of chat on the server, so nothing is counted twice.
   const from = csFrom(), rows = CS.rows.filter((r) => r.d >= from), oa = rows.filter((r) => ['openai', 'evolink', 'anthropic', 'ledger'].includes(r.src));
   const syU = oa.filter((r) => r.area === 'syncs' && r.src === 'ledger').reduce((a, r) => a + r.usd, 0);
+  // the days Anthropic's bill isn't in yet (it lags 4-24 h): Claude there is our own count, an estimate
+  const anFin = new Set(CS.anthropic?.final || []), anDays = [...new Set(oa.filter((r) => r.src === 'anthropic' || r.src === 'ledger').map((r) => r.d))].filter((d) => !anFin.has(d)).sort();
+  const anEst = CS.anthropic ? (anDays.length ? `${anDays.map(dm).join(', ')}: עוד אין חשבון מ-Anthropic - הערכה מהרישום שלנו` : '') : 'החשבון של Anthropic לא נטען - הכול הערכה מהרישום שלנו';
   const sum = (f) => oa.filter(f).reduce((a, r) => a + r.usd, 0);
   const by = (list, k) => list.reduce((m, r) => ((m[r[k]] = (m[r[k]] || 0) + (r.src === 'elevenlabs' || r.credits ? r.credits || 0 : r.usd || 0)), m), {});
   const verse = oa.filter((r) => r.group === 'shlomiverse'), plax = oa.filter((r) => r.group === 'plaxzy');
@@ -1501,7 +1504,7 @@ function costs() {
     </div>
     <div class="cols">
       <div class="card"><div class="card-h"><h2>שלומיוורס לפי תחום</h2></div>${csBars(by(verse, 'area'), CS_AREA, '$')}
-        <p class="cs-note">לכל תחום מפתח משלו, ו-OpenAI אומר כמה כל אחד הוציא. "המפתח הישן" = מה שהוצא לפני החלוקה. Claude (Sonnet / Opus) נספר מהרישום שלנו - לכל תחום על השורה שלו (הבמאי של הצ'אט, ציפציפ, Syncs, הגינה), כי ל-Anthropic אין דוח שאנחנו יכולים לקרוא. Syncs = מה שכל ישיבה רשמה (Terra עובר מהצ'אט ל-Syncs)${syU >= 0.01 ? `; ${usd(syU)} מישיבות לפני 20.11 בערב בלי חלוקה - החלק של Terra בהן נמצא גם בצ'אט` : ''}.</p></div>
+        <p class="cs-note">לכל תחום מפתח משלו, ו-OpenAI אומר כמה כל אחד הוציא. "המפתח הישן" = מה שהוצא לפני החלוקה. Claude (Sonnet / Opus): הסכום של כל יום = החשבון של Anthropic עצמו, ומחולק לפי הרישום שלנו (הבמאי של הצ'אט, ציפציפ, Syncs, הגינה, סשנים); מה שהרישום לא מכסה = "לא משויך"${anEst ? `. ${anEst}` : ''}. Syncs: Terra עובר מהצ'אט ל-Syncs${syU >= 0.01 ? `; ${usd(syU)} מישיבות לפני 20.11 בערב בלי חלוקה` : ''}.</p></div>
       <div class="card"><div class="card-h"><h2>לפי סוג</h2></div>${csBars(by(verse, 'kind'), CS_KIND, '$')}</div>
     </div>
     <div class="card" style="margin-top:16px"><div class="card-h"><h2>שלומיוורס ביום</h2></div><div id="cs-ch" class="chart" data-own="chart"></div></div>

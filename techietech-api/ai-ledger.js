@@ -3,6 +3,8 @@
 // Sonnet / Opus calls are counted from their own cost, once, where they are made, into aiSpend/<UTC day> {<area>: {anthropic, n}}:
 //   chat       wiki.js after every chat answer (the chain's director) - every answer, his own too (chat_logs skip his devices)
 //   tziftzif   tz.js after every post / reply the chain writes (wiki-deep post()'s director)
+//   sessions   the sessions' own runs on the same key (scripts/meeting/server.mjs, scripts/wiki/director_test.mjs --sonnet)
+// costs.js holds these against Anthropic's own bill per day (the admin key); what none of them covers shows as "לא משויך".
 // Syncs keeps its own per meeting (meeting-fn.js syncsCost) and the garden its own per visit (garden.js usage) - costs.js reads those.
 // owner/aiLedger {<area>From: ms} = when this area's count started here (costs.js counts the chat from chat_logs before it).
 const admin = require('firebase-admin');

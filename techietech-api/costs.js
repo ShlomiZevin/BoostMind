@@ -18,13 +18,16 @@ if (!admin.apps.length) admin.initializeApp();
 
 const OPENAI_ADMIN = defineSecret('OPENAI_ADMIN_KEY');
 const ELEVEN = defineSecret('ELEVENLABS_ADMIN_KEY');
-const SECRETS = [OPENAI_ADMIN, ELEVEN, defineSecret('EVOLINK_API_KEY')];
+// Anthropic's own bill (2026-11-21, his OK: "you do everything as admin on prod"): the admin key reads the organization's cost report;
+// the Shlomiverse's key (the chain's) is only read to find its id there by its last characters - neither is ever logged
+const AN_ADMIN = defineSecret('ANTHROPIC_ADMIN_KEY'), AN_VERSE = defineSecret('VERSE_ANTHROPIC_KEY');
+const SECRETS = [OPENAI_ADMIN, ELEVEN, defineSecret('EVOLINK_API_KEY'), AN_ADMIN, AN_VERSE];
 const DAYS = 90;
 const HOUR = 3600e3;
 
 // which area a key belongs to - by its project and name (new keys: name them <area>, or shlomiverse-<area>)
 const AREAS = {
-  syncs: 'Syncs', garden: 'הגינה', studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', tziftzif: 'ציפציפ', charadot: 'ח24 (חרדות)', plaxzy: 'Plaxzy',
+  syncs: 'Syncs', garden: 'הגינה', sessions: 'סשנים (בדיקות)', unassigned: 'לא משויך', studio: 'סטודיו', piko: 'פיקו', chat: 'צ\'אט', site: 'אתר', design: 'עיצוב וסשנים', 'shlomiverse-old': 'מפתח משותף ישן', mind: 'המוח', tziftzif: 'ציפציפ', charadot: 'ח24 (חרדות)', plaxzy: 'Plaxzy',
 };
 function areaOf(project, name) {
   const p = String(project || '').toLowerCase(), n = String(name || '').toLowerCase();
@@ -121,6 +124,73 @@ async function anthropicRows(days) {
   }
   return Object.entries(add).map(([k, usd]) => { const [area, d] = k.split('|'); return { d, src: 'anthropic', group: 'shlomiverse', area, kind: 'text', usd }; });
 }
+// Anthropic's bill for the Shlomiverse's key, per UTC day (the organization's cost report). It lags 4-24 h: a day counts as in once
+// the report says it was refreshed after the day ended; such a day is kept in owner/anthropicBill (asked once), the later days are
+// asked again on each refresh and stay estimates. {bill: {day: usd}, final: [days], refreshed}
+const nextDay = (d) => new Date(Date.parse(d + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10);
+async function anthropicBill(days) {
+  const ref = admin.firestore().collection('owner').doc('anthropicBill'), was = (await ref.get()).data() || {};
+  const final = { ...(was.final || {}) }, today = new Date().toISOString().slice(0, 10);
+  let start = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
+  while (start < today && final[start] != null) start = nextDay(start);
+  const H = { 'x-api-key': AN_ADMIN.value(), 'anthropic-version': '2023-06-01', 'anthropic-beta': 'analytics-usage-cost-2026-08-24' };
+  const get = async (u) => {
+    const r = await fetch('https://api.anthropic.com/v1/organizations' + u, { headers: H });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(`anthropic ${u.split('?')[0]}: ${j.error?.message || r.status}`);
+    return j;
+  };
+  const tail = String(AN_VERSE.value() || '').slice(-4);
+  const key = tail && ((await get('/api_keys?limit=100')).data || []).find((k) => String(k.partial_key_hint || '').endsWith(tail));
+  if (!key) throw new Error('anthropic: the Shlomiverse key is not in the organization');
+  const bill = {}, models = {};
+  let refreshed = '';
+  const upTo = {};   // each day's window: when the report says it was last refreshed
+  // at most 31 days a request: windows from the first day not in yet to tomorrow (usually one window - the finished days are kept)
+  for (let w = start; w <= today; w = new Date(Date.parse(w + 'T00:00:00Z') + 31 * 864e5).toISOString().slice(0, 10)) {
+  const end = new Date(Math.min(Date.parse(w + 'T00:00:00Z') + 31 * 864e5, Date.parse(nextDay(today) + 'T00:00:00Z'))).toISOString();
+  let page = '';
+  for (let i = 0; i < 20; i++) {
+    const q = new URLSearchParams({ starting_at: w + 'T00:00:00Z', ending_at: end, time_bucket_width: '1d', limit: '1000', order_by: 'time' });
+    q.append('group_by[]', 'api_key_id'); q.append('group_by[]', 'model');
+    if (page) q.set('page', page);
+    const j = await get('/analytics/cost?' + q);
+    const rf = j.data_refreshed_at || '';
+    if (rf > refreshed) refreshed = rf;
+    for (let d = w; d < end.slice(0, 10); d = nextDay(d)) upTo[d] = rf;
+    for (const row of j.data || []) {
+      if ((row.group || {}).api_key_id !== key.id) continue;
+      const d = String(row.starting_at || '').slice(0, 10), usd = Number((row.cost || {}).amount || 0) / 100;   // cents
+      bill[d] = (bill[d] || 0) + usd;
+      (models[d] ||= {})[row.group.model] = ((models[d] || {})[row.group.model] || 0) + usd;
+    }
+    if (!j.has_more || !j.next_page) break;
+    page = j.next_page;
+  }
+  }
+  const r6 = (v) => Math.round(v * 1e6) / 1e6;
+  let changed = false;
+  for (let d = start; d < today; d = nextDay(d)) if (upTo[d] && Date.parse(upTo[d]) >= Date.parse(nextDay(d) + 'T00:00:00Z')) { final[d] = r6(bill[d] || 0); changed = true; }
+  if (changed) await ref.set({ final, models: { ...(was.models || {}), ...Object.fromEntries(Object.keys(final).filter((d) => models[d]).map((d) => [d, models[d]])) }, key: key.id, at: Date.now() }, { merge: true });
+  return { bill: { ...Object.fromEntries(Object.entries(bill).map(([d, v]) => [d, r6(v)])), ...final }, final: Object.keys(final), refreshed };
+}
+// the Anthropic part of each feature's line, per day: on a day Anthropic's bill is in, the bill is the total - split by our own
+// records (chat, ציפציפ, Syncs, the garden, sessions' tests), what they don't cover = 'unassigned' ("לא משויך"), and if our records
+// are above the bill (the bill lags) they are scaled down to it. A day without the bill yet = our records alone, an estimate.
+// Syncs meetings from before the split (src 'ledger') are mostly Sonnet: on a billed day they are counted inside the bill.
+function anthropicSplit(ledger, billed) {
+  const out = [], by = {};
+  for (const r of ledger) ((by[r.d] ||= []).push(r));
+  const days = new Set([...Object.keys(by), ...(billed ? billed.final : [])]);
+  for (const d of days) {
+    const rows = by[d] || [];
+    if (!billed || !billed.final.includes(d)) { out.push(...rows); continue; }
+    const B = billed.bill[d] || 0, L = rows.reduce((a, r) => a + r.usd, 0), f = L > B && L > 0 ? B / L : 1;
+    for (const r of rows) out.push({ ...r, src: 'anthropic', usd: r.usd * f });
+    if (B - L > 0.0001) out.push({ d, src: 'anthropic', group: 'shlomiverse', area: 'unassigned', kind: 'text', usd: B - L });
+  }
+  return out;
+}
 // the sources that are dollars (ElevenLabs is credits)
 const DOLLARS = new Set(['openai', 'evolink', 'anthropic', 'ledger']);
 
@@ -154,13 +224,21 @@ async function owner(op, b) {
   const db = admin.firestore(), ref = db.collection('owner').doc('costs'), was = (await ref.get()).data();
   if (was && !b.fresh && Date.now() - was.at < (b.maxAge || HOUR)) return was;
   const out = { at: Date.now(), days: DAYS, areas: AREAS, rows: [], errors: [] };
-  const [oa, el, pk, sy, an] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS), syncsRows(DAYS), anthropicRows(DAYS)]);
+  const [oa, el, pk, sy, an, bl] = await Promise.allSettled([openai(OPENAI_ADMIN.value()), eleven(ELEVEN.value()), require('./piko').costRows(DAYS), syncsRows(DAYS), anthropicRows(DAYS), anthropicBill(DAYS)]);
   if (oa.status === 'fulfilled') out.rows.push(...oa.value); else out.errors.push(String(oa.reason?.message || oa.reason));
   if (el.status === 'fulfilled') { out.rows.push(...el.value.rows); out.eleven = { ...el.value.plan, keys: el.value.keys }; } else out.errors.push(String(el.reason?.message || el.reason));
   if (pk.status === 'fulfilled') { out.rows.push(...pk.value.rows); out.evolink = pk.value.balance; } else out.errors.push('evolink: ' + String(pk.reason?.message || pk.reason));
   // Syncs moves its OpenAI part out of chat - only when OpenAI itself answered (else the minus rows would stand alone)
-  if (sy.status === 'fulfilled') out.rows.push(...sy.value.filter((r) => oa.status === 'fulfilled' || r.src !== 'openai')); else out.errors.push('syncs: ' + String(sy.reason?.message || sy.reason));
-  if (an.status === 'fulfilled') out.rows.push(...an.value); else out.errors.push('anthropic: ' + String(an.reason?.message || an.reason));
+  // (its Anthropic part goes with the other Anthropic records into the split below)
+  const syn = sy.status === 'fulfilled' ? sy.value : [];
+  if (sy.status !== 'fulfilled') out.errors.push('syncs: ' + String(sy.reason?.message || sy.reason));
+  out.rows.push(...syn.filter((r) => r.src === 'openai' && oa.status === 'fulfilled'));
+  if (an.status !== 'fulfilled') out.errors.push('anthropic: ' + String(an.reason?.message || an.reason));
+  if (bl.status !== 'fulfilled') out.errors.push('anthropic bill: ' + String(bl.reason?.message || bl.reason));
+  const billed = bl.status === 'fulfilled' ? bl.value : null;
+  out.rows.push(...anthropicSplit([...(an.status === 'fulfilled' ? an.value : []), ...syn.filter((r) => r.src !== 'openai')], billed));
+  // which days carry Anthropic's own bill and which are still our estimate (Backstage says so)
+  out.anthropic = billed ? { bill: billed.bill, final: billed.final, refreshed: billed.refreshed } : null;
   // one row per day / source / group / area / kind (/ client - Piko's jobs know who made them)
   const sum = {};
   for (const r of out.rows) {
@@ -259,4 +337,4 @@ const costAlert = onSchedule({ schedule: '0 * * * *', timeZone: 'Asia/Jerusalem'
   console.log('costAlert', JSON.stringify(await alert()));
 });
 
-module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD, LEVELS, syncsRows, anthropicRows, DOLLARS };
+module.exports = { owner, SECRETS, areaOf, kindOf, costAlert, alert, dayTotal, alertMail, ALERT_USD, LEVELS, syncsRows, anthropicRows, anthropicBill, anthropicSplit, DOLLARS };

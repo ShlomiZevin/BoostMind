@@ -1304,7 +1304,8 @@ async function tzSince(from) {
     articles: arts.docs.map((x) => x.data()).filter((x) => x.status === 'live').map((x) => ms(x.t)),
   };
 }
-exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...SECRETS, ...require('./costs').SECRETS, ...require('./tz').SECRETS.filter((x) => x.name !== 'VERSE_VAPID_PRIVATE')], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 300 }, async (req, res) => {   // 300: ח24's desk (tzDesk) writes + paints ~6 articles
+// (each secret once - costs.js and tz.js both read VERSE_ANTHROPIC_KEY; Cloud Run refuses a duplicate)
+exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...new Map([...SECRETS, ...require('./costs').SECRETS, ...require('./tz').SECRETS.filter((x) => x.name !== 'VERSE_VAPID_PRIVATE')].map((x) => [x.name, x])).values()], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 300 }, async (req, res) => {   // 300: ח24's desk (tzDesk) writes + paints ~6 articles
   if (!ownerOk(req, res)) return;
   const op = req.query.op;
   const b = req.body || {};

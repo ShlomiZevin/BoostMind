@@ -47,6 +47,8 @@ for (const T of TALKS) {
     turns.push({ role: 'user', content: q });
     const r = await deep.reply({ key, akey, cur, mode: T.mode, turns, convo, contact });
     spent += r.cost; convo = r.convo;
+    // the director's Sonnet runs on the Shlomiverse's Anthropic key: on Backstage → הוצאות as "sessions" (ai-ledger.js), not "לא משויך"
+    await req('./ai-ledger.js').addAnthropic('sessions', req('./ai-ledger.js').anthropicOf(r.log && r.log.steps)).catch((e) => console.error('ai ledger', e.message));
     turns.push({ role: 'assistant', content: r.text });
     out.push(`**VISITOR:** ${q}`, '', `**${c.name}:** ${r.text}`, '');
     if (his) out.push(`> his comment on the old answer: ${his}`, '');
