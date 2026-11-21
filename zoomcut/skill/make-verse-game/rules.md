@@ -193,7 +193,9 @@ principles - apply them to whatever the game is.
   full-screen menu.
 - **Frame the play where it happens**: the set sits low on the screen next to the character, the camera rises only when the
   action climbs; nothing floats in an empty band. Put the place's name where the place would carry it (a plaque on its base).
-- **A verse resident (`verse-planet`) in a game**: work on a COPY of its rig folder (the figures session owns the original),
+- **A verse resident (`verse-planet`) in a game**: the models live in `gs://shlomiverse-studio/assets/residents/` (code: git
+  `ShlomiZevin/verse-planet`; map: its `ASSETS.md`) - the figure = `characters/<id>/rig-<look>/rigged.glb`, game-ready with all
+  clips = `characters/<id>/web/<id>-<look>.glb`. Work on a COPY of its rig folder (the figures session owns the original),
   size it by its bones (a skinned model's bind box is in another unit), pin the hips' x/z (some motions walk away), play gestures
   masked over the idle by the `.meta.json` bone lists, show a gesture's prop only while it plays, and give the figure its own
   little 3D stand so it is grounded too.
