@@ -1,0 +1,17 @@
+You write short Hebrew on-screen captions for a 30-second Instagram product teaser (9:16).
+
+The product: Syncs - a new Zoom-like meetings app that Techy-Tech (a fictional Israeli hi-tech company in the Shlomiverse, a world of comedy residents) built. Promote it as a REAL product Techy-Tech built, never call it a parody. In Syncs you pick who is in the meeting (Amir - smug CSO, Ofer - smug VP BD, Daniel - apathetic tech guy, Ronit - COO, Gilad - CEO), you type anything, and the managers answer you live in their corporate buzzword style; Gilad (CEO) keeps asking "מה הביזנס פה?", can mute people and ends the meeting; at the end you get an automatic meeting summary with Action items.
+
+The video (each caption sits on screen 1-2 seconds over a phone showing the real app, so it must be readable in one glance - 2 to 5 words, never wordy):
+1. Hook (real sketch): Amir: "מצוין, אז אנחנו מסונכרנים." Ronit: "לא, אנחנו לא מסונכרנים." -> card 1 echoes it: "לא מסונכרנים?" (fixed).
+2. Product reveal: "Syncs" + a subline saying what it is (Techy-Tech's Zoom / the meetings app of Techy-Tech).
+3. Picking participants screen.
+4. The user types: "someone took my yogurt from the fridge again".
+5. CEO answers live: "מה הביזנס פה?"
+6. Amir turns the yogurt into "Ownership" / organizational culture.
+7. The CEO mutes Ofer mid-sentence.
+8. The CEO ends the meeting.
+9. Automatic summary + Action items (one item: "to further look into the request to return the yogurt").
+10. End: "עכשיו בשלומיוורס" (fixed).
+
+Give 3 options for each of captions 2-9 in natural, punchy Israeli hi-tech Hebrew (English buzzwords allowed where Israelis use them: Action items, Ownership). Then your recommended set. Plain list, no explanations.

@@ -24,15 +24,15 @@ const pill = (top, t) => `<div style="position:absolute;left:0;right:0;top:${top
   font:900 66px/1 Heebo;padding:28px 64px;border-radius:999px;box-shadow:0 20px 40px rgba(252,114,17,.4)">${t}</div></div>`;
 const T = {
   q: big(760, `לא<br><span style="color:${OR}">מסונכרנים?</span>`, 150),
-  logo: big(400, 'טקי-טק מציגה', 54).replace('color:#16162a', 'color:#fc7211') + lockup(520, 360, true) + big(1260, 'פגישות שמובילות לעשייה.', 72),
-  l1: toast('אמיר העניק לך טייטל'),
+  logo: big(400, 'טקי-טק מציגה', 54).replace('color:#16162a', 'color:#fc7211') + lockup(520, 360, true) + big(1260, 'פגישות וידאו עם AI', 72),
+  l1: toast('הצטרפת לפגישה'),
   l2: toast('גם המקרר על האג׳נדה.'),
   l3: toast('היוגורט הוגדר כהזדמנות אסטרטגית.'),
   l4: toast('גלעד: מה הביזנס?'),
   l5: toast('אמיר השתיק את דניאל'),
   l6: toast('הפגישה הסתיימה מחוסר ביזנס.'),
   l7: toast('אמיר מסכם: Action items'),
-  end: lockup(380, 280, false) + big(960, 'היכנסו לפגישה<br>עם צוות ההנהלה.', 92),
+  end: lockup(380, 280, false) + big(980, 'התחילו עם Syncs', 104),
   now: pill(1240, 'עכשיו בשלומיוורס'),
   punch: sub('אפשר להתקדם<br>בלי להתקדם פורמלי.'),
 };

@@ -46,7 +46,7 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
 - **Credit real people properly**: their handle LTR-isolated in RTL text, plus tell him to add the real mention sticker.
 - No emoji in the art. A picture never covers text; every block has its own space.
 - **The verse is a real world**: residents are real people - say תושבים (never דמויות), המייסדים (never "של שלומי"),
-  never מעריצים, never "parody". A Techy-Tech product (Syncs...) is promoted as a REAL product Techy-Tech built.
+  never מעריצים, never "parody". A Techy-Tech product (Syncs...) is promoted as a REAL product Techy-Tech built (see "As real as possible").
 
 **Copy**
 - **Hebrew copy = Terra** (`gpt-5.6-terra`, through the `openai-leonardo` skill). Give Terra the character's profile
@@ -68,27 +68,49 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
   world (no two unrelated hard cuts).
 - Gameplay or a product is ALWAYS on a phone mockup over a blurred background, never full screen; zoom in on the action
   (wide shots read as tiny on a phone).
-- Open with a clear "what is this" right after the logo. The character's punchline goes at the END, alone in the
-  silence after the music's hit.
-- Music just STARTS at full level on frame 0: no fade-in, no looping bars, no ducking under voices. To fit, slow the
-  part before the hit (Rubber Band), keep the hit at normal speed.
-- Nothing pops: everything eases in (86%→100%); a moving clip keeps playing. Texts in the logo's own style (Rubik 900,
-  glossy gradient, outlines), never plain white with a glow. Cut voice lines on the real sound onset.
-- Bookends: `python zoomcut/tools/verse_bookends.py <project>` ("שלומיוורס מציגים" / "רק בשלומיוורס"). The logo
-  source clips are in `zoomcut/episodes/_assets/shlomiverse/MASTER` (always used BACKWARDS, never delete).
-- Instagram version: often silent or SFX-only (he adds the music in Instagram). Ask which.
-- **As real as possible - we parody reality.** A resident's product / tool is promoted exactly like the real thing: a
-  real launch presented by its company ("טקי-טק מציגה"), real launch copy (Terra, "serious, no wink"), the CTA a real
-  one ("היכנסו לפגישה עם צוות ההנהלה"). Never "the Shlomiverse's Zoom / X", never the verse's own limits ("one per
-  day") - those are site mechanics, not the product. The Shlomiverse appears only as WHERE it is available ("עכשיו
-  בשלומיוורס", its logo) (Syncs, 21 Nov).
+- **Order of a social / hook video** (Syncs, 21 Nov): hook (a real moment) -> the hook's own words as a card over the
+  same footage, blurred ("לא מסונכרנים?") -> the product reveal ("<maker> מציגה" + name + what it is) -> 4-8 shots of
+  the product on the phone, 1.5-2 s each, a short caption each -> the product's end card + CTA -> the Shlomiverse logo /
+  "עכשיו בשלומיוורס" ONCE, on the track's last beat -> the character's punchline alone in the silence. Keeping the
+  blurred hook footage behind the phone all the way makes it one piece. No "שלומיוורס מציגים" intro in a hook video
+  (the bookends tool below is for other teasers).
+- **Music**: starts on frame 0 at a point where the track is already full (no fade-in, no looping bars). Under the
+  opening hook ONLY it sits low (~0.22) so the voices read, full from the first cut, never ducked again. Fit it by
+  choosing the start point: frame 0 in the full part, the hook's natural end on a beat, the track's last beat on the
+  CTA; Rubber Band only if the lengths still don't fit. No real final hit in the track = the Shlomiverse lock hit
+  (`zoomcut/episodes/_assets/shlomiverse/source/px-kick-hit.mp3` + `sfx-ting.mp3`) on the logo.
 - **Music fits WHAT is promoted.** A tool / product (Syncs) = upbeat corporate product-demo / tutorial music (piano,
-  plucks, claps, ~120 BPM), never a techno / trailer pulse ("annoying techno, it should be corporate", Syncs, 21 Nov).
-- **One piece, on the beat.** The hook must flow into the rest: one track from frame 0 (low under the hook's voices,
-  full from the cut), the hook's own words become the next card ("לא מסונכרנים?"), and EVERY cut sits on the track's
-  beat (find tempo + phase: `scripts/techytech-games/syncs-promo/beats.py`), the track's ending on the CTA. Hook +
-  bookend + title + logo glued one after another = "like pasting, not rhythmic". Fast: 1.5-2 s per shot.
-- Full rules: `zoomcut/skill/edit-video/` (recipes/teaser.md).
+  plucks, claps, ~120 BPM), never a techno / trailer pulse ("annoying techno, it should be corporate"). Make it with
+  `node zoomcut/tools/elevenlabs_music.mjs out.mp3 - plan.json` (a composition plan; sections >= 3 s; it may add ~2 s
+  of silence at the start - measure). Example plan: `scripts/techytech-games/syncs-promo/music/plan-corp.json`.
+- **Every cut on the beat**: find tempo + phase with `scripts/techytech-games/syncs-promo/beats.py <mono wav>`.
+  Hook + bookend + title + logo glued one after another = "like pasting, not rhythmic".
+- Nothing pops: everything eases in (86%->100%) on its beat; a moving clip keeps playing. Game teasers: texts in the
+  logo's own style (Rubik 900, glossy, outlines). A product launch: clean corporate type (Heebo) like a real launch.
+  Cut voice lines on the real sound onset (faster-whisper `zoomcut/models/he-turbo`, `word_timestamps=True`,
+  `PYTHONIOENCODING=utf-8`).
+- **App screen recordings**: find the second each bubble / event appears (frame differences + probe frames) and pick
+  each shot so its event lands on a beat inside it. Captions get their own calm band above the phone (y 250-560),
+  never over the app's text. Zoom the phone so the action is ~850 px tall.
+- **Check yourself**: a contact sheet (~15 frames with times + the Instagram safe-zone lines at y 250 / 1660), LOOK at
+  it, fix overflow / text on faces / empty frames before he sees anything.
+- Bookends for other teasers: `python zoomcut/tools/verse_bookends.py <project>` ("שלומיוורס מציגים" / "רק
+  בשלומיוורס"). The logo source clips are in `zoomcut/episodes/_assets/shlomiverse/MASTER` (always BACKWARDS, never
+  delete).
+- Instagram version: if he named the music, that's the answer; otherwise ask (he sometimes adds music in Instagram).
+- **As real as possible - we parody reality** (Syncs, 21 Nov - three rounds). A resident's product is launched EXACTLY
+  like a real product launch (Zoom AI, Notion AI, Apple):
+  - presented by its company ("טקי-טק מציגה"), the Shlomiverse only as WHERE it is available ("עכשיו בשלומיוורס").
+  - benefit headlines a real company would write ("ה-AI משתיק משתתפים שמפריעים", "סיכום והחלטות. משימות לכל אחד."),
+    a real CTA ("התחילו עם Syncs").
+  - NEVER: numbered "FEATURE 01" cards (no real launch does that), the in-world jokes as features ("a title from
+    Amir", "a meeting with the management team"), character names in the claims, "הזום של השלומיוורס", the verse's
+    site limits ("one per day").
+  - The comedy lives only in what the product SHOWS (the real meeting on the phone) and in the hook / punchline -
+    never in the launch copy. Brief Terra exactly that: "a real launch, serious, no wink, no names".
+- Full rules: `zoomcut/skill/edit-video/` (recipes/teaser.md is for stills cut into layers; only its bookend / flash /
+  SFX parts fit a footage + app-recording cut). A working example of a beat-cut product promo:
+  `scripts/techytech-games/syncs-promo/compose.py` (+ `agent-v3/compose3.py`, the blurred-hook-behind version).
 
 ## Other roles
 All Shlomiverse roles live in `roles/<role>/SKILL.md` (this one, `shlomiverse-conversion` = the Conversion Manager...).

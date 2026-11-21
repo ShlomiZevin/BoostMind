@@ -16,11 +16,11 @@ const html = `<html><head><link href="https://fonts.googleapis.com/css2?family=H
   <div dir="rtl" style="font:800 40px/1 Heebo;color:#ffb27a;letter-spacing:2px;margin-bottom:22px">טקי-טק מציגה</div>
   <div style="display:flex;align-items:center;gap:22px;direction:ltr"><img src="${icon}" style="width:96px;height:96px;border-radius:22px;filter:drop-shadow(0 0 30px rgba(252,114,17,.7))">
     <div><div style="font:900 74px/0.95 Heebo;color:#fff;letter-spacing:-2px">Syncs</div><div style="font:500 24px/1.2 Heebo;color:#ffb27a;letter-spacing:2px">Let’s circle back</div></div></div>
-  <div dir="rtl" style="font:900 70px/1.05 Heebo;color:#fff;margin-top:26px;text-shadow:0 10px 30px rgba(0,0,0,.7);white-space:nowrap">פגישות שמובילות לעשייה.</div>
+  <div dir="rtl" style="font:900 70px/1.05 Heebo;color:#fff;margin-top:26px;text-shadow:0 10px 30px rgba(0,0,0,.7);white-space:nowrap">פגישות וידאו עם AI</div>
 </div>
 <div class="c" style="top:590px"><div class="phone"><div class="scr"></div></div></div>
 <div class="c" dir="rtl" style="top:1500px;flex-direction:column;align-items:center;gap:18px">
-  <div style="font:800 52px/1.1 Heebo;color:#fff;white-space:nowrap">דיון בניהול AI. משימות ברורות.</div>
+  <div style="font:800 52px/1.1 Heebo;color:#fff;white-space:nowrap">מהפגישה ועד המשימה הבאה.</div>
   <div style="background:#fc7211;color:#fff;font:900 50px/1 Heebo;padding:16px 52px;border-radius:999px;box-shadow:0 0 40px rgba(252,114,17,.55)">עכשיו בשלומיוורס</div>
 </div>
 </body></html>`;

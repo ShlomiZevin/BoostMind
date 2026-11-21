@@ -6,3 +6,7 @@ music/*.wav
 t/
 ts/
 p-amir.md
+agent-v3/look/
+agent-v3/txt/
+agent-v3/*.mp4
+agent-v3/*.png
