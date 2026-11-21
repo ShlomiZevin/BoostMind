@@ -3,7 +3,8 @@
 // conversation below as rows, written word by word as it streams; 3ג the speaker lit; 4א the raised hand; the end in 3ב's style with
 // Amir's wrap-up.
 // Round 3 (his notes - "a REAL product, like a real Zoom"): full screen, a way out, the picker = face, name, title; no "guest" - the
-// visitor is their own face and Shlomiverse name with the corporate title the meeting gives them; Daniel never finishes a sentence.
+// visitor is their own face and Shlomiverse name with the title they type for this meeting when they join (his ask 2026-11-21 - no
+// more AI-made titles); Daniel never finishes a sentence.
 // Round 4 (his notes after the demo - "do it right, not patches", RTL first, pro): its own page with its own loader (the logo's sync
 // arrows turning - never the Shlomiverse's), a real app bar (brand, the state - live / recording -, running time, how many on the
 // call, the way out), the tiles row IS the speakers queue (who talks lit, who is next marked with their pre-talk moment, a cut shows
@@ -24,7 +25,7 @@ const HOST = 'amir';
 const FEM = new Set(['ronit']);
 const PIC = (id) => `https://storage.googleapis.com/shlomiverse-media/wiki/img/c/${id}.jpg`;
 const track = (e, x) => { try { window.track && window.track(e, x); } catch (er) { /* analytics never breaks the app */ } };
-// the visitor: their Shlomiverse name and the title this meeting gave them
+// the visitor: their Shlomiverse name and the title they gave themselves for this meeting (the picker's field)
 const VIS = () => (S && S.visitor) || {};
 const vName = () => VIS().name || '';
 const NAME = (id) => (id === 'user' ? vName() || VIS().title || M_().you : M_().names[id] || id);
@@ -176,14 +177,58 @@ function pick() {
     }).join('')}</div></div>
     <div class="mt-foot"><div class="mt-foot-faces" id="mt-faces" aria-hidden="true"></div><button class="mt-btn go" id="mt-go">${esc(M_().start)}</button></div>`;
   bindOut(el);
-  const faces = () => { el.querySelector('#mt-faces').innerHTML = [...el.querySelectorAll('.mt-pk-row input:checked')].map((i) => `<img src="${esc(PIC(i.value))}" alt="">`).join(''); };
+  const picked = () => [...el.querySelectorAll('.mt-pk-row input:checked')].map((i) => i.value);
+  const faces = () => { el.querySelector('#mt-faces').innerHTML = picked().map((id) => `<img src="${esc(PIC(id))}" alt="">`).join(''); };
   el.querySelector('.mt-pk-list').addEventListener('change', faces);
   faces();
-  el.querySelector('#mt-go').onclick = () => {
-    const room = [...el.querySelectorAll('.mt-pk-row input:checked')].map((i) => i.value);
-    track('meeting', 'start:' + room.join(','));
-    live([HOST, ...TEAM.filter((id) => id !== HOST && room.includes(id))]);
+  el.querySelector('#mt-go').onclick = () => titleCard(picked());
+}
+
+// ---------- the title step (his ask 2026-11-21; his pick: design B - "I like to isolate steps") ----------
+// "להתחיל את הישיבה" opens a card over the dimmed picker: their face and Shlomiverse name (known from sign-in) and the title THEY give
+// themselves for this meeting - required, 40 characters, remembered on this device; Amir only refers to it (no AI title). The X, Esc
+// or a tap on the dim = back to the picker, nothing lost.
+const TITLE_MAX = 40, TITLE_KEY = 'syncs-title';
+const lastTitle = () => { try { return localStorage.getItem(TITLE_KEY) || ''; } catch (e) { return ''; } };
+const keepTitle = (t) => { try { localStorage.setItem(TITLE_KEY, t); } catch (e) { /* no storage - it is asked again next time */ } };
+const XMARK = svg('<path d="M6 6l12 12M18 6 6 18"/>', 2.2);
+function titleCard(picked) {
+  const el = root(); if (!el || el.querySelector('#mt-dim')) return;
+  const top = el.querySelector('.mt-bar');
+  const dim = document.createElement('div');
+  dim.className = 'mt-dim'; dim.id = 'mt-dim';
+  dim.style.setProperty('--top', (top ? top.offsetTop + top.offsetHeight : 0) + 'px');
+  dim.innerHTML = `<div class="mt-tt-card" role="dialog" aria-modal="true" aria-labelledby="mt-tt-h">
+    <button type="button" class="mt-tt-x" id="mt-tt-x" aria-label="${esc(M_().meClose)}">${XMARK}</button>
+    <h2 id="mt-tt-h">${esc(M_().meAsk)}</h2>
+    <div class="mt-tt-me">${meFace('mt-tt-face')}<b>${esc(vName() || M_().you)}</b></div>
+    <label class="mt-tt-l" for="mt-title">${esc(M_().meTitle)}</label>
+    <input id="mt-title" maxlength="${TITLE_MAX}" enterkeyhint="go" autocomplete="off" placeholder="${esc(M_().meTitlePh)}">
+    <button type="button" class="mt-btn go" id="mt-enter">${esc(M_().meEnter)}</button></div>`;
+  el.append(dim);
+  const ti = dim.querySelector('#mt-title'), enter = dim.querySelector('#mt-enter');
+  const title = () => ti.value.replace(/\s+/g, ' ').trim().slice(0, TITLE_MAX);
+  const ready = () => { enter.disabled = !title(); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  const close = () => { removeEventListener('keydown', onKey); dim.remove(); };
+  addEventListener('keydown', onKey);
+  dim.addEventListener('click', (e) => { if (e.target === dim) close(); });
+  dim.querySelector('#mt-tt-x').onclick = close;
+  ti.value = (S.title || lastTitle()).slice(0, TITLE_MAX);
+  ti.addEventListener('input', ready);
+  ti.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); enter.click(); } });
+  ready();
+  enter.onclick = () => {
+    const t = title();
+    if (!t) { ti.focus(); return; }
+    S.title = t; keepTitle(t);
+    removeEventListener('keydown', onKey);
+    track('meeting', 'start:' + picked.join(','));
+    live([HOST, ...TEAM.filter((id) => id !== HOST && picked.includes(id))]);
   };
+  ti.focus();
+  // the phone's keyboard: fit() sizes the page to what the keyboard leaves, the card centres in it; the button stays in view
+  setTimeout(() => { if (ti.isConnected) enter.scrollIntoView({ block: 'nearest' }); }, 400);
 }
 
 // ---------- the meeting ----------
@@ -213,7 +258,7 @@ function live(room, opts = {}) {
   inp.addEventListener('input', () => { el.querySelector('#mt-box').classList.toggle('has', !!inp.value.trim()); if (inp.value.trim()) raise(); armNudge(S); });
   el.querySelector('#mt-hand').onclick = () => { raise(); inp.focus(); };
   el.querySelector('#mt-box').onsubmit = (e) => { e.preventDefault(); const t = inp.value.trim(); if (!t || S.ended || S.pending) return; inp.value = ''; el.querySelector('#mt-box').classList.remove('has'); say(t); };
-  stream({ op: 'start', room });
+  stream({ op: 'start', room, title: S.title || '' });
 }
 // a tile: the face, the name; a tag on top (next) and a band over the face for what they are doing right now
 const tile = (id) => `<div class="mt-tile" data-id="${id}"><img src="${esc(PIC(id))}" alt=""><span class="mt-tag"></span><span class="mt-un"></span><span class="mt-ic"></span><span class="mt-nm"><b>${esc(NAME(id))}</b></span></div>`;
@@ -229,6 +274,8 @@ async function stream(body) {
     try {
       const res = await api(body, me.abort.signal);
       if (res.status === 429) { me.booked = true; return booked(); }
+      // no title (empty after the server's check): back to the picker, the room as it was, the title card open to fill
+      if (res.status === 400 && body.op === 'start') { me.abort.abort(); clearInterval(ticker); pick(); titleCard(me.room.slice()); toast(M_().meTitleNeed); return; }
       if (res.status === 409 && body.op === 'nudge') { push(me, { t: 'floor', _g: gen }); return; }   // not now (a round runs / it ended): the floor stays theirs, quietly
       if (!res.ok || !res.body) throw new Error('http ' + res.status);
       const rd = res.body.getReader(), dec = new TextDecoder();
