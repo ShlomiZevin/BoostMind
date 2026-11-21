@@ -13,6 +13,8 @@ const lockup = (top, size) => `<div style="position:absolute;left:0;right:0;top:
   <div style="font:500 ${size * 0.17}px/1 Heebo;color:#ffb27a;direction:ltr;margin-top:${size * 0.08}px;letter-spacing:2px">Let’s circle back</div></div>`;
 const by = (top) => `<div style="position:absolute;left:0;right:0;top:${top}px;text-align:center;font:700 36px/1 Heebo;color:rgba(255,255,255,.75);direction:ltr;letter-spacing:4px">SYNCS BY TECHY-TECH</div>`;
 const T = {
+  // the hook teaser's bridge: the sketch's own words become the question the launch answers
+  q: `<div style="position:absolute;left:0;right:0;top:760px;text-align:center;font:900 150px/1.1 Heebo;color:#fff;text-shadow:0 14px 40px rgba(0,0,0,.6)">לא<br><span style="color:#ff8a3d">מסונכרנים?</span></div>`,
   // v3 (his note, 21 Nov): a REAL launch presented by Techy-Tech - never "the Shlomiverse's Zoom", no daily limit
   s0: `<div style="position:absolute;left:0;right:0;top:440px;text-align:center;font:800 54px/1 Heebo;color:#ffb27a;letter-spacing:2px">טקי-טק מציגה</div>` + lockup(560, 330) + by(1240),
   s0h: `<div style="position:absolute;left:0;right:0;top:1330px;text-align:center;font:900 66px/1.1 Heebo;color:#fff">פגישות חכמות,<br>מההתחלה ועד הסוף</div>`,
