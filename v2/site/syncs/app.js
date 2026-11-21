@@ -226,9 +226,8 @@ function titleCard(picked) {
     track('meeting', 'start:' + picked.join(','));
     live([HOST, ...TEAM.filter((id) => id !== HOST && picked.includes(id))]);
   };
-  ti.focus();
-  // the phone's keyboard: fit() sizes the page to what the keyboard leaves, the card centres in it; the button stays in view
-  setTimeout(() => { if (ti.isConnected) enter.scrollIntoView({ block: 'nearest' }); }, 400);
+  // no focus on open (his note 2026-11-21: the keyboard jumping up by itself felt jarring) - the card opens still; the keyboard
+  // comes only when they tap the field (fit() then sizes the page to what the keyboard leaves, the card centres in it)
 }
 
 // ---------- the meeting ----------
