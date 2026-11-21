@@ -12,14 +12,15 @@ const lockup = (top, size) => `<div style="position:absolute;left:0;right:0;top:
   <div style="font:500 ${size * 0.17}px/1 Heebo;color:#ffb27a;direction:ltr;margin-top:${size * 0.08}px;letter-spacing:2px">Let’s circle back</div></div>`;
 const by = (top) => `<div style="position:absolute;left:0;right:0;top:${top}px;text-align:center;font:700 36px/1 Heebo;color:rgba(255,255,255,.75);direction:ltr;letter-spacing:4px">SYNCS BY TECHY-TECH</div>`;
 const T = {
-  s0: lockup(560, 330) + by(1240),
-  s0h: `<div style="position:absolute;left:0;right:0;top:1330px;text-align:center;font:900 76px/1.1 Heebo;color:#fff">הזום של השלומיוורס</div>`,
+  // v3 (his note, 21 Nov): a REAL launch presented by Techy-Tech - never "the Shlomiverse's Zoom", no daily limit
+  s0: `<div style="position:absolute;left:0;right:0;top:440px;text-align:center;font:800 54px/1 Heebo;color:#ffb27a;letter-spacing:2px">טקי-טק מציגה</div>` + lockup(560, 330) + by(1240),
+  s0h: `<div style="position:absolute;left:0;right:0;top:1330px;text-align:center;font:900 66px/1.1 Heebo;color:#fff">פגישות שמובילות לעשייה.</div>`,
   f1: head('FEATURE 01', 'פגישות עם צוות טקי-טק'),
   f2: head('FEATURE 02', 'ניהול דיון באמצעות AI'),
   f3: head('FEATURE 03', 'טייטל אישי מאמיר'),
   f4: head('FEATURE 04', 'סיכום ו-Action items'),
-  end: lockup(420, 300) + `<div style="position:absolute;left:0;right:0;top:1040px;text-align:center;font:900 84px/1.1 Heebo;color:#fff">פגישה אחת ביום.</div>`,
-  now: `<div style="position:absolute;left:0;right:0;top:1210px;display:flex;justify-content:center"><div style="background:#fc7211;color:#fff;font:900 62px/1 Heebo;padding:26px 60px;border-radius:999px;box-shadow:0 0 50px rgba(252,114,17,.6),0 16px 30px rgba(0,0,0,.5)">עכשיו בשלומיוורס</div></div>` + by(1400),
+  end: lockup(420, 300) + `<div style="position:absolute;left:0;right:0;top:1040px;text-align:center;font:900 84px/1.1 Heebo;color:#fff">היכנסו לפגישה<br>עם צוות ההנהלה.</div>`,
+  now: `<div style="position:absolute;left:0;right:0;top:1290px;display:flex;justify-content:center"><div style="background:#fc7211;color:#fff;font:900 62px/1 Heebo;padding:26px 60px;border-radius:999px;box-shadow:0 0 50px rgba(252,114,17,.6),0 16px 30px rgba(0,0,0,.5)">עכשיו בשלומיוורס</div></div>` + by(1480),
 };
 (async () => {
   fs.mkdirSync(path.join(__dirname, 'ts'), { recursive: true });

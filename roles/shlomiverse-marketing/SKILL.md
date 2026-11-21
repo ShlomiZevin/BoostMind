@@ -77,6 +77,11 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
 - Bookends: `python zoomcut/tools/verse_bookends.py <project>` ("שלומיוורס מציגים" / "רק בשלומיוורס"). The logo
   source clips are in `zoomcut/episodes/_assets/shlomiverse/MASTER` (always used BACKWARDS, never delete).
 - Instagram version: often silent or SFX-only (he adds the music in Instagram). Ask which.
+- **As real as possible - we parody reality.** A resident's product / tool is promoted exactly like the real thing: a
+  real launch presented by its company ("טקי-טק מציגה"), real launch copy (Terra, "serious, no wink"), the CTA a real
+  one ("היכנסו לפגישה עם צוות ההנהלה"). Never "the Shlomiverse's Zoom / X", never the verse's own limits ("one per
+  day") - those are site mechanics, not the product. The Shlomiverse appears only as WHERE it is available ("עכשיו
+  בשלומיוורס", its logo) (Syncs, 21 Nov).
 - **Music fits WHAT is promoted.** A tool / product (Syncs) = upbeat corporate product-demo / tutorial music (piano,
   plucks, claps, ~120 BPM), never a techno / trailer pulse ("annoying techno, it should be corporate", Syncs, 21 Nov).
 - **One piece, on the beat.** The hook must flow into the rest: one track from frame 0 (low under the hook's voices,
