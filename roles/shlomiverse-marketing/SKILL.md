@@ -71,12 +71,28 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
   world (no two unrelated hard cuts).
 - Gameplay or a product is ALWAYS on a phone mockup over a blurred background, never full screen; zoom in on the action
   (wide shots read as tiny on a phone).
-- **Order of a social / hook video** (Syncs, 21 Nov): hook (a real moment) -> the hook's own words as a card over the
-  same footage, blurred ("לא מסונכרנים?") -> the product reveal ("<maker> מציגה" + name + what it is) -> 4-8 shots of
-  the product on the phone, 1.5-2 s each, a short caption each -> the product's end card + CTA -> the Shlomiverse logo /
-  "עכשיו בשלומיוורס" ONCE, on the track's last beat -> the character's punchline alone in the silence. Keeping the
-  blurred hook footage behind the phone all the way makes it one piece. No "שלומיוורס מציגים" intro in a hook video
-  (the bookends tool below is for other teasers).
+- **A product / tool launch = THREE pieces** (Syncs, 21 Nov - he called the final set "perfect"; the working code is
+  `scripts/techytech-games/syncs-promo/`: `story-titles.js` + `story.py`, `compose_hook.py`, `poster.js`). Build the
+  product video FIRST - the hook video is made from it.
+  1. **The product video ("what is it", a story, ~17 s)** - a straight real launch, like Apple / Zoom:
+     a keynote backdrop (GPT image, the product's colour), the COMPANY'S OWN LOGO (from its site, e.g.
+     `public/techietech/index.html`) + "מציגה" -> the product's icon + name + tagline + one benefit line -> 4 shots of
+     the real app on a phone, each with ONE benefit headline on top -> the CTA ("התחילו עם Syncs") + "עכשיו
+     בשלומיוורס" on the track's final chord + the company logo again. Clean corporate type (Heebo).
+  2. **The hook video (the social post, ~26 s)** = hook + the product video + a closure, as ONE piece:
+     - the hook: a real sketch moment, cut EXACTLY at the end of the last word (word timestamps) - a character heard
+       starting the next sentence ruins it;
+     - the hook's own words as a big card ("לא מסונכרנים?") while the sketch keeps playing behind it, blurring and
+       dimming (no jump from the Zoom to a new screen);
+     - the product video itself (its cuts already sit on the beat);
+     - the closure right on the final chord (~0.5 s after "עכשיו בשלומיוורס", no gap of silence): the end card stays,
+       dimmed, and the character's punchline pops in OVER it as an in-app speaker tile (rounded, the product's
+       speaking border, the name) with subtitles, the chord ringing out under him; then 'רק בשלומיוורס'.
+     - one track from frame 0. No "שלומיוורס מציגים" intro in a hook video.
+  3. **The poster**: the company logo + "מציגה", the product lockup, one headline, the app on a tilted phone on its
+     funniest real moment, one sub line, "עכשיו בשלומיוורס". Keep the moment's detail inside the phone's frame.
+  A first "social cut" that told the joke through in-app notifications (v1-v4) was not what he wanted: the comedy is
+  the hook + the closure + what the real app shows, the launch in between stays straight.
 - **Music**: starts on frame 0 at a point where the track is already full (no fade-in, no looping bars). Under the
   opening hook ONLY it sits low (~0.22) so the voices read, full from the first cut, never ducked again. Fit it by
   choosing the start point: frame 0 in the full part, the hook's natural end on a beat, the track's last beat on the
@@ -103,7 +119,8 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
 - Instagram version: if he named the music, that's the answer; otherwise ask (he sometimes adds music in Instagram).
 - **As real as possible - we parody reality** (Syncs, 21 Nov - three rounds). A resident's product is launched EXACTLY
   like a real product launch (Zoom AI, Notion AI, Apple):
-  - presented by its company ("טקי-טק מציגה"), the Shlomiverse only as WHERE it is available ("עכשיו בשלומיוורס").
+  - presented by its company - its REAL logo, not just its name in text ("missing the Techy-Tech branding") -
+    the Shlomiverse only as WHERE it is available ("עכשיו בשלומיוורס").
   - benefit headlines a real company would write ("ה-AI משתיק משתתפים שמפריעים", "סיכום והחלטות. משימות לכל אחד."),
     a real CTA ("התחילו עם Syncs").
   - NEVER: numbered "FEATURE 01" cards (no real launch does that), the in-world jokes as features ("a title from
@@ -112,8 +129,8 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
   - The comedy lives only in what the product SHOWS (the real meeting on the phone) and in the hook / punchline -
     never in the launch copy. Brief Terra exactly that: "a real launch, serious, no wink, no names".
 - Full rules: `zoomcut/skill/edit-video/` (recipes/teaser.md is for stills cut into layers; only its bookend / flash /
-  SFX parts fit a footage + app-recording cut). A working example of a beat-cut product promo:
-  `scripts/techytech-games/syncs-promo/compose.py` (+ `agent-v3/compose3.py`, the blurred-hook-behind version).
+  SFX parts fit a footage + app-recording cut). The approved example: `scripts/techytech-games/syncs-promo/` (above). `agent-v3/` = a fresh session's test cut from
+  this skill alone (21 Nov) - its tools for finding moments in app recordings (`diff.py`, `probe.py`, `words.py`).
 
 ## Other roles
 All Shlomiverse roles live in `roles/<role>/SKILL.md` (this one, `shlomiverse-conversion` = the Conversion Manager...).
