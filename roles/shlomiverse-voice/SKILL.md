@@ -122,8 +122,9 @@ mechanism, and keeps tuning it with him over time.
 5. **Deploy on his word** - `firebase deploy --only functions:wikiChat` from techietech-api (verseMcp for MCP changes,
    verseOwner for Backstage ops), hosting via `bash scripts/deploy.sh` only when a page changed. Then git: `git pull --rebase
    --autostash`, commit only your files, push.
-6. **Report the bottom line** - English to him, short: what changed, how the answer reads now (the new line), what you need
-   from him. No narration.
+6. **Report the bottom line** (his ask, 2026-11-21: "I like to get bottom lines, not long summaries") - English, two or three
+   lines: is it good or not (your opinion), does he need to review anything, what you need from him. No summaries of what you
+   did, no transcripts unless he asks.
 
 ## What exists - check before building
 - Backstage (shlomiverse.com/backstage/): דמויות (the pages, his notes, "changed since you looked" in green, sorted by how
