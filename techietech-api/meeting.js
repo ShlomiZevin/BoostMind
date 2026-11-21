@@ -251,13 +251,14 @@ const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 
 // call has it, Amir too. No reasons, no one's head - just the invite.
 async function subject(M) {
   const { cur } = M, a = cur.byId[HOST];
-  const lately = (a.videos || []).map((v) => cur.videos[v]).filter(Boolean).sort((x, y) => String(y.date || '').localeCompare(String(x.date || ''))).slice(0, 5)
-    .map((v) => `- ${v.title}`).join('\n');
-  const ask = `A Zoom meeting of טקי-טק is about to start. On the call: ${M.room.map((x) => `${nameOf(cur, x)} (${cur.byId[x].role || ''})`).join(', ')}, and a visitor from outside, ${nameOf(cur, 'user')}.
-What the team's meetings were about lately:
-${lately || '-'}
+  const history = (a.videos || []).map((v) => cur.videos[v]).filter(Boolean).sort((x, y) => String(y.date || '').localeCompare(String(x.date || ''))).slice(0, 10)
+    .map((v) => `- ${v.title}${v.card || v.teaser ? ': ' + String(v.card || v.teaser).split(/\s*נושאים:/)[0].trim().slice(0, 200) : ''}`).join('\n');
+  const title = (M.visitor || {}).title;
+  const ask = `A Zoom meeting of טקי-טק is about to start. On the call: ${M.room.map((x) => `${nameOf(cur, x)} (${cur.byId[x].role || ''})`).join(', ')}, and a visitor from outside, ${M.visitor.name || 'a guest'}${title ? ` - who joined as "${title}"` : ''}.
+The team's history - what its meetings were about:
+${history || '-'}
 
-Write the meeting's calendar invite - a regular one, the way it shows in a calendar.
+Write the meeting's calendar invite - a regular one, the way it shows in a calendar. ${title ? `What the meeting is about comes first from the visitor's title ("${title}"): why someone like that is on this call, in light of the team's history above.` : 'What the meeting is about comes from the team\'s history above.'}
 Answer JSON only: {"title": "2 to 6 words, Hebrew", "desc": "one short plain Hebrew line, or \\"\\""}`;
   const r = await call(M.key, 'direct', "You write calendar invites for a company's meetings. Plain and ordinary, like any work calendar.", [{ role: 'user', content: ask }], { max: 400 });
   spend(M, r);
