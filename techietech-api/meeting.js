@@ -141,7 +141,7 @@ function scene(cur, M, id) {
   const rel = relIn(cur, id, M.room).map((r) => `${nameOf(cur, r.id)} - ${r.relation}`).join(' · ');
   return `THIS TIME ${c.name} IS NOT IN A CHAT: ${c.name} is in a Zoom meeting of טקי-טק, on camera, with ${others.length ? others.join(', ') : 'nobody else from the team'} - people ${c.name} knows${outsider(cur, id, M.room) ? ' from work but doesn\'t work with; someone added ' + c.name + ' to this call and ' + c.name + ' has no idea why' : ' well'} - and a visitor from outside who joined, ${nameOf(cur, 'user')}${cur.titled ? ` (the title is the one they introduced themselves with when they joined, in their own words - nobody on the team gave it to them, and ${c.name} never makes up another one or describes them in their own words)` : ''} - not from the team.${M.visitorNote ? `
 What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`}${cur.titled ? ` The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.` : ''}
-${genderLine(M)}
+${M.topic ? `The meeting (${nameOf(cur, HOST)} set it up): "${M.topic.title}" - ${M.topic.why}${(M.topic.agenda || []).length ? `\nAgenda: ${M.topic.agenda.join(' · ')}` : ''}\n` : ''}${genderLine(M)}
 How ${c.name} stands with each of them: ${rel || '-'}
 The others, and how they stand with everyone here:
 ${forces(cur, M.room, id)}
@@ -165,7 +165,7 @@ async function speak(M, plan, emit, handNow) {
   const now = nowIL();
   const prev = M.log.filter(spoken).slice(-1)[0];
   const why = plan.opening
-    ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - ${cur.titled ? `greeting them by their name and referring naturally to the title they introduced themselves with when they joined (${nameOf(cur, 'user')}): what they wrote, fitted into his sentence the way people say someone's title out loud (never recited word for word; their own first-person words like "באתי ל..." turn into "שבאו ל..."), never a new title or ${c.name}'s own description of who they are` : `greeting them by their name, ${nameOf(cur, 'user')} - never a title or ${c.name}'s own description of who they are`} - then he lays out today's agenda: ${c.name} called this meeting, as he calls every meeting, and he leads it - the direction he came up with for today, in his own way - and he moves it straight forward, handing parts of it to people and turning to someone.`
+    ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - ${cur.titled ? `greeting them by their name and referring naturally to the title they introduced themselves with when they joined (${nameOf(cur, 'user')}): what they wrote, fitted into his sentence the way people say someone's title out loud (never recited word for word; their own first-person words like "באתי ל..." turn into "שבאו ל..."), never a new title or ${c.name}'s own description of who they are` : `greeting them by their name, ${nameOf(cur, 'user')} - never a title or ${c.name}'s own description of who they are`} - and he opens the meeting's subject.`
     : `Why ${c.name} speaks now: ${plan.cue || 'the line that was just said'}`
       + (plan.cut && prev ? (prev.who === DANIEL
         ? `\n${c.name} cuts ${nameOf(cur, DANIEL)} off before he finishes the sentence - as always - and picks up his last words ("${lastWords(prev.text)}"): ${c.name}'s line starts from exactly those words and reacts to them.`
@@ -241,7 +241,28 @@ function newMeeting({ cur, key, akey, room, visitor = {}, visitorNote = '' }) {
   return { cur: withVisitor(cur, v), visitor: v, visitorNote: String(visitorNote || '').slice(0, 3000), key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, costBy: { openai: 0, anthropic: 0, unsplit: 0 }, next: null, recap: null };
 }
 // what is kept between requests (meeting-fn.js puts it in Firestore) and how it comes back
-const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 'cost', 'costBy', 'recap', 'visitor', 'visitorNote'];
+const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 'cost', 'costBy', 'recap', 'visitor', 'visitorNote', 'topic'];
+
+// the meeting's subject (his ask 2026-11-21): before the call starts the director sets it with Amir's head - his page, his scripts
+// (the POC, the AI initiative), who is on the call, the visitor and their title - a title, why this meeting, an agenda. It goes into
+// every speaker's scene, so Amir comes with his meeting ready and everyone on the call knows what it is about.
+async function subject(M) {
+  const { cur } = M, a = cur.byId[HOST];
+  const system = DIRECTOR(a, chain.known(cur, HOST).map((x) => cur.byId[x].name), scriptsOf(cur, a), chain.world(cur));
+  const ask = `${NOW(nowIL())}
+
+BEFORE THE CALL - not a reply to anyone. ${a.name} set up a Zoom meeting of טקי-טק for now. On the call: ${M.room.filter((x) => x !== HOST).map((x) => `${nameOf(cur, x)} (${cur.byId[x].role || ''})`).join(', ') || 'nobody else from the team'}, and a visitor from outside, ${nameOf(cur, 'user')}.${M.visitorNote ? `\nWhat ${a.name} knows about the visitor: ${M.visitorNote}` : ''}
+Think as ${a.name}: why did he call this meeting today, and what is on it? Out of his own world - what is going on in his life and his videos now - and the people on the call.
+
+Answer JSON only:
+{"title": "the meeting's title as it appears on the invite - 2 to 6 words, Hebrew", "why": "why ${a.name} called it - one short Hebrew sentence", "agenda": ["2 to 3 short Hebrew items"]}`;
+  let r = null;
+  if (M.akey) r = await sonnet(M.akey, system, ask).catch((e) => { console.error('meeting subject on Sonnet failed - Terra', e.message); return null; });
+  if (!r) r = await call(M.key, 'direct', system, [{ role: 'user', content: ask }], { max: 800, cacheKey: 'dir-' + HOST });
+  spend(M, r);
+  const o = r.out || {}, s = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+  return s(o.title, 80) ? { title: s(o.title, 80), why: s(o.why, 200), agenda: [].concat(o.agenda || []).map((x) => s(x, 120)).filter(Boolean).slice(0, 3) } : null;
+}
 const stateOf = (M) => Object.fromEntries(STATE.map((k) => [k, M[k] ?? null]));
 const fromState = (s, { cur, key, akey }) => ({ cur: withVisitor(cur, s.visitor || {}), key, akey, visitor: {}, room: [], all: [], left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, recap: null,
   ...Object.fromEntries(STATE.filter((k) => s[k] != null).map((k) => [k, s[k]])), costBy: s.costBy || { openai: 0, anthropic: 0, unsplit: s.cost || 0 }, next: null });
@@ -250,6 +271,7 @@ async function round(M, emit, opts = {}) {
   const handNow = opts.hand || (async () => M.hand);
   const cost = () => emit({ t: 'cost', usd: Math.round(M.cost * 10000) / 10000 });
   if (!M.log.length) emit({ t: 'visitor', name: M.visitor.name || '', title: M.visitor.title || '' });
+  if (!M.log.length && !M.topic) M.topic = await subject(M).catch((e) => { console.error('meeting subject failed', e.message); return null; });
   let plan = M.next;
   if (!plan) plan = M.log.length === 0 ? { next: HOST, opening: true, cue: '' } : await organize(M, null);
   if (!M.log.length || plan.opening) emit({ t: 'org', next: plan.next, why: 'Amir opens every meeting' });
