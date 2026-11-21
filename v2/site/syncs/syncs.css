@@ -102,23 +102,23 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: 16px 20px; overflow-y: auto; overscroll-behavior: contain; background: rgba(5, 5, 7, .72); animation: mt-dim-in .18s ease-out; }
 .mt.kb .mt-dim { top: 0; padding-block: 10px; }
 @keyframes mt-dim-in { from { opacity: 0; } }
-.mt-tt-card { position: relative; width: min(100%, 322px); margin: auto; display: flex; flex-direction: column; padding: 22px 18px 18px;
-  border-radius: 24px; border: 1.5px solid #ff6a1f; background: #1b1311; box-shadow: 0 18px 50px rgba(0, 0, 0, .7); animation: mt-tt-in .22s cubic-bezier(.3, .9, .3, 1); }
+.mt-tt-card { position: relative; width: min(100%, 296px); margin: auto; display: flex; flex-direction: column; padding: 18px 16px 16px;
+  border-radius: 20px; border: 1px solid rgba(255, 106, 31, .7); background: #1b1311; box-shadow: 0 18px 50px rgba(0, 0, 0, .7); animation: mt-tt-in .22s cubic-bezier(.3, .9, .3, 1); }
 @keyframes mt-tt-in { from { opacity: 0; transform: translateY(10px) scale(.97); } }
-.mt-tt-x { position: absolute; top: 10px; inset-inline-end: 10px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #e9e6ee; }
-.mt-tt-x svg { width: 22px; height: 22px; }
+.mt-tt-x { position: absolute; top: 9px; inset-inline-end: 9px; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #e9e6ee; }
+.mt-tt-x svg { width: 18px; height: 18px; }
 .mt-tt-x:active { background: rgba(255, 255, 255, .08); }
-.mt-tt-card h2 { text-align: center; font-size: 25px; font-weight: 900; line-height: 1.15; color: #fff; padding-inline: 30px; }
-.mt-tt-me { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 16px 0 18px; }
-.mt-tt-face { flex: none; width: 74px; height: 74px; border-radius: 50%; object-fit: cover; object-position: 50% 22%; background: #222; }
-.mt-tt-face.ini { display: grid; place-items: center; background: linear-gradient(160deg, #3a2618, #1d1611); color: #ffb27a; font-size: 30px; font-weight: 900; }
-.mt-tt-me b { font-size: 22px; font-weight: 900; color: #fff; line-height: 1.15; min-width: 0; overflow-wrap: anywhere; }
-.mt-tt-l { font-size: 15px; font-weight: 800; color: #e9e6ee; margin-bottom: 8px; }
-.mt-tt-card input { width: 100%; height: 48px; padding: 0 12px; border-radius: 14px; border: 1.5px solid rgba(255, 255, 255, .22); background: #15151a; color: #fff;
+.mt-tt-card h2 { text-align: center; font-size: 19px; font-weight: 800; line-height: 1.15; color: #fff; padding-inline: 30px; }
+.mt-tt-me { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0 16px; }
+.mt-tt-face { flex: none; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; object-position: 50% 22%; background: #222; }
+.mt-tt-face.ini { display: grid; place-items: center; background: linear-gradient(160deg, #3a2618, #1d1611); color: #ffb27a; font-size: 19px; font-weight: 900; }
+.mt-tt-me b { font-size: 17px; font-weight: 800; color: #fff; line-height: 1.15; min-width: 0; overflow-wrap: anywhere; }
+.mt-tt-l { font-size: 13px; font-weight: 700; color: #b9b5bf; margin-bottom: 6px; }
+.mt-tt-card input { width: 100%; height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .22); background: #15151a; color: #fff;
   font: inherit; font-size: 16px; font-weight: 600; outline: 0; text-overflow: ellipsis; transition: border-color .15s; }
-.mt-tt-card input::placeholder { color: #8f8c97; font-weight: 500; }
+.mt-tt-card input::placeholder { color: #8f8c97; font-weight: 500; font-size: 14px; }
 .mt-tt-card input:focus { border-color: rgba(255, 106, 31, .75); }
-.mt-tt-card .mt-btn.go { width: 100%; height: 52px; margin-top: 18px; font-size: 19px; font-weight: 900; transition: background .15s, color .15s, box-shadow .15s; }
+.mt-tt-card .mt-btn.go { width: 100%; height: 46px; margin-top: 14px; font-size: 16px; font-weight: 800; transition: background .15s, color .15s, box-shadow .15s; }
 /* not yet (no title): the same button, asleep - the card's warm brown, dim words, no glow */
 .mt-tt-card .mt-btn.go:disabled { background: #3a2a1f; color: rgba(255, 255, 255, .42); box-shadow: none; cursor: default; transform: none; }
 
