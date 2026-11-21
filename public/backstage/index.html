@@ -47,6 +47,18 @@
   .side .foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; }
   /* main */
   main.main { padding: 30px 34px 60px; max-width: 1240px; width: 100%; }
+  /* the all-time band (2026-11-21): set apart from the period's tiles - outlined, no fill, one slim row */
+  .tot-band { display: flex; align-items: center; justify-content: space-between; gap: 10px 18px; flex-wrap: wrap; margin-bottom: 18px; padding: 10px 14px; border: 1px dashed var(--line2); border-radius: 16px; }
+  .tot-band .tb-h { display: flex; flex-direction: column; gap: 1px; }
+  .tot-band .tb-h b { font-size: .92rem; font-weight: 800; }
+  .tot-band .tb-h small { color: var(--dim); font-size: .76rem; }
+  .tot-band .tb-row { display: flex; align-items: center; gap: 4px; }
+  .tot-band .tb-n { display: inline-flex; align-items: baseline; gap: 5px; padding: 6px 10px; border-radius: 10px; color: var(--text); }
+  .tot-band .tb-n + .tb-n { border-inline-start: 1px solid var(--line2); border-radius: 0; }
+  .tot-band .tb-n svg { width: 15px; height: 15px; align-self: center; color: var(--dim); }
+  .tot-band .tb-n b { font-size: 1.1rem; font-weight: 900; }
+  .tot-band .tb-n span { color: var(--dim); font-size: .82rem; font-weight: 700; }
+  @media (max-width: 430px) { .tot-band .tb-row { width: 100%; justify-content: space-between; } .tot-band .tb-n { padding: 6px 4px; flex: 1; justify-content: center; } .tot-band .tb-n svg { display: none; } }
   .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
   .top h1 { font-size: clamp(1.7rem, 3vw, 2.5rem); font-weight: 900; letter-spacing: -.02em; line-height: 1.1; }
   .top p { color: var(--dim); margin-top: 6px; font-size: 1.02rem; }
@@ -1956,13 +1968,14 @@ function kpi(m, extra) {
   return `<button class="k" data-metric="${m}"><span class="kh">${IC[icon]}${label}${IC.chev.replace('<svg', '<svg class="chev"')}</span>
     <b>${extra ?? fmt(v)}</b>${extra == null ? fcLine(m) : ''}${m === 'cz_start' ? `<span class="fc">סה״כ ${fmt(czAll('s'))} יצאו</span>` : m === 'cz_done' ? `<span class="fc">סה״כ ${fmt(czAll('c'))} אזרחים</span>` : tzNote(m, list) ? `<span class="fc">${tzNote(m, list)}</span>` : ''}<span class="kf"><span class="trend ${tr.c}">${tr.diff ? `${tr.t}<span class="tw"> מאז ${dm(since.day)}</span>` : tr.t ? `<bdi dir="ltr">${tr.t}</bdi>${tr.t === 'חדש' ? '' : `<span class="tw"> ${tr.since ? `מול כ-${fmt(Math.round(tr.before))} באותן שעות לפני` : tr.same ? 'מאתמול באותה שעה' : range === 1 ? 'מאתמול' : range === 0 ? 'משלשום' : range === 7 ? 'משבוע שעבר' : 'מהתקופה הקודמת'}</span>`}` : ''}</span>${spark(m)}</span></button>`;
 }
-// the totals on top of the home (his ask, 2026-11-20): how many people have an account, how many residents live in the verse
-function totalsKpis() {
-  const all = accounts(), today = dayIL(), res = (W.characters || []).filter((c) => c.id !== 'verse' && !c.hidden);
-  return `<button class="k" data-tab="people"><span class="kh">${IC.people}רשומים${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>${fmt(all.length)}</b>
-      <span class="kf"><small class="note"><bdi dir="ltr">+${fmt(all.filter((p) => dayIL(p.created) === today).length)}</bdi> היום · ${fmt(all.filter((p) => p.citizen).length)} אזרחים</small></span></button>
-    <button class="k" data-tab="chars"><span class="kh">${IC.cast}תושבים${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>${fmt(res.length)}</b>
-      <span class="kf"><small class="note">חיים בשלומיוורס</small></span></button>`;
+// the totals on top of the home (his ask, 2026-11-20): how many people have an account, how many residents live in the verse.
+// Their own band above the period (his ask 2026-11-21: "general, high level - not part of the daily or custom dates stats"):
+// all-time numbers, no trend, no "today", never changed by the range or "since the event"
+function totalsBand() {
+  const all = accounts(), res = (W.characters || []).filter((c) => c.id !== 'verse' && !c.hidden);
+  const t = (tab, icon, label, v) => `<button class="tb-n" data-tab="${tab}">${IC[icon]}<b>${fmt(v)}</b><span>${label}</span></button>`;
+  return `<div class="tot-band"><div class="tb-h"><b>השלומיוורס עד היום</b><small>סה״כ מההתחלה · לא לפי התקופה</small></div>
+    <div class="tb-row">${t('people', 'people', 'רשומים', all.length)}${t('people', 'join', 'אזרחים', all.filter((p) => p.citizen).length)}${t('chars', 'cast', 'תושבים', res.length)}</div></div>`;
 }
 function overview() {
   const list = period(), msgs = mval('chat_message', list);
@@ -1984,10 +1997,11 @@ function overview() {
   const n = range, chartList = since ? days(dayGap(since.day, dayIL()) + 8) : days(Math.max(n, 7)), sel = drillDay && chartList.find((d) => d.d === drillDay);
   const ALL = ['visitors', 'joined', 'cz_start', 'cz_done', 'chat_message', 'video', 'download', 'game_start', 'sign_in', 'tz_view', 'ch_view', 'syncs_meet'];
   paint(`
+    ${totalsBand()}
     <div class="top"><div><h1>${hi()}, שלומי</h1><p>${since ? `מאז ${dm(since.day)} ${hhmm(since.from)} · כל מספר מול אותן שעות ב-7 הימים שלפני` : `מה קורה בשלומיוורס${range === 1 ? ' היום' : range === 0 ? ' אתמול' : ` ב-${range} הימים האחרונים`}`}</p>
       ${since ? `<button class="since-pill" data-sinceoff title="חזרה לתקופות הרגילות">${IC.x}<span>מאז: ${esc(since.title)}</span></button>` : ''}</div>
       <div class="top-r">${rangeSeg([[1, 'היום'], [0, 'אתמול'], [7, '7 ימים'], [30, '30 ימים'], [45, '45 ימים']].map(([v, l]) => [since ? NaN : v, l, v]))}<button class="rf-d" data-refresh>${IC.refresh}<span>רענון</span></button></div></div>
-    <div class="kgrid">${totalsKpis()}${kpi('visitors')}${timeKpi()}${ALL.slice(1).map((m) => kpi(m)).join('')}
+    <div class="kgrid">${kpi('visitors')}${timeKpi()}${ALL.slice(1).map((m) => kpi(m)).join('')}
       <button class="k" data-tab="chats"><span class="kh">${IC.dollar}עלות הצ'אט ו-Syncs${IC.chev.replace('<svg', '<svg class="chev"')}</span><b>$${(msgs * avgAnswer + syCost(list)).toFixed(2)}</b>
         <span class="kf"><small class="note">צ'אט $${(msgs * avgAnswer).toFixed(2)} בערך ($${avgAnswer.toFixed(3)} לתשובה${FC('chat_message') ? ` · צפי $${(FC('chat_message').proj * avgAnswer).toFixed(2)}` : ''}) · Syncs $${syCost(list).toFixed(2)}</small>${spark('chat_message')}</span></button></div>
     <div class="cols">

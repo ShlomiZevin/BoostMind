@@ -44,6 +44,7 @@ const publicUrl = (path) => LOCAL
   ? `http://127.0.0.1:9199/v0/b/${BUCKET}/o/${encodeURIComponent(path)}?alt=media`
   : `https://storage.googleapis.com/${BUCKET}/${path}`;
 const OWNER_KEY_SHA256 = require('./owner.json').ownerKeySha256;
+const HIM_UIDS = new Set(['rJLlCV393shl7njhzWZmoaE15Yp2']);   // his own account (as v2/site/verse/gates.js HIM)
 const TO = 'shlomi@boostart.io';
 // his own account IS the Shlomiverse (his ask, 2026-11-01: "when I reply to someone it's the verse"): its profile is
 // always this name + the logo, marked official - set here only, never by a fan; the name is reserved for him
@@ -1447,7 +1448,9 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...new M
       const M = db.collection('meetings'), cn = require('./chatnotes');
       const snap = req.query.uid ? await M.where('uid', '==', String(req.query.uid)).limit(200).get()
         : await M.where('t', '>=', Timestamp.fromMillis(+req.query.from || Date.now() - 864e5)).where('t', '<', Timestamp.fromMillis(+req.query.to || Date.now() + 6e4)).orderBy('t', 'desc').limit(300).get();
-      return res.json({ meetings: snap.docs.filter((d) => d.id !== 'demo' && d.data().uid !== 'demo').map(cn.meetingOut) });
+      // his own meetings stay out (his ask 2026-11-21: "I don't need to see my own conversations"), and so do the marketing
+      // sessions' previews (uid 'preview' - "צוות השיווק", internal tests, not visitors)
+      return res.json({ meetings: snap.docs.filter((d) => d.id !== 'demo' && !['demo', 'preview'].includes(d.data().uid) && !HIM_UIDS.has(d.data().uid)).map(cn.meetingOut) });
     }
     // conversations he starred (the funny ones) - one list in owner/chatStars, by thread key (session|character)
     if (op === 'stars') return res.json({ stars: ((await db.collection('owner').doc('chatStars').get()).data() || {}).keys || [] });
