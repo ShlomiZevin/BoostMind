@@ -93,6 +93,14 @@ principles - apply them to whatever the game is.
 - ElevenLabs takes at most 5 requests at once - make sounds in batches of 3-4.
 - Never one sound for a repeated event: 2-4 variants, picked so the same one never plays twice in a row.
 - The character's real voice where it exists; otherwise ElevenLabs sound effects; music only when it earns it.
+- **Voice lines are ACTED, never read** (Naomi's game, 22 Nov 2026 - his verdict on flat TTS: "terrible, robotic ... do it with
+  emotions"): ElevenLabs **Eleven v4** (Hebrew supported; v3 also takes tags) with **audio tags** - a bracketed delivery note
+  in English before the words (`[warm, gentle, soothing]`, `[deeply moved]`, `[gently concerned]`, `[urgent but gentle
+  whisper]`) and real gestures (`[sighs]`, `[exhales]`, `[softly]`, `[pause]`), dashes for pauses, and **low stability (~0.35)**
+  for emotional range (high stability = monotone). Write each line's delivery like a director's note to an actor, per moment
+  of the game. Then run every clip through speech-to-text (he-turbo) - the words right and no tag read aloud; re-take any
+  line that stumbles (fix the spelling with vowel marks or reword). Worked example: `scripts/naomi-games/pause/tools/voice.mjs`
+  (TAG per moment + SPOKEN per line) and `stt-check.py`.
 - Audio starts from a tap (browsers block it before); a sound button that is remembered; everything pauses on pause
   and stops on pagehide / leaving the page.
 - **Sound must come back after the player returns** (iPhone - Safari AND Chrome are WebKit): a suspended or

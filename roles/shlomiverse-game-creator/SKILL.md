@@ -86,3 +86,11 @@ verse, stories, links) only when the VRM runs it.
   other verse games' sfx) when ElevenLabs is out - his OK; level them (ffmpeg loudnorm) and list the sources in idea.md.
 - 2026-11-22 · Out of ElevenLabs credit mid-build: ask him (raise it / library sounds / wait), never borrow another
   project's key; the game's sound loader stays silent on missing files so the real sounds drop in later.
+- 2026-11-22 · Voices are ACTED with ElevenLabs audio tags, never flat TTS. Naomi's coach voice at stability 0.85 with no tags =
+  "terrible, robotic". Fix: Eleven v4 (Hebrew) + a delivery tag per moment ([warm, gentle, soothing], [deeply moved],
+  [gently concerned]) + gestures ([sighs], [exhales], [pause]) + stability ~0.35, then speech-to-text check every clip. Recipe in
+  make-verse-game rules.md (Sound), worked example `scripts/naomi-games/pause/tools/voice.mjs`. A non-resident voice (a coach,
+  a narrator) need not be the resident's - "a therapist voice, very calm ... it will be funny" was his call.
+- 2026-11-22 · Make the game explain itself without the tutorial (his note): the rule ON each piece (a tag: "להשהות!" /
+  "לתת להגיע"), the consequence shown when it lands (his thought bubble = the logic), and the round opening with one piece of
+  each kind alone + a finger showing the first move.

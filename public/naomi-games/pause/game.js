@@ -110,7 +110,7 @@ function setSound(on) {
 const VO = {};
 function voLoad() {
   for (const [k, arr] of Object.entries(SAY)) arr.forEach((_, i) => {
-    fetch(`assets/vo/${k}-${i}.mp3`).then((r) => r.ok ? r.arrayBuffer() : null).then((ab) => ab && SND.ctx && SND.ctx.decodeAudioData(ab)).then((b) => { if (b) VO[k + '-' + i] = b; }).catch(() => {});
+    fetch(`assets/vo/${k}-${i}.mp3?v=2`).then((r) => r.ok ? r.arrayBuffer() : null).then((ab) => ab && SND.ctx && SND.ctx.decodeAudioData(ab)).then((b) => { if (b) VO[k + '-' + i] = b; }).catch(() => {});
   });
 }
 let voNow = null;
