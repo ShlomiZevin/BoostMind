@@ -143,6 +143,8 @@ async function video(b) {
   await ref.set({ ...v, updated: FieldValue.serverTimestamp(), ...(was ? {} : { created: FieldValue.serverTimestamp() }) }, { merge: true });
   if (b.transcript != null || b.onScreen != null) await db.collection('catalogTranscripts').doc(b.id).set({ ...(b.transcript != null ? { text: String(b.transcript) } : {}), ...(b.onScreen != null ? { onScreen: String(b.onScreen).slice(0, 3000) } : {}) }, { merge: true });
   const out = await compose(admin);
+  // a NEW video that is up: everyone in it comments at once (verse.js verseOnDebut; create() = once per video, ever)
+  if (!was && !v.hidden && !v.archive && v.cast.length) await db.collection('videoDebuts').doc(b.id).create({ t: FieldValue.serverTimestamp() }).catch(() => {});
   // castBy: who decided the characters - 'sent' (the caller), 'kept' (already there), 'ai' (picked now), 'none' (nobody found)
   return { ok: true, id: b.id, url: `${SITE}/v/${b.id}`, video: siteVideo({ id: b.id, ...v }), live: !v.hidden, videos: out.videos, wrote: !!wrote, castBy };
 }

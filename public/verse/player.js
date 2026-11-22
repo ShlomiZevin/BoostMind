@@ -543,7 +543,7 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
   // what this fan just sent shows at once (faded, "sending") while the server checks it; the real one replaces it
   let pending = [], nicks = [];
   const all = () => [...comments, ...pending.filter((p) => !p.realId || !comments.some((c) => c.id === p.realId))];
-  const open = new Set(), typing = new Map(), off = [];
+  const open = new Set(), off = [];
   const h = X.cm = sheet(`<div class="tabs"><button class="vx-pill" data-tab="c"></button>${noSt ? '' : '<button class="vx-pill" data-tab="s"></button>'}
       <button class="vx-x" data-vx-close style="position:static;margin-inline-start:auto">${I.x}</button></div>
     <div class="list"></div>
@@ -552,8 +552,6 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
 
   off.push(F.onSnapshot(F.query(F.collection(db, 'comments'), F.where('videoId', '==', v.id), F.where('hidden', '==', false), F.orderBy('t', 'desc'), F.limit(300)), (s) => {
     comments = s.docs.map((d) => ({ id: d.id, ...d.data() }));
-    // a character answered: stop its "writing..."
-    for (const [root, w] of typing) if (comments.some((c) => c.parentId === root && c.char === w.char && (c.t?.toMillis?.() || Date.now()) > w.since)) typing.delete(root);
     draw();
   }, (e) => console.error('comments', e)));
   if (!noSt) off.push(F.onSnapshot(F.query(F.collection(db, 'stickers'), F.where('videoId', '==', v.id), F.where('status', '==', 'live'), F.where('hidden', '==', false), F.orderBy('stampCount', 'desc'), F.limit(60)), (s) => {
@@ -569,11 +567,15 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
   const offState = onState(() => { if (st.user && !off.mine) { off.mine = 1; mine(); } drawCompose(); });
   off.push(offState);
 
+  // the residents in this video answer back, tagged or not (his ask 2026-11-22): their own comments marked "בסרטון", the box
+  // addressed to them (the strip on top was too heavy inside the comments - the invitation lives outside them)
+  const castIn = (v.cast || []).filter((id) => C[id]).slice(0, 5);
+  const castList = T.cmList(castIn.map((id) => C[id].name));
   const row = (c, isReply) => {
     const isMine = st.user && c.uid === st.user.uid;
     return `<div class="cm-item ${c.char ? 'char' : ''} ${c.pending ? 'sending' : ''} ${focus === c.id ? 'hl' : ''}" style="--c:${c.char ? charColor(c.char) : 'var(--vx-accent)'}" data-cid="${c.id}">
       ${c.char ? `<a class="cm-face" href="/c/${c.char}" aria-label="${esc(c.nick)}">${av({ char: c.char, ring: true })}</a>` : av({ fan: c })}
-      <div class="body"><div class="cm-who">${c.char ? `<a href="/c/${c.char}"><b>${esc(c.nick)}</b></a>` : `<b>${esc(c.nick)}</b>${ofc(c)}`}<small>${c.pending ? esc(T.cmSending) : c.t ? ago(c.t) : T.now}</small></div>
+      <div class="body"><div class="cm-who">${c.char ? `<a href="/c/${c.char}"><b>${esc(c.nick)}</b></a>${castIn.includes(c.char) ? `<span class="cm-in">${esc(T.cmInVideo)}</span>` : ''}` : `<b>${esc(c.nick)}</b>${ofc(c)}`}<small>${c.pending ? esc(T.cmSending) : c.t ? ago(c.t) : T.now}</small></div>
         <div class="txt">${richText(c.text, nicks)}</div>
         ${c.pending ? '' : `<div class="acts"><button data-like="${c.id}" class="like ${myLikes.has(c.id) ? 'on' : ''}" aria-label="${esc(T.cmLike)}">${LIKE}<span>${c.likeCount || esc(T.cmLike)}</span></button>
           <button data-reply="${c.id}" data-root="${c.parentId || c.id}">${esc(T.cmReply)}</button>
@@ -597,23 +599,21 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
       const reps = comments.filter((r) => r.parentId === c.id).sort((a, b) => (a.t?.toMillis?.() || now) - (b.t?.toMillis?.() || now));
       const showAll = open.has(c.id) || reps.some((r) => r.id === focus);
       const shown = showAll ? reps : reps.slice(-2);
-      const w = typing.get(c.id);
-      return row(c) + (reps.length || w ? `<div class="cm-replies">
+      return row(c) + (reps.length ? `<div class="cm-replies">
         ${!showAll && reps.length > 2 ? `<button class="cm-more" data-more="${c.id}">${esc(T.cmMore(reps.length - 2))}</button>` : ''}
-        ${shown.map((r) => row(r, true)).join('')}
-        ${w ? `<div class="cm-typing">${av({ char: w.char, cls: '' }).replace('vx-av', 'vx-av" style="width:28px;height:28px')}<span>${esc(T.cmTyping(C[w.char].name, typeof GENDER !== 'undefined' ? GENDER[w.char] : null))}</span><i></i></div>` : ''}</div>` : '');
+        ${shown.map((r) => row(r, true)).join('')}</div>` : '');
     }).join('');
     if (focus) { const f = list.querySelector(`[data-cid="${focus}"]`); if (f) { f.scrollIntoView({ block: 'center' }); focus = null; } }
   }
   function drawCompose() {
-    if (!st.user || !st.fan?.nick) { compose.innerHTML = `<button class="vx-btn main block" data-in>${esc(T.cmSignin)}</button>`; return; }
+    if (!st.user || !st.fan?.nick) { compose.innerHTML = `<button class="vx-btn main block" data-in>${esc(castIn.length && castList.length <= 16 ? T.cmSigninTo(castList) : T.cmSignin)}</button>`; return; }
     if (compose.querySelector('textarea')) return;
     compose.innerHTML = `<div class="cm-replying" style="display:none"><span></span><button data-unreply>${I.x.replace('<svg', '<svg width="16" height="16"')}</button></div>
       <div class="cm-at" style="display:none"></div>
       <form>${av({ fan: st.fan, cls: '' }).replace('vx-av', 'vx-av" style="width:40px;height:40px;align-self:center')}
-        <textarea rows="1" maxlength="500" placeholder="${esc(T.cmPlaceholder)}"></textarea>
+        <textarea rows="1" maxlength="500" placeholder="${esc(castIn.length ? T.cmPlaceholderTo(castList) : T.cmPlaceholder)}"></textarea>
         <button class="send" disabled aria-label="שליחה">${I.send}</button></form>
-      <div class="cm-note">${esc(T.cmNote)}</div>`;
+      <div class="cm-note">${esc(castIn.length ? T.cmNoteCast : T.cmNote)}</div>`;
     const ta = $('textarea', compose), send = $('.send', compose), atBox = $('.cm-at', compose);
     window.atMirror?.(ta);   // an @tag stays coloured while typing (the wiki page's mirror)
     ta.oninput = () => {
@@ -649,8 +649,7 @@ export function openComments({ tab = 'c', focus = null } = {}, ctx = null) {
         const r = await call('comment', { videoId: v.id, text, parentId: was?.root || null, replyTo: was?.to || null, mention });
         track('comment', v.id);
         p.realId = r.id;
-        if (r.mention) typing.set(was?.root || r.id, { char: r.mention, since: Date.now() - 2000 });
-        setTimeout(() => { for (const [k, w] of typing) if (Date.now() - w.since > 60e3) typing.delete(k); draw(); }, 61e3);
+        // the resident's answer just comes, like a comment on any social app - no "writing..." (his call 2026-11-22)
         setTimeout(() => { pending = pending.filter((x) => x !== p); draw(); }, 8000); // the snapshot has it by then
         draw();
       } catch (x) {

@@ -16,7 +16,7 @@ const crypto = require('crypto');
 const Busboy = require('busboy');
 const webpush = require('web-push');
 const nodemailer = require('nodemailer');
-const { _stream, _canon } = require('./wiki');
+const { _canon } = require('./wiki');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -32,6 +32,9 @@ const GMAIL_USER = defineSecret('GMAIL_USER');
 const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
 const SECRETS = LOCAL ? [] : [OPENAI, OPENAI_SITE, VAPID_PRIVATE, GMAIL_USER, GMAIL_APP_PASSWORD];
 const openaiKey = () => (LOCAL ? process.env.VERSE_OPENAI_KEY : OPENAI.value());
+// the chain's director (Sonnet) for the residents in the comments - the chat's key; only the comment triggers hold it
+const AN_KEY = defineSecret('VERSE_ANTHROPIC_KEY');
+const anKey = () => (LOCAL ? process.env.VERSE_ANTHROPIC_KEY || null : AN_KEY.value() || null);
 const siteKey = () => (LOCAL ? process.env.VERSE_OPENAI_KEY : OPENAI_SITE.value());
 // the public half is in the page too (v2/site/verse/fb.js); the private half is a secret (locally: .env.local)
 const VAPID_PUBLIC = 'BApNz6a4ZuFrPgaIEHGY9rvyKkwIvrJPsRjH0k01QYruVT2yz5ce-0fVuuIsk9vyprZ8Gq1nGxXajBL-EMD0hP0';
@@ -367,15 +370,18 @@ const ops = {
     }
     const m = await moderate(text);
     if (!m.ok) fail('invalid-argument', 'text_bad');
-    // @character: the character answers (verseOnComment), a few times a day per fan
+    // a resident answers (verseOnComment), a few times a day per fan: the @tagged one, or - untagged - the one in the video it
+    // is for (comments.js answerer, his ask 2026-11-22); decided here so the page shows them "writing..." at once
     let mention = null;
-    if (idOk(d.mention)) {
-      const { byId } = await _canon();
-      if (byId[d.mention] && text.includes('@' + byId[d.mention].name)) mention = d.mention;
-    }
+    const { byId, videos } = await _canon();
+    if (idOk(d.mention) && byId[d.mention] && text.includes('@' + byId[d.mention].name)) mention = d.mention;
+    const replyTo = d.replyTo && idOk(d.replyTo) ? d.replyTo : null;
+    let answer = await require('./comments').answerer({ db, key: openaiKey(), video: videos[d.videoId], mention, parentId, replyTo, uid, text, byId })
+      .catch((e) => { console.error('answerer', e.message); return mention; });
+    if (answer && !(await spend('reply', uid, CHARACTER_REPLIES_A_DAY))) answer = null;
     const doc = {
-      videoId: d.videoId, parentId, uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}), text, mention,
-      replyTo: d.replyTo && idOk(d.replyTo) ? d.replyTo : null,
+      videoId: d.videoId, parentId, uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}), text, mention, answer,
+      replyTo,
       likeCount: 0, replyCount: 0, hidden: false, ...(m.unchecked ? { unchecked: true } : {}), t: FieldValue.serverTimestamp(),
     };
     const ref = await db.collection('comments').add(doc);
@@ -383,7 +389,7 @@ const ops = {
       db.collection('videoStats').doc(d.videoId).set({ comments: FieldValue.increment(1) }, { merge: true }),
       parentId && db.collection('comments').doc(parentId).update({ replyCount: FieldValue.increment(1) }),
     ]);
-    return { ok: true, id: ref.id, mention };
+    return { ok: true, id: ref.id, mention, answer };
   },
 
   // likes on comments (never on videos); a fan's likes live under the fan, so the page reads them in one query
@@ -835,7 +841,7 @@ exports.verse = onCall({ region: REGION, secrets: SECRETS, cors: CORS, maxInstan
 
 // ---------- a new comment: the character answers, the replied-to fan hears ----------
 // a Firestore trigger runs where the database is (me-west1)
-exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 'me-west1', secrets: SECRETS, memory: '512MiB', timeoutSeconds: 120 }, async (event) => {
+exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 'me-west1', secrets: [...SECRETS, ...(LOCAL ? [] : [AN_KEY])], memory: '512MiB', timeoutSeconds: 180 }, async (event) => {
   const c = event.data?.data();
   if (!c || c.char) return;   // a character's own reply triggers nothing
   const id = event.params.id;
@@ -852,31 +858,28 @@ exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 
     }
   }
 
-  // @character
-  const who = c.mention && byId[c.mention];
+  // the resident who answers (decided in comment() - tagged, or the one in the video it is for), in their chat voice: the same
+  // chain, told they are in the comments and given the video (comments.js)
+  const who = c.answer && byId[c.answer];
   if (!who) return;
-  if (!(await spend('reply', c.uid, CHARACTER_REPLIES_A_DAY))) return;
   let thread = [];
   if (c.parentId) {
     const prev = await db.collection('comments').where('parentId', '==', c.parentId).orderBy('t').limit(12).get().catch(() => null);
     const root = (await db.collection('comments').doc(c.parentId).get()).data();
-    thread = [root, ...(prev ? prev.docs.map((x) => x.data()) : [])].filter((x) => x && x.text !== c.text).slice(-8)
-      .map((x) => `${x.char ? byId[x.char]?.name || x.nick : x.nick}: ${x.text}`);
+    thread = [root, ...(prev ? prev.docs.map((x) => x.data()) : [])].filter((x) => x && x.text !== c.text).slice(-8);
   }
-  const turn = [
-    video ? `את/ה בתגובות מתחת לסרטון "${video.title}" (${video.teaser || ''}). מה שנאמר בסרטון:\n${(video.transcript || '').slice(0, 6000)}`
-      : game ? `את/ה בתגובות מתחת למשחק "${game.title}"${game.tagline ? ` (${game.tagline})` : ''}, משחק קצר בשלומיוורס.`
-      : 'את/ה בתגובות מתחת לאחד הסרטונים.',
-    thread.length ? `\nהשיחה בתגובות עד עכשיו:\n${thread.join('\n')}` : '',
-    `\n${c.nick} כתב/ה עכשיו בתגובות, ותייג/ה אותך: "${c.text}"`,
-    '\nענה/י כמו תגובה ברשת: משפט או שניים, בקול שלך, ישר אל ' + c.nick + '. בלי כרטיסים [[...]], בלי האשטגים, בלי לצטט את ההנחיות.',
-  ].join('\n');
+  const C = require('./comments');
   let reply = '';
   try {
-    await _stream(openaiKey(), who.id, [{ role: 'user', content: turn }], (t) => { reply += t; });
-  } catch (e) { console.error('character reply failed', e.message); await refund('reply', c.uid); return; }
-  reply = reply.replace(/\[\[[^\]]*\]\]/g, '').trim().slice(0, 600);
-  if (!reply) return;
+    const cur = await _canon();
+    const rec = video ? { ...video, ...((await db.collection('catalogVideos').doc(c.videoId).get()).data() || {}) }
+      : { title: game ? `${game.title} (a short game in the Shlomiverse, not a video)` : 'one of the videos', teaser: game?.tagline || '', cast: [] };
+    const tw = video ? (await db.collection('catalogTranscripts').doc(c.videoId).get()).data() || {} : {};
+    const r = await C.reply({ key: openaiKey(), akey: anKey(), cur, who: who.id, video: rec, words: tw.text || '', onScreen: tw.onScreen || '', thread, comment: c, mine: await C.mine(db, who.id) });
+    await require('./ai-ledger').addAnthropic('chat', require('./ai-ledger').anthropicOf(r.steps)).catch(() => {});
+    reply = String(r.text || '').slice(0, 600);
+  } catch (e) { console.error('character reply failed', e.message); }
+  if (!reply) { await refund('reply', c.uid); return; }
   const root = c.parentId || id;
   await db.collection('comments').add({ videoId: c.videoId, parentId: root, replyTo: id, uid: null, char: who.id, nick: who.name, photo: null, text: reply,
     likeCount: 0, replyCount: 0, hidden: false, t: FieldValue.serverTimestamp() });
@@ -886,6 +889,25 @@ exports.verseOnComment = onDocumentCreated({ document: 'comments/{id}', region: 
     note(c.uid, { kind: 'reply', videoId: c.videoId, commentId: root, char: who.id, from: who.name, text: reply.slice(0, 140) }),
   ]);
   await push([c.uid], { title: `תשובה מ${who.name}`, body: reply.slice(0, 140), url, icon: faceUrl(who.id), badge: BADGE, tag: 'reply_' + root });
+});
+
+// ---------- a new video: everyone in it comments at once (his ask 2026-11-22: "so there are comments on videos already") ----------
+// publish.js writes videoDebuts/<id> once a NEW video (not archive, not hidden) is up and composed; each resident in it writes a
+// comment through the chain, in cast order, each seeing the ones before (comments.js debut)
+exports.verseOnDebut = onDocumentCreated({ document: 'videoDebuts/{id}', region: 'me-west1', secrets: [...SECRETS, ...(LOCAL ? [] : [AN_KEY])], memory: '512MiB', timeoutSeconds: 540 }, async (event) => {
+  const id = event.params.id;
+  const video = { id, ...((await db.collection('catalogVideos').doc(id).get()).data() || {}) };
+  if (!video.title || video.hidden || video.archive) return;
+  const tw = (await db.collection('catalogTranscripts').doc(id).get()).data() || {};
+  const C = require('./comments'), cur = await _canon();
+  const r = await C.debut({ key: openaiKey(), akey: anKey(), cur, video, words: tw.text || '', onScreen: tw.onScreen || '', mineOf: (who) => C.mine(db, who),
+    out: async (who, text, x) => {
+      await db.collection('comments').add({ videoId: id, parentId: null, replyTo: null, uid: null, char: who, nick: cur.byId[who].name, photo: null, text: text.slice(0, 600),
+        likeCount: 0, replyCount: 0, hidden: false, debut: true, t: FieldValue.serverTimestamp() });
+      await db.collection('videoStats').doc(id).set({ comments: FieldValue.increment(1) }, { merge: true });
+      await require('./ai-ledger').addAnthropic('chat', require('./ai-ledger').anthropicOf(x.steps)).catch(() => {});
+    } });
+  await event.data.ref.set({ done: FieldValue.serverTimestamp(), n: r.comments.length, usd: Math.round(r.cost * 1e4) / 1e4 }, { merge: true });
 });
 
 // an idea's step, from /backstage/ (ideaStatus) or from his own +1 on the wall (vote, his official account = liked)

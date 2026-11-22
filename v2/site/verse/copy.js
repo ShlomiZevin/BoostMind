@@ -291,6 +291,13 @@ export const T = {
   cmBad: 'את התגובה הזאת לא נפרסם. נסו לנסח אחרת.',
   cmSlow: 'רגע, לאט. נסו שוב עוד מעט.',
   cmNote: 'מתייגים תושב עם @, והוא עונה בעצמו.',
+  // the residents in the video answer back, tagged or not (2026-11-22)
+  cmList: (names) => (names.length < 2 ? names[0] || '' : `${names.slice(0, -1).join(', ')} ו${names[names.length - 1]}`),
+  cmCast: (list, g) => `${list} ${{ p: 'קוראים מה שאתם כותבים פה, ועונים לכם', f: 'קוראת מה שאתם כותבים פה, ועונה לכם' }[g] || 'קורא מה שאתם כותבים פה, ועונה לכם'}`,
+  cmPlaceholderTo: (list) => `כתבו ל${list}…`,
+  cmSigninTo: (list) => `מסדירים תושבות וכותבים ל${list}`,
+  cmInVideo: 'בסרטון',
+  cmNoteCast: 'אפשר לתייג עם @ גם תושבים שלא בסרטון.',
   now: 'עכשיו',
 
   // sticker from the moment
@@ -599,7 +606,7 @@ export const T = {
     leaveTitle: (n) => `עוברים לצ'אט עם ${n}`, leaveTitlePage: (n) => `עוברים לדף של ${n}`, leaveGoPage: 'לדף', leaveLine: 'הסרטון יחכה לכם בדיוק איפה שעצרתם', leaveGo: "לצ'אט", leaveStay: 'להישאר בסרטון',
     stMake: 'ליצור סטיקר', stMakeSub: 'מהרגע הזה בסרטון', stGallerySub: (n) => (n === 1 ? 'סטיקר אחד שצופים יצרו' : `${n} סטיקרים שצופים יצרו`),
     stNone: 'היו הראשונים', stNoneSub: 'עוד אין סטיקרים מהסרטון', stMine: 'ליצור סטיקר משלי', stamp: 'חותמת', stBack: 'חזרה', stGallery: 'הסטיקרים מהסרטון', stFirst: 'עוד אין סטיקרים מהסרטון הזה. הראשון יכול להיות שלכם.',
-    mute: 'השתקה', full: 'מסך מלא', cleanOff: 'חזרה לתצוגה המלאה', clean: 'תצוגה נקייה', detach: 'מסך מלא בנגן של הטלפון', swipeNext: 'החליקו לסרטון הבא', gBack: 'חזרה', backToVideo: 'חזרה לסרטון', switchChar: 'החלף', closeStrip: 'סגירה',
+    mute: 'השתקה', full: 'מסך מלא', cleanOff: 'חזרה לתצוגה המלאה', clean: 'תצוגה נקייה', detach: 'מסך מלא בנגן של הטלפון', swipeNext: 'החליקו לסרטון הבא', cmHint: 'התושבים בסרטון עונים לתגובות שלכם', gBack: 'חזרה', backToVideo: 'חזרה לסרטון', switchChar: 'החלף', closeStrip: 'סגירה',
     gridAsk: "מחפשים סרטון? תשאלו בצ'אט, הוא ימצא לכם", gridAskGame: "מחפשים משחק? תשאלו בצ'אט, הוא ימצא לכם",
     qLeft: (n) => (n === 1 ? 'נשארה שאלה אחת' : n ? `נשארו ${n} שאלות` : 'השאלות נגמרו'), signUp: 'הרשמה = בלי הגבלה', gridArc: 'לא מצאתם? בארכיון המלא יש גם סרטונים שעוד לא בשלומיוורס', fold: 'לקפל את שורת התושבים', unfold: 'לפתוח את שורת התושבים',
   },

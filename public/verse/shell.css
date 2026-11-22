@@ -973,3 +973,13 @@ html.app .st-head .st-back { grid-column: 1; grid-row: 1; justify-self: start; }
 html.app .st-head .ttl { grid-column: 3; grid-row: 1; justify-self: end; }
 html.app .st-head .vx-wordmark { grid-column: 2; grid-row: 1; }
 html.app .st-head .st-back svg { transform: scaleX(-1); }
+
+/* the residents-answer strip on the video's top (2026-11-22, mockup B): no faces; 5 seconds when a video comes up, then it fades
+   (feed.js ctlPlace adds .show); only in the full view - never in the clean view or the phone's own player; a tap = the comments */
+.fd-cmh { position: fixed; z-index: 5; left: 50%; transform: translate(-50%, -6px); max-width: calc(100% - 24px); height: 34px; display: flex; align-items: center; gap: 7px;
+  padding: 0 14px; border-radius: 999px; border: 1.5px solid rgba(255, 106, 31, .85); background: rgba(40, 18, 8, .62); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 0 14px rgba(255, 106, 31, .35); color: #fff; font: inherit; font-size: 14px; font-weight: 800; white-space: nowrap; cursor: pointer;
+  opacity: 0; pointer-events: none; transition: opacity .35s ease, transform .35s ease; }
+.fd-cmh.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.fd-cmh svg { width: 17px; height: 17px; flex: none; color: #ff6a1f; }
+html:not(.feed-on) .fd-cmh, html.fd-clean .fd-cmh { display: none; }

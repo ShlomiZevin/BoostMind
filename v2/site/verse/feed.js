@@ -213,7 +213,7 @@ function mount(list, start) {
 export function unmount() {
   if (!FD) return;
   document.documentElement.classList.remove('fd-clean');
-  document.getElementById('fd-strip')?.remove(); document.getElementById('fd-hint')?.remove(); fdRail()?.remove();
+  document.getElementById('fd-strip')?.remove(); document.getElementById('fd-hint')?.remove(); document.getElementById('fd-cmh')?.remove(); fdRail()?.remove();
   clearTimeout(hint.t); clearTimeout(hint.idle);
   FD.io?.disconnect(); FD.mo?.disconnect();
   statsOff(FD);
@@ -379,6 +379,13 @@ function ctlMount() {
       + railBtn('save', 'data-f', I.save, FT.save) + railBtn('share', 'data-f', ICON_SHARE, FT.share) + railBtn('dl', 'data-f', I.download, FT.dl);
     r.addEventListener('click', railClick);
     document.body.append(r);
+    // the residents answer comments (his ask 2026-11-22, mockup B made light): one thin see-through strip on the video's top, no faces,
+    // shown on a video that has residents in it; a tap opens the comments
+    const a = Object.assign(document.createElement('button'), { id: 'fd-cmh', className: 'fd-cmh' });
+    a.dataset.f = 'comments';
+    a.innerHTML = `${ICON_COMMENT}<span>${esc(T.shell.cmHint)}</span>`;
+    a.addEventListener('click', railClick);
+    document.body.append(a);
     paintRail();
     const h = Object.assign(document.createElement('div'), { id: 'fd-hint', className: 'fd-hint' });
     h.innerHTML = `${ICON_UP}<span>${esc(T.shell.swipeNext)}</span>`;
@@ -395,7 +402,18 @@ function ctlPlace() {
   let tall = 0;
   for (const s of FD.slides) { const i = s.querySelector('.fd-info'); if (i) tall = Math.max(tall, i.offsetHeight); }
   if (!tall || !fr.height) return;
-  placeRail(r, fr.top + 12, fr.bottom - 50 - tall - 24);   // its bottom ~24px above the tallest title's top, growing upward
+  // the residents-answer strip on the video's top (only a video with residents in it); the rail starts under it
+  const h = document.getElementById('fd-cmh'), v = FD.list[FD.idx], on = !!(h && v && (v.cast || []).some((c) => C[c]));
+  if (h) {   // 5 seconds each time a video with residents comes up, then it fades away (his note 2026-11-22)
+    h.style.top = Math.round(fr.top + 10) + 'px';
+    if (h.dataset.for !== v.id) {
+      h.dataset.for = v.id;
+      clearTimeout(h._t);
+      h.classList.toggle('show', on);
+      if (on) h._t = setTimeout(() => h.classList.remove('show'), 5000);
+    }
+  }
+  placeRail(r, fr.top + 12 + (on ? 40 : 0), fr.bottom - 50 - tall - 24);   // its bottom ~24px above the tallest title's top, growing upward
 }
 function ctlPaint() {
   const c = document.getElementById('fd-strip');

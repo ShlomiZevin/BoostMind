@@ -629,6 +629,16 @@ html { scrollbar-gutter: stable; }
 .cm-item .acts .on .pl { filter: drop-shadow(0 0 4px rgba(255, 106, 31, .55)); }
 .cm-item.sending { opacity: .55; }
 .cm-replies { margin-inline-start: 47px; padding-inline-start: 12px; }
+/* the residents in the video answer back (2026-11-22, concept A): their faces + the line on top; their own comments in a warm card */
+.cm-cast { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; padding: 12px 14px; border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 106, 31, .16), rgba(255, 106, 31, .06)); border: 1px solid rgba(255, 106, 31, .45); }
+.cm-cast-faces { display: flex; flex: none; }
+.cm-cast-faces .vx-av { width: 46px; height: 46px; box-shadow: 0 0 0 2px #1a1a1f; }
+.cm-cast-faces .vx-av + .vx-av { margin-inline-start: -12px; }
+.cm-cast p { margin: 0; font-weight: 800; font-size: .98rem; line-height: 1.35; color: #fff; }
+.cm-item.char .cm-who b { color: #fff; }
+.cm-item.char > .body { background: rgba(255, 106, 31, .08); border: 1px solid rgba(255, 106, 31, .32); border-radius: 14px; padding: 8px 12px 9px; }
+.cm-in { align-self: center; font-size: .7rem; font-weight: 800; color: #1a1a1f; background: var(--vx-accent); border-radius: 999px; padding: 1px 8px; }
 .cm-replies .cm-item > .vx-av { width: 30px; height: 30px; }
 
 /* the footer sits at the bottom of the screen on short pages (the bell, me), not in the middle */

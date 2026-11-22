@@ -281,7 +281,33 @@ function thinkOf(D) {
 // visitor's message, what is in front of them on the feed. scene = what they see and what they do (a post of their own, a reply,
 // a repost, an answer to someone who tagged them); last = their own last posts; name = what ציפציפ calls them when it is not
 // their own name (a public figure's verse name - tz.js ALIASES). Returns text '' when they would not post (or keep Shabbat now).
-async function post({ key, akey = null, cur, mode, scene, last: mine = [], name = '', at = new Date() }) {
+// where = the place they write in: ציפציפ, or the comments under a video (comments.js - his ask 2026-11-22: "their voice exactly
+// as in the chat; only tell it they are commenting on a video and give it the video")
+const WHERE = {
+  tz: {
+    feed: (c, scene, mine) => `ציפציפ is the Shlomiverse's X (Twitter): short posts, mostly about the day's news, read by strangers scrolling by.
+What is in front of ${c.name} now:
+${scene}
+
+${c.name}'s own last posts (never the same take or opening again):
+${mine.map((t) => '- ' + t).join('\n') || '(none yet)'}`,
+    on: 'on ציפציפ',
+    say: (c) => `"say" = what ${c.name} posts: their real take on what is in front of them - what this person, and nobody else, would think of it - named plainly, one idea. A real person posting, not a performance: their habits and catchphrases only where they truly belong. Facts about real people in the news only from what is in front of them. If ${c.name} would really not post about this at all, "say" = "SKIP".`,
+    here: 'You are on ציפציפ, posting from your phone.',
+    write: "Write only the post: Hebrew, like a real tweet - one to three short lines, at most 240 characters, no hashtags, no emoji, no quotation marks around it. A stranger scrolling gets it in one read: the subject named in plain words. People from your own life by who they are to you (בעלי, הבוס שלי), not by a name strangers don't know. A post of your own talks to the world, never to another resident by name; a reply talks to the one you answer.",
+  },
+  comments: {
+    feed: (c, scene, mine) => `The comments under a video in the Shlomiverse (its videos are the residents' own, like on Instagram or TikTok).
+What is in front of ${c.name} now:
+${scene}${mine.length ? `\n\n${c.name}'s own last comments (never the same take or opening again):\n${mine.map((t) => '- ' + t).join('\n')}` : ''}`,
+    on: 'in the comments under a video',
+    say: (c) => `"say" = what ${c.name} writes in the comments now: what this person, and nobody else, would write here - one idea. A real person commenting, not a performance: their habits and catchphrases only where they truly belong.`,
+    here: 'You are in the comments under a video, writing from your phone.',
+    write: 'Write only the comment, the way you write in the chat - Hebrew, no hashtags, no emoji, no quotation marks around it. An answer talks to the one you answer.',
+  },
+};
+async function post({ key, akey = null, cur, mode, scene, last: mine = [], name = '', at = new Date(), where = 'tz' }) {
+  const W = WHERE[where];
   let c = cur.byId[mode];
   if (!c) throw new Error('not a character: ' + mode);
   if (name && name !== c.name) {   // the verse name everywhere they read about themselves
@@ -292,18 +318,13 @@ async function post({ key, akey = null, cur, mode, scene, last: mine = [], name 
   const known = chain.known(cur, mode).map((id) => cur.byId[id].name);
   const system = DIRECTOR(c, known, scriptsOf(cur, c), chain.world(cur) + chain.legend(cur, [{ role: 'user', content: scene }]));
   const now = nowIL(at);
-  const feed = `ציפציפ is the Shlomiverse's X (Twitter): short posts, mostly about the day's news, read by strangers scrolling by.
-What is in front of ${c.name} now:
-${scene}
-
-${c.name}'s own last posts (never the same take or opening again):
-${mine.map((t) => '- ' + t).join('\n') || '(none yet)'}`;
+  const feed = W.feed(c, scene, mine);
   const ask = `${NOW(now)}
 
-THIS TIME ${c.name} IS NOT IN A CONVERSATION: they are on their phone, on ציפציפ.
+THIS TIME ${c.name} IS NOT IN A CONVERSATION: they are on their phone, ${W.on}.
 ${feed}
 
-"say" = what ${c.name} posts: their real take on what is in front of them - what this person, and nobody else, would think of it - named plainly, one idea. A real person posting, not a performance: their habits and catchphrases only where they truly belong. Facts about real people in the news only from what is in front of them. If ${c.name} would really not post about this at all, "say" = "SKIP".
+${W.say(c)}
 
 ${PLAN_FORMAT(c)}`;
   let d = null;
@@ -325,7 +346,7 @@ ${PLAN_FORMAT(c)}`;
   const limit = lvl === 'no' || lvl === 'heard_of' ? `\n\nYou know this only ${lvl === 'no' ? 'not at all' : 'by name'} - no details of it beyond what is in front of you. ${D.knows.how || ''}`
     : lvl === 'some' ? `\n\nYou know this only a little, like an outsider. ${D.knows.how || ''}` : '';
   const t = await call(key, 'talk', `${RULES.replace('{{WORLD}}', chain.world(cur) + chain.legend(cur, [{ role: 'user', content: scene }]))}\n\nRight now you are ${c.name}. Speak in the first person.\n\n${sheetText(c, ALL.filter((k) => k !== 'catchphrases'))}`,
-    [{ role: 'developer', content: `${NOW(now)}\n\nYou are on ציפציפ, posting from your phone. ${feed}\n\n${notes}${limit}\n\nWrite only the post: Hebrew, like a real tweet - one to three short lines, at most 240 characters, no hashtags, no emoji, no quotation marks around it. A stranger scrolling gets it in one read: the subject named in plain words. People from your own life by who they are to you (בעלי, הבוס שלי), not by a name strangers don't know. A post of your own talks to the world, never to another resident by name; a reply talks to the one you answer.` }],
+    [{ role: 'developer', content: `${NOW(now)}\n\n${W.here} ${feed}\n\n${notes}${limit}\n\n${W.write}` }],
     { json: false, max: 700 });
   steps.push({ step: 'talk', ...t });
   return done(String(t.out || '').replace(/<[^<>\n]{1,80}>/g, '').replace(/[ \t]{2,}/g, ' ').replace(/\[\[[^\]]*\]\]/g, '').replace(/^["“”׳״']+|["“”׳״']+$/g, '').trim());
