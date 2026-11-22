@@ -29,7 +29,13 @@ Scale it to the resident. Every piece needs a reason (the world, or a number Con
 1. **The video** - by the editor (edit-video). With the socials' "signal lost" drop when there is a cliffhanger.
 2. **Their world, ready on the day**
    - the record right: real id (he makes residents himself through his ChatGPT MCP - check `content.mjs list character`
-     before creating one), portrait (GPT Image from his frame, same batch), relations both ways, the video's new facts.
+     before creating one), relations both ways, the video's new facts.
+   - **the profile picture is yours** (his rule, 2026-11-22: "to create a profile image is also part of the release video
+     manager"): every resident in the release has a portrait before release day. From a real frame of him in that costume
+     (an old reel, his new footage): `node zoomcut/tools/leonardo.mjs portrait <frame.jpg> <prompt.txt> <out.jpg> flare LOW
+     0.6 1024x1024` (GPT Image direct, LOW-MEDIUM, never HIGH), options on ONE labelled sheet, keep the face his (the lazy
+     left eye where the character has it), the costume exact; live with `content.mjs portrait <id> <image>`, the original
+     kept in `zoomcut/characters/<id>/portrait.jpg`. A face change later = edit that picture only, keep the old copy.
    - their **sheet** (who they are, how they talk, what's funny) - Voice's. A new resident: brief Voice, don't write it.
    - **their own place**: a site built the way THEY would build it (Ayelet's 2009 healer site, Techy-Tech's serious corporate
      site, Yotam's shop), or a new page / section on a site they already have, or a team card on their company's site.
