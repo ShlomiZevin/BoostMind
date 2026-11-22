@@ -31,7 +31,7 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 | The method המחוג הפנימי | on the site (stages, in her birth language) |
 | NEW service from the video | organizations: from onboarding to bonding (young employees) + managers' response-pause track |
 | Book "המחוג שבלב" cover | B - full size + 3D (private/covers/), on the site |
-| Logo | B "החותם" (heart + dial) - zoomcut/episodes/_assets/naomi/logo/; switch: `node scripts/releases/naomi/logo/export.mjs A|C` |
+| Logo | G - model-designed (GPT Image 2.6): mother + newborn in a heart with a dial (his "D is the most parody", my pick). Live on the site + og; posters re-rendered; editor updating end card + name band |
 | Editor | naomi-1 ready for footage: guest studio B, host tail, name band, end card |
 | Marketing | ready, NOT posted (nothing before the video): video poster, site launch, book, org program - private/promo/ |
 | DoulaSense AI | "coming soon" + waitlist on the site (later idea: a real tool) |

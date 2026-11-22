@@ -174,5 +174,11 @@ behind / ahead / uncommitted - deploy from a clean worktree of `origin/main` if 
   git-ignored on this one. When the release's material is local, open a dedicated marketing helper here (his OK: "it's okay
   also to open a dedicated one"). A sub-agent stops when he interrupts a tool call - check after an interrupt and restart
   only with his word.
+- 2026-11-22 · Naomi's logo: two rounds drawn as hand-made SVG by Claude agents ("everything is terrible, I don't know which
+  model you used"). What worked: GPT Image 2.6 sunburst designs the WHOLE logo (6 concepts, each brief = what the brand is +
+  which side of her it leads with, never the look), every Hebrew letter checked, then cut to transparent / white / icon
+  versions (`scripts/releases/naomi/logo/out/G-*`). He chose by "the most parody" = the one that looks most like the real
+  thing (a doula brand: mother + newborn in a heart). → Logos, posters, backdrops: the image model designs; code only cuts,
+  lays exact Hebrew, and places.
 - 2026-11-22 · Sets follow the episode, not the resident: a guest on someone's podcast = THEIR studio (not her logo); her own
   room (clinic) is for the episodes where she talks to camera. Ask "where is she and with whom" before building a set.
