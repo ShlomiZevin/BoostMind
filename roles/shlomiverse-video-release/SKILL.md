@@ -148,3 +148,7 @@ behind / ahead / uncommitted - deploy from a clean worktree of `origin/main` if 
 ## Lessons (add one every time a release teaches us - date + what happened)
 - 2026-11-22 · Role created at his ask. Before it, the edit-video skill held the whole release (its "PUBLISHING EVERYWHERE"
   protocol, the-consultant 2026-11-18) - that list is still the video's part; this role adds the world and the marketing.
+- 2026-11-22 · Naomi's portrait took 3 rounds: round 1 kept his stubble ("she is a woman, needs no זיפים"), round 2 looked
+  too smooth / not a real person. What he took: keep the costume AND the face-filter look, but "a real person" of her real
+  age (~50: fine lines are fine) with a completely clean face, plain studio backdrop like the other residents' photos.
+  → For a woman he plays, say WOMAN + her real age + clean face (no stubble / beard shadow) in the very first prompt.
