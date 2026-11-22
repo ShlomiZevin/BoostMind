@@ -163,6 +163,9 @@ computer: **Nothing lives on one computer only** (his rule, 2026-11-22: "any com
 - **Copy**: Hebrew by Terra (`gpt-6.1-terra` through openai-leonardo), with the resident's profile; his exact words never
   "improved". Images: GPT Image direct (MEDIUM, smallest size that works). AI cost ≤ 5¢ a flow; paid batches end with the
   running total.
+- **Every generated voice is acted, never flat TTS** (his rule, 2026-11-22): ElevenLabs v4 with audio tags, a Hebrew-trained
+  voice, stability ~0.35, STT-checked - the recipe is in edit-video ("EVERY GENERATED VOICE IS ACTED"); say it in every editor,
+  game and marketing brief, and reject a robotic take.
 - **No export, no posting, no sending until he says so for this version.**
 - **Ask with clickable options** (AskUserQuestion) when it's his call (taste, the world, money); detail-level calls are yours.
 - **Reports = the bottom line**: what's ready + a direct link + what you need from him. No narration of what you did.
