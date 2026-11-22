@@ -26,9 +26,27 @@ Key: `ELEVENLABS_API_KEY` in `zoomcut/.env`. Worked example: `scripts/naomi-game
 - Write each line's delivery **per moment of the game / beat of the script** (a TAG per kind of moment, a full SPOKEN line where
   a sigh or pause makes it human) - never one tag for everything.
 
+### What went wrong in our takes (his notes, 22 Nov 2026)
+- **Breathy / whispery / exhaling / sighing tags sound EROTIC** on a woman's voice ("the sounds sound erotic") - for a therapist,
+  coach or narrator use a clear, warm, professional voice: `[clear, warm, professional, confident, natural pace, full voice, ...]`
+  plus the moment's emotion (`pleased`, `concerned`, `genuinely moved`). Keep `[whispers]`, `[sighs]`, `[exhales]` for scenes that
+  really need them, never as "softness".
+- **Don't add pauses inside a sentence** - `...` and dashes split words ("זה סקין טו סקין ... רגשי") and sound stilted. Speak `...`
+  as a comma (the written line on screen can keep it); let the voice find its own pace.
+- **v4 sometimes repeats a phrase or word** ("ילד מרגיש הכל. ילד מרגיש הכל.", "רגע, רגע") - catch it with speech-to-text
+  (transcript longer than the line / words don't match) and re-take that line with a new `seed`; loop until every clip passes.
+  Automated: `stt-check.py` prints `BAD: ids`, `voice.mjs --ids <ids> --seed <n>` re-takes only those.
+- **Keep the tag SHORT - shorter than the line** (2-4 words: `[smug, self-satisfied, pleased]`). A long character description in
+  the tag before a short Hebrew line made v4 repeat the line 2-5 times (12 of 25 lines); the same lines with a 3-word tag all
+  passed. Put the character into 2-3 strong words.
+- **Don't burn credit on re-take loops** (his rule): one pass, one speech-to-text check, at most one re-take of the failed lines
+  - if many fail, the cause is the prompt (tag length, pauses, spelling), fix that instead of re-rolling.
+- A character's voice is a CHARACTER, not a generic "nice" voice: Naomi's coach = "a therapist full of herself" (`smug,
+  self-satisfied`) - that is where the comedy is.
+
 ## Settings
-- `voice_settings: { stability: ~0.35, similarity_boost: 0.75 }`. **Lower stability = more emotional range; high (0.8+) =
-  monotone** - that was the robotic take. Raise it (0.5-0.6) only for a steady announcer.
+- `voice_settings: { stability: 0.5, similarity_boost: 0.75 }` for a clear professional voice (0.35 for a big emotional scene).
+  **Lower stability = more emotional range (and more glitches); high (0.8+) = monotone** - that was the robotic take.
 - `style` stays 0; `speed` and `use_speaker_boost` are not reliable on v4 - leave them out (slow the delivery with tags/dashes).
 - `seed` (0-4294967295) for a repeatable take (best effort). For a long voice-over split into parts, send `previous_text` /
   `next_text` (or `previous_request_ids`, same model) so the parts flow.
