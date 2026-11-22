@@ -52,14 +52,25 @@ async function limit(key, n, ms) {
 }
 
 // the caller's address (Cloud Functions / Run put the client first in x-forwarded-for)
+// The caller's real address. Google APPENDS the true caller to x-forwarded-for, so the LAST entry is the truth and anything
+// before it can be typed by the caller (22.11, found live: "X-Forwarded-For: 9.9.9.9" walked past a first-entry limit).
+// A call through a shlomiverse.com rewrite arrives from Firebase Hosting's proxy (Google, 66.249.64.0/19 - seen in our logs),
+// which appends itself after the visitor: skip such proxy entries from the right; the one before is the visitor. A direct
+// caller can't fake that, since their own address is always last and is never in Google's range.
+const PROXY = [/^66\.249\.(6[4-9]|[7-8]\d|9[0-5])\./, /^35\.191\./, /^130\.211\.[0-3]\./, /^2001:4860:/i];
 // An IPv6 address counts by its /64 - one home / phone line gets a whole /64 and a script can rotate inside it (22.11 it did).
-function ip(req) {
-  const a = String((req.get && req.get('x-forwarded-for')) || req.ip || '').split(',')[0].trim().replace(/^::ffff:/, '');
-  if (!a) return 'unknown';
+function norm(a) {
+  a = String(a || '').trim().replace(/^::ffff:/, '');
+  if (!a) return '';
   if (!a.includes(':')) return a;
   const [head, tail] = a.split('::'), h = head ? head.split(':') : [], t = tail != null && tail ? tail.split(':') : [];
   const full = tail != null ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
   return full.slice(0, 4).map((x) => (parseInt(x, 16) || 0).toString(16)).join(':') + '::/64';
+}
+function ip(req) {
+  const hops = String((req.get && req.get('x-forwarded-for')) || '').split(',').map((x) => x.trim().replace(/^::ffff:/, '')).filter(Boolean);
+  while (hops.length > 1 && PROXY.some((r) => r.test(hops[hops.length - 1]))) hops.pop();
+  return norm(hops.pop() || req.ip) || 'unknown';
 }
 
 // a line of text from a visitor: a string, trimmed, no control characters (newlines kept only when multiline), at most max chars
