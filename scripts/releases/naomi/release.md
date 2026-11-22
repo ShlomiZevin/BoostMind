@@ -36,6 +36,8 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 | Marketing | ready, NOT posted (nothing before the video): video poster, site launch, book, org program - private/promo/ |
 | DoulaSense AI | "coming soon" + waitlist on the site (later idea: a real tool) |
 
+## Game        brief: game-brief.md - a game SHE made (real product of hers). Game Creator = a dedicated session he opens; I manage it (5 gates). Draft until release day.
+
 ## Stories (verse-story, after his OK on each)
 - before: "הקליניקה נפתחת מחדש" / the new site is born ("גם אתר – זו לידה" - her own 2025 line, back) - on site launch
 - before: the book - a signed copy (the form)

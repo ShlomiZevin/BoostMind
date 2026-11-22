@@ -6,6 +6,10 @@ argument-hint: "[character] [idea, or 'you decide']"
 
 # make-verse-game - games for the Shlomiverse
 
+**Who runs this:** the **Game Creator** role (`roles/shlomiverse-game-creator` - a dedicated session he opens). This skill is
+the craft; the role is the position. In a video release the Video Release Manager (VRM) gives the brief
+(`scripts/releases/<slug>/game-brief.md`), checks each gate and decides release day - nothing public before the video.
+
 Shlomi has dozens of characters (all of them in Shlomiverse Studio, `zoomcut/characters/`). Each one can have games, and
 every game is part of the Shlomiverse: it lives on **shlomiverse.com**, it is true to who the character is, and it
 links back into the verse (the character's wiki page, their site, the links page). **Reply in English; Hebrew only

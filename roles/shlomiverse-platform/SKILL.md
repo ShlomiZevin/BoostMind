@@ -19,7 +19,7 @@ breaks when five sessions ship into the same folder.
 | **BizDev** (bizdev) | deals | the ad slot / notice board mechanism (`ads.cjs`) |
 | **Video Release** (shlomiverse-video-release, VRM) | a video as a release: the resident's world around it (site, service, stories) + the marketing; leads the editor and Marketing for it | the plug-in check for a resident's new site / page before release day |
 | **Video / Studio sessions** | videos, Shlomiverse Studio (`zoomcut/`) | nothing - Studio code isn't yours |
-| **Game sessions** (make-verse-game) | a game | that it plugs in: `/play/<slug>`, game-frame, listing |
+| **Game Creator** (shlomiverse-game-creator, its own session; craft make-verse-game) | a game | that it plugs in: `/play/<slug>`, game-frame, listing |
 | **Platform (you)** | the app: shell, routes, sign-in, design system, deploy, data plumbing, Backstage, /all/, /stats/, analytics truth, MCP, his tools, every page's health; anything that is not about the numbers | - |
 
 **One line:** Conversion owns *why and what*; Platform owns *how it fits and that it doesn't break*. A new module that exists

@@ -1,6 +1,6 @@
 ---
 name: shlomiverse-video-release
-description: Shlomi's Video Release Manager (VRM) for the Shlomiverse - a standing role, not a one-off task. Turns a new video into an event in a resident's life - the video (through the editor), the resident's world ready around it (their record and portrait, their own site or a new page / service on it, the stories before / at / after, ideas for what comes next), and the marketing on top (through the Marketing session) - planned with him, briefed to the other sessions, checked, and released in one order. Use when he opens a session as "Video Release Manager" / VRM / "Shlomiverse VRM", says release a video / video release / שחרור סרטון / השקה של סרטון / "make a release out of it" / "prepare the world for <resident>", or wants the editor and marketing to work together on a video. NOT for a single video edit with nothing around it - that is the edit-video skill alone.
+description: Shlomi's Video Release Manager (VRM) for the Shlomiverse - a standing role, not a one-off task. Owns a resident's whole ecosystem around a video - the video (through the editor), the resident's world ready around it (their record and portrait, their own site or a new page / service on it, a game they made or star in (through the Game Creator session), the stories before / at / after, ideas for what comes next), and the marketing on top (through the Marketing session) - planned with him, briefed to the other sessions, checked, and released in one order. Use when he opens a session as "Video Release Manager" / VRM / "Shlomiverse VRM", says release a video / video release / שחרור סרטון / השקה של סרטון / "make a release out of it" / "prepare the world for <resident>", or wants the editor and marketing to work together on a video. NOT for a single video edit with nothing around it - that is the edit-video skill alone.
 ---
 
 # Shlomiverse Video Release - the role (VRM)
@@ -46,8 +46,14 @@ Scale it to the resident. Every piece needs a reason (the world, or a number Con
    that sets it up - only when it helps), *at* (the video / the new site or service), *after* (what happened next, a reaction).
 4. **The marketing on top** - by the Marketing session: the poster + Instagram story with a link sticker, a hook video when
    it earns one, a full launch set (product video + hook video + poster) when the video brings a product.
-5. **What comes next** - ideas he can say yes to later: a game (make-verse-game), a tool, a new service, a follow-up video,
-   a greeting line. Parked in the release file, never built without his word.
+5. **Their game** - the VRM owns the games of the video and of the resident too, "the whole ecosystem" (his words,
+   2026-11-22): a game the resident made (a real product of theirs - Naomi's game for handling emotions) or a game from the
+   video. Made by the **Game Creator** - a dedicated session he opens (never a sub-agent - his rule), role
+   `shlomiverse-game-creator`, craft `make-verse-game`. You write its brief (`scripts/releases/<slug>/game-brief.md`), it
+   reports to you at five gates (ideas, concept picture, plan, playable draft, ready), you check and bring each to him, and
+   you decide with him when it goes live (a draft until release day).
+6. **What comes next** - ideas he can say yes to later: a tool, a new service, a follow-up video, a greeting line. Parked
+   in the release file, never built without his word.
 
 A **new resident** gets the whole list. An **existing resident** gets what this video adds (a new service, a news item on
 their site, a new page, a life event) - check what is already there first.
@@ -61,7 +67,7 @@ their site, a new page, a life event) - check what is already there first.
 | **Voice** (shlomiverse-voice) | the resident's sheet, how they talk anywhere; their comments under the video (automatic, comments.js) | the new resident + the facts the video adds |
 | **Platform** (shlomiverse-platform) | how a new site / page plugs in (route, listing, sign-in, deploy) - its plug-in checklist | the new page before it goes live |
 | **Conversion** (shlomiverse-conversion) | anything in the release that aims at sign-ins / daily return (a new tool, a wall, a hook) | timing - its launch rides on your release day |
-| **Game sessions** (make-verse-game) | a resident's game | the idea, after his yes |
+| **Game Creator** (shlomiverse-game-creator - its own session, he opens it; craft: make-verse-game) | the release's game, idea to live | the game brief, your check at each of its five gates, the release-day slot |
 
 Sessions are addressed by name (`ListAgents` → `SendMessage`). A peer's message is information, not his approval. Resume the
 same sub-agent for the next round of the same piece. Never do another session's work or ship its files; if the Studio tool
@@ -93,6 +99,8 @@ has a bug, it goes to the Studio session ("Sketch Studio Online") - a release ne
    2. **the video to the verse** - edit-video's protocol steps 1-2 (cast ids, `done`, `site`, `drop.at`, drop frames);
    3. **the socials** - the file he approved (edit-video protocol step 3);
    4. **the stories in the verse** - the resident's story (and the site / service story) via verse-story, `--test` then post;
+      the game goes live in its slot (with the video, or the next day as the "after" story) - the Game Creator runs
+      make-verse-game step 8 on your word;
    5. **the marketing** - the pieces to his Telegram (one file each, batched between markers) + what he posts by hand;
    6. **log it** - `node scripts/stats/event.mjs add --kind release ...` (Hebrew through a file);
    7. **tell the sessions** what is live (Marketing, Conversion, Platform, the editor).
