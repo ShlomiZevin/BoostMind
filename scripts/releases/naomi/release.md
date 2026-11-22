@@ -13,6 +13,10 @@ Book launch, podcast "המחוג שבלב – הפודקאסט הרגשי", radi
 "Unfiltered – המחוג שבלייב", a Techy-Tech lecture (2025-04-27). Look: black bob wig, glasses, blue-white zebra blouse, face
 filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a heart.
 
+## Episodes (his call 2026-11-22)
+- **Ep 1 (this video): she is a GUEST on someone else's podcast**, sitting with the host (off-frame left). Set = a guest podcast studio (options: zoomcut/episodes/_assets/naomi/guest/). Not her own clinic, not her own podcast logo on screen; her name band stays.
+- **Ep 2 (next): her clinic**, talking to the camera / her audience - the clinic rooms already made (private/studio-options.jpg, A/B/C).
+
 ## The video        a NEW editor (sub-agent) - project `naomi-1` ready for the takes (studio, logo, name band, end card -> /dr-naomi)
 - His calls 2026-11-22: only the TAIL of the host's question is heard, straight into her "נכון" (we make the host's voice); keep "אוטיזם תעסוקתי"; no music bed for now.
 - Drop proposal (needs his word): right after "אחרי שבועיים הבחור שלח לה מיוזמתו הודעה:"
