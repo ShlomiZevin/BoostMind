@@ -12,6 +12,7 @@ const SRC = fs.readFileSync(path.join(__dirname, '../../firestore.rules'), 'utf8
 const D = '/databases/(default)/documents/';
 const ADMINS = /in \[([^\]]+)\]/.exec(SRC)[1].split(',').map((s) => s.trim().replace(/'/g, ''));
 
+const NOW = new Date().toISOString();
 const anon = null;
 const fan = { uid: 'fanUid123', token: { email: 'fan@example.com', email_verified: true } };
 const owner = { uid: 'ownerAuthUid', token: { email: ADMINS[0], email_verified: true } };
@@ -19,7 +20,7 @@ const admin2 = { uid: 'admin2Uid', token: { email: ADMINS[1], email_verified: tr
 const fakeOwner = { uid: 'x', token: { email: ADMINS[0], email_verified: false } };
 
 const order = { orderNum: 'GP-1', name: 'Test', phone: '000', city: 'c', street: 's', notes: '', items: [{ id: 's1', qty: 1 }],
-  subtotal: 80, shipping: 35, total: 115, hasPhysical: true, status: 'new', source: 'yotamverse', email: 'fan@example.com', uid: 'fanUid123' };
+  subtotal: 80, shipping: 35, total: 115, hasPhysical: true, status: 'new', source: 'yotamverse', email: 'fan@example.com', uid: 'fanUid123', createdAt: { __ts: true } };
 const ev = { type: 'home_view', ts: 1795305600000, visitor: 'v_1', session: 's_1', path: '/wholos/', referrer: null, ua: 'iPhone Safari' };
 
 const C = [
@@ -58,10 +59,16 @@ const C = [
   ['order read anon', anon, 'list', 'gp-orders/o1', order, null, 'DENY'],
   ['order read fan', fan, 'get', 'gp-orders/o1', order, null, 'DENY'],
   ['order read owner', owner, 'list', 'gp-orders/o1', order, null, 'ALLOW'],
-  ['order create anon', anon, 'create', 'gp-orders/o1', null, order, 'ALLOW'],
-  ['order create paid', anon, 'create', 'gp-orders/o1', null, { ...order, status: 'paid' }, 'DENY'],
-  ['order create extra field', anon, 'create', 'gp-orders/o1', null, { ...order, admin: true }, 'DENY'],
-  ['order create huge notes', anon, 'create', 'gp-orders/o1', null, { ...order, notes: 'x'.repeat(3000) }, 'DENY'],
+  ['order create own', fan, 'create', 'gp-orders/o1', null, order, 'ALLOW'],
+  ['order create anon', anon, 'create', 'gp-orders/o1', null, order, 'DENY'],
+  ['order create for another uid', fan, 'create', 'gp-orders/o1', null, { ...order, uid: 'otherUid456' }, 'DENY'],
+  ['order create no uid', fan, 'create', 'gp-orders/o1', null, (({ uid, ...o }) => o)(order), 'DENY'],
+  ['order create paid', fan, 'create', 'gp-orders/o1', null, { ...order, status: 'paid' }, 'DENY'],
+  ['order create extra field', fan, 'create', 'gp-orders/o1', null, { ...order, admin: true }, 'DENY'],
+  ['order create huge notes', fan, 'create', 'gp-orders/o1', null, { ...order, notes: 'x'.repeat(3000) }, 'DENY'],
+  ['order create backdated', fan, 'create', 'gp-orders/o1', null, { ...order, createdAt: 5 }, 'DENY'],
+  ['order update own', fan, 'update', 'gp-orders/o1', order, { ...order, status: 'done' }, 'DENY'],
+  ['order read own', fan, 'get', 'gp-orders/o1', order, null, 'DENY'],
   ['order update anon', anon, 'update', 'gp-orders/o1', order, { ...order, status: 'done' }, 'DENY'],
   ['order delete anon', anon, 'delete', 'gp-orders/o1', order, null, 'DENY'],
   ['products read', anon, 'list', 'gp-products/p1', {}, null, 'ALLOW'],
@@ -110,9 +117,9 @@ const C = [
 ];
 
 const testCases = C.map(([, who, method, p, res, data, expectation]) => {
-  const request = { method, path: D + p, time: new Date().toISOString() };
+  const request = { method, path: D + p, time: NOW };
   if (who) request.auth = who;
-  if (data) request.resource = { data };
+  if (data) request.resource = { data: JSON.parse(JSON.stringify(data), (k, v) => (v && v.__ts ? NOW : v)) };
   const t = { expectation, request, pathEncoding: 'PLAIN',
     // no trainee has a coach in these cases (isCoachOf -> exists() false)
     functionMocks: [{ function: 'exists', args: [{ anyValue: {} }], result: { value: false } }] };

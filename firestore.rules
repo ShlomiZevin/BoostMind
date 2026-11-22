@@ -65,16 +65,23 @@ service cloud.firestore {
     }
     match /gp-orders/{docId} {
       allow read, update, delete: if isShlomi();
-      allow create: if request.resource.data.keys().hasOnly(['orderNum', 'name', 'phone', 'city', 'street', 'notes', 'items',
+      // a signed-in account places its own order: uid = the signer, fixed fields, sizes (the shop page writes through
+      // SiteSignIn's signed-in app); no client updates or deletes except the admin page above
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['orderNum', 'name', 'phone', 'city', 'street', 'notes', 'items',
                          'subtotal', 'shipping', 'total', 'hasPhysical', 'status', 'source', 'email', 'uid', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
         && request.resource.data.status == 'new'
+        && request.resource.data.source == 'yotamverse'
+        && request.resource.data.total is number && request.resource.data.total >= 0 && request.resource.data.total < 100000
+        && (!('orderNum' in request.resource.data) || (request.resource.data.orderNum is string && request.resource.data.orderNum.size() <= 30))
         && request.resource.data.name is string && request.resource.data.name.size() <= 120
         && request.resource.data.phone is string && request.resource.data.phone.size() <= 40
         && (!('city' in request.resource.data) || (request.resource.data.city is string && request.resource.data.city.size() <= 120))
         && (!('street' in request.resource.data) || (request.resource.data.street is string && request.resource.data.street.size() <= 200))
         && (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 2000))
-        && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 200))
-        && (!('uid' in request.resource.data) || (request.resource.data.uid is string && request.resource.data.uid.size() <= 128))
+        && request.resource.data.email is string && request.resource.data.email.size() <= 200
         && request.resource.data.items is list && request.resource.data.items.size() <= 40;
     }
 

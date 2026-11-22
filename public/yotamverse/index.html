@@ -1428,11 +1428,14 @@ async function submitOrder(){
     status: 'new',
     source: 'yotamverse',
     email: who.email, uid: who.uid,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   try{
-    await db.collection('gp-orders').add(order);
+    // the order is written by the signed-in account (firestore.rules: gp-orders create needs uid == the signer) - through
+    // the same Firebase app SiteSignIn signed in (its 12.4.0 SDK), not this page's anonymous compat one
+    const { getApps } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js');
+    const FS = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+    await FS.addDoc(FS.collection(FS.getFirestore(getApps()[0]), 'gp-orders'), Object.assign({}, order, { createdAt: FS.serverTimestamp() }));
     lastOrder = order;
     cart = [];
     saveCart(); renderCartCount();
