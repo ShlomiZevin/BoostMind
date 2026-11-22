@@ -9,6 +9,7 @@ const nodemailer = require('nodemailer');
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 const mailer = require('./mailer');   // the automatic reply from the site's character (mailer.js)
+const guard = require('./guard');     // limits across instances (22.11: a script sent the CV form from 5 fresh accounts)
 
 if (!admin.apps.length) admin.initializeApp();
 const GMAIL_USER = defineSecret('GMAIL_USER');
@@ -26,7 +27,7 @@ const SITE_NAMES = { 'dr-naomi': 'ד״ר נעמי־ציפורה', ksa: 'KSA GROU
 async function signedIn(req) {
   const m = (req.get('authorization') || '').match(/^Bearer (.+)$/);
   if (!m) return null;
-  try { const t = await admin.auth().verifyIdToken(m[1]); return t.email ? t : null; } catch { return null; }
+  try { const t = await admin.auth().verifyIdToken(m[1], true); return t.email ? t : null; } catch { return null; }   // true = a blocked / revoked account is refused at once
 }
 async function keepUser(u, site) {
   const ref = admin.firestore().collection('siteUsers').doc(u.uid);
@@ -97,6 +98,14 @@ exports.techietechApply = onRequest({
   const u = await signedIn(req);
   if (!u) return res.status(401).json({ error: 'sign_in' });
   if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
+  // across every instance: an account sends at most 3 CVs a day, an address (IPv6 /64) 3 an hour and 6 a day,
+  // and the whole form 40 a day - a script with fresh accounts stops at the address, a flood at the day's total
+  const where = guard.ip(req);
+  if (await guard.limit(`apply:uid:${u.uid}`, 3, guard.DAY) || await guard.limit(`apply:ip:${where}`, 3, guard.HOUR)
+    || await guard.limit(`apply:ipday:${where}`, 6, guard.DAY) || await guard.limit('apply:all:day', 40, guard.DAY)) {
+    console.warn('apply refused (limit)', u.uid, where);
+    return res.status(429).json({ error: 'too_many' });
+  }
   let form;
   try { form = await parse(req); } catch { return res.status(400).json({ error: 'bad_form' }); }
   const { fields: f, file, tooBig } = form;
@@ -105,7 +114,9 @@ exports.techietechApply = onRequest({
   f.name = f.name || u.name || '';
   if (!f.name) return res.status(400).json({ error: 'details' });
   if (tooBig) return res.status(400).json({ error: 'file_size' });
-  if (!file || !file.data.length || !OK_FILE.test(file.name)) return res.status(400).json({ error: 'file_type' });
+  if (!file || !file.data.length || !OK_FILE.test(file.name) || !guard.fileOk(file.data, ['pdf', 'docx', 'doc'])) return res.status(400).json({ error: 'file_type' });
+  file.name = guard.fileName(file.name, 'cv');   // no shell / HTML characters in what reaches the mail (22.11: "cv.$(id).pdf")
+  f.name = guard.text(f.name, 80); f.phone = guard.text(f.phone, 30); f.message = guard.text(f.message, 3000, true);
 
   const position = (f.position || 'פנייה כללית').slice(0, 120);
   if (await sentJustNow(u, 'techietech', [f.message, `קורות חיים: ${file.name} (במייל)`].filter(Boolean).join('\n\n'))) return res.json({ ok: true, again: true });
@@ -169,6 +180,14 @@ exports.siteLead = onRequest({
   const u = await signedIn(req);
   if (!u) return res.status(401).json({ error: 'sign_in' });
   if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
+  // across every instance: an account sends at most 3 CVs a day, an address (IPv6 /64) 3 an hour and 6 a day,
+  // and the whole form 40 a day - a script with fresh accounts stops at the address, a flood at the day's total
+  const where = guard.ip(req);
+  if (await guard.limit(`apply:uid:${u.uid}`, 3, guard.DAY) || await guard.limit(`apply:ip:${where}`, 3, guard.HOUR)
+    || await guard.limit(`apply:ipday:${where}`, 6, guard.DAY) || await guard.limit('apply:all:day', 40, guard.DAY)) {
+    console.warn('apply refused (limit)', u.uid, where);
+    return res.status(429).json({ error: 'too_many' });
+  }
   let form;
   try { form = await parse(req); } catch { return res.status(400).json({ error: 'bad_form' }); }
   const f = form.fields;

@@ -52,7 +52,15 @@ async function limit(key, n, ms) {
 }
 
 // the caller's address (Cloud Functions / Run put the client first in x-forwarded-for)
-const ip = (req) => String((req.get && req.get('x-forwarded-for')) || req.ip || '').split(',')[0].trim() || 'unknown';
+// An IPv6 address counts by its /64 - one home / phone line gets a whole /64 and a script can rotate inside it (22.11 it did).
+function ip(req) {
+  const a = String((req.get && req.get('x-forwarded-for')) || req.ip || '').split(',')[0].trim().replace(/^::ffff:/, '');
+  if (!a) return 'unknown';
+  if (!a.includes(':')) return a;
+  const [head, tail] = a.split('::'), h = head ? head.split(':') : [], t = tail != null && tail ? tail.split(':') : [];
+  const full = tail != null ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
+  return full.slice(0, 4).map((x) => (parseInt(x, 16) || 0).toString(16)).join(':') + '::/64';
+}
 
 // a line of text from a visitor: a string, trimmed, no control characters (newlines kept only when multiline), at most max chars
 function text(v, max = 200, multiline = false) {
