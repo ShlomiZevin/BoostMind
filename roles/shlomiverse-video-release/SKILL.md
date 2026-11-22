@@ -188,5 +188,9 @@ behind / ahead / uncommitted - deploy from a clean worktree of `origin/main` if 
   versions (`scripts/releases/naomi/logo/out/G-*`). He chose by "the most parody" = the one that looks most like the real
   thing (a doula brand: mother + newborn in a heart). → Logos, posters, backdrops: the image model designs; code only cuts,
   lays exact Hebrew, and places.
+- 2026-11-22 · Sessions on his other computer can't see `scripts/releases/<slug>/private/`, portraits or a resident site's
+  `img/` (all git-ignored - public repo). Put the release's private files in `gs://shlomiverse-private/releases/<slug>/`
+  and write the restore commands into the brief; hosting deploys only from a computer that has the site's `img/` (else the
+  photos leave the live site) - release-day deploys go through the VRM.
 - 2026-11-22 · Sets follow the episode, not the resident: a guest on someone's podcast = THEIR studio (not her logo); her own
   room (clinic) is for the episodes where she talks to camera. Ask "where is she and with whom" before building a set.
