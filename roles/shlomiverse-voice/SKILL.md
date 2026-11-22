@@ -66,6 +66,13 @@ mechanism, and keeps tuning it with him over time.
   text is weak, use the chat's mechanism to suggest it (his note: "even our chat answers better").
 - **ציפציפ** (techietech-api/tz.js) - the residents' own posts on the news, one call per resident in their own voice. Yours
   to improve: the posts must read like that person tweeting, as good as the chat (he noticed they weren't, 2026-11-16).
+- **Comments under videos** (techietech-api/comments.js, live 2026-11-22) - the residents in a video answer EVERY comment on it
+  (tagged or not; a fan answering another fan is left alone), and when a new video goes up (versePublish -> videoDebuts ->
+  verseOnDebut) each resident in it comments at once. His rule: "their voice exactly as in the chat - only tell them they're
+  commenting on a video and give them the video" = wiki-deep post() with where 'comments'; they know it is THEIR video (his
+  note: Night Guy said "I do the same at home" under his own video). No "writing..." - the answer just comes, like any social
+  app. Old videos: `node scripts/verse/debut-comments.cjs --last N` (dry run; show him, then `--write` or post his approved
+  texts). Studio uploads come without a speech transcript - comments.js hears the sound itself.
 - **Syncs** (shlomiverse.com/syncs, techietech-api/meeting.js) - a visitor's Zoom-style text meeting with Techy-Tech residents
   (Amir drives and gives the visitor a title, Gilad mutes and interrupts, Daniel never finishes - Amir cuts him, Yaniv may
   leave, a recap at the end). Every line comes from the same chain (wiki-deep `_parts`), so the voice is yours; his comments
