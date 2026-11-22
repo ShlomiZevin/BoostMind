@@ -1190,7 +1190,8 @@ const badges = () => ({
   // plans waiting for his OK that he hasn't opened in their latest version - reading one clears it (his ask, 2026-11-07)
   // = exactly the "מחכה לך" list (his note 2026-11-08: the tab said 3, the list 2 - a replaced plan he never opened was counted)
   plans: (PL.plans || []).filter((p) => !planOld(p)).length,
-  chars: crBadge(),   // characters with something new for him since he last opened them (a session's answer, a changed field)
+  // דמויות: no number on the menu (his ask 2026-11-22: "annoying - I know they are there, I update them from time to time");
+  // what changed still shows inside the tab (עודכן מאז שראית)
 });
 const PHONE = [['overview', 'סקירה', 'home'], ['chats', 'שיחות', 'comment'], ['plans', 'תוכניות', 'plan'], ['people', 'אנשים', 'people'], ['more', 'עוד', 'more']];
 const IN_MORE = ['chars', 'requests', 'ideas', 'content', 'videos', 'publish', 'mail', 'tz', 'costs'];
