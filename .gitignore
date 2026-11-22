@@ -127,3 +127,6 @@ zoomcut/scripts/greet-*.txt
 
 # release workshops: unreleased scripts and private notes stay local (public repo)
 scripts/releases/*/private/
+
+# Dr. Naomi-Tzipora site: her face (his) - deployed from this computer, never in git
+public/dr-naomi/img/

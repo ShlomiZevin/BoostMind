@@ -83,7 +83,7 @@ const EVENTS = new Set([
   'meeting',       // Syncs (/syncs, v2/site/syncs/app.js)          x = start:<who,who> | say | hand | nudge | out | replay | again | back | demo-again | share | reshare
                    // (+ 'meeting|ended', counted by the server itself - meeting-fn.js - when a visitor's meeting ends)
 ]);
-const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'yaniv-games', 'sagi-games', 'asaf-games', 'yotam-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'tziftzif', 'charadot', 'osnat-games', 'rosenblum-games', 'lola-games', 'techytech-games', 'night-guy-games', 'demokratovich-games', 'ksa', 'syncs', 'other']);
+const SITES = new Set(['links', 'wiki', 'avi-balloons', 'ayelet', 'demokratovich', 'hindsight', 'dorit', 'ofnat-hani', 'shefa-ad', 'birkat-hashefa', 'friedman', 'hani-games', 'yaniv-games', 'sagi-games', 'asaf-games', 'yotam-games', 'homo-useless', 'techytech', 'yotamverse', 'micro-comedy', 'shlomi-zevin', 'tziftzif', 'charadot', 'osnat-games', 'rosenblum-games', 'lola-games', 'techytech-games', 'night-guy-games', 'demokratovich-games', 'ksa', 'dr-naomi', 'syncs', 'other']);
 const SOURCES = new Set(['mail', 'tiktok', 'instagram', 'facebook', 'youtube', 'x', 'google', 'whatsapp', 'internal', 'direct', 'other']);
 const ORIGINS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
 

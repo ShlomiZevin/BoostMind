@@ -21,7 +21,7 @@ const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(w
 // Sending anything from a Shlomiverse site needs a Google account (his rule, 2026-11-01: he wants the email of everyone
 // who plays with his sites). The page signs in with the Shlomiverse's Firebase Auth (public/verse/site-signin.js) and
 // sends its ID token; the person is kept in siteUsers and the request in `requests` - both show in /backstage/.
-const SITE_NAMES = { ksa: 'KSA GROUP', archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
+const SITE_NAMES = { 'dr-naomi': 'ד״ר נעמי־ציפורה', ksa: 'KSA GROUP', archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
   'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE' };
 async function signedIn(req) {
   const m = (req.get('authorization') || '').match(/^Bearer (.+)$/);
@@ -145,6 +145,7 @@ exports.techietechApply = onRequest({
 //   /hindsight/  - joining a membership plan (HINDSIGHT VIP)
 //   /demokratovich/ - a question for the rabbi's Q&A, or a donation pledge (Kehilat Shaarei Bagatz)
 //   /neve-tidhar/ - a message to the school office (המקיף נווה תדהר - Rosenblum's and Esther's school)
+//   /dr-naomi/   - Dr. Naomi-Tzipora's clinic: a first meeting, the organisations program, a lecture, a signed book, DoulaSense AI's waitlist
 const SITES = {
   ayelet: { from: 'איילת השחר - האתר', subject: (f) => `איילת השחר | בקשה ל${f.choice || 'טיפול'} · ${f.name}`, choice: 'טיפול', page: '/ayelet/' },
   hindsight: { from: 'HINDSIGHT VIP', subject: (f) => `HINDSIGHT VIP | הצטרפות ל-${f.choice || 'קבוצה'} · ${f.name}`, choice: 'מסלול', page: '/hindsight/' },
@@ -153,6 +154,7 @@ const SITES = {
   'ofnat-hani': { from: 'אופנת חני - האתר', subject: (f) => `אופנת חני | הזמנה לאיסוף: ${f.choice || 'פריט'} · ${f.name}`, choice: 'פריט', page: '/ofnat-hani/' },
   'avi-balloons': { from: 'אבי בלונים ואירועים - האתר', subject: (f) => `אבי בלונים | הצעת מחיר: ${f.choice || 'חבילה'} · ${f.name}`, choice: 'חבילה', page: '/avi-balloons/' },
   ksa: { from: 'KSA GROUP - האתר', subject: (f) => `KSA GROUP | ${f.choice || 'פנייה'} · ${f.name}`, choice: 'נושא', page: '/ksa/' },
+  'dr-naomi': { from: 'ד״ר נעמי־ציפורה - המחוג שבלב', subject: (f) => `ד״ר נעמי־ציפורה | ${f.choice || 'פנייה'} · ${f.name}`, choice: 'מה מביא אותך', page: '/dr-naomi/' },
   'neve-tidhar': { from: 'המקיף נווה תדהר - המזכירות', subject: (f) => `המקיף נווה תדהר | פנייה למזכירות: ${f.choice || 'פנייה'} · ${f.name}`, choice: 'נושא', page: '/neve-tidhar/' },
 };
 exports.siteLead = onRequest({

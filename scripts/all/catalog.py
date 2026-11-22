@@ -28,7 +28,7 @@ GROUPS = [
 FOLDER = {
     'links': 'verse', 'wiki': 'verse', 'archive': 'verse', 'tziftzif': 'verse', 'charadot': 'verse', 'stats': 'verse', 'backstage': 'verse', 'verse-owner': 'verse', 'all': 'tools', 'mind': 'tools', 'piko': 'tools', 'garden': 'tools', 'micro-comedy': 'verse', 'shlomi-zevin': 'verse',
     'ayelet': 'characters', 'demokratovich': 'characters', 'hindsight': 'characters', 'homo-useless': 'characters',
-    'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters', 'neve-tidhar': 'characters', 'ksa': 'characters',
+    'yotamverse': 'characters', 'techietech': 'characters', 'dorit': 'characters', 'ofnat-hani': 'characters', 'avi-balloons': 'characters', 'neve-tidhar': 'characters', 'ksa': 'characters', 'dr-naomi': 'characters',
     'friedman': 'characters', 'birkat-hashefa': 'characters', 'shefa-ad': 'characters', 'syncs': 'verse', 'greeting': 'verse',
     'studio': 'tools', 'shoot': 'tools', 'drop': 'tools',
     'sketch-studio': 'tools', 'karaoke': 'tools', 'sticker-lab': 'tools', 'storyboard': 'tools', 'noam-leads': 'tools',
