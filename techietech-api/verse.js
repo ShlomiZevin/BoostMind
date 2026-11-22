@@ -1134,7 +1134,7 @@ async function igPost(ig) {
 async function wishToMind(ig, uid, note) {
   const { addItem, updateItem } = require('./mind')._mind;
   const [w, fan, post] = await Promise.all([db.collection('wishes').doc(ig).get().then((d) => d.data() || {}), db.collection('fans').doc(uid).get().then((d) => d.data() || {}), igPost(ig)]);
-  const who = fan.nick || 'תושב/ת', cap = oneLine(String(post?.cap || '').replace(/#[\p{L}\p{N}_]+/gu, ''), 70);
+  const who = (typeof fan.nick === 'string' && fan.nick.trim()) || 'תושב/ת', cap = oneLine(String(post?.cap || '').replace(/#[\p{L}\p{N}_]+/gu, ''), 70);
   const day = post?.d ? post.d.split('-').reverse().map(Number).join('.') : '';
   const text = `בקשה מהארכיון: ${cap || 'פוסט ' + (day || ig)}${w.n > 1 ? ` (${w.n} ביקשו)` : ''}`;
   const body = [`${(w.n || 1) === 1 ? 'תושב אחד ביקש' : `${w.n} תושבים ביקשו`} להביא את הפוסט${day ? ` מ-${day}` : ''} לשלומיוורס.`, post?.p ? `הפוסט: https://www.instagram.com/reel/${post.p}/` : (w.permalink ? `הפוסט: ${w.permalink}` : ''),
