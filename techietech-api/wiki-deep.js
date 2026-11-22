@@ -102,14 +102,19 @@ Real problems: never advice that could hurt (health, medication, money, law, saf
 // (scripts/characters/sheet.mjs), so a video published after it was missing from their memory (his note 2026-11-16: Hani
 // didn't know her father fell into a pit - haredit-6, published the day after her sheet). Each video: what happens in it
 // (life's event, or the card a publish writes) + its words - a transcript can be only the on-screen text (haredit-6's is).
+// A video they have no event of their own for (their sheet came before it): what the others in it remember of it - one
+// video, one truth for everyone in it (his note 2026-11-22: Perel's event says her Tehillim went missing in haredit-6, Hani's
+// page predates the video, so Hani "didn't know" - the card alone doesn't say it).
 const MAX_SCRIPTS = 150000;
 function scriptsOf(cur, c) {
   const ev = Object.fromEntries((c.life || []).map((x) => [x.v, x.e]));
+  const theirs = (v) => (v.cast || []).filter((id) => id !== c.id && cur.byId[id])
+    .map((id) => (cur.byId[id].life || []).find((x) => x.v === v.id)).filter(Boolean).map((x) => x.e).join(' ');
   const vids = (c.videos || []).map((id) => cur.videos[id]).filter(Boolean)
     .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
   let left = MAX_SCRIPTS;
   const parts = vids.slice().reverse().map((v) => {
-    const what = ev[v.id] || String(v.card || v.teaser || '').split(/\s*נושאים:/)[0].trim();
+    const what = ev[v.id] || theirs(v) || String(v.card || v.teaser || '').split(/\s*נושאים:/)[0].trim();
     const head = `### ${v.id} | ${v.date || ''} | ${v.title}${what ? `\n(${what})` : ''}`;
     const t = String(v.transcript || '').trim();
     if (!t || t.length > left) return head;
