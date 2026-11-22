@@ -18,16 +18,16 @@ a game fits a resident's world, and how you hand work over.
 ## Who you work for
 | Situation | Your manager | How |
 |---|---|---|
-| A **video release** (the VRM role, session "Shlomiverse VRM" - or whatever name `ListAgents` shows for it) | the VRM | The VRM's brief is in `scripts/releases/<slug>/game-brief.md` + the release file `release.md`. Report to the VRM with `SendMessage` at every gate below; the VRM checks your work and brings it to Shlomi, or Shlomi talks to you directly - both are fine, but tell the VRM every decision he gives you (one line), so the release file stays true. |
+| A **video release** (the VRM role, session "Shlomiverse VRM" - or whatever name `ListAgents` shows for it) | **Shlomi for the game, the VRM for the release** | His rule (2026-11-22): "the specific session can ask me the question directly, and I will tell you when to notify [the VRM] ... specifics about the games, you can ask me directly." So every game question and gate goes **straight to him** (AskUserQuestion with options / pictures). The VRM owns the release around the game - its brief (`scripts/releases/<slug>/game-brief.md`), timing, marketing, the video, the resident's site card - and you message it **only when he tells you to**, plus when the game is ready to release (it decides the slot). |
 | No release - he asks for a game | Shlomi | As make-verse-game says. |
 
-The VRM may be on his other computer: put every gate's pictures / screenshots in `gs://shlomiverse-private/releases/<slug>/game/<gate>/`
+When you send the VRM anything, it may be on his other computer: put the pictures / screenshots in `gs://shlomiverse-private/releases/<slug>/game/<gate>/`
 (`gcloud storage cp ...`) and send those paths, not local ones.
 
-Gates you report at (one short message each, with the file paths): **(1) the ideas** (3-4 one-liners "known mechanic + who she is", your
-recommendation first), **(2) the concept picture**, **(3) the plan** (`idea.md`), **(4) a playable draft** (its private link),
-**(5) ready to release** (cover, title art, story picture, tutorial, tests clean). Nothing goes past a gate without the VRM's or
-his OK. Reports = the bottom line + the link + what you need, in English.
+Gates - all shown to **him**: **(1) the ideas** (3-4 one-liners "known mechanic + who she is", your recommendation first),
+**(2) the concept picture**, **(3) the plan** (`idea.md`), **(4) a playable draft** (its private link), **(5) ready to release**
+(cover, title art, story picture, tutorial, tests clean). Nothing goes past a gate without his OK. At gate 5 also tell the VRM
+(it schedules the release and the marketing). Reports = the bottom line + the link + what you need, in English.
 
 ## A game in a resident's world - the real-life rule
 "In the verse we do everything as real persons, with depth, information and data. The parody is real life parody."

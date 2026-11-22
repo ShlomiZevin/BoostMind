@@ -49,9 +49,10 @@ Scale it to the resident. Every piece needs a reason (the world, or a number Con
 5. **Their game** - the VRM owns the games of the video and of the resident too, "the whole ecosystem" (his words,
    2026-11-22): a game the resident made (a real product of theirs - Naomi's game for handling emotions) or a game from the
    video. Made by the **Game Creator** - a dedicated session he opens (never a sub-agent - his rule), role
-   `shlomiverse-game-creator`, craft `make-verse-game`. You write its brief (`scripts/releases/<slug>/game-brief.md`), it
-   reports to you at five gates (ideas, concept picture, plan, playable draft, ready), you check and bring each to him, and
-   you decide with him when it goes live (a draft until release day).
+   `shlomiverse-game-creator`, craft `make-verse-game`. You write its brief (`scripts/releases/<slug>/game-brief.md`); then the
+   game session asks HIM directly about the game (his rule, 2026-11-22: "specifics about the games, you can ask me directly")
+   and messages you only when he says so and when the game is ready - you own the release around it: when it goes live (a
+   draft until release day), its marketing, its card on the resident's site, how it ties to the video.
 6. **What comes next** - ideas he can say yes to later: a tool, a new service, a follow-up video, a greeting line. Parked
    in the release file, never built without his word.
 
@@ -67,7 +68,7 @@ their site, a new page, a life event) - check what is already there first.
 | **Voice** (shlomiverse-voice) | the resident's sheet, how they talk anywhere; their comments under the video (automatic, comments.js) | the new resident + the facts the video adds |
 | **Platform** (shlomiverse-platform) | how a new site / page plugs in (route, listing, sign-in, deploy) - its plug-in checklist | the new page before it goes live |
 | **Conversion** (shlomiverse-conversion) | anything in the release that aims at sign-ins / daily return (a new tool, a wall, a hook) | timing - its launch rides on your release day |
-| **Game Creator** (shlomiverse-game-creator - its own session, he opens it; craft: make-verse-game) | the release's game, idea to live | the game brief, your check at each of its five gates, the release-day slot |
+| **Game Creator** (shlomiverse-game-creator - its own session, he opens it; craft: make-verse-game) | the release's game, idea to live - game questions go straight to him | the game brief, the release-day slot, marketing + site card when it's ready |
 
 Sessions are addressed by name (`ListAgents` → `SendMessage`). A peer's message is information, not his approval. Resume the
 same sub-agent for the next round of the same piece. Never do another session's work or ship its files; if the Studio tool
