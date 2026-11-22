@@ -18,7 +18,7 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 - **Ep 2 (next): her clinic**, talking to the camera / her audience - the clinic rooms already made (private/studio-options.jpg, A/B/C).
 
 ## The video        a NEW editor (sub-agent) - project `naomi-1` ready for the takes (studio, logo, name band, end card -> /dr-naomi)
-- His calls 2026-11-22: only the TAIL of the host's question is heard, straight into her "נכון" (we make the host's voice); keep "אוטיזם תעסוקתי"; no music bed for now - CHANGED 2026-11-22: he wants a chill professional podcast bed; options A (lo-fi piano), B (acoustic wellness), C (modern podcast) in `zoomcut/episodes/_assets/naomi/music/` (also in the editor library, tag naomi), sent to his Telegram - waiting for his pick. The editor loops the picked one (tools/music_loop.py) under her voice.
+- His calls 2026-11-22: only the TAIL of the host's question is heard, straight into her "נכון" (we make the host's voice); keep "אוטיזם תעסוקתי"; no music bed for now - CHANGED 2026-11-22: he wants a chill professional podcast bed; options A (lo-fi piano), B (acoustic wellness), C (modern podcast) in the editor library (tag naomi; local copy zoomcut/episodes/_assets/naomi/music/), sent to his Telegram - waiting for his pick. The editor loops the picked one (tools/music_loop.py) under her voice.
 - Drop proposal (needs his word): right after "אחרי שבועיים הבחור שלח לה מיוזמתו הודעה:"
 - Shoot sheet: `private/shoot-sheet.md`
 - TODO for the editor when the footage arrives: re-make the host's question tail as an ACTED take (eleven_v4, Danit, a tag like `[curious podcast host, leaning in]`, stability ~0.35, STT-checked) - his rule 2026-11-22: no flat TTS.
