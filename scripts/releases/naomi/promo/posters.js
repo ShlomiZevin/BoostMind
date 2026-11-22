@@ -22,14 +22,14 @@ const head = `<html><head><meta charset="utf-8">
 .abs{position:absolute}.c{position:absolute;left:0;right:0;display:flex;justify-content:center}
 .rtl{direction:rtl}
 .pill{display:inline-block;border-radius:999px;font:800 40px/1 Heebo;padding:18px 46px}
-.mark{display:inline;background:${BUR};color:#fff;font:900 78px/1.32 Heebo;padding:2px 26px;-webkit-box-decoration-break:clone;box-decoration-break:clone;border-radius:14px}
+.mark{display:inline-block;background:${BUR};color:#fff;font:900 78px/1.2 Heebo;padding:8px 28px 12px;border-radius:14px}
 </style></head><body>`;
 const foot = `</body></html>`;
 
 // the name band - the same look as her lower third in the video (orange band, white strip under it)
-const band = (top) => `<div class="c rtl" style="top:${top}px;flex-direction:column;align-items:center">
-  <div style="background:${ORANGE};color:#fff;font:800 47px/1 Heebo;padding:20px 30px 22px;white-space:nowrap;box-shadow:0 14px 30px rgba(60,20,10,.28)">${C.name}</div>
-  <div style="background:#fff;color:${ORANGE};font:800 34px/1 Heebo;padding:12px 26px 14px;white-space:nowrap">${C.titles}</div></div>`;
+const band = (top) => `<div class="c rtl" style="top:${top}px;flex-direction:column;align-items:center;gap:12px">
+  <div style="background:${ORANGE};color:#fff;font:800 47px/1.25 Heebo;padding:16px 30px 18px;white-space:nowrap;box-shadow:0 14px 30px rgba(60,20,10,.28)">${C.name}</div>
+  <div style="background:#fff;color:${ORANGE};font:800 34px/1.3 Heebo;padding:10px 26px 12px;white-space:nowrap">${C.titles}</div></div>`;
 
 // ---------- 1. the video ----------
 function videoIG() {
@@ -40,12 +40,12 @@ function videoIG() {
   <div class="abs" style="left:0;top:0;width:1080px;height:470px;background:linear-gradient(${CREAM} 60%,${CREAM}00)"></div>
   <div class="abs rtl" style="right:56px;top:262px;max-width:640px">
     <div style="background:#fff;border-radius:30px 30px 6px 30px;padding:18px 28px 14px;box-shadow:0 12px 34px rgba(80,40,30,.22)">
-      <div style="font:700 26px/1 Heebo;color:${ORANGE};margin-bottom:10px">${V.bubbleFrom}</div>
-      <div style="display:flex;align-items:flex-end;gap:20px"><span style="font:600 44px/1.15 Heebo;color:#1d1416;white-space:nowrap">${V.bubble}</span>
+      <div style="font:700 26px/1.4 Heebo;color:${ORANGE};margin-bottom:8px">${V.bubbleFrom}</div>
+      <div style="display:flex;align-items:flex-end;gap:20px"><span style="font:600 44px/1.25 Heebo;color:#1d1416;white-space:nowrap">${V.bubble}</span>
       <span style="font:500 22px/1 Heebo;color:#8d8285;direction:ltr">${V.bubbleTime} ✓✓</span></div></div></div>
-  <div class="c rtl" style="top:440px;text-align:center"><div style="width:1000px"><span class="mark">${V.h1}</span><br><span class="mark" style="background:${ORANGE}">${V.h2}</span></div></div>
-  ${band(1150)}
-  <div class="abs rtl" style="top:1318px;right:112px"><span class="pill" style="background:${BUR};color:#fff;box-shadow:0 12px 30px rgba(60,10,20,.35)">${C.now}</span></div>
+  <div class="c rtl" style="top:430px"><div style="display:flex;flex-direction:column;align-items:center;gap:20px"><span class="mark">${V.h1}</span><span class="mark" style="background:${ORANGE}">${V.h2}</span></div></div>
+  ${band(1132)}
+  <div class="abs rtl" style="top:1350px;right:112px"><span class="pill" style="background:${BUR};color:#fff;box-shadow:0 12px 30px rgba(60,10,20,.35)">${C.now}</span></div>
   ` + foot;
 }
 function videoVerse() {   // the clean picture: the photo full-bleed, no words
@@ -79,9 +79,8 @@ function siteIG() {
   return head + siteArt() + `
   <div class="c rtl" style="top:262px;flex-direction:column;align-items:center;text-align:center">
     <span class="pill" style="background:${BUR};color:#fff;font-size:32px;padding:13px 36px">${S.tag}</span>
-    <div style="font:900 104px/1.05 'Frank Ruhl Libre';color:${BUR};margin-top:16px;white-space:nowrap">${S.h}</div>
-    <div style="font:500 38px/1.2 Heebo;color:#4a2a2f;margin-top:14px;white-space:nowrap">${S.sub}</div>
-    <div style="font:700 34px/1 Heebo;color:${BUR2};margin-top:14px;direction:ltr;letter-spacing:.5px">${C.url}</div>
+    <div style="font:900 96px/1.15 'Frank Ruhl Libre';color:${BUR};margin-top:16px;white-space:nowrap">${S.h}</div>
+    <div style="font:500 38px/1.4 Heebo;color:#4a2a2f;margin-top:14px;white-space:nowrap">${S.sub}</div>  <!-- no URL line: the link sticker is the link -->
   </div>
   ` + foot;
 }
@@ -95,40 +94,40 @@ function bookIG() {
   <div class="abs" style="left:0;top:0;width:1080px;height:640px;background:linear-gradient(rgba(90,20,30,.28),rgba(90,20,30,0))"></div>
   <div class="c rtl" style="top:262px;flex-direction:column;align-items:center;text-align:center">
     <span class="pill" style="background:#fff;color:${BUR};font-size:32px;padding:13px 36px;box-shadow:0 8px 24px rgba(80,20,20,.25)">${B.tag}</span>
-    <div style="font:900 92px/1.05 'Frank Ruhl Libre';color:#fff;margin-top:18px;white-space:nowrap;text-shadow:0 6px 30px rgba(90,20,20,.55)">${B.h}</div>
+    <div style="font:900 92px/1.15 'Frank Ruhl Libre';color:#fff;margin-top:20px;white-space:nowrap;text-shadow:0 6px 30px rgba(90,20,20,.55)">${B.h}</div>
   </div>
   <img class="abs" src="${art('book-3d-noflip.png')}" style="left:40px;top:372px;width:1020px;height:1020px">
   <div class="abs rtl" style="left:70px;top:540px;width:214px;height:214px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f6d58d,#c9932f 70%,#a8741f);box-shadow:0 10px 26px rgba(60,30,0,.4),inset 0 0 0 6px rgba(255,255,255,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-10deg);color:#5a2a06;text-align:center">
-    <div style="font:700 30px/1.05 Heebo">${B.seal1}</div><div style="font:900 34px/1.05 Heebo">${B.seal2}</div><div style="font:900 44px/1.05 'Frank Ruhl Libre'">${B.seal3}</div></div>
+    <div style="font:700 28px/1.25 Heebo">${B.seal1}</div><div style="font:900 32px/1.25 Heebo">${B.seal2}</div><div style="font:900 42px/1.2 'Frank Ruhl Libre'">${B.seal3}</div></div>
   <div class="c rtl" style="top:1284px;flex-direction:column;align-items:center;text-align:center">
-    <div style="background:${BUR};color:#fff;font:800 42px/1 Heebo;padding:18px 40px;border-radius:16px;white-space:nowrap;box-shadow:0 12px 30px rgba(60,10,20,.35)">${B.cta1}</div>
-    <div style="font:600 33px/1.2 Heebo;color:#fff;margin-top:14px;white-space:nowrap;text-shadow:0 3px 14px rgba(60,20,10,.85)">${B.cta2}</div>
+    <div style="background:${BUR};color:#fff;font:800 42px/1.25 Heebo;padding:14px 40px 16px;border-radius:16px;white-space:nowrap;box-shadow:0 12px 30px rgba(60,10,20,.35)">${B.cta1}</div>
+    <div style="font:600 33px/1.4 Heebo;color:#fff;margin-top:18px;white-space:nowrap;text-shadow:0 3px 14px rgba(60,20,10,.85)">${B.cta2}</div>
   </div>` + foot;
 }
 
 // ---------- 4. the organisations program ----------
 function orgIG() {
   const O = C.org, bg = art('org.png');
-  const card = (t, s) => `<div style="background:rgba(255,255,255,.93);border-right:10px solid ${BUR};border-radius:18px;padding:22px 26px;box-shadow:0 10px 28px rgba(40,20,30,.18)">
-    <div style="font:800 40px/1.1 Heebo;color:${BUR}">${t}</div><div style="font:500 30px/1.2 Heebo;color:#3a2a2d;margin-top:6px">${s}</div></div>`;
+  const card = (t, s) => `<div style="background:rgba(255,255,255,.93);border-right:10px solid ${BUR};border-radius:18px;padding:20px 26px 22px;box-shadow:0 10px 28px rgba(40,20,30,.18)">
+    <div style="font:800 40px/1.2 Heebo;color:${BUR}">${t}</div><div style="font:500 30px/1.4 Heebo;color:#3a2a2d;margin-top:8px">${s}</div></div>`;
   return head + `
   <div class="abs" style="left:-60px;top:-60px;width:1200px;height:2040px;background:url(${bg}) center/cover;filter:blur(30px) brightness(1.08)"></div>
   <div class="abs" style="left:0;top:300px;width:1080px;height:1620px;background:url(${bg}) center/cover;-webkit-mask-image:linear-gradient(transparent 0,#000 160px)"></div>
   <div class="abs" style="left:0;top:0;width:1080px;height:560px;background:linear-gradient(#fbf7f3 55%,rgba(251,247,243,0))"></div>
   <div class="c rtl" style="top:262px;flex-direction:column;align-items:center;text-align:center">
     <span class="pill" style="background:${BUR};color:#fff;font-size:30px;padding:12px 34px">${O.tag}</span>
-    <div style="font:400 98px/1.05 'Secular One';color:${BUR};margin-top:14px;white-space:nowrap">${O.h}</div>
-    <div style="font:500 36px/1.2 Heebo;color:#3a2a2d;margin-top:8px;white-space:nowrap">${O.sub}</div>
+    <div style="font:400 98px/1.15 'Secular One';color:${BUR};margin-top:16px;white-space:nowrap">${O.h}</div>
+    <div style="font:500 36px/1.4 Heebo;color:#3a2a2d;margin-top:12px;white-space:nowrap">${O.sub}</div>
   </div>
-  <div class="abs rtl" style="left:44px;top:600px;width:520px;display:flex;flex-direction:column;gap:18px">
+  <div class="abs rtl" style="left:44px;top:600px;width:520px;display:flex;flex-direction:column;gap:20px">
     ${card(O.t1, O.t1s)}${card(O.t2, O.t2s)}
-    <div style="display:flex;gap:12px;flex-wrap:wrap">${O.facts.split(' · ').map((f) => `<span style="font:700 27px/1 Heebo;color:#fff;background:rgba(70,14,30,.86);border-radius:12px;padding:13px 18px">${f}</span>`).join('')}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">${O.facts.split(' · ').map((f) => `<span style="font:700 27px/1.3 Heebo;color:#fff;background:rgba(70,14,30,.86);border-radius:12px;padding:10px 18px 12px">${f}</span>`).join('')}</div>
   </div>
-  <div class="c rtl" style="top:1262px"><div style="width:980px;background:rgba(255,255,255,.95);border-radius:22px;padding:22px 32px;box-shadow:0 12px 30px rgba(40,20,30,.22);display:flex;align-items:center;gap:26px">
+  <div class="c rtl" style="top:1236px"><div style="width:980px;background:rgba(255,255,255,.95);border-radius:22px;padding:22px 32px;box-shadow:0 12px 30px rgba(40,20,30,.22);display:flex;align-items:center;gap:26px">
     ${mark ? `<img src="${mark}" style="height:118px;flex:none">` : ''}
-    <div><div style="font:700 28px/1 Heebo;color:${ORANGE}">${O.qk}</div>
-    <div style="font:700 40px/1.2 'Frank Ruhl Libre';color:#21161a;margin-top:8px">${O.q}</div>
-    <div style="font:500 24px/1 Heebo;color:#6d5d60;margin-top:8px">${O.qs}</div></div></div></div>
+    <div><div style="font:700 28px/1.4 Heebo;color:${ORANGE}">${O.qk}</div>
+    <div style="font:700 40px/1.3 'Frank Ruhl Libre';color:#21161a;margin-top:8px">${O.q}</div>
+    <div style="font:500 24px/1.4 Heebo;color:#6d5d60;margin-top:10px">${O.qs}</div></div></div></div>
   ` + foot;
 }
 
