@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#5A1430">
+<meta name="robots" content="noindex">
+<title>השהיית תגובה – ד״ר נעמי־ציפורה</title>
+<meta name="description" content="השהיית תגובה – האפליקציה למנהלים מתוך התוכנית ״מאונבורדינג לבונדינג״ של ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך. החליקו על ההודעות שלא צריכות להישלח, ותנו לעובד החדש לקבל את מה שבונה התקשרות.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="he_IL">
+<meta property="og:title" content="השהיית תגובה – ד״ר נעמי־ציפורה">
+<meta property="og:description" content="כל פעם שעולה הדחף לשלוח ״מה הסטטוס?״ – קודם כול לעצור. האפליקציה למנהלים מבית המחוג שבלב.">
+<meta property="og:url" content="https://shlomiverse.com/naomi-games/pause/">
+<meta property="og:image" content="https://shlomiverse.com/naomi-games/pause/assets/face/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="/t.js" data-site="naomi-games" defer></script>
+<script src="/verse/game-frame.js"></script>
+<style>
+:root{
+  --wine:#5A1430; --burg:#7A1F3D; --rose:#C0566B; --coral:#E07F6E; --peach:#F2A98C; --apricot:#F7CDB8; --cream:#FDF6F2;
+  --gold:#F5B942; --ink:#2E1A20; --mint:#5fd3a0;
+  --safe-t:calc(env(safe-area-inset-top,0px) + var(--verse-top,0px)); --safe-b:calc(env(safe-area-inset-bottom,0px) + var(--verse-bottom,0px));
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;touch-action:none}
+body{background:#3a0d20}
+[hidden]{display:none!important}
+button{font-family:inherit;border:0;cursor:pointer}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+html:not(.in-verse) .verse-only{display:none!important}html.in-verse .verse-hide{display:none!important}
+
+/* HUD - one slim row over the top edge */
+#hud{position:fixed;top:calc(var(--safe-t) + 6px);left:50%;transform:translateX(-50%);width:calc(var(--colw,100vw) - 12px);display:none;align-items:center;gap:6px;z-index:3;direction:rtl}
+#hud.on{display:flex}
+.hbox{height:40px;border-radius:14px;background:linear-gradient(#fffaf7f2,#fbe6dcf2);box-shadow:0 3px 0 #c98f86,0 6px 14px #5a143033;display:flex;align-items:center;gap:6px;padding:0 10px;flex:none;font-weight:900;color:var(--wine)}
+#brandBox{padding:0 8px 0 10px;gap:6px}
+#brandBox img{width:30px;height:30px;object-fit:contain}
+#brandBox span{font-size:13px;line-height:1.02;font-weight:900}
+#dayBox{font-size:15px}
+#scoreBox{flex:1;justify-content:center;font-size:21px;background:linear-gradient(#8a2347,#5A1430);color:#fff;box-shadow:0 3px 0 #3a0d20,0 6px 14px #5a143055;direction:ltr}
+#comboBox{font-size:13px;line-height:1;flex-direction:column;justify-content:center;gap:1px;padding:0 9px;background:linear-gradient(#ffd36b,#f0a32e);color:#5a1430;box-shadow:0 3px 0 #b5701a;opacity:.35;transition:opacity .2s,transform .2s}
+#comboBox b{font-size:18px;direction:ltr}
+#comboBox.on{opacity:1}
+#comboBox.bump{transform:scale(1.18)}
+body.narrow #brandBox span,body.narrow #comboBox span{display:none}body.narrow #comboBox{padding:0 8px}body.narrow #hud{gap:4px}body.narrow .hbox{padding:0 7px}body.narrow #dayBox{font-size:13px}
+.ibtn{width:40px;height:40px;border-radius:14px;background:linear-gradient(#fffaf7f2,#fbe6dcf2);box-shadow:0 3px 0 #c98f86;display:grid;place-items:center;flex:none}
+.ibtn svg{width:20px;height:20px;fill:var(--wine)}
+
+/* her coaching strip - the bottom edge */
+#strip{position:fixed;left:50%;transform:translateX(-50%);width:calc(var(--colw,100vw) - 12px);bottom:calc(var(--safe-b) + 6px);display:none;align-items:center;gap:8px;z-index:3;pointer-events:none;background:linear-gradient(#fffaf7f0,#fbe6dcf0);border-radius:18px;padding:5px 12px 5px 6px;min-height:56px;box-shadow:0 4px 16px #5a143044;direction:rtl}
+#strip.on{display:flex}
+#strip img{width:46px;height:46px;border-radius:50%;object-fit:cover;object-position:50% 12%;flex:none;border:3px solid var(--rose);background:#fff}
+#say{flex:1;color:var(--wine);font-size:15px;font-weight:700;line-height:1.3;transition:opacity .2s}
+#say.loud{color:#b3123b;font-weight:900}
+#strikes{display:flex;gap:4px;flex:none;direction:rtl}
+#strikes i{width:12px;height:12px;border-radius:50%;background:#e8c9c0;box-shadow:inset 0 1px 2px #0002}
+#strikes i.on{background:#e0263f;box-shadow:0 0 8px #e0263f}
+
+/* screens */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(var(--safe-t) + 14px) 14px calc(var(--safe-b) + 14px);z-index:9;text-align:center;direction:rtl}
+.screen.on{display:flex}
+.btn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:Rubik,system-ui,sans-serif;font-weight:900;text-align:center;line-height:1.05;transition:transform .12s;text-decoration:none}
+.btn:active{transform:scale(.95)}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.btn.main{width:min(78vw,340px,46vh);aspect-ratio:640/197;background:url(assets/ui/play.webp) center/100% 100% no-repeat;font-size:clamp(24px,4.4vh,34px);color:#fff;text-shadow:0 2px 0 #7a0f2e,0 3px 10px #4a0a1f88;padding-bottom:calc(min(78vw,340px,46vh) * .055);filter:drop-shadow(0 8px 16px #4a0a1f66)}
+.btn.main.breathe{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.05)}}
+.btn.sec{white-space:nowrap;width:max(146px,min(44vw,190px,30vh));aspect-ratio:420/119;background:url(assets/ui/mid.webp) center/100% 100% no-repeat;font-size:clamp(13px,2.2vh,17px);color:var(--wine);padding:0 8% 8px;filter:drop-shadow(0 5px 10px #4a0a1f44)}
+.btn.sec img{width:clamp(22px,3.6vh,28px);height:auto;flex:none}
+
+/* start screen - design B: the key art is the screen, the buttons are chat bubbles from the game */
+#start{justify-content:space-between;gap:6px;padding:calc(var(--safe-t) + 6px) 12px calc(var(--safe-b) + 12px);background:url(assets/face/key.jpg) center 40%/cover no-repeat,#3a0d20}
+#start::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 55%,#3a0d20aa 75%,#2a0815ee);pointer-events:none}
+@media (min-aspect-ratio:4/5){#start{background:url(assets/face/key.jpg) center top/auto 100% no-repeat,radial-gradient(ellipse at 50% 40%,#7a1f3d,#2a0815 70%)}}
+#start>*{position:relative;z-index:1}
+.st-top{display:flex;flex-direction:column;align-items:center;gap:2px}
+.st-maker{display:flex;align-items:center;gap:6px;background:#fffaf7d9;border-radius:999px;padding:3px 12px 3px 8px;color:var(--wine);font-weight:700;font-size:clamp(11px,1.8vh,13px);box-shadow:0 2px 8px #5a143033}
+.st-maker img{height:clamp(22px,3.6vh,30px)}
+.st-title{width:min(72vw,340px,36vh);filter:drop-shadow(0 6px 14px #5a143066)}
+.st-bottom{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.8vh,16px);width:100%}
+.st-row{display:flex;gap:clamp(8px,3vw,16px);justify-content:center}
+.rec{position:relative;width:min(56vw,250px,36vh);aspect-ratio:480/122;background:url(assets/ui/rec.webp) center/100% 100% no-repeat;color:#5a1430;font-weight:900;filter:drop-shadow(0 5px 10px #4a0a1f55)}
+.rec span{position:absolute;left:6%;right:24%;top:4%;bottom:22%;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;font-size:clamp(12px,2vh,15px)}
+.rec b{font-size:1.3em;direction:ltr}
+.sndBtn{all:unset;box-sizing:border-box;position:absolute!important;top:calc(var(--safe-t) + 8px);left:10px;z-index:2;width:clamp(44px,7vh,54px);aspect-ratio:1;background:url(assets/ui/snd.webp) center/100% 100% no-repeat;cursor:pointer;filter:drop-shadow(0 3px 6px #4a0a1f55)}
+.sndBtn.off{filter:grayscale(.85) brightness(.85)}
+.sndBtn.off::after{content:'';position:absolute;left:20%;right:20%;top:46%;height:9%;background:#e0263f;border-radius:4px;transform:rotate(-40deg);box-shadow:0 0 0 2px #fff}
+
+/* panels (pause, day card, end report) */
+.screen.kit{background:radial-gradient(ellipse at 50% 40%,#5a143099,#2a0815ee 75%)}
+.panel{position:relative;width:min(94vw,420px);max-height:100%;background:linear-gradient(#fffaf7,#fbe9e1);border-radius:26px;border:3px solid #ffd36b;box-shadow:0 0 0 6px #7a1f3d,0 18px 40px #000a;padding:clamp(30px,5vh,40px) clamp(12px,4vw,20px) clamp(14px,2.5vh,20px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,14px);color:var(--ink)}
+.plaque{position:absolute;top:-24px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:8px 26px;border-radius:999px;font-size:clamp(22px,4vh,30px);font-weight:900;color:#fff;background:linear-gradient(#e23f63,#8a1838);box-shadow:0 4px 0 #4a0a1f,0 0 0 3px #ffd36b;text-shadow:0 2px 0 #4a0a1f}
+.plaque.win{background:linear-gradient(#ffd36b,#e89a1c);color:#5a1430;text-shadow:0 1px 0 #fff6}
+.plaque.lose{background:linear-gradient(#5b5b66,#2f2f38);box-shadow:0 4px 0 #111,0 0 0 3px #bbb}
+.panel>*{flex-shrink:0}
+.panel{transform-origin:50% 50%}
+body.short #strip{min-height:44px;padding:3px 10px 3px 4px}
+body.short #strip img{width:36px;height:36px;border-width:2px}
+body.short #say{font-size:13px;line-height:1.2}
+.p-quote{display:flex;align-items:center;gap:10px;text-align:right;align-self:stretch}
+.p-quote img{width:58px;height:58px;border-radius:50%;object-fit:cover;object-position:50% 10%;border:3px solid var(--rose);flex:none;background:#fff}
+.p-quote p{margin:0;font-size:clamp(14px,2.3vh,17px);font-weight:700;line-height:1.35;color:var(--wine)}
+.report{align-self:stretch;background:#fff;border-radius:18px;box-shadow:inset 0 0 0 2px #f0d3c8;padding:10px 8px 6px}
+.report h3{margin:0 0 6px;font-size:13px;font-weight:900;color:#fff;background:var(--burg);display:inline-block;padding:3px 14px;border-radius:999px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px}
+.stat b{font-size:clamp(22px,4vh,30px);font-weight:900;color:var(--wine);line-height:1;direction:ltr}
+.stat small{font-size:11px;font-weight:700;color:#7a5560;line-height:1.15}
+.stat+.stat{border-inline-start:1px solid #f0d3c8}
+.task{margin-top:6px;font-size:13px;font-weight:700;color:#6e585e;background:#f8eee9;border-radius:10px;padding:5px 8px}
+.msgcard{align-self:stretch;display:flex;align-items:center;gap:10px;background:linear-gradient(#fff7da,#ffe7a3);border-radius:16px;padding:8px 10px;box-shadow:0 3px 0 #e2b04a;position:relative;text-align:right}
+.msgcard img{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:50% 15%;background:#fff;flex:none}
+.msgcard p{margin:0;flex:1;font-size:clamp(14px,2.3vh,16px);font-weight:900;color:#5a1430;line-height:1.3}
+.badge{flex:none;font-size:11px;font-weight:900;color:#5a1430;background:radial-gradient(#ffe48a,#f0a32e);border-radius:50%;width:64px;height:64px;display:grid;place-items:center;text-align:center;line-height:1.1;box-shadow:0 0 0 3px #fff,0 3px 8px #0003;padding:4px}
+.p-score{font-size:clamp(38px,7vh,54px);font-weight:900;color:var(--burg);line-height:1;direction:ltr}
+.p-score small{display:block;font-size:13px;color:#7a5560;font-weight:700;margin-top:2px;direction:rtl}
+.newrec{font-size:15px;font-weight:900;color:#fff;background:#1f9d62;padding:3px 14px;border-radius:12px}
+.p-best{margin:0;font-size:14px;font-weight:700;color:#7a5560}
+.p-best b{color:var(--burg);direction:ltr;display:inline-block}
+.p-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.end-row{flex-wrap:nowrap;align-items:center;gap:8px}
+.end-row .btn.main{width:min(46vw,200px);font-size:clamp(20px,3.4vh,26px)}
+.end-row .btn.sec{width:min(34vw,150px);min-width:112px;height:48px;aspect-ratio:auto}
+.daybig{font-size:clamp(48px,10vh,76px);font-weight:900;color:var(--burg);line-height:1;margin:0}
+.p-goal{margin:0;font-size:clamp(15px,2.6vh,19px);font-weight:900;color:var(--wine)}
+.p-sub{margin:0;font-size:clamp(13px,2.2vh,16px);font-weight:700;color:#7a5560}
+@media (max-height:600px){.p-quote img{width:44px;height:44px}.msgcard img{display:none}}
+@media (max-height:520px){.report h3{display:none}}
+@media (max-height:460px){#goldCard,#overQuote{display:none!important}.p-score{font-size:34px}}
+
+/* tutorial */
+#tutDim{position:fixed;inset:0;display:none;pointer-events:none;z-index:7}
+#tutDim.on{display:block}
+#tutHole{position:absolute;border-radius:20px;box-shadow:0 0 0 200vmax #2a0815a8;border:3px solid #ffd36b;transition:all .3s}
+#tutCard{position:fixed;left:50%;transform:translateX(-50%);width:min(96vw,460px);display:none;flex-direction:column;gap:6px;background:linear-gradient(#fffaf7,#fbe9e1);border-radius:20px;padding:10px 14px 8px;box-shadow:0 0 0 3px #ffd36b,0 0 0 6px #7a1f3d,0 10px 26px #000a;z-index:8;direction:rtl}
+#tutCard.on{display:flex}
+#tutHead{display:flex;align-items:center;gap:10px}
+#tutHead img{width:46px;height:46px;border-radius:50%;object-fit:cover;object-position:50% 10%;border:3px solid var(--rose);flex:none;background:#fff}
+#tutText{flex:1;font-size:16px;font-weight:700;line-height:1.35;color:var(--wine);text-align:right}
+#tutText b{color:#b3123b}
+#tutText .ok{color:#1f9d62}
+#tutBar{height:6px;background:#f0d3c8;border-radius:3px;overflow:hidden}
+#tutBar i{display:block;height:100%;background:linear-gradient(90deg,var(--rose),#ffb54a);width:0;transition:width .3s}
+#tutRow{display:flex;align-items:center;gap:8px}
+#tutCount{flex:1;font-size:13px;color:#7a5560;font-weight:700}
+#tutSkip{background:none;color:#7a5560;font-size:14px;font-weight:700;padding:8px}
+#tutNext{padding:10px 24px;border-radius:999px;font-size:17px;font-weight:900;color:#fff;background:linear-gradient(#e23f63,#a3173d);box-shadow:0 3px 0 #4a0a1f}
+#tutNext:disabled{background:#e3cfc8;color:#9c8088;box-shadow:none}
+.keyhint{font-size:11px;opacity:.75;font-weight:500}
+@media (hover:none){.keyhint{display:none}}
+
+#turn{display:none;position:fixed;inset:0;z-index:20;background:#3a0d20;color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:900;font-size:22px;text-align:center;padding:16px}
+#turn svg{width:64px;height:64px;animation:turn 1.6s ease-in-out infinite}
+@keyframes turn{50%{transform:rotate(-90deg)}}
+body.turn #turn{display:flex}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="hud">
+  <button class="ibtn" id="pauseBtn" aria-label="עצירה"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+  <div class="hbox" id="brandBox"><img src="/dr-naomi/brand/mark.webp" alt=""><span>השהיית<br>תגובה</span></div>
+  <div class="hbox" id="scoreBox">0</div>
+  <div class="hbox" id="dayBox">יום א׳</div>
+  <div class="hbox" id="comboBox"><span>רצף</span><b>x1</b></div>
+</div>
+
+<div id="strip"><img src="assets/face/naomi-coach.webp" alt=""><div id="say"></div><div id="strikes" aria-label="פסילות"><i></i><i></i><i></i></div></div>
+
+<div id="turn"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd36b" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>סובבו את הטלפון לאורך</div>
+
+<div class="screen on" id="start">
+  <button class="sndBtn" aria-label="צליל"></button>
+  <div class="st-top">
+    <div class="st-maker"><img src="/dr-naomi/brand/mark.webp" alt="">מבית ד״ר נעמי־ציפורה · המחוג שבלב</div>
+    <img class="st-title" src="assets/title.webp" alt="השהיית תגובה">
+  </div>
+  <div class="st-bottom">
+    <button class="btn main breathe" id="playBtn">שחקו</button>
+    <div class="st-row">
+      <button class="btn sec" id="howBtn">איך משחקים</button>
+      <a class="btn sec" href="/games" target="_top" data-verse-back aria-label="חזרה למשחקים"><img src="/verse/logo-512.png" alt="">חזרה למשחקים</a>
+    </div>
+    <div class="rec"><span id="bestStart"></span></div>
+  </div>
+</div>
+
+<div class="screen kit" id="over">
+  <div class="panel">
+    <div class="plaque win" id="overH">הצלחה אדירה!</div>
+    <div class="report">
+      <h3>דוח התקדמות שבועי</h3>
+      <div class="stats">
+        <div class="stat"><b id="rPaused">0</b><small>תגובות<br>הושהו</small></div>
+        <div class="stat"><b id="rStreak">0</b><small>רצף הכי<br>ארוך</small></div>
+        <div class="stat"><b id="rAnx">0</b><small>התקפי<br>חרדה</small></div>
+        <div class="stat"><b id="rHR">0</b><small>תלונות<br>למשאבי אנוש</small></div>
+      </div>
+      <div class="task">המשימה: עוד לא התחילה</div>
+    </div>
+    <div class="msgcard" id="goldCard"><img src="assets/emp-relieved.webp" alt=""><p>אני לא יודע איך להתחיל את המשימה.</p><div class="badge">הבעת קושי ראשונה!</div></div>
+    <div class="p-quote" id="overQuote"><img id="overFace" src="assets/face/naomi-heart.webp" alt=""><p id="overLine"></p></div>
+    <div class="p-score" id="overScore">0<small>נקודות</small></div>
+    <div id="overRec"></div>
+    <p class="p-best" id="bestOver"></p>
+    <div class="p-row end-row">
+      <button class="btn main" id="againBtn">עוד סבב</button>
+      <button class="btn sec" id="menuBtn">לתפריט</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen kit" id="paused">
+  <div class="panel">
+    <div class="plaque">עצרנו</div>
+    <div class="p-quote"><img src="assets/face/naomi-coach.webp" alt=""><p>עצירה זה טוב. זה בדיוק מה שאנחנו מתרגלים כאן.</p></div>
+    <button class="btn main" id="resumeBtn">ממשיכים</button>
+    <div class="p-row"><button class="btn sec" id="restartBtn">מתחילים מחדש</button><button class="btn sec" id="quitBtn">לתפריט</button></div>
+  </div>
+</div>
+
+<div id="tutDim"><div id="tutHole"></div></div>
+<div id="tutCard">
+  <div id="tutHead"><img src="assets/face/naomi-coach.webp" alt=""><div id="tutText"></div></div>
+  <div id="tutBar"><i></i></div>
+  <div id="tutRow">
+    <span id="tutCount"></span>
+    <button id="tutSkip">דלגו <span class="keyhint">(Esc)</span></button>
+    <button id="tutNext">הבא <span class="keyhint">(רווח)</span></button>
+  </div>
+</div>
+<script src="game.js?v=2"></script>
+</body>
+</html>

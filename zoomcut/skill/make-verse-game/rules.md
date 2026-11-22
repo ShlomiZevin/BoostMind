@@ -201,3 +201,6 @@ principles - apply them to whatever the game is.
   little 3D stand so it is grounded too.
 - **Delays in game logic run on the game's clock** (a `later(sec, fn)` list ticked in `step(dt)`), never `setTimeout` - they then
   pause with the game and bots can fast-forward whole rounds.
+
+- **A resident he plays = his face** (Naomi, 22 Nov 2026): every painting of that resident (poses, key art, cover, share, story) lives in a git-ignored `assets/face/` folder (+ cover.jpg) and in the private bucket, never in the public repo; the deploy comes from a computer that has them. Plan the folder from the first picture.
+- **Painted pieces with a glow cut badly** - ask for "crisp clean edges, no outer glow, no drop shadow, fully transparent around every piece", then cut by shape; a painted logo is never the real logo - lay the real logo file on the painted piece in code.

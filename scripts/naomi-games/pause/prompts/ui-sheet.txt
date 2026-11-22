@@ -1,0 +1,5 @@
+A sheet of blank menu pieces for a polished glossy 2026 mobile game, in the style of the glossy chat-bubble buttons in the reference. Each piece separate, far apart, with crisp clean edges, NO outer glow, NO drop shadow, NO background at all (fully transparent around every piece), NO text:
+1. a big wide glossy chat bubble in red-to-rose with a thin gold rim and a small tail at the bottom right (the main button), empty face
+2. a wide glossy cream chat bubble with a thin rose rim and a small tail at the bottom right (a secondary button), empty face
+3. a wide glossy golden chat bubble with a small trophy at its right end and a small tail (a record badge), the rest of the face empty
+4. a small round glossy cream button with a thin rose rim and a simple burgundy speaker icon

@@ -1,0 +1,12 @@
+{
+  "slug": "pause",
+  "title": "השהיית תגובה",
+  "tagline": "האפליקציה למנהלים של ד״ר נעמי־ציפורה: החליקו על כל ״מה הסטטוס?״ לפני שהוא נשלח, תנו לעובד החדש לקבל את מה שבונה התקשרות – ותעברו שבוע בלי מכתב התפטרות.",
+  "character": "naomi-tzipora",
+  "world": "המחוג שבלב",
+  "status": "draft",
+  "cover": "cover.jpg",
+  "best": { "key": "shlomiverse:pause:best", "label": "נקודות" },
+  "record": { "unit": "נקודות", "better": "high" },
+  "date": "2026-11-22"
+}

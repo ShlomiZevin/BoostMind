@@ -1,0 +1,8 @@
+A sheet of blank game pieces for a polished, glossy 2026 mobile game in a warm rose / coral / burgundy palette, each piece separate with clear empty space around it, on a transparent background, no text anywhere:
+- a wide rounded chat-message card in hot glossy red (an urgent message), empty face
+- the same card in warm cream with a soft golden glow (a kind message), empty face
+- the same card in plain glossy white with a light grey edge (a neutral chat bubble), empty face
+- the same card in shining gold with a little sparkle (a precious message), empty face
+- a round glowing soft-mint bubble with a subtle calm swirl inside (a "breath" power-up), empty
+- a semicircular gauge dial with coloured zones from green through yellow and orange to red, with a burgundy rim, WITHOUT a needle
+- a separate gauge needle with a round hub, dark burgundy, pointing up

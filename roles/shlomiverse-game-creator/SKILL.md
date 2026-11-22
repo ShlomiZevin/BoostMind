@@ -25,7 +25,7 @@ When you send the VRM anything, it may be on his other computer: put the picture
 (`gcloud storage cp ...`) and send those paths, not local ones.
 
 Gates - all shown to **him**: **(1) the ideas** (3-4 one-liners "known mechanic + who she is", your recommendation first),
-**(2) the concept picture**, **(3) the plan** (`idea.md`), **(4) a playable draft** (its private link), **(5) ready to release**
+**(2) the concept picture**, **(3) the plan** (`idea.md`), **(4) a playable draft** (on shlomiverse.com - see "Drafts live on the verse"), **(5) ready to release**
 (cover, title art, story picture, tutorial, tests clean). Nothing goes past a gate without his OK. At gate 5 also tell the VRM
 (it schedules the release and the marketing). Reports = the bottom line + the link + what you need, in English.
 
@@ -60,6 +60,16 @@ until the VRM's release day - then it goes live in the VRM's order (usually righ
 "after" story). The VRM, not you, posts stories and briefs marketing; you hand over the cover, title art, the story picture and
 2-3 Hebrew lines for them.
 
+## Drafts live on the verse - never a claude.ai link (his rule, 2026-11-22)
+"Draft should be on Shlomiverse, not on Claude ... I don't want ever someone gives me Claude URL. Every draft should be on the verse."
+- Every draft he plays is at its real address: `https://shlomiverse.com/<character>-games/<slug>/?solo=1` (`?solo=1` keeps
+  game-frame.js from forwarding to a /play page that doesn't exist yet). `game.json` says `"status": "draft"`, no game record,
+  no link anywhere - unlisted, only he gets the address. Never a claude.ai artifact, never a localhost link.
+- Getting it there: commit the game folder (faces stay git-ignored, in the private bucket), push, then a hosting deploy from a
+  computer that has EVERY git-ignored private folder (her site's `img/`, the other residents' faces) - a deploy from a computer
+  that lacks them wipes those photos off the live site. If this computer lacks them, ask the VRM's computer to deploy (it
+  restores the game's `assets/face/` from the bucket first) and send him the link once it's up.
+
 ## Working in the shared repo
 Its own session in `c:\workspace\BoostMind` (other sessions push all day): `git pull` first, commit only your own paths
 (`git commit -- <paths>`), `git pull --rebase --autostash` then push, never `git stash`. Faces (paintings from his portraits) stay
@@ -67,3 +77,13 @@ out of git. Deploy only through make-verse-game step 8, and only when the VRM / 
 
 ## Lessons (add one every time a game teaches the role something - date + what happened)
 - 2026-11-22 · Role created at his ask, first game: Naomi's (VRM release `naomi`) - see `scripts/releases/naomi/game-brief.md`.
+- 2026-11-22 · The VRM may sit on his other computer and can't open local paths: upload every gate's files to
+  `gs://shlomiverse-private/releases/<slug>/game/<gate>/` and send the gs:// paths. The craft skill is `make-verse-game`
+  (the only Shlomiverse game skill - load it right after this one, before the ideas).
+- 2026-11-22 · Draft 1 went out as a claude.ai artifact - he rejected it: drafts are ALWAYS on shlomiverse.com (section
+  above). Also: "it's not clear what you need to cut" - pieces with opposite meanings must differ in shape, colour AND icon,
+  and stay honest all game (no late "everything looks the same" phase); the challenge comes from speed and density.
+- 2026-11-22 · Sound effects and music can come from the libraries (Shlomiverse asset library, Plaxzy studio library,
+  other verse games' sfx) when ElevenLabs is out - his OK; level them (ffmpeg loudnorm) and list the sources in idea.md.
+- 2026-11-22 · Out of ElevenLabs credit mid-build: ask him (raise it / library sounds / wait), never borrow another
+  project's key; the game's sound loader stays silent on missing files so the real sounds drop in later.

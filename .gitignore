@@ -130,3 +130,10 @@ scripts/releases/*/private/
 
 # Dr. Naomi-Tzipora site: her face (his) - deployed from this computer, never in git
 public/dr-naomi/img/
+# Dr. Naomi-Tzipora's game (השהיית תגובה): paintings of her face (his) - in gs://shlomiverse-private/releases/naomi/game/, deployed by the VRM
+public/naomi-games/pause/assets/face/
+public/naomi-games/pause/cover.jpg
+scripts/naomi-games/pause/art/
+scripts/naomi-games/pause/concept/
+scripts/naomi-games/pause/menu/
+scripts/naomi-games/pause/shots/

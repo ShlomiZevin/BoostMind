@@ -1,0 +1,26 @@
+buzz1	0.6	a smartphone vibrating once on a desk, short buzz of an incoming chat message
+buzz2	0.6	a quick double phone vibration buzz, incoming message notification
+buzz3	0.6	a short soft phone buzz with a tiny notification blip
+whoosh1	0.4	a fast airy swipe whoosh, a finger slicing through the air, mobile game
+whoosh2	0.4	a quick sharp swish slice, mobile game swipe
+whoosh3	0.4	a light fast whoosh cut, mobile game finger swipe
+whoosh4	0.4	a short breathy swoosh, quick swipe in a mobile game
+pop1	0.7	a satisfying soft bubble pop followed by a gentle glassy chime, mobile game reward
+pop2	0.7	a juicy pop with a light sparkle chime, mobile game
+pop3	0.7	a soft cushioned pop and a tiny bell shimmer, calming mobile game
+warm1	1.0	a warm soft harp-like glow tone, gentle and comforting, a kind message arriving
+warm2	1.0	a soft warm chime swell, cosy and reassuring, mobile game
+hit1	0.7	a harsh notification ping followed by a dull thud, something stressful arrives
+hit2	0.7	a sharp unpleasant message alert with a low thump
+heart	1.0	a single deep human heartbeat, lub-dub, clean, close
+strike1	1.6	a tense dramatic sting, rising anxious strings stab, panic moment in a game
+strike2	1.6	an ominous official stamp thud with a dark low brass hit, a formal complaint filed
+strike3	2.0	a dramatic failure sting, a door slamming and a sad low brass, someone quits
+golden	2.2	a magical triumphant golden fanfare with sparkles and a choir-like shimmer, big bonus in a mobile game
+breath	1.6	a long calm slow-motion whoosh with a deep exhale and a soft reverb, time slowing down
+tick	0.5	a light clock tick and a soft bell, a new day begins in a game
+rush	1.6	a soft urgent alarm of many notification pings piling up, rush hour
+win	3.0	an uplifting celebration fanfare with confetti pops and cheering bells, level complete in a mobile game
+lose	1.6	a plain game over buzzer, short and clear
+tap1	0.3	a soft rounded UI button tap, mobile game
+tap2	0.3	a gentle clicky UI tap, mobile game
