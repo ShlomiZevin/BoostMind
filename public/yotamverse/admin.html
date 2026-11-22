@@ -92,8 +92,7 @@
 <div class="gate" id="gate">
   <h1>GEEK & PROMPTY</h1>
   <div class="sub">אזור ניהול</div>
-  <input type="password" id="gatePass" placeholder="סיסמה" autofocus>
-  <button class="primary" id="gateBtn" style="width:100%">כניסה</button>
+  <button class="primary" id="gateBtn" style="width:100%">כניסה עם Google</button>
 </div>
 
 <div class="wrap" id="app" style="display:none">
@@ -156,6 +155,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyB90ncysHNU-fqHfe9dEudVR2sweXQGM90",
@@ -188,20 +188,21 @@ let toastTimer;
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2400); }
 function esc(s){ return String(s||'').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
 
-/* ---------- gate ---------- */
-async function tryLogin(){
-  const v = $('gatePass').value;
-  try{
-    const ss = await db.collection('gp-shop').doc('settings').get();
-    if(ss.exists) settings = Object.assign({}, DEFAULT_SETTINGS, ss.data());
-  }catch(e){}
-  if(v === (settings.adminPass || DEFAULT_PASS)){
-    sessionStorage.setItem('gp-admin','1');
-    enter();
-  } else toast('סיסמה שגויה');
-}
-$('gateBtn').onclick = tryLogin;
-$('gatePass').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+/* ---------- gate ----------
+   Orders hold names, phones and addresses, so the database itself only lets the admin's Google account read or change
+   them (firestore.rules, security pass 22.11). The old password gate lived only in this page - anyone could skip it. */
+$('gateBtn').onclick = async () => {
+  try { await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+  catch(e){ if(e && e.code !== 'auth/popup-closed-by-user') toast('הכניסה לא הצליחה'); }
+};
+let entered = false;
+firebase.auth().onAuthStateChanged(async u => {
+  if(!u || entered) return;
+  try{ await db.collection('gp-orders').limit(1).get(); }
+  catch(e){ toast('לחשבון הזה אין גישה לניהול'); await firebase.auth().signOut(); return; }
+  entered = true;
+  enter();
+});
 
 async function enter(){
   $('gate').style.display = 'none';
@@ -215,7 +216,6 @@ async function enter(){
   watchOrders();
   loadProducts();
 }
-if(sessionStorage.getItem('gp-admin') === '1'){ enter(); }
 
 /* ---------- tabs ---------- */
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {

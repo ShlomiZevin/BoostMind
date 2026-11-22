@@ -1,155 +1,31 @@
 rules_version = '2';
+// boostmind-b052c's Firestore. Anything not matched below is closed to browsers (Firestore denies by default): requests,
+// siteUsers, downloads, guard, catalog*, greetings, greetingVoice, syncsCost, aiSpend, owner/*, meetings, chatNotes,
+// sheetEdits, scriptCraft, mailUsers... are written and read only by our functions (Admin SDK, rules don't apply).
+// Security pass 22.11 (after the scripted probe): anyone can get a signed-in token through the email-code sign-in, so
+// "signed in" proves nothing - private data is readable only by its owner, and nothing a browser writes can grant power.
+// Proven before deploy with the Rules API test endpoint: node scripts/security/rules-test.cjs
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /storyboards/{docId} {
-      allow read, write: if true;
-    }
-    // Helper: is the calling user the coach of this trainee?
-    // Reads the trainee's profile doc and checks coachUid. Used to grant coach
-    // read/write access to specific parts of a trainee's tree.
-    function isCoachOf(traineeId) {
+
+    // Shlomi's own Google account (verified).
+    function isShlomi() {
       return request.auth != null
-        && exists(/databases/$(database)/documents/users/$(traineeId)/profile/main)
-        && get(/databases/$(database)/documents/users/$(traineeId)/profile/main).data.coachUid == request.auth.uid;
+        && request.auth.token.email == 'shlomi@boostart.io'
+        && request.auth.token.email_verified == true;
+    }
+    // Wholos' hardcoded admins (wholos src/config/admins.ts ADMIN_EMAILS). The legacy Wholos at wholos.com still runs on
+    // this project until its cutover to wholos-app; its runtime `users_index.isAdmin` flag can no longer be self-granted.
+    function isWholosAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ['shlomi@boostart.io', 'sergiokatz78@gmail.com']
+        && request.auth.token.email_verified == true;
+    }
+    function changes(f) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([f]);
     }
 
-    // Each user reads/writes only their OWN tree. Owner (shlomi@boostart.io)
-    // sees everything for admin surfaces + the reports-admin page. Coaches
-    // read+write their trainees' trees too (chats excluded — separate rule
-    // below).
-    //
-    // Note: `request.auth.uid` is the raw Firebase Auth uid, while `userId` in
-    // the path is the app-level uid — for Shlomi they differ (EMAIL_TO_UID
-    // maps his Google account to legacy `user_6724`). The email exception
-    // keeps him working; every other user's raw uid equals their doc path.
-    match /users/{userId}/{document=**} {
-      allow read, write:
-        if request.auth != null
-           && (request.auth.uid == userId
-               || request.auth.token.email == 'shlomi@boostart.io'
-               || isCoachOf(userId));
-    }
-    // ─── Chat threads — coach CANNOT read ────────────────────────
-    // Trainees' chat history is private. A coach can guide, plan, and add
-    // meals/exercises but cannot see what the trainee talks to the AI about.
-    // Reads locked to owner + Shlomi. Writes stay open so the Cloud Run
-    // backend can persist assistant replies without service-account creds.
-    match /users/{userId}/chatThreads/{threadId} {
-      allow read:
-        if request.auth != null
-           && (request.auth.uid == userId
-               || request.auth.token.email == 'shlomi@boostart.io');
-      allow write: if true;
-    }
-    match /users/{userId}/chatThreads/{threadId}/messages/{msgId} {
-      allow read:
-        if request.auth != null
-           && (request.auth.uid == userId
-               || request.auth.token.email == 'shlomi@boostart.io');
-      allow write: if true;
-    }
-    // Server also writes to the applied-actions marker (which chat action was
-    // "approved") — coach can't peek either.
-    match /users/{userId}/appliedChatActions/{key} {
-      allow read:
-        if request.auth != null
-           && (request.auth.uid == userId
-               || request.auth.token.email == 'shlomi@boostart.io');
-      allow write: if true;
-    }
-    // Bug/feature reports. The desktop admin page + Claude sessions both hit
-    // this collection via unauthenticated REST — the URL is the secret,
-    // same as ai_usage / analytics_events. Open read+write so a session can
-    // read the open list and close entries without an auth token.
-    match /users/{userId}/reports/{reportId} {
-      allow read, write: if true;
-    }
-    match /gp-products/{docId} {
-      allow read, write: if true;
-    }
-    match /gp-orders/{docId} {
-      allow read, write: if true;
-    }
-    match /gp-shop/{docId} {
-      allow read, write: if true;
-    }
-    match /mundial/{docId} {
-      allow read, write: if true;
-    }
-    match /mundial-games/{docId} {
-      allow read, write: if true;
-    }
-    match /mundial-players/{docId} {
-      allow read, write: if true;
-    }
-    match /mundial-chat/{docId} {
-      allow read, write: if true;
-    }
-    match /mundial-hottakes/{docId} {
-      allow read, write: if true;
-    }
-    match /party-rsvp/{docId} {
-      allow read, write: if true;
-    }
-    match /defaultExercisePhotos/{docId} {
-      allow read, write: if true;
-    }
-    // Global exercise DB — shared across all users. Read-open; write also open
-    // for now (client-side gating restricts writes to the admin user). Once the
-    // Firebase Auth migration lands we tighten this to `request.auth.token.email == "shlomi@boostart.io"`.
-    match /exercises/{docId} {
-      allow read, write: if true;
-    }
-    // Auth alias: firebaseAuthUid → legacyUid. Written from Settings when a user
-    // claims an existing passcode-based account (used by shlomi@boostart.io when
-    // signing in with a Google email that doesn't match the hardcoded map).
-    //
-    // A user can only claim an alias FOR THEIR OWN raw Firebase Auth uid —
-    // otherwise anyone could set `authAliases/<their_uid>.legacyUid = user_6724`
-    // and inherit Shlomi's account on next login. Read stays open so the
-    // sync-resolver can look up any alias by uid.
-    match /authAliases/{authUid} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == authUid;
-    }
-
-    // ─── Launch analytics ────────────────────────────────────────
-    // Append-only event log. Anyone can CREATE an event (the anonymous
-    // landing page fires them). READ is open too so the desktop
-    // /admin-desktop and /users-admin pages work regardless of who is
-    // signed in — the URL is the secret. Update stays blocked; delete is
-    // owner-only.
-    match /analytics_events/{eventId} {
-      allow create: if true;
-      allow read: if true;
-      allow delete: if request.auth != null
-                       && request.auth.token.email == 'shlomi@boostart.io';
-      allow update: if false;
-    }
-    // Lightweight user registry: one doc per app uid, upserted on sign-in.
-    // Any signed-in user writes their own row. READ is open so the desktop
-    // admin views can render the user list from any session/device — the
-    // page URL is private, keep it that way.
-    match /users_index/{uid} {
-      allow write: if request.auth != null;
-      allow read: if true;
-    }
-    // ─── LLM usage log ───────────────────────────────────────────
-    // The Cloud Run server writes one doc per Anthropic response with
-    // per-message token counts + cost. Read is open (admin desktop needs
-    // it and the URL is the secret); the server writes without auth.
-    match /ai_usage/{eventId} {
-      allow create: if true;
-      allow read: if true;
-      allow update, delete: if false;
-    }
-    // ─── Vault (boostmind-vault.web.app) ─────────────────────────
-    // One password vault per Google account. The blob is encrypted in the
-    // browser with the master password; only its owner can read or write it.
-    match /vaults/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-    // ─── The Shlomiverse's fans (techietech-api/verse.js) ───────────
+    // ─── The Shlomiverse (techietech-api/verse.js) ───────────────
     // Fans only READ here; every write goes through the `verse` function.
     match /fans/{uid} { allow read: if request.auth != null && request.auth.uid == uid; }
     match /fans/{uid}/{sub=**} { allow read: if request.auth != null && request.auth.uid == uid; }
@@ -163,9 +39,143 @@ service cloud.firestore {
     // the community wall: everyone reads the ideas Shlomi didn't hide
     match /ideas/{id} { allow read: if resource.data.hidden == false; }
     match /videoStats/{id} { allow read: if true; }
-    // daily game records: the day's top 10 is public (nickname + first name); each player's own entry stays server-only
+    // daily game records: the day's top 10 is public (nickname + first name); each player's own entry
+    // (records/<id>/players/<uid>) stays server-only - this match does not reach subcollections
     match /records/{id} { allow read: if true; }
-    // Piko (techietech-api/piko.js): his app listens to its jobs while they are made (progress pushed, no polling); writes are server-only
-    match /pikoJobs/{id} { allow read: if request.auth != null && request.auth.token.email == 'shlomi@boostart.io' && request.auth.token.email_verified == true; }
+    // Piko (techietech-api/piko.js): his app listens to its jobs while they are made; writes are server-only
+    match /pikoJobs/{id} { allow read: if isShlomi(); }
+
+    // ─── Storyboard tool (public/storyboard) ─────────────────────
+    // No sign-in in that app: reading and editing stay open, deleting a board is closed (data never disappears).
+    match /storyboards/{docId} {
+      allow read, create, update: if true;
+      allow delete: if isShlomi();
+    }
+
+    // ─── Geek & Prompty shop (public/yotamverse) ─────────────────
+    // Products + settings are public to read, written only from the admin page signed in as Shlomi. Orders hold names,
+    // phones and addresses: anyone can place one (the shop page writes without auth), only the admin reads or changes them.
+    match /gp-products/{docId} {
+      allow read: if true;
+      allow write: if isShlomi();
+    }
+    match /gp-shop/{docId} {
+      allow read: if true;
+      allow write: if isShlomi();
+    }
+    match /gp-orders/{docId} {
+      allow read, update, delete: if isShlomi();
+      allow create: if request.resource.data.keys().hasOnly(['orderNum', 'name', 'phone', 'city', 'street', 'notes', 'items',
+                         'subtotal', 'shipping', 'total', 'hasPhysical', 'status', 'source', 'email', 'uid', 'createdAt'])
+        && request.resource.data.status == 'new'
+        && request.resource.data.name is string && request.resource.data.name.size() <= 120
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 40
+        && (!('city' in request.resource.data) || (request.resource.data.city is string && request.resource.data.city.size() <= 120))
+        && (!('street' in request.resource.data) || (request.resource.data.street is string && request.resource.data.street.size() <= 200))
+        && (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 2000))
+        && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 200))
+        && (!('uid' in request.resource.data) || (request.resource.data.uid is string && request.resource.data.uid.size() <= 128))
+        && request.resource.data.items is list && request.resource.data.items.size() <= 40;
+    }
+
+    // ─── Dead collections (kept, never deleted - his rule) ───────
+    // mundial*, party-rsvp: no page uses them any more; they held people's names, ages, chats. Closed to browsers.
+    // (no match = denied)
+
+    // ─── Legacy Wholos (wholos.com/wholos-app, frozen bundle in public/wholos-app) ───
+    // Helper: is the calling user the coach of this trainee?
+    function isCoachOf(traineeId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(traineeId)/profile/main)
+        && get(/databases/$(database)/documents/users/$(traineeId)/profile/main).data.coachUid == request.auth.uid;
+    }
+    // Each user reads/writes only their OWN tree; Shlomi (his app uid user_6724 differs from his auth uid) and the
+    // user's coach too.
+    match /users/{userId}/{document=**} {
+      allow read, write:
+        if request.auth != null
+           && (request.auth.uid == userId
+               || isShlomi()
+               || isCoachOf(userId));
+    }
+    // Chat threads: the old workout-ai Cloud Run writes them through unauthenticated REST, so create/update stay open
+    // until Wholos moves to wholos-app; reads and deletes are the user's (and Shlomi's) only.
+    match /users/{userId}/chatThreads/{threadId} {
+      allow read, delete: if request.auth != null && (request.auth.uid == userId || isShlomi());
+      allow create, update: if true;
+    }
+    match /users/{userId}/chatThreads/{threadId}/messages/{msgId} {
+      allow read, delete: if request.auth != null && (request.auth.uid == userId || isShlomi());
+      allow create, update: if true;
+    }
+    match /users/{userId}/appliedChatActions/{key} {
+      allow read, delete: if request.auth != null && (request.auth.uid == userId || isShlomi());
+      allow create, update: if true;
+    }
+    // Bug/feature reports (all land under users/user_6724/reports). Before: open to the world. Now: a signed-in user files
+    // one in their own name; only the admins list, triage and delete them.
+    match /users/{userId}/reports/{reportId} {
+      allow read, update, delete: if isWholosAdmin();
+      allow create: if isWholosAdmin() || (request.auth != null && request.resource.data.authorUid == request.auth.uid);
+    }
+    // Global exercise DB + default photos: everyone reads, only the admins write.
+    match /exercises/{docId} {
+      allow read: if true;
+      allow write: if isWholosAdmin();
+    }
+    match /defaultExercisePhotos/{docId} {
+      allow read: if true;
+      allow write: if isWholosAdmin();
+    }
+    // Auth alias: firebaseAuthUid -> legacyUid. Only for your own raw uid.
+    match /authAliases/{authUid} {
+      allow read, write: if request.auth != null && (request.auth.uid == authUid || isShlomi());
+    }
+    // Launch analytics: anyone can CREATE a Wholos event (the landing page fires them unauthenticated) - with no `t` / `e`
+    // fields so nobody can slip fake rows into the Shlomiverse's own analytics (written by functions, read by `t`).
+    // Reading: admins only (before: the world).
+    match /analytics_events/{eventId} {
+      allow create: if request.resource.data.type is string && request.resource.data.type.size() <= 40
+                    && request.resource.data.ts is int
+                    && !request.resource.data.keys().hasAny(['t', 'e', 'exp', 's', 'x', 'm'])
+                    && request.resource.data.size() <= 25;
+      allow read: if isWholosAdmin();
+      allow delete: if isShlomi();
+      allow update: if false;
+    }
+    // Wholos user registry. Before: the world read every email, and any signed-in account could write any row (and make
+    // itself admin through `isAdmin`). Now: your own row (the admins all rows); `isAdmin` only by an admin; `role` only
+    // 'coacher' (the coach invite link). A coach's row is readable (the trainee's invite screen shows the coach).
+    match /users_index/{uid} {
+      allow get: if request.auth != null
+                 && (request.auth.uid == uid
+                     || resource.data.authUid == request.auth.uid
+                     || resource.data.role == 'coacher'
+                     || isWholosAdmin()
+                     || isCoachOf(uid));
+      allow list: if isWholosAdmin()
+                  || (request.auth != null && (resource.data.authUid == request.auth.uid || resource.data.isAdmin == true));
+      allow create: if isWholosAdmin()
+                    || (request.auth != null && request.auth.uid == uid
+                        && !('isAdmin' in request.resource.data)
+                        && (!('role' in request.resource.data) || request.resource.data.role == 'coacher')
+                        && (!('authUid' in request.resource.data) || request.resource.data.authUid == request.auth.uid));
+      allow update: if isWholosAdmin()
+                    || (request.auth != null && request.auth.uid == uid
+                        && !changes('isAdmin')
+                        && (!changes('role') || request.resource.data.role == 'coacher')
+                        && (!changes('authUid') || request.resource.data.authUid == request.auth.uid));
+      allow delete: if isWholosAdmin();
+    }
+    // LLM usage log: the old workout-ai writes it unauthenticated (create only); only the admins read it.
+    match /ai_usage/{eventId} {
+      allow create: if true;
+      allow read: if isWholosAdmin();
+      allow update, delete: if false;
+    }
+    // ─── Vault (moved to shlomi-tools; data kept) ────────────────
+    match /vaults/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
   }
 }
