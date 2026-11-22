@@ -875,6 +875,9 @@ narrator, an off-screen line, a voice-over) is performed like an actor's take:
 - **Check every clip by ear and with speech-to-text** (`zoomcut/models/he-turbo`): every word right, no tag read aloud (a
   tag spoken = that voice can't do that delivery - pick another voice). Re-take what stumbles: vowel marks on a misread
   word, or reword. Make 2-3 takes and pick the most human one.
+- **The full guide: `zoomcut/skill/make-verse-game/elevenlabs.md`** (shared with the games) - read it before making any voice.
+  Only v4 / v3 speak Hebrew (Multilingual v2 and Flash do NOT). ElevenLabs' default voices expire on 31 Dec 2026 - build on
+  the account's own / library voices, never a default one.
 - Worked example (tags per moment + spoken text + the STT check): `scripts/naomi-games/pause/tools/voice.mjs` and
   `stt-check.py`. The toolbox below has the rest (dialogue, effects, chipmunk callers).
 
