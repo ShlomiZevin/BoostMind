@@ -2912,6 +2912,8 @@ function requests() {
 const contentSegHtml = () => `<div class="seg">${[['all', 'הכל'], ['comments', 'תגובות'], ['stickers', 'סטיקרים']].map(([k, l]) => `<button data-cseg="${k}" class="${contentSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 const publishSegHtml = () => `<div class="seg">${[['story', 'סטוריז'], ['video', 'סרטון חדש']].map(([k, l]) => `<button data-pseg="${k}" class="${publishSeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 function content() { ({ all: allContent, comments, stickers })[contentSeg](); }
+// the residents' own comments (their automatic answers and debut comments, c.char) stay out of the list (his ask 2026-11-22: "dont show the residents auto comments")
+const fanComments = () => L.comments.filter((c) => !c.char);
 const commentRow = (c) => `<div class="item ${c.hidden ? 'off' : ''}" data-k="c${esc(c.id)}">${c.char ? face(c.char) : fanFace(c)}
       <div class="body"><b>${esc(c.nick)}</b> ${c.char ? '<span class="tag or">דמות</span>' : ''}${c.unchecked ? ' <span class="tag red">לא נבדק</span>' : ''}${c.removedBy === 'fan' ? ' <span class="tag">נמחק ע״י המגיב</span>' : ''}
         <small> · ${ago(c.t)} · <a href="/v/${c.videoId}?c=${c.parentId || c.id}" target="_blank" style="color:#ff9a5c">${esc(V[c.videoId]?.title || c.videoId)}</a></small><p>${esc(c.text)}</p></div>${hideBtn('comment', c)}</div>`;
@@ -2920,7 +2922,7 @@ const stickerRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}" data-k="s$
 // תוכן opens on everything at once, newest first (his ask, 2026-11-05: the parts behind the buttons were easy to miss)
 function allContent() {
   const ideaRow = (x) => `<div class="item ${x.hidden ? 'off' : ''}" data-k="i${esc(x.id)}">${(x.chars || []).length ? face(x.chars[0]) : fanFace(x)}<div class="body"><b>${esc(x.nick || '')}</b> <span class="tag or">רעיון</span><small> · ${ago(x.t)}</small><p>${esc(x.text)}</p></div><button class="btn" data-tab="ideas">לרעיונות</button></div>`;
-  const rows = [...L.comments.map((c) => [c.t || 0, commentRow(c)]), ...L.stickers.map((x) => [x.t || 0, stickerRow(x)]), ...(L.ideas || []).map((x) => [x.t || 0, ideaRow(x)])]
+  const rows = [...fanComments().map((c) => [c.t || 0, commentRow(c)]), ...L.stickers.map((x) => [x.t || 0, stickerRow(x)]), ...(L.ideas || []).map((x) => [x.t || 0, ideaRow(x)])]
     .sort((a, b) => b[0] - a[0]).slice(0, 150);
   paint(`${contentSegHtml()}<div class="top"><div><h1>כל התוכן</h1><p>תגובות, רעיונות וסטיקרים יחד, החדשים קודם.</p></div></div>
     <div>${rows.map((r) => r[1]).join('') || '<div class="empty">עוד אין כלום.</div>'}</div>`);
@@ -2976,7 +2978,7 @@ const hideBtn = (kind, x) => `<button class="btn" data-hide="${kind}" data-id="$
 // ---------- comments / stickers ----------
 function comments() {
   paint(`${contentSegHtml()}<div class="top"><div><h1>תגובות</h1><p>כל התגובות, החדשות קודם. תגובה שמסתירים נעלמת מהאתר.</p></div></div>
-    <div>${L.comments.map(commentRow).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`);
+    <div>${fanComments().map(commentRow).join('') || '<div class="empty">עוד אין תגובות.</div>'}</div>`);
 }
 function stickers() {
   paint(`${contentSegHtml()}<div class="top"><div><h1>סטיקרים</h1><p>הסטיקרים שהצופים פרסמו. סטיקר שמסתירים יורד מהאתר.</p></div></div>
