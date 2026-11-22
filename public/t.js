@@ -25,6 +25,10 @@
   var qs = new URLSearchParams(location.search);
   try { if (qs.has('notrack')) localStorage.setItem('t-ignore', '1'); if (qs.has('track')) localStorage.removeItem('t-ignore'); } catch (e) {}
   if (ls('t-ignore')) { window.track = function () {}; return; }
+  // a browser driven by a script never counts (2026-11-22: the sessions' phone checks - puppeteer posing as an iPhone, so the
+  // server's user-agent filter let them in - came in as ~25 "new visitors" a day and pulled the time-on-site median down).
+  // Every automated browser (puppeteer, playwright, selenium) says navigator.webdriver; the old phantom ones leave their globals.
+  try { if (navigator.webdriver || window.callPhantom || window._phantom || window.__nightmare) { window.track = function () {}; return; } } catch (e) {}
   var fresh = false, vid = ls('t-v'), sid = ss('t-s');
   if (!vid) { vid = rnd(); ls('t-v', vid); fresh = true; }
   if (!sid) { sid = rnd(); ss('t-s', sid); }

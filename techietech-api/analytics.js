@@ -132,7 +132,9 @@ exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency
   if (origin && ORIGINS.some((r) => r.test(origin))) res.set('Access-Control-Allow-Origin', origin);
   if (req.method === 'OPTIONS') return res.status(204).send('');
   if (req.method !== 'POST' || !ORIGINS.some((r) => r.test(origin))) return res.status(204).send('');
-  if (/bot|crawl|spider|headless|preview|lighthouse/i.test(req.get('user-agent') || '')) return res.status(204).send('');
+  // bots by their name; a headless Chrome posing as a phone still names itself in its brand list (sec-ch-ua). The main bot
+  // filter is in t.js (navigator.webdriver - a scripted browser never sends); this is the second line for a page with an old t.js
+  if (/bot|crawl|spider|headless|preview|lighthouse/i.test(`${req.get('user-agent') || ''} ${req.get('sec-ch-ua') || ''}`)) return res.status(204).send('');
   if ((req.rawBody && req.rawBody.length > 4000) || instanceFull()) return res.status(204).send('');
   let b;
   try { b = JSON.parse(typeof req.body === 'string' ? req.body : req.rawBody.toString('utf8')); } catch { return res.status(204).send(''); }

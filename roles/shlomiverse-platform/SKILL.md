@@ -91,6 +91,13 @@ fix, unless it is a resident's words (Voice) or a video (Studio).
   (Backstage → תוכניות for bigger things). Reports: bottom line + link + what you need from him, in English.
 
 ## Lessons (add one every time something teaches us - date + what happened)
+- 2026-11-22 · Today's time-on-site median showed 24 s (real: 85 s): the sessions' own phone checks (puppeteer posing as an
+  iPhone - a run of 19 fresh browsers on /videos, a route check opening every page in new tabs) passed the server's
+  user-agent bot filter and counted as 23 visitors / 45 short visits. → `t.js` never sends from a scripted browser
+  (`navigator.webdriver`), `track` also drops a headless brand in `sec-ch-ua`. Something still slips in: find the browser
+  ids in the day's raw events, `node scripts/stats/drop_bots.cjs --day D --v a,b` (dry run, then `--apply`) - it takes
+  their exact part off the day's counters and moves their events to `analytics_bots`. Past days were left: no rule tells
+  a bot from a launch crowd there.
 - 2026-11-22 · 29 videos were up with no transcript: the Studio read only captions.txt, which layered projects keep as an
   empty template, and the archive reels / story clips came with only their on-screen words - the chat didn't know what
   its residents said (Hani didn't know Perel lost her siddur in haredit-6). → every video carries its transcript (his rule 2026-11-22, "super critical"): versePublish refuses a new video without `transcript`, the Studio sends its subtitle layers
