@@ -37,6 +37,15 @@ his OK. Reports = the bottom line + the link + what you need, in English.
 - Everything make-verse-game says about the character holds: her profile and sheet, her look from her portrait, who else
   appears must match their records, words.md (never parody / דמות / מעריצים / Shlomi).
 
+## The bar - every game (his words, 2026-11-22: "make sure that the game will look nice, fun, super cool, and mobile friendly")
+- **Looks like a 2026 mobile hit**, not a web page: juicy GPT Image art, big tactile pieces, satisfying effects (trails, pops,
+  particles, glow, shake on a hit), the resident's brand made bright and lively.
+- **Fun from the first 10 seconds**: instant start, short rounds, rising speed and combos, a big end screen, one-tap replay,
+  real sounds and a loop that carry the feel.
+- **Mobile first**: portrait 390x844, one thumb, nothing under the thumb / notch / home bar, 60 fps on a mid phone, loads in
+  ~2 s, no zoom or scroll bounce, works in Instagram's in-app browser.
+- At the concept gate show the game screen AND the end screen; the VRM rejects anything that isn't all three.
+
 ## Timing
 **Nothing public before the video is released** (his rule): the game stays a draft only he can see (make-verse-game step 8)
 until the VRM's release day - then it goes live in the VRM's order (usually right after the video, or the day after as the
