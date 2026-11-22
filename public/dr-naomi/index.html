@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך | המחוג שבלב – לכל רגש יש תאריך לידה</title>
 <meta name="description" content="אני מזמינה אותך להכיר את המחוג הפנימי - בקליניקה, בארגון ובכל מקום שבו רגש מבקש להיוולד.">
-<meta name="theme-color" content="#6B1023">
+<meta name="theme-color" content="#FBEDE7">
 <link rel="canonical" href="https://shlomiverse.com/dr-naomi/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="he_IL">
@@ -23,372 +23,438 @@
 <meta name="twitter:image" content="https://shlomiverse.com/dr-naomi/img/og.jpg">
 <link rel="icon" href="brand/icon.png">
 <link rel="apple-touch-icon" href="brand/icon.png">
+<link rel="preload" as="image" href="img/hero-phone.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --burg:#6B1023; --deep:#4A0B18; --red:#C8313A; --gold:#B8862F; --gold-l:#E6C98F;
-  --cream:#FBF4EE; --blush:#F4E3DC; --rose:#EBCFC6; --ink:#2A1A1C; --muted:#6F5A5D; --line:#E8D7CF; --white:#fff;
-  --r:18px; --shadow:0 10px 30px rgba(74,11,24,.10);
-  --head:'Suez One',serif; --body:'Heebo',system-ui,sans-serif;
+  --wine:#5A1430; --burg:#7A1F3D; --rose:#C0566B; --coral:#E07F6E; --peach:#F2A98C; --apricot:#F7CDB8;
+  --blush:#F9E4DC; --shell:#FBEDE7; --cream:#FDF6F2; --paper:#FFFCFA; --ink:#2E1A20; --muted:#6E585E; --line:#EFDCD4;
+  --gold:#B88347; --r:22px; --r-l:28px;
+  --shadow:0 12px 34px rgba(90,20,48,.10); --shadow-s:0 4px 14px rgba(90,20,48,.07);
+  --grad:linear-gradient(120deg,var(--burg),var(--rose) 70%,var(--coral));
+  --head:'Frank Ruhl Libre',Georgia,serif; --body:'Heebo',system-ui,sans-serif;
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{font-family:var(--body);color:var(--ink);background:var(--cream);line-height:1.65;font-size:16.5px;overflow-x:hidden}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:clip}
+body{font-family:var(--body);color:var(--ink);background:var(--cream);line-height:1.65;font-size:16.5px;overflow-x:clip;-webkit-tap-highlight-color:rgba(192,86,107,.15)}
 img{display:block;max-width:100%;height:auto}
 a{color:inherit}
-button{font:inherit;cursor:pointer}
-.wrap{width:100%;max-width:1080px;margin:0 auto;padding:0 18px}
-section{scroll-margin-top:70px}
-h2{font-family:var(--head);font-weight:400;color:var(--burg);font-size:clamp(28px,7.4vw,42px);line-height:1.15}
-h3{font-family:var(--head);font-weight:400;color:var(--burg);font-size:22px;line-height:1.25}
-.kicker{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:14px;letter-spacing:.3px;color:var(--gold);margin-bottom:8px}
-.kicker::before{content:"";width:26px;height:2px;background:var(--gold)}
-.lead{font-size:17.5px;color:var(--muted);margin-top:12px}
-.sec{padding:56px 0}
-.sec-head{text-align:center;max-width:680px;margin:0 auto 30px}
-.sec-head .kicker{justify-content:center}
-.heart-rule{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px auto 0;color:var(--rose)}
-.heart-rule::before,.heart-rule::after{content:"";width:64px;height:1.5px;background:currentColor}
-.heart-rule svg{width:18px;height:18px;color:var(--burg)}
+button{font:inherit;cursor:pointer;color:inherit}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 20px}
+section{scroll-margin-top:68px}
+h2{font-family:var(--head);font-weight:700;color:var(--wine);font-size:clamp(32px,8.6vw,48px);line-height:1.12;letter-spacing:-.2px}
+h3{font-family:var(--head);font-weight:700;color:var(--wine);font-size:22px;line-height:1.25}
 .ico{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.kicker{display:flex;align-items:center;justify-content:center;gap:12px;font-weight:700;font-size:15px;letter-spacing:.4px;color:var(--rose);margin-bottom:10px}
+.kicker::before,.kicker::after{content:"";width:34px;height:1.5px;background:currentColor;opacity:.55}
+.kicker.r{justify-content:flex-start}.kicker.r::after{display:none}
+.lead{font-size:17.5px;color:var(--muted);margin-top:14px}
+.sec{padding:60px 0}
+.sec-head{text-align:center;max-width:700px;margin:0 auto 30px}
+.sub-h{font-family:var(--head);font-weight:500;color:var(--burg);font-size:22px;line-height:1.35;margin-top:8px}
 
 /* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:12px 24px;border-radius:999px;border:0;text-decoration:none;font-weight:700;font-size:17px;line-height:1.2;transition:transform .15s,box-shadow .15s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:12px 24px;border-radius:999px;border:0;text-decoration:none;font-weight:700;font-size:17px;line-height:1.25;transition:transform .15s,box-shadow .15s,background .15s;text-align:center}
 .btn:active{transform:scale(.98)}
-.btn-p{background:var(--burg);color:#fff;box-shadow:0 8px 22px rgba(107,16,35,.28)}
-.btn-p:hover{background:var(--deep)}
-.btn-s{background:transparent;color:var(--burg);border:1.5px solid var(--burg)}
-.btn-g{background:#fff;color:var(--burg)}
-.btn .ico{width:20px;height:20px}
-.chev{width:16px;height:16px}
+.btn-p{background:linear-gradient(135deg,var(--burg),var(--wine));color:#fff;box-shadow:0 10px 24px rgba(90,20,48,.28)}
+.btn-p:hover{box-shadow:0 12px 28px rgba(90,20,48,.36)}
+.btn-s{background:rgba(255,255,255,.7);color:var(--burg);border:1.5px solid rgba(122,31,61,.35)}
+.btn-g{background:#fff;color:var(--wine);box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.btn .ico{width:21px;height:21px}
+.btn .chev{width:18px;height:18px;margin-inline-start:2px}
+.btn-p .lead-ico{background:rgba(255,255,255,.16);border-radius:10px;padding:5px;width:31px;height:31px}
 
 /* header */
-.top{position:sticky;top:0;z-index:50;background:rgba(251,244,238,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid transparent;transition:border-color .2s}
-.top.scrolled{border-color:var(--line)}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-.brand img{height:42px;width:auto}
-.nav{display:none;gap:22px;font-weight:500;font-size:15.5px}
-.nav a{text-decoration:none;color:var(--ink)}
-.nav a:hover{color:var(--burg)}
-.burger{width:46px;height:46px;border:0;background:transparent;color:var(--burg);display:grid;place-items:center;border-radius:12px}
-.burger .ico{width:28px;height:28px}
-.drawer{position:fixed;inset:0;z-index:60;background:rgba(42,26,28,.45);opacity:0;pointer-events:none;transition:opacity .25s}
-.drawer.on{opacity:1;pointer-events:auto}
-.drawer nav{position:absolute;top:0;bottom:0;right:0;width:min(320px,86vw);background:var(--cream);padding:22px 22px calc(22px + var(--safe-b));display:flex;flex-direction:column;gap:4px;transform:translateX(100%);transition:transform .3s;overflow-y:auto}
-.drawer.on nav{transform:none}
-.drawer nav img{height:38px;width:auto;margin-bottom:18px}
-.drawer nav a{display:flex;align-items:center;justify-content:space-between;text-decoration:none;font-size:18px;font-weight:500;padding:12px 4px;border-bottom:1px solid var(--line)}
-.drawer nav a.new::after{content:"חדש";font-size:12px;font-weight:700;color:#fff;background:var(--red);border-radius:99px;padding:2px 9px}
-.drawer nav .btn{margin-top:18px}
-.x{position:absolute;top:14px;left:14px;width:42px;height:42px;border:0;background:transparent;color:var(--burg);display:grid;place-items:center}
+.top{position:sticky;top:0;z-index:50;background:rgba(251,237,231,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s,box-shadow .2s}
+.top.scrolled{border-color:var(--line);box-shadow:0 4px 18px rgba(90,20,48,.06)}
+.top .wrap{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;height:62px;padding:0 10px}
+.brand{justify-self:center;display:block;padding:6px}
+.brand img{height:36px;width:auto}
+.iconbtn{width:48px;height:48px;border:0;background:transparent;color:var(--wine);display:grid;place-items:center;border-radius:14px;text-decoration:none}
+.iconbtn:active{background:rgba(122,31,61,.08)}
+.iconbtn .ico{width:27px;height:27px}
+.nav{display:none}
+.top-cta{display:none}
 
-/* the "new" banner */
-.newbar{background:linear-gradient(100deg,var(--deep),var(--burg) 60%,#84182F);color:#fff}
-.newbar a{display:flex;align-items:center;gap:12px;padding:12px 0;text-decoration:none}
-.newbar .tag{flex:none;background:var(--gold);color:var(--deep);font-weight:800;font-size:13px;border-radius:99px;padding:3px 11px}
+/* menu sheet (phone) */
+.sheet{position:fixed;inset:0;z-index:70;background:rgba(46,26,32,.42);opacity:0;pointer-events:none;transition:opacity .25s}
+.sheet.on{opacity:1;pointer-events:auto}
+.sheet .panel{position:absolute;right:0;left:0;bottom:0;max-height:88vh;overflow-y:auto;background:var(--paper);border-radius:28px 28px 0 0;padding:10px 18px calc(18px + var(--safe-b));transform:translateY(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1);box-shadow:0 -10px 40px rgba(46,26,32,.18)}
+.sheet.on .panel{transform:none}
+.sheet .grab{width:44px;height:5px;border-radius:9px;background:var(--line);margin:2px auto 10px}
+.sheet .phead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sheet .phead img{height:32px;width:auto}
+.sheet .links{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.sheet .links a{display:flex;align-items:center;gap:10px;min-height:56px;padding:10px 12px;border-radius:16px;background:var(--shell);text-decoration:none;font-weight:500;font-size:16px;line-height:1.3}
+.sheet .links a .ico{width:22px;height:22px;color:var(--rose)}
+.sheet .links li.wide{grid-column:1/-1}
+.sheet .links a .tag{margin-inline-start:auto;font-size:12.5px;font-weight:800;color:#fff;background:var(--rose);border-radius:99px;padding:2px 10px}
+.sheet .btn{width:100%;margin-top:14px}
+
+/* the "new" bar */
+.newbar{background:linear-gradient(90deg,#F7D9CB,#F9E6DD 55%,#F6D3C6)}
+.newbar a{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;text-decoration:none;color:var(--wine)}
+.newbar .tag{flex:none;background:var(--burg);color:#fff;font-weight:800;font-size:13px;border-radius:99px;padding:3px 11px}
 .newbar .tx{flex:1;min-width:0;font-size:14.5px;line-height:1.4}
-.newbar .tx b{display:block;font-family:var(--head);font-weight:400;font-size:18px}
-.newbar .go{flex:none;display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:14px;color:var(--gold-l);white-space:nowrap}
+.newbar .tx b{display:block;font-family:var(--head);font-weight:700;font-size:17px}
+.newbar .go{flex:none;display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:14px;white-space:nowrap}
+.newbar .go .ico{width:22px;height:22px}
 
 /* hero */
-.hero{position:relative;padding:26px 0 8px;overflow:hidden}
-.hero::before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,var(--blush),rgba(244,227,220,0) 68%);top:-140px;left:-160px;z-index:-1}
-.hero-grid{display:grid;gap:22px}
-.headshot{position:relative;width:min(262px,68vw);margin:4px auto 0;aspect-ratio:4/5}
-.headshot .frame{position:absolute;inset:0;border-radius:200px 200px 26px 26px;overflow:hidden;background:#d9d6d3;box-shadow:var(--shadow)}
-.headshot .frame img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
-.headshot::before{content:"";position:absolute;inset:-12px -12px 12px 12px;border:1.5px solid var(--gold);border-radius:200px 200px 26px 26px;z-index:-1}
-.headshot .seal{position:absolute;bottom:-14px;left:-10px;width:86px;height:86px;border-radius:50%;background:#fff;box-shadow:var(--shadow);display:grid;place-items:center}
-.headshot .seal img{width:54px}
-.hero-text{text-align:center}
-.hero h1{font-family:var(--head);font-weight:400;color:var(--burg);font-size:clamp(24px,6.6vw,38px);line-height:1.2}
-.hero h1 span{display:block}
-.titles{margin:12px auto 0;max-width:480px;color:var(--muted);font-size:15.5px;line-height:1.55}
-.tagline{margin:20px auto 0;font-family:var(--head);color:var(--ink);font-size:clamp(34px,10vw,56px);line-height:1.08}
-.tagline em{font-style:normal;color:var(--burg);position:relative;white-space:nowrap}
-.tagline em::after{content:"";position:absolute;right:0;left:0;bottom:-4px;height:8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10' preserveAspectRatio='none'%3E%3Cpath d='M2 7 Q 60 1 120 5 T 198 4' fill='none' stroke='%23C8313A' stroke-width='2.4' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E") center/100% 100% no-repeat}
-.opening{margin:18px auto 0;max-width:460px;font-size:17px;color:var(--ink)}
-.hero-cta{display:flex;flex-direction:column;gap:12px;align-items:stretch;margin:22px auto 0;max-width:380px}
-.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:30px 0 4px}
-.quick a{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;text-align:center;font-size:12.5px;font-weight:500;line-height:1.3;color:var(--ink)}
-.quick .ci{width:54px;height:54px;border-radius:50%;background:var(--blush);color:var(--burg);display:grid;place-items:center;transition:background .2s}
-.quick a:hover .ci{background:var(--rose)}
+.hero{position:relative;background:var(--shell)}
+.hero-photo{position:relative;aspect-ratio:900/1060;max-height:620px;overflow:hidden}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:48% 0}
+.hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(251,237,231,0) 66%,rgba(251,237,231,.72) 84%,var(--shell) 98%)}
+.hero-text{position:relative;z-index:1;margin-top:-92px;padding-bottom:6px}
+.hero h1{font-family:var(--head);font-weight:900;color:var(--wine);line-height:.98;letter-spacing:-.5px}
+.hero h1 .dr{display:block;font-size:clamp(46px,13.4vw,68px)}
+.hero h1 .nm{display:block;font-size:clamp(46px,13.4vw,68px)}
+.hero h1 .sn{display:block;font-family:var(--head);font-weight:500;font-size:clamp(19px,5.3vw,24px);color:var(--burg);letter-spacing:0;margin-top:10px;line-height:1.3}
+.titles{margin-top:12px;max-width:520px;color:var(--muted);font-size:16.5px;line-height:1.55}
+.hr{width:72px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--peach),var(--rose));margin:20px 0 0;opacity:.8}
+.tagline{margin-top:16px;font-family:var(--head);font-weight:700;font-size:clamp(38px,11vw,58px);line-height:1.08;background:linear-gradient(120deg,var(--burg) 10%,var(--rose) 60%,var(--coral));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tagline span{display:block}
+.tagline .ul{position:relative;display:inline-block;padding-bottom:12px}
+.tagline .ul svg{position:absolute;right:-4%;bottom:-2px;width:108%;height:18px;overflow:visible}
+.opening{margin-top:16px;max-width:480px;font-size:17.5px;color:var(--ink)}
+.hero-cta{display:flex;flex-direction:column;gap:12px;margin-top:22px;max-width:440px}
+.hero-cta .btn-p{justify-content:space-between;padding:10px 14px 10px 18px}
+.hero-cta .btn-p .mid{flex:1;text-align:right}
+.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:30px 0 0;padding-bottom:28px}
+.quick a{display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;text-align:center;font-size:13px;font-weight:500;line-height:1.3;color:var(--ink);min-height:44px;padding:4px 0}
+.quick .ci{width:54px;height:54px;border-radius:50%;background:#fff;color:var(--burg);display:grid;place-items:center;box-shadow:var(--shadow-s);border:1px solid var(--line)}
 
-/* numbers */
-.stats{background:#fff;border-block:1px solid var(--line)}
-.stats .wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:0}
-.stat{padding:22px 10px;text-align:center;border-bottom:1px solid var(--line)}
-.stat:nth-child(odd){border-left:1px solid var(--line)}
-.stat:nth-last-child(-n+2){border-bottom:0}
-.stat b{display:block;font-family:var(--head);font-weight:400;color:var(--burg);font-size:34px;line-height:1.1}
-.stat span{display:block;font-size:14px;color:var(--muted);line-height:1.4;margin-top:4px}
+/* trust strip */
+.trust{padding:22px 0 8px;background:linear-gradient(180deg,var(--shell),var(--cream))}
+.trustcard{background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:var(--r-l);padding:18px 16px 16px;box-shadow:var(--shadow-s)}
+.laurels{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.laurel{display:flex;align-items:center;justify-content:center;gap:4px;text-align:center;font-weight:700;font-size:14.5px;line-height:1.3;color:var(--wine)}
+.laurel svg{width:22px;height:46px;flex:none;color:var(--gold)}
+.laurel svg.l{transform:scaleX(-1)}
+.laurel > span{max-width:132px}
+.seen{border-top:1px solid var(--line);margin-top:14px;padding-top:12px;text-align:center}
+.seen small{display:block;font-size:13.5px;font-weight:500;color:var(--muted);letter-spacing:.2px}
+.marks{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 18px;margin-top:6px}
+.marks a{display:inline-flex;align-items:center;gap:6px;min-height:44px;text-decoration:none;color:#8C5E6A;white-space:nowrap}
+.marks .ico{width:18px;height:18px}
+.mk1{font-family:var(--head);font-weight:900;font-size:18px}
+.mk2{font-weight:800;font-size:16px;letter-spacing:-.2px}
+.mk2 i{font-style:normal;font-weight:300;font-size:13px;border-inline-start:1px solid currentColor;padding-inline-start:6px;margin-inline-start:2px}
+.mk3{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:19px;letter-spacing:.3px}
+.mk4{font-weight:300;font-size:16px;letter-spacing:2px}
+.mk5{font-family:var(--head);font-weight:500;font-size:17px;border-block:1px solid currentColor;line-height:1.3;padding:1px 2px}
+.mk6{font-weight:700;font-size:15.5px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px 12px;text-align:center}
+.stat b{display:block;font-family:var(--head);font-weight:900;font-size:34px;line-height:1.05;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat span{display:block;font-size:14px;color:var(--muted);line-height:1.4;margin-top:6px}
 
-/* about */
-.about-grid{display:grid;gap:26px}
-.about-pic{position:relative;max-width:340px;margin:0 auto;width:100%}
-.about-pic img{border-radius:var(--r);aspect-ratio:1/1;object-fit:cover;width:100%;box-shadow:var(--shadow)}
-.about-pic figcaption{position:absolute;bottom:14px;right:14px;left:14px;background:rgba(255,255,255,.94);border-radius:14px;padding:10px 14px;font-size:14px;line-height:1.4;color:var(--muted)}
-.about-pic figcaption b{display:block;color:var(--burg);font-size:15px}
-.prose p{margin-top:14px}
-.prose p:first-child{margin-top:0}
-.cards2{display:grid;gap:16px;margin-top:30px}
-.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px 20px}
+/* org teaser card */
+.orgteaser{padding:22px 0 0}
+.orgcard{position:relative;display:block;border-radius:var(--r-l);overflow:hidden;background:var(--wine);color:#fff;box-shadow:var(--shadow);text-decoration:none}
+.orgcard .ph{position:relative;aspect-ratio:16/10}
+.orgcard .ph img{width:100%;height:100%;object-fit:cover}
+.orgcard .ph svg{position:absolute;right:0;left:0;bottom:-1px;width:100%;height:58px}
+.orgcard .bd{position:relative;padding:4px 22px 26px;background:linear-gradient(180deg,#842849,var(--wine))}
+.pill{display:inline-flex;align-items:center;gap:7px;background:#F9DCCB;color:var(--wine);font-weight:800;font-size:13.5px;border-radius:99px;padding:4px 12px}
+.pill .ico{width:18px;height:18px}
+.orgcard h2{color:#fff;font-size:clamp(30px,8.4vw,44px);margin-top:12px}
+.orgcard .sub{color:#F9D2C2;font-weight:700;margin-top:6px;font-size:16px}
+.orgcard p{color:#F7E3E8;margin-top:10px;font-size:16.5px;line-height:1.6}
+.orgcard .btn{margin-top:18px;width:100%}
+
+/* method */
+.method{position:relative;background:radial-gradient(90% 60% at 100% 0%,rgba(247,205,184,.45),rgba(247,205,184,0) 70%),var(--cream);overflow:hidden}
+.gauge-art{width:min(340px,82%);margin:-6px auto 0}
+.method-intro{max-width:760px;margin:0 auto 26px;text-align:center;font-size:17px}
+.dial-steps{display:flex;justify-content:space-between;position:relative;margin:4px auto 26px;max-width:640px}
+.dial-steps::before{content:"";position:absolute;top:27px;right:9%;left:9%;height:2px;background:linear-gradient(90deg,var(--peach),var(--rose))}
+.dial-steps div{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;width:20%;text-align:center;font-size:13px;font-weight:500;line-height:1.3}
+.dial-steps .ci{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--apricot);color:var(--burg);display:grid;place-items:center;box-shadow:var(--shadow-s)}
+.stages{display:grid;gap:12px}
+.stage{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-s)}
+.stage summary{list-style:none;display:flex;align-items:flex-start;gap:14px;padding:18px;cursor:pointer;min-height:56px}
+.stage summary::-webkit-details-marker{display:none}
+.stage .n{flex:none;width:42px;height:42px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-family:var(--head);font-weight:700;font-size:20px}
+.stage .t{flex:1}
+.stage .t b{display:block;font-family:var(--head);font-weight:700;color:var(--wine);font-size:21px;line-height:1.25}
+.stage .t span{display:block;font-size:16px;color:var(--muted);line-height:1.5;margin-top:3px}
+.stage .pl{flex:none;width:28px;height:28px;color:var(--rose);transition:transform .2s;margin-top:6px}
+.stage[open] .pl{transform:rotate(45deg)}
+.stage .body{padding:0 18px 18px;display:grid;gap:10px;font-size:16px}
+.stage .body div{background:var(--shell);border-radius:14px;padding:11px 14px;line-height:1.55}
+.stage .body div b{display:block;color:var(--rose);font-size:13.5px;margin-bottom:2px}
+.fit{display:grid;gap:14px;margin-top:24px}
+
+/* cards & lists */
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px 20px;box-shadow:var(--shadow-s)}
 .card h3{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.card h3 .ico{color:var(--gold)}
-.timeline{list-style:none;position:relative;padding-right:22px}
-.timeline::before{content:"";position:absolute;right:5px;top:8px;bottom:8px;width:2px;background:var(--rose)}
+.card h3 .ico{color:var(--rose)}
+.card.soft{background:linear-gradient(160deg,var(--blush),var(--shell));border-color:transparent;box-shadow:none}
+.card p{font-size:16px;line-height:1.6}
+.cards2{display:grid;gap:14px;margin-top:26px}
+.ticks{list-style:none}
+.ticks li{position:relative;padding:6px 28px 6px 0;line-height:1.5;font-size:16px}
+.ticks li::before{content:"";position:absolute;right:3px;top:13px;width:12px;height:7px;border:solid var(--rose);border-width:0 0 2px 2px;transform:rotate(-45deg)}
+.timeline{list-style:none;position:relative;padding-right:24px}
+.timeline::before{content:"";position:absolute;right:5px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--apricot),var(--rose))}
 .timeline li{position:relative;padding:0 0 16px}
 .timeline li:last-child{padding-bottom:0}
-.timeline li::before{content:"";position:absolute;right:-22px;top:7px;width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid var(--burg)}
+.timeline li::before{content:"";position:absolute;right:-24px;top:7px;width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid var(--rose)}
 .timeline .yr{display:inline-block;font-weight:800;color:var(--burg);font-size:14.5px}
+.timeline .what{display:block;font-weight:500;line-height:1.45;font-size:16px}
 .timeline .org{display:block;font-size:14px;color:var(--muted);line-height:1.4}
-.timeline .what{display:block;font-weight:500;line-height:1.45}
-.ticks{list-style:none}
-.ticks li{position:relative;padding:6px 26px 6px 0;line-height:1.45}
-.ticks li::before{content:"";position:absolute;right:2px;top:12px;width:12px;height:7px;border:solid var(--gold);border-width:0 0 2px 2px;transform:rotate(-45deg)}
 .mships{list-style:none}
-.mships li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:15px;line-height:1.4}
+.mships li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:15.5px;line-height:1.45}
 .mships li:last-child{border-bottom:0}
 .mships em{font-style:normal;flex:none;font-size:13px;font-weight:700;color:var(--burg);background:var(--blush);border-radius:99px;padding:2px 10px;align-self:flex-start}
 
-/* method */
-.method{background:linear-gradient(180deg,#fff,var(--cream))}
-.dial-steps{display:flex;justify-content:space-between;position:relative;margin:4px auto 26px;max-width:620px}
-.dial-steps::before{content:"";position:absolute;top:27px;right:8%;left:8%;height:2px;background:var(--rose)}
-.dial-steps div{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:20%;text-align:center;font-size:12.5px;font-weight:500;line-height:1.3}
-.dial-steps .ci{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--rose);color:var(--burg);display:grid;place-items:center}
-.stages{display:grid;gap:12px}
-.stage{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.stage summary{list-style:none;display:flex;align-items:flex-start;gap:14px;padding:18px 18px;cursor:pointer}
-.stage summary::-webkit-details-marker{display:none}
-.stage .n{flex:none;width:40px;height:40px;border-radius:50%;background:var(--burg);color:#fff;display:grid;place-items:center;font-family:var(--head);font-size:20px}
-.stage .t{flex:1}
-.stage .t b{display:block;font-family:var(--head);font-weight:400;color:var(--burg);font-size:20px;line-height:1.25}
-.stage .t span{display:block;font-size:15px;color:var(--muted);line-height:1.5;margin-top:3px}
-.stage .pl{flex:none;width:28px;height:28px;color:var(--burg);transition:transform .2s;margin-top:6px}
-.stage[open] .pl{transform:rotate(45deg)}
-.stage .body{padding:0 18px 18px 18px;margin-right:54px;display:grid;gap:10px;font-size:15.5px}
-.stage .body div{background:var(--cream);border-radius:12px;padding:10px 14px;line-height:1.5}
-.stage .body div b{display:block;color:var(--burg);font-size:13.5px;margin-bottom:2px}
-.fit{display:grid;gap:16px;margin-top:26px}
-.fit .card.no{background:var(--blush);border-color:transparent}
+/* about */
+.about{background:linear-gradient(180deg,var(--cream),var(--shell))}
+.about-grid{display:grid;gap:24px}
+.about-pic{position:relative;max-width:360px;margin:0 auto;width:100%}
+.about-pic::before{content:"";position:absolute;inset:14px -12px -12px 14px;border-radius:var(--r-l);background:linear-gradient(135deg,var(--apricot),var(--blush));z-index:0}
+.about-pic img{position:relative;z-index:1;border-radius:var(--r-l);aspect-ratio:1/1;object-fit:cover;width:100%;box-shadow:var(--shadow)}
+.about-pic figcaption{position:absolute;z-index:2;bottom:14px;right:14px;left:14px;background:rgba(255,252,250,.94);border-radius:16px;padding:10px 14px;font-size:14.5px;line-height:1.4;color:var(--muted)}
+.about-pic figcaption b{display:block;color:var(--wine);font-size:15.5px}
+.prose p{margin-top:14px;font-size:17px}
+.prose p:first-child{margin-top:0}
 
 /* clinic */
-.opts{display:grid;gap:14px}
-.opt{background:#fff;border-radius:var(--r);padding:20px;border:1px solid var(--line);display:flex;gap:14px}
-.opt .ci{flex:none;width:48px;height:48px;border-radius:14px;background:var(--blush);color:var(--burg);display:grid;place-items:center}
-.opt b{display:block;font-family:var(--head);font-weight:400;font-size:19px;color:var(--burg);line-height:1.3}
-.opt p{font-size:15.5px;color:var(--muted);line-height:1.5;margin-top:3px}
-.steps{list-style:none;counter-reset:s;display:grid;gap:0;margin-top:8px}
+.opts{display:grid;gap:12px}
+.opt{background:#fff;border-radius:var(--r);padding:18px;border:1px solid var(--line);display:flex;gap:14px;box-shadow:var(--shadow-s)}
+.opt .ci{flex:none;width:50px;height:50px;border-radius:16px;background:linear-gradient(135deg,var(--blush),var(--apricot));color:var(--burg);display:grid;place-items:center}
+.opt b{display:block;font-family:var(--head);font-weight:700;font-size:20px;color:var(--wine);line-height:1.3}
+.opt p{font-size:16px;color:var(--muted);line-height:1.5;margin-top:3px}
+.steps{list-style:none;counter-reset:s;display:grid;margin-top:8px}
 .steps li{counter-increment:s;position:relative;padding:0 56px 22px 0}
-.steps li::before{content:counter(s);position:absolute;right:0;top:0;width:40px;height:40px;border-radius:50%;border:2px solid var(--burg);color:var(--burg);display:grid;place-items:center;font-weight:800;background:var(--cream)}
-.steps li::after{content:"";position:absolute;right:19px;top:42px;bottom:2px;width:2px;background:var(--rose)}
+.steps li::before{content:counter(s);position:absolute;right:0;top:0;width:40px;height:40px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800}
+.steps li::after{content:"";position:absolute;right:19px;top:42px;bottom:2px;width:2px;background:var(--apricot)}
 .steps li:last-child{padding-bottom:0}
 .steps li:last-child::after{display:none}
-.steps b{display:block;font-size:17px;color:var(--ink);line-height:1.4;padding-top:7px}
-.steps span{display:block;font-size:15.5px;color:var(--muted);line-height:1.55;margin-top:2px}
-.where{display:grid;gap:16px;margin-top:26px}
-.info-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:15.5px;line-height:1.5}
+.steps b{display:block;font-size:17px;line-height:1.4;padding-top:7px}
+.steps span{display:block;font-size:16px;color:var(--muted);line-height:1.55;margin-top:2px}
+.info-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:16px;line-height:1.5}
 .info-row:last-child{border-bottom:0}
-.info-row .ico{color:var(--gold);margin-top:2px}
-.hours{width:100%;border-collapse:collapse;font-size:15px;margin-top:4px}
-.hours td{padding:6px 0;border-bottom:1px dashed var(--line)}
-.hours td:last-child{text-align:left;font-weight:500;direction:ltr}
+.info-row .ico{color:var(--rose);margin-top:1px}
+.hours{width:100%;border-collapse:collapse;font-size:16px;margin-top:4px}
+.hours td{padding:8px 0;border-bottom:1px dashed var(--line)}
+.hours tr:last-child td{border-bottom:0}
+.hours td:last-child{text-align:left;font-weight:700;color:var(--burg)}
 .prices{width:100%;border-collapse:collapse}
 .prices tr{border-bottom:1px solid var(--line)}
+.prices tr:last-child{border-bottom:0}
 .prices td{padding:13px 0;vertical-align:top;line-height:1.4}
-.prices td b{display:block;font-weight:700;font-size:15.5px}
-.prices td small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
-.prices td.p{text-align:left;white-space:nowrap;font-weight:800;color:var(--burg);font-size:16px;padding-right:12px}
-.fine{font-size:13.5px;color:var(--muted);line-height:1.55;margin-top:12px}
+.prices td b{display:block;font-weight:700;font-size:16px}
+.prices td small{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.prices td.p{text-align:left;white-space:nowrap;font-family:var(--head);font-weight:700;color:var(--burg);font-size:18px;padding-right:12px}
+.fine{font-size:14px;color:var(--muted);line-height:1.6;margin-top:12px}
 .center{text-align:center;margin-top:26px}
+.center .btn{width:100%;max-width:420px}
 
-/* organisations */
-.orgs{background:var(--deep);color:#fff;position:relative;overflow:hidden}
-.orgs::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(184,134,47,.22),rgba(184,134,47,0) 70%);top:-120px;right:-140px}
-.orgs .wrap{position:relative;z-index:1}
+/* organisations (full) */
+.orgs{background:radial-gradient(110% 60% at 0% 0%,rgba(224,127,110,.28),rgba(224,127,110,0) 60%),linear-gradient(180deg,#6A1A38,var(--wine) 40%,#43101F);color:#fff;position:relative;overflow:hidden}
 .orgs h2,.orgs h3{color:#fff}
-.orgs .kicker{color:var(--gold-l)}.orgs .kicker::before{background:var(--gold-l)}
-.orgs .lead{color:#ead6d9}
-.newpill{display:inline-block;background:var(--gold);color:var(--deep);font-weight:800;font-size:13px;border-radius:99px;padding:3px 12px;margin-bottom:12px}
-.prog{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:24px 20px;margin-top:26px}
-.prog h3{font-size:clamp(26px,7vw,34px);line-height:1.15}
-.prog .sub{color:var(--gold-l);font-weight:700;margin-top:6px}
-.prog p{margin-top:12px;color:#f3e6e8}
-.prog .big{font-family:var(--head);font-size:24px;color:#fff;margin-top:16px;line-height:1.3}
-.phases{display:grid;gap:10px;margin-top:22px}
-.phase{display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.05);border-radius:14px;padding:14px 16px}
-.phase .wk{flex:none;min-width:62px;text-align:center;background:var(--gold);color:var(--deep);border-radius:10px;padding:4px 8px;font-weight:800;font-size:13px;line-height:1.3}
-.phase b{display:block;font-size:16.5px}
-.phase span{display:block;font-size:14.5px;color:#e6d2d5;line-height:1.5;margin-top:2px}
+.orgs .kicker{color:var(--apricot)}
+.orgs .lead{color:#EED6DB}
+.orgs .pill{margin:0 auto 12px;display:flex;width:max-content}
+.prog{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:var(--r-l);padding:24px 20px;margin-top:26px}
+.prog h3{font-size:clamp(28px,7.6vw,38px);line-height:1.15}
+.prog .sub{color:var(--apricot);font-weight:700;margin-top:6px}
+.prog p{margin-top:12px;color:#F5E5E8;font-size:16.5px}
+.prog .big{font-family:var(--head);font-weight:700;font-size:26px;color:#fff;margin-top:16px;line-height:1.3}
+.block-t{margin-top:34px;font-family:var(--head);font-weight:700;font-size:25px;color:#fff}
+.phases{display:grid;gap:10px;margin-top:20px}
+.phase{display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.06);border-radius:16px;padding:14px 16px}
+.phase .wk{flex:none;min-width:64px;text-align:center;background:linear-gradient(135deg,var(--apricot),var(--peach));color:var(--wine);border-radius:12px;padding:5px 8px;font-weight:800;font-size:13.5px;line-height:1.3}
+.phase b{display:block;font-size:17px}
+.phase span{display:block;font-size:15.5px;color:#EBD6DA;line-height:1.5;margin-top:2px}
 .phase .wk span{display:inline;color:inherit;font-size:inherit;margin:0}
-.tracks{display:grid;gap:16px;margin-top:22px}
-.track{background:#fff;color:var(--ink);border-radius:20px;padding:22px 20px}
-.track h3{color:var(--burg);font-size:21px}
+.tracks{display:grid;gap:14px;margin-top:22px}
+.track{background:#fff;color:var(--ink);border-radius:var(--r);padding:22px 20px}
+.track h3{color:var(--wine);font-size:22px}
 .track .fmt{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
-.track .fmt > span{font-size:13px;font-weight:700;color:var(--burg);background:var(--blush);border-radius:99px;padding:3px 10px}
-.track p{font-size:15.5px;line-height:1.6;margin-top:10px}
-.track .gets{font-weight:700;color:var(--burg);margin-top:12px;font-size:15px}
-.track .ticks li{font-size:15px}
+.track .fmt > span{font-size:13.5px;font-weight:700;color:var(--burg);background:var(--blush);border-radius:99px;padding:3px 10px}
+.track p{font-size:16px;line-height:1.6;margin-top:10px}
+.track .gets{font-weight:700;color:var(--rose);margin-top:12px;font-size:15.5px}
 .deliv{list-style:none;display:grid;gap:10px;margin-top:14px}
-.deliv li{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.06);border-radius:14px;padding:12px 14px;font-size:15.5px;line-height:1.5}
-.deliv .ico{color:var(--gold-l)}
-.results{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
-.res{background:#fff;color:var(--ink);border-radius:16px;padding:16px 14px}
-.res b{display:block;font-family:var(--head);font-weight:400;color:var(--burg);font-size:36px;line-height:1}
-.res span{display:block;font-size:13.5px;line-height:1.45;margin-top:6px;color:var(--muted)}
+.deliv li{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.07);border-radius:16px;padding:13px 14px;font-size:16px;line-height:1.5}
+.deliv .ico{color:var(--apricot)}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.res{background:#fff;color:var(--ink);border-radius:18px;padding:16px 14px}
+.res b{display:block;font-family:var(--head);font-weight:900;font-size:38px;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.res span{display:block;font-size:14px;line-height:1.45;margin-top:6px;color:var(--muted)}
 .sectors{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.sectors span{border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:6px 14px;font-size:14.5px;font-weight:500}
-.case{background:var(--cream);color:var(--ink);border-radius:22px;padding:24px 20px;margin-top:14px}
-.case h3{color:var(--burg)}
-.case .lbl{display:block;font-size:13px;font-weight:800;color:var(--gold);margin-top:14px}
-.case p{font-size:15.5px;line-height:1.6;margin-top:2px}
+.sectors span{border:1px solid rgba(255,255,255,.32);border-radius:99px;padding:7px 14px;font-size:15px;font-weight:500}
+.case{background:var(--cream);color:var(--ink);border-radius:var(--r-l);padding:24px 20px;margin-top:14px}
+.case h3{color:var(--wine)}
+.case .lbl{display:block;font-size:13.5px;font-weight:800;color:var(--rose);margin-top:14px}
+.case p{font-size:16px;line-height:1.6;margin-top:2px}
+.orgs .lect{margin-top:6px;color:#F5E5E8;font-size:16.5px}
 .orgfaq{margin-top:14px;display:grid;gap:10px}
-.orgfaq details{background:rgba(255,255,255,.06);border-radius:14px;padding:14px 16px}
-.orgfaq summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.orgfaq details{background:rgba(255,255,255,.07);border-radius:16px}
+.orgfaq summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;min-height:52px}
 .orgfaq summary::-webkit-details-marker{display:none}
-.orgfaq p{margin-top:8px;color:#ead6d9;font-size:15px}
-.orgs .disc{font-size:13.5px;color:#d9bfc3;margin-top:16px;line-height:1.55}
-.block-t{margin-top:34px;font-family:var(--head);font-size:23px;color:#fff}
+.orgfaq summary .ico{width:22px;height:22px;transition:transform .2s;color:var(--apricot)}
+.orgfaq details[open] summary .ico{transform:rotate(45deg)}
+.orgfaq p{padding:0 16px 14px;color:#EED6DB;font-size:16px}
+.orgs .disc{font-size:14px;color:#DABEC4;margin-top:16px;line-height:1.55}
 
 /* book */
+.book{background:radial-gradient(70% 45% at 50% 18%,rgba(247,205,184,.55),rgba(247,205,184,0) 70%),var(--cream)}
 .book-grid{display:grid;gap:22px;align-items:center}
-.book-img{max-width:340px;margin:0 auto;width:100%;filter:drop-shadow(0 18px 30px rgba(74,11,24,.12))}
-.badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#fff;background:var(--burg);border-radius:99px;padding:4px 12px}
-.book-title{font-family:var(--head);font-weight:400;color:var(--burg);font-size:clamp(30px,8vw,44px);line-height:1.1;margin-top:10px}
-.book-title small{display:block;font-size:.55em;color:var(--ink);margin-top:6px}
-.quote{position:relative;font-family:var(--head);font-size:21px;line-height:1.45;color:var(--deep);background:var(--blush);border-radius:var(--r);padding:22px 22px 22px 22px;margin-top:20px}
-.quote::before{content:"״";position:absolute;top:-18px;right:16px;font-size:72px;color:var(--burg);opacity:.25;line-height:1}
-.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:0;margin-top:20px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.facts div{padding:12px 14px;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.4}
+.book-img{max-width:320px;margin:0 auto;width:100%;filter:drop-shadow(0 22px 34px rgba(90,20,48,.18))}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800;color:#fff;background:var(--grad);border-radius:99px;padding:5px 13px}
+.book-title{font-family:var(--head);font-weight:900;color:var(--wine);font-size:clamp(36px,10vw,52px);line-height:1.05;margin-top:12px}
+.book-title small{display:block;font-weight:500;font-size:.48em;color:var(--burg);margin-top:8px}
+.quote{position:relative;font-family:var(--head);font-weight:500;font-size:21px;line-height:1.5;color:var(--wine);background:linear-gradient(150deg,var(--blush),var(--shell));border-radius:var(--r);padding:24px 22px 22px;margin-top:20px}
+.quote::before{content:"״";position:absolute;top:-22px;right:16px;font-size:80px;color:var(--rose);opacity:.35;line-height:1}
+.facts{display:grid;grid-template-columns:1fr 1fr;margin-top:20px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.facts div{padding:12px 14px;border-bottom:1px solid var(--line);font-size:15.5px;line-height:1.4}
 .facts div:nth-child(odd){border-left:1px solid var(--line)}
-.facts div b{display:block;font-size:12.5px;color:var(--muted);font-weight:500}
-.facts div.w{grid-column:1/-1;border-left:0}
-.facts div:last-child{border-bottom:0}
-.toc{list-style:none;counter-reset:c;columns:1;margin-top:8px}
-.toc li{counter-increment:c;display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--line);font-size:15.5px;line-height:1.45;break-inside:avoid}
-.toc li::before{content:"פרק " counter(c);flex:none;min-width:52px;font-size:13px;font-weight:800;color:var(--gold)}
+.facts div b{display:block;font-size:13px;color:var(--muted);font-weight:500}
+.facts div.w{grid-column:1/-1;border-left:0;border-bottom:0}
+.toc{list-style:none;counter-reset:c;margin-top:8px}
+.toc li{counter-increment:c;display:flex;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--line);font-size:16px;line-height:1.45;break-inside:avoid}
+.toc li:last-child{border-bottom:0}
+.toc li::before{content:"פרק " counter(c);flex:none;min-width:54px;font-size:13.5px;font-weight:800;color:var(--rose)}
 .praise{display:grid;gap:12px;margin-top:8px}
-.praise blockquote{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px;font-size:16px;line-height:1.55}
-.praise cite{display:block;font-style:normal;font-size:13.5px;font-weight:700;color:var(--burg);margin-top:8px}
-.author{display:flex;gap:16px;align-items:center;background:#fff;border-radius:var(--r);padding:16px;border:1px solid var(--line);margin-top:22px}
-.author img{width:96px;height:96px;border-radius:50%;object-fit:cover;object-position:50% 25%;flex:none;border:3px solid var(--blush)}
-.author b{display:block;font-family:var(--head);font-weight:400;color:var(--burg);font-size:18px;line-height:1.3}
-.author span{display:block;font-size:14px;color:var(--muted);line-height:1.5;margin-top:4px}
-.sold{list-style:none;margin-top:10px}
-.sold li{display:flex;gap:10px;align-items:center;padding:6px 0;font-size:15.5px}
-.sold .ico{color:var(--gold);width:20px;height:20px}
+.praise blockquote{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px;font-size:16.5px;line-height:1.55;box-shadow:var(--shadow-s)}
+.praise cite{display:block;font-style:normal;font-size:14px;font-weight:700;color:var(--burg);margin-top:8px}
+.sold{list-style:none;margin-top:6px}
+.sold li{display:flex;gap:10px;align-items:center;padding:7px 0;font-size:16px}
+.sold .ico{color:var(--rose);width:21px;height:21px}
+.author{display:flex;gap:16px;align-items:center;background:#fff;border-radius:var(--r);padding:16px;border:1px solid var(--line);margin-top:22px;box-shadow:var(--shadow-s)}
+.author img{width:96px;height:96px;border-radius:50%;object-fit:cover;object-position:50% 25%;flex:none;border:3px solid var(--apricot)}
+.author b{display:block;font-family:var(--head);font-weight:700;color:var(--wine);font-size:19px;line-height:1.3}
+.author span{display:block;font-size:15px;color:var(--muted);line-height:1.5;margin-top:4px}
 
 /* media */
-.media{background:#fff}
-.mgrid{display:grid;gap:18px}
-.mcard{background:var(--cream);border-radius:22px;padding:22px 18px}
+.media{background:var(--paper)}
+.mgrid{display:grid;gap:16px}
+.mcard{background:linear-gradient(170deg,var(--shell),var(--cream));border:1px solid var(--line);border-radius:var(--r-l);padding:22px 18px}
 .mcard .hd{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-.mcard .hd .ci{flex:none;width:48px;height:48px;border-radius:50%;background:var(--burg);color:#fff;display:grid;place-items:center}
-.mcard .hd b{display:block;font-family:var(--head);font-weight:400;font-size:20px;color:var(--burg);line-height:1.25}
-.mcard .hd small{display:block;font-size:13.5px;color:var(--muted)}
-.mcard > p{font-size:15.5px;color:var(--muted);margin:6px 0 10px}
+.mcard .hd .ci{flex:none;width:50px;height:50px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center}
+.mcard .hd b{display:block;font-family:var(--head);font-weight:700;font-size:21px;color:var(--wine);line-height:1.25}
+.mcard .hd small{display:block;font-size:14px;color:var(--muted);line-height:1.45}
+.mcard > p{font-size:16px;color:var(--muted);margin:6px 0 10px}
 .eps{list-style:none}
 .eps li{border-top:1px solid var(--line)}
-.eps a,.eps .row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;text-decoration:none}
-.eps .num{flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:var(--burg);display:grid;place-items:center;font-weight:800;font-size:14px;border:1.5px solid var(--rose)}
-.eps .play{flex:none;width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center}
-.eps .play .ico{width:16px;height:16px;fill:currentColor;stroke:none}
+.eps a,.eps .row{display:flex;gap:12px;align-items:flex-start;padding:13px 0;text-decoration:none;min-height:56px}
+.eps .num{flex:none;width:36px;height:36px;border-radius:50%;background:#fff;color:var(--burg);display:grid;place-items:center;font-weight:800;font-size:14px;border:1.5px solid var(--apricot)}
+.eps .play{flex:none;width:36px;height:36px;border-radius:50%;background:var(--rose);color:#fff;display:grid;place-items:center;box-shadow:0 4px 12px rgba(192,86,107,.35)}
+.eps .play .ico,.eps .num .ico{width:16px;height:16px;fill:currentColor;stroke:none}
 .eps .tt{flex:1;min-width:0}
-.eps .tt b{display:block;font-size:16px;line-height:1.35}
-.eps .tt span{display:block;font-size:14px;color:var(--muted);line-height:1.5;margin-top:2px}
-.eps .tt i{font-style:normal;display:inline-block;font-size:12.5px;font-weight:700;color:var(--gold);margin-bottom:1px}
+.eps .tt b{display:block;font-size:16.5px;line-height:1.35}
+.eps .tt span{display:block;font-size:15px;color:var(--muted);line-height:1.5;margin-top:2px}
+.eps .tt i{font-style:normal;display:inline-block;font-size:13px;font-weight:700;color:var(--rose);margin-bottom:1px}
 .press{list-style:none}
 .press li{padding:12px 0;border-top:1px solid var(--line);line-height:1.45}
-.press li b{display:block;font-size:15.5px}
-.press li span{font-size:13.5px;color:var(--muted)}
+.press li b{display:block;font-size:16px}
+.press li span{font-size:14px;color:var(--muted)}
 
 /* doulasense */
-.ds{background:radial-gradient(120% 90% at 100% 0%,#84182F 0%,var(--deep) 55%,#2a0610 100%);color:#fff;border-radius:26px;padding:30px 22px;position:relative;overflow:hidden}
-.ds::before{content:"";position:absolute;inset:auto -60px -80px auto;width:260px;height:260px;border-radius:50%;border:1px solid rgba(230,201,143,.25);box-shadow:0 0 0 30px rgba(230,201,143,.05),0 0 0 60px rgba(230,201,143,.04)}
-.ds .soon{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.4px;color:var(--deep);background:var(--gold-l);border-radius:99px;padding:3px 12px}
+.ds{background:radial-gradient(120% 90% at 100% 0%,#8E2A4A 0%,var(--wine) 55%,#2C0812 100%);color:#fff;border-radius:var(--r-l);padding:30px 22px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.ds::before{content:"";position:absolute;inset:auto -70px -90px auto;width:270px;height:270px;border-radius:50%;border:1px solid rgba(247,205,184,.25);box-shadow:0 0 0 30px rgba(247,205,184,.05),0 0 0 60px rgba(247,205,184,.035)}
+.ds .soon{display:inline-block;font-size:13.5px;font-weight:800;letter-spacing:.4px;color:var(--wine);background:var(--apricot);border-radius:99px;padding:3px 12px}
 .ds h2{color:#fff;margin-top:12px}
-.ds .sub{color:var(--gold-l);font-weight:700;margin-top:6px}
-.ds p{margin-top:12px;color:#f0dfe2;position:relative}
-.ds .caps{list-style:none;display:grid;gap:8px;margin-top:16px;position:relative}
-.ds .caps li{display:flex;gap:10px;align-items:flex-start;font-size:15.5px;line-height:1.5}
-.ds .caps .ico{color:var(--gold-l);width:20px;height:20px;margin-top:2px}
-.ds .btn{margin-top:22px;position:relative}
+.nw{white-space:nowrap}
+.ds .sub{color:var(--apricot);font-weight:700;margin-top:6px}
+.ds p{margin-top:12px;color:#F2DFE3;position:relative;font-size:16.5px}
+.ds .caps{list-style:none;display:grid;gap:9px;margin-top:16px;position:relative}
+.ds .caps li{display:flex;gap:10px;align-items:flex-start;font-size:16px;line-height:1.5}
+.ds .caps .ico{color:var(--apricot);width:21px;height:21px;margin-top:2px}
+.ds .btn{margin-top:22px;position:relative;width:100%}
 
 /* reviews */
-.revs{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 18px 12px;margin:0 -18px;scrollbar-width:none}
+.revs{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 20px 14px;margin:0 -20px;scrollbar-width:none;overscroll-behavior-x:contain}
 .revs::-webkit-scrollbar{display:none}
-.rev{flex:0 0 86%;scroll-snap-align:center;background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px 20px;display:flex;flex-direction:column}
+.rev{flex:0 0 86%;scroll-snap-align:center;background:#fff;border:1px solid var(--line);border-radius:var(--r-l);padding:24px 20px;display:flex;flex-direction:column;box-shadow:var(--shadow-s)}
 .rev .stars{display:flex;gap:3px;color:var(--gold);margin-bottom:10px}
-.rev .stars .ico{width:17px;height:17px;fill:currentColor;stroke:none}
-.rev p{font-size:16px;line-height:1.6;flex:1}
-.rev cite{display:block;font-style:normal;font-weight:700;color:var(--burg);font-size:14.5px;margin-top:14px;line-height:1.4}
-.dots{display:flex;justify-content:center;gap:7px;margin-top:6px}
-.dots i{width:8px;height:8px;border-radius:50%;background:var(--rose)}
+.rev .stars .ico{width:18px;height:18px;fill:currentColor;stroke:none}
+.rev p{font-size:16.5px;line-height:1.6;flex:1}
+.rev cite{display:block;font-style:normal;font-weight:700;color:var(--burg);font-size:15px;margin-top:14px;line-height:1.4}
+.dots{display:flex;justify-content:center;gap:7px;margin-top:8px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--apricot)}
 .dots i.on{background:var(--burg);width:22px;border-radius:99px}
 
 /* faq */
-.faq{display:grid;gap:10px;max-width:760px;margin:0 auto}
-.faq details{background:#fff;border:1px solid var(--line);border-radius:16px}
-.faq summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;font-weight:700;font-size:16.5px;line-height:1.4;cursor:pointer}
+.faqsec{background:linear-gradient(180deg,var(--cream),var(--shell))}
+.faq{display:grid;gap:10px;max-width:780px;margin:0 auto}
+.faq details{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-s)}
+.faq summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;font-weight:700;font-size:16.5px;line-height:1.4;cursor:pointer;min-height:56px}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary .pl{flex:none;width:24px;height:24px;color:var(--burg);transition:transform .2s}
+.faq summary .pl{flex:none;width:24px;height:24px;color:var(--rose);transition:transform .2s}
 .faq details[open] summary .pl{transform:rotate(45deg)}
-.faq details p{padding:0 18px 18px;color:var(--muted);font-size:15.5px;line-height:1.65}
+.faq details p{padding:0 18px 18px;color:var(--muted);font-size:16px;line-height:1.65}
 
 /* contact */
-.contact{background:linear-gradient(180deg,var(--cream),var(--blush))}
-.formcard{background:#fff;border-radius:24px;padding:26px 20px;box-shadow:var(--shadow);max-width:620px;margin:0 auto}
+.contact{background:radial-gradient(90% 50% at 50% 0%,rgba(247,205,184,.6),rgba(247,205,184,0) 70%),var(--shell)}
+.formcard{background:#fff;border-radius:var(--r-l);padding:26px 20px;box-shadow:var(--shadow);max-width:620px;margin:0 auto}
 .field{display:block;margin-bottom:14px}
-.field span{display:block;font-weight:700;font-size:14.5px;margin-bottom:6px}
-.field input,.field select,.field textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--cream);border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;outline:none;transition:border-color .15s}
-.field textarea{min-height:120px;resize:vertical;line-height:1.55}
-.field select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B1023' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 14px center;background-size:18px;padding-left:40px}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--burg)}
+.field span{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--cream);border:1.5px solid var(--line);border-radius:16px;padding:14px;min-height:52px;outline:none;transition:border-color .15s,box-shadow .15s}
+.field textarea{min-height:124px;resize:vertical;line-height:1.55}
+.field select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A1F3D' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 14px center;background-size:18px;padding-left:40px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(192,86,107,.12)}
 .hp{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;clip:rect(0 0 0 0)}
 .formcard .btn{width:100%;margin-top:6px}
-.err{color:var(--red);font-size:14.5px;min-height:20px;margin-top:8px;text-align:center}
-.small{font-size:13.5px;color:var(--muted);text-align:center;margin-top:8px}
+.err{color:#B3263A;font-size:15px;min-height:20px;margin-top:8px;text-align:center}
+.small{font-size:14px;color:var(--muted);text-align:center;margin-top:8px}
 .done{text-align:center;padding:16px 0}
-.done .ci{width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:var(--blush);color:var(--burg);display:grid;place-items:center}
+.done .ci{width:74px;height:74px;margin:0 auto 14px;border-radius:50%;background:linear-gradient(135deg,var(--blush),var(--apricot));color:var(--burg);display:grid;place-items:center}
 .done .ci .ico{width:34px;height:34px}
-.done b{display:block;font-family:var(--head);font-weight:400;color:var(--burg);font-size:24px;line-height:1.3}
+.done b{display:block;font-family:var(--head);font-weight:700;color:var(--wine);font-size:25px;line-height:1.3}
 .done p{color:var(--muted);margin-top:8px}
 
 /* footer */
-footer{background:var(--deep);color:#e8d3d6;padding:40px 0 calc(110px + var(--safe-b));font-size:14.5px}
-footer .flogo{height:46px;width:auto}
+footer{background:linear-gradient(180deg,var(--wine),#3A0D1B);color:#EBD5DA;padding:42px 0 calc(116px + var(--safe-b));font-size:15px}
+footer .flogo{height:44px;width:auto}
 footer .fl{margin-top:16px;line-height:1.6}
 footer .fcols{display:grid;gap:18px;margin-top:22px}
-footer h4{color:#fff;font-size:15px;margin-bottom:6px}
+footer h4{color:#fff;font-size:15.5px;margin-bottom:6px}
 footer a{text-decoration:none}
-footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding-top:16px;font-size:12.5px;color:#cdb2b6;line-height:1.6}
+footer .fnav{display:flex;flex-wrap:wrap;gap:0 20px}
+footer .fnav a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-decoration-color:rgba(255,255,255,.25);text-underline-offset:5px}
+footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding-top:16px;font-size:13px;color:#CFB3B9;line-height:1.6}
 
-/* sticky bar */
-.sticky{position:fixed;right:0;left:0;bottom:0;z-index:40;padding:10px 14px calc(10px + var(--safe-b));background:linear-gradient(0deg,rgba(251,244,238,1) 60%,rgba(251,244,238,0));transition:transform .3s}
-.sticky.hide{transform:translateY(130%)}
+/* sticky booking bar */
+.sticky{position:fixed;right:0;left:0;bottom:0;z-index:40;padding:10px 16px calc(10px + var(--safe-b));background:linear-gradient(0deg,rgba(251,237,231,1) 62%,rgba(251,237,231,0));transition:transform .3s}
+.sticky.hide{transform:translateY(130%);visibility:hidden;transition:transform .3s,visibility 0s .3s}
 .sticky .btn{width:100%}
 
-/* larger screens */
+/* wide screens (secondary) */
 @media (min-width:760px){
-  .wrap{padding:0 28px}
-  .nav{display:flex}.burger{display:none}
-  .sec{padding:84px 0}
-  .hero{padding:48px 0 18px}
-  .hero-grid{grid-template-columns:1fr 1fr;align-items:center}
-  .hero-text{text-align:right;order:-1}
-  .titles,.opening{margin-right:0}
-  .hero-cta{flex-direction:row;margin-right:0;max-width:none}
-  .headshot{width:360px}
-  .stats .wrap{grid-template-columns:repeat(4,1fr)}
-  .stat{border-bottom:0!important;border-left:1px solid var(--line)}
-  .stat:last-child{border-left:0}
-  .about-grid{grid-template-columns:340px 1fr;align-items:start}
-  .cards2{grid-template-columns:1fr 1fr}
-  .fit,.where,.tracks{grid-template-columns:1fr 1fr}
-  .opts{grid-template-columns:1fr 1fr}
+  .wrap{padding:0 32px}
+  .sec{padding:88px 0}
+  .top .wrap{grid-template-columns:auto 1fr auto;height:72px;padding:0 32px;gap:20px}
+  .brand{justify-self:start;padding:0}.brand img{height:40px}
+  #burger,#calbtn{display:none}
+  .nav{display:flex;justify-content:center;gap:24px;font-weight:500;font-size:15.5px}
+  .nav a{text-decoration:none;color:var(--ink);padding:8px 0;border-bottom:2px solid transparent}
+  .nav a:hover{color:var(--burg);border-color:var(--apricot)}
+  .top-cta{display:inline-flex;min-height:44px;padding:8px 18px;font-size:15px}
+  .hero{background:radial-gradient(60% 70% at 85% 30%,rgba(247,205,184,.55),rgba(247,205,184,0) 70%),var(--shell)}
+  .hero-photo{position:absolute;top:0;bottom:0;left:0;width:50%;aspect-ratio:auto;max-height:none;-webkit-mask-image:linear-gradient(to right,#000 58%,transparent 100%);mask-image:linear-gradient(to right,#000 58%,transparent 100%)}
+  .hero-photo img{object-position:50% 0}
+  .hero-photo::after{background:linear-gradient(180deg,rgba(251,237,231,0) 72%,var(--shell) 100%)}
+  .hero-text{margin-top:0;padding:70px 0 30px;max-width:520px;min-height:600px;display:flex;flex-direction:column;justify-content:center}
+  .quick{position:relative;max-width:640px;margin:0;padding-bottom:40px}
+  .laurels{grid-template-columns:repeat(2,auto);justify-content:center;gap:40px}
+  .trustcard{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+  .seen{border-top:0;border-right:1px solid var(--line);margin:0;padding:0 24px 0 0}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .orgcard{display:grid;grid-template-columns:1.05fr 1fr;align-items:stretch}
+  .orgcard .ph{order:2;aspect-ratio:auto;min-height:340px}
+  .orgcard .ph svg{display:none}
+  .orgcard .bd{padding:40px 36px;align-self:center}
+  .orgcard .btn{width:auto}
+  .method .sec-head{max-width:620px}
+  .gauge-art{position:absolute;left:3%;top:40px;width:300px;margin:0;opacity:.95}
+  .about-grid{grid-template-columns:360px 1fr;align-items:start;gap:44px}
+  .cards2,.fit,.tracks,.opts{grid-template-columns:1fr 1fr}
   .results{grid-template-columns:repeat(4,1fr)}
   .book-grid{grid-template-columns:1fr 1.2fr}
   .mgrid{grid-template-columns:1fr 1fr}
@@ -396,17 +462,24 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
   .toc{columns:2;column-gap:30px}
   footer .fcols{grid-template-columns:repeat(3,1fr)}
   .sticky{display:none}
-  footer{padding-bottom:40px}
+  footer{padding-bottom:42px}
+  .center .btn{width:auto}
+  .ds .btn{width:auto}
 }
-@media (max-width:520px){ .stage .body{margin-right:0} .newbar .gt{display:none} .newbar .go .chev{width:22px;height:22px} }
+@media (min-width:1400px){ .hero-text{max-width:560px} }
 @media (max-width:370px){
   body{font-size:16px}
-  .quick a{font-size:11.5px}
-  .quick .ci{width:48px;height:48px}
-  .dial-steps div{font-size:11.5px}
+  .wrap{padding:0 16px}
+  .revs{padding:6px 16px 14px;margin:0 -16px}
+  .quick a{font-size:12px}
+  .quick .ci{width:50px;height:50px}
+  .dial-steps div{font-size:12px}
   .dial-steps .ci{width:50px;height:50px}
   .dial-steps::before{top:24px}
-  .res b{font-size:30px}
+  .res b{font-size:32px}
+  .laurel{font-size:13.5px}
+  .newbar .tx{font-size:14px}
+  .sheet .links a{font-size:15px;padding:10px}
 }
 </style>
 </head>
@@ -447,34 +520,42 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
-  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.3-2.3 1.5a11 11 0 0 0 6.2 6.2l1.5-2.3L20 15.5V19a1.5 1.5 0 0 1-1.6 1.5C10.6 20 4 13.4 3.5 5.6A1.5 1.5 0 0 1 5 4z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5M6 9.5V20h12V9.5"/></symbol>
+  <symbol id="i-laurel" viewBox="0 0 22 46"><g fill="currentColor" stroke="none"><path d="M17 44C8 38 4 28 6 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><ellipse cx="4.6" cy="14" rx="2.2" ry="4.6" transform="rotate(-18 4.6 14)"/><ellipse cx="9.4" cy="12.6" rx="1.8" ry="4" transform="rotate(32 9.4 12.6)"/><ellipse cx="3.6" cy="22" rx="2.2" ry="4.6" transform="rotate(-38 3.6 22)"/><ellipse cx="9.6" cy="20.8" rx="1.8" ry="4" transform="rotate(18 9.6 20.8)"/><ellipse cx="4.8" cy="30" rx="2.2" ry="4.6" transform="rotate(-58 4.8 30)"/><ellipse cx="11" cy="29.4" rx="1.8" ry="4" transform="rotate(4 11 29.4)"/><ellipse cx="8.6" cy="37.6" rx="2.1" ry="4.4" transform="rotate(-72 8.6 37.6)"/><ellipse cx="14" cy="36.8" rx="1.7" ry="3.8" transform="rotate(-12 14 36.8)"/></g></symbol>
 </svg>
 
 <header class="top" id="top">
   <div class="wrap">
-    <a class="brand" href="#" aria-label="המחוג שבלב - ד״ר נעמי־ציפורה"><img src="brand/logo.svg" alt="המחוג שבלב"></a>
+    <button class="iconbtn" id="burger" aria-label="תפריט" aria-expanded="false" aria-controls="sheet"><svg class="ico"><use href="#i-menu"/></svg></button>
+    <a class="brand" href="#" aria-label="המחוג שבלב - ד״ר נעמי־ציפורה"><img src="brand/logo.webp" alt="המחוג שבלב" width="600" height="137"></a>
     <nav class="nav" aria-label="ניווט ראשי">
       <a href="#about">אודות</a><a href="#method">השיטה</a><a href="#clinic">הקליניקה</a><a href="#orgs">ארגונים</a><a href="#book">הספר</a><a href="#media">פודקאסט ורדיו</a><a href="#contact">צור קשר</a>
     </nav>
-    <button class="burger" id="burger" aria-label="תפריט"><svg class="ico"><use href="#i-menu"/></svg></button>
+    <a class="iconbtn" id="calbtn" href="#contact" data-choice="מפגש רגשי ראשון" aria-label="לקביעת מפגש רגשי ראשון"><svg class="ico"><use href="#i-cal"/></svg></a>
+    <a class="btn btn-p top-cta" href="#contact" data-choice="מפגש רגשי ראשון">לקביעת מפגש רגשי ראשון</a>
   </div>
 </header>
 
-<div class="drawer" id="drawer" aria-hidden="true">
-  <nav aria-label="תפריט">
-    <button class="x" id="x" aria-label="סגירה"><svg class="ico"><use href="#i-x"/></svg></button>
-    <img src="brand/logo.svg" alt="המחוג שבלב">
-    <a href="#about">אודות</a>
-    <a href="#method">השיטה - המחוג הפנימי</a>
-    <a href="#clinic">הקליניקה</a>
-    <a href="#orgs" class="new">ארגונים - מאונבורדינג לבונדינג</a>
-    <a href="#book">הספר</a>
-    <a href="#media">הפודקאסט והשעה הרגשית</a>
-    <a href="#doulasense">DoulaSense AI</a>
-    <a href="#faq">שאלות נפוצות</a>
-    <a href="#contact">צור קשר</a>
-    <a class="btn btn-p" href="#contact" data-choice="מפגש רגשי ראשון">לקביעת מפגש רגשי ראשון</a>
-  </nav>
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="תפריט">
+    <div class="grab"></div>
+    <div class="phead">
+      <img src="brand/logo.webp" alt="המחוג שבלב" width="600" height="137">
+      <button class="iconbtn" id="x" aria-label="סגירה"><svg class="ico"><use href="#i-x"/></svg></button>
+    </div>
+    <ul class="links">
+      <li><a href="#about"><svg class="ico"><use href="#i-heart"/></svg>אודות</a></li>
+      <li><a href="#method"><svg class="ico"><use href="#i-gauge"/></svg>השיטה - המחוג הפנימי</a></li>
+      <li><a href="#clinic"><svg class="ico"><use href="#i-pin"/></svg>הקליניקה</a></li>
+      <li><a href="#book"><svg class="ico"><use href="#i-book"/></svg>הספר</a></li>
+      <li class="wide"><a href="#orgs"><svg class="ico"><use href="#i-users"/></svg>ארגונים - מאונבורדינג לבונדינג<span class="tag">חדש</span></a></li>
+      <li><a href="#media"><svg class="ico"><use href="#i-mic"/></svg>הפודקאסט והשעה הרגשית</a></li>
+      <li><a href="#doulasense"><svg class="ico"><use href="#i-pulse"/></svg>DoulaSense AI</a></li>
+      <li><a href="#faq"><svg class="ico"><use href="#i-chat"/></svg>שאלות נפוצות</a></li>
+      <li><a href="#contact"><svg class="ico"><use href="#i-pen"/></svg>צור קשר</a></li>
+    </ul>
+    <a class="btn btn-p" href="#contact" data-choice="מפגש רגשי ראשון"><svg class="ico"><use href="#i-cal"/></svg>לקביעת מפגש רגשי ראשון</a>
+  </div>
 </div>
 
 <div class="newbar">
@@ -482,7 +563,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
     <a href="#orgs">
       <span class="tag">חדש</span>
       <span class="tx"><b>מאונבורדינג לבונדינג</b>אני מלווה עובדים צעירים בבונדינג ומנהלים בהשהיית תגובה.</span>
-      <span class="go"><span class="gt">לפרטי התוכנית</span> <svg class="ico chev"><use href="#i-left"/></svg></span>
+      <span class="go" aria-hidden="true"><svg class="ico"><use href="#i-left"/></svg></span>
     </a>
   </div>
 </div>
@@ -490,23 +571,23 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
 <main>
 <!-- 1 hero -->
 <section class="hero">
-  <div class="wrap hero-grid">
-    <div class="headshot">
-      <div class="frame"><img src="img/naomi.jpg" alt="ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך" width="820" height="820" fetchpriority="high"></div>
-      <div class="seal"><img src="brand/mark.svg" alt=""></div>
-    </div>
+  <div class="hero-photo">
+    <picture>
+      <img src="img/hero-phone.webp" alt="ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך בקליניקה" width="900" height="1060" fetchpriority="high">
+    </picture>
+  </div>
+  <div class="wrap">
     <div class="hero-text">
-      <h1><span>ד״ר נעמי־ציפורה</span><span>בן־נון־פרידמן־שטרנבך</span></h1>
+      <h1><span class="dr">ד״ר</span><span class="nm">נעמי־ציפורה</span><span class="sn">בן־נון־פרידמן־שטרנבך</span></h1>
       <p class="titles">פסיכיאטרית, פסיכותרפיסטית אינטגרטיבית, מאמנת NLP, CBT, TMI ו־EMDR, ודולה מוסמכת של רגשות.</p>
-      <p class="tagline">לכל רגש<br>יש <em>תאריך לידה</em></p>
+      <div class="hr"></div>
+      <p class="tagline"><span>לכל רגש יש</span><span class="ul">תאריך לידה<svg viewBox="0 0 300 18" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="brush" x1="0" x2="1"><stop offset="0" stop-color="#F2A98C"/><stop offset=".6" stop-color="#E07F6E"/><stop offset="1" stop-color="#C0566B"/></linearGradient></defs><path d="M4 12 C 60 4, 150 2, 296 7 C 230 9, 150 12, 60 16 C 40 17, 14 16, 4 12 Z" fill="url(#brush)" opacity=".85"/></svg></span></p>
       <p class="opening">לפעמים המחוג לא זז כי הרגש עדיין מחכה שיילדו אותו.</p>
       <div class="hero-cta">
-        <a class="btn btn-p" href="#contact" data-choice="מפגש רגשי ראשון"><svg class="ico"><use href="#i-cal"/></svg>לקביעת מפגש רגשי ראשון</a>
+        <a class="btn btn-p" href="#contact" data-choice="מפגש רגשי ראשון"><svg class="ico lead-ico"><use href="#i-cal"/></svg><span class="mid">לקביעת מפגש רגשי ראשון</span><svg class="ico chev"><use href="#i-left"/></svg></a>
         <a class="btn btn-s" href="#method">להכיר את המחוג הפנימי</a>
       </div>
     </div>
-  </div>
-  <div class="wrap">
     <div class="quick">
       <a href="#method"><span class="ci"><svg class="ico"><use href="#i-dial"/></svg></span>המחוג<br>הפנימי</a>
       <a href="#stages"><span class="ci"><svg class="ico"><use href="#i-gauge"/></svg></span>5 שלבי<br>השיטה</a>
@@ -517,89 +598,65 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
   </div>
 </section>
 
-<!-- numbers -->
-<div class="stats">
+<!-- trust: laurels, where to meet her, numbers -->
+<div class="trust">
   <div class="wrap">
-    <div class="stat"><b>24</b><span>שנות ניסיון קליני מאז 2002</span></div>
-    <div class="stat"><b>3,400+</b><span>לידות רגשיות שליוויתי</span></div>
-    <div class="stat"><b>12</b><span>שבועות בממוצע לתהליך בשיטת המחוג הפנימי</span></div>
-    <div class="stat"><b>78%</b><span>מהמטופלים דיווחו על הצלחת ביניים רגשית כבר בשלב השני</span></div>
+    <div class="trustcard">
+      <div class="laurels">
+        <div class="laurel"><svg><use href="#i-laurel"/></svg><span><span class="nw">24 שנות</span> <span class="nw">ניסיון קליני</span></span><svg class="l"><use href="#i-laurel"/></svg></div>
+        <div class="laurel"><svg><use href="#i-laurel"/></svg><span><span class="nw">מחברת רב־המכר</span> <span class="nw">״המחוג שבלב״</span></span><svg class="l"><use href="#i-laurel"/></svg></div>
+      </div>
+      <div class="seen">
+        <small>אפשר לפגוש אותי כאן</small>
+        <div class="marks">
+          <a href="#media" class="mk1"><svg class="ico"><use href="#i-radio"/></svg>השעה הרגשית</a>
+          <a href="#media" class="mk2">המחוג שבלב<i>הפודקאסט</i></a>
+          <a href="#media" class="mk3">Unfiltered</a>
+          <a href="#media" class="mk4">מרחב בריא</a>
+          <a href="#media"><span class="mk5">בין השורות</span></a>
+          <a href="#media" class="mk6">מקום לצמוח</a>
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>24</b><span>שנות ניסיון קליני מאז 2002</span></div>
+      <div class="stat"><b dir="ltr">3,400+</b><span>לידות רגשיות שליוויתי</span></div>
+      <div class="stat"><b>12</b><span>שבועות בממוצע לתהליך בשיטת המחוג הפנימי</span></div>
+      <div class="stat"><b>78%</b><span>מהמטופלים דיווחו על הצלחת ביניים רגשית כבר בשלב השני</span></div>
+    </div>
   </div>
 </div>
 
-<!-- 2 about -->
-<section class="sec" id="about">
+<!-- the new organisations program (card) -->
+<div class="orgteaser">
   <div class="wrap">
-    <div class="about-grid">
-      <figure class="about-pic">
-        <img src="img/naomi-alt.jpg" alt="ד״ר נעמי־ציפורה בקליניקה" width="720" height="720" loading="lazy">
-        <figcaption><b>ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך</b>מפתחת שיטת המחוג הפנימי</figcaption>
-      </figure>
-      <div>
-        <span class="kicker">אודות</span>
-        <h2>נעים מאוד, אני נעמי־ציפורה</h2>
-        <div class="prose" style="margin-top:16px">
-          <p>אני ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך. את שרשרת ההכשרות שלי בניתי מתוך אמונה שלרגש מגיע ליווי מקצועי, משלב ההתקשרות הראשונית ועד שהוא מוצא את מקומו בעולם.</p>
-          <p>רגע ההארה שלי הגיע בקליניקה, כשמטופלת סיפרה שבכל יום ראשון היא בוכה מול ארון הבגדים, אבל ביום שני אותה מחשבה כבר לא מזיזה לה דבר. שמעתי לא רק את הרגש, אלא גם את התנועה שלו: ביום ראשון המחוג החסיר פעימה.</p>
-          <p>כך התחלתי לפתח את שיטת המחוג הפנימי. מאז אני מלווה לידות רגשיות בקליניקה ובארגונים, וגאה גם בהצלחות הביניים הרגשיות: ברגע שבו משהו בפנים נע, אפילו כשהמציאות בחוץ עוד מחכה.</p>
-        </div>
+    <a class="orgcard" href="#orgs">
+      <div class="ph">
+        <img src="art/team.webp" alt="" width="1200" height="800" loading="lazy">
+        <svg viewBox="0 0 400 58" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 C 90 6, 180 6, 260 26 S 360 50, 400 22 V58 H0Z" fill="#F2A98C" opacity=".55"/><path d="M0 44 C 100 20, 200 22, 280 38 S 370 52, 400 36 V58 H0Z" fill="#842849"/></svg>
       </div>
-    </div>
-
-    <div class="cards2" id="creds">
-      <div class="card">
-        <h3><svg class="ico"><use href="#i-cap"/></svg>ציר קריירה והשכלה</h3>
-        <ol class="timeline">
-          <li><span class="yr" dir="ltr">2002</span><span class="what">תואר ברפואה</span><span class="org">אוניברסיטת תל אביב</span></li>
-          <li><span class="yr" dir="ltr">2004–2009</span><span class="what">התמחות בפסיכיאטריה של המבוגר</span><span class="org">המרכז הרפואי שיבא</span></li>
-          <li><span class="yr" dir="ltr">2010</span><span class="what">הכשרה באימון NLP</span><span class="org">מכון אופק לתקשורת ותודעה</span></li>
-          <li><span class="yr" dir="ltr">2012</span><span class="what">פתיחת הקליניקה ותחילת תוכנית דו־שנתית בפסיכותרפיה אינטגרטיבית</span><span class="org">קליניקה פרטית, רמת השרון · מכון מרחבים לטיפול</span></li>
-          <li><span class="yr" dir="ltr">2014</span><span class="what">הכשרה ב־CBT</span><span class="org">מכון נתיבים לטיפול קוגניטיבי</span></li>
-          <li><span class="yr" dir="ltr">2016</span><span class="what">הסמכה כדולה של רגשות</span><span class="org">המכון הישראלי לליווי ולידה רגשית</span></li>
-          <li><span class="yr" dir="ltr">2017</span><span class="what">הכשרות ב־TMI וב־EMDR</span><span class="org">מכון מצפן לטיפול אינטגרטיבי</span></li>
-          <li><span class="yr" dir="ltr">2018–2023</span><span class="what">פיתוח שיטת ״המחוג הפנימי״</span><span class="org">קליניקה פרטית, רמת השרון</span></li>
-          <li><span class="yr" dir="ltr">2025</span><span class="what">פרסום רב־המכר ״המחוג שבלב – איך לכוון את המחוג הפנימי״</span><span class="org">הוצאת קו פנימי</span></li>
-          <li><span class="yr" dir="ltr">2026</span><span class="what">פיתוח כלי לליווי רגשי</span><span class="org">DoulaSense AI</span></li>
-        </ol>
+      <div class="bd">
+        <span class="pill"><svg class="ico"><use href="#i-users"/></svg>חדש לארגונים</span>
+        <h2>מאונבורדינג לבונדינג</h2>
+        <div class="sub">תוכנית החוסן הרגשי לארגונים · 12 שבועות</div>
+        <p>אני מלווה עובדים צעירים בבונדינג ומנהלים בהשהיית תגובה.</p>
+        <span class="btn btn-g">לפרטי התוכנית<svg class="ico chev"><use href="#i-left"/></svg></span>
       </div>
-      <div style="display:grid;gap:16px;align-content:start">
-        <div class="card">
-          <h3><svg class="ico"><use href="#i-shield"/></svg>הכשרות והסמכות</h3>
-          <ul class="ticks">
-            <li>פסיכיאטרית</li>
-            <li>פסיכותרפיסטית אינטגרטיבית</li>
-            <li>מאמנת NLP, CBT, TMI ו־EMDR</li>
-            <li>דולה מוסמכת של רגשות</li>
-            <li>מחברת רב־המכר ״המחוג שבלב – איך לכוון את המחוג הפנימי״</li>
-            <li>מנחת ״המחוג שבלב – הפודקאסט הרגשי״</li>
-            <li>מפתחת DoulaSense AI</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3><svg class="ico"><use href="#i-users"/></svg>חברות באיגודים</h3>
-          <ul class="mships">
-            <li>האיגוד הישראלי לפסיכותרפיה אינטגרטיבית <em>חברה</em></li>
-            <li>הפורום הישראלי לטיפול ורגש <em>חברה מייסדת</em></li>
-            <li>האגודה הישראלית לליווי רגשי <em>חברת ועד</em></li>
-            <li>הפורום הישראלי לבריאות הנפש בארגונים <em>חברה</em></li>
-            <li>האגודה לקידום טיפול ממוקד רגש <em>חברה</em></li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    </a>
   </div>
-</section>
+</div>
 
-<!-- 3 method -->
+<!-- 2 method -->
 <section class="sec method" id="method">
   <div class="wrap">
+    <img class="gauge-art" src="art/gauge.webp" alt="" width="560" height="372" loading="lazy">
     <div class="sec-head">
-      <span class="kicker">השיטה - המחוג הפנימי</span>
-      <h2>לכל רגש יש קצב משלו</h2>
+      <span class="kicker">השיטה</span>
+      <h2>המחוג הפנימי</h2>
+      <p class="sub-h">לכל רגש יש קצב משלו</p>
       <p class="lead">תראי, אין לוחות לב. אני מקשיבה למחוג הפנימי ולשלב שבו הרגש נמצא, כדי לכוון את הליווי למה שעולה אצלך עכשיו.</p>
-      <div class="heart-rule"><svg class="ico"><use href="#i-heart"/></svg></div>
     </div>
-    <p style="max-width:760px;margin:0 auto 26px;text-align:center">שיטת המחוג הפנימי היא דרך שפיתחתי לזיהוי תנועה, כיוון והיתקעות בחוויה הרגשית. היא נשענת על שילוב של פסיכיאטריה, פסיכותרפיה אינטגרטיבית ומודל ליווי לידה, ומאפשרת להתייחס גם לשינויים קטנים ומשמעותיים לאורך הדרך.</p>
+    <p class="method-intro">שיטת המחוג הפנימי היא דרך שפיתחתי לזיהוי תנועה, כיוון והיתקעות בחוויה הרגשית. היא נשענת על שילוב של פסיכיאטריה, פסיכותרפיה אינטגרטיבית ומודל ליווי לידה, ומאפשרת להתייחס גם לשינויים קטנים ומשמעותיים לאורך הדרך.</p>
 
     <div class="dial-steps" id="stages" aria-hidden="true">
       <div><span class="ci"><svg class="ico"><use href="#i-search"/></svg></span>זיהוי<br>הפתיחה</div>
@@ -663,10 +720,73 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
           <li>לצוותים וארגונים המעוניינים לחזק תקשורת והקשבה.</li>
         </ul>
       </div>
-      <div class="card no">
+      <div class="card soft">
         <h3><svg class="ico"><use href="#i-shield"/></svg>למי היא פחות מתאימה</h3>
-        <p style="font-size:15.5px;line-height:1.6">במצבי חירום נפשיים או בסיכון מיידי יש לפנות למוקד חירום או לחדר מיון.</p>
-        <p style="font-size:15.5px;line-height:1.6;margin-top:10px">השיטה אינה מחליפה בירור רפואי או טיפול ייעודי כאשר הם נדרשים.</p>
+        <p>במצבי חירום נפשיים או בסיכון מיידי יש לפנות למוקד חירום או לחדר מיון.</p>
+        <p style="margin-top:10px">השיטה אינה מחליפה בירור רפואי או טיפול ייעודי כאשר הם נדרשים.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 about -->
+<section class="sec about" id="about">
+  <div class="wrap">
+    <div class="about-grid">
+      <figure class="about-pic">
+        <img src="img/naomi-alt.jpg" alt="ד״ר נעמי־ציפורה בקליניקה" width="720" height="720" loading="lazy">
+        <figcaption><b>ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך</b>מפתחת שיטת המחוג הפנימי</figcaption>
+      </figure>
+      <div>
+        <span class="kicker r">אודות</span>
+        <h2>נעים מאוד, אני נעמי־ציפורה</h2>
+        <div class="prose" style="margin-top:16px">
+          <p>אני ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך. את שרשרת ההכשרות שלי בניתי מתוך אמונה שלרגש מגיע ליווי מקצועי, משלב ההתקשרות הראשונית ועד שהוא מוצא את מקומו בעולם.</p>
+          <p>רגע ההארה שלי הגיע בקליניקה, כשמטופלת סיפרה שבכל יום ראשון היא בוכה מול ארון הבגדים, אבל ביום שני אותה מחשבה כבר לא מזיזה לה דבר. שמעתי לא רק את הרגש, אלא גם את התנועה שלו: ביום ראשון המחוג החסיר פעימה.</p>
+          <p>כך התחלתי לפתח את שיטת המחוג הפנימי. מאז אני מלווה לידות רגשיות בקליניקה ובארגונים, וגאה גם בהצלחות הביניים הרגשיות: ברגע שבו משהו בפנים נע, אפילו כשהמציאות בחוץ עוד מחכה.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards2" id="creds">
+      <div class="card">
+        <h3><svg class="ico"><use href="#i-cap"/></svg>ציר קריירה והשכלה</h3>
+        <ol class="timeline">
+          <li><span class="yr" dir="ltr">2002</span><span class="what">תואר ברפואה</span><span class="org">אוניברסיטת תל אביב</span></li>
+          <li><span class="yr" dir="ltr">2004–2009</span><span class="what">התמחות בפסיכיאטריה של המבוגר</span><span class="org">המרכז הרפואי שיבא</span></li>
+          <li><span class="yr" dir="ltr">2010</span><span class="what">הכשרה באימון NLP</span><span class="org">מכון אופק לתקשורת ותודעה</span></li>
+          <li><span class="yr" dir="ltr">2012</span><span class="what">פתיחת הקליניקה ותחילת תוכנית דו־שנתית בפסיכותרפיה אינטגרטיבית</span><span class="org">קליניקה פרטית, רמת השרון · מכון מרחבים לטיפול</span></li>
+          <li><span class="yr" dir="ltr">2014</span><span class="what">הכשרה ב־CBT</span><span class="org">מכון נתיבים לטיפול קוגניטיבי</span></li>
+          <li><span class="yr" dir="ltr">2016</span><span class="what">הסמכה כדולה של רגשות</span><span class="org">המכון הישראלי לליווי ולידה רגשית</span></li>
+          <li><span class="yr" dir="ltr">2017</span><span class="what">הכשרות ב־TMI וב־EMDR</span><span class="org">מכון מצפן לטיפול אינטגרטיבי</span></li>
+          <li><span class="yr" dir="ltr">2018–2023</span><span class="what">פיתוח שיטת ״המחוג הפנימי״</span><span class="org">קליניקה פרטית, רמת השרון</span></li>
+          <li><span class="yr" dir="ltr">2025</span><span class="what">פרסום רב־המכר ״המחוג שבלב – איך לכוון את המחוג הפנימי״</span><span class="org">הוצאת קו פנימי</span></li>
+          <li><span class="yr" dir="ltr">2026</span><span class="what">פיתוח כלי לליווי רגשי</span><span class="org">DoulaSense AI</span></li>
+        </ol>
+      </div>
+      <div style="display:grid;gap:14px;align-content:start">
+        <div class="card">
+          <h3><svg class="ico"><use href="#i-shield"/></svg>הכשרות והסמכות</h3>
+          <ul class="ticks">
+            <li>פסיכיאטרית</li>
+            <li>פסיכותרפיסטית אינטגרטיבית</li>
+            <li>מאמנת NLP, CBT, TMI ו־EMDR</li>
+            <li>דולה מוסמכת של רגשות</li>
+            <li>מחברת רב־המכר ״המחוג שבלב – איך לכוון את המחוג הפנימי״</li>
+            <li>מנחת ״המחוג שבלב – הפודקאסט הרגשי״</li>
+            <li>מפתחת DoulaSense AI</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><svg class="ico"><use href="#i-users"/></svg>חברות באיגודים</h3>
+          <ul class="mships">
+            <li>האיגוד הישראלי לפסיכותרפיה אינטגרטיבית <em>חברה</em></li>
+            <li>הפורום הישראלי לטיפול ורגש <em>חברה מייסדת</em></li>
+            <li>האגודה הישראלית לליווי רגשי <em>חברת ועד</em></li>
+            <li>הפורום הישראלי לבריאות הנפש בארגונים <em>חברה</em></li>
+            <li>האגודה לקידום טיפול ממוקד רגש <em>חברה</em></li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -699,7 +819,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
           <li><b>סיכום ומעקב</b><span>כשנגיע לנקודת סיום מתאימה, נסכם את התהליך ואת הכלים שנרכשו. אפשר לתאם מפגש מעקב בהמשך, לפי הצורך.</span></li>
         </ol>
       </div>
-      <div style="display:grid;gap:16px;align-content:start">
+      <div style="display:grid;gap:14px;align-content:start">
         <div class="card">
           <h3><svg class="ico"><use href="#i-pin"/></svg>היכן</h3>
           <div class="info-row"><svg class="ico"><use href="#i-map"/></svg><span>קליניקת המחוג שבלב<br>רחוב סוקולוב 84, קומה 2, רמת השרון</span></div>
@@ -716,7 +836,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
       </div>
     </div>
 
-    <div class="card" style="margin-top:16px" id="prices">
+    <div class="card" style="margin-top:14px" id="prices">
       <h3><svg class="ico"><use href="#i-doc"/></svg>מחירון</h3>
       <table class="prices">
         <tr><td><b>מפגש רגשי ראשון</b><small>75 דקות</small></td><td class="p">1,250 ₪</td></tr>
@@ -737,10 +857,12 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
 <!-- 5 organisations (new) -->
 <section class="sec orgs" id="orgs">
   <div class="wrap">
-    <span class="newpill">חדש</span>
-    <span class="kicker" style="display:flex">ארגונים</span>
-    <h2>חוסן רגשי הוא חלק מהעבודה</h2>
-    <p class="lead">אני מלווה חברות הייטק מוכרות מאוד בתהליכי חוסן, בהרצאות ובתוכניות למנהלים ולעובדים. גם בארגון המחוג יכול להחסיר פעימה, ולא תמיד רואים את זה בדוח.</p>
+    <div class="sec-head" style="margin-bottom:0">
+      <span class="pill"><svg class="ico"><use href="#i-users"/></svg>חדש</span>
+      <span class="kicker">ארגונים</span>
+      <h2>חוסן רגשי הוא חלק מהעבודה</h2>
+      <p class="lead">אני מלווה חברות הייטק מוכרות מאוד בתהליכי חוסן, בהרצאות ובתוכניות למנהלים ולעובדים. גם בארגון המחוג יכול להחסיר פעימה, ולא תמיד רואים את זה בדוח.</p>
+    </div>
 
     <div class="prog">
       <h3>מאונבורדינג לבונדינג</h3>
@@ -814,12 +936,12 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
     </div>
 
     <div class="block-t">הרצאות לארגונים</div>
-    <p style="margin-top:6px;color:#f3e6e8">חוסן רגשי בעבודה, מאונבורדינג לבונדינג, והשהיית תגובה בניהול.</p>
+    <p class="lect">חוסן רגשי בעבודה, מאונבורדינג לבונדינג, והשהיית תגובה בניהול.</p>
 
     <div class="orgfaq">
-      <details><summary>מה התקציב הנדרש? <svg class="ico" style="width:20px;height:20px"><use href="#i-plus"/></svg></summary><p>מחיר התוכנית מתחיל ב־48,000 ש״ח בתוספת מע״מ. הצעת המחיר מותאמת למספר המשתתפים ולהיקף הליווי.</p></details>
-      <details><summary>כמה זמן נדרשת התוכנית? <svg class="ico" style="width:20px;height:20px"><use href="#i-plus"/></svg></summary><p>התוכנית נמשכת 12 שבועות. מועדי המפגשים נקבעים מראש בתיאום עם הארגון.</p></details>
-      <details><summary>האם התוכנית מתאימה לעבודה היברידית? <svg class="ico" style="width:20px;height:20px"><use href="#i-plus"/></svg></summary><p>כן. אפשר לקיים את המפגשים פנים אל פנים, באופן מקוון או בשילוב בין השניים.</p></details>
+      <details><summary>מה התקציב הנדרש? <svg class="ico"><use href="#i-plus"/></svg></summary><p>מחיר התוכנית מתחיל ב־48,000 ש״ח בתוספת מע״מ. הצעת המחיר מותאמת למספר המשתתפים ולהיקף הליווי.</p></details>
+      <details><summary>כמה זמן נדרשת התוכנית? <svg class="ico"><use href="#i-plus"/></svg></summary><p>התוכנית נמשכת 12 שבועות. מועדי המפגשים נקבעים מראש בתיאום עם הארגון.</p></details>
+      <details><summary>האם התוכנית מתאימה לעבודה היברידית? <svg class="ico"><use href="#i-plus"/></svg></summary><p>כן. אפשר לקיים את המפגשים פנים אל פנים, באופן מקוון או בשילוב בין השניים.</p></details>
     </div>
 
     <p class="disc">מתוך כבוד לארגונים שאני מלווה ולאנשים שבתוכם, שמות הלקוחות אינם מפורסמים ללא הסכמתם.</p>
@@ -828,7 +950,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
 </section>
 
 <!-- 6 book -->
-<section class="sec" id="book">
+<section class="sec book" id="book">
   <div class="wrap">
     <div class="book-grid">
       <img class="book-img" src="brand/book-3d.webp" alt="הספר המחוג שבלב – איך לכוון את המחוג הפנימי" width="900" height="1091" loading="lazy">
@@ -869,9 +991,9 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
           <li>כיוונון מחדש: הדרך ממשיכה</li>
         </ol>
       </div>
-      <div style="display:grid;gap:16px;align-content:start">
-        <div class="card" style="background:transparent;border:0;padding:0">
-          <h3 style="margin-bottom:10px"><svg class="ico" style="color:var(--gold)"><use href="#i-chat"/></svg>אמרו על הספר</h3>
+      <div style="display:grid;gap:14px;align-content:start">
+        <div>
+          <h3 style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><svg class="ico" style="color:var(--rose)"><use href="#i-chat"/></svg>אמרו על הספר</h3>
           <div class="praise">
             <blockquote>״ספר שמציע שפה קשובה ומעשית למפגש עם רגשות, גם כשהפתרון עדיין רחוק.״<cite>פרופ׳ אבנר לוין, חוקר פסיכולוגיה קלינית</cite></blockquote>
             <blockquote>״נעמי משלבת ניסיון טיפולי עם כתיבה נגישה, שמאפשרת לעצור ולהקשיב.״<cite>מיכל רז, עורכת ספרי עיון · מגב הספר</cite></blockquote>
@@ -891,9 +1013,9 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
           <li><svg class="ico"><use href="#i-mic"/></svg>וגם בהרצאות ובקליניקה</li>
         </ul>
       </div>
-      <div class="card" style="background:var(--blush);border-color:transparent">
+      <div class="card soft">
         <h3><svg class="ico"><use href="#i-pen"/></svg>עותק חתום</h3>
-        <p style="font-size:15.5px">עותק חתום אישית נשלח בדואר או ממתין לאיסוף מהקליניקה. מוזמנים להזמין דרך הטופס באתר.</p>
+        <p>עותק חתום אישית נשלח בדואר או ממתין לאיסוף מהקליניקה. מוזמנים להזמין דרך הטופס באתר.</p>
         <a class="btn btn-p" style="margin-top:14px;width:100%" href="#contact" data-choice="עותק חתום של הספר"><svg class="ico"><use href="#i-pen"/></svg>להזמנת עותק חתום</a>
       </div>
     </div>
@@ -925,7 +1047,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
           <li><a href="/v/ig-18268995802275518"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>פרק 5 · 1.6.2025</i><b>עכוז רגשי ושלושת המחוגים</b><span>בריאיון אני מסבירה מהו מצג עכוז רגשי, מציגה את שלושת המחוגים של הלב ומספרת איך נולד הרעיון ל־DoulaSense AI.</span></span></a></li>
         </ul>
       </div>
-      <div style="display:grid;gap:18px;align-content:start">
+      <div style="display:grid;gap:16px;align-content:start">
         <div class="mcard">
           <div class="hd"><span class="ci"><svg class="ico"><use href="#i-radio"/></svg></span><div><b>״השעה הרגשית״</b><small>שעת רדיו · רדיו קול העיר</small></div></div>
           <p>בכל יום שני ורביעי בשעה 20:00, בתחנת ״רדיו קול העיר״, אני משוחחת עם מאזינים שעולים לשידור עם רגש תקוע.</p>
@@ -942,8 +1064,8 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
       <div class="mcard">
         <div class="hd"><span class="ci"><svg class="ico"><use href="#i-users"/></svg></span><div><b>הרצאות וסדנאות</b></div></div>
         <ul class="eps">
-          <li><a href="/v/ig-18065723819481874"><span class="num"><svg class="ico" style="width:16px;height:16px"><use href="#i-play"/></svg></span><span class="tt"><i>27.4.2025</i><b>המחוג הפנימי בעבודת צוות</b><span>צוות בחברת ההייטק טקי־טק, בהזמנת אסנת ב., Head of People</span></span></a></li>
-          <li><a href="/v/ig-17876119581225977"><span class="num"><svg class="ico" style="width:16px;height:16px"><use href="#i-play"/></svg></span><span class="tt"><i>3.5.2025</i><b>לתת מקום למה שעולה</b><span>תלמידי שכבה בתיכון המקיף נווה תדהר</span></span></a></li>
+          <li><a href="/v/ig-18065723819481874"><span class="num"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>27.4.2025</i><b>המחוג הפנימי בעבודת צוות</b><span>צוות בחברת ההייטק טקי־טק, בהזמנת אסנת ב., Head of People</span></span></a></li>
+          <li><a href="/v/ig-17876119581225977"><span class="num"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>3.5.2025</i><b>לתת מקום למה שעולה</b><span>תלמידי שכבה בתיכון המקיף נווה תדהר</span></span></a></li>
           <li><div class="row"><span class="num">3</span><span class="tt"><i>18.5.2025</i><b>התקשרות ראשונית לתינוק התעסוקתי</b><span>כנס למנהלות ולמנהלי משאבי אנוש</span></span></div></li>
           <li><div class="row"><span class="num">4</span><span class="tt"><i>12.6.2025</i><b>הצלחות ביניים רגשיות בחיי היום־יום</b><span>מרכז קהילתי</span></span></div></li>
         </ul>
@@ -967,7 +1089,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
   <div class="wrap">
     <div class="ds">
       <span class="soon">בקרוב</span>
-      <h2>בקרוב: DoulaSense AI</h2>
+      <h2>בקרוב: <span class="nw">DoulaSense AI</span></h2>
       <div class="sub">המערכת הראשונה בעולם לזיהוי לידות רגשיות</div>
       <p>אני מפתחת את DoulaSense AI כדי לתרגם את שפת המחוג הפנימי ליכולות זיהוי בזמן אמת. המערכת נועדה לתמוך בהתבוננות רגשית, ואינה מחליפה קשר טיפולי אנושי.</p>
       <ul class="caps">
@@ -1000,7 +1122,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
 </section>
 
 <!-- faq -->
-<section class="sec" id="faq" style="padding-top:20px">
+<section class="sec faqsec" id="faq">
   <div class="wrap">
     <div class="sec-head">
       <span class="kicker">שאלות נפוצות</span>
@@ -1061,12 +1183,12 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
 
 <footer>
   <div class="wrap">
-    <img class="flogo" src="brand/logo-white.svg" alt="המחוג שבלב">
+    <img class="flogo" src="brand/logo-white.webp" alt="המחוג שבלב" width="600" height="137" loading="lazy">
     <p class="fl">ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך - אני מלווה לידות רגשיות בקליניקה ובארגונים, בשפת המחוג הפנימי.</p>
     <div class="fcols">
       <div><h4>הקליניקה</h4>רחוב סוקולוב 84, קומה 2, רמת השרון<br>ימים א׳–ד׳ <span dir="ltr">9:00–17:00</span> · יום ה׳ <span dir="ltr">12:00–20:00</span></div>
-      <div><h4>ניווט</h4><a href="#method">השיטה</a> · <a href="#clinic">הקליניקה</a> · <a href="#orgs">ארגונים</a> · <a href="#book">הספר</a> · <a href="#media">פודקאסט ורדיו</a> · <a href="#faq">שאלות נפוצות</a></div>
-      <div><h4>צור קשר</h4><a href="#contact" data-choice="מפגש רגשי ראשון">לקביעת מפגש רגשי ראשון</a></div>
+      <div><h4>ניווט</h4><div class="fnav"><a href="#method">השיטה</a><a href="#clinic">הקליניקה</a><a href="#orgs">ארגונים</a><a href="#book">הספר</a><a href="#media">פודקאסט ורדיו</a><a href="#faq">שאלות נפוצות</a></div></div>
+      <div><h4>צור קשר</h4><div class="fnav"><a href="#contact" data-choice="מפגש רגשי ראשון">לקביעת מפגש רגשי ראשון</a></div></div>
     </div>
     <div class="legal">© כל הזכויות שמורות לד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך.<br>המידע באתר אינו מחליף אבחון, טיפול או ייעוץ רפואי ונפשי אישי. לכל רגש יש מקום, ולכל אדם מגיע ליווי שמתאים לצרכיו.</div>
   </div>
@@ -1075,22 +1197,21 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
 <div class="sticky hide" id="sticky"><a class="btn btn-p" href="#contact" data-choice="מפגש רגשי ראשון"><svg class="ico"><use href="#i-cal"/></svg>לקביעת מפגש רגשי ראשון</a></div>
 
 <script>
-// header shadow, drawer, CTA presets, sticky bar, reviews dots
+// header shadow, menu sheet, CTA presets, sticky bar, reviews dots
 const $ = (s) => document.querySelector(s);
 const top0 = $('#top');
 addEventListener('scroll', () => top0.classList.toggle('scrolled', scrollY > 8), { passive: true });
-const drawer = $('#drawer');
-const openD = (on) => { drawer.classList.toggle('on', on); drawer.setAttribute('aria-hidden', on ? 'false' : 'true'); document.body.style.overflow = on ? 'hidden' : ''; };
-$('#burger').onclick = () => openD(true);
-$('#x').onclick = () => openD(false);
-drawer.onclick = (e) => { if (e.target === drawer || e.target.closest('a')) openD(false); };
-addEventListener('keydown', (e) => { if (e.key === 'Escape') openD(false); });
+const sheet = $('#sheet'), burger = $('#burger');
+const openS = (on) => { sheet.classList.toggle('on', on); sheet.setAttribute('aria-hidden', on ? 'false' : 'true'); burger.setAttribute('aria-expanded', on ? 'true' : 'false'); document.body.style.overflow = on ? 'hidden' : ''; };
+burger.onclick = () => openS(true);
+$('#x').onclick = () => openS(false);
+sheet.onclick = (e) => { if (e.target === sheet || e.target.closest('a')) openS(false); };
+addEventListener('keydown', (e) => { if (e.key === 'Escape') openS(false); });
 document.querySelectorAll('[data-choice]').forEach((a) => a.addEventListener('click', () => { $('#choice').value = a.dataset.choice; }));
-// the sticky bar hides over the form and at the very top
-// the sticky bar shows once the hero's own button is gone, and hides again over the form
-const sticky = $('#sticky'), vis = new Map();
-const seen = new IntersectionObserver((es) => { es.forEach((e) => vis.set(e.target, e.isIntersecting)); sticky.classList.toggle('hide', [...vis.values()].some(Boolean)); }, { threshold: 0.05 });
-seen.observe($('.hero-cta')); seen.observe($('#contact'));
+// the sticky bar shows once the hero's own button has been scrolled past, and hides again over the form
+const sticky = $('#sticky'), heroCta = $('.hero-cta'), contact = $('#contact');
+const placeSticky = () => { const h = heroCta.getBoundingClientRect(), c = contact.getBoundingClientRect(); sticky.classList.toggle('hide', h.bottom > 0 || (c.top < innerHeight && c.bottom > 0)); };
+addEventListener('scroll', placeSticky, { passive: true }); addEventListener('resize', placeSticky); placeSticky();
 const revs = $('#revs'), dots = [...document.querySelectorAll('#dots i')];
 revs.addEventListener('scroll', () => {
   const cards = [...revs.children]; const mid = revs.getBoundingClientRect().left + revs.clientWidth / 2;
