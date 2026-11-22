@@ -333,13 +333,30 @@ h3{font-family:var(--head);font-weight:700;color:var(--wine);font-size:22px;line
 
 /* media */
 .media{background:var(--paper)}
-.mgrid{display:grid;gap:16px}
+.mgrid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.mgrid>*{min-width:0}
 .mcard{background:linear-gradient(170deg,var(--shell),var(--cream));border:1px solid var(--line);border-radius:var(--r-l);padding:22px 18px}
 .mcard .hd{display:flex;align-items:center;gap:12px;margin-bottom:6px}
 .mcard .hd .ci{flex:none;width:50px;height:50px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center}
 .mcard .hd b{display:block;font-family:var(--head);font-weight:700;font-size:21px;color:var(--wine);line-height:1.25}
 .mcard .hd small{display:block;font-size:14px;color:var(--muted);line-height:1.45}
 .mcard > p{font-size:16px;color:var(--muted);margin:6px 0 10px}
+.mcard.show{padding:22px 0 14px}
+.mcard.show>.hd,.mcard.show>p,.mcard.show>.eps{margin-inline:18px}
+.rail{list-style:none;display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:10px 18px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.rail::-webkit-scrollbar{display:none}
+.rail li{flex:none;width:148px;scroll-snap-align:start}
+.vc{display:block;text-decoration:none;color:inherit}
+.vc .th{position:relative;display:block;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:var(--shell);box-shadow:0 8px 20px rgba(90,26,48,.18)}
+.vc .th img{width:100%;height:100%;object-fit:cover;display:block}
+.vc .th::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,transparent 60%,rgba(60,14,32,.45))}
+.vc .pl{position:absolute;z-index:1;inset-inline-start:10px;bottom:10px;width:38px;height:38px;border-radius:50%;background:var(--rose);color:#fff;display:grid;place-items:center;box-shadow:0 4px 12px rgba(192,86,107,.45)}
+.vc .pl .ico{width:16px;height:16px;fill:currentColor;stroke:none}
+.vc .vt{display:block;padding:9px 2px 0}
+.vc .vt i{font-style:normal;display:block;font-size:12.5px;font-weight:700;color:var(--rose)}
+.vc .vt b{display:block;font-size:15.5px;line-height:1.3;margin-top:2px}
+.vc .vt span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;color:var(--muted);line-height:1.45;margin-top:3px}
+.eps.more{margin-top:8px}
 .eps{list-style:none}
 .eps li{border-top:1px solid var(--line)}
 .eps a,.eps .row{display:flex;gap:12px;align-items:flex-start;padding:13px 0;text-decoration:none;min-height:56px}
@@ -457,7 +474,7 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
   .cards2,.fit,.tracks,.opts{grid-template-columns:1fr 1fr}
   .results{grid-template-columns:repeat(4,1fr)}
   .book-grid{grid-template-columns:1fr 1.2fr}
-  .mgrid{grid-template-columns:1fr 1fr}
+  .mgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .rev{flex-basis:340px}
   .toc{columns:2;column-gap:30px}
   footer .fcols{grid-template-columns:repeat(3,1fr)}
@@ -1036,39 +1053,30 @@ footer .legal{border-top:1px solid rgba(255,255,255,.14);margin-top:24px;padding
       <p class="lead">לפעמים לשמוע רגש של מישהו אחר מאפשר למחוג הפנימי שלך לזוז. אני מזמינה אותך להקשיב ולשאול: מה עולה אצלך?</p>
     </div>
     <div class="mgrid">
-      <div class="mcard">
-        <div class="hd"><span class="ci"><svg class="ico"><use href="#i-mic"/></svg></span><div><b>״המחוג שבלב – הפודקאסט הרגשי״</b><small>בפודקאסט הזה אני לא מדברת על רגשות. אני מיילדת אותם.</small></div></div>
-        <p>אני מזמינה אותך לשיחות על רגשות, על התנועה של המחוג הפנימי ועל הדרכים לתת מקום למה שמבקש להיוולד.</p>
-        <ul class="eps">
-          <li><a href="/v/ig-18042032915450070"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>פרק 1 · 18.4.2025</i><b>לכל רגש יש תאריך לידה</b><span>אני מציגה את דרכי ואת הרעיון שרגש הוא תינוק, ומשוחחת על פתיחה, צירים, תרומת רגשות ופונדקאות רגשית.</span></span></a></li>
-          <li><a href="/v/ig-17931398055031663"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>פרק 2 · 18.4.2025</i><b>לידת ואקום רגשית</b><span>על האפשרות להיעזר בריח, בטעם או בשיר כדי לפגוש רגש שנתקע.</span></span></a></li>
-          <li><a href="/v/ig-18057262061168518"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>פרק 3 · 20.4.2025</i><b>שני שעונים וספר אחד</b><span>אני מספרת איך נולד הספר, לאחר שהמטפלת שלי אמרה ״הזמן נגמר״ בדיוק כשהשעון הפנימי שלי התחיל לזוז.</span></span></a></li>
-          <li><a href="/v/ig-18123529624443831"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>פרק 4 · 1.5.2025</i><b>אכילה רגשית ביום העצמאות</b><span>שיחה על אסאדו לשבורים, מרגז לכעס ושקשוקה לבלבול, ועל הרגש שעולה סביב האוכל.</span></span></a></li>
-          <li><a href="/v/ig-18268995802275518"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>פרק 5 · 1.6.2025</i><b>עכוז רגשי ושלושת המחוגים</b><span>בריאיון אני מסבירה מהו מצג עכוז רגשי, מציגה את שלושת המחוגים של הלב ומספרת איך נולד הרעיון ל־DoulaSense AI.</span></span></a></li>
+      <div class="mcard show">
+        <div class="hd"><span class="ci"><svg class="ico"><use href="#i-mic"/></svg></span><div><b>״המחוג שבלב – הפודקאסט הרגשי״</b><small>5 פרקים · בפודקאסט הזה אני לא מדברת על רגשות. אני מיילדת אותם.</small></div></div>
+        <ul class="rail"><li><a class="vc" href="/v/ig-18042032915450070"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18042032915450070.jpg?v=6ee1ec20" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>פרק 1 · 18.4.2025</i><b>לכל רגש יש תאריך לידה</b><span>רגש הוא תינוק: פתיחה, צירים, תרומת רגשות ופונדקאות רגשית.</span></span></a></li><li><a class="vc" href="/v/ig-17931398055031663"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-17931398055031663.jpg?v=d2c9d916" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>פרק 2 · 18.4.2025</i><b>לידת ואקום רגשית</b><span>ריח, טעם או שיר שעוזרים לפגוש רגש שנתקע.</span></span></a></li><li><a class="vc" href="/v/ig-18057262061168518"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18057262061168518.jpg?v=54bec740" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>פרק 3 · 20.4.2025</i><b>שני שעונים וספר אחד</b><span>איך נולד ״המחוג שבלב״, ברגע שהמטפלת שלי אמרה ״הזמן נגמר״.</span></span></a></li><li><a class="vc" href="/v/ig-18123529624443831"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18123529624443831.jpg?v=0ee51fa7" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>פרק 4 · 1.5.2025</i><b>אכילה רגשית ביום העצמאות</b><span>אסאדו לשבורים, מרגז לכעס ושקשוקה לבלבול.</span></span></a></li><li><a class="vc" href="/v/ig-18268995802275518"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18268995802275518.jpg?v=c889400b" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>פרק 5 · 1.6.2025</i><b>עכוז רגשי ושלושת המחוגים</b><span>מהו מצג עכוז רגשי, ואיך נולד הרעיון ל־DoulaSense AI.</span></span></a></li></ul>
+      </div>
+      <div class="mcard show">
+        <div class="hd"><span class="ci"><svg class="ico"><use href="#i-radio"/></svg></span><div><b>״השעה הרגשית״</b><small>שעת רדיו · רדיו קול העיר · שני ורביעי, 20:00</small></div></div>
+        <p>מאזינים עולים לשידור עם רגש תקוע, ואנחנו בודקים יחד מה מבקש להיוולד.</p>
+        <ul class="rail"><li><a class="vc" href="/v/ig-18494511508044523"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18494511508044523.jpg?v=49033f56" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>21.4.2025</i><b>רגש שהגיע מרחוק</b><span>יוסי, 65, מחולון, אימץ רגש מחו״ל ורוצה להחזיר אותו.</span></span></a></li><li><a class="vc" href="/v/ig-18026792000448520"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18026792000448520.jpg?v=ad6a272a" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>23.4.2025</i><b>מורה מבקש להפסיק רגש</b><span>מורה פגוע רוצה להפסיק רגש; אני מציעה קודם לבדוק מה עולה.</span></span></a></li></ul>
+      </div>
+      <div class="mcard show">
+        <div class="hd"><span class="ci"><svg class="ico"><use href="#i-users"/></svg></span><div><b>הרצאות וסדנאות</b><small>בארגונים, בבתי ספר ובקהילה</small></div></div>
+        <ul class="rail"><li><a class="vc" href="/v/ig-18065723819481874"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18065723819481874.jpg?v=d5886145" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>טקי־טק · 27.4.2025</i><b>המחוג הפנימי בעבודת צוות</b><span>סדנה לצוות, בהזמנת אסנת ב., Head of People.</span></span></a></li><li><a class="vc" href="/v/ig-17876119581225977"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-17876119581225977.jpg?v=d79b7958" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>נווה תדהר · 2.5.2025</i><b>לתת מקום למה שעולה</b><span>שכבת התיכון המקיף נווה תדהר נערכת להרצאה.</span></span></a></li><li><a class="vc" href="/v/ig-18088588153721770"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18088588153721770.jpg?v=3bfe0442" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>נווה תדהר · 7.5.2025</i><b>סיור לימודי: הכיתה מגיעה</b><span>התלמידים של המורה רוזנבלום נכנסים להרצאה.</span></span></a></li></ul>
+        <ul class="eps more">
+          <li><div class="row"><span class="num">·</span><span class="tt"><i>18.5.2025</i><b>התקשרות ראשונית לתינוק התעסוקתי</b><span>כנס למנהלות ולמנהלי משאבי אנוש</span></span></div></li>
+          <li><div class="row"><span class="num">·</span><span class="tt"><i>12.6.2025</i><b>הצלחות ביניים רגשיות בחיי היום־יום</b><span>מרכז קהילתי</span></span></div></li>
         </ul>
       </div>
-      <div style="display:grid;gap:16px;align-content:start">
-        <div class="mcard">
-          <div class="hd"><span class="ci"><svg class="ico"><use href="#i-radio"/></svg></span><div><b>״השעה הרגשית״</b><small>שעת רדיו · רדיו קול העיר</small></div></div>
-          <p>בכל יום שני ורביעי בשעה 20:00, בתחנת ״רדיו קול העיר״, אני משוחחת עם מאזינים שעולים לשידור עם רגש תקוע.</p>
-          <ul class="eps">
-            <li><a href="/v/ig-18494511508044523"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>21.4.2025</i><b>רגש שהגיע מרחוק</b><span>יוסי, בן 65 מחולון, מספר שאימץ רגש מחו״ל בגיל 63 ורוצה להחזיר אותו.</span></span></a></li>
-            <li><a href="/v/ig-18026792000448520"><span class="play"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>23.4.2025</i><b>מורה מבקש להפסיק רגש</b><span>מורה פגוע מבקש להפסיק את הרגש שמלווה אותו; אני מציעה לבדוק מה עולה אצלו, מתוך הסתייגותי מהפלות רגשיות.</span></span></a></li>
-          </ul>
-        </div>
-        <div class="mcard">
-          <div class="hd"><span class="ci"><svg class="ico"><use href="#i-stage"/></svg></span><div><b>״Unfiltered – המחוג שבלייב״</b><small>יוני 2025</small></div></div>
-          <p style="margin-bottom:0">ערב של לידות רגשיות חיות מול קהל, שבו השקתי גם את DoulaSense AI.</p>
-        </div>
+      <div class="mcard show">
+        <div class="hd"><span class="ci"><svg class="ico"><use href="#i-heart"/></svg></span><div><b>מהקליניקה ומהשטח</b><small>רגעים מהעבודה היומיומית שלי</small></div></div>
+        <ul class="rail"><li><a class="vc" href="/v/ig-17923544796077717"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-17923544796077717.jpg?v=c90a5a6f" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>20.5.2025</i><b>דולה של רגשות בפעוטון</b><span>יותם, דניאל והאוטו האדום: מה יושב מאחורי הבכי, ולמה מוצץ רק מזיז את המחוג.</span></span></a></li><li><a class="vc" href="/v/ig-17865739446287526"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-17865739446287526.jpg?v=f473eb9b" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>17.4.2025</i><b>שיחת הסבר לפני טיפול תרופתי</b><span>מה עלול לקרות, ולמה תמיד אין סיבה לדאגה.</span></span></a></li><li><a class="vc" href="/v/ig-18499073935000889"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-18499073935000889.jpg?v=792bc65f" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>20.4.2025</i><b>הקדשה לקורא</b><span>חתימה על ״המחוג שבלב״: אם אין צירים, לא יולדים.</span></span></a></li><li><a class="vc" href="/v/ig-17900032629177323"><span class="th"><img src="https://storage.googleapis.com/shlomiverse-media/wiki/v/ig-17900032629177323.jpg?v=dec29308" alt="" loading="lazy" width="480" height="854"><span class="pl"><svg class="ico"><use href="#i-play"/></svg></span></span><span class="vt"><i>21.4.2025</i><b>האתר שלי יוצא לאוויר</b><span>גם אתר, כמו רגש, צריך לצאת לאוויר. הכתובת המלאה, אות אחר אות.</span></span></a></li></ul>
       </div>
       <div class="mcard">
-        <div class="hd"><span class="ci"><svg class="ico"><use href="#i-users"/></svg></span><div><b>הרצאות וסדנאות</b></div></div>
-        <ul class="eps">
-          <li><a href="/v/ig-18065723819481874"><span class="num"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>27.4.2025</i><b>המחוג הפנימי בעבודת צוות</b><span>צוות בחברת ההייטק טקי־טק, בהזמנת אסנת ב., Head of People</span></span></a></li>
-          <li><a href="/v/ig-17876119581225977"><span class="num"><svg class="ico"><use href="#i-play"/></svg></span><span class="tt"><i>3.5.2025</i><b>לתת מקום למה שעולה</b><span>תלמידי שכבה בתיכון המקיף נווה תדהר</span></span></a></li>
-          <li><div class="row"><span class="num">3</span><span class="tt"><i>18.5.2025</i><b>התקשרות ראשונית לתינוק התעסוקתי</b><span>כנס למנהלות ולמנהלי משאבי אנוש</span></span></div></li>
-          <li><div class="row"><span class="num">4</span><span class="tt"><i>12.6.2025</i><b>הצלחות ביניים רגשיות בחיי היום־יום</b><span>מרכז קהילתי</span></span></div></li>
-        </ul>
+        <div class="hd"><span class="ci"><svg class="ico"><use href="#i-stage"/></svg></span><div><b>״Unfiltered – המחוג שבלייב״</b><small>יוני 2025 · בית ציוני אמריקה</small></div></div>
+        <p style="margin-bottom:0">ערב של לידות רגשיות חיות מול קהל, שבו השקתי גם את DoulaSense AI.</p>
       </div>
       <div class="mcard">
         <div class="hd"><span class="ci"><svg class="ico"><use href="#i-news"/></svg></span><div><b>בתקשורת</b></div></div>
