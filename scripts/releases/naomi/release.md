@@ -21,8 +21,8 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 | Piece | Status |
 |---|---|
 | Record + sheet | done (his GPT session) |
-| Profile picture | LIVE - option A (clinic). B (podcast) + C (author) kept for the site / book jacket. Sheet: zoomcut/characters/naomi-tzipora/portrait-options.jpg. ~$0.16 |
-| Old reels in the verse | archive helper - textual ones, archive:true, 2025 dates |
+| Profile picture | LIVE - round 3 A (his pick: a real woman ~50, filter look kept, age lines, NO stubble - "nothing is perfect but A is very good"). portrait-author.jpg = hand on heart. Round 1 (stubble) retired in old/. |
+| Old reels in the verse | DONE - 14 live (private/reels.md); promos skipped |
 | Site shlomiverse.com/dr-naomi/ | his pick: A (clinic first) + a 'חדש' banner for the org program - building |
 | The method המחוג הפנימי | on the site (stages, in her birth language) |
 | NEW service from the video | organizations: from onboarding to bonding (young employees) + managers' response-pause track |
@@ -42,5 +42,6 @@ poster + IG story with link sticker (the video), the book poster, the site launc
 - DoulaSense AI as a real small tool in the verse (detects your "emotional birth" from a sentence) - Conversion's call.
 - The radio hour as a recurring format (listeners' calls).
 
-## Spend: portraits $0.16 + shoot kit $0.12 + site/covers design $0.46 = $0.74
+## Spend: portraits $0.48 + shoot kit $0.13 + site/covers design $0.46 + studio options ~$0.15 = ~$1.22
+## Lessons for the role: a woman resident = say WOMAN, real age, clean face (no stubble) in the portrait prompt from round 1; keep the costume and the filter look.
 ## Live links       resident page https://shlomiverse.com/c/naomi-tzipora
