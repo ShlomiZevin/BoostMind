@@ -64,6 +64,9 @@ Never skip a step. The quality bar is "as good as Plaxzy Create" - the rules bel
   pictures. Never Leonardo (only if OpenAI refuses or fails), never shapes drawn in code for what the player looks at.
 - **Every sound = ElevenLabs**: sound effects, loops, voices and music (`leonardo.mjs sfx|loop` calls ElevenLabs
   directly, `elevenlabs_music.mjs` for music, `elevenlabs.mjs` for voices).
+  **Read `elevenlabs.md` in this folder before any voice line**: Eleven v4 for Hebrew, ACTED with audio tags ([warm, gentle],
+  [sighs], [pause]) and low stability - never flat TTS ("robotic" - his verdict) - nikud on misread words, and every clip
+  checked with speech-to-text.
 - Through the Shlomiverse Studio tools above, so each result lands in the editor's library with its labels.
 
 ## Every game ships with its cover and its title - not optional

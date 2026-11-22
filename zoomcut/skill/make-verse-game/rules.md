@@ -100,7 +100,7 @@ principles - apply them to whatever the game is.
   for emotional range (high stability = monotone). Write each line's delivery like a director's note to an actor, per moment
   of the game. Then run every clip through speech-to-text (he-turbo) - the words right and no tag read aloud; re-take any
   line that stumbles (fix the spelling with vowel marks or reword). Worked example: `scripts/naomi-games/pause/tools/voice.mjs`
-  (TAG per moment + SPOKEN per line) and `stt-check.py`.
+  (TAG per moment + SPOKEN per line) and `stt-check.py`. Full guide: `elevenlabs.md`.
 - Audio starts from a tap (browsers block it before); a sound button that is remembered; everything pauses on pause
   and stops on pagehide / leaving the page.
 - **Sound must come back after the player returns** (iPhone - Safari AND Chrome are WebKit): a suspended or
@@ -212,3 +212,8 @@ principles - apply them to whatever the game is.
 
 - **A resident he plays = his face** (Naomi, 22 Nov 2026): every painting of that resident goes in git with the game like any other art (his rule, same day: "nothing is private ... any computer should be able to deploy") - the first try kept them git-ignored and only one computer could deploy.
 - **Painted pieces with a glow cut badly** - ask for "crisp clean edges, no outer glow, no drop shadow, fully transparent around every piece", then cut by shape; a painted logo is never the real logo - lay the real logo file on the painted piece in code.
+
+- **Doing nothing must lose fast** (Naomi's game, 22 Nov 2026: "if you don't touch anything ... I reached the second day"): test a
+  no-hands round in every game - it must fail well inside the first level (there: ~13 s of a 15 s day). Tie it to the game's
+  logic (there: unpaused pressure escalates - each harmful message that lands in a row hits harder and brings the next one
+  sooner; one good action resets it), so active players don't feel it. Keep the no-hands check in the balance test.

@@ -7,6 +7,9 @@ const BOTS = { slow: { reach: .25, miss: .3, misread: .35, cutGold: .1, collater
   const b = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
   const p = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
   await p.goto('http://localhost:5311/naomi-games/pause/'); await p.waitForTimeout(1500);
+  // doing nothing must lose inside day 1 (his rule)
+  const idle = await p.evaluate(() => { PAUSE.manual = true; PAUSE.start(); for (let i = 0; i < 60 * 80 && PAUSE.G.mode === 'play'; i++) PAUSE.tick(1 / 60); return PAUSE.state; });
+  console.log('no hands', idle.won ? 'WON - BUG' : `lost at ${idle.t.toFixed(1)} s (day ${idle.day + 1})`, idle.day > 0 ? '<- TOO EASY' : 'ok');
   for (const [name, bot] of Object.entries(BOTS)) {
     const runs = await p.evaluate((bot) => {
       const out = [];

@@ -52,8 +52,8 @@ const dayParams = [
   { gap: 1.1, rise: 2.6, burst: .12, bond: .33 },
   { gap: .9, rise: 2.4, burst: .24, bond: .35 },
   { gap: .78, rise: 2.2, burst: .32, sneaky: .15, bond: .36 },
-  { gap: .68, rise: 2.05, burst: .4, sneaky: .3, bond: .38 },
-  { gap: .58, rise: 1.9, burst: .48, sneaky: .35, bond: .38 },
+  { gap: .74, rise: 2.1, burst: .36, sneaky: .3, bond: .38 },
+  { gap: .64, rise: 1.95, burst: .42, sneaky: .35, bond: .38 },
 ];
 const DAY_LEN = 15, WEEK = DAY_LEN * 5;
 
@@ -227,7 +227,7 @@ function mkCard(type, text, opts = {}) {
 
 // ---------- the week's schedule (seeded) ----------
 function planWeek() {
-  G.sched = [{ t: .5, type: 'introHarm' }, { t: 3.2, type: 'introBond' }];
+  G.sched = [{ t: .5, type: 'introHarm' }, { t: 2.4, type: 'introBond' }];
   for (let d = 0; d < 5; d++) {
     if (d >= 1) G.sched.push({ t: d * DAY_LEN + 3 + R() * 8, type: 'breath' });
     if (d === 1 || d === 3 || d === 4) G.sched.push({ t: d * DAY_LEN + 4 + R() * 7, type: 'gold' });
@@ -245,7 +245,7 @@ function spawnOne() {
 function startGame() {
   R = rng(hash(SLUG + '|' + israelDay()));
   Object.assign(G, { mode: 'play', t: 0, day: 0, score: 0, needle: 0, strikes: 0, streak: 0, paused: 0, longest: 0, anx: 0, hr: 0, goldIn: 0, goldCut: 0, slow: 0, spawnT: .7, hold: 0,
-    cards: [], bits: [], pops: [], trail: [], flash: 0, shake: 0, face: 'calm', faceT: 0, glow: 0, over: false, won: false, rushSaid: false, tut: null, sayT: 0, react: null, demo: null });
+    cards: [], bits: [], pops: [], trail: [], flash: 0, shake: 0, face: 'calm', faceT: 0, glow: 0, over: false, won: false, rushSaid: false, tut: null, sayT: 0, react: null, demo: null, press: 0 });
   planWeek(); showScreen(null); $('hud').classList.add('on'); $('strip').classList.add('on');
   updHud(); dayBanner(0); say(pick(SAY.start), 'start');
   window.track && window.track('game_start', SLUG);
@@ -270,7 +270,7 @@ function onSliced(c, ang) {
   const tut = G.tut;
   if (G.demo) G.demo = null;
   if (c.type === 'harm' || c.type === 'nu') {
-    G.streak++; G.longest = Math.max(G.longest, G.streak); G.paused++;
+    G.streak++; G.longest = Math.max(G.longest, G.streak); G.paused++; G.press = 0;   // a pause breaks the escalation
     if (!tut) addScore((c.type === 'nu' ? 5 : 10) * mult(), c.x, c.y);
     pop(c.x, c.y + 10, 'הושהה', '#fff', 1.15); burst(c.x, c.y, c.kind === 'red' ? '#ff5a6e' : '#ffe1d6', 22);
     play('pop', .8, 1 + Math.min(G.streak, 12) * .025);
@@ -294,10 +294,10 @@ function onLanded(c) {
   const tut = G.tut;
   if (c.type === 'harm' || c.type === 'nu') {
     play('hit', .8); G.shake = .35; G.flash = .35; setFace('worried', 1); react(pick(REACT_HARM, Math.random), true);
-    if (!tut) { G.needle = Math.min(1, G.needle + (c.type === 'nu' ? .15 : .3)); breakStreak(); sayMaybe('hit'); checkStrike(); }
+    if (!tut) { G.press = (G.press || 0) + 1; G.needle = Math.min(1, G.needle + (c.type === 'nu' ? .18 : .32) + .16 * Math.min(G.press - 1, 4)); breakStreak(); sayMaybe('hit'); checkStrike(); }
   } else if (c.type === 'bond') {
     play('warm', .7); G.glow = 1; setFace('relieved', 1.1); burst(L.face.x, L.face.y, '#ffd9a8', 12); react(pick(REACT_BOND, Math.random), false);
-    if (!tut) { G.needle = Math.max(0, G.needle - .15); addScore(20, L.face.x + 40, L.face.y); sayMaybe('bond'); }
+    if (!tut) { G.needle = Math.max(0, G.needle - .08); addScore(20, L.face.x + 40, L.face.y); sayMaybe('bond'); }
   } else if (c.type === 'gold') {
     play('golden', .9); G.glow = 1.4; setFace('relieved', 2); burst(c.x, c.y, '#ffd36b', 40);
     if (!tut) { G.goldIn++; G.needle = Math.max(0, G.needle - .4); addScore(200, c.x, c.y - 30); pop(c.x, c.y - 70, 'הבעת קושי!', '#ffd36b', 1.5); say(SAY.goldIn[0], 'goldIn'); }
@@ -311,7 +311,7 @@ function checkStrike() {
   G.banner = { big: STRIKES[k], sub: '', t: 0, dur: 1.6, bad: true }; say(STRIKE_SAY[k], null, true);
   updHud();
   if (G.strikes >= 3) { endGame(false); return; }
-  G.needle = .4; G.hold = 1.5;
+  G.needle = .45; G.hold = .6;
   for (const c of G.cards) if (c.state === 'fly' && (c.type === 'harm' || c.type === 'nu')) { c.state = 'fade'; c.ft = 0; }
 }
 function endGame(won) {
@@ -390,7 +390,7 @@ function update(dtReal) {
     const d = Math.min(4, Math.floor(G.t / DAY_LEN));
     if (d !== G.day) { G.day = d; dayBanner(d); updHud(); }
     if (G.t >= WEEK) { endGame(true); }
-    G.needle = Math.max(0, G.needle - .03 * dt);
+    G.needle = Math.max(0, G.needle - .015 * dt);
     if (G.hold > 0) G.hold -= dt;
     else {
       while (G.sched.length && G.sched[0].t <= G.t) { const s = G.sched.shift();
@@ -399,13 +399,14 @@ function update(dtReal) {
         if (s.type === 'gold') { mkCard('gold', GOLD, { x: L.colX + L.colW * (.3 + R() * .4) }); say(SAY.gold[0], 'gold'); } else mkCard('breath', ''); }
       const rush = G.day === 4 && G.t > WEEK - 4.5;
       if (rush && !G.rushSaid) { G.rushSaid = true; G.banner = { big: 'הלקוח מחכה!', sub: '', t: 0, dur: 1.3, bad: true }; play('rush', .7); say(SAY.rush[0], 'rush'); }
-      if (G.t < 5.5) G.spawnT = Math.max(G.spawnT, .1);   // the opening shows the two kinds alone
+      if (G.t < 4.2) G.spawnT = Math.max(G.spawnT, .1);   // the opening shows the two kinds alone
       G.spawnT -= dt;
       const live = G.cards.filter((c) => c.state === 'fly').length;
       if (G.spawnT <= 0 && live < 8) {
         const P = dayParams[G.day];
         spawnOne(); if (R() < P.burst) { spawnOne(); if (R() < P.burst * .5) spawnOne(); }
-        G.spawnT = (rush ? .42 : P.gap) * (.8 + R() * .4);
+        // pressure that nobody pauses escalates: every red that landed in a row makes the next ones come sooner
+        G.spawnT = (rush ? .42 : P.gap) * (.8 + R() * .4) / (1 + .3 * Math.min(G.press || 0, 6));
       }
     }
     // heartbeat when the needle is near red
