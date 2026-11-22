@@ -217,3 +217,6 @@ principles - apply them to whatever the game is.
   no-hands round in every game - it must fail well inside the first level (there: ~13 s of a 15 s day). Tie it to the game's
   logic (there: unpaused pressure escalates - each harmful message that lands in a row hits harder and brings the next one
   sooner; one good action resets it), so active players don't feel it. Keep the no-hands check in the balance test.
+- **Version every asset you replace** (Naomi's game, 22 Nov 2026: a fixed button picture was live but his phone kept the old
+  one from its cache, so the bug "came back"): every file the game loads - `game.js`, CSS `url(...)` pictures, sounds, voices -
+  carries `?v=N`, and replacing the file bumps N in the same commit.
