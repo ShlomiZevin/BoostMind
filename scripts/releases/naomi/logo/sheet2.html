@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<!-- Round 2 logo sheet (D/E/F, recrafted from scratch) - each direction in use: hero, phone header 390px, end card,
+     app icon 180 + favicon 32/16, book spine. Shot by shoot.mjs -> scripts/releases/naomi/private/logo-options-2.jpg
+       node scripts/releases/naomi/logo/shoot.mjs scripts/releases/naomi/logo/sheet2.html scripts/releases/naomi/private/logo-options-2.jpg 1960 1110 1.5
+     (the logos themselves are outlined SVGs from make_logo2.py; the live text here is only the mock-up around them) -->
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;800&family=Bellefair&family=IBM+Plex+Sans+Hebrew:wght@300;400;500&family=Noto+Serif+Hebrew:wght@400;500&display=block" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1960px;height:1110px;background:#E9E4DE;font-family:Assistant,sans-serif;color:#2a2224}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding:24px}
+  .col{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 6px 24px rgba(40,25,25,.08);display:flex;flex-direction:column}
+  .head{display:flex;align-items:center;gap:18px;padding:16px 24px 12px}
+  .L{font:800 104px/0.9 Assistant;width:86px;text-align:center}
+  .head b{font-size:30px;font-weight:800}
+  .head small{display:block;font-size:17px;color:#6d6266;margin-top:2px;line-height:1.35}
+  .sw{display:flex;gap:6px;margin-top:8px;align-items:center;font-size:14px;color:#857a7d}
+  .sw i{width:18px;height:18px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.08)}
+  .hero{height:200px;display:grid;place-items:center;padding:18px 36px}
+  .hero img{max-width:100%;max-height:128px}
+  .cap{font-size:13px;font-weight:600;letter-spacing:.3px;color:#9a8f92;padding:10px 24px 6px}
+  .row{display:flex;gap:16px;padding:0 22px;align-items:flex-start}
+  /* phone */
+  .phone{width:390px;height:330px;border-radius:26px 26px 0 0;overflow:hidden;border:1px solid #e3dcd6;border-bottom:0;flex:none;position:relative}
+  .sb{height:26px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font:600 13px Assistant;direction:ltr}
+  .top{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(0,0,0,.05)}
+  .top img{height:42px;width:auto}
+  .burger{width:28px;height:20px;display:flex;flex-direction:column;justify-content:space-between}
+  .burger span{height:2px;border-radius:2px}
+  .hx{padding:26px 22px;text-align:center}
+  .hx h1{font-weight:400;font-size:31px;line-height:1.2}
+  .hx p{font-size:14.5px;margin:10px 0 18px;line-height:1.5}
+  .btn{display:inline-block;padding:12px 22px;border-radius:999px;color:#fff;font:600 15px Assistant}
+  /* book */
+  .book{display:flex;height:330px;flex:none;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+  .spine{width:54px;height:330px;display:flex;flex-direction:column;align-items:center;padding:14px 0 12px;gap:10px;color:#fff}
+  .spine img{width:30px}
+  .spine .t{writing-mode:vertical-rl;font-size:25px;line-height:1;white-space:nowrap}
+  .spine .a{writing-mode:vertical-rl;font-size:12px;opacity:.8;white-space:nowrap;margin-top:auto}
+  .cover{width:150px;height:330px;background:url(../private/covers/cover-B-1600x2400.jpg) 72% 50%/auto 100%}
+  /* end card + icons */
+  .end{width:390px;height:232px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;flex:none}
+  .end img{width:300px}
+  .end span{font:500 15px Assistant;color:rgba(255,255,255,.72);letter-spacing:.6px;direction:ltr}
+  .icons{display:flex;flex-direction:column;gap:12px;align-items:center}
+  .app{width:180px;height:180px;border-radius:40px;display:grid;place-items:center;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+  .app img{width:66%}
+  .tab{display:flex;align-items:center;gap:8px;background:#ECEEF1;border-radius:10px 10px 0 0;padding:6px 10px;width:180px}
+  .tab .f32{width:32px;height:32px;border-radius:7px;display:grid;place-items:center;flex:none}
+  .tab .f32 img{width:22px}
+  .tab .f16{width:16px;height:16px;border-radius:3.5px;display:grid;place-items:center;flex:none}
+  .tab .f16 img{width:11px}
+  .tab em{font:500 13px Assistant;font-style:normal;color:#3b3b3b;white-space:nowrap;overflow:hidden}
+  .note{font-size:14px;color:#857a7d;padding:12px 24px 16px;line-height:1.45;margin-top:auto}
+</style></head><body>
+<div class="grid" id="grid"></div>
+<script>
+const D = [
+  { k: 'D', name: 'ציפורה', idea: 'השם שלה הוא ציפור. ציפור שיר רגועה בצורה אחת: ראש, גוף וזנב, הכנף והעין חתוכות בה.',
+    main: '#1E4B4F', dark: '#1E4B4F', light: '#F6F1E9', acc: '#B08A4F', ink: '#1E4B4F', head: 'Bellefair', sub: '#5B7472',
+    fonts: 'Bellefair + Assistant', cols: ['#1E4B4F', '#B08A4F', '#F6F1E9'], cname: 'טורקיז עמוק · פליז · שמנת' },
+  { k: 'E', name: 'הביצה והמחוג', idea: 'לכל רגש יש תאריך לידה: ביצה, ובתוכה המחוג הפנימי מצביע על אחת - הרגע שבו משהו זז.',
+    main: '#A4492F', dark: '#6E2E1D', light: '#F4EADF', acc: '#A4492F', ink: '#2E2420', head: 'IBM Plex Sans Hebrew', hw: 300, sub: '#7A665C',
+    fonts: 'IBM Plex Sans Hebrew', cols: ['#A4492F', '#2E2420', '#F4EADF'], cname: 'חימר · אדמה · חול' },
+  { k: 'F', name: 'הבית', idea: 'דלת מקושתת - החדר הפנימי, הקליניקה - ובה המונוגרמה שלה נ״צ (נץ: רגע הזריחה).',
+    main: '#3A1D35', dark: '#3A1D35', light: '#F8F3EE', acc: '#C2A273', ink: '#3A1D35', head: 'Noto Serif Hebrew', sub: '#7B6676',
+    fonts: 'Noto Serif Hebrew (צר, למונוגרמה)', cols: ['#3A1D35', '#C2A273', '#F8F3EE'], cname: 'חציל · שמפניה · פורצלן' },
+];
+const O = 'out/';
+document.getElementById('grid').innerHTML = D.map(d => `
+<div class="col">
+  <div class="head"><div class="L" style="color:${d.main}">${d.k}</div><div><b>${d.name}</b><small>${d.idea}</small>
+    <div class="sw">${d.cols.map(c => `<i style="background:${c}"></i>`).join('')}<span>${d.cname} · ${d.fonts}</span></div></div></div>
+  <div class="hero" style="background:${d.light}"><img src="${O}${d.k}-logo.svg"></div>
+  <div class="cap">כותרת האתר בטלפון · 390px &nbsp;&nbsp;|&nbsp;&nbsp; שדרת הספר</div>
+  <div class="row">
+    <div class="phone" style="background:${d.light}">
+      <div class="sb" style="color:${d.ink}"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="top"><img src="${O}${d.k}-logo.svg"><div class="burger"><span style="background:${d.main}"></span><span style="background:${d.main}"></span><span style="background:${d.main}"></span></div></div>
+      <div class="hx"><h1 style="font-family:'${d.head}';font-weight:${d.hw || 400};color:${d.ink}">ד״ר נעמי־ציפורה<br>בן־נון־פרידמן־שטרנבך</h1>
+        <p style="color:${d.sub}">פסיכיאטרית, פסיכותרפיסטית ודולה מוסמכת של רגשות.</p>
+        <span class="btn" style="background:${d.main}">לקביעת מפגש רגשי ראשון</span></div>
+    </div>
+    <div class="book">
+      <div class="spine" style="background:${d.dark}"><img src="${O}${d.k}-mark-white.svg"><div class="t" style="font-family:'${d.head}';font-weight:${d.hw ? 400 : 400}">המחוג שבלב</div><div class="a">נעמי־ציפורה בן־נון</div></div>
+      <div class="cover"></div>
+    </div>
+  </div>
+  <div class="cap">כרטיס הסיום (גרסה לבנה) &nbsp;&nbsp;|&nbsp;&nbsp; אייקון 180 · פאביקון 32 ו־16</div>
+  <div class="row">
+    <div class="end" style="background:${d.dark}"><img src="${O}${d.k}-logo-white.svg"><span>shlomiverse.com/dr-naomi</span></div>
+    <div class="icons">
+      <div class="app" style="background:${d.dark}"><img src="${O}${d.k}-mark-white.svg"></div>
+      <div class="tab"><div class="f32" style="background:${d.dark}"><img src="${O}${d.k}-mark-white.svg"></div><div class="f16" style="background:${d.dark}"><img src="${O}${d.k}-mark-white.svg"></div><em>המחוג שבלב</em></div>
+    </div>
+  </div>
+  <div class="note">להחלפה באתר: <span dir="ltr" style="unicode-bidi:isolate">node scripts/releases/naomi/logo/export.mjs ${d.k}</span></div>
+</div>`).join('');
+</script>
+</body></html>
