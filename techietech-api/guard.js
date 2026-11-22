@@ -54,10 +54,12 @@ async function limit(key, n, ms) {
 // the caller's address (Cloud Functions / Run put the client first in x-forwarded-for)
 // The caller's real address. Google APPENDS the true caller to x-forwarded-for, so the LAST entry is the truth and anything
 // before it can be typed by the caller (22.11, found live: "X-Forwarded-For: 9.9.9.9" walked past a first-entry limit).
-// A call through a shlomiverse.com rewrite arrives from Firebase Hosting's proxy (Google, 66.249.64.0/19 - seen in our logs),
+// A call through a shlomiverse.com rewrite arrives from Firebase Hosting's proxy (a Google front-end address - seen in our logs),
 // which appends itself after the visitor: skip such proxy entries from the right; the one before is the visitor. A direct
 // caller can't fake that, since their own address is always last and is never in Google's range.
-const PROXY = [/^66\.249\.(6[4-9]|[7-8]\d|9[0-5])\./, /^35\.191\./, /^130\.211\.[0-3]\./, /^2001:4860:/i];
+const PROXY = [   // Google front-end hops (confirmed live 22.11: Hosting sends "<visitor>, 142.250.x / 66.249.x"); never GCP customer ranges (34/35 = a VM is a client)
+  /^66\.249\.(6[4-9]|[7-8]\d|9[0-5])\./, /^142\.(25[0-1])\./, /^172\.217\./, /^172\.253\./, /^216\.58\./, /^216\.239\./, /^74\.125\./, /^209\.85\./, /^64\.233\./,
+  /^108\.177\./, /^173\.194\./, /^72\.14\.(19[2-9]|2[0-4]\d|25[0-5])\./, /^(2001:4860|2404:6800|2607:f8b0|2800:3f0|2a00:1450|2c0f:fb50):/i];
 // An IPv6 address counts by its /64 - one home / phone line gets a whole /64 and a script can rotate inside it (22.11 it did).
 function norm(a) {
   a = String(a || '').trim().replace(/^::ffff:/, '');
