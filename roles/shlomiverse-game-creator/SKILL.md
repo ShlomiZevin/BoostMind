@@ -21,6 +21,9 @@ a game fits a resident's world, and how you hand work over.
 | A **video release** (the VRM role, session "Shlomiverse VRM" - or whatever name `ListAgents` shows for it) | the VRM | The VRM's brief is in `scripts/releases/<slug>/game-brief.md` + the release file `release.md`. Report to the VRM with `SendMessage` at every gate below; the VRM checks your work and brings it to Shlomi, or Shlomi talks to you directly - both are fine, but tell the VRM every decision he gives you (one line), so the release file stays true. |
 | No release - he asks for a game | Shlomi | As make-verse-game says. |
 
+The VRM may be on his other computer: put every gate's pictures / screenshots in `gs://shlomiverse-private/releases/<slug>/game/<gate>/`
+(`gcloud storage cp ...`) and send those paths, not local ones.
+
 Gates you report at (one short message each, with the file paths): **(1) the ideas** (3-4 one-liners "known mechanic + who she is", your
 recommendation first), **(2) the concept picture**, **(3) the plan** (`idea.md`), **(4) a playable draft** (its private link),
 **(5) ready to release** (cover, title art, story picture, tutorial, tests clean). Nothing goes past a gate without the VRM's or
