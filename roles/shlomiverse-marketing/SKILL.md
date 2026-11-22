@@ -89,8 +89,12 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
        dimmed, and the character's punchline pops in OVER it as an in-app speaker tile (rounded, the product's
        speaking border, the name) with subtitles, the chord ringing out under him; then 'רק בשלומיוורס'.
      - one track from frame 0. No "שלומיוורס מציגים" intro in a hook video.
-  3. **The poster**: the company logo + "מציגה", the product lockup, one headline, the app on a tilted phone on its
-     funniest real moment, one sub line, "עכשיו בשלומיוורס". Keep the moment's detail inside the phone's frame.
+  3. **The poster**: the company logo + "מציגה" (Hebrew order: the logo on the right, "מציגה" to its left), the
+     product lockup, ONE headline (the product video's), the app on a STRAIGHT phone with its whole screen showing
+     (header to bottom bar, nothing cropped), the funniest real moment lifted out of the screen as a big crisp callout
+     (redrawn in HTML, never an upscaled screenshot crop), "עכשיו בשלומיוורס". The backdrop full-bleed to the bottom,
+     no sub line. His "terrible" (22 Nov) was v1: tilted cropped phone, small unreadable moment, too much text, dead
+     black bottom (scripts/techytech-games/syncs-promo/poster.js = the approved example).
   A first "social cut" that told the joke through in-app notifications (v1-v4) was not what he wanted: the comedy is
   the hook + the closure + what the real app shows, the launch in between stays straight.
 - **Music**: starts on frame 0 at a point where the track is already full (no fade-in, no looping bars). Under the
