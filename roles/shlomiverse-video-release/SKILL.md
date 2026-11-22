@@ -148,6 +148,12 @@ The repo is public: no keys, no faces, no footage, no private people's material 
 for the video") - no stories, no posts, no announcements. The one exception: **the resident's own site may go live as soon
 as it is ready and checked** (it's their real presence in the world). Everything else waits for release day.
 
+**Drafts live on the verse** (his rule, 2026-11-22: "I don't want ever someone gives me Claude URL. Every draft should be on
+the verse"): anything he reviews - a game draft, a page in progress - is at its real shlomiverse.com address, unlisted (a
+game: `"status": "draft"`, no record, no links, `?solo=1`). Never a claude.ai link. Sessions on the other computer can't
+deploy (the residents' git-ignored photos aren't there) - they push, and the VRM deploys from this one after restoring the
+draft's private files from `gs://shlomiverse-private/releases/<slug>/` (with his OK for each deploy).
+
 ## His standards (each one cost a round somewhere - the details live in the skills named)
 - **The verse is a real world.** Residents are real people; their site plays it straight, the joke is in their voice and from
   his scripts. Words: תושבים (never דמויות), המייסדים (never "של שלומי"), never מעריצים / פרודיה / פרק / מערכון (words.md in
