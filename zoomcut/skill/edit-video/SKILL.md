@@ -859,6 +859,25 @@ Never print a key, never write one into a file in the repo, never ask him for on
 - **Secrets the deployed functions use** (`gcloud secrets list --project boostmind-b052c`): GMAIL_USER, GMAIL_APP_PASSWORD,
   WIKI_OPENAI_KEY, LEONARDO_API_KEY, MAPS_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY (not ours to touch).
 
+### EVERY GENERATED VOICE IS ACTED - never flat TTS (his rule, 2026-11-22, via Naomi's game)
+"The voice is terrible. It sounds robotic. It should be empathic ... Read the 11 Labs annotation ... do it with emotional
+stuff ... our editor role also knows to use 11 Labs with annotation." Any voice we make for a video (a host, a caller, a
+narrator, an off-screen line, a voice-over) is performed like an actor's take:
+- **`eleven_v4`** (Hebrew; v3 also takes tags), `language_code: "he"`, a voice trained in Hebrew - "Danit - Natural Israeli
+  Hebrew" `s0T0DT6EAPeX57MQpn3I` (female), Zina `Tbj9UQjXon5RB9MPEyc2` (young female), the "HE" men on the account (`elevenlabs.mjs voices`).
+- **A director's note before the words**, in English, in brackets: the emotion + the situation (`[warm, gentle, soothing]`,
+  `[deeply moved, emotional]`, `[gently concerned, compassionate]`, `[curious podcast host, leaning in]`,
+  `[urgent but gentle whisper]`) + gestures where a person would make them (`[sighs]`, `[exhales]`, `[softly]`, `[pause]`,
+  `[laughs]`). One bracket can combine notes; the emotion holds until the next tag. Dashes = pauses, `...` = hesitation,
+  CAPS = stress.
+- **`voice_settings {stability ~0.35, similarity_boost 0.75}`** - lower stability = more emotional range (0.85 was the
+  robotic one); leave style at 0; don't trust speed on v3/v4 - fix the pace in the editor.
+- **Check every clip by ear and with speech-to-text** (`zoomcut/models/he-turbo`): every word right, no tag read aloud (a
+  tag spoken = that voice can't do that delivery - pick another voice). Re-take what stumbles: vowel marks on a misread
+  word, or reword. Make 2-3 takes and pick the most human one.
+- Worked example (tags per moment + spoken text + the STT check): `scripts/naomi-games/pause/tools/voice.mjs` and
+  `stt-check.py`. The toolbox below has the rest (dialogue, effects, chipmunk callers).
+
 ### ElevenLabs - the whole toolbox (learned 2026-10-27, haredit-2; docs + github.com/elevenlabs/skills)
 **ElevenLabs has overage billing + auto-recharge** (his words, 2026-11-14: "we have the overage billing, we can use it ... we can use more"): `elevenlabs.mjs balance` showing more used than the plan (e.g. 301k of 266k) is NOT out of credits - keep using ElevenLabs (voices, music, sfx); say what it cost. Leonardo had 0 tokens that day.
 **ElevenLabs really refusing? Leonardo resells it** (his tip, 2026-11-09 - "I'm almost certain you can create in

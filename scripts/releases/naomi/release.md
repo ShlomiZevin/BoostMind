@@ -21,6 +21,7 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 - His calls 2026-11-22: only the TAIL of the host's question is heard, straight into her "נכון" (we make the host's voice); keep "אוטיזם תעסוקתי"; no music bed for now.
 - Drop proposal (needs his word): right after "אחרי שבועיים הבחור שלח לה מיוזמתו הודעה:"
 - Shoot sheet: `private/shoot-sheet.md`
+- TODO for the editor when the footage arrives: re-make the host's question tail as an ACTED take (eleven_v4, Danit, a tag like `[curious podcast host, leaning in]`, stability ~0.35, STT-checked) - his rule 2026-11-22: no flat TTS.
 ## The world
 | Piece | Status |
 |---|---|
