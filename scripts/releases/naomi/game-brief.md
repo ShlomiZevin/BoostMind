@@ -60,10 +60,6 @@ tunes) on a known loop will carry her better than a game about her.
 - AI ≤ 5¢ per call where it can be (pictures GPT Image 2.6 MEDIUM; HIGH only for characters / cover / title art per the skill);
   report the running spend to him at each gate.
 
-## On another computer (the private files are not in git - the repo is public)
-- `git pull`, then `node scripts/skills-link.mjs` (links the roles as skills).
-- The private files (the script, the reels list + transcripts, her captions, the shoot sheet, the cover art) and her portraits:
-  `gcloud storage cp -r gs://shlomiverse-private/releases/naomi/private/* scripts/releases/naomi/private/` and
-  `gcloud storage cp gs://shlomiverse-private/releases/naomi/portraits/* zoomcut/characters/naomi-tzipora/` (never commit them).
-- **Never run `bash scripts/deploy.sh` from a computer that doesn't have `public/dr-naomi/img/`** (her photos are git-ignored;
-  a deploy without them takes them off her live site). Release-day deploys go through me (the VRM).
+## On another computer
+`git pull` (everything is in git now - the script, the reels list, the covers, her photos), then `node scripts/skills-link.mjs`.
+You deploy your own drafts with `bash scripts/deploy.sh`; the release itself goes through me.

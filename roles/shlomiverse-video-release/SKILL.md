@@ -128,7 +128,7 @@ Cast: <id> (new | existing) ...
 ## Later            ideas waiting for his word
 ## Live links       verse, socials, site, stories
 ```
-The repo is public: no keys, no faces, no footage, no private people's material in this folder.
+Everything here goes in git (his images too); only keys and other real people's personal details stay out.
 
 ## Real people, real depth - how every world piece is built (his words, 2026-11-22)
 "In the verse we do everything as real persons. With עומק and information and data. The parody is real life parody."
@@ -150,9 +150,8 @@ as it is ready and checked** (it's their real presence in the world). Everything
 
 **Drafts live on the verse** (his rule, 2026-11-22: "I don't want ever someone gives me Claude URL. Every draft should be on
 the verse"): anything he reviews - a game draft, a page in progress - is at its real shlomiverse.com address, unlisted (a
-game: `"status": "draft"`, no record, no links, `?solo=1`). Never a claude.ai link. Sessions on the other computer can't
-deploy (the residents' git-ignored photos aren't there) - they push, and the VRM deploys from this one after restoring the
-draft's private files from `gs://shlomiverse-private/releases/<slug>/` (with his OK for each deploy).
+game: `"status": "draft"`, no record, no links, `?solo=1`). Never a claude.ai link. Every session deploys its own drafts from any
+computer: **Nothing lives on one computer only** (his rule, 2026-11-22: "any computer should be able to deploy, and nothing is only locally ... nothing is private, everything can be public"): his face, the residents' pictures, game art, release files - all go in git like everything else. Only keys/secrets, other real people's personal details (greetings) and throwaway screenshots stay out.
 
 ## His standards (each one cost a round somewhere - the details live in the skills named)
 - **The verse is a real world.** Residents are real people; their site plays it straight, the joke is in their voice and from
@@ -197,9 +196,8 @@ behind / ahead / uncommitted - deploy from a clean worktree of `origin/main` if 
   versions (`scripts/releases/naomi/logo/out/G-*`). He chose by "the most parody" = the one that looks most like the real
   thing (a doula brand: mother + newborn in a heart). → Logos, posters, backdrops: the image model designs; code only cuts,
   lays exact Hebrew, and places.
-- 2026-11-22 · Sessions on his other computer can't see `scripts/releases/<slug>/private/`, portraits or a resident site's
-  `img/` (all git-ignored - public repo). Put the release's private files in `gs://shlomiverse-private/releases/<slug>/`
-  and write the restore commands into the brief; hosting deploys only from a computer that has the site's `img/` (else the
-  photos leave the live site) - release-day deploys go through the VRM.
+- 2026-11-22 · I kept his face and the release files out of git ("public repo") and in a private bucket - so only this computer
+  could deploy and the game session had to ask me. He: "any computer should be able to deploy, and nothing is only locally
+  ... nothing is private". → Everything in git; any session deploys its own work.
 - 2026-11-22 · Sets follow the episode, not the resident: a guest on someone's podcast = THEIR studio (not her logo); her own
   room (clinic) is for the episodes where she talks to camera. Ask "where is she and with whom" before building a set.

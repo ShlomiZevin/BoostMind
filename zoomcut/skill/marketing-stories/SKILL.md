@@ -172,6 +172,6 @@ asked 3. sign - he leaves) -> 4. the end card = the Instagram story picture -> 5
 one caption + a phone with that page's game. No sound in the file.
 
 ## Housekeeping
-- Anything made from a real person's face never goes into git (keep it in git-ignored folders); commit only your own
-  scripts / pages.
+- His own face and pictures go in git like everything else (his rule 2026-11-22: any computer deploys, nothing is only local);
+  pictures of OTHER real people (public figures, followers, their families) stay out. Commit only your own files.
 - Write scripts with the Write tool (Git Bash eats backslashes in heredocs); Windows Python needs encoding="utf-8".

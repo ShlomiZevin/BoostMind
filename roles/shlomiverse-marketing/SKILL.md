@@ -197,7 +197,7 @@ video release (the cut, the hook moments, the resident's new site / service, the
 ## Git (the working copy is shared with live game sessions)
 - `git pull` first. Commit only your own paths: `git commit -- <path>`, then `git fetch && git rebase origin/main &&
   git push origin HEAD:main`. **Never `git stash`** in `C:/workspace/BoostMind`: it grabs other sessions' live work.
-- The repo is PUBLIC: no keys, no faces or episode footage, no private people's material (a follower's message, their
+- Everything goes in git, his face and pictures too (his rule 2026-11-22: "nothing is private") - only no keys and no other private people's material (a follower's message, their
   family's art). Keep those local and say so.
 - Deploying a page: `bash scripts/deploy.sh` (PATH needs `/c/Python312`). If it refuses because of other sessions'
   uncommitted files, deploy from a clean worktree of `origin/main`.

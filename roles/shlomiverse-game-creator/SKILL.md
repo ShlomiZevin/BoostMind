@@ -21,8 +21,8 @@ a game fits a resident's world, and how you hand work over.
 | A **video release** (the VRM role, session "Shlomiverse VRM" - or whatever name `ListAgents` shows for it) | **Shlomi for the game, the VRM for the release** | His rule (2026-11-22): "the specific session can ask me the question directly, and I will tell you when to notify [the VRM] ... specifics about the games, you can ask me directly." So every game question and gate goes **straight to him** (AskUserQuestion with options / pictures). The VRM owns the release around the game - its brief (`scripts/releases/<slug>/game-brief.md`), timing, marketing, the video, the resident's site card - and you message it **only when he tells you to**, plus when the game is ready to release (it decides the slot). |
 | No release - he asks for a game | Shlomi | As make-verse-game says. |
 
-When you send the VRM anything, it may be on his other computer: put the pictures / screenshots in `gs://shlomiverse-private/releases/<slug>/game/<gate>/`
-(`gcloud storage cp ...`) and send those paths, not local ones.
+When you send the VRM anything: commit + push it (pictures included) and send the repo paths - the VRM may be on his other
+computer and reads them after `git pull`.
 
 Gates - all shown to **him**: **(1) the ideas** (3-4 one-liners "known mechanic + who she is", your recommendation first),
 **(2) the concept picture**, **(3) the plan** (`idea.md`), **(4) a playable draft** (on shlomiverse.com - see "Drafts live on the verse"), **(5) ready to release**
@@ -65,20 +65,19 @@ until the VRM's release day - then it goes live in the VRM's order (usually righ
 - Every draft he plays is at its real address: `https://shlomiverse.com/<character>-games/<slug>/?solo=1` (`?solo=1` keeps
   game-frame.js from forwarding to a /play page that doesn't exist yet). `game.json` says `"status": "draft"`, no game record,
   no link anywhere - unlisted, only he gets the address. Never a claude.ai artifact, never a localhost link.
-- Getting it there: commit the game folder (faces stay git-ignored, in the private bucket), push, then a hosting deploy from a
-  computer that has EVERY git-ignored private folder (her site's `img/`, the other residents' faces) - a deploy from a computer
-  that lacks them wipes those photos off the live site. If this computer lacks them, ask the VRM's computer to deploy (it
-  restores the game's `assets/face/` from the bucket first) and send him the link once it's up.
+- Getting it there - **you deploy your own drafts, from any computer**: commit the whole game folder (art with his face
+  included), `git pull --rebase`, push, `bash scripts/deploy.sh`, check the live address on a phone size, send him the link.
+  **Nothing lives on one computer only** (his rule, 2026-11-22: "any computer should be able to deploy, and nothing is only locally ... nothing is private, everything can be public"): his face, the residents' pictures, game art, release files - all go in git like everything else. Only keys/secrets, other real people's personal details (greetings) and throwaway screenshots stay out.
 
 ## Working in the shared repo
 Its own session in `c:\workspace\BoostMind` (other sessions push all day): `git pull` first, commit only your own paths
-(`git commit -- <paths>`), `git pull --rebase --autostash` then push, never `git stash`. Faces (paintings from his portraits) stay
-out of git. Deploy only through make-verse-game step 8, and only when the VRM / he says release.
+(`git commit -- <paths>`), `git pull --rebase --autostash` then push, never `git stash`. Everything goes in git (his images too). Drafts: deploy them yourself (above); the RELEASE (live in the
+verse, stories, links) only when the VRM runs it.
 
 ## Lessons (add one every time a game teaches the role something - date + what happened)
 - 2026-11-22 · Role created at his ask, first game: Naomi's (VRM release `naomi`) - see `scripts/releases/naomi/game-brief.md`.
-- 2026-11-22 · The VRM may sit on his other computer and can't open local paths: upload every gate's files to
-  `gs://shlomiverse-private/releases/<slug>/game/<gate>/` and send the gs:// paths. The craft skill is `make-verse-game`
+- 2026-11-22 · The VRM may sit on his other computer: push every gate's files and send repo paths. (A first try kept his face
+  out of git and in a private bucket, so only one computer could deploy - he rejected it: "nothing is only locally".) The craft skill is `make-verse-game`
   (the only Shlomiverse game skill - load it right after this one, before the ideas).
 - 2026-11-22 · Draft 1 went out as a claude.ai artifact - he rejected it: drafts are ALWAYS on shlomiverse.com (section
   above). Also: "it's not clear what you need to cut" - pieces with opposite meanings must differ in shape, colour AND icon,

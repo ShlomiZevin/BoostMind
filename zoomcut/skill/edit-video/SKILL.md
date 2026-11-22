@@ -754,8 +754,8 @@ take. A framing for a whole take is better as one change you re-apply than as a 
     navy + gold, marquee, red "תרמו עכשיו" everywhere, a donation pop-up). The jokes are in the character's voice and
     from his scripts; the site plays it straight.
   - **Pictures with Leonardo** (below): his portrait from a frame of his footage, the logo, a product, an event photo.
-    `public/<site>/img/` + `v/` for his video (a 540p copy). His face and recordings go in `.gitignore` (deployed from
-    this machine, never in the public repo). A realistic AI crowd gets a small "תמונת AI" tag.
+    `public/<site>/img/` + `v/` for his video (a 540p copy) - all in git, his face included (his rule 2026-11-22: any computer
+    deploys, nothing is only local). A realistic AI crowd gets a small "תמונת AI" tag.
   - **The CTA = a form posted to `siteLead`** (`techietech-api/index.js`, emailed to shlomi@boostart.io; name + phone or
     email, a `choice` line and a message; nothing charged, nothing stored, a hidden `website` field for bots). A new
     site = one entry in `SITES` there, then `cd techietech-api && firebase deploy --only functions:siteLead --project
