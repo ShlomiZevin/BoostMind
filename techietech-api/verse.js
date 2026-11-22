@@ -17,6 +17,7 @@ const Busboy = require('busboy');
 const webpush = require('web-push');
 const nodemailer = require('nodemailer');
 const { _canon } = require('./wiki');
+const guard = require('./guard');   // limits counted in Firestore across instances + visitor-text cleaning (22.11 scripted probe)
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -771,6 +772,16 @@ const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,24}$/i;
 const emailDoc = (email) => db.collection('emailCodes').doc(crypto.createHash('sha256').update(email).digest('hex').slice(0, 40));
 const codeHash = (email, code) => crypto.createHash('sha256').update(email + '|' + code).digest('hex');
 const CODES_A_DAY = 300;   // under Gmail's ~500 a day, which the news mails share
+// new accounts made by a code (22.11: a script made 5 from throwaway inboxes in 6 minutes). The busiest real day was 26.
+// An IPv6 address is one phone / home line (/64, guard.ip); an IPv4 one is often shared by a whole mobile network (CGNAT).
+const NEW_ACCOUNTS_A_DAY = 100;
+const isV6 = (ip) => ip.includes(':');
+// a code goes only to the big known mail providers (his rule 2026-11-22: every scripted account used a throwaway inbox; the
+// real email-code residents are all on these). Exact domain, no subdomains. Google sign-in stays open to any domain.
+const MAIL_PROVIDERS = new Set(['gmail.com', 'googlemail.com', 'outlook.com', 'outlook.co.il', 'hotmail.com', 'hotmail.co.il', 'live.com', 'msn.com',
+  'icloud.com', 'me.com', 'mac.com', 'yahoo.com', 'ymail.com', 'aol.com', 'proton.me', 'protonmail.com', 'walla.co.il', 'walla.com',
+  'bezeqint.net', 'netvision.net.il', '012.net.il', 'zahav.net.il']);
+const knownProvider = (email) => MAIL_PROVIDERS.has(email.slice(email.lastIndexOf('@') + 1));
 function codeMail(code) {
   const subject = `${code} - הקוד שלכם לשלומיוורס`;
   const text = `הקוד להנפקת התושבות שלכם בשלומיוורס: ${code}\n\nהוא בתוקף 10 דקות. לא ביקשתם? אפשר פשוט להתעלם.\n\nשלומיוורס. אנשים אמיתיים. יקום מקביל.\n${SITE}`;
@@ -784,8 +795,11 @@ function codeMail(code) {
 }
 async function emailCode(d, ip) {
   const email = String(d.email || '').trim().toLowerCase();
-  if (!EMAIL_RE.test(email)) fail('invalid-argument', 'email_bad');
-  if (burst('mc' + ip, 8, 3600e3) || burst('me' + email, 4, 3600e3)) fail('resource-exhausted', 'slow_down');
+  if (!EMAIL_RE.test(email) || email.length > 254) fail('invalid-argument', 'email_bad');
+  if (!knownProvider(email)) fail('invalid-argument', 'email_provider');
+  // codes per address and per inbox, counted across every instance (a real person needs one, maybe a resend)
+  if (await guard.limit(`code:ip:${ip}`, 10, guard.HOUR) || await guard.limit(`code:ipday:${ip}`, 20, guard.DAY)
+    || await guard.limit(`code:email:${email}`, 5, guard.HOUR) || await guard.limit(`code:emailday:${email}`, 10, guard.DAY)) fail('resource-exhausted', 'slow_down');
   const day = dayIL(), cap = db.collection('verseMeta').doc('emailCodes');
   const n = await db.runTransaction(async (tx) => {
     const x = (await tx.get(cap)).data() || {}, c = x.d === day ? x.n || 0 : 0;
@@ -801,9 +815,12 @@ async function emailCode(d, ip) {
   if (!ok) fail('unavailable', 'mail_failed');
   return { ok: true };
 }
-async function emailIn(d) {
-  const email = String(d.email || '').trim().toLowerCase(), code = String(d.code || '').replace(/\D/g, '');
-  if (!EMAIL_RE.test(email) || code.length !== 6) fail('invalid-argument', 'code_bad');
+async function emailIn(d, ip) {
+  const email = String(typeof d.email === 'string' ? d.email : '').trim().toLowerCase(), code = String(typeof d.code === 'string' || typeof d.code === 'number' ? d.code : '').replace(/\D/g, '');
+  if (!EMAIL_RE.test(email) || email.length > 254 || code.length !== 6) fail('invalid-argument', 'code_bad');
+  if (!knownProvider(email)) fail('invalid-argument', 'email_provider');
+  // tries per address and per inbox on top of the code's own 5 (22.11: ~60 guesses in 15 seconds, all refused)
+  if (await guard.limit(`codein:ip:${ip}`, 30, guard.HOUR) || await guard.limit(`codein:email:${email}`, 12, guard.HOUR)) fail('resource-exhausted', 'slow_down');
   const ref = emailDoc(email);
   const r = await db.runTransaction(async (tx) => {
     const s = await tx.get(ref);
@@ -819,24 +836,54 @@ async function emailIn(d) {
   let user, isNew = false;
   try { user = await admin.auth().getUserByEmail(email); }
   catch (e) {
-    if (e.code !== 'auth/user-not-found') throw e;
+    if (e.code !== 'auth/user-not-found') { console.error('emailIn getUser', e.code || e.message); fail('internal', 'server'); }
+    // a NEW account: a few per address a day, and a cap for the whole site (the code is spent - a real person asks again tomorrow)
+    if (await guard.limit(`newacct:ip:${ip}`, isV6(ip) ? 2 : 5, guard.DAY) || await guard.limit('newacct:all:site', NEW_ACCOUNTS_A_DAY, guard.DAY)) {
+      console.warn('emailIn: new account refused (limit)', ip);
+      fail('resource-exhausted', 'slow_down');
+    }
     user = await admin.auth().createUser({ email, emailVerified: true });
     isNew = true;
   }
+  if (user.disabled) fail('permission-denied', 'code_bad');   // a blocked account never gets a fresh token
   if (!user.emailVerified) await admin.auth().updateUser(user.uid, { emailVerified: true });   // the code proved it
   // signing a custom token needs the functions' service account to hold "Service Account Token Creator" on itself
   return { token: await admin.auth().createCustomToken(user.uid), isNew };
 }
 
+// the caller's token checked again with revocation (verifyIdToken(token, true)): a disabled or revoked account is refused at
+// once, not when its token runs out an hour later. Kept 10 seconds per account per instance, so a page that sends a few calls together asks once.
+const authSeen = new Map();   // uid -> { ok, at }
+async function liveAuth(req) {
+  const uid = req.auth.uid, now = Date.now(), c = authSeen.get(uid);
+  if (c && now - c.at < 10e3) return c.ok ? req.auth : null;
+  const m = String(req.rawRequest.get('authorization') || '').match(/^Bearer\s+(.+)$/i);
+  let ok = false;
+  if (LOCAL) ok = true;
+  else if (m) {
+    try { ok = (await admin.auth().verifyIdToken(m[1], true)).uid === uid; } catch (e) {
+      // blocked / revoked / bad = refused; a passing hiccup of the check itself trusts the callable's own check, uncached
+      if (!/user-disabled|id-token-revoked|user-not-found|argument-error|id-token-expired/.test(e.code || '')) { console.error('liveAuth check', e.code || e.message); return req.auth; }
+    }
+  }
+  if (authSeen.size > 20000) authSeen.clear();
+  authSeen.set(uid, { ok, at: now });
+  return ok ? req.auth : null;
+}
+
 exports.verse = onCall({ region: REGION, secrets: SECRETS, cors: CORS, maxInstances: 6, concurrency: 40, memory: '512MiB', timeoutSeconds: 120 }, async (req) => {
-  const { op, ...d } = req.data || {};
-  if (op === 'request') return request(d, req.auth, req.rawRequest.ip);
-  if (op === 'emailCode') return emailCode(d, req.rawRequest.ip);
-  if (op === 'emailIn') return emailIn(d);
-  if (!req.auth) fail('unauthenticated', 'sign_in');
-  if (!ops[op]) fail('invalid-argument', 'op');
-  if (burst('u' + req.auth.uid, 120, 60e3)) fail('resource-exhausted', 'slow_down');
-  return ops[op](req.auth.uid, d, req.auth);
+  const data = req.data && typeof req.data === 'object' && !Array.isArray(req.data) ? req.data : {};
+  const { op, ...d } = data;
+  const ip = guard.ip(req.rawRequest);
+  if (burst('ip' + ip, 300, 60e3)) fail('resource-exhausted', 'slow_down');   // a flood stops here, before any database work
+  if (op === 'emailCode') return emailCode(d, ip);
+  if (op === 'emailIn') return emailIn(d, ip);
+  const auth = req.auth ? await liveAuth(req) : null;
+  if (op === 'request') return request(d, auth, ip);
+  if (!auth) fail('unauthenticated', 'sign_in');
+  if (typeof op !== 'string' || !Object.prototype.hasOwnProperty.call(ops, op)) fail('invalid-argument', 'op');
+  if (burst('u' + auth.uid, 120, 60e3)) fail('resource-exhausted', 'slow_down');
+  return ops[op](auth.uid, d, auth, ip);
 });
 
 // ---------- a new comment: the character answers, the replied-to fan hears ----------
@@ -1087,15 +1134,40 @@ async function ownerPulse() {
     wishes: [wishes, o('wishes'), o('list')].join('|'),
   } };
 }
-function ownerOk(req, res) {
+// The owner key (22.11: 17 wrong keys, then 29 refused). Wrong keys are counted per address across every instance and restart
+// (guard, collection `guard`): 10 wrong in a day locks the address for the rest of that day - checked BEFORE the key, so a locked
+// address learns nothing more, not even whether a key was right. Keys are compared as SHA-256 digests in constant time.
+const OWNER_FAILS = 10;
+const ownerFailKey = (ip) => `ownerkey:ip:${ip}`;
+async function ownerLocked(ip) {
+  const now = Date.now(), mem = (wrongKey.get(ip) || []).filter((t) => now - t < guard.DAY);
+  if (mem.length >= OWNER_FAILS) return true;
+  // a look at guard's own count without adding to it (guard.limit's doc: sha256(key)[0:40], t = the times)
+  const id = crypto.createHash('sha256').update(ownerFailKey(ip)).digest('hex').slice(0, 40);
+  const d = await db.collection('guard').doc(id).get().then((x) => x.data()).catch(() => null);
+  return ((d && d.t) || []).filter((t) => now - t < guard.DAY).length >= OWNER_FAILS;
+}
+async function ownerOk(req, res) {
   const auth = req.get('authorization') || '';
-  if (!auth.startsWith('Key ')) { res.status(401).json({ error: 'key' }); return false; }
+  if (!auth.startsWith('Key ') || auth.length > 600) { res.status(401).json({ error: 'key' }); return false; }
+  const key = auth.slice(4);
   // locally (the emulators only) a test key from .env.local works too, so the page can be tried without his real key
-  if (LOCAL && process.env.VERSE_LOCAL_OWNER_KEY && auth.slice(4) === process.env.VERSE_LOCAL_OWNER_KEY) return true;
-  const now = Date.now(), fails = (wrongKey.get(req.ip) || []).filter((t) => now - t < 3600e3);
-  if (fails.length >= 10) { res.status(429).json({ error: 'too_many' }); return false; }
-  const got = crypto.createHash('sha256').update(auth.slice(4)).digest();
-  if (!crypto.timingSafeEqual(got, Buffer.from(OWNER_KEY_SHA256, 'hex'))) { fails.push(now); wrongKey.set(req.ip, fails); res.status(401).json({ error: 'key' }); return false; }
+  if (LOCAL && process.env.VERSE_LOCAL_OWNER_KEY) {
+    const a = crypto.createHash('sha256').update(key).digest(), b = crypto.createHash('sha256').update(process.env.VERSE_LOCAL_OWNER_KEY).digest();
+    if (crypto.timingSafeEqual(a, b)) return true;
+  }
+  const ip = guard.ip(req);
+  if (await ownerLocked(ip)) { res.status(429).json({ error: 'too_many' }); return false; }
+  const got = crypto.createHash('sha256').update(key).digest();
+  if (!crypto.timingSafeEqual(got, Buffer.from(OWNER_KEY_SHA256, 'hex'))) {
+    const now = Date.now();
+    wrongKey.set(ip, [...(wrongKey.get(ip) || []).filter((t) => now - t < guard.DAY), now]);
+    if (wrongKey.size > 5000) wrongKey.clear();
+    await guard.limit(ownerFailKey(ip), OWNER_FAILS, guard.DAY);
+    console.warn('verseOwner: wrong key', ip);
+    res.status(401).json({ error: 'key' });
+    return false;
+  }
   return true;
 }
 // a story's picture or short clip comes as multipart: `file`, and for a clip its cover picture as `poster` (its first
@@ -1329,7 +1401,7 @@ async function tzSince(from) {
 }
 // (each secret once - costs.js and tz.js both read VERSE_ANTHROPIC_KEY; Cloud Run refuses a duplicate)
 exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...new Map([...SECRETS, ...require('./costs').SECRETS, ...require('./tz').SECRETS.filter((x) => x.name !== 'VERSE_VAPID_PRIVATE')].map((x) => [x.name, x])).values()], cors: CORS, maxInstances: 1, memory: '512MiB', timeoutSeconds: 300 }, async (req, res) => {   // 300: ח24's desk (tzDesk) writes + paints ~6 articles
-  if (!ownerOk(req, res)) return;
+  if (!(await ownerOk(req, res))) return;
   const op = req.query.op;
   const b = req.body || {};
   // every write he (or a session with the owner key) makes here is stamped in owner/pulse, by area, before the answer goes

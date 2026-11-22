@@ -19,7 +19,7 @@
     if (!r.ok || j.error) throw Object.assign(new Error('call'), { code: (j.error && j.error.message) || 'other' });
     return j.result;
   };
-  const ERR = { email_bad: 'הכתובת הזאת לא נראית כמו מייל.', code_bad: 'הקוד לא נכון. נסו שוב.', code_old: 'הקוד פג. שלחו קוד חדש.',
+  const ERR = { email_bad: 'הכתובת הזאת לא נראית כמו מייל.', email_provider: 'אפשר להירשם עם Gmail, Outlook, iCloud, Yahoo או וואלה - או עם Google.', code_bad: 'הקוד לא נכון. נסו שוב.', code_old: 'הקוד פג. שלחו קוד חדש.',
     slow_down: 'רגע, לאט. נסו שוב עוד כמה דקות.', mail_full: 'אי אפשר לשלוח עוד קודים היום. נסו מחר.', mail_failed: 'המייל לא יצא. נסו שוב.', other: 'משהו השתבש. נסו שוב.' };
   const t = (ev, x) => { try { window.track && window.track(ev, x); } catch (e) {} };
   // Google refuses to sign in inside TikTok / Instagram / Facebook's own browsers (the same test as the verse's ui.js)
