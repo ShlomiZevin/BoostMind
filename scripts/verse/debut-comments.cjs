@@ -3,6 +3,7 @@
 //   node scripts/verse/debut-comments.cjs --last 10 --out c.json     the last 10 videos (not archive): a dry run, saved to c.json
 //   node scripts/verse/debut-comments.cjs --post c.json              puts up exactly what c.json holds (after reading it)
 //   node scripts/verse/debut-comments.cjs <videoId> [--write]        one video, written at once
+//   --again                                                          also videos whose residents already commented (a test run)
 // Keys from scripts/design.env (never printed). Each resident = one chain run (~2-6c).
 const fs = require('fs');
 const path = require('path');
@@ -46,7 +47,7 @@ const arg = (args, k) => (args.includes(k) ? args[args.indexOf(k) + 1] : null);
   for (const id of ids) {
     const video = { id, ...(await db.collection('catalogVideos').doc(id).get()).data() };
     const there = (await db.collection('comments').where('videoId', '==', id).get()).docs.map((d) => d.data());
-    if (there.some((c) => c.char && (video.cast || []).includes(c.char))) { console.log(`\n=== ${id} - its residents already commented, skipped`); continue; }
+    if (!args.includes('--again') && there.some((c) => c.char && (video.cast || []).includes(c.char))) { console.log(`\n=== ${id} - its residents already commented, skipped`); continue; }
     const tw = (await db.collection('catalogTranscripts').doc(id).get()).data() || {};
     console.log(`\n=== ${id} | ${video.title} | cast: ${(video.cast || []).join(', ')} | ${there.length} comments there`);
     const r = await comments.debut({ key: env.OPENAI_API_KEY, akey: env.ANTHROPIC_API_KEY || null, cur, video, words: tw.text || '', onScreen: tw.onScreen || '',

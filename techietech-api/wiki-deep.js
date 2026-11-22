@@ -306,9 +306,9 @@ ${mine.map((t) => '- ' + t).join('\n') || '(none yet)'}`,
 What is in front of ${c.name} now:
 ${scene}${mine.length ? `\n\n${c.name}'s own last comments (never the same take or opening again):\n${mine.map((t) => '- ' + t).join('\n')}` : ''}`,
     on: 'in the comments under a video',
-    say: (c) => `"say" = what ${c.name} writes in the comments now: what this person, and nobody else, would write here - one idea. A real person commenting, not a performance: their habits and catchphrases only where they truly belong.`,
+    say: (c) => `"say" = what ${c.name} writes in the comments now: what this person, and nobody else, would write here - one small idea, as short as real comments are (his rule 2026-11-22): the note itself is a few words, never a story or a list of points. A real person commenting, not a performance: their habits and catchphrases only where they truly belong.`,
     here: 'You are in the comments under a video, writing from your phone.',
-    write: 'Write only the comment, the way you write in the chat - Hebrew, no hashtags, no emoji, no quotation marks around it. An answer talks to the one you answer.',
+    write: 'Write only the comment, as short as a real comment under a video (his rule 2026-11-22): most real comments are 3-8 words - a phrase, a reaction; one short sentence is plenty, two is the very most (under 20 words). Never explain, never add a second point. Hebrew, no hashtags, no emoji, no quotation marks around it. An answer talks to the one you answer.',
   },
 };
 async function post({ key, akey = null, cur, mode, scene, last: mine = [], name = '', at = new Date(), where = 'tz' }) {
