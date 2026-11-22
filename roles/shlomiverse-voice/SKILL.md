@@ -72,7 +72,8 @@ mechanism, and keeps tuning it with him over time.
   commenting on a video and give them the video" = wiki-deep post() with where 'comments'; they know it is THEIR video (his
   note: Night Guy said "I do the same at home" under his own video). No "writing..." - the answer just comes, like any social
   app. Old videos: `node scripts/verse/debut-comments.cjs --last N` (dry run; show him, then `--write` or post his approved
-  texts). Studio uploads come without a speech transcript - comments.js hears the sound itself.
+  texts). Every video carries its transcript since 2026-11-22 (the Studio's subtitles, a speaker per line) - that is the
+  residents' memory of their own videos; a gap = `node scripts/verse/video-words.mjs --check` (shlomiverse-content).
 - **Syncs** (shlomiverse.com/syncs, techietech-api/meeting.js) - a visitor's Zoom-style text meeting with Techy-Tech residents
   (Amir drives and gives the visitor a title, Gilad mutes and interrupts, Daniel never finishes - Amir cuts him, Yaniv may
   leave, a recap at the end). Every line comes from the same chain (wiki-deep `_parts`), so the voice is yours; his comments

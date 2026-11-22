@@ -130,6 +130,9 @@ async function video(b) {
   };
   const tw = (await db.collection('catalogTranscripts').doc(b.id).get()).data() || {};
   const words = b.transcript != null ? String(b.transcript) : tw.text || '', onScreen = b.onScreen != null ? String(b.onScreen) : tw.onScreen || '';
+  // every video carries its words (his rule 2026-11-22, "super critical": the chat's memory, the comments, the titles read
+  // them) - a new video without them is refused. No speech at all: say so ("(בלי דיבור)") with the words on the screen.
+  if (!was && !b.url && !words.trim()) return { error: 'no_words', detail: 'send transcript - the spoken words (the Studio: its subtitles), or "(בלי דיבור)" with onScreen. Fill old ones: node scripts/verse/video-words.mjs' };
   let castBy = Array.isArray(b.cast) && b.cast.length ? 'sent' : was?.cast?.length ? 'kept' : null;
   if (!v.cast.length && !v.url) {
     v.cast = await pickCast(v, words, onScreen, w.characters).catch((e) => { console.error('pickCast', b.id, e.message); return []; });

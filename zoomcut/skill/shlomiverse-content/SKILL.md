@@ -25,6 +25,14 @@ shouldn't come from git."**
 | Stories | Firestore `stories` | `scripts/story.mjs` (verse-story skill); a video story also becomes a video |
 | Every change | `catalogLog`: what, which fields, the value before, who (computer + session), when | automatically |
 
+**Every video carries its words (his rule 2026-11-22, "super critical").** `catalogTranscripts/<id>.text` = what is said
+(a speaker per line, "חני: ..."), `.onScreen` = the words on the screen - the chat's memory of the resident, the comments,
+the titles and the editor all read them. versePublish refuses a NEW video without `transcript` (no speech at all =
+`"(בלי דיבור - מוזיקה, והמילים על המסך)"` + `onScreen`). The Studio sends its subtitle layers (`render/verse.mjs`
+sentWords) and refuses to send a project with a voice and no subtitles. Check / fill: `node scripts/verse/video-words.mjs
+--check` (nothing paid) -> `--out w.json` (subtitles from the Studio project on this computer, else the sound heard, else
+frames read) -> read and fix w.json -> `--post w.json`.
+
 `wiki.json` (the site) and `wiki-brain.json` (the chat) are **composed on the server from the records** after every
 change, and again every 15 minutes (`verseHeal` - anything that wrote them behind the records' back is put right).
 Nobody writes them by hand, and nothing a computer has or lacks can take anything off the site.

@@ -180,6 +180,8 @@ video release (the cut, the hook moments, the resident's new site / service, the
 ## Posting a story in the verse
 - First check the game is in the verse (wiki.json has its record; the game page link works). If not, put the record
   (`shlomiverse-content` skill) before posting, otherwise the story's button is dead.
+- A clip also becomes a video, and every video carries its transcript (his rule 2026-11-22, "super critical"): someone speaks in it -> `"words"` in the
+  story JSON (verse-story step 5); nobody speaks -> leave it out (marked "no speech").
 - Story JSON: `"boxes": []` when the words are in the picture, `"toVideos": false` for a poster, the link = the game
   page `/<folder>/<slug>/` (never `/play/`), label "לשחק עכשיו".
 - `"everyone": true` only when he says so. Never on Shabbat. `--test` first, then the real post. Report the story id.

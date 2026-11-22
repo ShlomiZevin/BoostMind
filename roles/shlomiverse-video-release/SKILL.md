@@ -154,6 +154,9 @@ game: `"status": "draft"`, no record, no links, `?solo=1`). Never a claude.ai li
 computer: **Nothing lives on one computer only** (his rule, 2026-11-22: "any computer should be able to deploy, and nothing is only locally ... nothing is private, everything can be public"): his face, the residents' pictures, game art, release files - all go in git like everything else. Only keys/secrets, other real people's personal details (greetings) and throwaway screenshots stay out.
 
 ## His standards (each one cost a round somewhere - the details live in the skills named)
+- **Every video carries its words** (his rule 2026-11-22, "super critical") - the video's subtitles are its transcript on the verse
+  (the chat's memory, the comments, the titles). Gate before a release is called live: `node scripts/verse/video-words.mjs
+  --check` = "every video has its words"; a story clip with speech sends `words` (verse-story).
 - **The verse is a real world.** Residents are real people; their site plays it straight, the joke is in their voice and from
   his scripts. Words: תושבים (never דמויות), המייסדים (never "של שלומי"), never מעריצים / פרודיה / פרק / מערכון (words.md in
   shlomiverse-content). A resident's product is launched like a real product (shlomiverse-marketing "As real as possible").

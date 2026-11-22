@@ -166,21 +166,25 @@ When he approves the video and says to put it out, do ALL of it, in this order, 
    second `ronen`). His record wins: move what yours added (site, colour, links, portrait) onto it, fix the other
    characters' `relations`, the site record's `whose` / `mainOf`, `techietech-api/replies.json` `char`, then `hide` yours.
    Cast = `POST /api/ep/<id>/cast` + project `characters`; check the chips say `fixed`.
-2. **The verse FIRST** (the socials' caption points at it): `POST /api/ep/<id>/done {done:true}`, then
+2. **The words go with it** - every video carries its transcript (his rule 2026-11-22, "super critical"): the Send takes the project's
+   subtitle layers as the video's transcript (a speaker per line, from the take each line is linked to) and refuses a
+   project with a voice and no subtitles. So every spoken line has a subtitle, and the right one (it is the chat's memory
+   of the resident). After it is up: `content.mjs get video <id>` / `node scripts/verse/video-words.mjs --check`.
+3. **The verse FIRST** (the socials' caption points at it): `POST /api/ep/<id>/done {done:true}`, then
    `POST /api/ep/<id>/site` -> "✔ on the Shlomiverse". Check the record: `content.mjs get video <id>` has `drop.at`
    (= split.at / fps / speed) - the signed-out viewer gets the drop there, signed-in the whole video. Then
    `node scripts/verse/drop-frames.mjs <id>` (the frames for the home's live strip).
-3. **The socials** - the file he approved: `POST /api/ep/<id>/publish {platforms, caption, title, options, useLast:true}`
+4. **The socials** - the file he approved: `POST /api/ep/<id>/publish {platforms, caption, title, options, useLast:true}`
    (the socials' version goes by itself when there is a split). High-tech = exactly the four hashtags; `options.x.text`
    without the link. Wait for every platform's `done` + link; TikTok's caption reaches his Telegram by itself.
-4. **A new character's site** - live, in /all/, the links page's sites strip, the record's `site`, wiki.md's table
+5. **A new character's site** - live, in /all/, the links page's sites strip, the record's `site`, wiki.md's table
    (CLAUDE.md "A new page or site"). Check, don't redo.
-5. **The stories** - a verse story from the character (verse-story skill: a clean picture, words in boxes, preview,
+6. **The stories** - a verse story from the character (verse-story skill: a clean picture, words in boxes, preview,
    `--test`, post) + the Instagram story poster he posts himself with a link sticker (empty bottom quarter for it).
-6. **Log it**: `node scripts/stats/event.mjs add --kind release ...` (the day it went live, `--at` the time).
-7. **Tell the other sessions what is live** (`ListAgents` / SendMessage): the one that prepared a release waiting
+7. **Log it**: `node scripts/stats/event.mjs add --kind release ...` (the day it went live, `--at` the time).
+8. **Tell the other sessions what is live** (`ListAgents` / SendMessage): the one that prepared a release waiting
    for this video (the live strip + a banner waited for the-consultant), Studio Dialoug.
-8. **Hand-over** = the links (verse, each platform) + what he does by hand (Facebook share, TikTok Inbox, the IG story).
+9. **Hand-over** = the links (verse, each platform) + what he does by hand (Facebook share, TikTok Inbox, the IG story).
 
 ## USING THE TOOL RIGHT - what went wrong on gilad-joins (2026-10-22) and the rules from it
 The video came out great; the way I used the tool did not ("something in the tool you didn't use as supposed to").

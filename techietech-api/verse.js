@@ -1331,7 +1331,9 @@ const POSTER = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
 // story's character joins its cast, nothing new is made; else a new one, story-<id>, with the clip and its cover copied
 // next to the other videos and Terra's title from the story's words (or videoTitle). Its followers heard about it from the story - the
 // 15-minute video announcement skips it.
-async function storyVideo(storyId, char, media, text, videoId, title) {
+// words = what is said in the clip (the story form's "words" field); a clip with nobody speaking says so - every video
+// carries its words (his rule 2026-11-22; publish.js refuses a new one without them)
+async function storyVideo(storyId, char, media, text, videoId, title, words) {
   const P = require('./publish')._publish, from = admin.storage().bucket(BUCKET), to = admin.storage().bucket(require('./catalog').MEDIA);
   const castWith = (cast) => [...new Set([...(cast || []), ...(idOk(char) && char !== 'verse' ? [char] : [])])];
   const id = /^[a-z0-9][a-z0-9_-]{1,80}$/i.test(videoId || '') ? videoId : `story-${storyId.toLowerCase()}`;
@@ -1343,7 +1345,7 @@ async function storyVideo(storyId, char, media, text, videoId, title) {
     await db.collection('announced').doc(id).set({ t: FieldValue.serverTimestamp(), story: storyId });
   }
   const r = await P.handle({ op: 'video', id, cast: castWith(was.data()?.cast), source: was.exists ? undefined : 'story',
-    ...(was.exists ? {} : { onScreen: text, ...(title ? { title: String(title).slice(0, 140) } : {}), ...(media.poster ? { poster: media.poster } : {}) }) });
+    ...(was.exists ? {} : { onScreen: text, transcript: String(words || '').trim().slice(0, 20000) || '(בלי דיבור - מוזיקה, והמילים על המסך)', ...(title ? { title: String(title).slice(0, 140) } : {}), ...(media.poster ? { poster: media.poster } : {}) }) });
   if (r.error) throw new Error(r.error + ' ' + (r.detail || ''));
   return { id, title: r.video?.title, cast: r.video?.cast, made: !was.exists };
 }
@@ -1785,7 +1787,7 @@ exports.verseOwner = onRequest({ region: REGION, secrets: LOCAL ? [] : [...new M
       // a clip = a video too: the latest videos and the character's page (toVideos=no keeps it a story only)
       let video = null;
       if (media?.kind === 'video' && f.toVideos !== 'no') {
-        video = await storyVideo(ref.id, f.char, media, text || (boxes || []).map((x) => x.t).join(' '), f.videoId, f.videoTitle).catch((e) => { console.error('storyVideo', ref.id, e.message); return { error: e.message }; });
+        video = await storyVideo(ref.id, f.char, media, text || (boxes || []).map((x) => x.t).join(' '), f.videoId, f.videoTitle, f.words).catch((e) => { console.error('storyVideo', ref.id, e.message); return { error: e.message }; });
         if (video.id) await ref.update({ video: video.id });
       }
       let fans = [], sent = 0;

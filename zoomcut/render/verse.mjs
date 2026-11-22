@@ -29,15 +29,54 @@ const ffmpeg = (args) => new Promise((ok, fail) => {
 });
 const readJson = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
 
-// the spoken words: captions.txt without the '== take' headers, else the script (as scripts/wiki/canon.py reads them)
-export function wordsOf(dir) {
+// the spoken words = the transcript every video on the Shlomiverse must carry (his rule 2026-11-22: "super critical" - the
+// chat's memory, the comments, the titles all read it). A layered project: its subtitle layers as they play - one line per
+// speaker ("חני: ..."): the resident whose take the line is linked to ("k.savta.0" -> names.savta), else the layer's name
+// ("כתוביות – חני"); a translation layer joins the line it plays under. (Until 2026-11-22 this read only captions.txt, which layered projects keep as an empty template -
+// 18 videos went up with no words.) Older projects: captions.txt without the '== take' headers, else the script.
+export function subtitlesOf(p, names = {}) {
+  const end = +p?.duration || Infinity;
+  const items = (p?.layers || []).filter((l) => l.kind === 'subtitles' && !l.hidden).flatMap((l) => {
+    const tr = /תרגום|translat/i.test(l.name || ''), m = String(l.name || '').match(/[–-]\s*(.+)$/), named = m && !tr ? m[1].trim() : null;
+    return (l.items || []).filter((i) => !i.hidden && String(i.text || '').trim() && +i.from < end).map((i) => {
+      const k = String(i.link || '').match(/^k\.([\w-]+)\./);
+      return { from: +i.from || 0, who: tr ? null : (k && (names[k[1]] || k[1])) || named, text: String(i.text).replace(/\s+/g, ' ').trim() };
+    });
+  }).sort((a, b) => a.from - b.from);
+  const speakers = new Set(items.map((i) => i.who).filter(Boolean));
+  const lines = [];
+  let cur = null;
+  for (const i of items) {
+    if (!cur || (i.who && i.who !== cur.who)) { cur = { who: i.who || cur?.who || null, words: [] }; lines.push(cur); }
+    cur.words.push(i.text);
+  }
+  return lines.map((l) => (speakers.size > 1 && l.who ? `${l.who}: ` : '') + l.words.join(' ')).join('\n').trim();
+}
+export function wordsOf(dir, names = {}) {
+  const subs = subtitlesOf(readJson(path.join(dir, 'project.json'), null), names);
+  if (subs) return subs;
   for (const n of ['captions.txt', 'script.txt']) {
     const f = path.join(dir, n);
     if (!fs.existsSync(f)) continue;
     const t = fs.readFileSync(f, 'utf8').split(/\r?\n/).filter((l) => !l.startsWith('==') && !l.startsWith('#')).map((l) => l.trimEnd()).join('\n');
-    return t.replace(/\n{3,}/g, '\n\n').trim();
+    const w = t.replace(/\n{3,}/g, '\n\n').trim();
+    if (w) return w;
   }
   return '';
+}
+
+// what goes up as the transcript: the subtitles; a video with nobody speaking in it (no take, no voice track - music and
+// words on the screen, like a dictionary post) says so; a voice without subtitles gets '' and is refused before upload
+const NO_SPEECH = '(בלי דיבור - מוזיקה, והמילים על המסך)';
+function hasVoice(p) {
+  return (p?.layers || []).some((l) => !l.hidden && ((l.kind === 'video' && (l.items || []).some((i) => /^k\./.test(i.link || '')))
+    || (l.kind === 'audio' && /voice|קול|דיבור|קריינ/i.test(`${l.name || ''} ${(l.items || []).map((i) => i.asset).join(' ')}`))));
+}
+export function sentWords(dir, names) {
+  const w = wordsOf(dir, names);
+  if (w) return w;
+  const p = readJson(path.join(dir, 'project.json'), null);
+  return p && !hasVoice(p) && onScreenOf(dir) ? NO_SPEECH : '';
 }
 
 // the words on the screen (the text layers - a POV hook, labels; not the subtitles, those are the transcript): they
@@ -90,6 +129,9 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
   const api = verseApi(key);
   const master = path.join(dir, 'out', `${id}.mp4`);
   if (!fs.existsSync(master)) throw new Error(`no full export (out/${id}.mp4) - export it first`);
+  // no video goes up without its words (his rule 2026-11-22) - checked before anything is uploaded
+  const words = sentWords(dir, {});
+  if (!words) throw new Error(`${id} has no subtitles - every video on the Shlomiverse carries its words: add the subtitles layer, then send again`);
   if (!dryRun) {
     const cfg = readJson(path.join(dir, 'episode.json'), {});
     if (!cfg.done) {
@@ -136,7 +178,7 @@ export async function toVerse({ id, dir, ROOT, key, port, log = () => {}, dryRun
   // signed-out viewer; a layered project without a split sends null (clears an old one)
   const pj = readJson(path.join(dir, 'project.json'), null), drop = pj?.layers ? dropOf(pj) : undefined;
   if (drop) log(`  · the socials version drops at ${drop.at.toFixed(1)} s - signed out on the Shlomiverse, the signal drops there too`);
-  const out = await api({ op: 'video', id, ...(drop !== undefined ? { drop } : {}), ...(/^https:\/\/(www\.)?instagram\.com\//.test(igUrl) ? { ig: igUrl } : {}), ...(cast.length ? { cast } : {}), transcript: wordsOf(dir), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
+  const out = await api({ op: 'video', id, ...(drop !== undefined ? { drop } : {}), ...(/^https:\/\/(www\.)?instagram\.com\//.test(igUrl) ? { ig: igUrl } : {}), ...(cast.length ? { cast } : {}), transcript: sentWords(dir, Object.fromEntries((await verseDb.characters().catch(() => [])).map((c) => [c.id, c.name]))), ...(onScreenOf(dir) ? { onScreen: onScreenOf(dir) } : {}), ...(cfg.series ? { series: cfg.series } : {}), source: 'studio', ...(dryRun ? { dryRun: true } : {}) });
   if (dryRun) { log(`✔ dry run: "${out.video?.title || ''}" - cast ${out.castBy || '?'}: ${(out.video?.cast || []).join(', ') || 'nobody'} - nothing written`); return out; }
   const live = await api({ op: 'get', id });
   if (!live.live) throw new Error(`written, but ${id} is hidden on the site (/backstage/ סרטונים shows it)`);

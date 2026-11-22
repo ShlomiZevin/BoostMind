@@ -91,6 +91,11 @@ fix, unless it is a resident's words (Voice) or a video (Studio).
   (Backstage → תוכניות for bigger things). Reports: bottom line + link + what you need from him, in English.
 
 ## Lessons (add one every time something teaches us - date + what happened)
+- 2026-11-22 · 29 videos were up with no transcript: the Studio read only captions.txt, which layered projects keep as an
+  empty template, and the archive reels / story clips came with only their on-screen words - the chat didn't know what
+  its residents said (Hani didn't know Perel lost her siddur in haredit-6). → every video carries its transcript (his rule 2026-11-22, "super critical"): versePublish refuses a new video without `transcript`, the Studio sends its subtitle layers
+  and refuses a voice without subtitles, story clips send `words`. Release gate: `node scripts/verse/video-words.mjs
+  --check` says "every video has its words"; fill with `--out` / `--post` (shlomiverse-content).
 - 2026-11-18 · The home's live strip used `.live` in `verse.css`; Backstage loads `verse.css` and its "מה קורה עכשיו" card was
   `card live` - squashed to 72px with an orange glow. Renamed to `.nowcard`. → Shared CSS = shared namespace; prefix new classes.
 - 2026-11-18 · iPhone lets animated layers escape a parent's rounded `overflow: hidden` - give the layer itself

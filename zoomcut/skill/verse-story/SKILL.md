@@ -105,7 +105,11 @@ they tap it).
    editor), not in a box.
 4. **The button** (`link` + `label`) works the same - for a teaser: where to follow / get notified (`/c/hani`), or the
    pre-order page once there is one.
-5. **Post** as always (`--test` first; Never on Shabbat). `"poster": "C:/path/cover.jpg"` chooses another cover; on an
+5. **Its words** - a clip also becomes a video, and every video carries its transcript (his rule 2026-11-22, "super
+   critical" - the chat, the comments, the titles read it): someone speaks in the clip -> `"words": "<what is said>"` in
+   the JSON (from the editor's subtitles, or written out by you while watching); no `words` = marked "no speech, the words
+   on the screen".
+6. **Post** as always (`--test` first; Never on Shabbat). `"poster": "C:/path/cover.jpg"` chooses another cover; on an
    up story `--edit <id>` with only `"poster"` replaces just the cover. In /backstage/ he can upload a clip too - the
    page grabs its cover by itself; an iPhone .mov or a file over 29 MB there = do it here instead (it says so).
 6. **A clip is also a video** (his rule, 2026-11-05): posting it puts it in the latest videos and on the character's

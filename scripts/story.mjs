@@ -79,6 +79,7 @@ if (s.everyone && !test) fd.append('everyone', 'yes');
 if (test || s.toVideos === false) fd.append('toVideos', 'no');
 if (s.videoId) fd.append('videoId', s.videoId);
 if (s.videoTitle) fd.append('videoTitle', s.videoTitle);
+if (s.words) fd.append('words', s.words);   // what is said in the clip - the video's transcript (none = "no speech")
 file();
 
 const res = await fetch(`${API}?op=story`, { method: 'POST', headers: { authorization: 'Key ' + KEY }, body: fd });
