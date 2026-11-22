@@ -96,6 +96,21 @@ const RECORD_PUSH = { title: 'לקחו לכם את הבכורה', body: (nick, g
 const pageOf = async (id) => `/${(await _canon()).games?.[id] ? 'play' : 'v'}/${id}`;
 const fail = (code, msg) => { throw new HttpsError(code, msg); };
 
+// limits across every instance (guard.js): each check is [key, n, ms]; the first one over refuses with 'slow_down' (the page's
+// "רגע, לאט"). Generous for a person, tight for a script. Keys: '<area>:uid:<uid>' / '<area>:ip:<address>'.
+async function slow(...checks) {
+  for (const [k, n, ms] of checks) if (await guard.limit(k, n, ms)) { console.warn('verse limit', k.split(':').slice(0, 2).join(':')); fail('resource-exhausted', 'slow_down'); }
+}
+const H = guard.HOUR, DAY = guard.DAY;
+// the cheap writes (follow, save, a like, a stamp, a vote, a heart...): one shared bucket per account and per address
+const writes = (uid, ip) => slow([`w:uid:${uid}`, 400, H], [`w:ip:${ip}`, 800, H]);
+// a video or a game that exists (comments, hearts and stickers live only on those - never a made-up id)
+const pageExists = async (id) => { const c = await _canon(); return !!(idOk(id) && (c.videos?.[id] || c.games?.[id])); };
+const charExists = async (id) => idOk(id) && !!(await _canon()).byId?.[id];
+const onOff = (v) => v !== false;
+// a visitor's text field: only a real string counts (an object or a list sent instead = empty), cleaned by guard.text
+const str = (v, max, multiline = false) => (typeof v === 'string' ? guard.text(v, max, multiline) : '');   // `on`: only an explicit false turns it off
+
 // per-instance burst guard (the daily quotas below are the real limits)
 const bursts = new Map();
 function burst(key, n, ms) {
@@ -170,6 +185,14 @@ async function recentNews(uid) {
   }));
 }
 const note = (uid, data) => db.collection('fans').doc(uid).collection('notes').add({ ...data, read: false, t: FieldValue.serverTimestamp() });
+
+// a push subscription points only at a browser maker's push service (Chrome / Samsung / Opera = FCM, Firefox, Safari / iPhone,
+// Edge) - never any other address the server would then POST to
+const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /^android\.googleapis\.com$/, /^([\w-]+\.)*push\.services\.mozilla\.com$/, /^([\w-]+\.)*push\.apple\.com$/, /^[\w-]+\.notify\.windows\.com$/];
+function pushEndpointOk(u) {
+  if (typeof u !== 'string' || u.length > 1000) return false;
+  try { const x = new URL(u); return x.protocol === 'https:' && !x.port && !x.username && PUSH_HOSTS.some((r) => r.test(x.hostname)); } catch (e) { return false; }
+}
 
 function pushReady() {
   const priv = vapidPrivate();
@@ -248,22 +271,27 @@ async function makeSticker(frameB64, text) {
 const ops = {
   // first sign-in (and later edits): the name the characters and other fans see, and their face - a photo they uploaded and
   // cropped in the page (a square JPEG, checked here), the Google one if they ask, or none. `keepPhoto`: a name-only edit.
-  async profile(uid, d, auth) {
+  async profile(uid, d, auth, ip) {
+    await slow([`profile:uid:${uid}`, 20, H], [`profile:ip:${ip}`, 40, H]);
     if (isOwner(auth)) {
       const was = (await db.collection('fans').doc(uid).get()).exists;
       await db.collection('fans').doc(uid).set({ ...OFFICIAL, ...(was ? {} : { follows: [], created: FieldValue.serverTimestamp() }) }, { merge: true });
       return { ok: true, fan: OFFICIAL };
     }
-    const nick = oneLine(d.nick, 24);
+    const nick = oneLine(str(d.nick, 24), 24);
     if (nick.length < 2) fail('invalid-argument', 'nick_short');
     if (reserved(nick)) fail('invalid-argument', 'nick_bad');
     if (!(await moderate(nick)).ok) fail('invalid-argument', 'nick_bad');
     const ref = db.collection('fans').doc(uid);
     const was = (await ref.get()).exists;
-    let photo = d.usePhoto && auth.token.picture ? String(auth.token.picture) : null, unchecked = false;
+    // the Google photo only as Google gave it (an https address in the account's own token)
+    const gpic = typeof auth.token.picture === 'string' && /^https:\/\/[^\s"'<>]{1,500}$/.test(auth.token.picture) ? auth.token.picture : null;
+    let photo = d.usePhoto === true && gpic ? gpic : null, unchecked = false;
+    if (d.photoData != null && typeof d.photoData !== 'string') fail('invalid-argument', 'photo_bad_file');
     if (typeof d.photoData === 'string' && d.photoData) {
+      if (d.photoData.length > 820e3 || !/^[A-Za-z0-9+/]+=*$/.test(d.photoData)) fail('invalid-argument', 'photo_bad_file');
       const jpg = Buffer.from(d.photoData, 'base64');
-      if (jpg.length > 600e3 || jpg[0] !== 0xff || jpg[1] !== 0xd8) fail('invalid-argument', 'photo_bad_file');
+      if (jpg.length > 600e3 || !guard.fileOk(jpg, ['jpg'])) fail('invalid-argument', 'photo_bad_file');
       const check = await moderateImage(`data:image/jpeg;base64,${d.photoData}`);
       if (!check.ok) fail('invalid-argument', 'photo_bad');
       unchecked = !!check.unchecked;
@@ -280,15 +308,21 @@ const ops = {
     return { ok: true, fan };
   },
 
-  async follow(uid, d) {
+  async follow(uid, d, auth, ip) {
     if (!idOk(d.char)) fail('invalid-argument', 'char');
-    await fanOf(uid);
-    await db.collection('fans').doc(uid).update({ follows: d.on === false ? FieldValue.arrayRemove(d.char) : FieldValue.arrayUnion(d.char) });
+    await writes(uid, ip);
+    const fan = await fanOf(uid);
+    // only real residents, and a bounded list (a script could fill the array with made-up ids)
+    if (onOff(d.on) && !(await charExists(d.char))) fail('invalid-argument', 'char');
+    if (onOff(d.on) && (fan.follows || []).length >= 300) fail('resource-exhausted', 'quota');
+    await db.collection('fans').doc(uid).update({ follows: !onOff(d.on) ? FieldValue.arrayRemove(d.char) : FieldValue.arrayUnion(d.char) });
     return { ok: true };
   },
 
-  async save(uid, d) {
+  async save(uid, d, auth, ip) {
     if (!idOk(d.videoId)) fail('invalid-argument', 'video');
+    await writes(uid, ip);
+    if (onOff(d.on) && !(await pageExists(d.videoId))) fail('invalid-argument', 'video');
     const ref = db.collection('fans').doc(uid).collection('saves').doc(d.videoId);
     if (d.on === false) await ref.delete(); else await ref.set({ t: FieldValue.serverTimestamp() });
     return { ok: true };
@@ -299,16 +333,18 @@ const ops = {
   // game (records/<game>_<day>/players/<uid>), and the day's doc holds the top 10 everyone reads (nickname + Google first
   // name only). Whoever loses first place hears about it (bell + push). Browser scores can be faked - a daily cap on
   // sends and the game's own max keep it a fun board.
-  async score(uid, d, auth) {
+  async score(uid, d, auth, ip) {
     const g = idOk(d.game) ? await recordGame(d.game) : null;
     if (!g || !g.record) fail('not-found', 'game');
+    if (typeof d.value !== 'number' && typeof d.value !== 'string') fail('invalid-argument', 'value');
+    await slow([`score:ip:${ip}`, 1000, DAY]);
     const value = Math.round(Number(d.value) * 100) / 100;
     if (!Number.isFinite(value) || value <= 0 || value > (g.record.max || 1e7)) fail('invalid-argument', 'value');
     const fan = await fanOf(uid);
     if (!(await spend('score', uid, SCORES_A_DAY))) fail('resource-exhausted', 'slow_down');
     const low = g.record.better === 'low', beats = (a, b) => (low ? a < b : a > b);
     const day = dayIL(), dayRef = db.collection('records').doc(`${d.game}_${day}`), mine = dayRef.collection('players').doc(uid);
-    const first = String(auth?.token?.name || '').trim().split(/\s+/)[0].slice(0, 20) || null;
+    const first = str(auth?.token?.name, 80).split(/\s+/)[0].slice(0, 20) || null;
     const r = await db.runTransaction(async (tx) => {
       const [m, dd] = await Promise.all([tx.get(mine), tx.get(dayRef)]);
       const was = m.exists ? m.data().value : null;
@@ -343,8 +379,10 @@ const ops = {
   },
 
   // the like on a game's page (the planet, 2026-11-03): one per fan, counted beside its comments
-  async heart(uid, d) {
+  async heart(uid, d, auth, ip) {
     if (!idOk(d.id)) fail('invalid-argument', 'id');
+    await writes(uid, ip);
+    if (onOff(d.on) && !(await pageExists(d.id))) fail('invalid-argument', 'id');
     await fanOf(uid);
     const mine = db.collection('fans').doc(uid).collection('hearts').doc(d.id), stats = db.collection('videoStats').doc(d.id);
     await db.runTransaction(async (tx) => {
@@ -356,11 +394,13 @@ const ops = {
     return { ok: true };
   },
 
-  async comment(uid, d) {
+  async comment(uid, d, auth, ip) {
     if (!idOk(d.videoId)) fail('invalid-argument', 'video');
-    const text = clip(String(d.text || '').trim(), COMMENT_MAX);
+    const text = str(d.text, COMMENT_MAX, true);
     if (!text) fail('invalid-argument', 'empty');
     if (burst('c' + uid, 8, 60e3)) fail('resource-exhausted', 'slow_down');
+    await slow([`comment:uid:${uid}`, 30, H], [`comment:uidday:${uid}`, 120, DAY], [`comment:ip:${ip}`, 60, H], [`comment:ipday:${ip}`, 250, DAY]);
+    if (!(await pageExists(d.videoId))) fail('invalid-argument', 'video');
     const fan = await fanOf(uid);
     let parentId = null;
     if (d.parentId) {
@@ -376,9 +416,17 @@ const ops = {
     let mention = null;
     const { byId, videos } = await _canon();
     if (idOk(d.mention) && byId[d.mention] && text.includes('@' + byId[d.mention].name)) mention = d.mention;
-    const replyTo = d.replyTo && idOk(d.replyTo) ? d.replyTo : null;
-    let answer = await require('./comments').answerer({ db, key: openaiKey(), video: videos[d.videoId], mention, parentId, replyTo, uid, text, byId })
-      .catch((e) => { console.error('answerer', e.message); return mention; });
+    // the one replied to: a comment in the same thread only (it is who verseOnComment tells "a reply from ...")
+    let replyTo = null;
+    if (parentId && d.replyTo && idOk(d.replyTo)) {
+      const rt = d.replyTo === parentId ? { videoId: d.videoId, parentId: null } : (await db.collection('comments').doc(d.replyTo).get()).data();
+      if (rt && rt.videoId === d.videoId && (d.replyTo === parentId || rt.parentId === parentId)) replyTo = d.replyTo;
+    }
+    // the AI picks who answers only while the day's answers last (it was asked first and paid for, then refused)
+    let answer = (await quotaLeft('reply', uid, CHARACTER_REPLIES_A_DAY)) > 0
+      ? await require('./comments').answerer({ db, key: openaiKey(), video: videos[d.videoId], mention, parentId, replyTo, uid, text, byId })
+        .catch((e) => { console.error('answerer', e.message); return mention; })
+      : null;
     if (answer && !(await spend('reply', uid, CHARACTER_REPLIES_A_DAY))) answer = null;
     const doc = {
       videoId: d.videoId, parentId, uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}), text, mention, answer,
@@ -394,8 +442,9 @@ const ops = {
   },
 
   // likes on comments (never on videos); a fan's likes live under the fan, so the page reads them in one query
-  async like(uid, d) {
+  async like(uid, d, auth, ip) {
     if (!idOk(d.commentId)) fail('invalid-argument', 'comment');
+    await writes(uid, ip);
     const c = db.collection('comments').doc(d.commentId);
     const mine = db.collection('fans').doc(uid).collection('likes').doc(d.commentId);
     const r = await db.runTransaction(async (tx) => {
@@ -422,11 +471,13 @@ const ops = {
     return { ok: true, likeCount: r.n };
   },
 
-  async deleteComment(uid, d) {
+  async deleteComment(uid, d, auth, ip) {
     if (!idOk(d.id)) fail('invalid-argument', 'comment');
+    await writes(uid, ip);
     const ref = db.collection('comments').doc(d.id);
     const c = await ref.get();
     if (!c.exists || c.data().uid !== uid) fail('permission-denied', 'not_yours');
+    if (c.data().hidden) return { ok: true };   // already gone - the count goes down once
     await ref.update({ hidden: true, removedBy: 'fan' });
     await db.collection('videoStats').doc(c.data().videoId).set({ comments: FieldValue.increment(-1) }, { merge: true });
     return { ok: true };
@@ -434,12 +485,17 @@ const ops = {
 
   // sticker from the moment: the frame the fan paused on -> a die-cut sticker with their text, kept as a draft until
   // they post it
-  async sticker(uid, d) {
-    if (!idOk(d.videoId) || !idOk(d.char || 'x')) fail('invalid-argument', 'video');
-    const text = oneLine(d.text, 40);
+  async sticker(uid, d, auth, ip) {
+    if (!idOk(d.videoId) || (d.char != null && d.char !== '' && !idOk(d.char))) fail('invalid-argument', 'video');
+    const text = oneLine(str(d.text, 40), 40);
     if (!text) fail('invalid-argument', 'empty');
-    const frame = String(d.frame || '').replace(/^data:image\/jpeg;base64,/, '');
-    if (frame.length < 1000 || frame.length > 2.5e6) fail('invalid-argument', 'frame');
+    if (typeof d.frame !== 'string') fail('invalid-argument', 'frame');
+    const frame = d.frame.replace(/^data:image\/jpeg;base64,/, '');
+    if (frame.length < 1000 || frame.length > 2.5e6 || !/^[A-Za-z0-9+/]+=*$/.test(frame) || !guard.fileOk(Buffer.from(frame.slice(0, 64), 'base64'), ['jpg'])) fail('invalid-argument', 'frame');
+    if (!(await pageExists(d.videoId))) fail('invalid-argument', 'video');
+    const char = d.char && (await charExists(d.char)) ? d.char : null;   // who is in the frame: a real resident or nobody
+    // a picture costs money: per account the day's 3 (below), per address and for the whole site a day
+    await slow([`sticker:ip:${ip}`, 10, DAY], ['sticker:all:site', 300, DAY]);
     // all mail turned off = no sticker, as if the picture failed (blocked.js - his call 2026-11-20)
     if (await require('./blocked').mailOff(uid)) { await new Promise((r) => setTimeout(r, 6000)); fail('unavailable', 'image_failed'); }
     const fan = await fanOf(uid);
@@ -455,14 +511,15 @@ const ops = {
     const ref = db.collection('stickers').doc();
     const path = `verse/stickers/${ref.id}.webp`;
     await admin.storage().bucket(BUCKET).file(path).save(png, { contentType: 'image/webp', resumable: false, metadata: { cacheControl: 'public, max-age=31536000' } });
-    const doc = { videoId: d.videoId, char: d.char || null, at: Math.max(0, Number(d.at) || 0), text, img: publicUrl(path), uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}),
+    const doc = { videoId: d.videoId, char, at: Math.min(36000, Math.max(0, Number(d.at) || 0)), text, img: publicUrl(path), uid, nick: fan.nick, photo: fan.photo || null, ...(fan.official ? { official: true } : {}),
       status: 'draft', stampCount: 0, hidden: false, t: FieldValue.serverTimestamp() };
     await ref.set(doc);
     return { ok: true, id: ref.id, img: doc.img, left: await quotaLeft('sticker', uid, STICKERS_A_DAY) };
   },
 
-  async publishSticker(uid, d) {
+  async publishSticker(uid, d, auth, ip) {
     if (!idOk(d.id)) fail('invalid-argument', 'sticker');
+    await writes(uid, ip);
     const ref = db.collection('stickers').doc(d.id);
     const s = await ref.get();
     if (!s.exists || s.data().uid !== uid) fail('permission-denied', 'not_yours');
@@ -476,8 +533,9 @@ const ops = {
 
   // the character's stamp is the like on a sticker. The sticker's maker hears about it at 1, 5, 10, 25, 50, 100... -
   // one bell item per sticker that keeps its count, never one push per stamp
-  async stamp(uid, d) {
+  async stamp(uid, d, auth, ip) {
     if (!idOk(d.stickerId)) fail('invalid-argument', 'sticker');
+    await writes(uid, ip);
     const s = db.collection('stickers').doc(d.stickerId);
     const mine = db.collection('fans').doc(uid).collection('stamps').doc(d.stickerId);
     const r = await db.runTransaction(async (tx) => {
@@ -502,13 +560,15 @@ const ops = {
   },
 
   // "what's next in the Shlomiverse": a viewer's idea goes on the public wall (checked first; Shlomi can hide any)
-  async idea(uid, d) {
+  async idea(uid, d, auth, ip) {
     const fan = await fanOf(uid);
-    const text = oneLine(d.text, 300);
+    const text = oneLine(str(d.text, 300), 300);
     if (text.length < 4) fail('invalid-argument', 'empty');
     const kind = ['episode', 'character', 'meet', 'other'].includes(d.kind) ? d.kind : 'other';
-    const chars = (Array.isArray(d.chars) ? d.chars : []).filter(idOk).slice(0, 3);
+    const { byId } = await _canon();
+    const chars = [...new Set((Array.isArray(d.chars) ? d.chars.slice(0, 10) : []).filter((c) => idOk(c) && byId?.[c]))].slice(0, 3);
     if (burst('i' + uid, 3, 60e3)) fail('resource-exhausted', 'slow_down');
+    await slow([`idea:ip:${ip}`, 15, DAY]);
     if (!(await spend('idea', uid, IDEAS_A_DAY))) fail('resource-exhausted', 'quota');
     const m = await moderate(text);
     if (!m.ok) { await refund('idea', uid); fail('invalid-argument', 'text_bad'); }
@@ -518,8 +578,9 @@ const ops = {
   },
 
   // +1 on an idea (the planet, never a heart); the idea's writer hears at 1, 5, 10, 25...
-  async vote(uid, d) {
+  async vote(uid, d, auth, ip) {
     if (!idOk(d.ideaId)) fail('invalid-argument', 'idea');
+    await writes(uid, ip);
     const voter = await fanOf(uid);
     const ref = db.collection('ideas').doc(d.ideaId);
     const mine = db.collection('fans').doc(uid).collection('votes').doc(d.ideaId);
@@ -551,16 +612,20 @@ const ops = {
   // the Instagram archive (/archive/, insta-to-verse's page, 2026-11-10): a mark on an old post = "bring this one into the verse".
   // His account only until verseMeta/archive {open: true}. wishes/<ig> = the public count; who asked stays private
   // (wishVoters/<ig>) and hears once when it's in (wishFound); fans/<uid>/wishes/<ig> = their own marks.
-  async wish(uid, d, auth) {
-    const ig = String(d.ig || '');
+  async wish(uid, d, auth, ip) {
+    const ig = typeof d.ig === 'string' || typeof d.ig === 'number' ? String(d.ig) : '';
     if (!/^\d{5,30}$/.test(ig)) fail('invalid-argument', 'ig');
     if (!isOwner(auth) && !((await db.collection('verseMeta').doc('archive').get()).data() || {}).open) fail('permission-denied', 'closed');
-    const permalink = /^https:\/\/(www\.)?instagram\.com\/[\w/.-]{1,120}$/.test(String(d.permalink || '')) ? String(d.permalink) : null;
+    await slow([`wish:uid:${uid}`, 60, DAY], [`wish:ip:${ip}`, 120, DAY]);
+    // only a real post of the archive (insta/list.json) - a made-up number would open a Mind task for nothing. Taking an ask
+    // back always works. If the list can't be read at all, nothing new is asked for.
+    if (d.on !== false && !(await igPost(ig))) fail('invalid-argument', 'ig');
+    const permalink = typeof d.permalink === 'string' && /^https:\/\/(www\.)?instagram\.com\/[\w/.-]{1,120}$/.test(d.permalink) ? d.permalink : null;
     const ref = db.collection('wishes').doc(ig), mine = db.collection('fans').doc(uid).collection('wishes').doc(ig);
     // "what do you remember about it?" (optional, his ask 2026-11-10: they can write something with the ask) - checked like a
     // comment, kept under the wish (wishes/<ig>/notes/<uid>, one per resident, the latest wins), read in Backstage; taking the ask
     // back removes it
-    const note = clip(String(d.note || '').trim(), 300);
+    const note = str(d.note, 300, true);
     const noteRef = ref.collection('notes').doc(uid);
     // already in the verse (its own import, or a studio video whose record carries this post's link - his note 2026-11-17: a
     // studio reel was asked for from the archive): no wish - the page hears where it is; an open wish for it closes (and tells)
@@ -590,13 +655,15 @@ const ops = {
       tx.set(db.collection('wishVoters').doc(ig), { uids: on ? FieldValue.arrayUnion(uid) : FieldValue.arrayRemove(uid) }, { merge: true });
       return { ok: true, n: Math.max(0, n + (on ? 1 : -1)), mine: on, _new: on };
     }).then(async (r) => {
-      if (r._new && !isOwner(auth)) await wishToMind(ig, uid, note).catch((e) => console.error('wish -> mind', e.message));
+      // a new ask is a Mind task that buzzes his phone: 10 a day per account (the ask itself still counts)
+      if (r._new && !isOwner(auth) && !(await guard.limit(`wishmind:uid:${uid}`, 10, DAY))) await wishToMind(ig, uid, note).catch((e) => console.error('wish -> mind', e.message));
       delete r._new;
       return r;
     });
   },
   // the page's marks: mine + how many asked for each open one + which are in the verse already (ig -> video id)
-  async wishes(uid) {
+  async wishes(uid, d, auth, ip) {
+    await slow([`wishes:uid:${uid}`, 60, H], [`wishes:ip:${ip}`, 120, H]);   // it reads every wish (~1,300 documents)
     const [mine, open, done] = await Promise.all([
       db.collection('fans').doc(uid).collection('wishes').select().get(),
       db.collection('wishes').where('done', '==', false).select('n').get(),   // at most ~1,300 posts - filtered here, no index needed
@@ -606,15 +673,18 @@ const ops = {
       done: Object.fromEntries(done.docs.map((x) => [x.id, x.data().videoId || null])) };
   },
 
-  async pushSub(uid, d) {
-    const sub = d.sub;
-    if (!sub || typeof sub.endpoint !== 'string' || !/^https:\/\//.test(sub.endpoint) || !sub.keys?.p256dh || !sub.keys?.auth) fail('invalid-argument', 'sub');
+  async pushSub(uid, d, auth, ip) {
+    const sub = d.sub && typeof d.sub === 'object' ? d.sub : null;
+    const key = (v) => typeof v === 'string' && /^[A-Za-z0-9_=-]{8,200}$/.test(v);
+    if (!sub || !pushEndpointOk(sub.endpoint) || !key(sub.keys?.p256dh) || !key(sub.keys?.auth)) fail('invalid-argument', 'sub');
+    await slow([`pushsub:uid:${uid}`, 20, DAY], [`pushsub:ip:${ip}`, 60, DAY]);
     const id = crypto.createHash('sha256').update(sub.endpoint).digest('hex').slice(0, 40);
-    await db.collection('pushSubs').doc(id).set({ uid, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, ua: oneLine(d.ua, 120), t: FieldValue.serverTimestamp() });
+    await db.collection('pushSubs').doc(id).set({ uid, sub: { endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth } }, ua: oneLine(str(d.ua, 120), 120), t: FieldValue.serverTimestamp() });
     return { ok: true, vapid: vapidPublic() };
   },
-  async pushUnsub(uid, d) {
-    if (typeof d.endpoint !== 'string') fail('invalid-argument', 'sub');
+  async pushUnsub(uid, d, auth, ip) {
+    if (typeof d.endpoint !== 'string' || d.endpoint.length > 1000) fail('invalid-argument', 'sub');
+    await writes(uid, ip);
     const id = crypto.createHash('sha256').update(d.endpoint).digest('hex').slice(0, 40);
     const ref = db.collection('pushSubs').doc(id);
     const s = await ref.get();
@@ -622,12 +692,14 @@ const ops = {
     return { ok: true };
   },
   async pushTest(uid) {
+    await slow([`pushtest:uid:${uid}`, 10, H]);
     const fan = await fanOf(uid);
     const n = await push([uid], { title: 'השלומיוורס', body: `ההתראות פועלות, ${fan.nick}.`, url: '/notes', icon: ICON, badge: BADGE, tag: 'test' });
     return { ok: true, sent: n };
   },
 
-  async readNotes(uid) {
+  async readNotes(uid, d, auth, ip) {
+    await writes(uid, ip);
     const snap = await db.collection('fans').doc(uid).collection('notes').where('read', '==', false).limit(200).get();
     const batch = db.batch();
     snap.docs.forEach((d) => batch.update(d.ref, { read: true }));
@@ -643,12 +715,20 @@ const ops = {
     const about = require('./about');
     return { about: about.view(await about.get(uid)), fields: about.FIELDS };
   },
-  async aboutPut(uid, d) {
+  async aboutPut(uid, d, auth, ip) {
     const about = require('./about');
     await fanOf(uid);
     if (burst('ab' + uid, 30, 60e3)) fail('resource-exhausted', 'slow_down');
+    await slow([`about:uid:${uid}`, 60, H], [`about:ip:${ip}`, 150, H]);   // a birthday / a world in words is read by the AI
     const patch = {}, raw = {};
-    for (const [k, v] of Object.entries(d.patch || {})) if (about.FIELDS[k]) patch[k] = v;
+    const given = d.patch && typeof d.patch === 'object' && !Array.isArray(d.patch) ? d.patch : {};
+    // each answer: null, a short string, a small list of ids, or (bday) a {d, m, y} date - never anything bigger
+    const okVal = (v) => v === null || (typeof v === 'string' && v.length <= 200)
+      || (Array.isArray(v) && v.length <= 10 && v.every((x) => typeof x === 'string' && x.length <= 40))
+      || (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length <= 3 && Object.values(v).every((x) => x == null || typeof x === 'number'));
+    for (const [k, v] of Object.entries(given)) {
+      if (Object.prototype.hasOwnProperty.call(about.FIELDS, k) && okVal(v)) patch[k] = typeof v === 'string' ? guard.text(v, 200) : v;
+    }
     if (!Object.keys(patch).length) fail('invalid-argument', 'field');
     if (typeof patch.bday === 'string') {
       const date = await about.parseDate(siteKey(), patch.bday);
@@ -695,37 +775,40 @@ const ilTime = (d = new Date()) => new Intl.DateTimeFormat('he-IL', { timeZone: 
 // when no other contact was typed.
 async function request(d, auth, ip) {
   if (!auth?.token?.email) fail('unauthenticated', 'sign_in');
-  if (burst('r' + ip, 4, 3600e3)) fail('resource-exhausted', 'slow_down');
+  // each send is a mail to him (and a Mind task that buzzes his phone for business / personal) plus a mail back
+  await slow([`request:uid:${auth.uid}`, 5, H], [`request:uidday:${auth.uid}`, 12, DAY], [`request:ip:${ip}`, 10, H], [`request:ipday:${ip}`, 30, DAY]);
+  const line = (v, n) => (typeof v === 'string' ? oneLine(guard.text(v, n), n) : '');   // one clean line; anything but text = empty
   const kind = ['video', 'business', 'bug', 'personal'].includes(d.kind) ? d.kind : 'contact';
-  const text = clip(String(d.text || '').trim(), 3000);
+  const text = str(d.text, 3000, true);
   if (text.length < 3) fail('invalid-argument', 'empty');
-  const contact = oneLine(d.contact, 160) || auth.token.email;
+  const contact = line(d.contact, 160) || auth.token.email;
   const doc = { kind, text, contact, email: auth.token.email, uid: auth.uid, nick: null, t: FieldValue.serverTimestamp(), done: false };
   // the business page: who, which company, about what (the email is the way back)
   // the phone is a must here too (his rule 2026-11-20: "emails might be too weak sometimes")
   if (kind === 'business') {
-    const phone = String(d.phone || '').replace(/[\s\-().]/g, '');
+    const phone = line(d.phone, 40).replace(/[\s\-().]/g, '');
     if (!/^\+?\d{9,15}$/.test(phone)) fail('invalid-argument', 'phone');
-    Object.assign(doc, { name: oneLine(d.name, 80), company: oneLine(d.company, 120), topic: oneLine(d.topic, 40), phone });
+    Object.assign(doc, { name: line(d.name, 80), company: line(d.company, 120), topic: line(d.topic, 40), phone });
   }
   // "something isn't working": the page, the device and the page's last errors, so it can be fixed without asking back
-  if (kind === 'bug') Object.assign(doc, { page: oneLine(d.page, 300), ua: oneLine(d.ua, 300), screen: oneLine(d.screen, 20),
-    errors: (Array.isArray(d.errors) ? d.errors : []).slice(0, 5).map((x) => oneLine(x, 200)) });
+  if (kind === 'bug') Object.assign(doc, { page: line(d.page, 300), ua: line(d.ua, 300), screen: line(d.screen, 20),
+    errors: (Array.isArray(d.errors) ? d.errors : []).slice(0, 5).map((x) => line(typeof x === 'string' ? x : '', 200)).filter(Boolean) });
   if (['video', 'contact'].includes(kind)) doc.from = d.from === 'community' ? 'community' : 'chat';
   // a personal video (his ask 2026-11-12, the community page): which character, for whom, what event, when - the text is
   // everything they told about that person. The Shlomiverse makes an effort, no promise.
   // the phone is a must (his rule 2026-11-19): the ready greeting goes to them on WhatsApp too - an email alone can land in spam
   if (kind === 'personal') {
-    const phone = String(d.phone || '').replace(/[\s\-().]/g, '');
+    const phone = line(d.phone, 40).replace(/[\s\-().]/g, '');
     if (!/^\+?\d{9,15}$/.test(phone)) fail('invalid-argument', 'phone');
-    Object.assign(doc, { from: 'community', char: oneLine(d.char, 40), forWho: oneLine(d.forWho, 80), event: oneLine(d.event, 80), phone,
-      date: /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || '')) ? String(d.date) : null });
+    Object.assign(doc, { from: 'community', char: line(d.char, 40), forWho: line(d.forWho, 80), event: line(d.event, 80), phone,
+      date: typeof d.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : null });
   }
   if (auth?.uid) doc.nick = ((await db.collection('fans').doc(auth.uid).get()).data() || {}).nick || null;
   const ref = await db.collection('requests').add(doc);
   // the person hears back right away (mailer.js), from the Shlomiverse
-  const back = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact) ? contact : auth.token.email;
-  require('./mailer').reply('verse-' + kind, { email: back, name: doc.name || auth.token.name || doc.nick || '', uid: auth.uid }).catch(() => {});
+  // ...to the account's own (proven) email only: a typed contact address stays in the request for him, so the form can't be
+  // used to send our mail - with a name the sender chose - to any address in the world
+  require('./mailer').reply('verse-' + kind, { email: auth.token.email, name: doc.name || auth.token.name || doc.nick || '', uid: auth.uid }).catch(() => {});
   const subject = kind === 'bug' ? `שלומיוורס | משהו לא עובד${doc.nick ? ' · ' + doc.nick : ''}`
     : kind === 'business' ? `שלומיוורס | שיתוף פעולה · ${doc.company || doc.name || 'עסק'}${doc.topic ? ' · ' + doc.topic : ''}`
     : kind === 'video' ? `שלומיוורס | מחפשים סרטון${doc.nick ? ' · ' + doc.nick : ''}`
