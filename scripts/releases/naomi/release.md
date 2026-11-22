@@ -27,10 +27,13 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 | Record + sheet | done (his GPT session) |
 | Profile picture | LIVE - round 3 A (his pick: a real woman ~50, filter look kept, age lines, NO stubble - "nothing is perfect but A is very good"). portrait-author.jpg = hand on heart. Round 1 (stubble) retired in old/. |
 | Old reels in the verse | DONE - 14 live (private/reels.md); promos skipped |
-| Site shlomiverse.com/dr-naomi/ | his pick: A (clinic first) + a 'חדש' banner for the org program - building |
+| Site shlomiverse.com/dr-naomi/ | LIVE 2026-11-22 (his OK: the site may go live before the video). Full depth; form tested (siteLead). /all/ + analytics need `functions:stats,track` deploy - waiting for his OK |
 | The method המחוג הפנימי | on the site (stages, in her birth language) |
 | NEW service from the video | organizations: from onboarding to bonding (young employees) + managers' response-pause track |
-| Book "המחוג שבלב" cover | his pick: B (glass heart with the needle) - full size + 3D mockup |
+| Book "המחוג שבלב" cover | B - full size + 3D (private/covers/), on the site |
+| Logo | B "החותם" (heart + dial) - zoomcut/episodes/_assets/naomi/logo/; switch: `node scripts/releases/naomi/logo/export.mjs A|C` |
+| Editor | naomi-1 ready for footage: guest studio B, host tail, name band, end card |
+| Marketing | ready, NOT posted (nothing before the video): video poster, site launch, book, org program - private/promo/ |
 | DoulaSense AI | "coming soon" + waitlist on the site (later idea: a real tool) |
 
 ## Stories (verse-story, after his OK on each)
