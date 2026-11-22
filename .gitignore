@@ -124,3 +124,6 @@ zoomcut/scripts/*.bak*
 
 # personal greetings - real people's names and details: never in the public repo (the studio sends them to the phone prompter privately)
 zoomcut/scripts/greet-*.txt
+
+# release workshops: unreleased scripts and private notes stay local (public repo)
+scripts/releases/*/private/
