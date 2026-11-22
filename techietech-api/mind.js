@@ -824,6 +824,7 @@ exports.mindDaily = onSchedule({ schedule: '0 9 * * *', timeZone: 'Asia/Jerusale
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const due = (await listItems({ limit: 1500 })).filter((i) => i.due && i.due <= today && (i.nagFrom || '') <= today && ['reminder', 'task'].includes(i.type) && ['open', 'active', 'waiting'].includes(i.status));
   if (!due.length) return;
+  for (const i of due) if (i.nag) await ITEMS.doc(i.id).update({ nagAt: Date.now() });   // this push is the day's first ask - the next one in NAG_EVERY
   if (due.length <= 3) for (const i of due) await pushMe('remind', { title: (i.type === 'reminder' ? 'תזכורת: ' : 'להיום: ') + i.text, body: i.body || (i.due < today ? 'היה ל-' + i.due : ''), url: '/mind/#' + (i.nag ? 'nag=' : '') + i.id, tag: i.nag ? 'nag:' + i.id : 'i:' + i.id });
   else await pushMe('remind', { title: `${due.length} דברים להיום`, body: due.slice(0, 5).map((i) => i.text).join(' · '), url: '/mind/', tag: 'daily' });
 });
