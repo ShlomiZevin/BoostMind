@@ -535,9 +535,9 @@ function draw() {
     const c = G.cards.find((k) => k.id === G.demo.id && k.state === 'fly');
     if (!c) G.demo = null;
     else if (c.y < L.stripT - 20) {
-      const p = (G.demo.t % 1.3) / 1.3, x = lerp(c.x - c.w * .6, c.x + c.w * .6, ease(Math.min(1, p * 1.4))), y = c.y + 6 - p * 10;
+      const x0 = Math.max(L.colX + 18, c.x - c.w * .6), x1 = Math.min(L.colX + L.colW - 18, c.x + c.w * .6), p = (G.demo.t % 1.3) / 1.3, x = lerp(x0, x1, ease(Math.min(1, p * 1.4))), y = c.y + 6 - p * 10;
       ctx.save(); ctx.globalAlpha = p < .85 ? 1 : (1 - p) / .15;
-      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(c.x - c.w * .6, c.y + 6); ctx.lineTo(x, y); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0, c.y + 6); ctx.lineTo(x, y); ctx.stroke();
       ctx.fillStyle = '#fff'; ctx.shadowColor = '#000a'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(x, y, 15, 0, 7); ctx.fill();
       ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.font = `900 ${L.fs * 1.05}px Rubik, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'center';
       ctx.lineWidth = 5; ctx.strokeStyle = '#5a1430'; ctx.strokeText('החליקו על האדומה', c.x, c.y + c.h / 2 + 26); ctx.fillStyle = '#fff'; ctx.fillText('החליקו על האדומה', c.x, c.y + c.h / 2 + 26);
