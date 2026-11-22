@@ -157,6 +157,8 @@ layers a builder made; the editor and the export don't know or care which builde
    `shlomiverse-content` skill's `words.md`.
 
 ## PUBLISHING EVERYWHERE - THE PROTOCOL (his ask, the-consultant 2026-11-18: "deploy it to the verse, to all the social, the signed-out and signed-in version, the site of the new guy, the story - all of that" / "you need first to make sure the verse is updated")
+**In a release** (he opened the Video Release Manager - roles/shlomiverse-video-release) the VRM session runs this list and
+adds the resident's world and the marketing around it; the editor makes the video and follows the VRM's brief.
 When he approves the video and says to put it out, do ALL of it, in this order, and check each step before the next
 (when he says it in his own words, as here, you run Publish yourself - otherwise rule 8 / step 9: his button).
 1. **The cast is the verse's real ids.** `node scripts/verse/content.mjs list character` - a new character may already

@@ -136,6 +136,8 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
 All Shlomiverse roles live in `roles/<role>/SKILL.md` (this one, `shlomiverse-conversion` = the Conversion Manager...).
 After a pull on any computer: `node scripts/skills-link.mjs` links them into ~/.claude/skills. The Conversion Manager
 hands you new products (Syncs) with the demo link, product page and access when they're approved: that's the go.
+The **Video Release Manager** (`shlomiverse-video-release`, session "Shlomiverse VRM") hands you a marketing brief for a
+video release (the cut, the hook moments, the resident's new site / service, the day): that's the go for those pieces.
 
 ## Which skill does which job
 | Job | Use |

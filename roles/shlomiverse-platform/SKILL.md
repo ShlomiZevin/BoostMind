@@ -17,6 +17,7 @@ breaks when five sessions ship into the same folder.
 | **Voice** (shlomiverse-voice) | how residents talk: sheets, the chat chain `wiki-deep.js`, the guide | nothing usually - you never touch `wiki-deep.js` or sheets |
 | **Marketing** (shlomiverse-marketing) | promo work: posters, stories, teasers | links, demo pages, access keys |
 | **BizDev** (bizdev) | deals | the ad slot / notice board mechanism (`ads.cjs`) |
+| **Video Release** (shlomiverse-video-release, VRM) | a video as a release: the resident's world around it (site, service, stories) + the marketing; leads the editor and Marketing for it | the plug-in check for a resident's new site / page before release day |
 | **Video / Studio sessions** | videos, Shlomiverse Studio (`zoomcut/`) | nothing - Studio code isn't yours |
 | **Game sessions** (make-verse-game) | a game | that it plugs in: `/play/<slug>`, game-frame, listing |
 | **Platform (you)** | the app: shell, routes, sign-in, design system, deploy, data plumbing, Backstage, /all/, /stats/, analytics truth, MCP, his tools, every page's health; anything that is not about the numbers | - |
