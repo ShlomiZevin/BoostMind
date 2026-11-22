@@ -152,3 +152,9 @@ behind / ahead / uncommitted - deploy from a clean worktree of `origin/main` if 
   too smooth / not a real person. What he took: keep the costume AND the face-filter look, but "a real person" of her real
   age (~50: fine lines are fine) with a completely clean face, plain studio backdrop like the other residents' photos.
   → For a woman he plays, say WOMAN + her real age + clean face (no stubble / beard shadow) in the very first prompt.
+- 2026-11-22 · The "Marketing" session runs on his other computer: it can't see faces, the private script or anything
+  git-ignored on this one. When the release's material is local, open a dedicated marketing helper here (his OK: "it's okay
+  also to open a dedicated one"). A sub-agent stops when he interrupts a tool call - check after an interrupt and restart
+  only with his word.
+- 2026-11-22 · Sets follow the episode, not the resident: a guest on someone's podcast = THEIR studio (not her logo); her own
+  room (clinic) is for the episodes where she talks to camera. Ask "where is she and with whom" before building a set.
