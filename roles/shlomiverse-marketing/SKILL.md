@@ -89,11 +89,14 @@ copy is Hebrew. When you learn a new rule from his feedback, add it HERE (high l
        dimmed, and the character's punchline pops in OVER it as an in-app speaker tile (rounded, the product's
        speaking border, the name) with subtitles, the chord ringing out under him; then 'רק בשלומיוורס'.
      - one track from frame 0. No "שלומיוורס מציגים" intro in a hook video.
-  3. **The poster** = a LIGHT story poster, one centred column with air, NOTHING on top of anything: the company logo
-     + "מציגה" (small, top), the big product icon + name + tagline, ONE headline (the product video's), one clean real
-     strip from the app (the meeting's faces row, crisp crop), the CTA pill. No phone mockup full of small text, no
-     callouts, no sub line. His notes 22 Nov: v1 "terrible" (tilted cropped phone, unreadable), v2 "a mess, crowded,
-     one on top of the other" (phone + callout over it). Example: scripts/techytech-games/syncs-promo/poster.js.
+  3. **The poster** = a real product-launch ad DESIGNED BY THE IMAGE MODEL, never hand-built in HTML (his note 22 Nov:
+     "use image models, don't create it yourself"; my 3 HTML posters were "terrible" / "crowded" / "doesn't show the
+     product"). GPT image (sunburst + flare, `--quality high`, 1024x1536) on /edits with refs = the REAL app
+     screenshots + the product icon + the company logo PNG; the prompt says what it is (a real big-company launch ad,
+     the app is the hero on 1-2 phones with exactly the attached screens) and the EXACT words (logo + "מציגה", the
+     name, the product video's headline, "עכשיו בשלומיוורס"). Both came out right first try, Hebrew spelled right -
+     check every letter anyway. Then fit to 1080x1920 by extending its own blurred background (no stretch). Prompt:
+     scripts/techytech-games/syncs-promo/gen/p1.txt.
   A first "social cut" that told the joke through in-app notifications (v1-v4) was not what he wanted: the comedy is
   the hook + the closure + what the real app shows, the launch in between stays straight.
 - **Music**: starts on frame 0 at a point where the track is already full (no fade-in, no looping bars). Under the

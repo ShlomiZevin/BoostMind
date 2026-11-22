@@ -1,0 +1,12 @@
+A launch poster (Instagram story, tall) for a real new app: "Syncs", an AI video-meetings app by the software company Techy-Tech. It must look like a real big-company product launch ad (the way Zoom, Apple or Microsoft announce a product), premium and clean, not crowded, lots of air.
+
+What it must SHOW: the product itself. The phone app is the hero - use the attached app screenshots as the exact screens on the phone (keep their real UI: the dark meeting screen with the participants' face tiles, the orange accents, the transcript cards, the "Action items" summary). One or two phones, big, readable.
+
+Brand: the attached orange app icon is Syncs' icon; the orange colour of the icon is the brand colour. The attached logo image has the Techy-Tech logo (the blue </> mark + "Techy-Tech ENTERPRISE SOLUTIONS") - use it as is.
+
+Text on the poster, exactly these words and nothing else (Hebrew is right-to-left, spell every letter exactly):
+- small at the top: the Techy-Tech logo and next to it "מציגה"
+- the product name: "Syncs"
+- the headline: "פגישות חכמות, מההתחלה ועד הסוף"
+- a button-like call to action near the bottom: "עכשיו בשלומיוורס"
+Keep the top 8% and the bottom 12% of the picture free of anything important (phone story UI covers them).
