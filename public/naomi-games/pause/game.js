@@ -28,13 +28,16 @@ const STATUS = new Set(['מה הסטטוס עם המשימה?', 'יש עדכון
 const SNEAKY = ['מה שלומך עם המשימה?', 'בלי לחץ, אבל מתי?', 'רק בודקת שהכול בסדר עם הדדליין', 'אני כאן בשבילך. מה הסטטוס?', 'קח את הזמן, עד חמש'];
 const BOND = ['איך עולה לך היום?', 'אני כאן בשבילך', 'קח את הזמן', 'גאה בך', 'מה אתה צריך ממני?', 'איך אתה מרגיש עם זה?', 'אתה לא לבד', 'ספר לי מה עובר עליך', 'בוקר טוב, איך ישנת?', 'מותר לא לדעת'];
 const GOLD = 'אני לא יודע איך להתחיל את המשימה.';
+// what each message does to him - a thought bubble when it lands: the reason to swipe / not to swipe
+const REACT_HARM = ['פותח צ׳אט ג׳י־פי־טי לפרש את ההודעה', 'מנסח מכתב התפטרות', 'בטוח שמפטרים אותו', 'מתחיל לנסח תלונה למשאבי אנוש', 'נכנס למצב הישרדותי', 'שומע ״נו״ שלא נכתב'];
+const REACT_BOND = ['מרגיש שרואים אותו', 'נושם סוף סוף', 'ההתקשרות מתחזקת', 'כמעט פותח את המשימה', 'מרגיש בטוח'];
 const DAYS = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳'];
 const DAY_SUB = ['אדומה – מחליקים. ורודה – נותנים לה להגיע.', 'הלקוח התחיל לשאול', 'ה״נו״ שלא כתבתם מתחיל להופיע', 'יותר הודעות, יותר מהר', 'יום חמישי. הלקוח מחכה.'];
 const STRIKES = ['התקף חרדה', 'תלונה למשאבי אנוש', 'מכתב התפטרות'];
 const STRIKE_SAY = ['הוא נכנס להתקף חרדה.', 'הוא הגיש תלונה למשאבי אנוש על התעמרות.', 'הוא התפטר.'];
 const SAY = {
   start: ['מה עולה אצלך ברגע הזה?', 'בכל פעם שעולה הדחף לשלוח – קודם כול לעצור.'],
-  streak: ['תראו, מה שאנחנו רואים כאן... זה ויסות.', 'המממ... זה מרגש. וזה גם אמיץ.', 'אתם מכילים את חוסר הוודאות שלכם. יפה.', 'עוד השהיה. המחוג שלו נרגע.', 'זו בדיוק השהיית תגובה.'],
+  streak: ['תראו, מה שאנחנו רואים כאן... זה ויסות.', 'המממ... זה מרגש. וזה גם אמיץ.', 'אתם מכילים את חוסר הוודאות שלכם. יפה.', 'עוד עצירה. המחוג שלו נרגע.', 'זו בדיוק עצירה לפני תגובה.'],
   hit: ['הוא מרגיש את ה״נו״ שלא כתבתם.', 'זה הלחץ שלכם. למה שהוא יווסת לכם אותו?', 'ילד מרגיש הכול.', 'עובד בלי התקשרות בטוחה חווה את זה כמתקפה.'],
   cutBond: ['את זה דווקא היה צריך לשלוח. זו התקשרות.', 'רגע. זו הייתה הודעה של בונדינג.'],
   bond: ['זה סקין טו סקין רגשי.', 'ככה נבנית התקשרות ראשונית.', 'הנה, המחוג שלו מתכוונן.'],
@@ -151,11 +154,11 @@ addEventListener('resize', layout); addEventListener('verseframe', layout);
 // red spiky + pause badge = swipe it; pink cloud + heart = let it land; gold + star = his message. Same colours all week.
 const cardCache = new Map();
 const CARD = {   // painted piece, its empty face (fractions of the picture), text colour
-  red: { img: 'msg-cut', face: [.15, .26, .71, .76], color: '#fff', stroke: '#8a0a1c' },
-  warm: { img: 'msg-keep', face: [.09, .2, .7, .8], color: '#7a1f3d', stroke: null },
-  gold: { img: 'msg-gold', face: [.09, .16, .7, .84], color: '#5a1430', stroke: null },
+  red: { img: 'msg-cut', face: [.15, .26, .71, .76], color: '#fff', stroke: '#8a0a1c', tag: 'להשהות!', tagBg: '#7a0a1c', tagFg: '#fff' },
+  warm: { img: 'msg-keep', face: [.09, .2, .7, .8], color: '#7a1f3d', stroke: null, tag: 'לתת להגיע', tagBg: '#fff', tagFg: '#c0306b' },
+  gold: { img: 'msg-gold', face: [.09, .16, .7, .84], color: '#5a1430', stroke: null, tag: 'לא לגעת', tagBg: '#5a1430', tagFg: '#ffd36b' },
 };
-CARD.nu = Object.assign({}, CARD.red, { alpha: .72 });
+CARD.nu = Object.assign({}, CARD.red, { alpha: .72, tag: null });
 function cardSprite(kind, text) {
   const key = kind + '|' + text + '|' + L.colW; if (cardCache.has(key)) return cardCache.get(key);
   const spec = CARD[kind], img = IMG[spec.img], dpr = L.dpr, ar = img ? img.height / img.width : .5;
@@ -172,9 +175,11 @@ function cardSprite(kind, text) {
     if (best) { lines = [best.p, best.q]; tw = best.ww; w = clamp(tw / fw + fs * .8, minW, maxW); }
   }
   let h = w * ar;
+  const tagH = spec.tag ? Math.round(L.fs * 1.15) : 0;   // the instruction tag rides on the card's top edge
   while ((tw > w * fw * .94 || lines.length * fs * 1.18 > h * fh) && fs > 11) { fs -= .5; m.font = fontAt(fs); tw = Math.max(...lines.map((l) => m.measureText(l).width)); }
-  const c = document.createElement('canvas'); c.width = Math.ceil(w * dpr); c.height = Math.ceil(h * dpr);
-  const g = c.getContext('2d'); g.scale(dpr, dpr);
+  const top = tagH * .55, H2 = h + top;
+  const c = document.createElement('canvas'); c.width = Math.ceil(w * dpr); c.height = Math.ceil(H2 * dpr);
+  const g = c.getContext('2d'); g.scale(dpr, dpr); g.translate(0, top);
   if (spec.alpha) g.globalAlpha = spec.alpha;
   if (img) g.drawImage(img, 0, 0, w, h);
   g.globalAlpha = 1;
@@ -185,7 +190,14 @@ function cardSprite(kind, text) {
     if (spec.stroke) { g.lineJoin = 'round'; g.lineWidth = Math.max(3, fs * .2); g.strokeStyle = spec.stroke; g.strokeText(ln, cx, y); }
     g.fillStyle = spec.color; g.fillText(ln, cx, y);
   });
-  const out = { c, w, h }; cardCache.set(key, out); return out;
+  if (spec.tag) {   // the rule on the piece itself
+    const tf = tagH * .62; g.font = `900 ${tf}px Rubik, system-ui, sans-serif`;
+    const tw2 = g.measureText(spec.tag).width + tf * 1.4, tx = w * .5 - tw2 / 2, ty = -top;
+    g.fillStyle = spec.tagBg; g.strokeStyle = spec.tagFg; g.lineWidth = 2;
+    g.beginPath(); if (g.roundRect) g.roundRect(tx, ty, tw2, tagH, tagH / 2); else g.rect(tx, ty, tw2, tagH); g.fill(); g.stroke();
+    g.fillStyle = spec.tagFg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(spec.tag, w * .5, ty + tagH / 2 + 1);
+  }
+  const out = { c, w, h: H2 }; cardCache.set(key, out); return out;
 }
 
 // ---------- state ----------
@@ -215,7 +227,7 @@ function mkCard(type, text, opts = {}) {
 
 // ---------- the week's schedule (seeded) ----------
 function planWeek() {
-  G.sched = [];
+  G.sched = [{ t: .5, type: 'introHarm' }, { t: 3.2, type: 'introBond' }];
   for (let d = 0; d < 5; d++) {
     if (d >= 1) G.sched.push({ t: d * DAY_LEN + 3 + R() * 8, type: 'breath' });
     if (d === 1 || d === 3 || d === 4) G.sched.push({ t: d * DAY_LEN + 4 + R() * 7, type: 'gold' });
@@ -233,7 +245,7 @@ function spawnOne() {
 function startGame() {
   R = rng(hash(SLUG + '|' + israelDay()));
   Object.assign(G, { mode: 'play', t: 0, day: 0, score: 0, needle: 0, strikes: 0, streak: 0, paused: 0, longest: 0, anx: 0, hr: 0, goldIn: 0, goldCut: 0, slow: 0, spawnT: .7, hold: 0,
-    cards: [], bits: [], pops: [], trail: [], flash: 0, shake: 0, face: 'calm', faceT: 0, glow: 0, over: false, won: false, rushSaid: false, tut: null, sayT: 0 });
+    cards: [], bits: [], pops: [], trail: [], flash: 0, shake: 0, face: 'calm', faceT: 0, glow: 0, over: false, won: false, rushSaid: false, tut: null, sayT: 0, react: null, demo: null });
   planWeek(); showScreen(null); $('hud').classList.add('on'); $('strip').classList.add('on');
   updHud(); dayBanner(0); say(pick(SAY.start), 'start');
   window.track && window.track('game_start', SLUG);
@@ -247,6 +259,7 @@ function say(text, key, loud) {
 function sayMaybe(key, loud) { if (G.sayT > 0 && !loud) return; say(pick(SAY[key]), key, loud); }
 function pop(x, y, text, color = '#fff', size = 1) { G.pops.push({ x, y, text, color, size, t: 0 }); }
 function setFace(f, hold = 1.2) { G.face = f; G.faceT = hold; }
+function react(text, bad) { G.react = { text, bad, t: 0 }; pop(L.gx + L.gw / 2, L.gy + L.gh * .7, bad ? '+לחץ' : '−לחץ', bad ? '#ff6b7f' : '#7dffb5', .85); }
 function addScore(n, x, y) { G.score += n; if (x != null) pop(x, y - 20, '+' + n, '#ffd36b', .9); updHud(); }
 function mult() { return Math.min(5, 1 + Math.floor(G.streak / 4)); }
 function breakStreak() { G.streak = 0; updHud(); }
@@ -255,6 +268,7 @@ function onSliced(c, ang) {
   c.state = 'cut';
   splitCard(c, ang);
   const tut = G.tut;
+  if (G.demo) G.demo = null;
   if (c.type === 'harm' || c.type === 'nu') {
     G.streak++; G.longest = Math.max(G.longest, G.streak); G.paused++;
     if (!tut) addScore((c.type === 'nu' ? 5 : 10) * mult(), c.x, c.y);
@@ -279,10 +293,10 @@ function onSliced(c, ang) {
 function onLanded(c) {
   const tut = G.tut;
   if (c.type === 'harm' || c.type === 'nu') {
-    play('hit', .8); G.shake = .35; G.flash = .35; setFace('worried', 1);
+    play('hit', .8); G.shake = .35; G.flash = .35; setFace('worried', 1); react(pick(REACT_HARM, Math.random), true);
     if (!tut) { G.needle = Math.min(1, G.needle + (c.type === 'nu' ? .15 : .3)); breakStreak(); sayMaybe('hit'); checkStrike(); }
   } else if (c.type === 'bond') {
-    play('warm', .7); G.glow = 1; setFace('relieved', 1.1); burst(L.face.x, L.face.y, '#ffd9a8', 12);
+    play('warm', .7); G.glow = 1; setFace('relieved', 1.1); burst(L.face.x, L.face.y, '#ffd9a8', 12); react(pick(REACT_BOND, Math.random), false);
     if (!tut) { G.needle = Math.max(0, G.needle - .15); addScore(20, L.face.x + 40, L.face.y); sayMaybe('bond'); }
   } else if (c.type === 'gold') {
     play('golden', .9); G.glow = 1.4; setFace('relieved', 2); burst(c.x, c.y, '#ffd36b', 40);
@@ -368,6 +382,8 @@ function update(dtReal) {
   if (G.banner) { G.banner.t += dtReal; if (G.banner.t > G.banner.dur) G.banner = null; }
   G.flash = Math.max(0, G.flash - dtReal * 1.6); G.shake = Math.max(0, G.shake - dtReal); G.glow = Math.max(0, G.glow - dtReal * 1.2);
   if (G.faceT > 0) { G.faceT -= dtReal; if (G.faceT <= 0) G.face = ''; }
+  if (G.react) { G.react.t += dtReal; if (G.react.t > 1.9) G.react = null; }
+  if (G.demo) G.demo.t += dtReal;
   const playing = G.mode === 'play' && !G.over;
   if (playing) {
     G.t += dt;
@@ -377,9 +393,13 @@ function update(dtReal) {
     G.needle = Math.max(0, G.needle - .03 * dt);
     if (G.hold > 0) G.hold -= dt;
     else {
-      while (G.sched.length && G.sched[0].t <= G.t) { const s = G.sched.shift(); if (s.type === 'gold') { mkCard('gold', GOLD, { x: L.colX + L.colW * (.3 + R() * .4) }); say(SAY.gold[0], 'gold'); } else mkCard('breath', ''); }
+      while (G.sched.length && G.sched[0].t <= G.t) { const s = G.sched.shift();
+        if (s.type === 'introHarm') { G.demo = { id: mkCard('harm', 'מה הסטטוס עם המשימה?', { x: L.colX + L.colW / 2, rise: 3.2 }).id, t: 0 }; continue; }
+        if (s.type === 'introBond') { mkCard('bond', 'איך עולה לך היום?', { x: L.colX + L.colW / 2, rise: 3.2 }); continue; }
+        if (s.type === 'gold') { mkCard('gold', GOLD, { x: L.colX + L.colW * (.3 + R() * .4) }); say(SAY.gold[0], 'gold'); } else mkCard('breath', ''); }
       const rush = G.day === 4 && G.t > WEEK - 4.5;
       if (rush && !G.rushSaid) { G.rushSaid = true; G.banner = { big: 'הלקוח מחכה!', sub: '', t: 0, dur: 1.3, bad: true }; play('rush', .7); say(SAY.rush[0], 'rush'); }
+      if (G.t < 5.5) G.spawnT = Math.max(G.spawnT, .1);   // the opening shows the two kinds alone
       G.spawnT -= dt;
       const live = G.cards.filter((c) => c.state === 'fly').length;
       if (G.spawnT <= 0 && live < 8) {
@@ -461,7 +481,22 @@ function draw() {
   // his label
   ctx.save(); ctx.font = `700 ${clamp(L.colW * .03, 10, 13)}px Rubik, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.fillStyle = '#7a5560';
   const lx = L.emp.x + (L.empW || L.emp.h * .7) + 4 + clamp(L.colW * .24, 70, 110);
-  ctx.fillText('העובד החדש · 24', lx, L.bandT + 18); ctx.fillText('שבוע 3 בחברה', lx, L.bandT + 34); ctx.restore();
+  if (!G.react) { ctx.fillText('העובד החדש · 24', lx, L.bandT + 18); ctx.fillText('שבוע 3 בחברה', lx, L.bandT + 34); }
+  ctx.restore();
+  if (G.react) {   // his thought: what that message just did to him
+    const r = G.react, a = r.t < .15 ? r.t / .15 : r.t > 1.6 ? Math.max(0, (1.9 - r.t) / .3) : 1;
+    const bx0 = L.emp.x + (L.empW || L.emp.h * .7) - 6, bx1 = L.gx - 6, bw = Math.max(80, bx1 - bx0), fs = clamp(L.colW * .036, 11, 15);
+    ctx.save(); ctx.globalAlpha = a; ctx.font = `900 ${fs}px Rubik, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const words = r.text.split(' '), lines = []; let cur = '';
+    for (const wd of words) { const t2 = cur ? cur + ' ' + wd : wd; if (ctx.measureText(t2).width > bw - 16 && cur) { lines.push(cur); cur = wd; } else cur = t2; }
+    lines.push(cur);
+    const bh = lines.length * fs * 1.25 + 14, by = L.bandT + 8;
+    ctx.fillStyle = r.bad ? '#fff0f2' : '#effff6'; ctx.strokeStyle = r.bad ? '#e0263f' : '#1f9d62'; ctx.lineWidth = 2.5;
+    rrect(bx0, by, bw, bh, 14); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(bx0 + 4, by + bh + 6, 4, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = r.bad ? '#b3123b' : '#137a4a'; lines.forEach((ln, i) => ctx.fillText(ln, bx0 + bw / 2, by + 7 + fs * .62 + i * fs * 1.25));
+    ctx.restore();
+  }
   // the gauge
   if (IMG.gauge) {
     ctx.save(); ctx.font = `900 ${clamp(L.colW * .034, 11, 14)}px Rubik, sans-serif`; ctx.textAlign = 'center'; ctx.direction = 'rtl'; ctx.fillStyle = '#7a1f3d';
@@ -493,6 +528,20 @@ function draw() {
       if (b.star) { ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.t * 6); ctx.fillRect(-b.r, -b.r * .3, b.r * 2, b.r * .6); ctx.fillRect(-b.r * .3, -b.r, b.r * .6, b.r * 2); ctx.restore(); }
       else { ctx.beginPath(); ctx.arc(b.x, b.y, b.r * a + .5, 0, 7); ctx.fill(); }
       ctx.globalAlpha = 1;
+    }
+  }
+  // the opening demo: a finger swiping across the first red message until the player swipes one
+  if (G.demo && G.mode === 'play') {
+    const c = G.cards.find((k) => k.id === G.demo.id && k.state === 'fly');
+    if (!c) G.demo = null;
+    else if (c.y < L.stripT - 20) {
+      const p = (G.demo.t % 1.3) / 1.3, x = lerp(c.x - c.w * .6, c.x + c.w * .6, ease(Math.min(1, p * 1.4))), y = c.y + 6 - p * 10;
+      ctx.save(); ctx.globalAlpha = p < .85 ? 1 : (1 - p) / .15;
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(c.x - c.w * .6, c.y + 6); ctx.lineTo(x, y); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.shadowColor = '#000a'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(x, y, 15, 0, 7); ctx.fill();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.font = `900 ${L.fs * 1.05}px Rubik, sans-serif`; ctx.direction = 'rtl'; ctx.textAlign = 'center';
+      ctx.lineWidth = 5; ctx.strokeStyle = '#5a1430'; ctx.strokeText('החליקו על האדומה', c.x, c.y + c.h / 2 + 26); ctx.fillStyle = '#fff'; ctx.fillText('החליקו על האדומה', c.x, c.y + c.h / 2 + 26);
+      ctx.restore();
     }
   }
   // the swipe trail
