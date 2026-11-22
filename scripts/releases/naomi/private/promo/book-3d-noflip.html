@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<!-- The picked cover (B) as a standing 3D book with a soft shadow. Transparent background.
+     node render3d.mjs book-3d.html book-3d.png  ->  1600x1600 (800x800 CSS at x2). The face = cover-B-1600x2400.jpg. -->
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@500;700&display=block" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:800px;height:800px;overflow:hidden;background:transparent}
+  .stage{position:absolute;inset:0;perspective:2200px;perspective-origin:50% 40%}
+  .shadow{position:absolute;left:190px;top:632px;width:470px;height:52px;border-radius:50%;
+    background:radial-gradient(ellipse at 45% 50%,rgba(40,15,10,.45),rgba(40,15,10,.18) 45%,rgba(40,15,10,0) 70%);filter:blur(6px)}
+  .book{position:absolute;left:180px;top:70px;width:400px;height:600px;transform-style:preserve-3d;transform:rotateY(-28deg) rotateX(2deg)}
+  .face{position:absolute;inset:0;background:url(../covers/cover-B-1600x2400.jpg) center/cover;border-radius:2px 6px 6px 2px;
+    box-shadow:inset -6px 0 10px rgba(0,0,0,.18)}
+  .face::after{content:"";position:absolute;inset:0;border-radius:inherit;
+    background:linear-gradient(100deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.16) 58%,rgba(255,255,255,0) 72%),linear-gradient(270deg,rgba(0,0,0,.22),rgba(0,0,0,0) 5%)}
+  /* a Hebrew book: the spine is on the RIGHT of the front cover; the right edge turns toward us so the spine shows */
+  .spine{position:absolute;top:0;left:100%;width:54px;height:600px;transform-origin:left;transform:rotateY(90deg);
+    background:linear-gradient(90deg,#5a0e1e,#7a1428 55%,#4a0b18);display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .spine span{writing-mode:vertical-rl;color:#f3dcc4;font:400 30px/1 'Suez One',serif;letter-spacing:1px;white-space:nowrap}
+  .spine small{writing-mode:vertical-rl;color:#e2b97a;font:500 13px/1 'Heebo',sans-serif;margin-top:26px;white-space:nowrap}
+  .pages{position:absolute;top:6px;left:0;width:54px;height:588px;transform-origin:left;transform:rotateY(90deg);
+    background:repeating-linear-gradient(90deg,#f4efe6 0 2px,#e4ddd0 2px 3px);box-shadow:inset 0 0 8px rgba(0,0,0,.15)}
+  .back{position:absolute;inset:0;transform:translateZ(-54px);background:#5a0e1e}
+  /* the spine is seen from its back side (rotateY 90 from the left edge) - mirror its words back so they read right */
+</style></head><body>
+<div class="stage">
+  <div class="shadow"></div>
+  <div class="book">
+    <div class="back"></div>
+    <div class="pages"></div>
+    <div class="spine"><span>המחוג שבלב</span><small>ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך</small></div>
+    <div class="face"></div>
+  </div>
+</div>
+</body></html>

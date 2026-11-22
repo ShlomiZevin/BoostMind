@@ -1,0 +1,57 @@
+{
+ "char": "naomi-tzipora",
+ "file": "C:/workspace/BoostMind/scripts/releases/naomi/private/promo/out/naomi-site-verse.jpg",
+ "text": "האתר החדש שלי נולד. אני מזמינה אתכם להיכנס.",
+ "link": "/dr-naomi/",
+ "label": "לאתר",
+ "everyone": false,
+ "toVideos": false,
+ "keepClear": [
+  [
+   27,
+   29,
+   72,
+   72
+  ]
+ ],
+ "boxes": [
+  {
+   "t": "בשעה טובה",
+   "x": 50,
+   "y": 10.6,
+   "w": 30,
+   "s": 3.8,
+   "st": "tag",
+   "f": "heebo",
+   "wt": 800,
+   "bg": "#6b1024",
+   "c": "#ffffff",
+   "al": "center"
+  },
+  {
+   "t": "גם אתר – זו לידה",
+   "x": 50,
+   "y": 17.4,
+   "w": 94,
+   "s": 9,
+   "st": "shadow",
+   "f": "frank",
+   "wt": 900,
+   "c": "#6b1024",
+   "al": "center"
+  },
+  {
+   "t": "הקליניקה, השיטה, הספר והתוכנית לארגונים",
+   "x": 50,
+   "y": 24.6,
+   "w": 92,
+   "s": 3.8,
+   "st": "box",
+   "f": "heebo",
+   "wt": 500,
+   "bg": "rgba(255,255,255,0.85)",
+   "c": "#4a2a2f",
+   "al": "center"
+  }
+ ]
+}

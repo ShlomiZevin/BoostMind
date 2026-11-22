@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<!-- Cover A - author portrait. 800x1200 CSS px; render.mjs shoots it at any scale (x2 = 1600x2400). -->
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@400;600;700&display=block" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:800px;height:1200px;overflow:hidden;background:#f3e6cc}
+  .cover{position:relative;width:800px;height:1200px;background:url(art-A.jpg) center 40px/800px auto no-repeat}
+  .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,232,204,1) 0%,rgba(245,232,204,.9) 14%,rgba(245,232,204,0) 30%)}
+  .top{position:absolute;top:44px;right:0;left:0;text-align:center;z-index:2}
+  .title{font:900 128px/1 'Frank Ruhl Libre',serif;color:#5b0f1e;letter-spacing:-2px}
+  .title .heart{display:inline-block;width:92px;height:92px;vertical-align:-6px;margin-left:10px}
+  .sub{margin-top:6px;font:600 36px/1.15 'Assistant',sans-serif;color:#5b0f1e}
+  .band{position:absolute;right:0;left:0;bottom:0;height:156px;background:#5b0f1e;z-index:2;text-align:center;padding-top:32px;color:#fff}
+  .author{font:700 42px/1.12 'Frank Ruhl Libre',serif}
+  .cred{margin-top:12px;font:400 22px/1 'Assistant',sans-serif;color:#f1d9c6;letter-spacing:.3px}
+  .badge{position:absolute;z-index:3;left:44px;top:452px;width:150px;height:150px;border-radius:50%;background:#c9a24b;color:#3d0913;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-12deg);box-shadow:0 6px 18px rgba(60,10,20,.35);
+    border:3px solid #f7e7b8;outline:2px solid #c9a24b}
+  .badge b{font:900 40px/1 'Frank Ruhl Libre',serif}
+  .badge span{font:700 19px/1.1 'Assistant',sans-serif;margin-top:6px;text-align:center}
+</style></head><body>
+<div class="cover">
+  <div class="top">
+    <div class="title">המחוג שבלב</div>
+    <div class="sub">איך לכוון את המחוג הפנימי</div>
+  </div>
+  <div class="badge"><b>רב־מכר</b><span>המהדורה<br>הראשונה אזלה</span></div>
+  <div class="band">
+    <div class="author">ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך</div>
+    <div class="cred">פסיכיאטרית · פסיכותרפיסטית אינטגרטיבית · דולה מוסמכת של רגשות</div>
+  </div>
+</div>
+</body></html>
