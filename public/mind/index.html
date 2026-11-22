@@ -362,10 +362,12 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .vf > div { display: flex; align-items: center; gap: 8px; } .vv { flex: 1; min-width: 0; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; text-align: right; unicode-bidi: plaintext; } .vv a { color: var(--brand); }
 .vin { display: flex; gap: 8px; } .vin input, #vef textarea, .vimp input { flex: 1; width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--card2); font-size: 16px; }
 .vimp { display: flex; flex-direction: column; gap: 10px; max-width: 420px; } .vimp .btn { justify-content: center; padding: 12px; }
-.nagmark { color: var(--violet); display: inline-flex; vertical-align: -2px; margin-inline-end: 5px; } .nagmark svg { width: 15px; height: 15px; }
+.nagmark { color: var(--violet); display: inline-flex; align-items: center; gap: 3px; vertical-align: -2px; margin-inline-end: 5px; } .tm .nagmark small { font-size: 12px; font-weight: 700; color: var(--violet); } .nagmark svg { width: 15px; height: 15px; }
 .pchip.nagc.on { color: var(--violet); background: var(--violetSoft); }
 .nagq h3 { display: flex; gap: 8px; align-items: center; } .nagq h3 svg { color: var(--violet); width: 22px; height: 22px; }
 .nagbtns { display: flex; gap: 10px; } .nagbtns .btn { flex: 1; justify-content: center; padding: 14px; font-size: 16px; font-weight: 700; }
+.naglater { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .naglater .btn { justify-content: center; padding: 12px; font-size: 15px; position: relative; }
+.naglater input[type=date] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; }
 .nagstop { display: block; margin: 14px auto 0; color: var(--ink3); font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; } .tabs b.tb-meet { background: var(--brand) !important; }
 /* ---------- meetings (the PA, 2026-11-20): his two calendars, today first ---------- */
 .meet-v .hello h1 svg, .agstrip h4 svg { width: 26px; height: 26px; color: var(--brand); vertical-align: -3px; }
@@ -791,7 +793,7 @@ function tableRow(e) {
   const td = isToday(it) && S.view !== 'today';   // inside היום every row is for today - no mark, no highlight (his note 2026-11-17)
   return `<div class="trow k-${e.k} ${td ? 'today' : ''} ${isNew(e) ? 'new' : ''}" data-item="${it.id}" data-tid="i:${it.id}">
     <span class="tk">${e.k === 'task' ? `<button class="tick" data-done="${it.id}" title="בוצע">${ic('check')}</button>` : tic}<em>${esc(t.name)}</em></span>
-    <div class="tm"><b>${it.nag && !['done', 'parked'].includes(it.status) ? `<span class="nagmark" title="${esc(it.nag)}">${ic('bell')}</span>` : ''}${td ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
+    <div class="tm"><b>${it.nag && !['done', 'parked'].includes(it.status) ? `<span class="nagmark" title="${esc(it.nag)}">${ic('bell')}${(it.nagFrom || '') > ilDay() ? `<small>${esc(dayName(it.nagFrom))}</small>` : ''}</span>` : ''}${td ? `<span class="todaymark">${ic('sun')}להיום</span>` : ''}${it.pin ? `<span class="pinmark">${ic('star')}</span>` : ''}${esc(it.text)}${it.project ? `<small> · ${esc(projName(it.project))}</small>` : ''}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>
     ${it.images?.[0]?.url ? `<img class="tthumb" src="${esc(it.images[0].url)}" alt="" loading="lazy">` : ''}
     <div class="te">${end}<small>${ago(it.u)}</small></div>
     <div class="ta">${e.k !== 'task' ? `<button data-done="${it.id}" title="בוצע">${ic('check')}</button>` : ''}<button data-today="${it.id}" class="${td ? 'on' : ''}" title="להיום">${ic('sun')}</button><button data-pin="${it.id}" class="${it.pin ? 'on' : ''}" title="סמן בכוכב">${ic('star')}</button><button data-park="${it.id}" title="הורד מהשולחן">${ic('x')}</button></div>
@@ -931,9 +933,17 @@ function openNag(id) {
   $('#modal').innerHTML = `<div class="scrim" data-act="mclose"><div class="sheet nagq" role="dialog">
     <header><h3>${ic('bell')}${esc(it.nag || it.text)}</h3><button class="btn icon" data-act="mclose">${ic('x')}</button></header>
     <div class="sb"><p class="hint" style="margin:0 0 14px">${esc(it.text)}</p>
-      <div class="nagbtns"><button class="btn pri" data-nagans="${id}:yes">${ic('check')}כן, בוצע</button><button class="btn" data-nagans="${id}:no">עוד לא</button></div>
+      <div class="nagbtns"><button class="btn pri" data-nagans="${id}:yes">${ic('check')}כן, בוצע</button><button class="btn" data-nagans="${id}:no">עוד לא - תשאל שוב</button></div>
+      <div class="lbl" style="margin:16px 0 8px">או תשאל אותי שוב...</div>
+      <div class="naglater">${[[1, 'מחר'], [2, 'מחרתיים'], [7, 'בעוד שבוע']].map(([n, t]) => `<button class="btn" data-nagans="${id}:+${n}">${t}</button>`).join('')}
+        <label class="btn"><input type="date" data-nagday="${id}" min="${dayPlus(1)}">${ic('cal')}ביום...</label></div>
       <button class="nagstop" data-nagans="${id}:stop">תפסיק לשאול על זה</button></div></div></div>`;
 }
+const dayPlus = (n) => dayOf(new Date(Date.now() + n * 86400e3)).slice(0, 10);
+const dayName = (d) => d === dayPlus(1) ? 'מחר' : d === dayPlus(2) ? 'מחרתיים' : new Intl.DateTimeFormat('he-IL', { timeZone: IL, weekday: 'long', day: 'numeric', month: 'numeric' }).format(new Date(d + 'T12:00:00Z'));
+// "ask me again tomorrow / on <day>": the asking pauses until that day, then starts again at 10:00
+function nagLater(id, day) { closeModal(); setItem(id, { nagFrom: day, note: 'לשאול שוב ' + dayName(day) }, 'אשאל שוב ' + dayName(day)); }
+document.addEventListener('change', (e) => { const d = e.target.dataset?.nagday; if (d && e.target.value) nagLater(d, e.target.value); });
 
 // ---------- the Vault: his saved logins, inside PA (his call 2026-11-20: "if I'm in the PA I see my vault - very easy").
 // Kept on the server (mind.js 'vault' / 'vault_save'); the old shlomi-vault app's logins come over once with its master password.
@@ -1527,7 +1537,7 @@ document.addEventListener('click', (e) => {
   if (t.closest('.trow')?.dataset.swiped) return;
   if (d.today) { e.stopPropagation(); const it = itemById(d.today), on = isToday(it); setItem(d.today, { today: on ? '' : ilDay() }, on ? 'הוסר מהיום' : 'סומן להיום'); return; }
   if (d.nag) { e.stopPropagation(); const it = itemById(d.nag); setItem(d.nag, { nag: it.nag ? '' : 'on' }, it.nag ? 'לא אשאל יותר' : 'אשאל אותך מדי פעם עד שזה נעשה'); renderPanel(true); return; }
-  if (d.nagans) { const [id, a] = d.nagans.split(':'); closeModal(); if (a === 'yes') setItem(id, { status: 'done', note: 'ענה: כן' }, 'יופי, סימנתי שבוצע'); else if (a === 'stop') setItem(id, { nag: '' }, 'לא אשאל יותר'); else toast('אשאל שוב בעוד שעתיים'); return; }
+  if (d.nagans) { const [id, a] = d.nagans.split(':'); if (a[0] === '+') { nagLater(id, dayPlus(+a.slice(1))); return; } closeModal(); if (a === 'yes') setItem(id, { status: 'done', note: 'ענה: כן' }, 'יופי, סימנתי שבוצע'); else if (a === 'stop') setItem(id, { nag: '' }, 'לא אשאל יותר'); else toast('אשאל שוב בעוד שעתיים'); return; }
   if (d.pin) { e.stopPropagation(); const it = itemById(d.pin); setItem(d.pin, { pin: !it.pin }, it.pin ? '' : 'סומן בכוכב'); return; }
   if (d.done) { offTable('i', d.done, 'done'); return; }
   if (d.park) { offTable('i', d.park, 'parked'); return; }

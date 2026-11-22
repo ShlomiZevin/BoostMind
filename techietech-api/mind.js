@@ -53,6 +53,10 @@ const LOG_MAX = 80;
 // "ask me from time to time if I bought it" (his ask 2026-11-20): item.nag = the question his phone asks until it's done
 // ('' = off). 'on' / true from the page's switch = a plain question from the title; the AI writes a real one ("קנית כבר אקמול?").
 const nagVal = (v, text) => (v === true || v === 'on' ? 'כבר עשית? ' + oneLine(text, 90) : oneLine(v, 120));
+// item.nagFrom = the day the asking starts (his ask 2026-11-22: "a reminder for tomorrow - tomorrow you start asking me";
+// "ask again tomorrow / the day after"). A dated item starts on its day; his "ask me on <day>" moves it.
+const isDay = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+const nagStart = (due) => (isDay(due) && due > ilDay() ? due : '');
 
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
 const oneLine = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -108,7 +112,8 @@ async function addItem(f, by) {
     type: types.has(f.type) ? f.type : 'idea',
     status: STATUSES.includes(f.status) ? f.status : 'open',
     project: oneLine(f.project, 60), pin: !!f.pin, due: /^\d{4}-\d{2}-\d{2}$/.test(f.due || '') ? f.due : '', today: todayVal(f.today),
-    nag: nagVal(f.nag, f.text), nagAt: 0,
+    nag: nagVal(f.nag || ((f.type === 'reminder' && isDay(f.due)) || isDay(f.nagFrom) ? 'on' : ''), f.text), nagAt: 0,
+    nagFrom: isDay(f.nagFrom) ? f.nagFrom : nagStart(f.due),
     tags: Array.isArray(f.tags) ? f.tags.map((t) => oneLine(t, 30)).filter(Boolean).slice(0, 10) : [],
     sessions: f.session ? [oneLine(f.session, 80)] : [], by: oneLine(by, 80) || 'שלומי', c: now, u: now,
     log: [logEntry(by, f.note || 'נוצר', { st: STATUSES.includes(f.status) ? f.status : 'open', ...(f.session ? { s: oneLine(f.session, 80) } : {}) })],
@@ -135,6 +140,8 @@ async function updateItem(id, f, by, quiet) {
     if (f.due != null) ch.due = /^\d{4}-\d{2}-\d{2}$/.test(f.due) ? f.due : '';
     if (f.today != null) ch.today = todayVal(f.today);
     if (f.nag != null && nagVal(f.nag, ch.text || it.text) !== (it.nag || '')) { ch.nag = nagVal(f.nag, ch.text || it.text); ch.nagAt = Date.now(); }
+    if (f.nagFrom != null) { ch.nagFrom = isDay(f.nagFrom) ? f.nagFrom : ''; ch.nagAt = ch.nagFrom ? 0 : Date.now(); }   // "ask me again on <day>"
+    else if (ch.due != null || ch.nag) ch.nagFrom = nagStart(ch.due ?? it.due);
     if (Array.isArray(f.tags)) ch.tags = f.tags.map((t) => oneLine(t, 30)).filter(Boolean).slice(0, 10);
     if (f.status != null && STATUSES.includes(f.status) && f.status !== it.status) { ch.status = f.status; said.push(STATUS_HE[f.status]); }
     if (f.session) { const s = oneLine(f.session, 80); if (!(it.sessions || []).includes(s)) ch.sessions = [...(it.sessions || []), s].slice(-10); }
@@ -345,7 +352,8 @@ async function agendaTick(now = new Date()) {
   if (t >= NAG_FROM && t <= NAG_TO && !inMeeting) {
     for (const d of (await ITEMS.where('nag', '>', '').get()).docs) {
       const it = d.data();
-      if (!['open', 'active', 'waiting'].includes(it.status) || now - (it.nagAt || it.c) < NAG_EVERY) continue;
+      if (!['open', 'active', 'waiting'].includes(it.status) || (it.nagFrom || '') > day) continue;
+      if (now - (it.nagAt || (it.nagFrom ? 0 : it.c)) < NAG_EVERY) continue;   // its day came: the first ask comes at once
       await d.ref.update({ nagAt: now.getTime(), nagN: (it.nagN || 0) + 1 });
       await pushMe('nag', { title: it.nag, body: 'לחץ כדי לענות', url: '/mind/#nag=' + d.id, tag: 'nag:' + d.id }, null, { ttl: 3600 });
       did.push('nag ' + it.text);
@@ -687,8 +695,8 @@ async function pageOp(b) {
       const line = (i) => `#${i.id} [${i.type}, ${i.status}${i.pin ? ', starred' : ''}${i.due ? ', due ' + i.due : ''}${i.project ? ', project ' + i.project : ''}] ${oneLine(i.text, 100)}${i.body ? ' - ' + oneLine(i.body, 120) : ''}`;
       const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
       const schema = { type: 'object', additionalProperties: false, required: ['reply', 'actions'], properties: { reply: { type: 'string' }, actions: { type: 'array', items: { type: 'object', additionalProperties: false,
-        required: ['do', 'id', 'text', 'body', 'note', 'type', 'project', 'status', 'pin', 'due', 'today', 'nag'], properties: {
-          today: { type: 'string', enum: ['', 'yes', 'no'] }, nag: { type: 'string' },
+        required: ['do', 'id', 'text', 'body', 'note', 'type', 'project', 'status', 'pin', 'due', 'today', 'nag', 'askFrom'], properties: {
+          today: { type: 'string', enum: ['', 'yes', 'no'] }, nag: { type: 'string' }, askFrom: { type: 'string' },
           do: { type: 'string', enum: ['add', 'update'] }, id: { type: 'string' },
           text: { type: 'string' }, body: { type: 'string' }, note: { type: 'string' },
           type: { type: 'string', enum: ['', ...cfg.types.map((t) => t.id)] }, project: { type: 'string' },
@@ -709,6 +717,8 @@ When what he says is about something already on his table (more details, a thoug
 - due on add: YYYY-MM-DD if he gives a time ("מחר", "ביום ראשון", "עד סוף החודש"), else "". Today is ${today} (Israel).
 - today (add and update): "yes" when he says it's for today ("היום אני צריך...", "להיום"), "no" when he takes it off today, else "".
 - nag (add and update): you are also his PA - when he wants to be chased about something until it's done ("תזכיר לי", "תשאל אותי", "תציק לי", "תוודא שאני...") or it is a concrete errand he must get done today (buy something, call someone, send something), write the short friendly question his phone will ask him from time to time until he marks it done - in his language, about the thing itself: "קנית כבר אקמול?", "התקשרת לדני?", "שלחת את ההצעה ליוסי?". "off" when he says to stop asking about it. Else "".
+  A reminder with a day ALWAYS gets a nag question - his phone starts asking on that day ("תזכורת למחר להשיק את הטיזר" = type reminder, due tomorrow, nag "השקת כבר את הטיזר?").
+- askFrom (add and update): YYYY-MM-DD when he says WHEN to start / go back to asking ("תשאל אותי על זה מחר", "תזכיר לי שוב ביום ראשון", "תחזור אליי עם זה בעוד שבוע") - the asking pauses until that day; else "". A dated item already starts on its due day, so don't repeat it here.
 - note on add: "".
 - reply: one short line in his language. If he asked a question about his table ("מה פתוח לי?", "מה עם X?") answer it here from the list, briefly (a list = one thing per line, no numbers), and return no actions. Otherwise "" - the screen already shows what changed.${focus ? `\nHe is looking at item #${focus.id} right now - "this" / "זה" / "את זה" means it.` : ''}
 
@@ -726,7 +736,7 @@ ${gone.map(line).join('\n') || '(none)'}`,
         if (a.do === 'add') {
           if (!oneLine(a.text, 300)) continue;
           items.push(await addItem({ text: a.text, body: a.body, type: a.type || 'idea', project: a.project === '-' ? '' : a.project, status: a.status || 'open',
-            pin: a.pin === 'yes', due: a.due, today: a.today === 'yes', nag: a.nag === 'off' ? '' : a.nag, note: (adds.length > 1 ? 'מתוך: ' : 'נאמר: ') + said }, 'שלומי'));
+            pin: a.pin === 'yes', due: a.due, today: a.today === 'yes', nag: a.nag === 'off' ? '' : a.nag, nagFrom: a.askFrom, note: (adds.length > 1 ? 'מתוך: ' : 'נאמר: ') + said }, 'שלומי'));
           continue;
         }
         const cur = all.find((i) => i.id === oneLine(a.id, 20).replace(/^#/, ''));
@@ -741,6 +751,7 @@ ${gone.map(line).join('\n') || '(none)'}`,
         if (a.due) { f.due = a.due === 'none' ? '' : a.due; before.due = cur.due || ''; }
         if (a.today) { f.today = a.today === 'yes' ? ilDay() : ''; before.today = cur.today || ''; }
         if (a.nag) { f.nag = a.nag === 'off' ? '' : a.nag; before.nag = cur.nag || ''; }
+        if (isDay(a.askFrom)) { f.nagFrom = a.askFrom; if (!f.nag && !cur.nag) f.nag = 'on'; before.nagFrom = cur.nagFrom || ''; }
         f.note = oneLine(a.note, 300) || 'עודכן';
         changed.push({ item: await updateItem(cur.id, f, 'שלומי'), before, note: f.note });
       }
@@ -811,8 +822,8 @@ exports._here = (lat, lng) => here(lat, lng);   // for a local dry run   // for 
 // every morning at 9: reminders and tasks whose day came (still open) -> one notification each (a few = one summary)
 exports.mindDaily = onSchedule({ schedule: '0 9 * * *', timeZone: 'Asia/Jerusalem', region: 'europe-west1', secrets: [VAPID_PRIVATE], memory: '256MiB', timeoutSeconds: 60 }, async () => {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  const due = (await listItems({ limit: 1500 })).filter((i) => i.due && i.due <= today && ['reminder', 'task'].includes(i.type) && ['open', 'active', 'waiting'].includes(i.status));
+  const due = (await listItems({ limit: 1500 })).filter((i) => i.due && i.due <= today && (i.nagFrom || '') <= today && ['reminder', 'task'].includes(i.type) && ['open', 'active', 'waiting'].includes(i.status));
   if (!due.length) return;
-  if (due.length <= 3) for (const i of due) await pushMe('remind', { title: (i.type === 'reminder' ? 'תזכורת: ' : 'להיום: ') + i.text, body: i.body || (i.due < today ? 'היה ל-' + i.due : ''), url: '/mind/#' + i.id, tag: 'i:' + i.id });
+  if (due.length <= 3) for (const i of due) await pushMe('remind', { title: (i.type === 'reminder' ? 'תזכורת: ' : 'להיום: ') + i.text, body: i.body || (i.due < today ? 'היה ל-' + i.due : ''), url: '/mind/#' + (i.nag ? 'nag=' : '') + i.id, tag: i.nag ? 'nag:' + i.id : 'i:' + i.id });
   else await pushMe('remind', { title: `${due.length} דברים להיום`, body: due.slice(0, 5).map((i) => i.text).join(' · '), url: '/mind/', tag: 'daily' });
 });
