@@ -24,6 +24,8 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const guard = require('./guard');
+const ag = require('./ai-guard');   // the client keys' door, jobs per caller a day, a client's money for the day (2026-11-22)
 
 if (!admin.apps.length) admin.initializeApp();
 const OPENAI = defineSecret('VERSE_PIKO_OPENAI_KEY');
@@ -81,15 +83,17 @@ const ms = (t) => (t && t.toMillis ? t.toMillis() : t || null);
 const fail = (status, error) => Object.assign(new Error(error), { status });
 
 // ---------------------------------------------------------------- who is asking ----------------------------------------------------------------
-const wrongKey = new Map();
+// a client key's wrong guesses: counted per network (10 a day = locked a day) and for the whole door (100 an hour - then only
+// networks that got in before may try) in Firestore across instances (ai-guard.js); a locked caller is refused before the lookup
 const keyHash = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
 async function who(req) {
   const h = req.get('authorization') || '';
   if (h.startsWith('Key ')) {
-    const now = Date.now(), fails = (wrongKey.get(req.ip) || []).filter((t) => now - t < 3600e3);
-    if (fails.length >= 10) throw fail(429, 'too_many');
-    const d = await db().collection(CLIENTS).doc(keyHash(h.slice(4).trim())).get();
-    if (!d.exists || !d.data().active) { fails.push(now); wrongKey.set(req.ip, fails); return null; }
+    if (await ag.doorLocked('piko', req)) throw fail(429, 'too_many');
+    const k = h.slice(4).trim();
+    const d = /^pk_[0-9a-f]{20,100}$/.test(k) ? await db().collection(CLIENTS).doc(keyHash(k)).get() : null;
+    if (!d || !d.exists || !d.data().active) { await ag.doorFailed('piko', req, { perNet: 10, all: 100 }); return null; }
+    await ag.doorPassed('piko', req);
     const c = d.data();
     return { by: 'client:' + d.id.slice(0, 12), name: c.name, owner: false, library: !!c.library };
   }
@@ -153,6 +157,8 @@ async function gpt(instructions, input) {
 async function transcribe(b) {
   const buf = Buffer.from(String(b.audio || '').replace(/^data:[^,]*,/, ''), 'base64');
   if (!buf.length || buf.length > 9e6) throw fail(400, 'audio');
+  // a recording is what its bytes say (webm / mp4 / mp3 / wav, or ogg)
+  if (!guard.fileKind(buf, ['webm', 'mp4', 'mp3', 'wav']) && buf.slice(0, 4).toString('latin1') !== 'OggS') throw fail(400, 'audio');
   const mime = clip(b.mime, 60) || 'audio/webm';
   const ext = /mp4|m4a|aac/.test(mime) ? 'mp4' : /mpeg|mp3/.test(mime) ? 'mp3' : /ogg/.test(mime) ? 'ogg' : /wav/.test(mime) ? 'wav' : 'webm';
   const form = new FormData();
@@ -161,7 +167,7 @@ async function transcribe(b) {
   if (b.language !== 'auto') form.append('language', clip(b.language, 5) || 'he');
   const r = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { authorization: `Bearer ${OPENAI.value()}` }, body: form });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw fail(502, 'transcribe: ' + (j.error?.message || r.status));
+  if (!r.ok) { console.error('piko transcribe', r.status, j.error?.message); throw fail(502, 'transcribe'); }
   const text = String(j.text || '').trim();
   if (!text) return { text: '', prompt: '' };
   const video = b.mode === 'video';
@@ -282,23 +288,42 @@ async function checkVideo(ref, job) {
 
 // ---------------------------------------------------------------- files: inputs, outputs, the library ----------------------------------------------------------------
 // an input picture: a data URL / base64, {url}, or {job} (something made before - "make a video from this picture")
+// every input picture is checked by its real bytes (jpg / png / webp - its type comes from them, never from the caller) and size
+const TYPE_OF = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+function picture(buf) {
+  if (buf.length < 100) throw fail(400, 'image');
+  if (buf.length > MAX_IN) throw fail(413, 'image_too_big');
+  const k = guard.fileKind(buf, ['jpg', 'png', 'webp']);
+  if (!k) throw fail(400, 'image_type');
+  return { buf, type: TYPE_OF[k] };
+}
+// a picture by address: https only, a real host name (no IP literal, no localhost / internal names), at most MAX_IN bytes
+async function fetchPicture(url) {
+  let u;
+  try { u = new URL(String(url)); } catch { throw fail(400, 'image_url'); }
+  const host = u.hostname.toLowerCase();
+  if (u.protocol !== 'https:' || u.username || u.password || !host.includes('.') || /^[\d.]+$/.test(host) || host.includes(':') || host.startsWith('[')
+    || /(^|\.)(localhost|internal|local|goog)$/.test(host) || host === 'metadata.google.internal') throw fail(400, 'image_url');
+  const r = await fetch(u.href, { redirect: 'error', signal: AbortSignal.timeout(20000) }).catch(() => null);
+  if (!r || !r.ok || !r.body) throw fail(400, 'image_url');
+  if (Number(r.headers.get('content-length') || 0) > MAX_IN) throw fail(413, 'image_too_big');
+  const chunks = [];
+  let n = 0;
+  for await (const c of r.body) { n += c.length; if (n > MAX_IN) throw fail(413, 'image_too_big'); chunks.push(Buffer.from(c)); }
+  return picture(Buffer.concat(chunks));
+}
 async function readInput(x, by) {
   if (!x) return null;
   if (typeof x === 'string') {
     const m = x.match(/^data:(image\/[\w+.-]+);base64,(.*)$/s);
-    const buf = Buffer.from(m ? m[2] : x, 'base64');
-    if (buf.length < 100) throw fail(400, 'image');
-    return { buf, type: m ? m[1] : sniff(buf) };
+    if (x.length > MAX_IN * 1.4) throw fail(413, 'image_too_big');
+    return picture(Buffer.from(m ? m[2] : x, 'base64'));
   }
-  if (x.url) {
-    if (!/^https:\/\//.test(x.url)) throw fail(400, 'image_url');
-    const r = await fetch(x.url);
-    if (!r.ok) throw fail(400, 'image_url');
-    const buf = Buffer.from(await r.arrayBuffer());
-    return { buf, type: sniff(buf) };
-  }
+  if (x.url) return fetchPicture(x.url);
   if (x.job) {
-    const d = await db().collection(JOBS).doc(String(x.job)).get();
+    const jid = ag.docId(x.job);
+    if (!jid) throw fail(400, 'job');
+    const d = await db().collection(JOBS).doc(jid).get();
     const j = d.data();
     if (!j || (j.by !== by && by !== 'owner') || j.kind !== 'image' || !j.path) throw fail(400, 'job');
     const [buf] = await bucket().file(j.path).download();
@@ -396,9 +421,20 @@ async function view(id, j, full) {
 }
 
 // ---------------------------------------------------------------- the API ----------------------------------------------------------------
+// jobs a day per caller (him / each client key), counted in Firestore across instances - a leaked key can't empty the balance -
+// and a client's money for the Israel day (its images + videos); his own work is never stopped by the money line
+const PER_DAY = { owner: { image: 400, video: 60, transcribe: 300 }, client: { image: 100, video: 25, transcribe: 100 } };
+const CLIENT_DAY_USD = 30;
+const dayArea = (u) => 'piko-' + u.by.replace(/[^\w-]/g, '-');
+async function allowed(u, what, n = 1) {
+  const max = PER_DAY[u.owner ? 'owner' : 'client'][what];
+  for (let i = 0; i < n; i++) if (await guard.limit(`piko:${what}:${u.by}`, max, guard.DAY)) throw fail(429, 'day_limit');
+  if (!u.owner && what !== 'transcribe' && await ag.overBudget(dayArea(u), CLIENT_DAY_USD)) throw fail(429, 'day_limit');
+}
 async function createJob(u, kind, b) {
   const prompt = clip(b.prompt, 4000);
   if (!prompt) throw fail(400, 'prompt');
+  await allowed(u, kind, kind === 'image' ? countOf(b) : 1);
   const ref = db().collection(JOBS).doc();
   const base = { kind, prompt, by: u.by, client: u.name, library: u.library && b.library !== false, status: 'queued', t: admin.firestore.FieldValue.serverTimestamp() };
   if (kind === 'image') {
@@ -418,6 +454,7 @@ async function createJob(u, kind, b) {
     const estimate = videoUsd(await prices(), params);
     const bal = await balance(true);
     if (bal.usd < estimate) throw fail(402, 'balance');
+    if (!u.owner) ag.spend(dayArea(u), estimate);
     const inputs = {};
     if (start) inputs.start = await keepInput(ref.id, 'start', start);
     if (end) inputs.end = await keepInput(ref.id, 'end', end);
@@ -444,11 +481,14 @@ async function presets(u, put) {
 async function route(req, res) {
   // through hosting the path is /piko/api/<route>; straight to the function it is /<route>
   const parts = req.path.replace(/^\/piko\/api/, '').split('/').filter(Boolean);
-  const [r0, r1] = parts;
-  // EvoLink's callback: no login, the job's own random token in the URL
+  const [r0, r1raw] = parts;
+  const r1 = r1raw === undefined ? undefined : ag.docId(r1raw, 60);   // a job id into a Firestore path: letters / digits only
+  if (r1raw !== undefined && !r1) return res.status(404).json({ error: 'job' });
+  // EvoLink's callback: no login, the job's own random token in the URL (compared in constant time)
   if (r0 === 'hook') {
-    const ref = db().collection(JOBS).doc(String(r1 || '')), d = await ref.get(), j = d.data();
-    if (!j || !j.hookToken || req.query.t !== j.hookToken) return res.status(404).json({ error: 'job' });
+    if (!r1) return res.status(404).json({ error: 'job' });
+    const ref = db().collection(JOBS).doc(r1), d = await ref.get(), j = d.data();
+    if (!j || !j.hookToken || !ag.same(String(req.query.t || ''), j.hookToken)) return res.status(404).json({ error: 'job' });
     await checkVideo(ref, j);
     return res.json({ ok: true });
   }
@@ -467,7 +507,7 @@ async function route(req, res) {
   }
   if (r0 === 'presets' && (req.method === 'GET' || req.method === 'PUT')) return res.json(await presets(u, req.method === 'PUT' ? body.presets : null));
   if (req.method === 'GET' && r0 === 'balance') return res.json(await balance(req.query.fresh === '1'));
-  if (req.method === 'POST' && r0 === 'transcribe') return res.json(await transcribe(body));
+  if (req.method === 'POST' && r0 === 'transcribe') { await allowed(u, 'transcribe'); return res.json(await transcribe(body)); }
   if (req.method === 'POST' && (r0 === 'images' || r0 === 'videos')) return res.status(201).json(await createJob(u, r0 === 'images' ? 'image' : 'video', body));
   if (r0 === 'jobs' && r1) {
     const ref = db().collection(JOBS).doc(r1), d = await ref.get(), j = d.data();
@@ -493,7 +533,7 @@ async function route(req, res) {
     let q = db().collection(JOBS);
     if (!u.owner) q = q.where('by', '==', u.by);
     q = q.orderBy('t', 'desc');
-    if (req.query.before) q = q.startAfter(admin.firestore.Timestamp.fromMillis(+req.query.before));
+    if (req.query.before && Number.isFinite(+req.query.before)) q = q.startAfter(admin.firestore.Timestamp.fromMillis(+req.query.before));
     const snap = await q.limit(n + 20).get();
     const docs = snap.docs.filter((d) => !d.data().hidden).slice(0, n);
     return res.json({ jobs: await Promise.all(docs.map((d) => view(d.id, d.data()))), more: snap.docs.length > n });
@@ -506,7 +546,9 @@ exports.piko = onRequest({ region: REGION, secrets: SECRETS, cors: CORS, maxInst
   try { await route(req, res); }
   catch (e) {
     if (!e.status) console.error('piko', req.method, req.path, e);
-    res.status(e.status || 500).json({ error: e.status ? e.message : 'server', detail: e.status ? undefined : clip(e.message, 300) });
+    // a 4xx names what was wrong with the request; a failure never carries internals or a provider's words
+    if (e.status >= 500) console.error('piko', req.method, req.path, e.message);
+    res.status(e.status || 500).json({ error: e.status && e.status < 500 ? e.message : e.status === 502 ? 'busy' : 'server' });
   }
 });
 
@@ -521,6 +563,7 @@ exports.pikoWork = onDocumentCreated({ document: `${JOBS}/{id}`, region: REGION,
       const out = await image(job, refs);
       const saved = await save(job, out.buf, 'image', { w: out.w, h: out.h });
       await ref.update({ status: 'done', ...saved, usd: out.usd, done: Date.now(), progress: 100 });
+      if (job.by && job.by !== 'owner') await ag.spend(dayArea(job), out.usd);
     } else {
       const inputs = {};
       if (job.inputs?.start) inputs.start = await loadInput(job.inputs.start);

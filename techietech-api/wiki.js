@@ -9,6 +9,8 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
+const guard = require('./guard');
+const ag = require('./ai-guard');   // limits across instances by network / account, the chat's money for the day (2026-11-22)
 // the chat may suggest the simulation test (released to everyone 2026-11-08, his "make it live"; v2/site/verse/gates.js)
 const SIM_IN_CHAT = true;
 
@@ -397,7 +399,7 @@ async function whoAsks(req) {
 }
 const quotaKey = (req, who) => {
   const v = String(req.body?.v ?? '').replace(/[^a-z0-9]/gi, '').slice(0, 12);
-  return who.uid ? 'u' + who.uid + '_' + dayIL() : v ? 'v' + v : 'ip' + String(req.ip || '').replace(/[^\w]/g, '');
+  return who.uid ? 'u' + who.uid + '_' + dayIL() : v ? 'v' + v : 'ip' + guard.ip(req).replace(/[^\w]/g, '');
 };
 // {left} = go ahead; {grace} = the one answer after the limit; otherwise why not ('signin' - the 3 are used, 'done' -
 // today's 10 are used, 'full' - the site's ceiling today)
@@ -418,6 +420,8 @@ async function creditInvite(req, who) {
   const inv = String(req.body?.inv || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 64);
   if (!who.uid || !inv) return null;
   if (inv === who.uid) return 'self';
+  // throwaway accounts from one network can't farm the bonus (the 22.11 probe made accounts with a disposable inbox)
+  if (await ag.gate([[`chatinv:net:${guard.ip(req)}`, 3, guard.DAY]])) return 'full';
   try {
     const [me, host] = await Promise.all([admin.auth().getUser(who.uid), admin.auth().getUser(inv)]);
     if (Date.now() - new Date(me.metadata.creationTime).getTime() > 2 * 864e5) return 'old';
@@ -468,15 +472,23 @@ const refundQuestion = (req, who) => { /* a failed answer doesn't count */
   return Promise.all(quotaDocs(req, who).map((d) => d.set({ n: inc }, { merge: true }))).catch(() => {});
 };
 
-// a few dozen messages per address per hour, per instance
-const recent = new Map();
-const tooMany = (ip) => {
-  const now = Date.now();
-  const list = (recent.get(ip) || []).filter((t) => now - t < 3600e3);
-  list.push(now);
-  recent.set(ip, list);
-  return list.length > 40;
-};
+// Limits counted in Firestore across instances (guard.js - the old per-instance memory list could be beaten by a script), by
+// network (IPv6 /64) and by account, on top of the questions quota above (3 without an account, 10 a day with one):
+//   a network: 60 questions an hour, 300 a day (many people can share one mobile-carrier address); without an account 30 / 100
+//   an account: 80 a day, whatever its invite bonus
+// and the chat's money for the Israel day: DAY_USD (a normal day is ~$2; the questions' DAY_CAP stays as well)
+const DAY_USD = 40;
+const NET_H = 60, NET_D = 300, ANON_H = 30, ANON_D = 100, UID_D = 80;
+async function overLimit(req, who) {
+  if (who.owner) return null;
+  const n = guard.ip(req);
+  return ag.gate([[`chat:net:${n}`, NET_H, guard.HOUR], [`chat:netd:${n}`, NET_D, guard.DAY],
+    ...(who.uid ? [[`chat:uid:${who.uid}`, UID_D, guard.DAY]] : [[`chat:anon:${n}`, ANON_H, guard.HOUR], [`chat:anond:${n}`, ANON_D, guard.DAY]])]);
+}
+// what a reply cost (the chain says it; the one call: its tokens at Terra's price)
+const usdOf = (u = {}, extra = {}) => (extra.usd != null ? extra.usd
+  : (((u.input_tokens || 0) - (u.input_tokens_details?.cached_tokens || 0)) * deep.PRICE.in + (u.input_tokens_details?.cached_tokens || 0) * deep.PRICE.cached + (u.output_tokens || 0) * deep.PRICE.out) / 1e6);
+const MAX_MESSAGES = 200;   // a page never sends more; a bigger array is refused before anything is read
 
 exports.wikiChat = onRequest({
   region: 'europe-west1',
@@ -488,9 +500,9 @@ exports.wikiChat = onRequest({
   timeoutSeconds: 120,
 }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
-  if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
   // {peek: true}: how many questions are left (the counter under the chat box) - nothing is spent
   if (req.body?.peek) {
+    if (await ag.gate([[`chatpeek:net:${guard.ip(req)}`, 120, guard.HOUR]])) return res.status(429).json({ error: 'too_many' });
     const who = await whoAsks(req);
     if (who.owner) return res.json({ owner: true });
     const invite = await creditInvite(req, who);   // a friend who just signed in with an invite link (opening the chat)
@@ -498,17 +510,26 @@ exports.wikiChat = onRequest({
     const limit = limitOf(who, d), used = d.n || 0;
     return res.json({ left: Math.max(0, limit - used), limit, signed: !!who.uid, ...(invite ? { invite } : {}) });
   }
-  const { mode = 'guide', messages } = req.body || {};
-  if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: 'messages' });
+  const { messages } = req.body || {};
+  // the speaker: 'guide' or a resident's id - it goes into a Firestore path (chatBrains), so only an id's characters
+  const mode = typeof req.body?.mode === 'string' && /^[a-z0-9_-]{1,40}$/.test(req.body.mode) ? req.body.mode : 'guide';
+  if (!Array.isArray(messages) || !messages.length || messages.length > MAX_MESSAGES) return res.status(400).json({ error: 'messages' });
   const turns = messages.slice(-MAX_TURNS)
-    .filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
-    .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_CHARS) }));
+    .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+    .map((m) => ({ role: m.role, content: guard.text(m.content, MAX_CHARS, true) }))
+    .filter((m) => m.content);
   while (turns.length && turns[0].role !== 'user') turns.shift();
   if (!turns.length || turns[turns.length - 1].role !== 'user') return res.status(400).json({ error: 'messages' });
 
   const who = await whoAsks(req);
   // all mail turned off = no chat, as if the line failed (blocked.js - his call 2026-11-20)
   if (who.uid && !who.owner && await require('./blocked').mailOff(who.uid)) { await new Promise((r) => setTimeout(r, 2500)); return res.status(502).json({ error: 'model' }); }
+  // a script's flood (many anonymous ids / throwaway accounts from one network), and the day's money - before anything is spent
+  if (await overLimit(req, who)) return res.status(429).json({ error: 'too_many' });
+  if (!who.owner && await ag.overBudget('chat', DAY_USD)) {
+    console.error('wikiChat: the day\'s money ceiling reached');
+    return res.status(429).json({ error: 'quota', why: 'full', limit: who.uid ? FAN_TOTAL : ANON_TOTAL });
+  }
   const visitor = await visitorLine(who);
   const invite = who.owner ? null : await creditInvite(req, who);
   const ok = await spendQuestion(req, who).catch((e) => { console.error('quota failed', e.message); return true; });
@@ -553,6 +574,7 @@ exports.wikiChat = onRequest({
       reply += tag; res.write(tag);
     }
     if (ok.grace === 'soft' && !reply.includes('[[signin]]')) await putOff(req, who);
+    ag.spend('chat', usdOf(u, extra));
     await keep(req.body, mode, turns, reply, u, who, extra).catch((e) => console.error('keep failed', e.message));
     console.log('wikiChat', mode, turns.length, 'in', u.input_tokens, 'cached', u.input_tokens_details?.cached_tokens, 'out', u.output_tokens);
   } catch (e) {

@@ -17,6 +17,8 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
 const crypto = require('crypto');
+const guard = require('./guard');
+const ag = require('./ai-guard');   // limits across instances, the day's money, the key door (2026-11-22)
 
 if (!admin.apps.length) admin.initializeApp();
 const OPENAI = defineSecret('VERSE_SITE_OPENAI_KEY');
@@ -30,6 +32,13 @@ const EFFORT = 'medium';
 const MODEL = 'gpt-6.1-terra';
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
 const PER_DAY = 60;            // asks a day per gardener - far above a real day in the garden, a wall if a link leaks
+const PER_HOUR = 20;           // and an hour (a leaked link can't burn the day in a minute)
+const DAY_USD = 10;            // the garden's money for the whole Israel day, all gardeners together (a real day: well under $1)
+// $ per 1M tokens: Claude Opus 5.5 (costs.js AN_PRICE) and Terra (its fallback)
+const OPUS = { in: 4, read: 0.2, write: 5, out: 20 }, TERRA = { in: 2, cached: 0.2, out: 12 };
+const costOf = (u = {}) => (/claude/.test(String(u.model || ''))
+  ? ((u.input_tokens || 0) * OPUS.in + (u.cache_read_input_tokens || 0) * OPUS.read + (u.cache_creation_input_tokens || 0) * OPUS.write + (u.output_tokens || 0) * OPUS.out) / 1e6
+  : (((u.input_tokens || 0) - (u.input_tokens_details?.cached_tokens || 0)) * TERRA.in + (u.input_tokens_details?.cached_tokens || 0) * TERRA.cached + (u.output_tokens || 0) * TERRA.out) / 1e6);
 
 const db = () => admin.firestore();
 const bucket = () => admin.storage().bucket(BUCKET);
@@ -37,29 +46,38 @@ const clip = (s, n) => String(s ?? '').trim().slice(0, n);
 const ms = (t) => (t && t.toMillis ? t.toMillis() : t || null);
 const fail = (status, error) => Object.assign(new Error(error), { status });
 const hash = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
+// an id from the page into a Firestore path: letters / digits / - _ only (never "/" or ".."), else a 404
+const okId = (v) => { const id = ag.docId(v); if (!id) throw fail(404, 'id'); return id; };
 const newId = () => Date.now().toString(36) + crypto.randomBytes(4).toString('hex');
 const signed = async (path) => (path ? (await bucket().file(path).getSignedUrl({ action: 'read', expires: Date.now() + 12 * 3600e3 }))[0] : null);
 
 // ---------------------------------------------------------------- who is asking ----------------------------------------------------------------
-const wrong = new Map();
+// wrong keys are counted per network and for the whole door (ai-guard.js): 20 a day locks a network for a day; 200 an hour
+// (a guessing script) and only networks that got in before are let through for the hour - the gardener's phone keeps working
 async function gardener(req) {
   const h = req.get('authorization') || '';
   const k = h.startsWith('Key ') ? h.slice(4).trim() : clip(req.query.k, 100);
   if (!k) return null;
-  const now = Date.now(), fails = (wrong.get(req.ip) || []).filter((t) => now - t < 3600e3);
-  if (fails.length >= 20) throw fail(429, 'too_many');
-  const id = hash(k), d = await db().collection('gardeners').doc(id).get();
-  if (!d.exists || !d.data().active) { fails.push(now); wrong.set(req.ip, fails); return null; }
-  return { id, ref: d.ref, ...d.data() };
+  if (await ag.doorLocked('garden', req)) throw fail(429, 'too_many');
+  const d = /^[A-Za-z0-9_-]{8,100}$/.test(k) ? await db().collection('gardeners').doc(hash(k)).get() : null;
+  if (!d || !d.exists || !d.data().active) {
+    console.warn('garden wrong key', ag.chain(req).join(' > '));   // the address chain, to read who guesses (Cloud Logging only)
+    await ag.doorFailed('garden', req, { perNet: 20, all: 200 });
+    return null;
+  }
+  await ag.doorPassed('garden', req);
+  return { id: d.id, ref: d.ref, ...d.data() };
 }
 
 // ---------------------------------------------------------------- OpenAI ----------------------------------------------------------------
 const auth = () => ({ authorization: `Bearer ${OPENAI.value()}` });
 
+// a recording is what its bytes say it is (webm / mp4 / mp3 / wav from guard.js, ogg here)
+const audioKind = (buf) => guard.fileKind(buf, ['webm', 'mp4', 'mp3', 'wav']) || (buf.slice(0, 4).toString('latin1') === 'OggS' ? 'ogg' : '');
 async function transcribe(b64, mime) {
   const buf = Buffer.from(String(b64 || '').replace(/^data:[^,]*,/, ''), 'base64');
   if (!buf.length) return '';
-  if (buf.length > 9e6) throw fail(400, 'audio');
+  if (buf.length > 9e6 || !audioKind(buf)) throw fail(400, 'audio');
   mime = clip(mime, 60) || 'audio/webm';
   const ext = /mp4|m4a|aac/.test(mime) ? 'mp4' : /mpeg|mp3/.test(mime) ? 'mp3' : /ogg/.test(mime) ? 'ogg' : /wav/.test(mime) ? 'wav' : 'webm';
   const form = new FormData();
@@ -69,7 +87,7 @@ async function transcribe(b64, mime) {
   form.append('prompt', 'שאלה של גנן על צמח, עץ או פרח בגינה.');
   const r = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: auth(), body: form });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw fail(502, 'transcribe: ' + (j.error?.message || r.status));
+  if (!r.ok) { console.error('garden transcribe', r.status, j.error?.message); throw fail(502, 'transcribe'); }
   return clip(j.text, 1500);
 }
 
@@ -119,6 +137,7 @@ function brief({ question, plants, history }) {
 }
 const tidy = (a) => { a.steps = (a.steps || []).map((s) => clip(s, 400)).filter(Boolean).slice(0, 5); return a; };
 
+const MEDIA_OF = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
 let anthropic = null;
 async function lookClaude(photo, text, effort = EFFORT) {
   if (!anthropic) { const { Anthropic } = require('@anthropic-ai/sdk'); anthropic = new Anthropic({ apiKey: ANTHROPIC.value(), maxRetries: 1, timeout: 40000 }); }
@@ -127,7 +146,7 @@ async function lookClaude(photo, text, effort = EFFORT) {
     output_config: { effort, format: { type: 'json_schema', schema: SCHEMA } },
     system: INSTRUCTIONS,
     messages: [{ role: 'user', content: [
-      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: photo.replace(/^data:[^,]*,/, '') } },
+      { type: 'image', source: { type: 'base64', media_type: (photo.match(/^data:(image\/[a-z]+);/) || [])[1] || 'image/jpeg', data: photo.replace(/^data:[^,]*,/, '') } },
       { type: 'text', text }] }],
   });
   if (r.stop_reason === 'refusal') throw new Error('claude refusal: ' + (r.stop_details?.category || ''));
@@ -142,7 +161,7 @@ async function lookTerra(photo, brief) {
       text: { format: { type: 'json_schema', name: 'garden_answer', schema: SCHEMA, strict: true } },
       input: [{ role: 'user', content: [{ type: 'input_text', text: brief }, { type: 'input_image', image_url: photo, detail: 'high' }] }] }) });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw fail(502, 'openai ' + r.status + ' ' + (j.error?.message || ''));
+  if (!r.ok) { console.error('garden terra', r.status, j.error?.message); throw fail(502, 'model'); }
   const text = (j.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join('');
   let a;
   try { a = JSON.parse(text); } catch { throw fail(502, 'bad_answer'); }
@@ -168,7 +187,7 @@ async function speak(text) {
   const r = await fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { ...auth(), 'content-type': 'application/json' },
     body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice: 'ash', input: clip(text, 3800), response_format: 'mp3',
       instructions: VOICE }) });
-  if (!r.ok) throw fail(502, 'tts ' + r.status + ' ' + (await r.text()).slice(0, 200));
+  if (!r.ok) { console.error('garden tts', r.status, (await r.text()).slice(0, 200)); throw fail(502, 'tts'); }
   return Buffer.from(await r.arrayBuffer());
 }
 
@@ -193,14 +212,19 @@ async function ask(g, b) {
   const day = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const used = g.day === day ? g.used || 0 : 0;
   if (used >= PER_DAY) throw fail(429, 'day_limit');
+  // the same walls counted in Firestore across instances (the counter above can be raced by parallel asks), by network too
+  if (await ag.gate([[`garden:g:${g.id}`, PER_DAY, guard.DAY], [`garden:gh:${g.id}`, PER_HOUR, guard.HOUR], [`garden:net:${ag.net(g.req)}`, 80, guard.DAY]])) throw fail(429, 'day_limit');
+  if (await ag.overBudget('garden', DAY_USD)) { console.error('garden: the day\'s money ceiling reached'); throw fail(429, 'day_limit'); }
 
   const list = await plants(g);
-  let plant = b.plantId ? list.find((p) => p.id === clip(b.plantId, 40)) : null;
-  let photoBuf = null, photoPath = null;
+  let plant = b.plantId ? list.find((p) => p.id === ag.docId(b.plantId)) : null;
+  let photoBuf = null, photoPath = null, photoKind = 'jpg';
   const raw = String(b.photo || '').replace(/^data:[^,]*,/, '');
   if (raw) {
     photoBuf = Buffer.from(raw, 'base64');
     if (photoBuf.length < 1000 || photoBuf.length > 8e6) throw fail(400, 'photo');
+    photoKind = guard.fileKind(photoBuf, ['jpg', 'png', 'webp']);   // the real bytes: a picture, nothing else
+    if (!photoKind) throw fail(400, 'photo');
   } else if (plant?.lastPhoto) {
     // a follow-up question on a saved plant without a new photo: its last photo
     [photoBuf] = await bucket().file(plant.lastPhoto).download();
@@ -214,15 +238,16 @@ async function ask(g, b) {
     history = { id: plant.id, name: plant.name, visits: vs.map((v) => ({
       date: new Date(ms(v.at)).toLocaleDateString('he-IL', { timeZone: 'Asia/Jerusalem' }), question: v.question, status_line: v.answer?.status_line, note: v.answer?.note })) };
   }
-  const { a, usage } = await look({ photo: 'data:image/jpeg;base64,' + photoBuf.toString('base64'), question,
+  const { a, usage } = await look({ photo: `data:${MEDIA_OF[photoKind]};base64,` + photoBuf.toString('base64'), question,
     plants: plant ? [] : list.slice(0, 80).map((p) => ({ id: p.id, name: p.name, note: p.note })), history });
+  ag.spend('garden', costOf(usage) + (b.audio && !b.text ? 0.01 : 0));
 
   if (!plant && a.same_plant) plant = list.find((p) => p.id === a.same_plant) || null;
   const matched = !!plant && !b.plantId;
   const vid = newId();
   if (!photoPath) {
     photoPath = `garden/${g.id}/${vid}.jpg`;
-    await bucket().file(photoPath).save(photoBuf, { contentType: 'image/jpeg', resumable: false, metadata: { cacheControl: 'private, max-age=31536000' } });
+    await bucket().file(photoPath).save(photoBuf, { contentType: MEDIA_OF[photoKind], resumable: false, metadata: { cacheControl: 'private, max-age=31536000' } });
   }
   const keep = !!(plant || clip(a.plant_name, 80));   // a photo with no plant in it makes no plant
   // he said what the plant really is ("זה עץ ז'אקה") -> the saved plant takes that name (2026-11-14: a correction left
@@ -243,12 +268,12 @@ async function ask(g, b) {
 
 // "זה צמח אחר": the visit moves to a new plant of its own (or to another saved plant)
 async function move(g, vid, to) {
-  const vref = g.ref.collection('visits').doc(clip(vid, 40)), v = (await vref.get()).data();
+  const vref = g.ref.collection('visits').doc(okId(vid)), v = (await vref.get()).data();
   if (!v) throw fail(404, 'visit');
   const old = v.plantId ? g.ref.collection('plants').doc(v.plantId) : null;
   let target;
   if (to && to !== 'new') {
-    target = g.ref.collection('plants').doc(clip(to, 40));
+    target = g.ref.collection('plants').doc(okId(to));
     if (!(await target.get()).exists) throw fail(404, 'plant');
   } else target = g.ref.collection('plants').doc(newId());
   if (target.id === v.plantId) return { plantId: v.plantId };
@@ -270,16 +295,20 @@ async function move(g, vid, to) {
 async function rename(g, pid, name) {
   name = clip(name, 60);
   if (!name) throw fail(400, 'name');
-  const ref = g.ref.collection('plants').doc(clip(pid, 40));
+  const ref = g.ref.collection('plants').doc(okId(pid));
   if (!(await ref.get()).exists) throw fail(404, 'plant');
   await ref.update({ name });
   return { ok: true };
 }
 
+// read-aloud: once per answer anyway (kept), and at most PER_DAY a day per gardener within the day's money
+const ttsOk = async (g) => !(await ag.gate([[`garden:tts:${g.id}`, PER_DAY, guard.DAY]])) && !(await ag.overBudget('garden', DAY_USD));
 async function audio(g, vid) {
-  const vref = g.ref.collection('visits').doc(clip(vid, 40)), v = (await vref.get()).data();
+  const vref = g.ref.collection('visits').doc(okId(vid)), v = (await vref.get()).data();
   if (!v) throw fail(404, 'visit');
   if (!v.audio) {
+    if (!(await ttsOk(g))) throw fail(429, 'day_limit');
+    ag.spend('garden', 0.01);
     const path = `garden/${g.id}/${vref.id}.mp3`;
     await bucket().file(path).save(await speak(spoken(v)), { contentType: 'audio/mpeg', resumable: false });
     await vref.update({ audio: path });
@@ -291,12 +320,14 @@ async function audio(g, vid) {
 // "read to me" as a stream: the phone's <audio> plays this address straight away (GET, ?k=), the voice starts in about a
 // second instead of after the whole answer is made (~11 s); what streamed is kept, so the next tap is a plain file
 async function speech(g, vid, res) {
-  const vref = g.ref.collection('visits').doc(clip(vid, 40)), v = (await vref.get()).data();
+  const vref = g.ref.collection('visits').doc(okId(vid)), v = (await vref.get()).data();
   if (!v) throw fail(404, 'visit');
   if (v.audio) return res.redirect(302, await signed(v.audio));
+  if (!(await ttsOk(g))) throw fail(429, 'day_limit');
+  ag.spend('garden', 0.01);
   const r = await fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { ...auth(), 'content-type': 'application/json' },
     body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice: 'ash', input: clip(spoken(v), 3800), response_format: 'mp3', instructions: VOICE }) });
-  if (!r.ok || !r.body) throw fail(502, 'tts ' + r.status);
+  if (!r.ok || !r.body) { console.error('garden speech', r.status); throw fail(502, 'tts'); }
   res.status(200).set({ 'content-type': 'audio/mpeg', 'cache-control': 'no-store' });
   const chunks = [];
   for await (const c of r.body) { chunks.push(Buffer.from(c)); res.write(c); }
@@ -326,18 +357,19 @@ async function route(req, res) {
   }
   const g = await gardener(req);
   if (!g) throw fail(401, 'key');
+  g.req = req;
   res.set('cache-control', 'no-store');
   if (a === 'me' && req.method === 'GET') return res.json({ name: g.name || '', plants: await Promise.all((await plants(g)).map(plantOut)) });
   if (a === 'ask' && req.method === 'POST') return res.json(await ask(g, req.body || {}));
   if (a === 'plant' && b && !c && req.method === 'GET') {
-    const p = await g.ref.collection('plants').doc(clip(b, 40)).get();
+    const p = await g.ref.collection('plants').doc(okId(b)).get();
     if (!p.exists) throw fail(404, 'plant');
     const vs = (await visitsOf(g, p.id)).slice(0, 60);
     return res.json({ plant: await plantOut({ id: p.id, ...p.data() }), visits: await Promise.all(vs.map(visitOut)) });
   }
   if (a === 'plant' && b && c === 'name' && req.method === 'POST') return res.json(await rename(g, b, (req.body || {}).name));
   if (a === 'visit' && b && !c && req.method === 'GET') {
-    const v = await g.ref.collection('visits').doc(clip(b, 40)).get();
+    const v = await g.ref.collection('visits').doc(okId(b)).get();
     if (!v.exists) throw fail(404, 'visit');
     return res.json({ visit: await visitOut({ id: v.id, ...v.data() }) });
   }
@@ -349,9 +381,10 @@ async function route(req, res) {
 
 exports.garden = onRequest({ region: REGION, secrets: [OPENAI, ANTHROPIC], cors: CORS, invoker: 'public', maxInstances: 3, memory: '512MiB', timeoutSeconds: 120 }, async (req, res) => {
   try { await route(req, res); } catch (e) {
-    if (!e.status) console.error('garden', req.method, req.path, e);
+    if (!e.status || e.status >= 500) console.error('garden', req.method, req.path, e.message);
     if (res.headersSent) return res.end();
-    res.status(e.status || 500).json({ error: e.status ? e.message : 'server' });
+    // a 4xx says what was wrong with the request (key, photo, day_limit...); a 5xx only that it failed - never the provider's words
+    res.status(e.status || 500).json({ error: e.status && e.status < 500 ? e.message : e.status === 502 ? 'busy' : 'server' });
   }
 });
 exports._test = { look, lookClaude, lookTerra, brief, spoken, INSTRUCTIONS, SCHEMA };

@@ -22,7 +22,8 @@ const OWNER_KEY_SHA256 = require('./owner.json').ownerKeySha256;
 const ITEMS = db.collection('mind_items');
 const SESSIONS = db.collection('mind_sessions');
 const META = db.collection('mind_meta');
-const wrongKey = new Map();
+const guard = require('./guard');
+const ag = require('./ai-guard');   // the key doors and the AI ops' day limits, across instances (2026-11-22)
 const OPENAI = defineSecret('MIND_OPENAI_KEY');   // its own key (2026-11-06) - Mind isn't the Shlomiverse's spend   // the voice notes on his page -> text
 // notifications to his phone (the home-screen app): the same VAPID keys as the verse's push (verse.js)
 const VAPID_PRIVATE = defineSecret('VERSE_VAPID_PRIVATE');
@@ -76,9 +77,11 @@ async function mindKey(create) {
 }
 const same = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 // -> 'owner' | 'session' | null
+// wrong keys are walled in Firestore across instances (ai-guard.js): 10 a day lock a network for a day; 60 an hour from anywhere
+// = the door is under attack for an hour, and only networks that came in before are checked. A locked caller is refused before
+// any key is compared.
 async function who(req) {
-  const now = Date.now(), fails = (wrongKey.get(req.ip) || []).filter((t) => now - t < 3600e3);
-  if (fails.length >= 20) return 'blocked';
+  if (await ag.doorLocked('mind', req)) return 'blocked';
   const auth = req.get('authorization') || '';
   let ok = null;
   if (auth.startsWith('Key ')) {
@@ -88,7 +91,8 @@ async function who(req) {
     const key = await mindKey(false);
     if (key && same(auth.slice(7).trim(), key)) ok = 'session';
   }
-  if (!ok) { fails.push(now); wrongKey.set(req.ip, fails); }
+  if (!ok) await ag.doorFailed('mind', req, { perNet: 10, all: 60 });
+  else await ag.doorPassed('mind', req);
   return ok;
 }
 
@@ -784,8 +788,11 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
   const door = req.path.replace(/\/+$/, '').split('/').pop();     // api | hook | mcp (through hosting: /mind/<door>)
   if (door === 'mcp' && req.method === 'GET') return res.status(405).set('allow', 'POST').end();
   if (door === 'here') {   // his phone's Shortcuts automation: where he is now (GET or POST, its own key)
+    if (await ag.doorLocked('mind-here', req)) return res.status(429).json({ error: 'too_many' });
     const q = { ...req.query, ...(typeof req.body === 'object' ? req.body : {}) }, key = await locKey();
-    if (!key || !same(String(q.k || ''), key)) return res.status(401).json({ error: 'key' });
+    if (!key || !same(String(q.k || ''), key)) { await ag.doorFailed('mind-here', req, { perNet: 10, all: 60 }); return res.status(401).json({ error: 'key' }); }
+    await ag.doorPassed('mind-here', req);
+    if (await guard.limit('mind:here', 400, guard.DAY)) return res.status(429).json({ error: 'too_many' });   // his phone reports a few dozen times a day
     const num = (v) => parseFloat(String(v ?? '').trim().replace(',', '.'));
     const lat = num(q.lat), lng = num(q.lng);
     if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180) || (!lat && !lng)) return res.status(400).json({ error: 'lat/lng' });
@@ -805,6 +812,9 @@ exports.mind = onRequest({ region: 'europe-west1', maxInstances: 3, memory: '256
     }
     if (door === 'api') {
       if (['connect', 'lockey', 'vault', 'vault_save', 'transcribe', 'organize', 'push_on', 'push_off', 'push_test', 'meetkind'].includes(req.body?.op) && role !== 'owner') return res.status(403).json({ error: 'owner only' });
+      // the AI ops: far above a real day of his, a wall if his key ever leaks
+      const AI_DAY = { organize: 200, transcribe: 300 }[req.body?.op];
+      if (AI_DAY && await guard.limit(`mind:${req.body.op}`, AI_DAY, guard.DAY)) return res.status(429).json({ error: 'too_many' });
       return res.json(await pageOp(req.body || {}));
     }
     res.status(404).json({ error: 'door' });

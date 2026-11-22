@@ -26,6 +26,8 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const { Timestamp, FieldValue } = require('firebase-admin/firestore');
 const meeting = require('./meeting');
+const guard = require('./guard');
+const ag = require('./ai-guard');   // the preview key's door, rounds per account / network / meeting, Syncs' money for the day (2026-11-22)
 
 if (!admin.apps.length) admin.initializeApp();
 const MEETING_OPEN = false;
@@ -35,11 +37,17 @@ const KEEP_DAYS = 7, DAY_MEETINGS = 1;
 // header x-syncs-key (the page takes it from /syncs?k=<key> into sessionStorage). Only its SHA-256 is here - the key is never in git.
 // A preview meeting: the visitor is "צוות השיווק", it has its own day limit (6), everything else as the owner's meeting.
 const PREVIEW_SHA = '262f279ea2099b04a6e5c725379effeaab694451ad1b9a2971638edea12b8358', PREVIEW_DAY = 6, PREVIEW_NAME = 'צוות השיווק';
-function previewKey(req) {
+// -> true (the preview key), false (none sent), 'locked' (this network - or, under attack, any new network - may not try now).
+// Wrong keys are counted per network (5 a day = locked a day) and for the whole door (50 an hour) - ai-guard.js; a locked caller
+// is refused before the key is compared, so guessing teaches nothing.
+async function previewKey(req) {
   const k = String(req.get('x-syncs-key') || '');
-  if (!k || k.length > 100) return false;
-  const a = require('crypto').createHash('sha256').update(k).digest(), b = Buffer.from(PREVIEW_SHA, 'hex');
-  return require('crypto').timingSafeEqual(a, b);
+  if (!k) return false;
+  if (await ag.doorLocked('syncs', req)) return 'locked';
+  const a = require('crypto').createHash('sha256').update(k.slice(0, 200)).digest(), b = Buffer.from(PREVIEW_SHA, 'hex');
+  if (k.length <= 100 && require('crypto').timingSafeEqual(a, b)) { await ag.doorPassed('syncs', req); return true; }
+  await ag.doorFailed('syncs', req, { perNet: 5, all: 50 });
+  return false;
 }
 const dayLimit = (who) => (who.preview ? PREVIEW_DAY : DAY_MEETINGS);
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
@@ -50,7 +58,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 // the one check a visitor's words go through here (their meeting lines - op 'say' - and their title at op 'start'): a string, trimmed,
 // cut to its length; empty = refused. The title (his ask 2026-11-21: "you join a meeting, you must give a title") is one line in the
 // prompts: no newlines, no double quotes (the Hebrew geresh ' stays - ג'וניור), at most 40 characters.
-const said = (v, n) => String(v || '').trim().slice(0, n);
+const said = (v, n) => guard.text(v, n, true);   // trimmed, no control / direction characters, cut to its length
 const titleOf = (v) => said(String(v || '').replace(/[\r\n\t]+/g, ' ').replace(/["“”„«»״`]/g, '').replace(/\s+/g, ' '), 40).trim();
 // Syncs' AI spend (his ask 2026-11-20: its own line on Backstage → הוצאות and in the home's AI cost): one record per meeting, written
 // with absolute values after every round (so it is counted once, whatever is retried), and kept after the meeting's own 7 days.
@@ -65,13 +73,11 @@ async function ledger(ref, M, who) {
 // count, as his own devices don't (t.js)
 const countEnded = (who) => (who.owner ? null : db().collection('analytics_days').doc(dayIL()).set({ d: dayIL(), n: { 'meeting|ended': FieldValue.increment(1) } }, { merge: true }));
 
-// a few dozen requests per address per hour, per instance
-const recent = new Map();
-const tooMany = (ip) => {
-  const now = Date.now(), list = (recent.get(ip) || []).filter((t) => now - t < 3600e3);
-  list.push(now); recent.set(ip, list);
-  return list.length > 120;
-};
+// limits counted in Firestore across instances (guard.js): any request 300 an hour per network; the AI rounds (start / say / nudge)
+// per account a day (a visitor 60, the preview 200, him 400), per network 300 a day, per meeting 40; and Syncs' money for the
+// Israel day (DAY_USD - a meeting costs up to ~$0.5; his own meetings are not stopped by it)
+const DAY_USD = 30;
+const ROUNDS = (who) => (who.owner ? 400 : who.preview ? 200 : 60);
 const booked = async (who) => !who.owner && (((await dayRef(who.uid).get()).data() || {}).n || 0) >= dayLimit(who);
 // the day's meeting, taken in a transaction: false = already used today
 const takeDay = (who) => (who.owner ? Promise.resolve(true) : db().runTransaction(async (tx) => {
@@ -114,7 +120,8 @@ async function sharedPage(req, res, id) {
     const people = data.room.map((x) => NAMES[x] || x).join(', ');
     const desc = esc(one(R.summary || `ישיבה של טקי-טק עם ${people}`, 180));
     const img = `${SITE}/syncs/m/${id}/og.jpg?v=${d.sharedAt && d.sharedAt.toMillis ? d.sharedAt.toMillis() : 1}`;
-    const set = (re, tag) => { html = re.test(html) ? html.replace(re, tag) : html.replace('</head>', tag + '\n</head>'); };
+    // replaced through functions: a "$'" or "$&" in the visitor's words stays text, never a replacement pattern
+    const set = (re, tag) => { html = re.test(html) ? html.replace(re, () => tag) : html.replace('</head>', () => tag + '\n</head>'); };
     set(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
     set(/<meta name="description"[^>]*>/, `<meta name="description" content="${desc}">`);
     set(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${title}">`);
@@ -124,7 +131,7 @@ async function sharedPage(req, res, id) {
     set(/<meta property="og:image:width"[^>]*>/, '<meta property="og:image:width" content="1200">');
     set(/<meta property="og:image:height"[^>]*>/, '<meta property="og:image:height" content="630">');
     set(/<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${esc(img)}">`);
-    html = html.replace('<script id="s-data" type="application/json">null</script>', `<script id="s-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
+    html = html.replace('<script id="s-data" type="application/json">null</script>', () => `<script id="s-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
   }
   res.set('Cache-Control', 'public, max-age=0, s-maxage=60');
   res.set('Content-Type', 'text/html; charset=utf-8');
@@ -156,8 +163,10 @@ exports.verseMeeting = onRequest({
     catch (e) { console.error('verseMeeting shared', req.path, e.message); if (!res.headersSent) res.status(500).send(''); return; }
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
-  if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
-  const who = previewKey(req) ? { uid: 'preview', owner: false, preview: true } : await require('./wiki')._whoAsks(req);
+  if (await ag.gate([[`meet:net:${guard.ip(req)}`, 300, guard.HOUR]])) return res.status(429).json({ error: 'too_many' });
+  const pk = await previewKey(req);
+  if (pk === 'locked') return res.status(429).json({ error: 'too_many' });
+  const who = pk === true ? { uid: 'preview', owner: false, preview: true } : await require('./wiki')._whoAsks(req);
   // closed: only the owner - anyone else gets what an address that isn't there gets
   if (!who.uid || (!MEETING_OPEN && !who.owner && !who.preview)) return res.status(404).json({});
   const b = req.body || {};
@@ -182,6 +191,10 @@ exports.verseMeeting = onRequest({
     return res.json({ ok: true, url: `${SITE}/syncs/m/${ref.id}` });
   }
   if (b.op !== 'start' && b.op !== 'say' && b.op !== 'nudge') return res.status(400).json({ error: 'op' });
+  // every one of these runs a round of AI calls
+  const mid = b.op === 'start' ? '' : String(b.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 30);
+  if (await ag.gate([[`meet:round:${who.uid}`, ROUNDS(who), guard.DAY], [`meet:rnet:${guard.ip(req)}`, 300, guard.DAY], ...(mid ? [[`meet:m:${mid}`, 40, guard.DAY]] : [])])) return res.status(429).json({ error: 'too_many' });
+  if (!who.owner && await ag.overBudget('meet', DAY_USD)) { console.error('verseMeeting: the day\'s money ceiling reached'); return res.status(429).json({ error: 'too_many' }); }
 
   const cur = await require('./wiki')._canon();
   const keys = { cur, key: OPENAI.value(), akey: ANTHROPIC.value() || null };
@@ -245,6 +258,7 @@ exports.verseMeeting = onRequest({
     if (b.op === 'start' && !lines) await giveBackDay(who);   // nothing was said: the day's meeting isn't spent
   }
   await ref.update({ ...meeting.stateOf(M), busy: null, ...(M.ended ? { endedAt: Timestamp.now(), ms: Date.now() - ((await ref.get()).data()?.t?.toMillis() || Date.now()) } : {}) }).catch((e) => console.error('verseMeeting save failed', ref.id, e.message));
+  ag.spend('meet', M.cost - before);
   await ledger(ref, M, who).catch((e) => console.error('verseMeeting ledger failed', ref.id, e.message));
   if (M.ended && !wasEnded) await Promise.resolve(countEnded(who)).catch((e) => console.error('verseMeeting ended count failed', e.message));
   console.log('verseMeeting round', ref.id, b.op, `${lines} lines`, `${((Date.now() - t0) / 1000).toFixed(1)}s`, `$${(M.cost - before).toFixed(4)} (meeting $${M.cost.toFixed(4)})`, M.ended ? 'ENDED' : '');

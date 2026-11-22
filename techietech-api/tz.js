@@ -33,6 +33,11 @@ const webpush = require('web-push');
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const bundled = require('./wiki-brain.json');
 const deep = require('./wiki-deep');
+const guard = require('./guard');
+const ag = require('./ai-guard');   // posts per network, the residents' answers' money for the day (2026-11-22)
+// a post / article id from a visitor into a Firestore path: letters / digits / - _ only, else an id that is never there
+const tid = (v) => ag.docId(v, 20) || '_none_';
+const REPLY_DAY_USD = 5;      // the residents' answers to tagging visitors, all together, per Israel day (a real day: cents)
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -338,7 +343,7 @@ async function writeOne(c, what, angle, last) {
   const r = await deep.post({ key: tzKey(), akey: anKey(), cur: curNow(await brainNow()), mode: c.id, scene, last, name: alias || '' });
   // the director's Sonnet: no provider report has it - counted here, once per post (ai-ledger.js -> Backstage → הוצאות, ציפציפ's line)
   await require('./ai-ledger').addAnthropic('tziftzif', require('./ai-ledger').anthropicOf(r.steps)).catch((e) => console.error('ai ledger', e.message));
-  return { out: { text: r.text }, u: r.u };
+  return { out: { text: r.text }, u: r.u, cost: r.cost || 0 };
 }
 
 async function run(slot = 'manual') {
@@ -511,7 +516,7 @@ async function mine(uid, list) {
 // the timeline: the residents' top posts, newest first, each with up to two of the residents' replies hanging under it
 async function feed(uid, before) {
   let q = liveNow(db().collection('tzPosts')).limit(150);
-  if (before) q = q.where('t', '<', Timestamp.fromMillis(+before));
+  if (before) q = q.where('t', '<', Timestamp.fromMillis(Number.isFinite(+before) ? +before : Date.now()));
   const all = (await q.get()).docs.map((d) => pub(d.data()));
   const tops = all.filter((p) => !p.parent && !p.fan).slice(0, 30), topIds = new Set(tops.map((p) => p.id));
   const under = {};
@@ -521,7 +526,7 @@ async function feed(uid, before) {
     more: tops.length === 30 ? tops[tops.length - 1].t : null };
 }
 async function thread(uid, id) {
-  const d = await db().collection('tzPosts').doc(clip(id, 20)).get();
+  const d = await db().collection('tzPosts').doc(tid(id)).get();
   if (!d.exists || d.data().status !== 'live') return { error: 'gone' };
   const p = pub(d.data());
   const all = (await db().collection('tzPosts').where('root', '==', p.root).where('status', '==', 'live').get()).docs.map((x) => pub(x.data()))
@@ -531,7 +536,7 @@ async function thread(uid, id) {
 }
 async function resident(uid, char, before) {
   let q = liveNow(db().collection('tzPosts').where('by', '==', clip(char, 30))).limit(40);
-  if (before) q = q.where('t', '<', Timestamp.fromMillis(+before));
+  if (before) q = q.where('t', '<', Timestamp.fromMillis(Number.isFinite(+before) ? +before : Date.now()));
   const list = (await q.get()).docs.map((d) => pub(d.data())).filter((p) => !p.fan);
   return { posts: list, quoted: await quoted(list), articles: await articlesOf(list), stamped: await mine(uid, list), more: list.length === 40 ? list[list.length - 1].t : null };
 }
@@ -572,7 +577,7 @@ async function front() {
   return { articles: list };
 }
 async function article(id) {
-  const d = await db().collection('tzArticles').doc(clip(id, 20)).get();
+  const d = await db().collection('tzArticles').doc(tid(id)).get();
   if (!d.exists || d.data().status !== 'live') return { error: 'gone' };
   const a = pubArt(d.data(), true);
   // the residents' reactions: the posts that quote the channel's post about it, and the replies to it
@@ -597,9 +602,9 @@ async function spend(kind, uid, limit) {
   });
 }
 async function reply(user, b) {
-  const text = clip(b.text, 280);
+  const text = guard.text(b.text, 280, true);
   if (!text) return { error: 'empty' };
-  const par = await db().collection('tzPosts').doc(clip(b.parent, 20)).get();
+  const par = await db().collection('tzPosts').doc(tid(b.parent)).get();
   if (!par.exists || par.data().status !== 'live') return { error: 'gone' };
   if (!(await spend('tzpost', user.uid, 60))) return { error: 'limit' };
   const m = await moderate(text);
@@ -611,7 +616,7 @@ async function reply(user, b) {
   return { ok: true, post: pub({ ...doc, t: Date.now() }) };
 }
 async function stamp(user, b) {
-  const P = db().collection('tzPosts').doc(clip(b.id, 20)), S1 = db().collection('tzStamps').doc(`${clip(b.id, 20)}_${user.uid}`);
+  const P = db().collection('tzPosts').doc(tid(b.id)), S1 = db().collection('tzStamps').doc(`${tid(b.id)}_${user.uid}`);
   return db().runTransaction(async (tx) => {
     const [p, s] = await Promise.all([tx.get(P), tx.get(S1)]);
     if (!p.exists || p.data().status !== 'live') return { error: 'gone' };
@@ -624,7 +629,7 @@ async function stamp(user, b) {
 // a visitor reports a post (offensive / wrong): it pops up to him - Backstage → ציפציפ and a push to his phone; at HIDE_AT
 // reports it leaves the site until he looks
 async function report(user, b) {
-  const P = db().collection('tzPosts').doc(clip(b.id, 20)), R = db().collection('tzReports').doc(`${clip(b.id, 20)}_${user.uid}`);
+  const P = db().collection('tzPosts').doc(tid(b.id)), R = db().collection('tzReports').doc(`${tid(b.id)}_${user.uid}`);
   const r = await db().runTransaction(async (tx) => {
     const [p, had] = await Promise.all([tx.get(P), tx.get(R)]);
     if (!p.exists) return { error: 'gone' };
@@ -650,14 +655,14 @@ async function pushHim(payload) {
 // a citizen's own post (his rule 2026-11-08: citizens post too, not only reply); his account posts as ציפציפ itself - the
 // official account (the logo, the name, the check)
 async function post(user, b) {
-  const text = clip(b.text, 280);
+  const text = guard.text(b.text, 280, true);
   if (!text) return { error: 'empty' };
   if (!(await spend('tzpost', user.uid, 60))) return { error: 'limit' };
   const m = await moderate(text);
   if (!m.ok) return { error: 'flagged' };
   const fan = isOwner(user) ? OFFICIAL : await fanOf(user);
   let quote = null;
-  if (b.quote) { const q = await db().collection('tzPosts').doc(clip(b.quote, 20)).get(); if (q.exists && q.data().status === 'live') quote = q.id; }
+  if (b.quote) { const q = await db().collection('tzPosts').doc(tid(b.quote)).get(); if (q.exists && q.data().status === 'live') quote = q.id; }
   const doc = { id: newId(), by: null, fan, text, parent: null, quote, article: null, link: null, status: 'live', t: Timestamp.now(), made: FieldValue.serverTimestamp(),
     order: 0, replies: 0, stamps: 0, quotes: 0, ...(m.unchecked ? { unchecked: true } : {}) };
   doc.root = doc.id;
@@ -676,9 +681,11 @@ async function answer(doc) {
   if (!tagged.length || cfg.silent === day()) return;
   const b = await brainNow(), C = byId(b), id = tagged.find((x) => C[x]);
   if (!id || !(await spend('tzreply', doc.fan.uid, REPLIES_A_DAY))) return;
+  if (await ag.overBudget('tz-reply', REPLY_DAY_USD)) { console.error('verseTzOnPost: the day\'s money ceiling reached'); return; }
   const all = (await db().collection('tzPosts').where('root', '==', doc.root).where('status', '==', 'live').get()).docs.map((d) => d.data()).sort((a, b) => ms(a.t) - ms(b.t)).slice(-12);
   const lines = all.map((p) => `${p.fan ? `${p.fan.nick} (a visitor)` : C[p.by] ? nameOf(C[p.by]) : p.by}: ${p.text}`).join('\n');
   const r = await writeOne(C[id], `A thread on ציפציפ:\n${lines}\n\nThe visitor ${doc.fan.nick} tagged ${nameOf(C[id])} in it and wrote: ${doc.text}\nThey REPLY to the visitor, right under it - talking to them, on the thread's topic.`, '', []);
+  ag.spend('tz-reply', r.cost);
   const text = clip(r.out.text, 280);
   if (!text) return;
   const a = { id: newId(), by: id, text, parent: doc.id, root: doc.root, quote: null, article: null, link: null, status: 'live', t: Timestamp.now(),
@@ -713,6 +720,9 @@ async function handle(req) {
   if (op === 'article') return article(b.id);
   if (!user) return { error: 'sign_in' };
   if (req.method !== 'POST') return { error: 'post' };
+  // what visitors write, per network across instances (guard.js) - on top of each account's 60 posts a day
+  const n = guard.ip(req);
+  if (await ag.gate([[`tz:wh:${n}`, 40, guard.HOUR], [`tz:w:${n}`, 150, guard.DAY]])) return { error: 'limit' };
   if (op === 'report') return report(user, b);   // anyone signed in may report what offends (a safety valve)
   // posting, replying and stamping are for the verse's citizens (his rule 2026-11-08) - a citizen finished the citizenship journey
   if (!isOwner(user) && !(await citizen(user.uid))) return { error: 'citizen' };
@@ -778,7 +788,8 @@ async function wikiNow() {
 const ex = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const one = (s, n = 200) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
 function injectHead(html, p, url) {
-  const set = (re, tag) => { html = re.test(html) ? html.replace(re, tag) : html.replace('</head>', tag + '\n</head>'); };
+  // replaced through a function: a "$'" or "$&" in a visitor's words stays text, never a replacement pattern
+  const set = (re, tag) => { html = re.test(html) ? html.replace(re, () => tag) : html.replace('</head>', () => tag + '\n</head>'); };
   const title = ex(one(p.title, 90)), desc = ex(one(p.desc));
   set(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
   set(/<meta name="description"[^>]*>/, `<meta name="description" content="${desc}">`);
@@ -798,7 +809,7 @@ async function previewOf(site, kind, id) {
   const W = await wikiNow(), name = (by) => (by === NEWS ? 'החרדות 24' : (AL[by] && AL[by].name) || (W[by] && W[by].name) || by);
   const face = (by) => (by === NEWS ? `${SITE}/charadot/img/icon-512.png` : (W[by] && W[by].img) || null);
   if (kind === 'p') {
-    const d = await db().collection('tzPosts').doc(clip(id, 20)).get(), p = d.exists && d.data();
+    const d = await db().collection('tzPosts').doc(tid(id)).get(), p = d.exists && d.data();
     if (!p || p.status !== 'live') return null;
     const who = p.fan ? (p.fan.official ? 'ציפציפ' : p.fan.nick) : name(p.by);
     let img = (p.link && p.link.img) || null;
@@ -807,7 +818,7 @@ async function previewOf(site, kind, id) {
   }
   if (kind === 'u') return { title: `${name(id)} (@${id === NEWS ? id : (AL[id] && AL[id].handle) || id}) · ציפציפ`, desc: id === NEWS ? 'ערוץ החדשות של השלומיוורס. הישארו איתנו.' : (W[id] && (W[id].tagline || W[id].role)) || 'מה מצייצים בשלומיוורס', img: face(id) };
   if (kind === 'a') {
-    const d = await db().collection('tzArticles').doc(clip(id, 20)).get(), a = d.exists && d.data();
+    const d = await db().collection('tzArticles').doc(tid(id)).get(), a = d.exists && d.data();
     if (!a || a.status !== 'live') return null;
     return { title: `${a.headline} · החרדות 24`, desc: a.sub, img: a.img || `${SITE}/charadot/img/og.jpg` };
   }
@@ -837,13 +848,13 @@ async function owner(op, b) {
   if (op === 'tzPublish') return publish(b.posts || [], b.articles || []);
   if (op === 'tzSkip') {
     const batch = db().batch();
-    for (const id of b.posts || []) batch.update(db().collection('tzPosts').doc(clip(id, 20)), { status: 'skipped' });
-    for (const id of b.articles || []) batch.update(db().collection('tzArticles').doc(clip(id, 20)), { status: 'skipped' });
+    for (const id of b.posts || []) batch.update(db().collection('tzPosts').doc(tid(id)), { status: 'skipped' });
+    for (const id of b.articles || []) batch.update(db().collection('tzArticles').doc(tid(id)), { status: 'skipped' });
     await batch.commit();
     return { ok: true };
   }
   if (op === 'tzHide') {   // takes a live post (or a visitor's reply) off the site
-    await db().collection('tzPosts').doc(clip(b.id, 20)).update({ status: 'hidden' });
+    await db().collection('tzPosts').doc(tid(b.id)).update({ status: 'hidden' });
     return { ok: true };
   }
   if (op === 'tzEdit') {
@@ -879,7 +890,7 @@ async function owner(op, b) {
     return { reports: rs.sort((a, b) => b.t - a.t), posts };
   }
   if (op === 'tzResolve') {   // he looked: keep (back on the site) or remove; the post's reports close
-    const P = db().collection('tzPosts').doc(clip(b.id, 20));
+    const P = db().collection('tzPosts').doc(tid(b.id));
     await P.update({ status: b.keep ? 'live' : 'hidden', reviewed: true });
     const rs = await db().collection('tzReports').where('post', '==', clip(b.id, 20)).get();
     const batch = db().batch(); rs.docs.forEach((d) => batch.update(d.ref, { open: false })); await batch.commit();

@@ -16,6 +16,8 @@ const bundled = require('./wiki-brain.json');
 const material = require('./character-material');
 const proc = require('./process');
 const about = require('./about');
+const guard = require('./guard');
+const ag = require('./ai-guard');   // limits across instances by network / account / test, the test's money for the day (2026-11-22)
 
 if (!admin.apps.length) admin.initializeApp();
 const db = () => admin.firestore();
@@ -25,7 +27,11 @@ const IMG_MODEL = 'gpt-image-2.6-flare';
 const STEPS = 7;
 const MEDIA = 'shlomiverse-media';
 const IMG_CAP = 200;          // pictures a day for everyone together (Backstage shows the count)
-const STARTS_A_DAY = 10;      // tests a day per address (one per person on the page - his rule; this only stops a flood)
+const STARTS_A_DAY = 10;      // tests a day per network (one per person on the page - his rule; this only stops a flood)
+const STARTS_AN_HOUR = 4;     // per network, and 6 a day per account (guard.js, counted across instances - 22.11 a script ran 7)
+const DAY_USD = 15;           // the test's money for the whole Israel day (questions + results + pictures; a real day: cents)
+// what a call cost: [input, cached, output] tokens at Terra's price ($ per 1M: 2 / 0.2 / 12)
+const usdOf = (u = []) => (((u[0] || 0) - (u[1] || 0)) * 2 + (u[1] || 0) * 0.2 + (u[2] || 0) * 12) / 1e6;
 // the classifier: Yotam, the System Architect of life, runs the Shlomiverse's classification (his note 2026-11-07: not a random
 // character). HOSTS stays only as a fallback cast for the picture.
 const HOST = 'yotam';
@@ -177,6 +183,7 @@ async function makeQ(key, hostId, steps, d) {
   const n = steps.filter(answered).length + 1, field = (d.purpose || {})[n] || null;
   const purpose = await purposeOf(field);
   const r = await askAs(key, hostId, qTask(steps, purpose), Q_SCHEMA, 'q');
+  ag.spend('sim', usdOf(r.u));
   return { step: stepOf(r.out, purpose), u: r.u, ms: r.ms };
 }
 function stepOf(o, purpose) {
@@ -206,6 +213,7 @@ const rTask = (b, steps) => ({ fixed: rPrompt(), now: "The visitor's answers:\n"
 async function finish(key, ref, d, steps, br, skipped = false) {
   const C = byId(br);
   const done = await askAs(key, HOST, rTask(br, steps), RESULT_SCHEMA, 'result');
+  ag.spend('sim', usdOf(done.u));
   const o = done.out;
   const cast = o.cast.filter((c, i, a) => C[c.id] && a.findIndex((x) => x.id === c.id) === i).slice(0, 3).map((c) => ({ id: c.id, role: clip(c.role, 80), scene: clip(c.scene, 300) }));
   if (cast.length < 2) for (const id of HOSTS) if (cast.length < 2 && !cast.some((c) => c.id === id) && C[id]) cast.push({ id, role: '', scene: 'stands in the scene looking suspicious' });
@@ -227,7 +235,7 @@ async function toProfile(uid, d) {
   catch (e) { console.error('sim about', uid, e.message); }
 }
 
-const ipOf = (req) => String(req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+const ipOf = (req) => guard.ip(req);   // the real caller (the first x-forwarded-for entry could be typed by the caller - 22.11)
 const hash = (s) => crypto.createHash('sha256').update(String(s)).digest('hex').slice(0, 16);
 const day = () => new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10);
 async function who(req) {
@@ -292,11 +300,10 @@ async function handle(req, res) {
   if (op === 'start') {
     const br = await brainNow(), C = byId(br);
     const host = C[HOST] || C[b.host] || C[HOSTS[0]];
-    const ip = hash(ipOf(req)), rate = db().collection('simRate').doc(`${day()}_${ip}`);
-    const n = await db().runTransaction(async (tx) => { const g = await tx.get(rate); const k = (g.exists ? g.data().n : 0) + 1; tx.set(rate, { n: k, exp: Timestamp.fromMillis(Date.now() + 2 * 864e5) }); return k; });
-    if (n > STARTS_A_DAY) return { error: 'limit' };
+    const ip = hash(ipOf(req)), user = await who(req);
+    if (await ag.gate([[`sim:net:${ipOf(req)}`, STARTS_A_DAY, guard.DAY], [`sim:neth:${ipOf(req)}`, STARTS_AN_HOUR, guard.HOUR], ...(user ? [[`sim:uid:${user.uid}`, 6, guard.DAY]] : [])])) return { error: 'limit' };
+    if (await ag.overBudget('sim', DAY_USD)) { console.error('verseSim: the day\'s money ceiling reached'); return { error: 'limit' }; }
     const rid = crypto.randomBytes(9).toString('hex').slice(0, 14);
-    const user = await who(req);
     // which questions also fill the profile: a resident - only the fields still missing; a tourist - all three
     const miss = new Set(user ? about.missing(await about.get(user.uid), Object.values(PURPOSE)) : Object.values(PURPOSE));
     const purpose = Object.fromEntries(Object.entries(PURPOSE).filter(([, f]) => miss.has(f)));
@@ -332,6 +339,9 @@ async function handle(req, res) {
     const text = b.text !== undefined ? clip(String(b.text).replace(/\s+/g, ' ').trim(), 120) : null;
     const pick = text === null ? Number(b.pick) : null;
     if ((text === null && !(pick >= 0 && pick < 4)) || text === '' || answered(cur) || Number(b.n) !== steps.length) return { error: 'step' };
+    // one step is answered once: parallel copies of the same answer can't each buy a question (2 = room for one retry)
+    if (await ag.gate([[`simstep:${b.rid}:${steps.length}`, 2, 5 * guard.MIN], [`sim:netq:${ipOf(req)}`, 120, guard.HOUR]])) return { error: 'limit' };
+    if (await ag.overBudget('sim', DAY_USD)) return { error: 'limit' };
     if (text !== null) cur.free = text; else cur.pick = pick;
     // a question that fills the profile: the tapped answer's value, or what the AI reads in their words (alongside the next question)
     d.vals = d.vals || {}; d.raw = d.raw || {};
@@ -369,6 +379,7 @@ async function handle(req, res) {
     if (d.result) return { done: true, score: d.result.score, dept: d.result.dept || null };
     const steps = (d.steps || []).filter(answered);
     if (steps.length < 3) return { error: 'step' };
+    if (await ag.gate([[`simfin:${b.rid}`, 2, 10 * guard.MIN]])) return { error: 'limit' };
     return finish(key, ref, d, steps, await brainNow(), true);
   }
 
@@ -393,6 +404,7 @@ async function handle(req, res) {
     if (!RID.test(b.rid || '')) return { error: 'rid' };
     const user = await who(req);
     if (!user) return { error: 'auth' };
+    if (await ag.gate([[`simimg:uid:${user.uid}`, 3, guard.DAY]]) || await ag.overBudget('sim', DAY_USD)) return { error: 'cap' };
     const ref = sims.doc(b.rid);
     const go = await db().runTransaction(async (tx) => {
       const g = await tx.get(ref);
@@ -409,6 +421,7 @@ async function handle(req, res) {
     });
     if (!go.make) return go;
     try {
+      ag.spend('sim', 0.04);
       const p = await picture(key, b.rid, go.make);
       await ref.update({ img: p.url, imgState: 'ok' });
       return { img: p.url };
@@ -433,6 +446,7 @@ async function handle(req, res) {
 exports.verseSim = onRequest({ region: 'europe-west1', cors: CORS, secrets: [KEY], memory: '512MiB', timeoutSeconds: 120, maxInstances: 10, concurrency: 40 }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'post' });
   try {
+    if (await ag.gate([[`sim:all:${guard.ip(req)}`, 600, guard.HOUR]])) return res.status(429).json({ error: 'limit' });   // any op, a flood
     const r = await handle(req, res);
     res.status(r && r.error ? (r.error === 'limit' || r.error === 'cap' ? 429 : 400) : 200).json(r);
   } catch (e) {

@@ -28,7 +28,8 @@ const craft = require('./scriptcraft');
 if (!admin.apps.length) admin.initializeApp();
 const BY = 'mcp (ChatGPT)';
 const KEY = defineSecret('VERSE_MCP_KEY');
-const wrong = new Map();   // address -> times of wrong keys (maxInstances 3, so at most 60 guesses an hour)
+const guard = require('./guard');
+const ag = require('./ai-guard');   // the key door: wrong keys walled per network and for the whole door, across instances (2026-11-22)
 const SITE = 'https://shlomiverse.com';
 const pub = (u) => (typeof u === 'string' ? u : u?.url || '').replace('https://boostmind-b052c.web.app', SITE);
 
@@ -334,6 +335,9 @@ async function createSeries(b, a) {
 // The picture it replaces and the original that came in are kept in the private bucket (portraits/<id>/...)
 const MEDIA = 'shlomiverse-media', PRIV = 'shlomiverse-private';
 async function savePortrait(id, buf, by) {
+  // the real bytes first (a picture, at most 20 MB), never what the sender says it is
+  if (!Buffer.isBuffer(buf) || buf.length > 20e6) fail('The picture is over 20 MB.');
+  if (!guard.fileKind(buf, ['jpg', 'png', 'webp', 'heic'])) fail('That is not a picture I can read (PNG, JPEG or WebP).');
   const sharp = require('sharp');
   const img = sharp(buf, { failOn: 'none' }).rotate(), m = await img.metadata();
   if (!m.width || !m.height) fail('That is not a picture I can read (PNG, JPEG or WebP).');
@@ -627,16 +631,21 @@ exports.verseMcp = onRequest({ region: 'europe-west1', secrets: [KEY], memory: '
   if (parts[0] === 'mcp') parts.shift();
   const key = parts[0] || '', rest = parts.slice(1);
   const want = KEY.value().trim();
-  // his key is short (his choice, 2026-11-10), so wrong guesses are limited: 20 an hour per address, then nothing answers
-  const ip = req.ip || '?', now = Date.now(), tries = (wrong.get(ip) || []).filter((t) => now - t < 3600e3);
-  if (tries.length >= 20) return res.status(429).send('Too many tries');
-  if (!want || key.length !== want.length || !require('crypto').timingSafeEqual(Buffer.from(key), Buffer.from(want))) {
-    wrong.set(ip, [...tries, now]);
+  // His key is short and numeric (his choice, 2026-11-10), so guessing is walled in Firestore across instances (ai-guard.js):
+  // 10 wrong keys a day lock a network (an IPv6 /64) for a day; 100 wrong keys an hour from anywhere put the whole door under
+  // attack for an hour - then only networks that came in with the right key before (his ChatGPT) are even checked. A locked
+  // caller gets the same 404 as a wrong key, before the key is compared, so a guesser can't tell when it hit.
+  if (await ag.doorLocked('mcp', req)) return res.status(404).send('Not found');
+  if (!want || !/^[A-Za-z0-9_-]{1,100}$/.test(key) || !ag.same(key, want)) {
+    await ag.doorFailed('mcp', req, { perNet: 10, all: 100 });
     return res.status(404).send('Not found');
   }
+  await ag.doorPassed('mcp', req);
   // the picture upload page (set_character_picture's fallback, his phone): GET = the page, POST = the picture's bytes
   if (rest[0] === 'upload' && rest[1]) {
-    const b = await load(), c = b.byId[decodeURIComponent(rest[1])];
+    let cid = '';
+    try { cid = decodeURIComponent(rest[1]); } catch { /* a broken address = no such character */ }
+    const b = await load(), c = Object.prototype.hasOwnProperty.call(b.byId, cid) ? b.byId[cid] : null;
     if (!c) return res.status(404).send('No such character');
     if (req.method === 'GET') return res.set('Cache-Control', 'no-store').type('html').send(uploadPage(c.name, c.id));
     if (req.method !== 'POST') return res.status(405).send('');
