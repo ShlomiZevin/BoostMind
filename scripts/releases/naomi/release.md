@@ -27,7 +27,7 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 | Record + sheet | done (his GPT session) |
 | Profile picture | LIVE - round 3 A (his pick: a real woman ~50, filter look kept, age lines, NO stubble - "nothing is perfect but A is very good"). portrait-author.jpg = hand on heart. Round 1 (stubble) retired in old/. |
 | Old reels in the verse | DONE - 14 live (private/reels.md); promos skipped |
-| Site shlomiverse.com/dr-naomi/ | LIVE 2026-11-22 (his OK: the site may go live before the video). Full depth; form tested (siteLead). /all/ + analytics need `functions:stats,track` deploy - waiting for his OK |
+| Site shlomiverse.com/dr-naomi/ | LIVE v2 2026-11-22 - redesign A (GPT Image mockup, 'celebrity expert'), mobile first, all v1 content kept (v1 in private/site-v1.html). Form tested; in /all/ + stats |
 | The method המחוג הפנימי | on the site (stages, in her birth language) |
 | NEW service from the video | organizations: from onboarding to bonding (young employees) + managers' response-pause track |
 | Book "המחוג שבלב" cover | B - full size + 3D (private/covers/), on the site |
