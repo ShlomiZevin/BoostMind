@@ -49,7 +49,12 @@ Gates - all shown to **him**: **(1) the ideas** (3-4 one-liners "known mechanic 
   ~2 s, no zoom or scroll bounce, works in Instagram's in-app browser.
 - At the concept gate show the game screen AND the end screen; the VRM rejects anything that isn't all three.
 
-## Timing
+## Timing - the release is the VRM's
+**The split (his rule, 2026-11-22):** questions about the GAME (the idea, the look, the plan, the draft, any detail) go straight to
+him from the game session. Everything about the RELEASE - when it goes live, what happens on release day, deploys, stories,
+marketing, the resident's site card, how it ties to the video - is the VRM's: the VRM is the coordinator. If he says "release
+it" inside the game session, tell the VRM (`SendMessage`) and let it run the release; never release or announce on your own.
+
 **Nothing public before the video is released** (his rule): the game stays a draft only he can see (make-verse-game step 8)
 until the VRM's release day - then it goes live in the VRM's order (usually right after the video, or the day after as the
 "after" story). The VRM, not you, posts stories and briefs marketing; you hand over the cover, title art, the story picture and

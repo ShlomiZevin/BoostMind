@@ -52,7 +52,9 @@ Scale it to the resident. Every piece needs a reason (the world, or a number Con
    `shlomiverse-game-creator`, craft `make-verse-game`. You write its brief (`scripts/releases/<slug>/game-brief.md`); then the
    game session asks HIM directly about the game (his rule, 2026-11-22: "specifics about the games, you can ask me directly")
    and messages you only when he says so and when the game is ready - you own the release around it: when it goes live (a
-   draft until release day), its marketing, its card on the resident's site, how it ties to the video.
+   draft until release day), its marketing, its card on the resident's site, how it ties to the video. You are the
+   coordinator: if he says "release it" in the game session, it hands the release to you - the game session never releases
+   or announces on its own.
 6. **What comes next** - ideas he can say yes to later: a tool, a new service, a follow-up video, a greeting line. Parked
    in the release file, never built without his word.
 

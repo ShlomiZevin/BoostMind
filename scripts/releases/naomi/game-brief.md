@@ -1,6 +1,13 @@
 # Game brief - Naomi's game (release `naomi`)
 From: the Video Release Manager (session "Shlomiverse VRM"). To: the Game Creator (role `shlomiverse-game-creator`, craft
-`make-verse-game`). Report to me at each gate with `SendMessage` (ideas → concept picture → plan → playable draft → ready).
+`make-verse-game`).
+
+**The split (his rule, 2026-11-22):** questions about the GAME (the idea, the look, the plan, the draft, any detail) go straight to
+him from the game session. Everything about the RELEASE - when it goes live, what happens on release day, deploys, stories,
+marketing, the resident's site card, how it ties to the video - is the VRM's: the VRM is the coordinator. If he says "release
+it" inside the game session, tell the VRM (`SendMessage`) and let it run the release; never release or announce on your own.
+So: ask Shlomi directly at every gate (ideas → concept picture → plan → playable draft → ready); message me when he says to and
+when the game is ready to release.
 
 ## What Shlomi asked (2026-11-22, his words)
 "I'm turning back the doctor, and I want a game that she created, like for handling emotions and stuff ... a parody that she
@@ -51,7 +58,7 @@ tunes) on a known loop will carry her better than a game about her.
   (with the video or as the next day's "after" story). I post stories and brief marketing - hand me the cover, title art, a
   story picture and 2-3 Hebrew lines.
 - AI ≤ 5¢ per call where it can be (pictures GPT Image 2.6 MEDIUM; HIGH only for characters / cover / title art per the skill);
-  report the running spend at each gate.
+  report the running spend to him at each gate.
 
 ## On another computer (the private files are not in git - the repo is public)
 - `git pull`, then `node scripts/skills-link.mjs` (links the roles as skills).

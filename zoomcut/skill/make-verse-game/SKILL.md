@@ -8,7 +8,11 @@ argument-hint: "[character] [idea, or 'you decide']"
 
 **Who runs this:** the **Game Creator** role (`roles/shlomiverse-game-creator` - a dedicated session he opens). This skill is
 the craft; the role is the position. In a video release the Video Release Manager (VRM) gives the brief
-(`scripts/releases/<slug>/game-brief.md`), checks each gate and decides release day - nothing public before the video.
+(`scripts/releases/<slug>/game-brief.md`) and coordinates the release - nothing public before the video.
+**The split (his rule, 2026-11-22):** questions about the GAME (the idea, the look, the plan, the draft, any detail) go straight to
+him from the game session. Everything about the RELEASE - when it goes live, what happens on release day, deploys, stories,
+marketing, the resident's site card, how it ties to the video - is the VRM's: the VRM is the coordinator. If he says "release
+it" inside the game session, tell the VRM (`SendMessage`) and let it run the release; never release or announce on your own.
 
 Shlomi has dozens of characters (all of them in Shlomiverse Studio, `zoomcut/characters/`). Each one can have games, and
 every game is part of the Shlomiverse: it lives on **shlomiverse.com**, it is true to who the character is, and it
