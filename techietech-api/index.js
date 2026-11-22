@@ -16,7 +16,6 @@ const GMAIL_USER = defineSecret('GMAIL_USER');
 const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
 const TO = 'shlomi@boostart.io';
 const MAX_FILE = 5 * 1024 * 1024;
-const OK_FILE = /\.(pdf|docx?)$/i;
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^https:\/\/boostmind-b052c\.firebaseapp\.com$/, /^https:\/\/techytech(--[\w-]+)?\.web\.app$/];
 
 // Sending anything from a Shlomiverse site needs a Google account (his rule, 2026-11-01: he wants the email of everyone
@@ -24,20 +23,34 @@ const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(w
 // sends its ID token; the person is kept in siteUsers and the request in `requests` - both show in /backstage/.
 const SITE_NAMES = { 'dr-naomi': 'ד״ר נעמי־ציפורה', ksa: 'KSA GROUP', archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
   'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE' };
+// Security (his ask after the 22.11 scripted probe - 11 CVs with shell-injection file names from 5 fresh accounts, because the old
+// limit counted per instance in memory): every send is counted in Firestore across instances (guard.js) per account, per address
+// (IPv6 counts by /64) and in total; every field is cleaned and cut; the CV's type is read from its bytes and its name made safe;
+// replyTo is a checked address; the automatic reply goes only to the account's own (verified) address, with its own cap (mailer.js).
+const ONE_EMAIL = /^[A-Za-z0-9._%+'-]{1,64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,24}$/;
+const okEmail = (e) => typeof e === 'string' && e.length <= 254 && ONE_EMAIL.test(e);
 async function signedIn(req) {
-  const m = (req.get('authorization') || '').match(/^Bearer (.+)$/);
+  const m = (req.get('authorization') || '').match(/^Bearer (.{20,4096})$/);
   if (!m) return null;
-  try { const t = await admin.auth().verifyIdToken(m[1], true); return t.email ? t : null; } catch { return null; }   // true = a blocked / revoked account is refused at once
+  try {
+    const t = await admin.auth().verifyIdToken(m[1], true);   // true = a blocked / revoked account is refused at once
+    return t.email && t.email_verified && okEmail(t.email) ? t : null;   // Google and the email code both verify the address
+  } catch { return null; }
+}
+// too many? - counted across every instance; the first key that is over answers (and is logged, without the address itself)
+async function over(limits, what) {
+  for (const [key, n, ms] of limits) if (await guard.limit(key, n, ms)) { console.warn(what, 'refused (limit)', key.split(':').slice(0, 2).join(':')); return true; }
+  return false;
 }
 async function keepUser(u, site) {
   const ref = admin.firestore().collection('siteUsers').doc(u.uid);
   const was = (await ref.get()).exists;
-  await ref.set({ email: u.email, name: u.name || null, photo: u.picture || null, sites: FieldValue.arrayUnion(site), lastSite: site,
+  await ref.set({ email: u.email, name: guard.text(u.name, 80) || null, photo: /^https:\/\//.test(u.picture || '') ? String(u.picture).slice(0, 500) : null, sites: FieldValue.arrayUnion(site), lastSite: site,
     last: FieldValue.serverTimestamp(), ...(was ? {} : { created: FieldValue.serverTimestamp() }) }, { merge: true });
 }
 // the request in the backstage inbox, next to the verse's own (kind 'site'); the mail stays the main way it reaches him
 const keepRequest = (u, site, f) => admin.firestore().collection('requests').add({ kind: 'site', site, siteName: SITE_NAMES[site] || site,
-  uid: u.uid, email: u.email, contact: u.email, name: f.name || u.name || null, nick: null, phone: f.phone || null, choice: f.choice || null,
+  uid: u.uid, email: u.email, contact: u.email, name: f.name || guard.text(u.name, 80) || null, nick: null, phone: f.phone || null, choice: f.choice || null,
   when: f.when || null, text: f.text || '', t: FieldValue.serverTimestamp(), done: false }).catch((e) => console.error('keep request failed', e.message));
 
 // the same form from the same person again within 5 minutes = one request (2026-11-17: a CV came 3 times in a minute -
@@ -52,38 +65,37 @@ exports.siteUser = onRequest({ region: 'europe-west1', cors: CORS, maxInstances:
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
   const u = await signedIn(req);
   if (!u) return res.status(401).json({ error: 'sign_in' });
+  if (await over([[`siteuser:uid:${u.uid}`, 60, guard.HOUR], [`siteuser:ip:${guard.ip(req)}`, 120, guard.HOUR]], 'siteUser')) return res.status(429).json({ error: 'too_many' });
   const site = String((req.body || {}).site || '');
-  await keepUser(u, SITE_NAMES[site] ? site : 'other');
+  await keepUser(u, Object.hasOwn(SITE_NAMES, site) ? site : 'other').catch((e) => console.error('siteUser', e.message));
   res.json({ ok: true });
 });
 
-// a few sends per address per hour, per instance - enough to stop a script hammering the form
-const recent = new Map();
-const tooMany = (ip) => {
-  const now = Date.now();
-  const list = (recent.get(ip) || []).filter((t) => now - t < 3600e3);
-  list.push(now);
-  recent.set(ip, list);
-  return list.length > 5;
-};
-
 function parse(req) {
   return new Promise((resolve, reject) => {
-    const fields = {};
-    let file = null, tooBig = false;
+    const fields = Object.create(null);
+    let file = null, tooBig = false, extra = false;
     // utf8 file names: browsers send a Hebrew name ("קורות חיים.pdf") as raw UTF-8, busboy's default reads latin1
-    const bb = Busboy({ headers: req.headers, defCharset: 'utf8', defParamCharset: 'utf8', limits: { fileSize: MAX_FILE, files: 1, fields: 12, fieldSize: 5000 } });
-    bb.on('field', (k, v) => { fields[k] = String(v).trim(); });
+    const bb = Busboy({ headers: req.headers, defCharset: 'utf8', defParamCharset: 'utf8', limits: { fileSize: MAX_FILE, files: 1, fields: 12, fieldSize: 5000, parts: 14, fieldNameSize: 40 } });
+    bb.on('field', (k, v) => { if (/^[a-z]{1,20}$/.test(k)) fields[k] = String(v).trim(); });
     bb.on('file', (_k, stream, info) => {
+      if (file) { extra = true; stream.resume(); return; }
       const chunks = [];
       stream.on('data', (d) => chunks.push(d));
       stream.on('limit', () => { tooBig = true; });
-      stream.on('end', () => { file = { name: info.filename, type: info.mimeType, data: Buffer.concat(chunks) }; });
+      stream.on('end', () => { file = { name: String(info.filename || ''), data: Buffer.concat(chunks) }; });
     });
     bb.on('error', reject);
-    bb.on('close', () => resolve({ fields, file, tooBig }));
+    bb.on('close', () => resolve({ fields, file, tooBig, extra }));
     bb.end(req.rawBody);
   });
+}
+// the CV's real type, from its bytes (never the name or the browser's type) -> its extension and content type
+const CV_KINDS = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', doc: 'application/msword' };
+function cvKind(buf) {
+  const k = guard.fileKind(buf, ['pdf', 'docx', 'doc']);
+  if (k === 'docx' && !buf.includes('word/')) return '';   // any zip has the docx's first bytes: a Word file carries word/document.xml
+  return k;
 }
 
 exports.techietechApply = onRequest({
@@ -97,37 +109,39 @@ exports.techietechApply = onRequest({
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
   const u = await signedIn(req);
   if (!u) return res.status(401).json({ error: 'sign_in' });
-  if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
-  // across every instance: an account sends at most 3 CVs a day, an address (IPv6 /64) 3 an hour and 6 a day,
-  // and the whole form 40 a day - a script with fresh accounts stops at the address, a flood at the day's total
   const where = guard.ip(req);
-  if (await guard.limit(`apply:uid:${u.uid}`, 3, guard.DAY) || await guard.limit(`apply:ip:${where}`, 3, guard.HOUR)
-    || await guard.limit(`apply:ipday:${where}`, 6, guard.DAY) || await guard.limit('apply:all:day', 40, guard.DAY)) {
-    console.warn('apply refused (limit)', u.uid, where);
-    return res.status(429).json({ error: 'too_many' });
-  }
+  // tries (a wrong file, a typo) are allowed generously; what is SENT is counted below
+  if (await over([[`applytry:uid:${u.uid}`, 15, guard.HOUR], [`applytry:ip:${where}`, 20, guard.HOUR]], 'apply')) return res.status(429).json({ error: 'too_many' });
   let form;
   try { form = await parse(req); } catch { return res.status(400).json({ error: 'bad_form' }); }
-  const { fields: f, file, tooBig } = form;
+  const { fields: f, file, tooBig, extra } = form;
   if (f.website) return res.json({ ok: true });  // the hidden field only a bot fills
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email || '')) f.email = u.email;
-  f.name = f.name || u.name || '';
-  if (!f.name) return res.status(400).json({ error: 'details' });
+  const email = okEmail(f.email) ? f.email : u.email;   // replyTo: one checked address, never a list / a header
+  const name = guard.text(f.name, 80) || guard.text(u.name, 80);
+  if (!name) return res.status(400).json({ error: 'details' });
   if (tooBig) return res.status(400).json({ error: 'file_size' });
-  if (!file || !file.data.length || !OK_FILE.test(file.name) || !guard.fileOk(file.data, ['pdf', 'docx', 'doc'])) return res.status(400).json({ error: 'file_type' });
-  file.name = guard.fileName(file.name, 'cv');   // no shell / HTML characters in what reaches the mail (22.11: "cv.$(id).pdf")
-  f.name = guard.text(f.name, 80); f.phone = guard.text(f.phone, 30); f.message = guard.text(f.message, 3000, true);
-
-  const position = (f.position || 'פנייה כללית').slice(0, 120);
-  if (await sentJustNow(u, 'techietech', [f.message, `קורות חיים: ${file.name} (במייל)`].filter(Boolean).join('\n\n'))) return res.json({ ok: true, again: true });
+  const kind = file && file.data.length ? cvKind(file.data) : '';
+  if (!kind || extra) return res.status(400).json({ error: 'file_type' });
+  // a safe name (no paths, no shell / HTML characters - 22.11: "cv.$(id).pdf") with the extension of what the file really is
+  const fileName = guard.fileName(file.name, 'cv').replace(/\.[a-z0-9]{1,8}$/, '') + '.' + kind;
+  const phone = guard.text(f.phone, 30).replace(/[^\d+\-\s()]/g, '');
+  const message = guard.text(f.message, 3000, true);
+  const position = guard.text(f.position, 120) || 'פנייה כללית';
+  const reqText = [message, `קורות חיים: ${fileName} (במייל)`].filter(Boolean).join('\n\n');
+  if (await sentJustNow(u, 'techietech', reqText)) return res.json({ ok: true, again: true });
+  // what is sent, across every instance: an account 3 CVs a day, an address (IPv6 /64) 3 an hour and 6 a day, the form 40 a day -
+  // a script with fresh accounts stops at the address, a flood at the day's total
+  if (await over([[`apply:uid:${u.uid}`, 3, guard.DAY], [`apply:ip:${where}`, 3, guard.HOUR], [`apply:ipday:${where}`, 6, guard.DAY], ['apply:all:day', 40, guard.DAY]], 'apply')) {
+    return res.status(429).json({ error: 'too_many' });
+  }
   const text = [
     `משרה: ${position}`,
-    `שם: ${f.name}`,
-    `אימייל: ${f.email}`,
-    `טלפון: ${f.phone || '-'}`,
+    `שם: ${name}`,
+    `אימייל: ${email}`,
+    `טלפון: ${phone || '-'}`,
     `חשבון Google: ${u.email}`,
     '',
-    f.message ? `הודעה:\n${f.message}` : '',
+    message ? `הודעה:\n${message}` : '',
     '',
     `נשלח מאתר Techy-Tech (/techietech/) · ${new Date().toISOString()}`,
   ].join('\n');
@@ -136,18 +150,18 @@ exports.techietechApply = onRequest({
     await t.sendMail({
       from: `Techy-Tech Careers <${GMAIL_USER.value()}>`,
       to: TO,
-      replyTo: f.email,
-      subject: `Techy-Tech | קורות חיים: ${position} · ${f.name}`.slice(0, 200),
+      replyTo: email,
+      subject: guard.text(`Techy-Tech | קורות חיים: ${position} · ${name}`, 200),
       text,
-      attachments: [{ filename: file.name, content: file.data, contentType: file.type }],
+      attachments: [{ filename: fileName, content: file.data, contentType: CV_KINDS[kind] }],
     });
   } catch (e) {
     console.error('send failed', e.message);
     return res.status(502).json({ error: 'send' });
   }
   await Promise.all([keepUser(u, 'techietech').catch(() => {}),
-    keepRequest(u, 'techietech', { name: f.name, phone: f.phone, choice: position, text: [f.message, `קורות חיים: ${file.name} (במייל)`].filter(Boolean).join('\n\n') }),
-    mailer.reply('techietech', { email: f.email, name: f.name, uid: u.uid, choice: position })]);
+    keepRequest(u, 'techietech', { name, phone, choice: position, text: reqText }),
+    mailer.reply('techietech', { email: u.email, name, uid: u.uid, choice: position })]);   // the reply: to the account's own address only
   res.json({ ok: true });
 });
 
@@ -179,51 +193,50 @@ exports.siteLead = onRequest({
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
   const u = await signedIn(req);
   if (!u) return res.status(401).json({ error: 'sign_in' });
-  if (tooMany(req.ip)) return res.status(429).json({ error: 'too_many' });
-  // across every instance: an account sends at most 3 CVs a day, an address (IPv6 /64) 3 an hour and 6 a day,
-  // and the whole form 40 a day - a script with fresh accounts stops at the address, a flood at the day's total
   const where = guard.ip(req);
-  if (await guard.limit(`apply:uid:${u.uid}`, 3, guard.DAY) || await guard.limit(`apply:ip:${where}`, 3, guard.HOUR)
-    || await guard.limit(`apply:ipday:${where}`, 6, guard.DAY) || await guard.limit('apply:all:day', 40, guard.DAY)) {
-    console.warn('apply refused (limit)', u.uid, where);
-    return res.status(429).json({ error: 'too_many' });
-  }
+  if (await over([[`leadtry:uid:${u.uid}`, 15, guard.HOUR], [`leadtry:ip:${where}`, 20, guard.HOUR]], 'siteLead')) return res.status(429).json({ error: 'too_many' });
   let form;
   try { form = await parse(req); } catch { return res.status(400).json({ error: 'bad_form' }); }
   const f = form.fields;
+  if (!Object.hasOwn(SITES, f.site || '')) return res.status(400).json({ error: 'site' });
   const site = SITES[f.site];
-  if (!site) return res.status(400).json({ error: 'site' });
   if (f.website) return res.json({ ok: true });  // the hidden field only a bot fills
-  // the Google account is always a way back; an email typed in the form (if any) goes first
-  const email = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email || '') ? f.email : u.email;
-  const phone = (f.phone || '').replace(/[^\d+\-\s()]/g, '').slice(0, 30);
-  f.name = f.name || u.name || '';
-  if (!f.name) return res.status(400).json({ error: 'details' });
-  const clip = (v, n) => String(v || '').slice(0, n);
+  if (form.file) return res.status(400).json({ error: 'bad_form' });   // these forms carry no file
+  // the Google account is always a way back; an email typed in the form (if any) goes first - for him (replyTo) only
+  const email = okEmail(f.email) ? f.email : u.email;
+  const phone = guard.text(f.phone, 30).replace(/[^\d+\-\s()]/g, '');
+  const name = guard.text(f.name, 120) || guard.text(u.name, 120);
+  if (!name) return res.status(400).json({ error: 'details' });
+  const choice = guard.text(f.choice, 120), when = guard.text(f.when, 200), message = guard.text(f.message, 3000, true);
   const text = [
-    `${site.choice}: ${clip(f.choice, 120) || '-'}`,
-    `שם: ${clip(f.name, 120)}`,
+    `${site.choice}: ${choice || '-'}`,
+    `שם: ${name}`,
     `טלפון: ${phone || '-'}`,
     `אימייל: ${email || '-'}`,
     `חשבון Google: ${u.email}`,
-    f.when ? `מתי נוח: ${clip(f.when, 200)}` : '',
+    when ? `מתי נוח: ${when}` : '',
     '',
-    f.message ? `הודעה:\n${clip(f.message, 3000)}` : '',
+    message ? `הודעה:\n${message}` : '',
     '',
     `נשלח מהאתר ${site.page} · ${new Date().toISOString()}`,
   ].filter((l, i, a) => l || a[i - 1]).join('\n');
-  if (await sentJustNow(u, f.site, clip(f.message, 3000))) return res.json({ ok: true, again: true });
+  if (await sentJustNow(u, f.site, message)) return res.json({ ok: true, again: true });
+  // what is sent, across every instance: an account 5 requests a day, an address (IPv6 /64) 5 an hour and 12 a day, all the
+  // sites together 80 a day
+  if (await over([[`lead:uid:${u.uid}`, 5, guard.DAY], [`lead:ip:${where}`, 5, guard.HOUR], [`lead:ipday:${where}`, 12, guard.DAY], ['lead:all:day', 80, guard.DAY]], 'siteLead')) {
+    return res.status(429).json({ error: 'too_many' });
+  }
   try {
     const t = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } });
     await t.sendMail({ from: `${site.from} <${GMAIL_USER.value()}>`, to: TO, replyTo: email,
-      subject: site.subject({ ...f, name: clip(f.name, 80), choice: clip(f.choice, 60) }).slice(0, 200), text });
+      subject: guard.text(site.subject({ name: name.slice(0, 80), choice: choice.slice(0, 60) }), 200), text });
   } catch (e) {
     console.error('send failed', e.message);
     return res.status(502).json({ error: 'send' });
   }
   await Promise.all([keepUser(u, f.site).catch(() => {}),
-    keepRequest(u, f.site, { name: clip(f.name, 120), phone, choice: clip(f.choice, 120), when: clip(f.when, 200), text: clip(f.message, 3000) }),
-    mailer.reply(f.site, { email, name: clip(f.name, 80), uid: u.uid, choice: clip(f.choice, 60), when: clip(f.when, 80) })]);
+    keepRequest(u, f.site, { name, phone, choice, when, text: message }),
+    mailer.reply(f.site, { email: u.email, name: name.slice(0, 80), uid: u.uid, choice: choice.slice(0, 60), when: when.slice(0, 80) })]);   // the reply: the account's own address
   res.json({ ok: true });
 });
 

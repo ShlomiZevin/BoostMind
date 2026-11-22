@@ -41,12 +41,16 @@ const content = require('./content');
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
 const nowIL = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date()).map((x) => [x.type, x.value])); return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`; };
 
+// the key, compared in constant time - both sides hashed first, so not even its length shows in the timing (22.11 security pass)
 function keyOk(req) {
   const got = String(req.get('x-publish-key') || req.get('authorization') || '').replace(/^(Key|Bearer) /, '');
   const want = LOCAL ? process.env.VERSE_PUBLISH_KEY || 'local-publish' : PUBLISH_KEY.value();
-  const a = Buffer.from(got), b = Buffer.from(want);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const h = (s) => crypto.createHash('sha256').update(String(s)).digest();
+  return !!got && !!want && crypto.timingSafeEqual(h(got), h(want));
 }
+// wrong keys: 10 an hour from one address (IPv6 by /64, counted across instances) and that address is shut out for the hour
+const guard = require('./guard');
+const shut = new Map();   // address -> until (this instance; the count itself is in Firestore)
 
 // title, teaser and the chat's card from the words (Terra) - only for what wasn't sent
 async function writeCopy(v, words, names, onScreen = '') {
@@ -180,7 +184,17 @@ async function handle(b) {
 
 exports.versePublish = onRequest({ region: 'europe-west1', secrets: LOCAL ? [] : [PUBLISH_KEY, OPENAI], maxInstances: 2, memory: '512MiB', timeoutSeconds: 300 }, async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
-  if (!keyOk(req)) return res.status(401).json({ error: 'key' });
+  const where = guard.ip(req);
+  if ((shut.get(where) || 0) > Date.now()) return res.status(429).json({ error: 'too_many' });
+  if (!keyOk(req)) {
+    if (await guard.limit(`publish:bad:${where}`, 10, guard.HOUR)) {
+      shut.set(where, Date.now() + guard.HOUR);
+      if (shut.size > 5000) shut.delete(shut.keys().next().value);
+      console.warn('versePublish: wrong keys, address shut out for an hour');
+      return res.status(429).json({ error: 'too_many' });
+    }
+    return res.status(401).json({ error: 'key' });
+  }
   try {
     const r = await handle(req.body || {});
     if (r.error) console.warn('versePublish', req.body?.op, req.body?.id, r.error);

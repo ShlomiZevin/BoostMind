@@ -92,16 +92,35 @@ const key = (v) => clean(v, 40).toLowerCase().replace(/[^a-z0-9_-]/g, '_') || '_
 const dayIL = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);  // YYYY-MM-DD
 const hourIL = (d = new Date()) => String(+new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', hour: '2-digit', hourCycle: 'h23' }).format(d));  // '0'..'23'
 
-// a few hundred events per address per hour, per instance - enough to stop a script filling the database
-const recent = new Map();
-const tooMany = (ip) => {
+// A flood can't fill the database or bend /stats/ much (22.11 security pass):
+//   - an address (IPv6 by /64) sends at most 240 events an hour, counted across both instances (guard.js) - a real visit sends tens;
+//   - "first today" (a visitor) counts at most 30 times a day per address (a family / an office behind one address still counts);
+//   - each instance takes at most 8,000 events an hour in all (a busy day is ~3,000) - past that, nothing more is written this hour;
+//   - each instance adds at most 1,500 new counter names to a day (the day doc had ~700 on the busiest day) - a script sending
+//     random x values can't grow the day's doc toward Firestore's 1 MB limit; past it, new names count as '<event>|_other'.
+const guard = require('./guard');
+const IP_HOUR = 240, FIRST_DAY = 30, INSTANCE_HOUR = 8000, NEW_KEYS_DAY = 1500;
+let hourAt = 0, hourN = 0;
+const instanceFull = () => {
   const now = Date.now();
-  const list = (recent.get(ip) || []).filter((t) => now - t < 3600e3);
-  list.push(now);
-  recent.set(ip, list);
-  if (recent.size > 5000) recent.clear();
-  return list.length > 300;
+  if (now - hourAt > 3600e3) { hourAt = now; hourN = 0; }
+  return ++hourN > INSTANCE_HOUR;
 };
+// (an instance that starts mid-day reads the names the day already has once, so a cold start doesn't hand out a fresh 1,500)
+let keysDay = '', keysSeen = new Set(), keysLoading = null;
+async function loadKeys(day) {
+  if (keysDay === day) return;
+  if (!keysLoading) keysLoading = db.collection('analytics_days').doc(day).get().then((d) => Object.keys((d.data() || {}).n || {})).catch(() => []);
+  const have = await keysLoading;
+  keysLoading = null;
+  if (keysDay !== day) { keysDay = day; keysSeen = new Set(have); }
+}
+function counterKey(day, k, e) {
+  if (keysSeen.has(k)) return k;
+  if (keysSeen.size >= NEW_KEYS_DAY) return `${e}|_other`;
+  keysSeen.add(k);
+  return k;
+}
 
 // a visit's length -> its bucket (upper edges in seconds; the last bucket is "over an hour"); the dashboard has the same list
 const TIME_EDGES = [5, 10, 20, 30, 45, 60, 90, 120, 180, 240, 300, 420, 600, 900, 1200, 1800, 2700, 3600];
@@ -114,10 +133,13 @@ exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency
   if (req.method === 'OPTIONS') return res.status(204).send('');
   if (req.method !== 'POST' || !ORIGINS.some((r) => r.test(origin))) return res.status(204).send('');
   if (/bot|crawl|spider|headless|preview|lighthouse/i.test(req.get('user-agent') || '')) return res.status(204).send('');
-  if (tooMany(req.ip)) return res.status(204).send('');
+  if ((req.rawBody && req.rawBody.length > 4000) || instanceFull()) return res.status(204).send('');
   let b;
   try { b = JSON.parse(typeof req.body === 'string' ? req.body : req.rawBody.toString('utf8')); } catch { return res.status(204).send(''); }
-  if (!b || !EVENTS.has(b.e)) return res.status(204).send('');
+  if (!b || typeof b !== 'object' || typeof b.e !== 'string' || !EVENTS.has(b.e)) return res.status(204).send('');
+  const where = guard.ip(req);
+  if (await guard.limit(`track:ip:${where}`, IP_HOUR, guard.HOUR)) return res.status(204).send('');
+  if (b.first && await guard.limit(`trackfirst:ip:${where}`, FIRST_DAY, guard.DAY)) b.first = b.fresh = false;
 
   const site = SITES.has(b.p) ? b.p : 'other';
   const src = SOURCES.has(b.r) ? b.r : 'other';
@@ -140,7 +162,10 @@ exports.track = onRequest({ region: 'europe-west1', maxInstances: 2, concurrency
       if (bp >= 0) day_.n[`tb|${bp}`] = FieldValue.increment(-1);
       else day_.time_n = inc;
     }
-  } else if (b.e !== 'search') day_.n[`${b.e}|${key(x)}`] = inc;    // search words go to the event log only
+  } else if (b.e !== 'search') {   // search words go to the event log only
+    await loadKeys(day);
+    day_.n[counterKey(day, `${b.e}|${key(x)}`, b.e)] = inc;
+  }
   if (b.e === 'view') day_.site = { [site]: inc };
   if (b.first) Object.assign(day_, { visitors: inc, src: { [src]: inc }, dev: { [b.m ? 'phone' : 'desktop']: inc } });  // the visitor's first event today
   if (b.fresh) day_.new_visitors = inc;                                 // a browser never seen before
@@ -170,10 +195,14 @@ exports.stats = onRequest({ region: 'europe-west1', maxInstances: 1, memory: '25
   const auth = req.get('authorization') || '';
   if (auth.startsWith('Key ')) {
     // 10 wrong codes an hour from one address and it stops answering, so a short code can't be guessed
-    const now = Date.now(), fails = (wrongKey.get(req.ip) || []).filter((t) => now - t < 3600e3);
+    const where = guard.ip(req), now = Date.now(), fails = (wrongKey.get(where) || []).filter((t) => now - t < 3600e3);
     if (fails.length >= 10) return res.status(429).json({ error: 'too_many' });
     const got = crypto.createHash('sha256').update(auth.slice(4)).digest();
-    if (!crypto.timingSafeEqual(got, Buffer.from(OWNER_KEY_SHA256, 'hex'))) { fails.push(now); wrongKey.set(req.ip, fails); return res.status(401).json({ error: 'key' }); }
+    if (!crypto.timingSafeEqual(got, Buffer.from(OWNER_KEY_SHA256, 'hex'))) {
+      fails.push(now); wrongKey.set(where, fails);
+      if (wrongKey.size > 5000) wrongKey.delete(wrongKey.keys().next().value);
+      return res.status(401).json({ error: 'key' });
+    }
   } else {
     try {
       const user = await admin.auth().verifyIdToken(auth.replace(/^Bearer /, ''));

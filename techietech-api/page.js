@@ -92,7 +92,8 @@ async function simPreview(rid) {
 }
 
 function inject(html, p, url) {
-  const set = (re, tag) => (re.test(html) ? (html = html.replace(re, tag)) : (html = html.replace('</head>', tag + '\n</head>')));
+  // a function, never a replacement string: "$&" / "$'" in a title or a visitor's card words would pull the page's own HTML in
+  const set = (re, tag) => (re.test(html) ? (html = html.replace(re, () => tag)) : (html = html.replace('</head>', () => tag + '\n</head>')));
   const title = esc(one(p.title, 90)), desc = esc(one(p.desc));
   set(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
   set(/<meta name="description"[^>]*>/, `<meta name="description" content="${desc}">`);
@@ -102,7 +103,7 @@ function inject(html, p, url) {
   if (p.img) {
     set(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${esc(p.img)}">`);
     // the default 1200x630 size belongs to the site's own picture; a portrait / poster has its own
-    html = html.replace(/<meta property="og:image:(width|height)"[^>]*>\n?/g, '');
+    html = html.replace(/<meta property="og:image:(width|height)"[^>]*>\n?/g, () => '');
     set(/<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${esc(p.img)}">`);
   }
   set(/<meta name="twitter:card"[^>]*>/, '<meta name="twitter:card" content="summary_large_image">');
@@ -213,27 +214,53 @@ async function greetingPage(req, res, id) {
     const v = g.ogV ? `?v=${g.ogV}` : '';   // the card's version: a redrawn card is a new address, so the CDN / WhatsApp never show the old one
     const img = card ? `${SITE}/greeting/${id}/c/${card.c}.jpg${v}` : `${SITE}/greeting/${id}/${g.og ? 'og.jpg' + v : 'poster.jpg'}`;   // og.jpg = its own preview card (scripts/greetings/og.cjs)
     html = inject(html, { title: `ברכה ל${g.forWho} · ${NAME}`, desc: card ? `״${card.msg}״${card.name ? ' — ' + card.name : ''}` : `מאת ${g.charName}${g.event ? ' · ' + g.event : ''}`, img }, card ? `${url}?c=${card.c}` : url);
-    if (g.og || card) html = html.replace('</head>', '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n</head>');
+    if (g.og || card) html = html.replace('</head>', () => '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n</head>');
     const data = { id, forWho: g.forWho, event: g.event || '', char: g.char, charName: g.charName, charImg: g.charImg || '', world: g.world || '', techy: !!g.techy, card, og: g.og ? `${SITE}/greeting/${id}/og.jpg${g.ogV ? '?v=' + g.ogV : ''}` : null, base: g.ogBase ? `${SITE}/greeting/${id}/og-base.jpg${g.ogV ? '?v=' + g.ogV : ''}` : null, shown: !!g.shownAt, shownAt: g.shownAt?.toDate ? g.shownAt.toDate().toISOString() : null,
       video: `${FN}/greeting/${id}/video.mp4`, poster: `${SITE}/greeting/${id}/poster.jpg`, download: `${FN}/greeting/${id}/video.mp4?dl=1`, url };
-    html = html.replace('<script id="g-data" type="application/json">null</script>', `<script id="g-data" type="application/json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
-    html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex">');
+    const json = JSON.stringify(data).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+    html = html.replace('<script id="g-data" type="application/json">null</script>', () => `<script id="g-data" type="application/json">${json}</script>`);
+    html = html.replace(/<meta name="robots"[^>]*>/, () => '<meta name="robots" content="noindex">');
   }
   res.set('Cache-Control', 'public, max-age=0, s-maxage=15');   // "הברכה נמסרה" shows to everyone within seconds
   res.set('Content-Type', 'text/html; charset=utf-8');
   res.status(g ? 200 : 404).send(html);
 }
 
+// Greetings' safety (22.11 security pass): ids are 14 random characters (~81 bits, scripts/greetings/greet.cjs), so they can't be
+// guessed - and an address that keeps asking for greetings that don't exist (30 an hour, counted across instances) is shut out of
+// every greeting address for the hour. The writes are counted per address too: new cards 20 an hour, "נמסרה" 10 an hour.
+const guard = require('./guard');
+const greetShut = new Map();   // address -> until (this instance)
+const greetBlocked = (where) => (greetShut.get(where) || 0) > Date.now();
+async function greetMiss(req, res, where) {
+  if (await guard.limit(`greet:miss:${where}`, 30, guard.HOUR)) {
+    greetShut.set(where, Date.now() + guard.HOUR);
+    if (greetShut.size > 5000) greetShut.delete(greetShut.keys().next().value);
+    return res.status(429).send('');
+  }
+  return res.status(404).send('');
+}
 exports.versePage = onRequest({ region: 'europe-west1', timeoutSeconds: 300, concurrency: 80, maxInstances: 5, memory: '512MiB' }, async (req, res) => {
   const [, kind = '', raw = '', file = ''] = req.path.split('/');
-  const id = decodeURIComponent(raw);
+  let id = '';
+  try { id = decodeURIComponent(raw); } catch { id = ''; }   // a broken %-escape is just a page that isn't there
   if (kind === 'greeting') {   // timeoutSeconds 300: a video streams to a slow phone
     try {
-      if (file === 'shown') { if (!greetId(id)) return res.status(404).send(''); return await greetingShown(req, res, id); }
-      if (file === 'card') { if (!greetId(id)) return res.status(404).send(''); return await greetingCard(req, res, id); }
-      if (file === 'c') { const h = String(req.path.split('/')[4] || ''); if (!greetId(id) || !/^[a-f0-9]{12}\.jpg$/.test(h) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, 'c/' + h); }
-      if (file === 'video.mp4' || file === 'poster.jpg' || file === 'og.jpg' || file === 'og-base.jpg') { if (!greetId(id) || !(await greetingRec(id))) return res.status(404).send(''); return await greetingFile(req, res, id, file); }
-      return await greetingPage(req, res, id);
+      const where = guard.ip(req);
+      if (greetBlocked(where)) return res.status(429).send('');
+      if (file === 'shown' || file === 'card') {
+        if (!greetId(id)) return await greetMiss(req, res, where);
+        if (req.method === 'POST' && await guard.limit(file === 'card' ? `greet:card:${where}` : `greet:shown:${where}`, file === 'card' ? 20 : 10, guard.HOUR)) return res.status(429).json({ error: 'many' });
+        await (file === 'shown' ? greetingShown(req, res, id) : greetingCard(req, res, id));
+        if (res.statusCode === 404) await guard.limit(`greet:miss:${where}`, 30, guard.HOUR);   // a well-formed id that isn't a greeting counts too
+        return;
+      }
+      if (file === 'c') { const h = String(req.path.split('/')[4] || ''); if (!greetId(id) || !/^[a-f0-9]{12}\.jpg$/.test(h) || !(await greetingRec(id))) return await greetMiss(req, res, where); return await greetingFile(req, res, id, 'c/' + h); }
+      if (file === 'video.mp4' || file === 'poster.jpg' || file === 'og.jpg' || file === 'og-base.jpg') { if (!greetId(id) || !(await greetingRec(id))) return await greetMiss(req, res, where); return await greetingFile(req, res, id, file); }
+      if (file) return res.status(404).send('');
+      await greetingPage(req, res, id);
+      if (res.statusCode === 404 && await guard.limit(`greet:miss:${where}`, 30, guard.HOUR)) greetShut.set(where, Date.now() + guard.HOUR);
+      return;
     } catch (e) { console.error('versePage greeting', req.path, e.message); if (!res.headersSent) res.status(500).send(''); return; }
   }
   let html;

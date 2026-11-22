@@ -188,10 +188,16 @@ const view = (d, fan) => {
     bt: (d.bt || []).map((t) => ({ a: t.a ?? null, react: t.react || '' })), n: d.n || null, issued: d.stamped && d.stamped.toMillis ? d.stamped.toMillis() : null, founding: !!d.founding, dept: d.dept || null, cls: d.cls || null, nick: fan.nick || '', photo: fan.photo || null, sim: fan.sim || null, test: !!d.test };
 };
 
+// every step that asks the AI costs money: an account 80 an hour, an address (IPv6 by /64) 200 an hour, across instances (22.11
+// security pass) - the whole journey is ~15 steps, so a person never meets it
+const AI_OPS = new Set(['checkin', 'bday', 'booth']);
+const guard = require('./guard');
 async function handle(req) {
-  const b = req.body || {}, op = b.op;
+  const b = req.body && typeof req.body === 'object' ? req.body : {}, op = typeof b.op === 'string' ? b.op : '';
+  for (const k of ['text', 'a', 'via']) if (b[k] !== undefined) b[k] = guard.text(b[k], 200);   // one line, no control characters
   const user = await who(req);
   if (!user) return { error: 'auth' };
+  if (AI_OPS.has(op) && (await guard.limit(`cz:uid:${user.uid}`, 80, guard.HOUR) || await guard.limit(`cz:ip:${guard.ip(req)}`, 200, guard.HOUR))) return { error: 'too_many' };
   const key = process.env.FUNCTIONS_EMULATOR === 'true' ? process.env.VERSE_OPENAI_KEY : KEY.value();
   const fanRef = db().collection('fans').doc(user.uid), ref = db().collection('citizens').doc(user.uid);
   const [fanSnap, got] = await Promise.all([fanRef.get(), ref.get()]);
@@ -384,7 +390,11 @@ async function handle(req) {
 
   // the flight seen (or skipped) -> the ID card; the card shared
   if (op === 'landed') { if (d.n || d.stamped) await ref.update({ step: 'done', done: FieldValue.serverTimestamp() }); return view({ ...d, step: d.n || d.stamped ? 'done' : d.step }, fan); }
-  if (op === 'shared') { await ref.update({ shares: FieldValue.increment(1), shareVia: FieldValue.arrayUnion(clip(b.via || 'link', 12)) }); return { ok: true }; }
+  if (op === 'shared') {   // a count, not a door: a known way only, and at most 20 an hour per account
+    if (await guard.limit(`czshare:uid:${user.uid}`, 20, guard.HOUR)) return { ok: true };
+    const via = /^[a-z]{1,12}$/.test(b.via || '') ? b.via : 'link';
+    await ref.update({ shares: FieldValue.increment(1), shareVia: FieldValue.arrayUnion(via) }); return { ok: true };
+  }
   return { error: 'op' };
 }
 
@@ -392,7 +402,7 @@ exports.verseCitizen = onRequest({ region: 'europe-west1', cors: CORS, secrets: 
   if (req.method !== 'POST') return res.status(405).json({ error: 'post' });
   try {
     const r = await handle(req);
-    res.status(r && r.error ? (r.error === 'auth' || r.error === 'resident' ? 401 : 400) : 200).json(r);
+    res.status(r && r.error ? (r.error === 'auth' || r.error === 'resident' ? 401 : r.error === 'too_many' ? 429 : 400) : 200).json(r);
   } catch (e) {
     console.error('verseCitizen', req.body && req.body.op, e.message);
     res.status(500).json({ error: 'server' });

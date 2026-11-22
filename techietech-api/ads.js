@@ -8,6 +8,7 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 const { FieldValue } = require('firebase-admin/firestore');
+const guard = require('./guard');
 
 const db = () => admin.firestore();
 const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(www\.)?shlomiverse\.com$/, /^http:\/\/localhost(:\d+)?$/];
@@ -36,9 +37,13 @@ async function who(req) {
 }
 
 async function coupon(req, id) {
+  id = String(id || '');
+  if (!/^[a-z0-9][a-z0-9_-]{0,59}$/i.test(id)) return { error: 'gone' };   // never a path ('a/took/b') into the database
+  // asking for codes: a few a minute per address is plenty for a person, across every instance (22.11 security pass)
+  if (await guard.limit(`coupon:ip:${guard.ip(req)}`, 30, guard.HOUR)) return { error: 'too_many' };
   const user = await who(req);
   if (!user) return { error: 'sign_in' };
-  const ref = db().collection('ads').doc(String(id || '').slice(0, 60));
+  const ref = db().collection('ads').doc(id);
   const a = (await ref.get()).data();
   if (!a || !a.live || !a.coupon || !a.coupon.code) return { error: 'gone' };
   const him = user.email === OWNER && user.email_verified;
@@ -52,6 +57,7 @@ async function coupon(req, id) {
 
 exports.verseAds = onRequest({ region: 'europe-west1', cors: CORS, memory: '256MiB', timeoutSeconds: 15, maxInstances: 5, concurrency: 80 }, async (req, res) => {
   try {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'method' });
     const op = req.query.op || 'list';
     if (op === 'list') { res.set('cache-control', 'public, max-age=60'); res.json(await list()); return; }
     if (op === 'coupon') { res.set('cache-control', 'private, no-store'); res.json(await coupon(req, req.query.id)); return; }

@@ -16,6 +16,7 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const mail = require('./mail');
+const guard = require('./guard');
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -137,17 +138,26 @@ async function scanBounces() {
 // or under it (no mail servers there: the online-play tests sign in as nettest-...@test.shlomiverse.com - 2026-11-12, six
 // welcome mails bounced in one day). One check for every kind of mail, in deliver().
 const realMail = (e) => !/\.(invalid|test|example|localhost)$|@example\.(com|org|net)$|@([\w-]+\.)*shlomiverse\.com$/i.test(String(e || '').trim());
+// one plain address - never a list ("a@b.c, victim@d.e"), a display name or anything that could become a header (22.11 security pass)
+const ONE_EMAIL = /^[A-Za-z0-9._%+'-]{1,64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,24}$/;
+const okEmail = (e) => typeof e === 'string' && e.length <= 254 && ONE_EMAIL.test(e);
+const oneLine = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001F\u007F]+/g, ' ').trim().slice(0, n);   // no CR / LF reaches a header
 let transport;
 // one pooled connection: logging in for every mail made Gmail answer "too many login attempts" (launch night)
 const gmail = () => (transport ||= nodemailer.createTransport({ service: 'gmail', pool: true, maxConnections: 1, maxMessages: 200,
   auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } }));
 // one mail out, and its line in mailLog (the backstage's "what we sent"), the HTML kept so it can be opened there
 async function deliver({ to, uid = null, kind, m, fromName = 'השלומיוורס', replyTo = OWNER, meta = {} }) {   // answers to any mail reach Shlomi
+  to = String(to || '').trim();
+  if (!okEmail(to)) { console.warn('mail skipped (not one plain address)', kind); return false; }
   if (!realMail(to)) { console.log('mail skipped (test address)', kind, to); return false; }
-  const log = { to, uid, kind, subject: m.subject, fromName, meta, t: FieldValue.serverTimestamp(), ok: false };
+  m = { ...m, subject: oneLine(m.subject, 250) };
+  fromName = oneLine(fromName, 80).replace(/["<>\\]/g, '') || 'השלומיוורס';
+  if (replyTo && !okEmail(replyTo)) replyTo = OWNER;
+  const log ={ to, uid, kind, subject: m.subject, fromName, meta, t: FieldValue.serverTimestamp(), ok: false };
   try {
     if (LOCAL) console.log('[local] mail not sent:', kind, to, m.subject);
-    else await gmail().sendMail({ from: `${fromName} <${GMAIL_USER.value()}>`, to, subject: m.subject, html: m.html, text: m.text, headers: m.headers, ...(replyTo ? { replyTo } : {}) });
+    else await gmail().sendMail({ from: { name: fromName, address: GMAIL_USER.value() }, to, subject: m.subject, html: m.html, text: m.text, headers: m.headers, ...(replyTo ? { replyTo } : {}) });
     log.ok = true;
   } catch (e) {
     log.error = String(e.message).slice(0, 300); console.error('mail failed', kind, to, e.message);
@@ -414,20 +424,44 @@ let repliesCache;
 const replies = () => (repliesCache ||= require('./replies.json'));
 const fill = (s, v) => String(s || '').replace(/\{\{(\w+)\}\}/g, (_, k) => v[k] || '').replace(/,\s*(?=[.!?:]|$)/g, '').replace(/\s+([,.!?])/g, '$1').replace(/\s{2,}/g, ' ').trim();
 // key: a site (techietech, ayelet, ...) or verse-<kind>. who: { email, name, uid, choice, when }
+// what a visitor typed, as it may appear in a mail FROM us: one line, short, and no links / addresses - so nobody can make our
+// characters mail a link in their name (22.11 security pass)
+const plain = (s, n) => guard.text(s, n).replace(/(https?:\/\/|www\.)\S*/gi, '').replace(/\S*[@/\\]\S*/g, '')
+  .replace(/\b[\w-]+(\.[\w-]+)*\.[a-z]{2,24}\b/gi, '').replace(/\s{2,}/g, ' ').trim();
+const OWN_LINK = /^(https:\/\/(www\.)?shlomiverse\.com)?\/(?![/\\])[\w\-./?=&%]*$/;   // '/v/<id>' or https://shlomiverse.com/... - never '//elsewhere'
 function replyMail(key, who, w) {
+  if (!Object.hasOwn(replies(), key)) return null;
   const r = replies()[key];
-  if (!r) return null;
-  const v = { first: first(who.name), choice: who.choice || '', when: who.when || '', order: who.order || '', title: who.title || '', link: who.link || '' };
+  const link = OWN_LINK.test(String(who.link || '')) ? String(who.link).slice(0, 300) : '';   // only our own pages
+  const v = { first: plain(first(who.name), 30), choice: plain(who.choice, 60), when: plain(who.when, 80), order: plain(who.order, 30), title: guard.text(who.title, 120), link };
   const face = r.char && r.char !== 'verse' ? faceOf(w, r.char) : `${SITE}/verse/logo-512.png`;
   const d = { subject: fill(r.subject, v), preheader: fill(r.preheader, v), chip: fill(r.chip, v), title: fill(r.title, v), paras: (r.paras || []).map((x) => fill(x, v)),
-    sign: r.sign, signRole: r.signRole, face, site: r.site, cta: r.cta?.label ? { label: r.cta.label, href: fill(r.cta.href, v) || r.cta.href } : null };
+    sign: r.sign, signRole: r.signRole, face, site: r.site, cta: r.cta?.label ? { label: r.cta.label, href: fill(r.cta.href, v) || (String(r.cta.href).includes('{{') ? '/' : r.cta.href) } : null };
   return { r, d };
+}
+// The automatic reply can't be turned into a way to mail someone else (22.11: the probe's auto-replies went to throwaway inboxes):
+//   - an address that is not the account's own gets at most 1 reply a day (verse.js answers to a typed contact address);
+//   - any one address at most 4 replies a day, any one account 6, all replies together 300 a day (Gmail's limit is ~500);
+//   - 'verse-found' (sent when HE marks a request found) skips the first rule but still counts.
+const REPLY_MAX = { address: 4, foreign: 1, account: 6, all: 300 };
+async function replyAllowed(key, email, uid) {
+  const addr = email.toLowerCase();
+  let own = false;
+  if (uid) { const u = await admin.auth().getUser(String(uid)).catch(() => null); own = !!(u && u.email && u.email.toLowerCase() === addr); }
+  const limits = [[`reply:addr:${addr}`, REPLY_MAX.address, guard.DAY], ['reply:all:day', REPLY_MAX.all, guard.DAY]];
+  if (uid) limits.push([`reply:uid:${uid}`, REPLY_MAX.account, guard.DAY]);
+  if (!own && key !== 'verse-found') limits.unshift([`reply:foreign:${addr}`, REPLY_MAX.foreign, guard.DAY]);
+  for (const [k, n, w] of limits) if (await guard.limit(k, n, w)) { console.warn('reply refused (limit)', key, k.split(':').slice(0, 2).join(':')); return false; }
+  return true;
 }
 async function reply(key, who) {
   try {
-    if (!who?.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(who.email)) return false;
+    const email = String(who?.email || '').trim();
+    if (!okEmail(email)) return false;
+    who = { ...who, email };
     const x = replyMail(key, who, await wiki());
     if (!x) return false;
+    if (!(await replyAllowed(key, email, who.uid))) return false;
     const m = mail.render('reply', x.d, { unsub: who.uid ? prefsLink(who.uid) : undefined });
     const ok = await deliver({ to: who.email, uid: who.uid || null, kind: 'reply', m, fromName: x.r.fromName, replyTo: OWNER, meta: { site: key } });
     // a reply counts as the day's mail: no marketing mail on top of it the same day
@@ -436,12 +470,17 @@ async function reply(key, who) {
   } catch (e) { console.error('reply failed', key, e.message); return false; }
 }
 
-// Yotamverse's orders are written straight to Firestore by its page - the reply follows the new order
+// Yotamverse's orders are written straight to Firestore by its page - the reply follows the new order.
+// gp-orders can be written by anyone, so the reply never goes to an address written in the order: only to the signed-in account
+// the order names (its uid), at that account's own verified address (22.11 security pass)
 exports.verseOrderReply = onDocumentCreated({ document: 'gp-orders/{id}', region: 'europe-west1', secrets: SECRETS, memory: '256MiB', timeoutSeconds: 60 }, async (event) => {
   const o = event.data?.data() || {};
-  const email = o.email || o.customerEmail || o.contact?.email;
-  await reply('yotamverse', { email, name: o.name || '', uid: o.uid || null, order: o.orderNum ? String(o.orderNum) : '',
-    choice: (o.items || []).map((i) => i.name).filter(Boolean).slice(0, 4).join(', ') });
+  if (typeof o.uid !== 'string' || !/^[A-Za-z0-9]{10,128}$/.test(o.uid)) return;
+  const u = await admin.auth().getUser(o.uid).catch(() => null);
+  if (!u || u.disabled || !u.email || !u.emailVerified) return;
+  if (String(o.email || '').toLowerCase() !== u.email.toLowerCase()) { console.warn('order reply skipped: not the account address', event.params.id); return; }
+  await reply('yotamverse', { email: u.email, name: guard.text(o.name, 80), uid: u.uid, order: o.orderNum ? guard.text(String(o.orderNum), 30) : '',
+    choice: (Array.isArray(o.items) ? o.items : []).map((i) => i && i.name).filter((n) => typeof n === 'string').slice(0, 4).join(', ') });
 });
 
 // ---------- the choices page (the link in every mail) ----------
@@ -455,8 +494,11 @@ input[type=checkbox]{width:24px;height:24px;accent-color:#ff6a1f}button{width:10
 .go{background:#ff6a1f;color:#fff}.off{background:transparent;color:#b9b9c4;text-decoration:underline;font-weight:600;font-size:15px}a{color:#ff8a3d}</style></head>
 <body><div class="c"><a href="${SITE}"><img src="${SITE}/verse/logo-512.png" alt="השלומיוורס"></a>${inner}</div></body></html>`;
 exports.verseMail = onRequest({ region: REGION, secrets: SECRETS, maxInstances: 2, memory: '256MiB', timeoutSeconds: 30 }, async (req, res) => {
-  const uid = String(req.query.u || req.body?.u || ''), t = String(req.query.t || req.body?.t || '');
-  if (!uid || !okToken(uid, t)) return res.status(400).send(page('קישור לא תקין', '<h1>הקישור לא תקין</h1><p>נסו את הקישור מהמייל האחרון.</p>'));
+  const uid = String(req.query.u || req.body?.u || '').slice(0, 128), t = String(req.query.t || req.body?.t || '').slice(0, 200);
+  if (!uid || !okToken(uid, t)) {
+    if (await guard.limit(`mailprefs:bad:${guard.ip(req)}`, 30, guard.HOUR)) return res.status(429).send(page('נסו מאוחר יותר', '<h1>יותר מדי ניסיונות</h1><p>נסו שוב בעוד שעה.</p>'));
+    return res.status(400).send(page('קישור לא תקין', '<h1>הקישור לא תקין</h1><p>נסו את הקישור מהמייל האחרון.</p>'));
+  }
   const ref = db.collection('mailUsers').doc(uid);
   // the mail app's own "unsubscribe" button (List-Unsubscribe-Post): one click, everything off
   if (req.method === 'POST' && (req.query.one || String(req.body?.['List-Unsubscribe'] || '') === 'One-Click')) {
