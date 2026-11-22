@@ -119,6 +119,24 @@ Cast: <id> (new | existing) ...
 ```
 The repo is public: no keys, no faces, no footage, no private people's material in this folder.
 
+## Real people, real depth - how every world piece is built (his words, 2026-11-22)
+"In the verse we do everything as real persons. With עומק and information and data. The parody is real life parody."
+- A resident's site, service, book, program or product is built **exactly like the real thing at full depth** - what a real
+  professional of that kind actually publishes: a career and education timeline, credentials with years and institutions,
+  the method explained step by step, how a process works (session length, stages, what you get), FAQs, case studies,
+  numbers and outcomes ("87% of the managers in the program..."), media appearances and publications with dates, a book's
+  page count / publisher / edition / chapters, an address and hours in a real city, a price list where the real thing has
+  one (the form is still never a payment).
+- **The parody IS real life**: the joke is how exactly it matches the real industry - its language, its claims, its
+  data-dressing. Never a wink, never a gag section, never thin placeholder copy. If a real site of that kind would have
+  it, ours has it; if ours looks emptier than the real ones, it isn't done.
+- Brief every builder with this paragraph, and reject work that is shallow.
+
+## When things go live
+**Nothing goes public before the video is released** (his rule, 2026-11-22: "don't deploy anything, we are preparing stuff
+for the video") - no stories, no posts, no announcements. The one exception: **the resident's own site may go live as soon
+as it is ready and checked** (it's their real presence in the world). Everything else waits for release day.
+
 ## His standards (each one cost a round somewhere - the details live in the skills named)
 - **The verse is a real world.** Residents are real people; their site plays it straight, the joke is in their voice and from
   his scripts. Words: תושבים (never דמויות), המייסדים (never "של שלומי"), never מעריצים / פרודיה / פרק / מערכון (words.md in
