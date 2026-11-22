@@ -50,8 +50,8 @@ their site, a new page, a life event) - check what is already there first.
 | Who | Owns in a release | You give them |
 |---|---|---|
 | **VRM (you)** | the release plan, the world ideas, the briefs, the gate, the order on the day, the release file | - |
-| **Editor** - a Studio session (e.g. "Studio Dialoug") or a sub-agent you brief, running edit-video | the video project in Shlomiverse Studio | the script / footage, the cast ids, the drop idea, the end card's URL, the deadline |
-| **Marketing** (the "Marketing" session, Remote Control; skill shlomiverse-marketing) | posters, stories for Instagram, teasers, launch sets | a marketing brief (below) once the cut and the world pieces exist |
+| **Editor** - ALWAYS a NEW editor per release (his rule, 2026-11-22: "always new editor"): a fresh sub-agent you brief, running edit-video - never an existing Studio session | the video project in Shlomiverse Studio | the script / footage, the cast ids, the drop idea, the end card's URL, the deadline |
+| **Marketing** - the current "Marketing" session (Remote Control; skill shlomiverse-marketing); if it isn't available, open a dedicated one (a sub-agent running shlomiverse-marketing) - his call, 2026-11-22 | posters, stories for Instagram, teasers, launch sets | a marketing brief (below) once the cut and the world pieces exist |
 | **Voice** (shlomiverse-voice) | the resident's sheet, how they talk anywhere; their comments under the video (automatic, comments.js) | the new resident + the facts the video adds |
 | **Platform** (shlomiverse-platform) | how a new site / page plugs in (route, listing, sign-in, deploy) - its plug-in checklist | the new page before it goes live |
 | **Conversion** (shlomiverse-conversion) | anything in the release that aims at sign-ins / daily return (a new tool, a wall, a hook) | timing - its launch rides on your release day |
