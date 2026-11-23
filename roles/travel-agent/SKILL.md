@@ -70,6 +70,23 @@ on Booking AND on its own site; the best hotels showed no price at all (= sold o
     (ht_id=204 hotels only, mealplan=1 breakfast included; add `distance%3D1500` for the centre).
   - Decline optional cookies; never pay, never fill passenger data; close your tabs when done.
 
+## Collaboration email to the hotel (when he asks)
+He sometimes offers the hotel he books a few comedy videos shot there. Short, in English for a foreign hotel, sent from
+shlomi@boostart.io (nodemailer with the hotel-outreach app's Gmail credentials, c:\workspace\hotel-outreach\server\.env;
+log it in that app's server/data.json). The shape that he approved (Diana Dauphine, 2026-11-23):
+1. Thanks (for the call, if he called) + "my partner and I are booking a stay with you <dates>, for <why>".
+2. Who he is in two lines: comedy creator from Israel, recurring characters followed like a series, tens to hundreds of
+   thousands of views per video, Wolt (3 videos, 500K+ organic views). Follower counts only if he gives current ones.
+3. The Shlomiverse with live numbers (`node c:/workspace/boostart/skills/bizdev/verse-stats.mjs`).
+4. The idea: 3 short comedy videos at the hotel (room, breakfast, lobby, the city) with the hotel tagged.
+5. "We are coming either way" + open to whatever works for them (a hosted night, an upgrade, their idea).
+6. His channels as DIRECT links, never "search for me", never a boostmind-b052c.web.app URL:
+   TikTok https://www.tiktok.com/@shlomizevin · Instagram https://www.instagram.com/shlomizevin ·
+   Facebook https://www.facebook.com/shazbak · YouTube https://www.youtube.com/@shlomizevin · https://shlomiverse.com
+7. Signature: Shlomi Zevin · shlomi@boostart.io | +972 54-556-7213.
+Send only when he says send; one email per hotel (no follow-ups unless he asks). When it went out, start your reply with
+"Sent" and the address, so he knows it is gone. A reply from the hotel = answer inside its thread.
+
 ## The trip app (where a booked trip lives)
 His own trip guide app: https://boostart-trips.web.app (repo c:\workspace\trip-planner, private GitHub ShlomiZevin/trip-planner).
 Once a trip is booked it goes into the app as one trip document: days, places, meals, wallet (flights, hotel, train),
