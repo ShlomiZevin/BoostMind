@@ -122,6 +122,8 @@ textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .bar{display:block;height:6px;border-radius:9px;background:#2d2825;overflow:hidden;margin:6px 0 4px}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#b07cff,#ff7b2e);transition:width .8s ease}
 .media{position:relative;border-radius:var(--r);overflow:hidden;background:#0c0a09;margin-bottom:12px;display:grid;place-items:center;min-height:200px}
+.chk{background:repeating-conic-gradient(#3a3532 0 25%,#2a2624 0 50%) 0 0/22px 22px !important}
+.bghint{grid-column:1/-1;margin:-2px 2px 0;font-size:12.5px;color:var(--dim)}
 .media .mtag{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:3px 9px;font-size:13px;font-weight:600}
 .media img,.media video{width:100%;max-height:70dvh;object-fit:contain;display:block}
 .wait{display:grid;place-items:center;gap:12px;padding:46px 20px;text-align:center;color:var(--dim);width:100%}
@@ -246,14 +248,14 @@ function fileOf(j) {
     const r = await fetch(`/piko/api/jobs/${j.id}/file`, { headers: { authorization: 'Bearer ' + await O.auth.currentUser.getIdToken() } });
     if (!r.ok) throw new Error('file ' + r.status);
     const b = await r.blob(), v = j.kind === 'video';
-    return new File([b], `piko-${j.id.slice(0, 6)}.${v ? 'mp4' : 'jpg'}`, { type: v ? 'video/mp4' : (b.type || 'image/jpeg') });
+    return new File([b], `piko-${j.id.slice(0, 6)}.${v ? 'mp4' : /png/.test(b.type) ? 'png' : 'jpg'}`, { type: v ? 'video/mp4' : (b.type || 'image/jpeg') });
   })().catch((e) => { files.delete(j.id); throw e; }));
   return files.get(j.id);
 }
 
 // ---- state ----
 // his defaults (2026-11-07): story format 9:16, low quality, sound on; 2 pictures at once, 1 video
-const DEF = { video: { model: 'mini', duration: 6, quality: '480p', ratio: '9:16' }, image: { model: 'flare', size: 'story', quality: 'low', count: 2 } };
+const DEF = { video: { model: 'mini', duration: 6, quality: '480p', ratio: '9:16' }, image: { model: 'flare', size: 'story', quality: 'low', count: 2, bg: 'auto' } };
 const S = JSON.parse(localStorage.getItem('piko2') || 'null') || {};
 // what he was in the middle of (the prompt + the pictures) survives a reload - the phone drops a PWA in the background
 const DRAFT = 'piko-draft';
@@ -412,7 +414,7 @@ async function make(again) {
     kind: st.mode, prompt: st.prompt.trim(),
     body: st.mode === 'video'
       ? { start: input(st.start), end: input(st.end), model: st.video.model, duration: st.video.duration, quality: st.video.quality, ratio: st.video.ratio }
-      : { refs: st.refs.map(input), model: st.image.model, size: st.image.size, quality: st.image.quality, count: st.image.count },
+      : { refs: st.refs.map(input), model: st.image.model, size: st.image.size, quality: st.image.quality, count: st.image.count, bg: st.image.bg || 'auto' },
   };
   if (!p.prompt) { toast(ERR.prompt); $('#prompt')?.focus(); return; }
   const go = $('.go'); if (go) { go.disabled = true; go.querySelector('.row').innerHTML = `<span class="spin" style="width:22px;height:22px;border-width:3px"></span> שולח…`; }
@@ -434,7 +436,7 @@ function againOf(j) {
   const inp = j.inputs || {};
   return { kind: j.kind, prompt: j.prompt, body: j.kind === 'video'
     ? { start: inp.start ? { url: inp.start } : undefined, end: inp.end ? { url: inp.end } : undefined, model: j.params?.model, duration: j.params?.duration, quality: j.params?.quality, ratio: j.params?.ratio }
-    : { refs: (inp.refs || []).map((u) => ({ url: u })), model: j.params?.model, size: j.params?.size, quality: j.params?.quality, count: 1 } };
+    : { refs: (inp.refs || []).map((u) => ({ url: u })), model: j.params?.model, size: j.params?.size, quality: j.params?.quality, count: 1, bg: j.params?.bg } };
 }
 
 // ---- jobs being made: pushed, not polled ----
@@ -532,10 +534,12 @@ const QUAL = { low: 'טיוטה', medium: 'רגילה', high: 'גבוהה', '480
 const sel = (list, cur) => list.map(([k, l]) => `<option value="${k}" ${String(k) === String(cur) ? 'selected' : ''}>${l}</option>`).join('');
 const label = (list, k) => (list.find(([x]) => String(x) === String(k)) || [k, k])[1];
 // a setup in words: "טיוטה · 6 שניות · נמוכה · סטורי (9:16)"
+// the background (his ask, 2026-11-23): auto = the model leaves a sticker without one by itself
+const BGS = [['auto', 'אוטומטי'], ['transparent', 'שקוף'], ['opaque', 'עם רקע']];
 const mName = (m) => (m === 'sunburst' ? 'Sunburst' : m === 'mix' ? 'מיקס' : 'Flare');
 function describe(mode, p) {
   return mode === 'video' ? `${label(VMODELS, p.model || 'mini')} · ${p.duration} שניות · ${QUAL[p.quality]} · ${label(RATIOS, p.ratio)}`
-    : `${p.count === 1 ? 'תמונה אחת' : p.count + ' תמונות'} · ${QUAL[p.quality]} · ${label(SIZES, p.size)} · ${mName(p.model)}`;
+    : `${p.count === 1 ? 'תמונה אחת' : p.count + ' תמונות'} · ${QUAL[p.quality]} · ${label(SIZES, p.size)} · ${mName(p.model)}${p.bg && p.bg !== 'auto' ? ' · ' + label(BGS, p.bg) : ''}`;
 }
 // ---- saved setups: one tap fills every option ----
 const isOn = (p) => Object.entries(p.params).every(([k, v]) => String(st[p.mode][k]) === String(v));
@@ -625,6 +629,8 @@ function vMake() {
       <label class="opt"><span>כמה תמונות</span><select data-set="image.count">${sel([1, 2, 3, 4].map((n) => [n, n === 1 ? 'תמונה אחת' : n + ' תמונות']), st.image.count)}</select></label>
       <label class="opt"><span>איכות</span><select data-set="image.quality"><option value="low" ${st.image.quality === 'low' ? 'selected' : ''}>טיוטה</option><option value="medium" ${st.image.quality === 'medium' ? 'selected' : ''}>רגילה</option><option value="high" ${st.image.quality === 'high' ? 'selected' : ''}>גבוהה</option></select></label>
       <label class="opt"><span>דגם</span><select data-set="image.model"><option value="flare" ${st.image.model === 'flare' ? 'selected' : ''}>Flare</option><option value="sunburst" ${st.image.model === 'sunburst' ? 'selected' : ''}>Sunburst</option><option value="mix" ${st.image.model === 'mix' ? 'selected' : ''}>מיקס חצי-חצי</option></select></label>
+      <label class="opt" style="grid-column:1/-1"><span>רקע</span><select data-set="image.bg">${sel(BGS, st.image.bg || 'auto')}</select></label>
+      <p class="bghint">${(st.image.bg || 'auto') === 'auto' ? 'מדבקה יוצאת בלי רקע (שקוף) לבד, תמונה רגילה עם רקע' : st.image.bg === 'transparent' ? 'כל תמונה יוצאת בלי רקע (PNG שקוף)' : 'תמיד עם רקע'}</p>
     </div>`}
     ${st.presets.filter((p) => p.mode === st.mode).some(isOn) ? '' : `<button class="link" data-presave>${IC.plus}לשמור כהגדרה בלחיצה אחת</button>`}</div>` : ''}
   <button class="go" data-go-make><span class="row">${IC.spark}${v ? 'יוצרים סרטון' : st.image.count > 1 ? `יוצרים ${st.image.count} תמונות` : 'יוצרים תמונה'}</span><small>${est != null ? '≈ ' + usd(est) : ''}</small></button>
@@ -642,19 +648,19 @@ function vJob() {
 function block(j) {
   const isV = j.kind === 'video';
   const media = j.status === 'done' && j.url
-    ? (isV ? `<video src="${esc(j.url)}" ${j.poster ? `poster="${esc(j.poster)}"` : ''} controls playsinline autoplay loop></video>` : `<img src="${esc(j.url)}" alt=""><span class="mtag">${mName(j.params?.model)}</span>`)
+    ? (isV ? `<video src="${esc(j.url)}" ${j.poster ? `poster="${esc(j.poster)}"` : ''} controls playsinline autoplay loop></video>` : `<img src="${esc(j.url)}" alt=""><span class="mtag">${mName(j.params?.model)}${j.clear ? ' · שקוף' : ''}</span>`)
     : j.status === 'failed' ? '' : `<div class="wait" data-live="${j.id}"><span class="spin"></span><b style="color:var(--text)">${isV ? 'מכין את הסרטון' : 'מצייר'}… <span class="pct">${pct(j)}</span></b>
       <span class="bar"><i style="width:${barW(j)}%"></i></span><span>${isV ? 'בערך דקה-שתיים.' : 'בערך חצי דקה.'} אפשר לסגור, זה ממשיך ונשמר לבד.</span></div>`;
   return `<div data-block="${j.id}">
-  ${j.status === 'failed' ? `<div class="err">לא הצליח${j.error ? ': ' + esc(j.error) : ''}</div>` : `<div class="media">${media}</div>`}
+  ${j.status === 'failed' ? `<div class="err">לא הצליח${j.error ? ': ' + esc(j.error) : ''}</div>` : `<div class="media${j.clear ? ' chk' : ''}">${media}</div>`}
   ${j.status === 'done' ? `<div class="acts">
       <button class="pri" data-share="${j.id}">${IC.share}שיתוף</button>
       <button data-save="${j.id}">${IC.down}שמירה</button>
       <button data-again="${j.id}">${IC.again}עוד גרסה</button>
     </div>
-    ${!isV ? `<div class="acts"><button data-tovideo="${j.id}">${IC.video}לסרטון</button><button data-toref="${j.id}">${IC.gallery}להמשיך ממנה</button><button data-edit="${j.id}">${IC.edit}לשנות</button></div>`
+    ${!isV ? `<div class="acts"><button data-tovideo="${j.id}">${IC.video}לסרטון</button><button data-toref="${j.id}">${IC.gallery}להמשיך ממנה</button><button data-edit="${j.id}">${IC.edit}לשנות</button></div>${j.clear ? '' : `<div class="acts" style="grid-template-columns:1fr"><button data-nobg="${j.id}">${IC.image}בלי רקע (PNG שקוף)</button></div>`}`
       : `<div class="acts" style="grid-template-columns:1fr"><button data-edit="${j.id}">${IC.edit}לשנות את הבקשה ולנסות</button></div>`}
-    <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span><span>${isV ? label(VMODELS, j.params?.model || 'mini') : mName(j.params?.model)}</span>${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
+    <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span><span>${isV ? label(VMODELS, j.params?.model || 'mini') : mName(j.params?.model)}</span>${j.clear ? '<span>בלי רקע · PNG</span>' : ''}${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
     <button class="link" data-del="${j.id}" style="width:100%;justify-content:center;color:var(--dim);margin:0 0 6px">${IC.trash}להוריד מהגלריה</button>`
     : j.status === 'failed' ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button class="pri" data-again="${j.id}">${IC.again}לנסות שוב</button><button data-edit="${j.id}">${IC.edit}לשנות ולנסות</button></div>` : ''}
   </div>`;
@@ -664,7 +670,7 @@ function tile(j) {
   const pic = j.kind === 'video' ? (j.poster || '') : (j.url || '');
   const when = new Date(j.created || Date.now());
   const day = when.toDateString() === new Date().toDateString() ? 'היום' : when.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
-  return `<button class="tile" data-open="${j.id}" data-tile="${j.id}"><div class="th">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}
+  return `<button class="tile" data-open="${j.id}" data-tile="${j.id}"><div class="th${j.clear ? ' chk' : ''}">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}
     ${j.kind === 'image' && j.status === 'done' ? `<span class="badge">${mName(j.params?.model)}</span>` : ''}
     ${j.kind === 'video' && j.status === 'done' ? `<span class="badge">${IC.play}0:${String(Math.round(j.dur || j.params?.duration || 0)).padStart(2, '0')}</span>` : ''}
     ${live(j) ? `<span class="st" data-live="${j.id}">${j.kind === 'video' ? 'מכין…' : 'מצייר…'} <span class="pct">${pct(j)}</span></span>` : j.status === 'failed' ? '<span class="st">לא הצליח</span>' : ''}</div>
@@ -737,6 +743,9 @@ function wire() {
   on('tovideo', (j) => { st.mode = 'video'; st.start = { src: j.url, job: j.id }; st.prompt = ''; st.heard = ''; keep(); show('make'); });
   on('toref', (j) => { st.mode = 'image'; st.refs = [{ src: j.url, job: j.id }]; st.prompt = ''; st.heard = ''; keep(); show('make'); });
   on('del', (j) => askDelete(j));
+  // the same picture again without its background: the picture itself is the reference, the model told to change nothing else
+  on('nobg', (j) => make({ kind: 'image', prompt: 'אותה תמונה בדיוק, רק בלי הרקע: הרקע שקוף לגמרי. לא לשנות שום דבר בדמויות, בחפצים, בצבעים ובכתב.',
+    body: { refs: [{ job: j.id }], model: j.params?.model || 'flare', size: j.params?.size || 'story', quality: j.params?.quality || 'low', count: 1, bg: 'transparent' } }));
 }
 // "change and try again": the request back on the make screen
 function loadInto(j) {

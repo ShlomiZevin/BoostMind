@@ -52,7 +52,7 @@ Wherever a picture goes in (`refs`, `start`, `end`), it can be:
 ```json
 { "prompt": "האיש מהתמונה כפיראט על סיפון ספינה", "refs": ["data:image/jpeg;base64,..."], "model": "flare", "size": "story", "quality": "low", "count": 2 }
 ```
-`model`: `flare` (default) | `sunburst` | `mix` (the `count` pictures split between the two - 2 = 1+1, 3 = 2+1, 4 = 2+2; each job's `params.model` says which one made it). `size`: `story` (864×1536, 9:16 - default) | `portrait` (1024×1536) | `square` | `landscape`.
+`model`: `flare` (default) | `sunburst` | `mix` (the `count` pictures split between the two - 2 = 1+1, 3 = 2+1, 4 = 2+2; each job's `params.model` says which one made it). `bg`: `auto` (default - the model decides: a sticker comes back transparent, a scene with its background) | `transparent` | `opaque`; a transparent result is a PNG and the job says `clear: true`, any other is a JPEG. `size`: `story` (864×1536, 9:16 - default) | `portrait` (1024×1536) | `square` | `landscape`.
 `quality`: `low` (default, ~$0.005) | `medium` | `high`. `refs`: up to 16 reference images. The prompt goes to GPT Image as written (Hebrew is fine). `count`: 1-4 pictures made side by
 side (default 1) - the answer is the first job plus `jobs` (all of them, one `batch`). Takes ~20-60 s.
 

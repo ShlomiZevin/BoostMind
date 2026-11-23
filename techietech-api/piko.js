@@ -44,6 +44,10 @@ const IMAGE = {
   models: ['flare', 'sunburst'],
   sizes: { story: '864x1536', portrait: '1024x1536', square: '1024x1024', landscape: '1536x1024' },   // story = 9:16 exactly (tested)
   qualities: ['low', 'medium', 'high'],
+  // the background (his ask, 2026-11-23: stickers without a background): 'auto' = the image model decides - a sticker comes
+  // back transparent, a scene with its background (tested: "מדבקה של חתול" -> transparent, "חתול על סיפון ספינה" -> opaque);
+  // 'transparent' / 'opaque' force it. A transparent one is kept as PNG, any other as JPEG (as before)
+  backgrounds: ['auto', 'transparent', 'opaque'],
   maxRefs: 16,                                   // what /v1/images/edits takes
   maxCount: 4,                                   // pictures per request, made side by side (one job each)
   price: { text: 5, image: 8, out: 30 },        // GPT Image 2.6 list price (= 2.5), $ per 1M tokens (the job's own cost line)
@@ -72,7 +76,7 @@ const PRESETS = [
 // model 'mix' (his ask, 2026-11-23): the pictures of one request split between Flare and Sunburst - 2 = 1+1, 3 = 2+1, 4 = 2+2;
 // each job gets its own real model (createJob), so the worker and the result always show which one made it
 const imageParams = (b = {}) => ({ model: IMAGE.models.includes(b.model) || b.model === 'mix' ? b.model : DEFAULT.image.model, size: IMAGE.sizes[b.size] ? b.size : DEFAULT.image.size,
-  quality: IMAGE.qualities.includes(b.quality) ? b.quality : DEFAULT.image.quality });
+  quality: IMAGE.qualities.includes(b.quality) ? b.quality : DEFAULT.image.quality, bg: IMAGE.backgrounds.includes(b.bg) ? b.bg : 'auto' });
 const videoParams = (b = {}) => ({ model: VIDEO.models[b.model] ? b.model : DEFAULT.video.model, duration: Math.min(VIDEO.max, Math.max(VIDEO.min, Math.round(+b.duration || DEFAULT.video.duration))),
   quality: VIDEO.qualities.includes(b.quality) ? b.quality : DEFAULT.video.quality, ratio: VIDEO.ratios.includes(b.ratio) ? b.ratio : DEFAULT.video.ratio });
 const countOf = (b = {}, dflt = 1) => Math.min(IMAGE.maxCount, Math.max(1, Math.round(+b.count || dflt)));
@@ -200,7 +204,9 @@ async function forVideo(prompt, { start, end }) {
 
 async function image(job, refs) {
   const p = job.params;
-  const fields = { model: 'gpt-image-2.6-' + p.model, prompt: job.promptEn || job.prompt, size: IMAGE.sizes[p.size], quality: p.quality, n: 1, output_format: 'jpeg', output_compression: 92 };
+  const fields = { model: 'gpt-image-2.6-' + p.model, prompt: job.promptEn || job.prompt, size: IMAGE.sizes[p.size], quality: p.quality, n: 1,
+    // PNG out so the model can leave the background transparent; an opaque one is turned into a JPEG below (a PNG is 5x the size)
+    background: p.bg || 'auto', output_format: 'png' };
   const auth = { authorization: `Bearer ${OPENAI.value()}` };
   let r;
   if (refs.length) {
@@ -217,7 +223,10 @@ async function image(job, refs) {
   const u = j.usage || {}, d = u.input_tokens_details || {};
   const usd = ((d.text_tokens || 0) * IMAGE.price.text + (d.image_tokens || 0) * IMAGE.price.image + (u.output_tokens || 0) * IMAGE.price.out) / 1e6;
   const [w, h] = IMAGE.sizes[p.size].split('x').map(Number);
-  return { buf: Buffer.from(b64, 'base64'), usd: +usd.toFixed(4), w, h };
+  const png = Buffer.from(b64, 'base64'), sharp = require('sharp');
+  const clear = j.background === 'transparent' || (j.background !== 'opaque' && !(await sharp(png).stats()).isOpaque);
+  const buf = clear ? png : await sharp(png).flatten({ background: '#ffffff' }).jpeg({ quality: 92, mozjpeg: true }).toBuffer();
+  return { buf, clear, usd: +usd.toFixed(4), w, h };
 }
 
 // ---------------------------------------------------------------- EvoLink (videos) ----------------------------------------------------------------
@@ -350,7 +359,7 @@ async function loadInput(path) {
 // the result: into the library (his) or the client's own folder (a client without the library)
 async function save(job, buf, kind, m) {
   const md5 = crypto.createHash('md5').update(buf).digest('hex');
-  const ext = kind === 'video' ? 'mp4' : 'jpg', type = kind === 'video' ? 'video/mp4' : 'image/jpeg';
+  const ext = kind === 'video' ? 'mp4' : m.clear ? 'png' : 'jpg', type = kind === 'video' ? 'video/mp4' : m.clear ? 'image/png' : 'image/jpeg';
   const day = new Date().toISOString().slice(0, 10);
   const name = `piko-${day}-${md5.slice(0, 8)}`;
   if (!job.library) {
@@ -415,7 +424,7 @@ async function view(id, j, full) {
   return {
     id, kind: j.kind, status: j.status, prompt: j.prompt, params: j.params, by: j.by, client: j.client,
     progress: j.progress ?? null, error: j.error || null, created: ms(j.t), done: j.done || null, batch: j.batch || null,
-    usd: j.usd ?? null, estimate: j.estimate ?? null, w: j.w || null, h: j.h || null, dur: j.dur || null,
+    usd: j.usd ?? null, estimate: j.estimate ?? null, clear: !!j.clear, w: j.w || null, h: j.h || null, dur: j.dur || null,
     url: await signed(j.path), library: j.libraryId || null,
     poster: j.kind === 'video' && (j.inputs?.start || j.inputs?.end) ? await signed(j.inputs.start || j.inputs.end) : null,
     ...(full ? { inputs: Object.fromEntries(await Promise.all(Object.entries(j.inputs || {}).map(async ([k, v]) => [k, Array.isArray(v) ? await Promise.all(v.map(signed)) : await signed(v)]))) } : {}),
@@ -503,7 +512,7 @@ async function route(req, res) {
   const body = req.body || {};
   if (req.method === 'GET' && r0 === 'config') {
     const p = await prices();
-    return res.json({ image: { models: IMAGE.models, sizes: Object.keys(IMAGE.sizes), qualities: IMAGE.qualities, maxRefs: IMAGE.maxRefs, maxCount: IMAGE.maxCount, default: DEFAULT.image },
+    return res.json({ image: { models: IMAGE.models, sizes: Object.keys(IMAGE.sizes), qualities: IMAGE.qualities, backgrounds: IMAGE.backgrounds, maxRefs: IMAGE.maxRefs, maxCount: IMAGE.maxCount, default: DEFAULT.image },
       video: { qualities: VIDEO.qualities, ratios: VIDEO.ratios, min: VIDEO.min, max: VIDEO.max, default: DEFAULT.video, usdPerSecond: { '480p': +usdPerSec(p, 'mini', '480p').toFixed(4), '720p': +usdPerSec(p, 'mini', '720p').toFixed(4) },
         models: Object.entries(VIDEO.models).map(([id, m]) => ({ id, name: m.name, note: m.note, default: id === DEFAULT.video.model,
           usdPerSecond: { '480p': +usdPerSec(p, id, '480p').toFixed(4), '720p': +usdPerSec(p, id, '720p').toFixed(4) } })) },
@@ -523,7 +532,7 @@ async function route(req, res) {
       if (!j.path) return res.status(404).json({ error: 'file' });
       const f = bucket().file(j.path), [m] = await f.getMetadata();
       res.set({ 'content-type': m.contentType || (j.kind === 'video' ? 'video/mp4' : 'image/jpeg'), 'content-length': m.size, 'cache-control': 'private, max-age=3600',
-        'content-disposition': `attachment; filename="piko-${r1.slice(0, 6)}.${j.kind === 'video' ? 'mp4' : 'jpg'}"` });
+        'content-disposition': `attachment; filename="piko-${r1.slice(0, 6)}.${j.kind === 'video' ? 'mp4' : /\.png$/.test(j.path) ? 'png' : 'jpg'}"` });
       return await new Promise((ok, no) => f.createReadStream().on('error', no).pipe(res).on('finish', ok));
     }   // off the list; the library keeps the file
     if (j.status === 'running' && Date.now() - (j.checked || 0) > 8000) {
@@ -565,8 +574,8 @@ exports.pikoWork = onDocumentCreated({ document: `${JOBS}/{id}`, region: REGION,
     if (job.kind === 'image') {
       const refs = await Promise.all((job.inputs?.refs || []).map(loadInput));
       const out = await image(job, refs);
-      const saved = await save(job, out.buf, 'image', { w: out.w, h: out.h });
-      await ref.update({ status: 'done', ...saved, usd: out.usd, done: Date.now(), progress: 100 });
+      const saved = await save(job, out.buf, 'image', { w: out.w, h: out.h, clear: out.clear });
+      await ref.update({ status: 'done', ...saved, ...(out.clear ? { clear: true } : {}), usd: out.usd, done: Date.now(), progress: 100 });
       if (job.by && job.by !== 'owner') await ag.spend(dayArea(job), out.usd);
     } else {
       const inputs = {};
