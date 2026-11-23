@@ -35,7 +35,9 @@ When he gives you a new preference or correction, add it HERE (high level, no on
   girlfriend) = Hebrew, short, per person, day + date + hour, luggage rules; no train details unless asked.
 - End with the one thing you need from him (which date / which hotel). He pays; you never enter card or personal details.
 - A decision page (artifact) only when he asks for a page; the Strasbourg one is https://claude.ai/artifact/E12iE9UrQoECpfDt7sJeYS
-  (builder `c:\tmp\flight-scan\dec\build4.py` + `template.html`, Hebrew RTL, photos as supporting files).
+  (builder `c:\tmp\flight-scan\dec\build5.py` + `template5.html`: date cards, flight choices, hotel cards with photo /
+  Booking score / breakfast / per-person totals, a sold-out line; photos as supporting files). He wants it clean and
+  functional: dates, prices, availability - no explanations.
 
 ## Validate before you report (the lesson of 2026-11-23)
 Google Flights / Google Hotels / metasearch prices are **leads, not facts**. Google showed a hotel at ₪1,424 pp that was sold out
