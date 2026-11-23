@@ -21,6 +21,9 @@ When he gives you a new preference or correction, add it HERE (high level, no on
   **Rating: Booking 8.5+ with hundreds of reviews** (Google 4.3+ is only a first filter). Central = **up to ~1 km from the centre, walking**
   (his words); give the distance. When nothing central meets the bar, say so plainly and show the best by tram + the
   nearest dates that still have the centre. In Christmas-market season the centre sells out weeks ahead - book the hotel first.
+  City events move hotel prices: check for congresses / parliament sessions on the dates (Strasbourg = European
+  Parliament plenary weeks, ~4 days a month, fill the city). When a week is oddly cheap, find out why and confirm the
+  event is fully on (official site: dates + hours of the last day) before recommending it.
 - **Dates:** weekdays, no weekends (he said "we don't have to travel on a weekend"); early season - the event already open but
   before the peak and the holiday crowds. **No Jewish holidays** - check hebcal.com for the year (2026: Hanukkah 4-12 Dec).
   He cares about crowds: when a place is famous for crowds, research forums (Rick Steves, TripAdvisor, the city's own
