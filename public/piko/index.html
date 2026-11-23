@@ -134,6 +134,7 @@ textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .ptxt svg{color:var(--acc1);width:18px;height:18px;margin-top:3px}
 .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .acts button{height:52px;border-radius:14px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px}
+.acts button.stk{background:#1f3d2b;border-color:#2f6b47;color:#d9ffe6}
 .acts button.pri{background:var(--acc);color:#2a1300;border:0}
 .acts svg{width:19px;height:19px}
 .meta{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;font-size:13px;color:var(--dim);margin-bottom:14px;text-align:center}
@@ -653,12 +654,12 @@ function block(j) {
       <span class="bar"><i style="width:${barW(j)}%"></i></span><span>${isV ? 'בערך דקה-שתיים.' : 'בערך חצי דקה.'} אפשר לסגור, זה ממשיך ונשמר לבד.</span></div>`;
   return `<div data-block="${j.id}">
   ${j.status === 'failed' ? `<div class="err">לא הצליח${j.error ? ': ' + esc(j.error) : ''}</div>` : `<div class="media${j.clear ? ' chk' : ''}">${media}</div>`}
-  ${j.status === 'done' ? `<div class="acts">
+  ${j.status === 'done' ? `${!isV && j.clear ? `<div class="acts" style="grid-template-columns:1fr"><button class="stk" data-sticker="${j.id}">${IC.image}העתקה כמדבקה לוואטסאפ</button></div>` : ''}<div class="acts">
       <button class="pri" data-share="${j.id}">${IC.share}שיתוף</button>
       <button data-save="${j.id}">${IC.down}שמירה</button>
       <button data-again="${j.id}">${IC.again}עוד גרסה</button>
     </div>
-    ${!isV ? `<div class="acts"><button data-tovideo="${j.id}">${IC.video}לסרטון</button><button data-toref="${j.id}">${IC.gallery}להמשיך ממנה</button><button data-edit="${j.id}">${IC.edit}לשנות</button></div>${j.clear ? '' : `<div class="acts" style="grid-template-columns:1fr"><button data-nobg="${j.id}">${IC.image}בלי רקע (PNG שקוף)</button></div>`}`
+    ${!isV ? `<div class="acts"><button data-tovideo="${j.id}">${IC.video}לסרטון</button><button data-toref="${j.id}">${IC.gallery}להמשיך ממנה</button><button data-edit="${j.id}">${IC.edit}לשנות</button></div>${j.clear ? '' : `<div class="acts" style="grid-template-columns:1fr"><button data-nobg="${j.id}">${IC.image}בלי רקע · למדבקה</button></div>`}`
       : `<div class="acts" style="grid-template-columns:1fr"><button data-edit="${j.id}">${IC.edit}לשנות את הבקשה ולנסות</button></div>`}
     <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span><span>${isV ? label(VMODELS, j.params?.model || 'mini') : mName(j.params?.model)}</span>${j.clear ? '<span>בלי רקע · PNG</span>' : ''}${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
     <button class="link" data-del="${j.id}" style="width:100%;justify-content:center;color:var(--dim);margin:0 0 6px">${IC.trash}להוריד מהגלריה</button>`
@@ -707,7 +708,7 @@ function wire() {
   const all = (s, fn) => V.querySelectorAll(s).forEach((b) => (b.onclick = (e) => fn(b, e)));
   if (st.view === 'job') {   // the result is open: get its file(s) now, so share / save open at once
     const cur = st.jobs.find((x) => x.id === st.job);
-    if (cur) st.jobs.filter((x) => x.status === 'done' && (x.id === cur.id || (cur.batch && x.batch === cur.batch))).forEach((x) => fileOf(x).catch(() => {}));
+    if (cur) st.jobs.filter((x) => x.status === 'done' && (x.id === cur.id || (cur.batch && x.batch === cur.batch))).forEach((x) => { fileOf(x).catch(() => {}); if (x.clear) stickerOf(x).catch(() => {}); });
   }
   all('[data-mode]', (b) => { st.mode = b.dataset.mode; keep(); render(); });
   all('[data-vmodel]', (b) => { st.video.model = b.dataset.vmodel; keep(); render(); });
@@ -743,6 +744,7 @@ function wire() {
   on('tovideo', (j) => { st.mode = 'video'; st.start = { src: j.url, job: j.id }; st.prompt = ''; st.heard = ''; keep(); show('make'); });
   on('toref', (j) => { st.mode = 'image'; st.refs = [{ src: j.url, job: j.id }]; st.prompt = ''; st.heard = ''; keep(); show('make'); });
   on('del', (j) => askDelete(j));
+  on('sticker', (j) => copySticker(j));
   // the same picture again without its background: the picture itself is the reference, the model told to change nothing else
   on('nobg', (j) => make({ kind: 'image', prompt: 'אותה תמונה בדיוק, רק בלי הרקע: הרקע שקוף לגמרי. לא לשנות שום דבר בדמויות, בחפצים, בצבעים ובכתב.',
     body: { refs: [{ job: j.id }], model: j.params?.model || 'flare', size: j.params?.size || 'story', quality: j.params?.quality || 'low', count: 1, bg: 'transparent' } }));
@@ -756,6 +758,40 @@ function loadInto(j) {
   keep();
 }
 // share = the phone's share sheet; save = on iPhone the same sheet ("Save Video" / "Save Image"), elsewhere a download
+// a WhatsApp sticker (his ask, 2026-11-23: saving the picture and "create sticker" in WhatsApp cut it wrong or kept the
+// background): the transparent picture cut to what is in it, square 512 px with a 16 px margin (WhatsApp's sticker size), a PNG.
+// Copied, it is pasted straight into a chat; where the phone can't copy a picture it is shared / saved as a file
+const stickers = new Map();
+function stickerOf(j) {
+  if (!stickers.has(j.id)) stickers.set(j.id, (async () => {
+    const bmp = await createImageBitmap(await fileOf(j));
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    const x = c.getContext('2d'); x.drawImage(bmp, 0, 0);
+    const d = x.getImageData(0, 0, c.width, c.height).data, W = c.width, H = c.height;
+    let l = W, t = H, r = -1, b = -1;
+    for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) if (d[(y * W + i) * 4 + 3] > 8) { if (i < l) l = i; if (i > r) r = i; if (y < t) t = y; if (y > b) b = y; }
+    if (r < 0) { l = 0; t = 0; r = W - 1; b = H - 1; }
+    const w = r - l + 1, h = b - t + 1, S = 512, M = 16, k = (S - 2 * M) / Math.max(w, h);
+    const o = document.createElement('canvas'); o.width = o.height = S;
+    const ox = o.getContext('2d'); ox.imageSmoothingQuality = 'high';
+    ox.drawImage(c, l, t, w, h, (S - w * k) / 2, (S - h * k) / 2, w * k, h * k);
+    return await new Promise((ok, no) => o.toBlob((bl) => (bl ? ok(bl) : no(new Error('png'))), 'image/png'));
+  })().catch((e) => { stickers.delete(j.id); throw e; }));
+  return stickers.get(j.id);
+}
+async function copySticker(j) {
+  try {   // the ClipboardItem is made right in the tap (the iPhone asks for that), the picture fills it when ready
+    if (navigator.clipboard?.write && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': stickerOf(j) })]);
+      return toast('הועתק · בוואטסאפ: לחיצה ארוכה בשורת ההקלדה > הדבקה');
+    }
+  } catch (e) { console.warn('sticker copy', e); }
+  try {
+    const file = new File([await stickerOf(j)], `piko-sticker-${j.id.slice(0, 6)}.png`, { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) return await navigator.share({ files: [file] });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  } catch (e) { if (e.name === 'NotAllowedError') toast('המדבקה מוכנה, לחצו שוב'); else if (e.name !== 'AbortError') toast('לא הצליח להעתיק'); }
+}
 async function share(j, save) {
   let file;
   try { file = await fileOf(j); } catch { return toast('הקובץ לא ירד, נסו שוב'); }
