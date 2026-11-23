@@ -18,8 +18,9 @@ When he gives you a new preference or correction, add it HERE (high level, no on
 - **Hotels:** a real hotel, **not** hostels, aparthotels, "residences" or Airbnb (he asked about Airbnb once and chose hotel).
   **Small / boutique, and luxury if the price allows** ("it doesn't have to be luxury, but I prefer luxury - depends on the price").
   **Breakfast** included or available; half board is a bonus (rare in city centres - say so).
-  **Rating: Booking 8.5+ with hundreds of reviews** (Google 4.3+ is only a first filter). Central: walking distance to what
-  they came to see; give the distance to the main sight.
+  **Rating: Booking 8.5+ with hundreds of reviews** (Google 4.3+ is only a first filter). Central = **up to ~1 km from the centre, walking**
+  (his words); give the distance. When nothing central meets the bar, say so plainly and show the best by tram + the
+  nearest dates that still have the centre. In Christmas-market season the centre sells out weeks ahead - book the hotel first.
 - **Dates:** weekdays, no weekends (he said "we don't have to travel on a weekend"); early season - the event already open but
   before the peak and the holiday crowds. **No Jewish holidays** - check hebcal.com for the year (2026: Hanukkah 4-12 Dec).
   He cares about crowds: when a place is famous for crowds, research forums (Rick Steves, TripAdvisor, the city's own
