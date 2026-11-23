@@ -70,6 +70,13 @@ on Booking AND on its own site; the best hotels showed no price at all (= sold o
     (ht_id=204 hotels only, mealplan=1 breakfast included; add `distance%3D1500` for the centre).
   - Decline optional cookies; never pay, never fill passenger data; close your tabs when done.
 
+## The trip app (where a booked trip lives)
+His own trip guide app: https://boostart-trips.web.app (repo c:\workspace\trip-planner, private GitHub ShlomiZevin/trip-planner).
+Once a trip is booked it goes into the app as one trip document: days, places, meals, wallet (flights, hotel, train),
+packing, info cards, brief. He builds it from his ChatGPT through the app's MCP server (trip-chat /mcp/<key>; details
+and the key's location in memory project_trip_planner.md). You can call the same MCP tools with curl
+(get_trip_guide first) when he asks you to put a trip in the app.
+
 ## Trips so far
 - 2026 winter: Christmas markets. Compared Strasbourg / Kraków / Vienna / Budapest; **he chose Strasbourg** (via Frankfurt -
   Condor + ~2 h train; no nonstop to Strasbourg). State and shortlist: memory `project_flight_agent.md`.
