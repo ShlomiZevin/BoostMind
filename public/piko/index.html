@@ -82,6 +82,12 @@ div.drop{border-style:solid;border-color:transparent}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,77,.6)}100%{box-shadow:0 0 0 18px rgba(255,77,77,0)}}
 textarea{flex:1;min-height:110px;resize:vertical;background:#171412;border:1px solid var(--line);border-radius:14px;padding:12px;line-height:1.5;font-size:16px}
 textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
+/* the prompt's clear button (his ask 2026-11-23): top corner of the box, only when there is text */
+.pbox{flex:1;position:relative;display:flex}
+.pbox textarea{padding-left:46px}
+.pclear{position:absolute;top:8px;left:8px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);color:var(--dim);display:none;place-items:center}
+.pclear svg{width:16px;height:16px}
+.pbox.has .pclear{display:grid}
 .heard{font-size:13px;color:var(--dim);margin:8px 0 0}
 /* the settings: one line that says what they are; a tap opens them */
 .setsum{display:flex;align-items:center;gap:8px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:14px;color:var(--dim);text-align:right;margin-bottom:12px}
@@ -415,7 +421,9 @@ async function make(again) {
     for (const j of jobs) j.again = { ...p, body: { ...p.body, count: 1 } };   // "another version" of one of them = one more
     st.jobs.unshift(...jobs);
     st.job = jobs[0].id;
-    show('job');
+    // from the make screen he stays on it (his ask 2026-11-23: "start the creation but remain on the same page") - the running
+    // count on the הגלריה tab shows it; "another version" from a job's page still opens the new one
+    if (again) show('job'); else { render(); toast(jobs.length > 1 ? `${jobs.length} יצירות בדרך · מופיעות בגלריה` : 'נשלח · מופיע בגלריה'); }
     follow();
   } catch (e) { toast(e.message); render(); }
 }
@@ -598,7 +606,7 @@ function vMake() {
   <div class="card">
     <div class="say">
       <button class="mic${rec ? ' rec' : ''}" data-mic><i>${rec ? IC.stop : IC.mic}</i><b style="font-weight:500">${rec ? 'לחצו לסיום' : (v ? 'ספרו מה יקרה' : 'ספרו מה לצייר')}</b></button>
-      <textarea id="prompt" dir="auto" placeholder="${v ? 'מה קורה בסרטון? למשל: הילדים עולים על הספינה ומפליגים כמו פיראטים' : 'מה בתמונה? למשל: האיש מהתמונה כפיראט על סיפון ספינה'}">${esc(st.prompt)}</textarea>
+      <div class="pbox${st.prompt ? ' has' : ''}"><textarea id="prompt" dir="auto" placeholder="${v ? 'מה קורה בסרטון? למשל: הילדים עולים על הספינה ומפליגים כמו פיראטים' : 'מה בתמונה? למשל: האיש מהתמונה כפיראט על סיפון ספינה'}">${esc(st.prompt)}</textarea><button class="pclear" data-pclear aria-label="לנקות את הטקסט">${IC.x}</button></div>
     </div>
     ${st.heard ? `<p class="heard">מה ששמעתי: ${esc(st.heard)}</p>` : ''}
   </div>
@@ -701,10 +709,11 @@ function wire() {
   all('[data-swap]', () => { [st.start, st.end] = [st.end, st.start]; render(); });
   all('[data-mic]', () => mic());
   all('[data-opts]', () => { st.showOpts = !st.showOpts; keep(); render(); });
+  all('[data-pclear]', () => { st.prompt = ''; st.heard = ''; saveDraft(); render(); $('#prompt')?.focus(); });
   all('[data-clearall]', () => { st.prompt = ''; st.heard = ''; st.start = st.end = null; st.refs = []; render(); });
   const ta = V.querySelector('#prompt');
   if (ta) {
-    ta.oninput = () => { st.prompt = ta.value; st.heard = ''; saveDraft(); };
+    ta.oninput = () => { st.prompt = ta.value; st.heard = ''; saveDraft(); ta.parentNode.classList.toggle('has', !!ta.value); };
     ta.onkeydown = (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); make(); } };
   }
   V.querySelectorAll('[data-set]').forEach((s) => (s.onchange = () => { const [a, k] = s.dataset.set.split('.'); st[a][k] = k === 'duration' || k === 'count' ? +s.value : s.value; keep(); render(); }));
