@@ -121,7 +121,8 @@ textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .running small{display:block;color:var(--dim);font-size:12px}
 .bar{display:block;height:6px;border-radius:9px;background:#2d2825;overflow:hidden;margin:6px 0 4px}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#b07cff,#ff7b2e);transition:width .8s ease}
-.media{border-radius:var(--r);overflow:hidden;background:#0c0a09;margin-bottom:12px;display:grid;place-items:center;min-height:200px}
+.media{position:relative;border-radius:var(--r);overflow:hidden;background:#0c0a09;margin-bottom:12px;display:grid;place-items:center;min-height:200px}
+.media .mtag{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:3px 9px;font-size:13px;font-weight:600}
 .media img,.media video{width:100%;max-height:70dvh;object-fit:contain;display:block}
 .wait{display:grid;place-items:center;gap:12px;padding:46px 20px;text-align:center;color:var(--dim);width:100%}
 .wait .bar{width:min(260px,80%);margin:0}
@@ -531,9 +532,10 @@ const QUAL = { low: 'טיוטה', medium: 'רגילה', high: 'גבוהה', '480
 const sel = (list, cur) => list.map(([k, l]) => `<option value="${k}" ${String(k) === String(cur) ? 'selected' : ''}>${l}</option>`).join('');
 const label = (list, k) => (list.find(([x]) => String(x) === String(k)) || [k, k])[1];
 // a setup in words: "טיוטה · 6 שניות · נמוכה · סטורי (9:16)"
+const mName = (m) => (m === 'sunburst' ? 'Sunburst' : m === 'mix' ? 'מיקס' : 'Flare');
 function describe(mode, p) {
   return mode === 'video' ? `${label(VMODELS, p.model || 'mini')} · ${p.duration} שניות · ${QUAL[p.quality]} · ${label(RATIOS, p.ratio)}`
-    : `${p.count === 1 ? 'תמונה אחת' : p.count + ' תמונות'} · ${QUAL[p.quality]} · ${label(SIZES, p.size)} · ${p.model === 'sunburst' ? 'Sunburst' : 'Flare'}`;
+    : `${p.count === 1 ? 'תמונה אחת' : p.count + ' תמונות'} · ${QUAL[p.quality]} · ${label(SIZES, p.size)} · ${mName(p.model)}`;
 }
 // ---- saved setups: one tap fills every option ----
 const isOn = (p) => Object.entries(p.params).every(([k, v]) => String(st[p.mode][k]) === String(v));
@@ -622,7 +624,7 @@ function vMake() {
       <label class="opt"><span>צורה</span><select data-set="image.size">${sel(SIZES, st.image.size)}</select></label>
       <label class="opt"><span>כמה תמונות</span><select data-set="image.count">${sel([1, 2, 3, 4].map((n) => [n, n === 1 ? 'תמונה אחת' : n + ' תמונות']), st.image.count)}</select></label>
       <label class="opt"><span>איכות</span><select data-set="image.quality"><option value="low" ${st.image.quality === 'low' ? 'selected' : ''}>טיוטה</option><option value="medium" ${st.image.quality === 'medium' ? 'selected' : ''}>רגילה</option><option value="high" ${st.image.quality === 'high' ? 'selected' : ''}>גבוהה</option></select></label>
-      <label class="opt"><span>דגם</span><select data-set="image.model"><option value="flare" ${st.image.model === 'flare' ? 'selected' : ''}>Flare</option><option value="sunburst" ${st.image.model === 'sunburst' ? 'selected' : ''}>Sunburst</option></select></label>
+      <label class="opt"><span>דגם</span><select data-set="image.model"><option value="flare" ${st.image.model === 'flare' ? 'selected' : ''}>Flare</option><option value="sunburst" ${st.image.model === 'sunburst' ? 'selected' : ''}>Sunburst</option><option value="mix" ${st.image.model === 'mix' ? 'selected' : ''}>מיקס חצי-חצי</option></select></label>
     </div>`}
     ${st.presets.filter((p) => p.mode === st.mode).some(isOn) ? '' : `<button class="link" data-presave>${IC.plus}לשמור כהגדרה בלחיצה אחת</button>`}</div>` : ''}
   <button class="go" data-go-make><span class="row">${IC.spark}${v ? 'יוצרים סרטון' : st.image.count > 1 ? `יוצרים ${st.image.count} תמונות` : 'יוצרים תמונה'}</span><small>${est != null ? '≈ ' + usd(est) : ''}</small></button>
@@ -640,7 +642,7 @@ function vJob() {
 function block(j) {
   const isV = j.kind === 'video';
   const media = j.status === 'done' && j.url
-    ? (isV ? `<video src="${esc(j.url)}" ${j.poster ? `poster="${esc(j.poster)}"` : ''} controls playsinline autoplay loop></video>` : `<img src="${esc(j.url)}" alt="">`)
+    ? (isV ? `<video src="${esc(j.url)}" ${j.poster ? `poster="${esc(j.poster)}"` : ''} controls playsinline autoplay loop></video>` : `<img src="${esc(j.url)}" alt=""><span class="mtag">${mName(j.params?.model)}</span>`)
     : j.status === 'failed' ? '' : `<div class="wait" data-live="${j.id}"><span class="spin"></span><b style="color:var(--text)">${isV ? 'מכין את הסרטון' : 'מצייר'}… <span class="pct">${pct(j)}</span></b>
       <span class="bar"><i style="width:${barW(j)}%"></i></span><span>${isV ? 'בערך דקה-שתיים.' : 'בערך חצי דקה.'} אפשר לסגור, זה ממשיך ונשמר לבד.</span></div>`;
   return `<div data-block="${j.id}">
@@ -652,7 +654,7 @@ function block(j) {
     </div>
     ${!isV ? `<div class="acts"><button data-tovideo="${j.id}">${IC.video}לסרטון</button><button data-toref="${j.id}">${IC.gallery}להמשיך ממנה</button><button data-edit="${j.id}">${IC.edit}לשנות</button></div>`
       : `<div class="acts" style="grid-template-columns:1fr"><button data-edit="${j.id}">${IC.edit}לשנות את הבקשה ולנסות</button></div>`}
-    <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span>${isV ? `<span>${label(VMODELS, j.params?.model || 'mini')}</span>` : ''}${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
+    <div class="meta"><span>${j.library ? 'נשמר בספריית השלומיוורס' : 'נשמר'}</span><span>${isV ? label(VMODELS, j.params?.model || 'mini') : mName(j.params?.model)}</span>${j.usd != null ? `<span>עלה ${usd(j.usd)}</span>` : ''}${isV && st.balance ? `<span>נשארו ${usd(st.balance.usd)}</span>` : ''}</div>
     <button class="link" data-del="${j.id}" style="width:100%;justify-content:center;color:var(--dim);margin:0 0 6px">${IC.trash}להוריד מהגלריה</button>`
     : j.status === 'failed' ? `<div class="acts" style="grid-template-columns:1fr 1fr"><button class="pri" data-again="${j.id}">${IC.again}לנסות שוב</button><button data-edit="${j.id}">${IC.edit}לשנות ולנסות</button></div>` : ''}
   </div>`;
@@ -663,6 +665,7 @@ function tile(j) {
   const when = new Date(j.created || Date.now());
   const day = when.toDateString() === new Date().toDateString() ? 'היום' : when.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
   return `<button class="tile" data-open="${j.id}" data-tile="${j.id}"><div class="th">${pic ? `<img src="${esc(pic)}" alt="" loading="lazy">` : ''}
+    ${j.kind === 'image' && j.status === 'done' ? `<span class="badge">${mName(j.params?.model)}</span>` : ''}
     ${j.kind === 'video' && j.status === 'done' ? `<span class="badge">${IC.play}0:${String(Math.round(j.dur || j.params?.duration || 0)).padStart(2, '0')}</span>` : ''}
     ${live(j) ? `<span class="st" data-live="${j.id}">${j.kind === 'video' ? 'מכין…' : 'מצייר…'} <span class="pct">${pct(j)}</span></span>` : j.status === 'failed' ? '<span class="st">לא הצליח</span>' : ''}</div>
     <small>${day}${j.usd != null ? ' · ' + usd(j.usd) : ''}${j.by && j.by !== 'owner' ? ' · ' + esc(j.client) : ''}</small></button>`;

@@ -69,7 +69,9 @@ const PRESETS = [
   { id: 'image-simple', name: 'פשוט', mode: 'image', params: { model: 'flare', size: 'story', quality: 'low', count: 2 } },
   { id: 'image-more', name: 'מתקדם', mode: 'image', params: { model: 'flare', size: 'story', quality: 'high', count: 2 } },
 ];
-const imageParams = (b = {}) => ({ model: IMAGE.models.includes(b.model) ? b.model : DEFAULT.image.model, size: IMAGE.sizes[b.size] ? b.size : DEFAULT.image.size,
+// model 'mix' (his ask, 2026-11-23): the pictures of one request split between Flare and Sunburst - 2 = 1+1, 3 = 2+1, 4 = 2+2;
+// each job gets its own real model (createJob), so the worker and the result always show which one made it
+const imageParams = (b = {}) => ({ model: IMAGE.models.includes(b.model) || b.model === 'mix' ? b.model : DEFAULT.image.model, size: IMAGE.sizes[b.size] ? b.size : DEFAULT.image.size,
   quality: IMAGE.qualities.includes(b.quality) ? b.quality : DEFAULT.image.quality });
 const videoParams = (b = {}) => ({ model: VIDEO.models[b.model] ? b.model : DEFAULT.video.model, duration: Math.min(VIDEO.max, Math.max(VIDEO.min, Math.round(+b.duration || DEFAULT.video.duration))),
   quality: VIDEO.qualities.includes(b.quality) ? b.quality : DEFAULT.video.quality, ratio: VIDEO.ratios.includes(b.ratio) ? b.ratio : DEFAULT.video.ratio });
@@ -445,7 +447,9 @@ async function createJob(u, kind, b) {
     for (const [i, x] of refs.entries()) paths.push(await keepInput(ref.id, `ref-${i + 1}`, await readInput(x, u.by)));
     // several pictures = several jobs made side by side, one batch (the references are stored once)
     const refsOut = [ref, ...Array.from({ length: count - 1 }, () => db().collection(JOBS).doc())];
-    await Promise.all(refsOut.map((r) => r.set({ ...base, params, inputs: { refs: paths }, ...(count > 1 ? { batch: ref.id } : {}) })));
+    const first = Math.random() < 0.5 ? 0 : 1;   // mix with an odd count: which model gets the extra one, by chance
+    const modelOf = (i) => (params.model === 'mix' ? IMAGE.models[(i + first) % 2] : params.model);
+    await Promise.all(refsOut.map((r, i) => r.set({ ...base, params: { ...params, model: modelOf(i) }, inputs: { refs: paths }, ...(count > 1 ? { batch: ref.id } : {}) })));
     const jobs = await Promise.all(refsOut.map(async (r) => ({ id: r.id, ...(await view(r.id, (await r.get()).data())) })));
     return { ...jobs[0], jobs };
   } else {
