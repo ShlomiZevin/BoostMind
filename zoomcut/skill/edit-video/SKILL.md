@@ -402,17 +402,20 @@ Creator, running in overage - about **$0.12 per 1,000 credits**, worked out from
 | way | cost | what you get |
 |---|---|---|
 | our library (`episodes/_assets/music/library/`, Kevin MacLeod CC BY - credit line in the caption) | free | known tracks; one per character (taken: Sneaky Snitch = Savta, Scheming Weasel = night guy, elevator = Sagi, awk-boombap = Tzvika) |
-| **generate** (Eleven Music: `tools/elevenlabs_music.mjs`, or the app) | **~1,600 credits per minute per version ≈ $0.19** (the app makes 2 versions = ~$0.38 a try) | unknown until heard; quirky beds took many tries (tzvika-1: 28 tracks, ~45k credits ≈ $5, all rejected) |
+| **generate** (Eleven Music: `tools/elevenlabs_music.mjs`, or the app) | **1,591 credits per minute per version ≈ $0.19** (the app makes 2 versions = ~$0.38 a try) | unknown until heard; quirky beds took many tries (tzvika-1: 28 tracks, ~45k credits ≈ $5, all rejected) |
 | **ElevenLabs Music Marketplace** (buy a ready track) | **6,818 credits ≈ $0.80 per track** - Social Media license (social posts, monetized videos, his site). Paid Marketing 22,727, Offline 227,272 | you hear the whole track before paying; re-download any number of times while subscribed, keep using after |
-**His rule (2026-11-24): generation stays our main way** - one Marketplace track ≈ 4 generated minutes ("if the
-marketplace costs 6 times more than just generating, we keep up with the generation, because eventually we can
-generate good stuff"). The Marketplace is for when a specific track is clearly right (or generation keeps missing):
-"when I'm downloading, at least I know what I'm getting". Either way: send him the options as files first, and say
-what each would cost.
+**Both are options - he decides each time** (2026-11-24, after the real numbers: "leave both as option to decide
+about"). The numbers: a Marketplace track (6,818) = ~4.3 generated minutes of ONE version = ~2 app tries (2 versions
+each) - not 6x; inside the plan it would be ~$0.55, in overage ~$0.80. Generation is cheaper per try but unknown until
+heard (quirky beds have needed many tries); the Marketplace costs ~2 tries but "when I'm downloading, at least I know
+what I'm getting". So: show him BOTH - Marketplace candidates (full tracks to listen to) and/or an offer to generate
+N options with the cost of each - and let him pick the way. Never spend on either without his word.
 
 **Browsing the Marketplace (no generation, nothing spent):**
-- No public API: the API key gets 401 on the app's own endpoints, and the public OpenAPI (api.elevenlabs.io/openapi.json)
-  has no marketplace / sound-library paths. The page runs on his signed-in web session - **use Claude in Chrome**, at
+- No public API: the public OpenAPI (api.elevenlabs.io/openapi.json, 402 paths) has music = compose / stream / plan /
+  video-to-music / upload / stem-separation / finetunes only - nothing to browse or buy; the page's own endpoint
+  (api.us.elevenlabs.io/v1/music/explore/songs) refuses the API key ("Neither authorization header nor xi-api-key
+  received") - it takes only his web login. The page runs on his signed-in web session - **use Claude in Chrome**, at
   human pace, one search at a time; never call their internal endpoints yourself or extract his session token ("be
   careful so we won't get blocked").
 - elevenlabs.io/app/music?q=<words> = Marketplace results (title, creator, tags, length, BPM). To get the details, hook
