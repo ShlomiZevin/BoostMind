@@ -24,3 +24,6 @@ B.
 
 ## DECIDED (his "all good, you decide", 2026-11-24)
 POV = #1 "פוב: משאבי אנוש מצאו סוף סוף / מישהי שמבינה את דור ה־Z – / דולה מוסמכת של רגשות". Caption = A. Both sent to the editor (POV layer + Send window, no hashtags yet).
+
+## CHANGED (his note on the timeline + his words, 2026-11-24)
+POV = his exact words, no prefix: "מטפלות שהמציאו תחום טיפולי חדש / מתארחות בפודקאסט". (The parody = experts who invent a field for everything.)
