@@ -1,0 +1,16 @@
+@font-face{font-family:A;src:url(../../../../../../zoomcut/fonts/Assistant.ttf)}
+:root{--bur:#7a1630;--bur2:#9b2340;--rose:#c0566b;--coral:#e0705e;--peach:#f8d9cc;--cream:#fdf3ee}
+html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:A;background:var(--cream)}
+.bg{position:absolute;inset:0;background:linear-gradient(170deg,#fff8f4 0%,#fbeae2 55%,#f6dcd2 100%)}
+.wave{position:absolute;border-radius:50%}
+.w1{width:900px;height:520px;top:-300px;left:-420px;background:rgba(224,112,94,.16)}
+.w2{width:1400px;height:600px;bottom:-380px;left:-200px;background:rgba(155,35,64,.18)}
+.w3{width:1300px;height:520px;bottom:-400px;right:-500px;background:rgba(224,112,94,.22)}
+.logo{position:absolute;left:50%;transform:translateX(-50%)}
+.to{position:absolute;left:60px;right:60px;height:150px;border-radius:75px;background:linear-gradient(90deg,var(--bur2),var(--bur));box-shadow:0 14px 34px rgba(122,22,48,.3);display:flex;align-items:center;padding:0 46px 0 30px;gap:26px}
+.to .t{flex:1;text-align:center;color:#fff}
+.to .t b{display:block;font-weight:800;font-size:60px;line-height:1.05}
+.to .t small{display:flex;align-items:center;justify-content:center;gap:16px;font-weight:600;font-size:28px;color:rgba(255,255,255,.85);margin-top:8px;direction:ltr}
+.to .t small:before,.to .t small:after{content:"";width:60px;height:2px;background:rgba(255,255,255,.5)}
+.to .ic{flex:none;order:2;width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center}
+.to .ic svg{width:60px;height:60px;fill:#fff}
