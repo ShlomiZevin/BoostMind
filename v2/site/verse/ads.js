@@ -26,11 +26,14 @@ function banner(a) {
       <img src="${esc(a.card)}" alt="${esc(a.alt)}" loading="lazy"></picture></a></section>`;
 }
 
-// the slot's html for a place ('' until the list is here - then every slot on the page fills itself)
+// the slot's html for a place ('' until the list is here - then every slot on the page fills itself). Every thin strip placed
+// there shows, stacked in the records' order (his ask 2026-11-24, the doula strip next to Syncs: "make it up with all the
+// strips"); a place with no strips shows its first big banner, as before.
 export function adSlot(place) {
-  const a = ads && ads.find((x) => (x.places || []).includes(place));
-  if (a && !seen.has(place + location.pathname)) { seen.add(place + location.pathname); track('ad_view', `${a.id}:${place}`); }
-  return `<div class="ad-slot" data-ad-place="${esc(place)}">${a ? banner(a) : ''}</div>`;
+  const mine = (ads || []).filter((x) => (x.places || []).includes(place)), strips = mine.filter((x) => x.look === 'strip');
+  const show = strips.length ? strips : mine.slice(0, 1);
+  for (const a of show) if (!seen.has(place + location.pathname + a.id)) { seen.add(place + location.pathname + a.id); track('ad_view', `${a.id}:${place}`); }
+  return `<div class="ad-slot" data-ad-place="${esc(place)}">${show.map(banner).join('')}</div>`;
 }
 
 // the list, for the slots here and for the home's notice board (board.js - notices are records placed on "board")
