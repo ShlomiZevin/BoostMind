@@ -496,7 +496,8 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   yourself: the item's edge pulls back footage up to the take's start / end.
   **The whole-take rule for any session:** a video item points at the WHOLE take (`asset` = the take, `in` = where the
   piece starts in it). Never a file cut down to the piece - then there is nothing to pull back.
-- **Sound is never naked; calls always have the other side** (2026-10-25, haredit-1): every video gets an ambience
+- **Sound is never naked; calls always have the other side** (2026-10-25, haredit-1; the AMBIENCE part withdrawn 2026-11-24 -
+  no ambience unless he asks, see the pre-footage rule): every video gets an ambience
   layer of the place + a bed (reusable comedy beds in `_assets/music/`), and every phone / Teams call gets the
   other side's mumble in her pauses (`recipes/offscreen-voice.md` → hani). A whispered blessing / drinking is acted,
   not silence - check the frames of a long pause before cutting it.
@@ -708,8 +709,10 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   2. **the set** - the character's studio from the library first; a new place = GPT Image (cents). ALWAYS empty of
      people (people frozen in a still look wrong behind a moving person), from HIS camera: he films close, a phone held
      low - see "EVERY FRAME MUST MAKE SENSE";
-  3. **the sound effects** the script calls for (ElevenLabs sfx, cents): reactions, laughs, a room tone, a prop - each
-     its own clip at its rough moment, levelled by LUFS;
+  3. **the sound effects** the script calls for (ElevenLabs sfx, cents): reactions, laughs, a prop - each its own clip
+     at its rough moment, levelled by LUFS. **NEVER an ambience / room tone / background bed unless he asks** (his words,
+     2026-11-24, on a generated quiet-classroom loop: "never generate ambience sounds unless asked for, the sound is
+     stupid and no need") - this overrides "sound is never naked" below;
   4. **music** - only when he asks for it: library first (a bed no other character uses), sent to him as files to pick.
      Nothing fits = ASK before generating - music is the only thing here that costs dollars.
   NOT before the takes: any generated SPEECH (no TTS, no stand-in voices - only on his ask), subtitles / voice groups
