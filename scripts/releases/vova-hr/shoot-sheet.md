@@ -1,0 +1,49 @@
+# Shoot sheet - vova-hr-1 (Vova vs Osnat)
+
+Reader: project **vova-hr-1** (refresh the Reader). Print: `Downloads/vova-hr-1-script.pdf`.
+Upload to the Drop folder **vova-hr-1**. Plain wall behind you is fine - the office sets go in behind you.
+
+## The picture in one line
+Vova sits in his room, Osnat leans in his doorway. On screen **Vova looks to the picture's RIGHT**, **Osnat looks to the picture's LEFT** - so their eyes meet.
+
+## VOVA (film first)
+- Cap with red trim, black-and-red glasses.
+- **Sit** (office chair if you have one), turned a bit as if toward a door.
+- Phone at **your eye level**, close (~60 cm), moved a little to **your right**.
+- Look **just past the phone, to YOUR LEFT and slightly UP** - at someone standing in a doorway ~1.5 m away. Not into the lens.
+- **Opening shot:** start the first take looking at your "screen" (2 s, typing or reading), then look up toward the door as if someone knocked. Then your first line.
+
+## OSNAT
+- High bun + pink headband, glasses, dark zip jacket.
+- **Stand in a real doorway, your LEFT shoulder against the door jamb**, leaning, the whole conversation.
+- Phone **LOW** - at the eye height of a seated person (~115 cm: on a chair / shelf), ~1 m from you, tilted **up** at you.
+- Look **down, just past the phone, to YOUR RIGHT** - at Vova sitting at his desk.
+- Do the **fake laugh** on camera where the script says (צחוק מזויף), right before that line.
+
+## The knock
+**Not on camera.** It's a sound in the edit at the very start (already on the timeline). Osnat's first take starts already leaning in the doorway.
+
+## Line order
+Vova (8):
+1. נו, במה שלא ביקשנו עזרה...
+2. מה יש לכם בזמן האחרון עם מערכות יחסים...
+3. אז תשלמו לאנשים במשמעות...
+4. אולי אם תפסיקו לפטר אנשים...
+5. נו, אז תנהלו את השיח הזה ביניכם...
+6. אז תעשו אדפטציה...
+7. נו, זה מזכיר לי... FROM... חרולד פרינו... (one line, one take if you can)
+8. נקודות כואבות בתחת שלי...
+
+Osnat (8, laugh before 3-8):
+1. הייוש, מה נשמע?...
+2. אז אנחנו ככה מביאים מומחית...
+3. (laugh) לא, הרעיון הוא...
+4. (laugh) ברור, זה לא בא במקום משכורת...
+5. (laugh) אני חושבת שדווקא...
+6. (laugh) כי זה לא רק תהליך של ה-HR...
+7. (laugh) אני מבינה, אבל תראה...
+8. (laugh) אז הנה, וובה...
+
+## Tips
+- Several lines per take is fine. A redo = say the whole line again.
+- Face a window (good light), same spot for all takes of a character.
