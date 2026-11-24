@@ -600,10 +600,10 @@ export function Timeline({ project, frame, sel, onSel, onSeek, send, onItemEdit,
       if (!typingBox && hov.current && onNote && !edge && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === '+' || e.code === 'NumpadAdd')) {
         e.preventDefault(); onNote(null, hov.current.f); return;
       }
-      // Ctrl+M = a new note (comment) at the mouse's time on the timeline; the mouse off the timeline = at the playhead
-      // (his ask, 2026-11-24). e.code: works in the Hebrew layout too
+      // Ctrl+M = a new note (comment) at the playhead - the layers' time cursor, never the mouse (his ask, 2026-11-24).
+      // e.code: works in the Hebrew layout too
       if (!typingBox && onNote && !edge && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.code === 'KeyM') {
-        e.preventDefault(); onNote(null, hov.current ? hov.current.f : frame); return;
+        e.preventDefault(); onNote(null, frame); return;
       }
       if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyC' || e.code === 'KeyV') && tag0 !== 'INPUT' && tag0 !== 'TEXTAREA' && tag0 !== 'SELECT' && !window.getSelection()?.toString()) {
         const sl = sel && project.layers.find((x: any) => x.id === sel.layer), si = sl && sel!.item && (sl.items || []).find((i: any) => i.id === sel!.item);

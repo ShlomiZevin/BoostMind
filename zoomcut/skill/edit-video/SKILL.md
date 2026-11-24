@@ -317,7 +317,7 @@ after every build (no strip frame without a clip, no overlap on a row, ≥1 s sh
   workaround in the project.
 
 ## "fix notes" - his notes on the timeline (2026-10-28)
-He leaves notes for you IN the editor: "+ Note" on the timeline bar (or N, or + with the mouse over the layers - at the mouse, or Ctrl+M - at the mouse on the timeline, else at the playhead) puts a yellow flag on the ruler at the
+He leaves notes for you IN the editor: "+ Note" on the timeline bar (or N, or + with the mouse over the layers - at the mouse, or Ctrl+M - at the playhead) puts a yellow flag on the ruler at the
 playhead, his words in a window right above it, optionally a spot he clicked on the picture. They live in project.json
 `notes: [{id, at (frame), end? (frame - a note on a STRETCH: fix the whole of it, at..end), text, x?, y? (canvas px), done?, reply?}]` - saved, Ctrl+Z, kept through rebuilds, and they
 move with what plays under them when a take is made longer / shorter. When he says **"fix notes"** (or "תתקן את
