@@ -1,0 +1,11 @@
+Design a vertical cover image (9:16) for a short video - the picture people see in the feed before they tap play.
+
+What it is: the video is an interview - an emotional-wellness consultant, a guest on a podcast, talks about young employees who leave and what companies miss in onboarding. The cover is addressed to HR managers (HR, VP HR, VP People) - they must immediately see it is for them, and want to watch. Feeds crop the top and bottom 12% of a cover, so nothing important there.
+
+Content (Hebrew, right-to-left), all of it must appear:
+- Who it is for: "למנהלות ולמנהלי משאבי אנוש"
+- The hook: "אונבורדינג יש. בונדינג אין."
+- Her name: "ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך" and her title "דולה מוסמכת של רגשות"
+- A photo of her in the interview (the woman in the reference image - keep her exactly as she is) and her logo (the logo in the reference image, with its wordmark "המחוג שבלב").
+
+Design it as you think best.

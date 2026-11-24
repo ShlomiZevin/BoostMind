@@ -1,0 +1,12 @@
+Design a vertical Instagram story (9:16).
+
+What it is: an emotional-wellness consultant was a guest on a podcast, and the full interview comes out today. The story is her ad announcing it, addressed to HR managers (HR, VP HR, VP People) - they must immediately see it is for them. People tap a link sticker on the story to watch the interview, so leave one empty area for that sticker in the lower part (around 70-80% of the height). Instagram covers the top 13% and the bottom 13% of a story, so nothing important there.
+
+Content (Hebrew, right-to-left), all of it must appear:
+- Who it is for: "למנהלות ולמנהלי משאבי אנוש"
+- The hook: "דור ה־Z עוזב לכם אחרי שלושה שבועות?"
+- What is new: "הראיון המלא – עכשיו"
+- Her name: "ד״ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך" and her title "דולה מוסמכת של רגשות"
+- A photo of her from the interview (the woman in the reference image - keep her exactly as she is) and her logo (the logo in the reference image, with its wordmark "המחוג שבלב").
+
+Design it as you think best.

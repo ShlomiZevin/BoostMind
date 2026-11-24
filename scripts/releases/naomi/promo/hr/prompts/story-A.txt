@@ -1,0 +1,21 @@
+A vertical 9:16 Instagram STORY (1088x1920): a real, serious B2B marketing ad by a well-known emotional-wellness consultant and psychiatrist, Dr. Naomi-Tzipora, addressed to HR managers in high-tech. It announces that her full interview on a podcast is out today. It must look like a polished, premium ad from a real clinic brand - VERY clear order, lots of breathing room, few elements on a clean grid, readable in 2 seconds on a phone. Stamps and badges instead of lines of text. Brand colours: deep burgundy #6b1023, wine, warm cream #f5eee4, a touch of gold #c9973a.
+
+The attached image is her brand logo: the illustrated mother holding a newborn inside a heart with a small dial, and the wordmark "המחוג שבלב". Put it near the top, small, copied EXACTLY as in the reference (do not redraw a different heart).
+
+THE VIDEO CARD: in the middle of the poster there is a large rounded-corner rectangle, portrait 4:5, about 70% of the poster width, filled with ONE flat pure chroma green #00FF00 - completely flat, no texture, no gradient, no shadow inside, no text, no icon inside it. (Her video frame will be placed into that green area later.) A thin cream or gold border around it and a soft shadow outside it are welcome. A round gold rubber-STAMP seal overlaps the card's top corner and says only "ראיון חדש". Nothing else touches or covers the green area.
+
+Layout rules:
+- The top 13% of the poster: only plain background (Instagram's name bar covers it). The logo goes just below it.
+- Leave a horizontal band completely EMPTY (plain background, nothing in it) from 72% to 82% of the poster height - a link sticker will be placed there. Directly above that empty band, one short line.
+- The bottom 13%: plain background only.
+- No other words, no emoji, no people drawn, no photos anywhere.
+
+Render these Hebrew texts EXACTLY, letter for letter, right-to-left, and nothing else written anywhere:
+1) a small kicker in a thin outlined pill: "למנהלות ולמנהלי משאבי אנוש"
+2) the big headline: "אונבורדינג יש." on line one and "בונדינג אין." on line two
+3) the stamp: "ראיון חדש"
+4) the short line right above the empty band: "לצפייה בראיון המלא"
+5) small, right under the video card: "ד״ר נעמי־ציפורה · דולה מוסמכת של רגשות"
+Spell every Hebrew word exactly; double-check "נעמי־ציפורה" (נ-ע-מ-י ־ צ-י-פ-ו-ר-ה) and "משאבי אנוש".
+
+Direction A - EDITORIAL CLEAN: a warm cream background, the headline big in deep burgundy above the video card, gold hairline accents, the stamp in gold. Minimal, premium, calm.

@@ -1,0 +1,16 @@
+The first attached image is a real frame from a new video: Dr. Naomi-Tzipora, a well-known psychiatrist and "certified doula of emotions", a guest on a podcast, looking at the host off-frame left, hand on heart. Turn it into the VIDEO'S COVER (the poster people see before they tap play) - designed like a real, serious B2B marketing ad addressed to HR managers in high-tech. Premium, very clear order, few words, stamps and badges instead of lines of text. Brand colours: deep burgundy #6b1023, wine, warm cream #f5eee4, a touch of gold #c9973a.
+
+Keep the woman EXACTLY as she is - her face, wig, glasses, headband, shawl and hand are not changed at all (they are protected by the mask). Keep the podcast studio behind her as it is wherever you don't place a design element.
+
+The second attached image is her brand logo: the illustrated mother holding a newborn inside a heart with a small dial, and the wordmark "המחוג שבלב". Copy it EXACTLY (do not redraw a different heart), small, in the top right area beside her head, below the top 13% of the poster.
+
+The lower part of the poster (from about 64% of the height down to 88%) carries the message, laid over her chest: a calm cream rounded panel (slightly transparent edge) spanning the width, the kicker small in gold, the headline big in deep burgundy, the gold stamp overlapping the panel's top corner, the name label small under the headline.
+Nothing important in the bottom 10% (plain colour there) and nothing written in the top 13%.
+
+Render these Hebrew texts EXACTLY, letter for letter, right-to-left, and nothing else written anywhere:
+1) a small kicker: "למנהלות ולמנהלי משאבי אנוש"
+2) the big headline: "אונבורדינג יש." on line one and "בונדינג אין." on line two
+3) a round gold rubber-STAMP seal that says only: "הראיון המלא"
+4) small, a name label: "ד״ר נעמי־ציפורה · דולה מוסמכת של רגשות"
+Spell every Hebrew word exactly; double-check "נעמי־ציפורה" (נ-ע-מ-י ־ צ-י-פ-ו-ר-ה) and "משאבי אנוש". No emoji.
+
