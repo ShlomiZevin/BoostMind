@@ -10,12 +10,17 @@ Cast: `hood-guy` (existing record; one old video `ig-17902511261964547`, 2024-10
 - Everything else (world pieces: portrait check, a page / real presence for him) - sub-agents, briefed by me.
 
 ## The video
-Editor session "הפקח שכונה" - intro sent 2026-11-24 (asked: project id, script, status, cast, end card). Waiting.
+Editor session "הפקח שכונה" - project **frankfurt-flight** (zoomcut/episodes/frankfurt-flight, script.txt). Before footage (2026-11-24).
+Script "טיסה לפרנקפורט": he gives a stranger confident, wrong travel advice in 3 places - the terminal gate screens (C4/C6),
+the apron bus (stand at the second door; "easyJet plane, Lufthansa crew"), the cabin ("row 18 is really 19") - and ends in
+someone else's seat. Editor has: Drop folder, 3 empty sets (terminal / bus / cabin), ambience per place, 8 one-shots.
+No voices / subtitles / music yet. End card: a slot at the end; I send the image + copy + URL.
 
 ## The world (to plan after the script)
 - His record and portrait: exist - check the portrait matches the look (bald, thin half-rim black glasses, thick horseshoe
   moustache, stubble, tank top).
-- His real presence: TBD with Shlomi after reading the script - built as the real thing (real-depth rule).
+- His real presence: PROPOSED to Shlomi 2026-11-24 - a travel-tips page he runs, "טיפים לטיסה מהשטח", built like a real
+  travel-hacks site / community (his tips from the video + more, all confident and wrong, written dead straight). Waiting for his call.
 - End poster: his real thing, as it would really sound - never a parody line (his note 2026-11-24).
 
 ## Release day order
