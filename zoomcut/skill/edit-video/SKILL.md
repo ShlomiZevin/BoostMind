@@ -55,6 +55,13 @@ layers a builder made; the editor and the export don't know or care which builde
 
 ## READ FIRST - how we work (his rules; each one cost him a round)
 
+**This skill is EDITING - no marketing by default** (his words, 2026-11-24: "We don't need stories. If it says
+automatically to do stories, it's not good. The editor skill is about editing. We have now a release manager ... and
+then he can do some marketing, but you don't need by default to create marketing"). Story posters, story clips, verse
+stories, teasers, new character sites, promo pictures = the Video Release Manager (roles/shlomiverse-video-release) and
+the Marketing session - made by this skill ONLY when he (or the VRM's brief) asks for that piece. The how-to notes for
+them below stay as reference for when he asks.
+
 0. **Report the bottom line only** (his words, 2026-11-18: "I don't want these long summaries - what I did, what went
    wrong, what I fixed. I just want the bottom line, and if you need something from me"). A hand-over is a few lines:
    it's ready / where to look (a link), and the decision or thing you need from him. No lists of what you did, no
@@ -179,8 +186,8 @@ When he approves the video and says to put it out, do ALL of it, in this order, 
    without the link. Wait for every platform's `done` + link; TikTok's caption reaches his Telegram by itself.
 5. **A new character's site** - live, in /all/, the links page's sites strip, the record's `site`, wiki.md's table
    (CLAUDE.md "A new page or site"). Check, don't redo.
-6. **The stories** - a verse story from the character (verse-story skill: a clean picture, words in boxes, preview,
-   `--test`, post) + the Instagram story poster he posts himself with a link sticker (empty bottom quarter for it).
+6. **The stories - only in a release / when he asks** (not this skill's default, 2026-11-24): a verse story from the
+   character (verse-story skill) + the Instagram story poster - the VRM / Marketing session's job.
 7. **Log it**: `node scripts/stats/event.mjs add --kind release ...` (the day it went live, `--at` the time).
 8. **Tell the other sessions what is live** (`ListAgents` / SendMessage): the one that prepared a release waiting
    for this video (the live strip + a banner waited for the-consultant), Studio Dialoug.
@@ -671,15 +678,15 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   after.
 - **The ending:** end on the last word. A character / company site goes on a **full-screen poster on black** right on
   that word (logo, the hook - e.g. "מחפשים עובדים!" - the site, the URL big and clear), held ~4 s. No Zoom tail.
-- **Every video ships with two posters** (his rule, 2026-10-23: "for every video it has also to prepare story
-  poster with link below"): the END CARD inside the video (above) and a **STORY POSTER** he posts the same day -
+- **Story posters - ONLY when he asks** (2026-10-23 he wanted them with every video; 2026-11-24 he took that back: no
+  marketing by default - the VRM / Marketing makes them). When asked: the END CARD inside the video (above) and a **STORY POSTER** he posts the same day -
   1080x1920 JPG in the footage's Downloads folder, two versions: `<name>-story-instagram.jpg` with a dashed box BELOW
   ("👇 לקביעת טיפול 👇" / "👇 הקישור כאן 👇") where he drops Instagram's link sticker with the site URL, and
   `<name>-story-tiktok.jpg` with "🔗 הלינק בביו ⬆️" in that box (TikTok stories carry no link). Same art as the end
   card - a Leonardo portrait from his frame, the character's logo, the site's CTA in the character's voice, a line
   tied to the video's punchline. Nothing important in the top 240 px or the bottom 300 px (the apps' bars). Made as
   HTML + headless Chrome at 1080x1920, ONE render per call (parallel renders sharing a profile fail silently).
-  Layouts to copy: `recipes/monologue.md` → tadar. Make both once his takes are in (not before the footage - his word 2026-11-24, below).
+  Layouts to copy: `recipes/monologue.md` → tadar. Only on his ask.
 - **Story clips from story posters** (haredit-2 ads, 2026-10-28: "send me both stories as short movies of 10 seconds
   with the music of the Chani movies on 1.2 and add a poster at the end"): 1080x1920, 10 s - the poster with a slow
   push-in (zoom 1.00 -> 1.06) for ~7 s, a 0.25 s slide to an END CARD in the same look (the shop / site / CTA in his
@@ -693,11 +700,14 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   per call - never text-only cards), jokes from the video's world in the copy, phone-width check. Then every list
   (wiki.md -> "A NEW site") and a deploy only after checking nothing else unfinished rides along (compare each
   changed page under public/ with the live one).
-- **A script before the footage = the Reader script + the project, NOTHING else** (his word, rosenblum-2, 2026-11-24 - I
-  had started laughs, book inserts, a whiteboard, poster art for an empty timeline: "I will shoot it afterwards, no need
-  to prepare placeholder or something like this"). Do steps 1-2 below (script, project / Drop folder via
-  `/api/new-from-script`) and stop; sets, sounds, pictures, posters are made after his takes arrive. The older
-  "fill it while he films" (3, 3b) is replaced by this.
+- **A script before the footage = the Reader script + the project + the SET (background) it needs, NOTHING else** (his
+  words, rosenblum-2, 2026-11-24: "I wanted you just to prepare the background needed for the class and prepare the
+  project and the reader" / "I will shoot it afterwards, no need to prepare placeholder or something like this" - I had
+  started laughs, book inserts, a whiteboard, poster art). Do: the script (steps 1 below), the project + Drop folder
+  (`/api/new-from-script`), and the character's set - from the library first (his ONE studio, `POST /api/lib/<id>/add`),
+  made new only if the scene needs a place he has none of - on the timeline as the set layer + episode.json
+  `background`. Then stop: sounds, inserts, texts, music, posters wait for his takes. The older "fill it while he films"
+  (3, 3b) is replaced by this.
 - *(older, replaced above)* **A script before the footage = a ready project before the footage** (2026-10-23: "prepare first the project
   reader then the rest, I'm filming" / "fill it while I'm filming"). He films with the Reader, and **the Reader lists
   PROJECTS, not scripts** - a script with no project never shows ("I don't see it here").
@@ -757,7 +767,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   shows it (an end poster, or a short ticker / blinking box that says "הלינק בביו" - never the boostmind URL).
 - **Every video can have its character's site, and every site has a CTA that reaches his email** (his ask, 2026-10-23:
   "there should be a cta on the website, a call to do something... going to my email"). If a character has no site
-  yet, offer one. Live now: /ayelet/ (book a treatment), /hindsight/ (join a plan), /demokratovich/ (ask the rabbi /
+  yet, that is the VRM's call (not offered by default from an edit, 2026-11-24). Live now: /ayelet/ (book a treatment), /hindsight/ (join a plan), /demokratovich/ (ask the rabbi /
   pledge a donation), Techy-Tech (send a CV). How to make one:
   - **Look like the character would build it**, as lame or as slick as the real thing (a community-shul site: בס״ד,
     navy + gold, marquee, red "תרמו עכשיו" everywhere, a donation pop-up). The jokes are in the character's voice and
