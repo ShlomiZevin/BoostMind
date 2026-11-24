@@ -2,6 +2,9 @@
 Status: building (his "make everything", 2026-11-22) - the video is not shot yet        Release day: after the shoot
 Cast: `naomi-tzipora` (existing record - written by his GPT session; series `hamachog-shebalev`)
 
+## MUSIC - his pick (2026-11-24)
+None of the generated beds (A-E) - he sent the TikTok sound he used for her before: "Idyllic jazz bossa nova with piano and guitar (1298871)" by Takanori Onda (TikTok library, 1.6M posts; screenshot Drop IMG_1020.png). Extracted from his video -> `s.naomi-bossa-tiktok.mp3` in both projects' Media, on the music layer (editor). LICENCE: TikTok = fine (or attach the sound natively); baked into IG / YouTube / the verse it is a stock track that may be claimed - decide with him before release (licence / native sound per platform / keep D for non-TikTok).
+
 ## RELEASE GO (his rule, 2026-11-24)
 "You will manage me, say to me what to upload when. I will just tell you when we're okay to release." -> on his GO I run release day and hand him a step-by-step list (what to upload where, in order, with the files and links). Waiting: the editor's cut-out fixes + POV, then his GO.
 
