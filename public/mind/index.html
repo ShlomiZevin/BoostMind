@@ -397,7 +397,8 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .tm .mwhere { white-space: normal; }
 .btn.waze { background: var(--amber); border-color: var(--amber); color: #1a1205; font-weight: 800; text-decoration: none; }
 .worlds { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; padding-bottom: 2px; scrollbar-width: none; } .worlds::-webkit-scrollbar { display: none; }
-.worlds button { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); font-weight: 800; font-size: 14.5px; color: var(--ink2); }
+.worlds button { flex: 1 1 auto; justify-content: center; display: inline-flex; align-items: center; gap: 5px; padding: 8px 8px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--card); font-weight: 800; font-size: 13.5px; color: var(--ink2); white-space: nowrap; }
+.worlds button i { width: 8px !important; height: 8px !important; } .worlds button .n { font-size: 11.5px; }
 .worlds button i, .wpick button i { width: 10px; height: 10px; border-radius: 50%; background: var(--w); }
 .worlds button .n { font-size: 12px; font-weight: 700; opacity: .7; }
 .worlds button.on { border-color: var(--w); color: var(--ink); background: color-mix(in srgb, var(--w) 14%, var(--card)); }
