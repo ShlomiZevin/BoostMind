@@ -350,6 +350,69 @@ and lay over the new one - he saw "two videos merging"). After every rebuild, ch
 overlap, no gaps (`from + dur` of one = `from` of the next), and re-apply your hand change to every new piece of that
 take. A framing for a whole take is better as one change you re-apply than as a one-piece edit you forget.
 
+## SETS, SOUND EFFECTS, MUSIC - what an editor prepares (his rules, rosenblum-2, 2026-11-24)
+A script before the footage (or any video that needs them) = the editor prepares, ON THE TIMELINE, the set, the sound
+effects and - only when he asks - the music. Never marketing, never speech. What each costs: a set or a sound effect =
+cents (just do it, say the total); music = dollars (find a ready one; ASK before generating or buying).
+
+**Sets (backgrounds).** Library first (`library/index.json` / `GET /api/lib` - skip anything marked REJECTED; the
+character's ONE studio, e.g. Rosenblum = `bg-class3`). New = `tools/leonardo.mjs image ... flare MEDIUM 1024x1536`
+(~$0.03). ALWAYS empty of people (a frozen person behind a moving one makes no sense). From HIS camera: he films CLOSE,
+a phone held low looking up - ceiling, lights, the top of the walls / board; present-day places. Put it on as the set
+image layer (`pin: "span"`, the set props blur 2.2 / brightness 0.82 / saturate 0.75 like rosenblum-1) + episode.json
+`background`.
+
+**Sound effects - only what happens OFF his shot** (a class laughing, a murmur, a phone in another room). Never:
+an ambience / room tone / background bed unless he asks ("the sound is stupid and no need"); a sound of something he
+does on camera (the book he puts down is in his take - "you spent money for no reason"); any speech. Where to get them,
+in this order:
+1. the project / the library (`library/index.json`, by tags; never a REJECTED one);
+2. **ElevenLabs ready-made sounds - free, no credits**: `node tools/el_sfx_pages.mjs <slug> [...] --out <dir> [--grep
+   <word>]` downloads the ~10 sounds of each page elevenlabs.io/sound-effects/<slug> (crowd-laughing, laughter,
+   people-laughing, audience-laughing, applause, classroom = bells, ...) with their descriptions (index.txt). Royalty-free
+   for commercial use on our paid plan, no credit (their FAQ). A slug that isn't a page = 404;
+3. Mixkit (free, no credit): e.g. "Laughing teenagers" `assets.mixkit.co/active_storage/sfx/429/429-preview.mp3` (the
+   page's preview URLs are the files) - he found it "too kids", OK only quiet underneath;
+4. generate - `tools/leonardo.mjs sfx <prompt.txt> <out.mp3> <s> --about ... --tags ... --project <id>` (ElevenLabs
+   direct, ~$0.004-0.016 each).
+**Show them before placing:** numbered files (L01, L02...) sent to him (SendUserFile / Telegram as files), one line on
+what each is; he rates them; mark the ones he rejects REJECTED in the library `about` (+ tag `rejected`) the same day.
+
+**A class / crowd laughing - what he kept (rosenblum-2):** the ages are the trap - "class/kids/teens" = little kids,
+"18-year-olds, deep voices" = too old. What worked: "A classroom of high school students, 16 and 17 years old, boys and
+girls, laughing out loud together at the teacher, a big burst of laughter that dies down. Teenage voices, not
+children, not adults. No words." (L01 - "perfect but not enough, like few are laughing"); "a crowd of adult university
+students in a lecture hall laughing out loud together, deep voices, big burst that dies down" (too old - fixed by
+**pitch +2 semitones, formant shifted**: `ffmpeg -af rubberband=pitch=1.12:formant=shifted` = Y1, "good"); a class
+erupting with desks slapped (L05 "sounds like a real class"); short snicker ripples (L06/L07 = small additions).
+Rejected: murmur / "oooh" / "losing it completely" / "hysterical" prompts, stand-up audiences, sitcom tracks.
+**A bigger laugh = stack good ones, never a new "huge" prompt** (his idea): 2-3 kept laughs offset 0.3-1.1 s, the
+partners ~3 dB under the lead; a quiet bed underneath (-32 LUFS) adds body. Files kept for Rosenblum:
+`episodes/_assets/rosenblum/underwear/laughs2/` (Y1, S1 = laugh-big + Y1, L01-L07, M1).
+
+**Placing them:** each laugh moment at its rough place from the script (moved onto his real pauses after the takes);
+a stack = clips on rows "הכיתה צוחקת 1 / 2 / 3" + "צחוק שקט ברקע", every clip of one moment with the same `link`
+(he drags the moment as one). Levels by LUFS (ffmpeg ebur128 -> item `gain`): small -26, medium -22, big -21..-18.
+**Every row gets a light room** - "a classroom filter, not too much, to sound realistic - we are building atmosphere":
+the row's live `fx {room: 0.25, roomSize: 0.5}` (never baked into the file).
+
+**Music - only when he asks; never generate or buy without asking.** Options, cheapest first:
+1. **Our library** (`episodes/_assets/music/library/` - Kevin MacLeod CC BY, credit line in the caption; LICENSE.md
+   says which he approved) - a bed NO other character uses (taken 2026-11-24: Sneaky Snitch = Savta, Scheming Weasel =
+   night guy, elevator = Sagi, awk-boombap = Tzvika). Send the candidates as files (A, B, C...) - he picks.
+2. **ElevenLabs Music Marketplace** (no generation): elevenlabs.io/app/music -> Marketplace, search ("quirky comedy",
+   "awkward comedy"...) - user-made tracks, previews play there. **Price = credits from our plan, flat per track**
+   (checked 2026-11-24 on two tracks): **Social Media license 6,818 credits** (social posts, videos, monetized,
+   his site - what we need), Paid Marketing 22,727, Offline and Events 227,272. We run in overage (~$0.12 per 1,000
+   credits from the invoice) = about **$0.80 a track**. Once bought: downloadable / remixable any number of times
+   while subscribed; kept for use after. No public API (probed: 404) - browse with Claude in Chrome on his signed-in
+   account, send him the names + previews; **buying is his click** (a purchase - never press Buy & Download yourself).
+3. **ElevenMusic "Sounds"** - free loops / drum and bass parts, commercial terms not stated - not a bed.
+4. **Generate** (Eleven Music, `tools/elevenlabs_music.mjs` / Leonardo music): ~1,600 credits a minute per version
+   (the app makes 2) - ask first; generated quirky beds were mostly "terrible" (tzvika-1).
+A character's chosen bed is HIS FIXED bed for every video of that character - write it here and on the character's
+studio notes. Rosenblum: being chosen (2026-11-24) - cringe comedy, not the thriller / drill one.
+
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
    another heavy job while ANY job runs, test (`_`) projects too: `GET /api/jobs` → `busy` must be empty.
@@ -723,6 +786,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
      stupid and no need") - this overrides "sound is never naked" below;
   4. **music** - only when he asks for it: library first (a bed no other character uses), sent to him as files to pick.
      Nothing fits = ASK before generating - music is the only thing here that costs dollars.
+  How, and what each costs: the section "SETS, SOUND EFFECTS, MUSIC" above.
   NOT before the takes: any generated SPEECH (no TTS, no stand-in voices - only on his ask), subtitles / voice groups
   (made from his takes), inserts or graphics he didn't ask for, and no marketing (stories, posters, sites).
   (Earlier the same day I over-did it with book-page inserts + poster art - "no need to prepare placeholder".)
