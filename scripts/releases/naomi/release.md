@@ -2,6 +2,9 @@
 Status: building (his "make everything", 2026-11-22) - the video is not shot yet        Release day: after the shoot
 Cast: `naomi-tzipora` (existing record - written by his GPT session; series `hamachog-shebalev`)
 
+## RELEASE GO (his rule, 2026-11-24)
+"You will manage me, say to me what to upload when. I will just tell you when we're okay to release." -> on his GO I run release day and hand him a step-by-step list (what to upload where, in order, with the files and links). Waiting: the editor's cut-out fixes + POV, then his GO.
+
 ## THE MAIN IDEA - HR (his call, 2026-11-24)
 "Let's address HRs ... Everything should address HRs if they want to be able to work with Gen Z. So it's like offering
 services." Caption, end poster, story, video poster - all speak to HR managers, as her real offer (the orgs program
