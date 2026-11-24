@@ -33,7 +33,7 @@ filter; podcast set (teal wall, bookshelf, mic); logo white on burgundy with a h
 | NEW service from the video | organizations: from onboarding to bonding (young employees) + managers' response-pause track |
 | Book "המחוג שבלב" cover | B - full size + 3D (private/covers/), on the site |
 | Logo | G - model-designed (GPT Image 2.6): mother + newborn in a heart with a dial (his "D is the most parody", my pick). Live on the site + og; posters re-rendered; editor updating end card + name band |
-| Editor | naomi-1 ready for footage: guest studio B, host tail, name band, end card |
+| Editor | naomi-1 ready for footage: guest studio B, host tail, name band, end card. **END CARD CHANGED 2026-11-24 (his note: real ad, not a parody line):** use `zoomcut/episodes/_assets/naomi/endcard-4.jpg` (source endcard-4.html) in place of endcard-3 - credentials, "מאונבורדינג לבונדינג" program, "לקביעת מפגש רגשי ראשון" + URL. The editor swaps it through the editor (never by hand in project.json) |
 | Marketing | ready, NOT posted (nothing before the video): video poster, site launch, book, org program - private/promo/ |
 | DoulaSense AI | "coming soon" + waitlist on the site (later idea: a real tool) |
 

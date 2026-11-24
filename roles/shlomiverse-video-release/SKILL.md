@@ -141,6 +141,12 @@ Everything here goes in git (his images too); only keys and other real people's 
 - **The parody IS real life**: the joke is how exactly it matches the real industry - its language, its claims, its
   data-dressing. Never a wink, never a gag section, never thin placeholder copy. If a real site of that kind would have
   it, ours has it; if ours looks emptier than the real ones, it isn't done.
+- **Posters too - above all the video's END poster** (his note, 2026-11-24, on Naomi's "אני מזמינה אותך לאתר. בלי לזרז."):
+  "the posters at the end are not parodies but how they would really sound". The end card is the resident's real ad, the
+  one their business would actually run: real credentials, a real product / program (the one the episode is about), the
+  booking / call-to-action line from their own site, the address. The humour stays dumb but the copy stays serious, and
+  the comedy is only in how real it is. Never a cute line built on the episode's joke. Same for marketing posters that
+  speak as the resident.
 - Brief every builder with this paragraph, and reject work that is shallow.
 
 ## When things go live
