@@ -1,5 +1,5 @@
 # hood-guy - האחראי של השכונה (הפקח ללא תפקיד)
-Status: opened 2026-11-24 - waiting for the editor session's status and script        Release day: after his OK on the cut
+Status: VIDEO ONLY (his call 2026-11-24: "nothing beyond the video for now, maybe later") - no end card, no world pieces        Release day: after his OK on the cut
 Cast: `hood-guy` (existing record; one old video `ig-17902511261964547`, 2024-10-06, "אחראי השכונה מחפש את רחוב המפילים")
 
 ## His staffing (2026-11-24)
@@ -19,8 +19,9 @@ No voices / subtitles / music yet. End card: a slot at the end; I send the image
 ## The world (to plan after the script)
 - His record and portrait: exist - check the portrait matches the look (bald, thin half-rim black glasses, thick horseshoe
   moustache, stubble, tank top).
-- His real presence: PROPOSED to Shlomi 2026-11-24 - a travel-tips page he runs, "טיפים לטיסה מהשטח", built like a real
-  travel-hacks site / community (his tips from the video + more, all confident and wrong, written dead straight). Waiting for his call.
+- His real presence: NOT NOW. My travel-tips-site idea was wrong for him - his note: "he is not a tech person, an old-fashioned
+  guy from the neighbourhood who knows the קופות חולים, the מכולות". Anything later = offline, neighbourhood-real (a notice
+  on the building board, the grocery, the clinic queue), never a website / app / channel of his own.
 - End poster: his real thing, as it would really sound - never a parody line (his note 2026-11-24).
 
 ## Release day order
