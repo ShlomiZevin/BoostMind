@@ -1,0 +1,11 @@
+{
+  "id": "syncs",
+  "sponsor": "Techy-Tech",
+  "href": "/techietech/syncs/",
+  "alt": "Syncs by Techy-Tech: מסיימים ישיבה. מתחילים לבצע. - מתחילים ישיבה",
+  "look": "strip",
+  "places": ["home"],
+  "order": -1,
+  "wide": "~/Documents/shlomiverse-v2-design/ad/syncs/wide.jpg",
+  "card": "~/Documents/shlomiverse-v2-design/ad/syncs/card.jpg"
+}
