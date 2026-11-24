@@ -396,8 +396,8 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .mwhere i { font-style: normal; min-width: 0; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; text-align: right; line-height: 1.3; }
 .tm .mwhere { white-space: normal; }
 .btn.waze { background: var(--amber); border-color: var(--amber); color: #1a1205; font-weight: 800; text-decoration: none; }
-.worlds { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; padding-bottom: 2px; scrollbar-width: none; } .worlds::-webkit-scrollbar { display: none; }
-.worlds button { flex: 1 1 auto; justify-content: center; display: inline-flex; align-items: center; gap: 5px; padding: 8px 8px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--card); font-weight: 800; font-size: 13.5px; color: var(--ink2); white-space: nowrap; }
+.worlds { display: flex; gap: 5px; overflow-x: auto; margin: 0 0 10px; padding-bottom: 2px; scrollbar-width: none; } .worlds::-webkit-scrollbar { display: none; }
+.worlds button { flex: 1 1 auto; justify-content: center; display: inline-flex; align-items: center; gap: 4px; padding: 8px 6px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--card); font-weight: 800; font-size: 13.5px; color: var(--ink2); white-space: nowrap; }
 .worlds button i { width: 8px !important; height: 8px !important; } .worlds button .n { font-size: 11.5px; }
 .worlds button i, .wpick button i { width: 10px; height: 10px; border-radius: 50%; background: var(--w); }
 .worlds button .n { font-size: 12px; font-weight: 700; opacity: .7; }
@@ -648,7 +648,7 @@ const projName = (p) => worldOf(p)?.[1] || S.config.projects?.[p]?.name || p;
 const inWorld = (it) => !S.world || (S.world === '-' ? !worldOf(it.project) : it.project === S.world);
 function worldBar(items) {
   const n = (w) => items.filter((it) => (w === '-' ? !worldOf(it.project) : it.project === w)).length;
-  return `<div class="worlds">${[['', 'הכל'], ...WORLDS, ['-', 'היתר', '#64748b']].map(([k, t, c]) => `<button class="${(S.world || '') === k ? 'on' : ''}" data-world="${k}" style="--w:${c || 'var(--brand)'}">${c ? '<i></i>' : ''}${t}${k ? `<span class="n">${n(k)}</span>` : ''}</button>`).join('')}</div>`;
+  return `<div class="worlds">${[['', 'הכל'], ...WORLDS, ['-', 'היתר', '#64748b']].map(([k, t, c]) => `<button class="${(S.world || '') === k ? 'on' : ''}" data-world="${k}" style="--w:${c || 'var(--brand)'}">${c ? '<i></i>' : ''}${t}${k && n(k) ? `<span class="n">${n(k)}</span>` : ''}</button>`).join('')}</div>`;
 }
 function worldPick(it) {
   return `<div class="wpick">${[...WORLDS, ['', 'היתר', '#64748b']].map(([k, t, c]) => `<button class="${(worldOf(it.project) ? it.project : '') === k ? 'on' : ''}" data-wpick="${k}" style="--w:${c}"><i></i>${t}</button>`).join('')}</div>`;
