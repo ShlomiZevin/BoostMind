@@ -192,6 +192,7 @@ conflict markers), push, say so. Never `git stash`. Deploy pages with `bash scri
 behind / ahead / uncommitted - deploy from a clean worktree of `origin/main` if other sessions' files are in the way).
 
 ## Lessons (add one every time a release teaches us - date + what happened)
+- 2026-11-24 · The Reader split Naomi's monologue into fake characters ("terribly split"): it reads any line that opens with 1-3 words + a colon as a SPEAKER ("היא אומרת לי: “...”", "אמרתי לה: “...”"). In a monologue script, quoted speech takes a dash, never a colon ("היא אומרת לי – “...”"); check with the Reader's own parse() that every line is one speaker before he films.
 - 2026-11-22 · Role created at his ask. Before it, the edit-video skill held the whole release (its "PUBLISHING EVERYWHERE"
   protocol, the-consultant 2026-11-18) - that list is still the video's part; this role adds the world and the marketing.
 - 2026-11-22 · Naomi's portrait took 3 rounds: round 1 kept his stubble ("she is a woman, needs no זיפים"), round 2 looked
