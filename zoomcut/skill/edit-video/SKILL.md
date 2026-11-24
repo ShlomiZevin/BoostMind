@@ -668,6 +668,10 @@ from / dur); a one-shot or an announcement gets its own link (chime + its words)
   the end card ON the last word with the music running through it (a music dip at the cut felt "like something is
   missing"); the hook held 20 s of the FINAL (sped) video, size 52, max 3 lines. Show looks as a labelled sheet of
   stills on Telegram before exporting.
+- **SYNC CHECK AFTER EVERY EDIT ROUND** (naomi-1-tight 2026-11-24: he heard lips off after a "tighten" round - moving
+  later clips shifted the picture but not the voice handle starting just before each cut, 0.1-0.36 s off). After any round
+  that moves joins, check every linked pair (same `link`): `(voice.in - voice.from/fps) - (video.in - video.from/fps)` must
+  be within -40..0 ms for ALL pairs; fix the voice's `in`, never ship a round without this check.
 - **NO FADES ON VOICE CLIPS - ever** (his rule, naomi-1-tight 2026-11-24: "do you fade in / fade out at the end/start
   of a clip? If so, never do that in my life"). A voice join = a hard cut with the sound handles pulled out (the audio
   starts a little before the picture cut and runs a little after); `fade_in` / `fade_out` stay 0 on every voice item
