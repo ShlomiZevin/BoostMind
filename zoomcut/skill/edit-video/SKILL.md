@@ -709,8 +709,10 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   2. **the set** - the character's studio from the library first; a new place = GPT Image (cents). ALWAYS empty of
      people (people frozen in a still look wrong behind a moving person), from HIS camera: he films close, a phone held
      low - see "EVERY FRAME MUST MAKE SENSE";
-  3. **the sound effects** the script calls for (ElevenLabs sfx, cents): reactions, laughs, a prop - each its own clip
-     at its rough moment, levelled by LUFS. **NEVER an ambience / room tone / background bed unless he asks** (his words,
+  3. **the sound effects** the script calls for (ElevenLabs sfx, cents) - ONLY what happens OFF his shot (the class
+     laughing, a murmur, a phone ringing in another room) - each its own clip at its rough moment, levelled by LUFS.
+     **Never a sound of something HE does on camera** (he puts a book down = it is in his take; 2026-11-24: "again you
+     added something which will be in my shot - you spent money for no reason"). **NEVER an ambience / room tone / background bed unless he asks** (his words,
      2026-11-24, on a generated quiet-classroom loop: "never generate ambience sounds unless asked for, the sound is
      stupid and no need") - this overrides "sound is never naked" below;
   4. **music** - only when he asks for it: library first (a bed no other character uses), sent to him as files to pick.
