@@ -77,3 +77,7 @@ poster + IG story with link sticker (the video), the book poster, the site launc
 ## Spend: portraits $0.48 + shoot kit $0.13 + site/covers design $0.46 + studio options ~$0.15 = ~$1.22
 ## Lessons for the role: a woman resident = say WOMAN, real age, clean face (no stubble) in the portrait prompt from round 1; keep the costume and the filter look.
 ## Live links       resident page https://shlomiverse.com/c/naomi-tzipora
+
+### Music - own versions (2026-11-24)
+His TikTok sound = Audiostock (Japan) stock track #1298871 by Takanori Onda. TikTok's library covers it on TikTok only; anywhere else it needs an Audiostock licence, bought by him (the site blocks bots, so the terms were not read).
+Our own versions are in the style of that sound (ElevenLabs, ours to use everywhere): naomi-bossa-A/B/C.mp3 in _assets/naomi/music (plans bossa-*.plan.json), in the library and in both projects' Media. They were sent to Telegram and are waiting for his pick.
