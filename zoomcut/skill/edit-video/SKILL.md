@@ -441,6 +441,16 @@ airport-announcement, airplane, plane-landing, jet, luggage, announcement, crowd
 listen, pick -> generate only what is missing (cents each; prompts specific: what, where, how far, how long). Only
 sounds OFF his shot; no ambience bed unless he asks; no speech (an airport PA announcement IS speech - only if he asks,
 and then acted, in Hebrew - "EVERY GENERATED VOICE IS ACTED"). Numbered files to him first; his rejects marked REJECTED.
+**frankfurt-flight (2026-11-24) - what he asked for in a multi-place script (terminal / apron bus / cabin):** a set + an
+ambience bed PER PLACE (he asked for beds here - "everything like a real airport"), two versions of each in Media (the B
+beds on a muted row). The free pages give only 1-3 s snippets - a place's bed is a generated 30 s `loop`
+(~$0.05). **The PA, which he asked for:** "dings and announcements, randomly as in a real airport, all the time, but in the
+very, very background" = ElevenLabs v4 announcements, acted (`[calm, professional airport announcer]`), Hebrew + English
+pairs (Danit + an HE man; real-sounding flights, gates, a paged passenger, unattended baggage), each after a chime, on a
+row with the `speakerphone` setup + a big hall (`room` 0.55, `roomSize` 2.2) at volume ~0.15. The announcement the scene
+can play off (last call for HIS flight) goes on its own row, louder, in versions (gate C4 / C6 / no gate); the cabin crew
+on their own row (small room). Script: `_assets/frankfurt/pa/gen.mjs` + `lines.json`. **Link** = a set + its bed (same
+from / dur); a one-shot or an announcement gets its own link (chime + its words) - never the place's, or he can't move it alone.
 
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
