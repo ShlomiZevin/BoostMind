@@ -686,9 +686,16 @@ from / dur); a one-shot or an announcement gets its own link (chime + its words)
   can bring `<name>-2.mp4` copies); pick the takes with a `takes` glob that matches exactly those files.
 - **Every change shows at once.** He hates waiting and "Updating preview". Only real picture work rebuilds.
 - **What he sees is what he exports, and exports fast.** Same cut, sounds, text, filters, speed in both.
-- **Subtitles follow what he SAID**, not the script (his ad-libs stay - add them to the script line). Hook text starts
-  "פוב:" (never "POV:") unless his words have no prefix; his exact words; y ≥ ~250; max ~3 lines so it never covers
-  a face (smaller `size` before more lines).
+- **Subtitles follow what he SAID**, not the script (his ad-libs stay - add them to the script line).
+- **The hook text (the title on the video) - his social formats** (his words, 2026-11-24, naomi-1): his videos'
+  hooks are usually one of these:
+  1. **"אף אחד:" / "אף אחת:"** (the social "Nobody:" format) + a VERY specific description of something, e.g.
+     "אף אחת: / מטפלות שהמציאו תחום טיפולי חדש / מתארחות בפודקאסט". The "אף אחד/ת:" line is part of the text.
+  2. **"פוב:"** (never "POV:") + you in a specific situation, e.g. "פוב: ההנהלה הביאה יועץ AI חיצוני".
+  3. **Pointing at the person**: "הבחור הזה ש...", "האיש הזה ש...", "החבר המאוס הזה ש..." etc.
+  Short, specific, something people instantly connect to; never an explanation of the joke. When he gives the words,
+  use his exact words and his format (including the "אף אחת:" line). y ≥ ~250 (in a close-up, wherever no face is -
+  naomi-1 sits it on the chest); max ~3 lines so it never covers a face (smaller `size` before more lines).
 - **A still set has NO people in it** (rosenblum-1, 2026-11-10 - "it's a movie, so how can it be that people are
   still, don't move there? It doesn't make sense"): a crowd in a photo backdrop - even blurred, even "motion blur" -
   is frozen behind a moving person. Sets are empty places; the crowd lives in the SOUND (ambience beds, laughs,
