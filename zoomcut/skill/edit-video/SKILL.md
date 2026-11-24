@@ -367,7 +367,8 @@ an ambience / room tone / background bed unless he asks ("the sound is stupid an
 does on camera (the book he puts down is in his take - "you spent money for no reason"); any speech. Where to get them,
 in this order:
 1. the project / the library (`library/index.json`, by tags; never a REJECTED one);
-2. **ElevenLabs ready-made sounds - free, no credits**: `node tools/el_sfx_pages.mjs <slug> [...] --out <dir> [--grep
+2. **ElevenLabs ready-made sounds - free, no credits**: `node tools/el_sfx_pages.mjs --find <word,word>` lists which of
+   the ~2,400 topic pages exist; `node tools/el_sfx_pages.mjs <slug> [...] --out <dir> [--grep
    <word>]` downloads the ~10 sounds of each page elevenlabs.io/sound-effects/<slug> (crowd-laughing, laughter,
    people-laughing, audience-laughing, applause, classroom = bells, ...) with their descriptions (index.txt). Royalty-free
    for commercial use on our paid plan, no credit (their FAQ). A slug that isn't a page = 404;
@@ -396,22 +397,47 @@ a stack = clips on rows "הכיתה צוחקת 1 / 2 / 3" + "צחוק שקט ב�
 **Every row gets a light room** - "a classroom filter, not too much, to sound realistic - we are building atmosphere":
 the row's live `fx {room: 0.25, roomSize: 0.5}` (never baked into the file).
 
-**Music - only when he asks; never generate or buy without asking.** Options, cheapest first:
-1. **Our library** (`episodes/_assets/music/library/` - Kevin MacLeod CC BY, credit line in the caption; LICENSE.md
-   says which he approved) - a bed NO other character uses (taken 2026-11-24: Sneaky Snitch = Savta, Scheming Weasel =
-   night guy, elevator = Sagi, awk-boombap = Tzvika). Send the candidates as files (A, B, C...) - he picks.
-2. **ElevenLabs Music Marketplace** (no generation): elevenlabs.io/app/music -> Marketplace, search ("quirky comedy",
-   "awkward comedy"...) - user-made tracks, previews play there. **Price = credits from our plan, flat per track**
-   (checked 2026-11-24 on two tracks): **Social Media license 6,818 credits** (social posts, videos, monetized,
-   his site - what we need), Paid Marketing 22,727, Offline and Events 227,272. We run in overage (~$0.12 per 1,000
-   credits from the invoice) = about **$0.80 a track**. Once bought: downloadable / remixable any number of times
-   while subscribed; kept for use after. No public API (probed: 404) - browse with Claude in Chrome on his signed-in
-   account, send him the names + previews; **buying is his click** (a purchase - never press Buy & Download yourself).
-3. **ElevenMusic "Sounds"** - free loops / drum and bass parts, commercial terms not stated - not a bed.
-4. **Generate** (Eleven Music, `tools/elevenlabs_music.mjs` / Leonardo music): ~1,600 credits a minute per version
-   (the app makes 2) - ask first; generated quirky beds were mostly "terrible" (tzvika-1).
-A character's chosen bed is HIS FIXED bed for every video of that character - write it here and on the character's
-studio notes. Rosenblum: being chosen (2026-11-24) - cringe comedy, not the thriller / drill one.
+**Music - only when he asks; ask before spending.** What each way costs (measured 2026-11-24; our plan = ElevenLabs
+Creator, running in overage - about **$0.12 per 1,000 credits**, worked out from the invoice):
+| way | cost | what you get |
+|---|---|---|
+| our library (`episodes/_assets/music/library/`, Kevin MacLeod CC BY - credit line in the caption) | free | known tracks; one per character (taken: Sneaky Snitch = Savta, Scheming Weasel = night guy, elevator = Sagi, awk-boombap = Tzvika) |
+| **generate** (Eleven Music: `tools/elevenlabs_music.mjs`, or the app) | **~1,600 credits per minute per version ≈ $0.19** (the app makes 2 versions = ~$0.38 a try) | unknown until heard; quirky beds took many tries (tzvika-1: 28 tracks, ~45k credits ≈ $5, all rejected) |
+| **ElevenLabs Music Marketplace** (buy a ready track) | **6,818 credits ≈ $0.80 per track** - Social Media license (social posts, monetized videos, his site). Paid Marketing 22,727, Offline 227,272 | you hear the whole track before paying; re-download any number of times while subscribed, keep using after |
+**His rule (2026-11-24): generation stays our main way** - one Marketplace track ≈ 4 generated minutes ("if the
+marketplace costs 6 times more than just generating, we keep up with the generation, because eventually we can
+generate good stuff"). The Marketplace is for when a specific track is clearly right (or generation keeps missing):
+"when I'm downloading, at least I know what I'm getting". Either way: send him the options as files first, and say
+what each would cost.
+
+**Browsing the Marketplace (no generation, nothing spent):**
+- No public API: the API key gets 401 on the app's own endpoints, and the public OpenAPI (api.elevenlabs.io/openapi.json)
+  has no marketplace / sound-library paths. The page runs on his signed-in web session - **use Claude in Chrome**, at
+  human pace, one search at a time; never call their internal endpoints yourself or extract his session token ("be
+  careful so we won't get blocked").
+- elevenlabs.io/app/music?q=<words> = Marketplace results (title, creator, tags, length, BPM). To get the details, hook
+  the page's own fetch BEFORE searching (javascript_tool), then search in the page's box: it keeps the JSON the page
+  itself loaded from `.../v1/music/explore/songs` - per song `title, description, duration_ms, bpm, vocals, sections,
+  download_count, public_audio_url` (the whole track, a public CDN mp3 - the same file the page plays):
+  `window.__cap=[];const of=fetch;window.fetch=async(...a)=>{const r=await of(...a);const u=String(a[0]?.url||a[0]);
+  if(/music\/explore\/songs/.test(u))r.clone().json().then(j=>__cap.push(j)).catch(()=>{});return r}`
+  then read `__cap.flatMap(j=>j.songs)`.
+- Download the candidates' `public_audio_url` for him to listen (curl, one at a time, a pause between) - FOR LISTENING
+  ONLY. A track goes into a video only after HE buys it: the track's download icon -> "Purchase song license" ->
+  Social Media -> "Buy & Download" (6,818 credits) - **his click, never yours** (a purchase). Then the bought file goes
+  into the project / library like any bed.
+- Good searches for comedy beds: "cringe comedy", "awkward comedy", "quirky comedy", "pizzicato comedy".
+- ElevenMusic "Sounds" (free loops, drum / bass parts) - commercial terms not stated; not a bed.
+A character's chosen bed is HIS FIXED bed for every video of that character - write it here. Rosenblum: being chosen
+(2026-11-24) - cringe comedy, not the thriller / drill one; offered library A-D + Marketplace E1-E8 (search "cringe comedy").
+
+**A sound-heavy video (an airport, a market, a hospital...)** - the same order as above, per sound: the library ->
+`node tools/el_sfx_pages.mjs --find airport,plane,luggage,announce,crowd` (lists which free pages exist - e.g. airport,
+airport-announcement, airplane, plane-landing, jet, luggage, announcement, crowd, crowded-room, cart, gate, beep, door)
+-> download those pages (`... airport airplane luggage --out episodes/_assets/<series>/sfx-free`), read index.txt,
+listen, pick -> generate only what is missing (cents each; prompts specific: what, where, how far, how long). Only
+sounds OFF his shot; no ambience bed unless he asks; no speech (an airport PA announcement IS speech - only if he asks,
+and then acted, in Hebrew - "EVERY GENERATED VOICE IS ACTED"). Numbered files to him first; his rejects marked REJECTED.
 
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
