@@ -1,5 +1,5 @@
 # naomi - ד"ר נעמי־ציפורה בן־נון־פרידמן־שטרנבך comes back
-Status: building (his "make everything", 2026-11-22) - the video is not shot yet        Release day: after the shoot
+Status: live (2026-11-24 19:45)
 Cast: `naomi-tzipora` (existing record - written by his GPT session; series `hamachog-shebalev`)
 
 ## MUSIC - his pick (2026-11-24)
@@ -83,3 +83,13 @@ His TikTok sound = Audiostock (Japan) stock track #1298871 by Takanori Onda. Tik
 Our own versions are in the style of that sound (ElevenLabs, ours to use everywhere): naomi-bossa-A/B/C.mp3 in _assets/naomi/music (plans bossa-*.plan.json), in the library and in both projects' Media. They were sent to Telegram and are waiting for his pick.
 - 2026-11-24 19:20: our own "Tea for Two" (public domain 1924 tune; the recording is ours, built from the lead sheet; kit in _assets/naomi/music/tea-exact/, `build.py 3`) is now the playing music on naomi-1-tight (row music.tea3, vol 0.31, two 120 s copies). He picked the TIGHT version. Full export emailed to him; his previous export used bossa A. Waiting for his pick between the two exports.
 - 2026-11-24 19:39: he rejected Tea for Two ("terrible"). Back to bossa A (music.A, vol 0.26, a bit quieter than his 0.323); tea3 is muted. The final full export was emailed and is waiting for his release approval.
+
+## LIVE 2026-11-24 19:45 (his GO)
+naomi-1-tight (2:15, music = bossa A at 0.26). Links:
+- Verse: https://shlomiverse.com/v/naomi-1-tight
+- IG: https://www.instagram.com/reel/DgIhngmESks/
+- YouTube: https://youtube.com/shorts/O1KljjDYtpA
+- X: https://x.com/ShlomiZevin/status/2125285096051580989
+- TikTok: a draft in his inbox
+Also done: verse story vP5Mua7XWpmVV1xS9Ob6 (pod.jpg + quote, button to the video; JSON in promo/hr/verse/); live-strip frames; event kSD6vaQO63187vvGzrw7. IG stories story-1/story-2/cover went to his Telegram for him to post. Marketing, Conversion and Voice were told.
+NEXT: day 1 and day 3 checks (comments answered, numbers since the event, story views); the game (draft 5) is waiting for his OK in the game session.
