@@ -679,7 +679,7 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   card - a Leonardo portrait from his frame, the character's logo, the site's CTA in the character's voice, a line
   tied to the video's punchline. Nothing important in the top 240 px or the bottom 300 px (the apps' bars). Made as
   HTML + headless Chrome at 1080x1920, ONE render per call (parallel renders sharing a profile fail silently).
-  Layouts to copy: `recipes/monologue.md` → tadar. Make both as soon as the script arrives - before the footage.
+  Layouts to copy: `recipes/monologue.md` → tadar. Make both once his takes are in (not before the footage - his word 2026-11-24, below).
 - **Story clips from story posters** (haredit-2 ads, 2026-10-28: "send me both stories as short movies of 10 seconds
   with the music of the Chani movies on 1.2 and add a poster at the end"): 1080x1920, 10 s - the poster with a slow
   push-in (zoom 1.00 -> 1.06) for ~7 s, a 0.25 s slide to an END CARD in the same look (the shop / site / CTA in his
@@ -693,7 +693,12 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   per call - never text-only cards), jokes from the video's world in the copy, phone-width check. Then every list
   (wiki.md -> "A NEW site") and a deploy only after checking nothing else unfinished rides along (compare each
   changed page under public/ with the live one).
-- **A script before the footage = a ready project before the footage** (2026-10-23: "prepare first the project
+- **A script before the footage = the Reader script + the project, NOTHING else** (his word, rosenblum-2, 2026-11-24 - I
+  had started laughs, book inserts, a whiteboard, poster art for an empty timeline: "I will shoot it afterwards, no need
+  to prepare placeholder or something like this"). Do steps 1-2 below (script, project / Drop folder via
+  `/api/new-from-script`) and stop; sets, sounds, pictures, posters are made after his takes arrive. The older
+  "fill it while he films" (3, 3b) is replaced by this.
+- *(older, replaced above)* **A script before the footage = a ready project before the footage** (2026-10-23: "prepare first the project
   reader then the rest, I'm filming" / "fill it while I'm filming"). He films with the Reader, and **the Reader lists
   PROJECTS, not scripts** - a script with no project never shows ("I don't see it here").
   **"Ready" means he opens the editor and sees every layer on the timeline** - set, wall pictures, stickers, texts,
