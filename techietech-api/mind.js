@@ -38,6 +38,8 @@ const PUSH_KINDS = { ask: true, remind: true, session: true, meet: true, nag: tr
 
 const STATUSES = ['open', 'active', 'waiting', 'done', 'parked'];
 const STATUS_HE = { open: 'פתוח', active: 'בטיפול', waiting: 'מחכה לך', done: 'בוצע', parked: 'בהקפאה' };
+// his content worlds (his rule 2026-11-24): every item belongs to one, "" = the rest. Kept in item.project.
+const WORLDS = ['Shlomiverse', 'Lybi', 'Aspect'];
 const DEFAULT_TYPES = [
   { id: 'idea', name: 'רעיון', color: '#f5a524', icon: 'bulb' },
   { id: 'task', name: 'משימה', color: '#3b82f6', icon: 'check' },
@@ -725,7 +727,7 @@ async function pageOp(b) {
           today: { type: 'string', enum: ['', 'yes', 'no'] }, nag: { type: 'string' }, askFrom: { type: 'string' },
           do: { type: 'string', enum: ['add', 'update'] }, id: { type: 'string' },
           text: { type: 'string' }, body: { type: 'string' }, note: { type: 'string' },
-          type: { type: 'string', enum: ['', ...cfg.types.map((t) => t.id)] }, project: { type: 'string' },
+          type: { type: 'string', enum: ['', ...cfg.types.map((t) => t.id)] }, project: { type: 'string', enum: ['', '-', ...WORLDS] },
           status: { type: 'string', enum: ['', ...STATUSES] }, pin: { type: 'string', enum: ['', 'yes', 'no'] }, due: { type: 'string' } } } } } };
       const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: 'Bearer ' + OPENAI.value(), 'content-type': 'application/json' },
         body: JSON.stringify({ model: 'gpt-6.1-terra', reasoning: { effort: 'none' }, max_output_tokens: 4000, store: false,
@@ -737,7 +739,7 @@ When what he says is about something already on his table (more details, a thoug
   text: a short clear title in his language, max ~70 chars, no "צריך ל" padding. body: everything else he said about it, cleaned up, nothing lost (names, numbers, links, why); "" if the title says it all.
   type: one of ${cfg.types.map((t) => `${t.id} (${t.name})`).join(', ')}. An idea = idea; something he must do = task; something he wants to be reminded of at a time ("תזכיר לי", "שלא אשכח") = reminder, with its due date; something running in the background = job; a reflection = thought; waiting for someone else = wait.
   His videos (his own rule, 2026-11-24): an idea for a video he hasn't written a script for yet = idea, titled "סרטון: <what>"; once the script is written and everything is ready to shoot ("כתבתי תסריט", "זה מוכן לצילום", "תהפוך למטלה") = task, titled "צילום: <what>" (an existing idea becomes that task - UPDATE it, don't add); due on a shoot = ONLY the specific day he decided to shoot it, never a guess.
-  project: one of his projects (${known.join(', ') || 'none yet'}) when it clearly belongs there, a new short name only if he names one, else "". status: "open"; "active" if he says it's being done now; "waiting" only if it waits for HIM to decide. pin "yes" only if he says it's important / urgent, else "".
+  project = which of his worlds it belongs to (his rule 2026-11-24 - a world is NOT a type): "Shlomiverse" = his comedy content world - every video / sketch / character / script / shoot, the Shlomiverse app and site, Hani, Syncs, its games, socials and marketing; "Lybi" = Lybi, a company he accompanies as CTO; "Aspect" = Aspect, another company he accompanies; "" = the rest (personal, errands, anything else). Always pick one on add. status: "open"; "active" if he says it's being done now; "waiting" only if it waits for HIM to decide. pin "yes" only if he says it's important / urgent, else "".
 - do "update": a change to an item below - id = its id without "#". Only when you are sure which item he means (by its title / project / what he describes); if unsure, add a new item instead and say so in reply. Fill ONLY what changes, "" = unchanged:
   text = a new title only if he renames it; body = new details he dictates for it (they are ADDED under the existing details); type; project ("-" = remove the project); status: done when he finished it / it happened, parked when he wants it off the table / deleted / not relevant any more (never delete), open to bring it back, active / waiting; pin yes / no; due YYYY-MM-DD ("none" = remove the date).
   note: always - one short line in his language saying what happened, e.g. "סיים - נשלח ללקוח", "נדחה למחר", "עודכן: דיברתי עם דני".

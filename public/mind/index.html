@@ -396,6 +396,13 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .mwhere i { font-style: normal; min-width: 0; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; text-align: right; line-height: 1.3; }
 .tm .mwhere { white-space: normal; }
 .btn.waze { background: var(--amber); border-color: var(--amber); color: #1a1205; font-weight: 800; text-decoration: none; }
+.worlds { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; padding-bottom: 2px; scrollbar-width: none; } .worlds::-webkit-scrollbar { display: none; }
+.worlds button { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); font-weight: 800; font-size: 14.5px; color: var(--ink2); }
+.worlds button i, .wpick button i { width: 10px; height: 10px; border-radius: 50%; background: var(--w); }
+.worlds button .n { font-size: 12px; font-weight: 700; opacity: .7; }
+.worlds button.on { border-color: var(--w); color: var(--ink); background: color-mix(in srgb, var(--w) 14%, var(--card)); }
+.wpick { display: inline-flex; gap: 4px; flex-wrap: wrap; } .wpick button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 9px; border: 1.5px solid var(--line); font-size: 13px; font-weight: 700; color: var(--ink2); background: var(--card); }
+.wpick button.on { border-color: var(--w); color: var(--ink); background: color-mix(in srgb, var(--w) 14%, var(--card)); }
 .pwhere { flex: 1 1 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); font-size: 15px; }
 .mkind { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .mkind small { color: var(--ink3); font-weight: 700; font-size: 13px; }
 .mkind .seg button svg { width: 15px; height: 15px; } .mkind .seg button[data-mkind="place"].on { background: var(--amber); color: #1a1205; }
@@ -616,6 +623,7 @@ $('#gf').onsubmit = (e) => { e.preventDefault(); const v = $('#gi').value.trim()
 // ---------- state ----------
 const S = { items: [], sessions: [], config: { types: [], projects: {}, machines: {} }, now: Date.now(), loaded: false,
   view: 'home', f: { status: 'live', type: '', project: '', q: '', pin: false }, sf: 'all', open: null, sig: '' };
+S.world = (() => { try { return localStorage.getItem('mind-world') || ''; } catch (e) { return ''; } })();   // the world bar's pick
 const LS = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem('mind-' + k)); localStorage.setItem('mind-' + k, JSON.stringify(v)); } catch (e) { return null; } };
 
 // ---------- helpers ----------
@@ -631,8 +639,19 @@ function ago(t) {
 const clock = (t) => new Date(t).toLocaleString('he-IL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const typeOf = (id) => S.config.types.find((t) => t.id === id) || { id, name: id || 'ללא סוג', color: '#64748b', icon: 'dot' };
 function hashColor(s) { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
-const projColor = (p) => S.config.projects?.[p]?.color || hashColor((p || '').toLowerCase());
-const projName = (p) => S.config.projects?.[p]?.name || p;
+// his worlds (his rule 2026-11-24: "I must know what is only Shlomiverse, what is Lybi, what is Aspect - the rest is the rest")
+const WORLDS = [['Shlomiverse', 'שלומיוורס', '#7c5cff'], ['Lybi', 'ליבי', '#ec4899'], ['Aspect', 'אספקט', '#0ea5e9']];
+const worldOf = (p) => WORLDS.find((w) => w[0] === p);
+const projColor = (p) => worldOf(p)?.[2] || S.config.projects?.[p]?.color || hashColor((p || '').toLowerCase());
+const projName = (p) => worldOf(p)?.[1] || S.config.projects?.[p]?.name || p;
+const inWorld = (it) => !S.world || (S.world === '-' ? !worldOf(it.project) : it.project === S.world);
+function worldBar(items) {
+  const n = (w) => items.filter((it) => (w === '-' ? !worldOf(it.project) : it.project === w)).length;
+  return `<div class="worlds">${[['', 'הכל'], ...WORLDS, ['-', 'היתר', '#64748b']].map(([k, t, c]) => `<button class="${(S.world || '') === k ? 'on' : ''}" data-world="${k}" style="--w:${c || 'var(--brand)'}">${c ? '<i></i>' : ''}${t}${k ? `<span class="n">${n(k)}</span>` : ''}</button>`).join('')}</div>`;
+}
+function worldPick(it) {
+  return `<div class="wpick">${[...WORLDS, ['', 'היתר', '#64748b']].map(([k, t, c]) => `<button class="${(worldOf(it.project) ? it.project : '') === k ? 'on' : ''}" data-wpick="${k}" style="--w:${c}"><i></i>${t}</button>`).join('')}</div>`;
+}
 const machine = (m) => S.config.machines?.[m] || m || '';
 const soft = (hex, a = .14) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
 const typeChip = (id) => { const t = typeOf(id); return `<span class="chip" style="background:${soft(t.color)};color:${t.color}">${ic(t.icon)}${esc(t.name)}</span>`; };
@@ -756,7 +775,7 @@ function tableEntries() {
     out.push({ k, it, rank, t: it.u });
   }
   const q = S.f.q.trim().toLowerCase(), proj = S.f.project;
-  const match = (e) => (!proj || (e.s ? e.s.project : e.it.project) === proj)
+  const match = (e) => (!proj || (e.s ? e.s.project : e.it.project) === proj) && (!S.world || (e.it && inWorld(e.it)))
     && (!q || (e.s ? [e.s.name, e.s.first, e.s.ask, e.s.question, e.s.summary, e.s.project] : [e.it.text, e.it.body, e.it.project, (e.it.log || []).map((l) => l.text).join(' ')]).join(' ').toLowerCase().includes(q));
   const chip = S.hf || 'all';
   const keep = { all: () => true, today: (e) => isToday(e.it), session: (e) => e.it?.type === 'session', tasks: (e) => ['task', 'remind', 'wait', 'askItem'].includes(e.k), ideas: (e) => e.k === 'idea', notes: (e) => e.k === 'note',
@@ -1060,6 +1079,7 @@ function viewHome() {
     <div class="hello"><h1>${hi}, שלומי</h1><p>${nToday ? `${nToday} להיום · ` : ''}${need ? `${need} מחכים לך` : 'שום דבר לא מחכה לך'}${run ? ` · ${run} רצים עכשיו` : ''}</p>${fresh.length ? `<p class="newline"><span class="newdot"></span>${fresh.length === 1 ? 'נוסף לך משהו שעוד לא פתחת' : `נוספו לך ${fresh.length} דברים שעוד לא פתחת`} · <button class="seenall" data-act="seenall">סמן הכל כנקרא</button></p>` : ''}</div>
     ${pushInvite()}
     <form class="qc" id="qcf"><input id="qc" autocomplete="off" placeholder="מה עובר לך בראש? כתוב או דבר, וה-AI יסדר"><button type="button" class="qmic" data-act="recscreen" title="להקליט - וה-AI יסדר">${ic('mic')}</button></form>
+    ${worldBar(S.items.filter((it) => !['done', 'parked'].includes(it.status) && it.type !== 'meeting'))}
     <div class="chips">${S.f.project ? `<button class="on" data-proj="${esc(S.f.project)}">${esc(projName(S.f.project))} ${ic('x')}</button>` : ''}${S.f.q ? `<button class="on" data-act="clearq">"${esc(S.f.q)}" ${ic('x')}</button>` : ''}${TABLE_CHIPS.map(([k, t]) => { const n = k === 'today' ? nToday : k === 'session' ? nSess : 0; return (k === 'session' && !n && S.hf !== k) ? '' : `<button class="${(S.hf || 'all') === k ? 'on' : ''}" data-hf="${k}">${k === 'today' ? ic('sun') + ' ' : ''}${t}${n ? `<span class="n">${n}</span>` : ''}</button>`; }).join('')}</div>
     <div class="table">${list.length ? list.map(tableRow).join('') : `<div class="empty"><b>${all.length ? 'אין כאן כלום' : 'השולחן ריק'}</b>${all.length ? '' : 'כתוב למעלה מה עובר לך בראש'}</div>`}</div>
     <div class="hint swipehint">בטלפון: החלק ימינה - בוצע, שמאלה - הורד מהשולחן</div>
@@ -1241,7 +1261,7 @@ function itemPanel(it) {
       <div class="props">
         <button class="pchip" data-pick="type" style="background:${soft(t.color)};color:${t.color}">${ic(t.icon)}${esc(t.name)}${ic('chev', 'dn')}</button>
         <button class="pchip chip st-${it.status}" data-pick="status" style="padding:5px 10px">${STATUS[it.status]}${ic('chev', 'dn')}</button>
-        <input class="proj-in" id="pp" list="projlist" placeholder="פרויקט" value="${esc(it.project || '')}">
+        ${worldPick(it)}
         <button class="pchip plain star ${it.pin ? 'on' : ''}" data-pin="${it.id}">${ic('star')}כוכב</button>
         <button class="pchip plain today ${isToday(it) ? 'on' : ''}" data-today="${it.id}">${ic('sun')}להיום</button>
         <button class="pchip plain nagc ${it.nag ? 'on' : ''}" data-nag="${it.id}" title="${esc(it.nag || 'הטלפון ישאל אותך כל שעתיים (10:00-20:30) עד שזה נעשה')}">${ic('bell')}תשאל אותי</button>
@@ -1328,7 +1348,7 @@ function capture(prefill = '') {
       <div class="typesel" id="ctype">${S.config.types.map((t) => `<button class="tsel ${t.id === lastType ? 'on' : ''}" data-ctype="${t.id}" style="${t.id === lastType ? `border-color:${t.color};background:${soft(t.color)}` : ''}"><span style="color:${t.color};display:flex">${ic(t.icon)}</span>${esc(t.name)}</button>`).join('')}</div>
       <div class="lbl">פרויקט</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="proj-in" id="cproj" list="projlist" placeholder="איזה פרויקט? (לא חובה)" value="${esc(lastProj)}" style="width:220px;padding:8px 12px">
-        ${allProjects().slice(0, 6).map((p) => `<button class="fchip" data-cproj="${esc(p)}"><i class="dot" style="background:${projColor(p)}"></i>${esc(projName(p))}</button>`).join('')}</div>
+        ${WORLDS.map(([p, t, c]) => `<button class="fchip" data-cproj="${esc(p)}"><i class="dot" style="background:${c}"></i>${esc(t)}</button>`).join('')}</div>
       <div class="lbl">מצב</div>
       <div class="seg" id="cstat">${['open', 'active', 'waiting'].map((k, i) => `<button class="${i === 0 ? 'on' : ''}" data-cstat="${k}">${STATUS[k]}</button>`).join('')}</div>
     </div>
@@ -1574,6 +1594,8 @@ document.addEventListener('click', (e) => {
   if (d.sset) { setSess(S.open.id, { state: d.sset }); return; }
   if (d.ctype) { document.querySelectorAll('[data-ctype]').forEach((b) => { const ty = typeOf(b.dataset.ctype), on = b === t; b.classList.toggle('on', on); b.style.borderColor = on ? ty.color : ''; b.style.background = on ? soft(ty.color) : ''; }); return; }
   if (d.cproj) { $('#cproj').value = d.cproj; return; }
+  if (d.world != null) { S.world = d.world; try { localStorage.setItem('mind-world', d.world); } catch (er) {} render(); return; }
+  if (d.wpick != null && S.open?.kind === 'item') { setItem(S.open.id, { project: d.wpick }, d.wpick ? 'עבר ל' + projName(d.wpick) : 'עבר להיתר'); renderPanel(true); return; }
   if (d.cstat) { document.querySelectorAll('[data-cstat]').forEach((b) => b.classList.toggle('on', b === t)); return; }
   if (d.cpin != null) { const on = d.cpin !== '1'; t.dataset.cpin = on ? '1' : '0'; t.classList.toggle('on', on); return; }
   if (d.ticon != null) { $('#ip' + d.ticon).classList.toggle('hidden'); return; }
