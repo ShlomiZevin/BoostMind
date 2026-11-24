@@ -602,7 +602,13 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   (cutaways from elsewhere in the take, never across a restart), each line levelled against his voice around it
   (0-2 dB under), and on **their own subtitles row** - another colour, font and place, with the name ("עומר:"). (4) A
   high-school class laughing = adult voices (the sfx model makes little kids from "class"; ask for 18-year-olds with
-  deep voices, pick by measuring the pitch). (5) Measure the balance from the layer stems (work/public/layers/stems, never an export - 2026-11-16) (music ~12-14 dB under the
+  deep voices, pick by measuring the pitch). **Round 2 (rosenblum-2, 2026-11-24):** "18-year-olds / deep voices" came out too OLD;
+  of 6 he kept only `laugh-adult3` ("a crowd of adult university students in a lecture hall laughing out loud together,
+  deep voices, big burst of laughter that dies down" - a bit too old) and `laugh-big` (desks slapped, one guy wheezing -
+  "someone laughs funny, maybe not bad"); murmur / snicker / 'losing it' prompts were "terrible". **A bigger laugh = stack
+  the good ones** (his idea): 2-3 OK laughs offset 0.4-1.1 s, one a little higher - never a new 'huge' prompt. Real ones
+  are worth trying too: Mixkit (free, no credit) "Laughing teenagers" `assets.mixkit.co/active_storage/sfx/429/429-preview.mp3`.
+  His picks from round 2 go here. (5) Measure the balance from the layer stems (work/public/layers/stems, never an export - 2026-11-16) (music ~12-14 dB under the
   voice in the gaps), not by guessing gains. (6) **A hand change on a builder piece (zoom, box) makes it his** - the
   next rebuild keeps it AND adds the new one (doubles); deleting it puts it in `layer.removed` and it never comes back
   until that list is cleared (`layer.update set {removed: []}`). Do picture tweaks only after the last rebuild.
