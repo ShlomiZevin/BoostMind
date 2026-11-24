@@ -2,6 +2,20 @@
 Status: building (his "make everything", 2026-11-22) - the video is not shot yet        Release day: after the shoot
 Cast: `naomi-tzipora` (existing record - written by his GPT session; series `hamachog-shebalev`)
 
+## THE MAIN IDEA - HR (his call, 2026-11-24)
+"Let's address HRs ... Everything should address HRs if they want to be able to work with Gen Z. So it's like offering
+services." Caption, end poster, story, video poster - all speak to HR managers, as her real offer (the orgs program
+"מאונבורדינג לבונדינג"). Hashtags later.
+- End poster: `zoomcut/episodes/_assets/naomi/endcard-5.jpg` (HR: "דור ה־Z עוזב לכם אחרי שלושה שבועות?" + program + intro meeting) - sent to him, to the editor.
+- Story + video poster + caption lines: marketing sub-agent -> `promo/hr/` (in progress).
+
+## Footage (2026-11-24)
+One long take, Drop folder "דולה ריגשית" (3:37, 720x1280). His notes to the editor (a NEW editor sub-agent): split it into clips;
+repeats - keep the good (last) take of each sentence, never the flubbed one; cut only LONG silences; joins = the fastest cut
+with the sound overlap. Host tail = acted v4 take.
+Background: his camera is LOW looking up (ceiling, wall lamp, keyboard edge) - the old eye-level set doesn't match. New options
+at his angle: `zoomcut/episodes/_assets/naomi/guest/low/options.jpg` (A same studio low angle - my pick, B moody teal, C bright loft) - waiting for his pick.
+
 ## His brief (2026-11-22)
 - A resident from his Instagram (a whole show around her Apr-Jun 2025), neglected, now back.
 - Build everything: her page, profile picture, clinic, website from scratch (the 2025 site is gone - 404), her method, her
