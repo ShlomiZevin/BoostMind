@@ -6,7 +6,8 @@ Cast: `naomi-tzipora` (existing record - written by his GPT session; series `ham
 "Let's address HRs ... Everything should address HRs if they want to be able to work with Gen Z. So it's like offering
 services." Caption, end poster, story, video poster - all speak to HR managers, as her real offer (the orgs program
 "מאונבורדינג לבונדינג"). Hashtags later.
-- End poster: `zoomcut/episodes/_assets/naomi/endcard-5.jpg` (HR: "דור ה־Z עוזב לכם אחרי שלושה שבועות?" + program + intro meeting) - sent to him, to the editor.
+- End poster: endcard-5 (HTML) = "too much, too messy" (his note). Redesigned by GPT Image (sunburst, ref = portrait + G logo): `zoomcut/episodes/_assets/naomi/endcard-design/end2-A.jpg` (cream + gold stamp) / `end2-B.jpg` (bold burgundy, my pick); C dropped (misspelt). Waiting for his pick; then pad to 1080x1920 for the editor.
+- Set: he won't judge backgrounds - he judges the FRAME with her. My call: `guest/low/low-A2.jpg` (low angle, host side at left) + her mic in front (`guest/low/mic.png`); the editor renders 3 timeline frames, I check them before he sees.
 - Story + video poster + caption lines: marketing sub-agent -> `promo/hr/` (in progress).
 
 ## Footage (2026-11-24)
