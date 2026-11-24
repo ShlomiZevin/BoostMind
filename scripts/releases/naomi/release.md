@@ -8,7 +8,8 @@ services." Caption, end poster, story, video poster - all speak to HR managers, 
 "מאונבורדינג לבונדינג"). Hashtags later.
 - End poster: endcard-5 (HTML) = "too much, too messy" (his note). Redesigned by GPT Image (sunburst, ref = portrait + G logo): `zoomcut/episodes/_assets/naomi/endcard-design/end2-A.jpg` (cream + gold stamp) / `end2-B.jpg` (bold burgundy, my pick); C dropped (misspelt). endcard-8 (B in HTML) = "nothing is too great". NOW: `zoomcut/episodes/_assets/naomi/endcard-9.jpg` (source endcard-9.html) - GPT designed from scratch with content only (`endcard-design/free/`, 4 concepts), #3 rebuilt in HTML with exact text. With the editor; waiting for his word.
 - Set: he won't judge backgrounds - he judges the FRAME with her. His notes 2026-11-24: CLOSE-UP, her across the full width (no hands cut mid-frame), only HER mic, the host never seen (no host gear). Approved look `guest/low/frames-closeup.jpg`: set low-A.jpg x1.25 + blur 5, her zoom 1.28 (+40 x, y -230), mic2.png 760 px bottom-right. Sent to the editor; it renders 3 timeline stills for my check.
-- Story + video poster + caption lines: marketing sub-agent -> `promo/hr/` (in progress).
+- Story + video cover + caption: `promo/hr/out2/` (sheet-story.jpg A/B/C - my pick A; sheet-cover.jpg A/B/C - pick C; captions.txt), endcard-9 look, sent to him 2026-11-24, waiting for picks. Verse story draft `promo/hr/verse-story-A.json` - change its link to the video page on release day.
+- First cut naomi-1: 2:58, 50 clips, 3 repeats resolved, host tail acted (v4 Danit), bed D; name band first 5 s; quotes ״״. Cut-out re-analysis in 'quality' mode running (hybrid left a room rectangle near her neck).
 
 ## Footage (2026-11-24)
 One long take, Drop folder "דולה ריגשית" (3:37, 720x1280). His notes to the editor (a NEW editor sub-agent): split it into clips;
