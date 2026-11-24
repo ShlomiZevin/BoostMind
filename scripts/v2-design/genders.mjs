@@ -12,7 +12,7 @@ if (!todo.length) { console.log('nothing new'); process.exit(0); }
 const list = todo.map((c) => `${c.id} | ${c.name} | ${c.role || ''} | ${(c.bio || '').slice(0, 220)}`).join('\n');
 const res = await fetch('https://api.openai.com/v1/responses', {
   method: 'POST', headers: { authorization: `Bearer ${KEY}`, 'content-type': 'application/json' },
-  body: JSON.stringify({ model: 'gpt-5.6-terra', reasoning: { effort: 'low' }, store: false, max_output_tokens: 4000, text: { format: { type: 'json_object' } },
+  body: JSON.stringify({ model: 'gpt-6.1-terra', reasoning: { effort: 'low' }, store: false, max_output_tokens: 4000, text: { format: { type: 'json_object' } },
     instructions: 'For each Hebrew comedy character below (id | name | role | bio), decide the grammatical gender Hebrew uses for them: "m" (masculine), "f" (feminine), or "p" (plural - a company, a group, or a role like "מגיש/ת" that is written for both). Read the Hebrew verb and noun forms in the role and bio. Return JSON {"<id>": "m"|"f"|"p", ...} for every id.',
     input: `Characters:\n${list}\n\nReturn the JSON.` }),
 });
