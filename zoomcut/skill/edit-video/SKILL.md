@@ -668,6 +668,11 @@ from / dur); a one-shot or an announcement gets its own link (chime + its words)
   the end card ON the last word with the music running through it (a music dip at the cut felt "like something is
   missing"); the hook held 20 s of the FINAL (sped) video, size 52, max 3 lines. Show looks as a labelled sheet of
   stills on Telegram before exporting.
+- **NO FADES ON VOICE CLIPS - ever** (his rule, naomi-1-tight 2026-11-24: "do you fade in / fade out at the end/start
+  of a clip? If so, never do that in my life"). A voice join = a hard cut with the sound handles pulled out (the audio
+  starts a little before the picture cut and runs a little after); `fade_in` / `fade_out` stay 0 on every voice item
+  and `join: 0`. Fades only where a sound really begins or ends (the music's start / end). "A word isn't heard" /
+  "a speech glitch" at a join = look for a fade first.
 - **`cut.join` fades eat words** (adam-1, 2026-11-08 - "some of the cuts are too eager taking words out"): with
   `join` 0.3 every piece fades out over its last 0.3 s, on top of `pad_out` 0.1. For a fast cut use `join: 0`,
   `pad_in` 0.1, `pad_out` 0.2, `after_last_word` 0.3 - and get the pace from `speed`, not from shaving the words.
