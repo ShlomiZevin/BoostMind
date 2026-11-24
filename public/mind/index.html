@@ -205,7 +205,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .pchip svg.dn { width: 13px; height: 13px; transform: rotate(-90deg); opacity: .7; }
 .picker { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 16px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card2); }
 .picker .tsel.on { box-shadow: 0 0 0 2px currentColor inset; }
-.pchip select, .pchip input[type=date] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.pchip select, .pchip input[type=date], .pchip input[type=time] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
 .pchip.plain { border-color: var(--line); color: var(--ink2); background: var(--card); }
 .proj-in { border: 1px solid var(--line); background: var(--card); border-radius: 9px; padding: 4px 10px; font-size: 13px; width: 140px; outline: 0; }
 .lbl { font-size: 12.5px; font-weight: 700; color: var(--ink3); margin: 18px 0 7px; }
@@ -396,6 +396,7 @@ main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .mwhere i { font-style: normal; min-width: 0; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; text-align: right; line-height: 1.3; }
 .tm .mwhere { white-space: normal; }
 .btn.waze { background: var(--amber); border-color: var(--amber); color: #1a1205; font-weight: 800; text-decoration: none; }
+.pwhere { flex: 1 1 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); font-size: 15px; }
 .mkind { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .mkind small { color: var(--ink3); font-weight: 700; font-size: 13px; }
 .mkind .seg button svg { width: 15px; height: 15px; } .mkind .seg button[data-mkind="place"].on { background: var(--amber); color: #1a1205; }
 .mplace { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--amber) 16%, var(--card)); border: 2px solid var(--amber); }
@@ -749,7 +750,7 @@ function tableEntries() {
     else if (st === 'working') out.push({ k: 'run', s, rank: 5, t: s.u });
   }
   for (const it of S.items) {
-    if (it.status === 'done' || it.status === 'parked') continue;
+    if (it.status === 'done' || it.status === 'parked' || it.type === 'meeting') continue;   // PA's own meetings live in פגישות
     const k = kindOf(it);
     const rank = { askItem: 0, task: 2, remind: 2, wait: 3, job: 5, idea: 6, note: 7 }[k] - (it.pin && k !== 'askItem' ? 0.5 : 0);
     out.push({ k, it, rank, t: it.u });
@@ -907,6 +908,7 @@ function openMeet(key) {
       ${people.length ? `<div class="lbl" style="margin:4px 0 0">משתתפים (${people.length})</div><div class="ppl">${people.map((p) => `<div><i class="${esc(p.rsvp)}" title="${esc(rs[p.rsvp] || '')}"></i><span>${esc(p.name || p.email)}</span>${p.name ? `<small>${esc(p.email)}</small>` : ''}</div>`).join('')}</div>` : ''}
       ${m.notes.trim() ? `<div class="mnotes">${esc(m.notes.trim())}</div>` : ''}
       ${m.html ? `<a class="btn" href="${esc(m.html)}" target="_blank" rel="noopener" style="justify-content:center;text-decoration:none">${ic('cal')}פתח ביומן Google</a>` : ''}
+      ${m.pa ? `<div class="hint" style="margin:0">פגישה שנשמרה ב-PA (לא ביומן Google). אם תיכנס ליומן באותה שעה - תוצג רק זו של היומן.</div><button class="btn" data-act="paedit" data-id="${esc(m.pa)}" style="justify-content:center">${ic('edit')}עריכה / מחיקה</button>` : ''}
     </div></div></div></div>`;
   return true;
 }
@@ -1244,6 +1246,9 @@ function itemPanel(it) {
         <button class="pchip plain today ${isToday(it) ? 'on' : ''}" data-today="${it.id}">${ic('sun')}להיום</button>
         <button class="pchip plain nagc ${it.nag ? 'on' : ''}" data-nag="${it.id}" title="${esc(it.nag || 'הטלפון ישאל אותך כל שעתיים (10:00-20:30) עד שזה נעשה')}">${ic('bell')}תשאל אותי</button>
         <span class="pchip plain">${ic('clock')}${it.due ? esc(it.due.split('-').reverse().join('/')) : 'תאריך'}<input type="date" data-field="due" value="${esc(it.due || '')}"></span>
+        ${it.type === 'meeting' ? `<span class="pchip plain">${ic('clock')}${it.at ? esc(it.at) + (it.until ? '–' + esc(it.until) : '') : 'שעה'}<input type="time" data-field="at" value="${esc(it.at || '')}"></span>
+        <span class="pchip plain">עד ${esc(it.until || '')}<input type="time" data-field="until" value="${esc(it.until || '')}"></span>
+        <input class="pwhere" data-field="where" value="${esc(it.where || '')}" placeholder="איפה? כתובת / Zoom" dir="auto">` : ''}
         <span class="pchip plain addpic">${ic('plus')}תמונה<input type="file" accept="image/*" multiple data-addpic="${it.id}"></span>
       </div>
       ${(it.images || []).length ? `<div class="pics">${it.images.map((m) => `<figure class="pic">${m.url ? `<img src="${esc(m.url)}" alt="" loading="lazy" data-zoom="${esc(m.url)}" data-cap="${esc(m.caption || '')}">` : '<div class="empty">לא נטען</div>'}${m.caption ? `<figcaption>${esc(m.caption)}</figcaption>` : ''}<button class="pdel" data-unpic="${esc(m.path)}" title="הסר תמונה">${ic('x')}</button></figure>`).join('')}</div>` : ''}
@@ -1579,6 +1584,7 @@ document.addEventListener('click', (e) => {
     case 'capture': capture(); break;
     case 'recscreen': recScreen(); break;
     case 'seenall': markSeen(newEntries()); render(); toast('הכל סומן כנקרא'); break;
+    case 'paedit': closeModal(); go('home'); openItem(d.id); break;
     case 'tovault': closeModal(); go('vault'); break;
     case 'vadd': vaultEdit(null); break;
     case 'toarchive': closeModal(); go('archive'); break;   // the phone's tab bar has no room for it since פגישות (2026-11-20)
