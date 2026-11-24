@@ -700,14 +700,21 @@ take. A framing for a whole take is better as one change you re-apply than as a 
   per call - never text-only cards), jokes from the video's world in the copy, phone-width check. Then every list
   (wiki.md -> "A NEW site") and a deploy only after checking nothing else unfinished rides along (compare each
   changed page under public/ with the live one).
-- **A script before the footage = the Reader script + the project + the SET (background) it needs, NOTHING else** (his
-  words, rosenblum-2, 2026-11-24: "I wanted you just to prepare the background needed for the class and prepare the
-  project and the reader" / "I will shoot it afterwards, no need to prepare placeholder or something like this" - I had
-  started laughs, book inserts, a whiteboard, poster art). Do: the script (steps 1 below), the project + Drop folder
-  (`/api/new-from-script`), and the character's set - from the library first (his ONE studio, `POST /api/lib/<id>/add`),
-  made new only if the scene needs a place he has none of - on the timeline as the set layer + episode.json
-  `background`. Then stop: sounds, inserts, texts, music, posters wait for his takes. The older "fill it while he films"
-  (3, 3b) is replaced by this.
+- **A script before the footage = prepare EVERYTHING FOR THE EDITOR (not marketing)** (his words, rosenblum-2,
+  2026-11-24: "if I give a script before I'm shooting anything, what we need to prepare is everything for the editor"
+  / "prepare the background images and the sounds relevant and the music background if I'm saying"). On the timeline,
+  over a rough length from the script, so he sees it in the editor:
+  1. the Reader script + the project + Drop folder (`/api/new-from-script`);
+  2. **the set** - the character's studio from the library first; a new place = GPT Image (cents). ALWAYS empty of
+     people (people frozen in a still look wrong behind a moving person), from HIS camera: he films close, a phone held
+     low - see "EVERY FRAME MUST MAKE SENSE";
+  3. **the sound effects** the script calls for (ElevenLabs sfx, cents): reactions, laughs, a room tone, a prop - each
+     its own clip at its rough moment, levelled by LUFS;
+  4. **music** - only when he asks for it: library first (a bed no other character uses), sent to him as files to pick.
+     Nothing fits = ASK before generating - music is the only thing here that costs dollars.
+  NOT before the takes: any generated SPEECH (no TTS, no stand-in voices - only on his ask), subtitles / voice groups
+  (made from his takes), inserts or graphics he didn't ask for, and no marketing (stories, posters, sites).
+  (Earlier the same day I over-did it with book-page inserts + poster art - "no need to prepare placeholder".)
 - *(older, replaced above)* **A script before the footage = a ready project before the footage** (2026-10-23: "prepare first the project
   reader then the rest, I'm filming" / "fill it while I'm filming"). He films with the Reader, and **the Reader lists
   PROJECTS, not scripts** - a script with no project never shows ("I don't see it here").
