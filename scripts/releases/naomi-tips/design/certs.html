@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="he"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700;900&family=Assistant:wght@400;700;800&family=Cinzel:wght@400;700&family=UnifrakturMaguntia&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: transparent; }
+  .cert { position: absolute; left: 40px; top: 40px; width: 600px; height: 780px; display: none; }
+  .cert.on { display: block; }
+  .frame { position: absolute; inset: 0; border-radius: 4px;
+    background: linear-gradient(135deg, #b8893b 0%, #f3d995 22%, #a87a2c 45%, #e9c97a 70%, #8c6420 100%);
+    box-shadow: 0 18px 30px rgba(40, 18, 10, .45), 0 4px 8px rgba(40, 18, 10, .35); }
+  .frame::before { content: ""; position: absolute; inset: 14px; background: linear-gradient(135deg, #7d5a1c, #d8b469 50%, #7d5a1c); }
+  .mat { position: absolute; inset: 26px; background: #f4ede0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), inset 0 2px 6px rgba(0,0,0,.18); }
+  .paper { position: absolute; inset: 34px; background: radial-gradient(ellipse at 50% 40%, #fffaf0 0%, #f7eedb 70%, #efe2c6 100%);
+    border: 2px solid #b08a4a; outline: 1px solid #b08a4a; outline-offset: -8px; display: flex; flex-direction: column;
+    align-items: center; text-align: center; padding: 40px 34px 30px; box-sizing: border-box; color: #3a1a12; }
+  .he { direction: rtl; font-family: "Frank Ruhl Libre", serif; }
+  .org { font-family: "Assistant", sans-serif; font-weight: 800; font-size: 19px; letter-spacing: .02em; color: #7a1630; }
+  .title { font-weight: 900; font-size: 52px; color: #7a1630; margin: 14px 0 6px; line-height: 1; }
+  .small { font-size: 17px; color: #5a3424; line-height: 1.45; }
+  .name { font-weight: 700; font-size: 25px; margin: 12px 0; color: #2a120c; line-height: 1.25; }
+  .what { font-weight: 900; font-size: 34px; color: #7a1630; margin: 10px 0 4px; }
+  .seal { width: 92px; height: 92px; border-radius: 50%; margin-top: auto;
+    background: radial-gradient(circle at 35% 35%, #f6d98e, #c79a3c 55%, #8f6a24); box-shadow: 0 2px 4px rgba(0,0,0,.3);
+    display: flex; align-items: center; justify-content: center; position: relative; }
+  .seal::after { content: ""; position: absolute; inset: 9px; border-radius: 50%; border: 2px dashed rgba(90,60,10,.55); }
+  .seal span { font-family: "Assistant"; font-weight: 800; font-size: 12px; color: #5a3d0c; line-height: 1.1; z-index: 1; }
+  .sigs { display: flex; justify-content: space-between; width: 100%; margin-top: 14px; }
+  .sig { width: 44%; font-size: 13px; color: #6a4434; }
+  .sig b { display: block; font-family: "Great Vibes", cursive; font-weight: 400; font-size: 26px; color: #23305e;
+    border-bottom: 1px solid #8a6a52; margin-bottom: 4px; line-height: 1.2; }
+  .en { font-family: "Cinzel", serif; direction: ltr; }
+  .gothic { font-family: "UnifrakturMaguntia", serif; font-size: 40px; color: #2a120c; line-height: 1.1; }
+  .badges { display: flex; gap: 10px; margin: 14px 0 6px; }
+  .badge { width: 92px; height: 92px; border-radius: 50%; border: 3px solid #7a1630; display: flex; align-items: center;
+    justify-content: center; font-family: "Cinzel"; font-weight: 700; font-size: 20px; color: #7a1630; background: #fff6ea; }
+</style></head>
+<body>
+<!-- 1: the emotional doula certification (Hebrew) -->
+<div class="cert" id="c1"><div class="frame"></div><div class="mat"></div>
+  <div class="paper he">
+    <div class="org">המכון הישראלי ללידה רגשית · מיסודו של המרכז ללוויה התפתחותית</div>
+    <div class="title">תעודת הסמכה</div>
+    <div class="small">מוענקת בזאת בהוקרה ובגאווה ל</div>
+    <div class="name">ד״ר נעמי־ציפורה<br>בן־נון־פרידמן־שטרנבך</div>
+    <div class="small">על השלמת מסלול ההכשרה המלא (1,200 שעות ליווי)<br>ועל עמידה בהצלחה בבחינת ההסמכה כ</div>
+    <div class="what">דולה מוסמכת של רגשות</div>
+    <div class="small">דרגה III · לידות רגשיות מורכבות, כולל עכוזיות</div>
+    <div class="seal"><span>מוסמכת<br>בהצטיינות</span></div>
+    <div class="sigs"><div class="sig"><b>Rivka Eshel</b>יו״ר המכון</div><div class="sig"><b>Dalia Shaked</b>מנהלת ההכשרות</div></div>
+  </div></div>
+
+<!-- 2: the medical degree (English) -->
+<div class="cert" id="c2"><div class="frame"></div><div class="mat"></div>
+  <div class="paper en">
+    <div style="font-size:15px;letter-spacing:.18em;color:#7a1630;font-weight:700">THE INTERNATIONAL ACADEMY<br>OF INTEGRATIVE MEDICINE</div>
+    <div style="font-size:13px;margin:16px 0 6px;color:#5a3424">upon the recommendation of the Faculty hereby confers upon</div>
+    <div class="gothic" style="font-size:30px;margin:6px 0 10px">Naomi-Tzipora<br>Ben-Nun-Friedman-Sternbach</div>
+    <div style="font-size:13px;color:#5a3424">the degree of</div>
+    <div class="gothic" style="margin:10px 0 4px">Doctor of Medicine</div>
+    <div style="font-size:17px;font-weight:700;color:#7a1630;letter-spacing:.12em;margin-top:6px">PSYCHIATRY</div>
+    <div style="font-size:12px;color:#5a3424;margin-top:10px">with all the rights, honours and privileges thereto pertaining</div>
+    <div class="seal" style="background:radial-gradient(circle at 35% 35%,#d9435f,#9b2340 55%,#5e0f22)"><span style="color:#fbe3c8">SIGILLUM<br>ACADEMIAE</span></div>
+    <div class="sigs"><div class="sig"><b>H. Lindqvist</b>Dean of the Faculty</div><div class="sig"><b>M. Adeyemi</b>President</div></div>
+  </div></div>
+
+<!-- 3: the practitioner certificate (NLP / CBT / TMI / EMDR) -->
+<div class="cert" id="c3"><div class="frame" style="background:linear-gradient(135deg,#2b1a14,#5a3a2a 45%,#2b1a14)"></div><div class="mat" style="background:#fbf3ea"></div>
+  <div class="paper en" style="background:radial-gradient(ellipse at 50% 35%,#ffffff 0%,#fbf3ea 80%)">
+    <div style="font-size:15px;letter-spacing:.2em;color:#7a1630;font-weight:700">CERTIFICATE OF<br>ADVANCED PRACTICE</div>
+    <div style="font-size:13px;margin:14px 0 4px;color:#5a3424">This is to certify that</div>
+    <div style="font-family:'Great Vibes';font-size:36px;color:#2a120c;line-height:1.15;margin:4px 0 8px">Dr. Naomi-Tzipora<br>Ben-Nun-Friedman-Sternbach</div>
+    <div style="font-size:13px;color:#5a3424">is a Certified Master Practitioner in</div>
+    <div class="badges"><div class="badge">NLP</div><div class="badge">CBT</div><div class="badge">TMI</div><div class="badge">EMDR</div></div>
+    <div style="font-size:12px;color:#5a3424;margin-top:8px">and is qualified to guide individuals, couples<br>and organisations through emotional transitions</div>
+    <div class="seal"><span>MASTER<br>LEVEL</span></div>
+    <div class="sigs"><div class="sig"><b>J. Whitfield</b>Director of Studies</div><div class="sig"><b>S. Moreau</b>Board Examiner</div></div>
+  </div></div>
+<script>document.getElementById(location.hash.slice(1) || 'c1').classList.add('on');</script>
+</body></html>
