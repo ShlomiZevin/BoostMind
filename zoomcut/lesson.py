@@ -169,6 +169,9 @@ def prepare(ls):
                 log(f"  · kept in {n}: {kept}")
             if pcn.get("cut"):
                 log(f"  · cut away from {n}: " + ", ".join(o.get("what") or "a patch" for o in pcn["cut"]))
+            if pcn.get("wall"):
+                log(f"  · the room's colour taken out around the head in {n}" + ("" if pcn["wall"] is True else
+                    " (" + ", ".join(f"{float(w.get('from', 0)):.1f}-{float(w.get('to', 0)):.1f} s" for w in pcn["wall"]) + ")"))
 
 
 def base_matte_path(ls, n):
@@ -194,9 +197,14 @@ def prop_cfg(ls, n):
     # 2026-11-25): followed through the take the same way, and taken OUT of the cut-out (prop_matte)
     obs = (ls.cfg.get("keep_objects") or {}).get(n) or []
     ob, cut = [o for o in obs if not o.get("cut")], [o for o in obs if o.get("cut")]
-    if not col and not tr and not ob and not cut:
+    # episode.json "wall_cut": {"<take>": true | [{"from": s, "to": s}]} - around the head, the room's own colour seen in a
+    # gap the cut-out keeps solid (the white wall between a cap's brim, the glasses' arm and the head on a turn, seen
+    # through the side of the lens) is taken out (wall_cut) - vova-hr-1, 2026-11-25
+    wl = (ls.cfg.get("wall_cut") or {}).get(n)
+    if not col and not tr and not ob and not cut and not wl:
         return None
-    return {**(col or {}), **({"track": tr} if tr else {}), **({"objects": ob} if ob else {}), **({"cut": cut} if cut else {})}
+    return {**(col or {}), **({"track": tr} if tr else {}), **({"objects": ob} if ob else {}), **({"cut": cut} if cut else {}),
+            **({"wall": wl} if wl else {})}
 
 
 def matte_path(ls, n):
@@ -275,6 +283,11 @@ def prop_matte(ls, t, n):
     obj = subprocess.Popen([FFMPEG, "-v", "error", "-i", om, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE,
                            stderr=subprocess.DEVNULL) if om else None  # (it may outlast the take: its "broken pipe" at the end is fine)
     cm = keep_objects_matte(ls, t, n, pc["cut"]) if pc.get("cut") else None  # (what he marked to cut AWAY)
+    wall, wboxes = pc.get("wall"), None
+    if wall:
+        fj = ls.work("matte", n + ".faces.json")
+        wboxes = load_json(fj) if os.path.exists(fj) else face_boxes(t, fj)
+        wspans = [(0, 10 ** 9)] if wall is True else [(int(float(w.get("from", 0)) * FPS), int(float(w.get("to", 1e6)) * FPS)) for w in wall]
     cut = subprocess.Popen([FFMPEG, "-v", "error", "-i", cm, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE,
                            stderr=subprocess.DEVNULL) if cm else None
     # what the take keeps (keep: desk band / boxes) counts as him: a hand reaching in over a kept box touches it, not his
@@ -290,6 +303,8 @@ def prop_matte(ls, t, n):
         if len(rgb) < size * 3 or len(m) < size:
             break
         m = np.frombuffer(m, np.uint8).reshape(MATTE_H, MATTE_W).copy()
+        if wall and any(a <= k <= b for a, b in wspans):  # (first: on the engine's own cut-out - a kept thing is never cut by it)
+            m = wall_cut(np.frombuffer(rgb, np.uint8).reshape(MATTE_H, MATTE_W, 3), m, wboxes[k] if k < len(wboxes) else None)
         if obj:
             ob = obj.stdout.read(size)
             if len(ob) == size:
@@ -342,6 +357,32 @@ def prop_matte(ls, t, n):
         log(f"  ! {n}: the cut-out was made WITHOUT the marked things (see above) - Analyze again tries them again")
     elif os.path.exists(miss):
         os.remove(miss)
+
+
+def wall_cut(rgb, m, box, tol=40.0, depth=18):
+    """Around the head (the face box, wide and high as hybrid_matte's), within `depth` px of the cut-out's edge: the pixels
+    whose colour is the room's right next to them (Lab distance < tol, the room = the engine's own background, averaged
+    nearby) are taken out of the cut-out. A gap the engine keeps solid - the wall between a cap's brim, the glasses' arm
+    and the head, seen through the side of the lens - goes; skin, hair and the cap differ from the wall and stay
+    (vova-hr-1, 2026-11-25: a white wall at home). No face found = nothing changes."""
+    import cv2
+    if not box:
+        return m
+    mf = m.astype(np.float32) / 255
+    room = (mf < 0.05).astype(np.float32)
+    near = cv2.blur(room, (25, 25))
+    est = cv2.blur(rgb.astype(np.float32) * room[..., None], (25, 25)) / np.maximum(near, 1e-3)[..., None]
+    d = np.linalg.norm(cv2.cvtColor(rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+                       - cv2.cvtColor(est.clip(0, 255).astype(np.uint8), cv2.COLOR_RGB2LAB).astype(np.float32), axis=2)
+    inside = (mf >= 0.05).astype(np.uint8)
+    cand = (d < tol) & (near > 0.02) & (inside > 0) & (cv2.distanceTransform(inside, cv2.DIST_L2, 3) < depth)
+    x0, y0, x1, y1 = box
+    w, h = x1 - x0, y1 - y0
+    head = np.zeros_like(cand)
+    head[int(max(0, y0 - 0.75 * h) * MATTE_H):int(min(1, y1 + 0.15 * h) * MATTE_H),
+         int(max(0, x0 - 0.45 * w) * MATTE_W):int(min(1, x1 + 0.45 * w) * MATTE_W)] = True
+    cut = cv2.GaussianBlur((cand & head).astype(np.float32), (5, 5), 0)
+    return (mf * (1 - cut) * 255).clip(0, 255).astype(np.uint8)
 
 
 def tracked_prop(tr, rgb, m):
