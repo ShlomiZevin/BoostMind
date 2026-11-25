@@ -377,3 +377,13 @@ Default for a talking-to-camera video: `"eye_contact": {"on": true}` = NVIDIA Ma
 (`tools/eyes_nvidia.py`, key NVIDIA_API_KEY in zoomcut/.env, ~2 min per 90 s take); falls back to v6 by itself if NVIDIA
 fails. A CapCut export next to the take (`<take>*eye*.mp4` or `"file"`) still wins. Off when he looks at a screen /
 someone else (`offscreen-voice.md`).
+- **demokratovich-eicha** (2026-11-25, Reader `demokratovich-eicha`, Drop `מגילת איכה` - 4 takes, he used the LAST 2 joined:
+  `1-FDB59E11` to 48.55 s + `2-CB7C0ABA`, verse 4 said in both = the second take's): Eicha read sitting on the floor (his
+  correction - "יושב על הרצפה כמקובל"; a set shot from floor height), Tel Aviv District Court on a Tisha B'Av night
+  (`_assets/demokratovich/eicha/set-floor-plaque.jpg`, 2x, a blank bronze plate painted in by a masked GPT Image edit ->
+  `plaque` "בית משפט גדול / ״המחוזי תל אביב-יפו״ / ..." at `plaque_quad`). No music (he chants). Mourning end poster
+  (`eicha/html/poster.html`, dark copy of the Hanukkah one, `eicha/rabbi-eicha.jpg` portrait). **Text with nikud + ta'amim in
+  Stam**: `fonts/stamashkenazclm-webfont.ttf` has EMPTY mark glyphs (they vanish in the export) - use
+  `_assets/demokratovich/eicha/stam-ashkenaz-marks.ttf` (the same letters + Frank Ruehl's marks x1.35, no GPOS so the
+  browser places them) as the project's font asset + the subtitles layer `font`. A project made `from` an earlier rabbi
+  video inherits its `sign` (Eisenkot painted on the OLD set's frames), `plaque_quad` and `cut` - clear them first.
