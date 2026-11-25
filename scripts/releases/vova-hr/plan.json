@@ -1,0 +1,109 @@
+{
+ "start": 1.1,
+ "script": "scripts/releases/vova-hr/script.md",
+ "characters": {
+  "vova": {
+   "name": "וובה",
+   "subColor": "#ffffff"
+  },
+  "osnat": {
+   "name": "אסנת",
+   "subColor": "#ffe7a3"
+  }
+ },
+ "lines": [
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "הייוש, מה נשמע? קיבלתם את הזימון..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 1.33,
+   "b": 6.05
+  },
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "אז אנחנו ככה מביאים מומחית..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 8.71,
+   "b": 17.95
+  },
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "(צחוק מזויף) לא, הרעיון הוא..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 20.32,
+   "b": 25.8
+  },
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "(צחוק מזויף) ברור, זה לא בא במקום משכורת..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 29.68,
+   "b": 36.36
+  },
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "(צחוק מזויף) אני חושבת שדווקא..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 38.46,
+   "b": 55.2
+  },
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "(צחוק מזויף) כי זה לא רק תהליך של ה-HR..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 57.14,
+   "b": 85.96
+  },
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "(צחוק מזויף) אני מבינה, אבל תראה..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 105.06,
+   "b": 160.17
+  },
+  {
+   "who": "osnat",
+   "take": "OSNAT-TAKE",
+   "note": "(צחוק מזויף) אז הנה, וובה, המפגש הזה..."
+  },
+  {
+   "who": "vova",
+   "take": "v1c0",
+   "a": 162.17,
+   "b": 172.57
+  }
+ ],
+ "fix": {
+  "אוסנת,": "אסנת,",
+  "אוסנת": "אסנת",
+  "הרולד": "חרולד"
+ }
+}
