@@ -49,3 +49,8 @@ Project vova-hr-1, rev 108, 33 notes all answered. Post edits on top of the fast
 - FF9A (seen answer): voice was 0.47 s off her lips (dragged); now in sync, picture on her first word (src 0.78 - whisper says 0.37, the energy says 0.78), turns 0.1 s; everything after -7 frames.
 - Her last line 0.37 s earlier (laugh at his note); everything after -11 more frames.
 - End plays the whole "מומחה" (+9 frames). Length 5297 frames (176.6 s timeline, 2:15.8 at 1.3x).
+
+## Round 7 (2026-11-25) - hook, caption, cast; his 3 notes (rev 134). NOT to be uploaded yet (his word).
+- Hook = his words "פוב: העובד הוותיק הזה / שלא מבין איך ה-AI חסך לו עבודה / והארגון הוסיף לו עבודה" (size 40, y 250, 7 s timeline). Caption = Terra option 1 + the 4 high-tech tags, saved in Send; cast vova + osnat (fixed).
+- 1:05 jump: a 0.28 s pause cut inside Osnat's take 724396CE - now one continuous clip, everything after +8 frames.
+- White halo around Vova in the export only = an exporter bug (raw take + matte at the edge instead of the editor's fg copy) - sent to Studio Dialoug; his two halo notes answered with that, still open.
