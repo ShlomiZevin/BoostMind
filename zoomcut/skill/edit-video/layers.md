@@ -75,6 +75,8 @@ Every item: `id`, `from`, `dur`, optional `hidden`, `opacity` (0-1), `fade_in` /
 - Cut-out, live: `matte_cut` 0..254 (edge cleanup), `keep {below}` (the real desk below that fraction of the take's
   height stays in front; asset `keep_static` = the desk objects), `side_ramp` (the sides fade when the picture is
   narrower than the frame - a one-camera person, never grid tiles). The asset's `matte` is the raw matte.
+  The export takes the cut-out's EDGE colours from the editor's copy (`fg` / `eyes_fg` / `face_fg`) and the inside from
+  the raw take (sharper) - the raw take's edge carries the room behind (a white wall = a white ring, vova-hr-1 2026-11-25).
 - `mirror` (true; layer or item - Inspector "Mirror (flip left ↔ right)", 2026-10-25): the take's picture flips left
   <-> right (with its matte and kept desk) and so does its framing, so he stays in the same place; the set behind him
   and every text never flip. For a book / sign he holds up to the front camera that reads backwards. Live + export.
