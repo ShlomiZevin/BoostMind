@@ -399,3 +399,6 @@ someone else (`offscreen-voice.md`).
   take with its edge pinned at 0 - shifting the box shows the take's edge ("my hand is cut"). Plaques: **lettering by GPT
   Image** (his ask - "they are good for typographics"): a masked edit of the plate only, the mask INSIDE the bolts so the
   frame can't touch them; never put a plaque over a flag (remove the flag in the same edit, keep all three chairs).
+  Round 3: "you cut my hands" - the person box inherited from chanuka (scale 1.05, y -80) plus my zoom to move him right
+  cropped the take's bottom corners, where his hands are. A take filmed 9:16 = box 0,0,1080,1920, `side_ramp` off; to put
+  him further right, slide the SET (set box x), never crop or shift his take.
