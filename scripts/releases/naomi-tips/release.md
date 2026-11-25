@@ -44,3 +44,11 @@ Songs: Enya "Caribbean Blue" (playing), Einaudi "Experience" (muted) - own pace.
 - The clothes reveal at real speed (216-226), the walk 226-233.6 at 2.5x. Title v2 ("אל תצפו" = the tips' pill, the object): low while she's at the lens, gone for the reveal, back above her once seated.
 - Everything in the safe zone 225-1440: header big from her hand on gesture A, shrinks to the top on gesture B and the card opens under it (above her hair). Gestures from the matte outline: tip1 242.0/243.8, tip2 253.0/255.1, tip3 267.6 + the unfold 270.0-272.9 (6 strips following her sweep, a glow riding her hand), tip4 281.5/284.0.
 - Stars replaced by a soft glow at each reveal. design/build4.py, gfx4/. Round 4 GPT ≈ $0.26.
+
+## ROUND 5 (2026-11-25, 12 notes) - rev 42
+- No speed change anywhere (one clip 216.0-292.5 at 1x, runs 0.45 s under the end card's fade). Title once, low, frame 0 -> tip 1, "4" on the right (title3, GPT). Her name as she steps back (text layers, font.heebo = media/Heebo.ttf).
+- Explanation cards = editor TEXT layers (group "כרטיס הסבר": card.box shape, card.illus round picture, card.leadbg + card.lead, card.l0..l6 lines measured with Heebo), smaller; no "שיטת המחוג הפנימי". Headers stay the GPT images (gfx4/head-N).
+- His timings: tip1 243.40 / card 244.53; tip2 254.47 / card 258.20; tip3 267.60 / unfold 270.0-272.6 (card, lead, lines, illustration last + glow on her hand); tip4 281.50 / card 284.00; end 292.5. Banner to the floor. design/build5.py, gfx5/.
+
+## HANDOFF (for a dedicated session)
+naomi-tips-1 rev 42, all notes answered. Rebuild = scripts/releases/naomi-tips/design/build5.py (checks the rev; keeps his look + music rows). Set S4 at box (-262,0,1536,2304); her video full frame as shot, never re-framed or sped. Gestures come from the matte (work/matte/...quality.mkv, 432x768 -> canvas x2.5). Safe zone y 225-1440. Read his notes: node zoomcut/tools/notes.mjs naomi-tips-1. Never export unless he asks.
