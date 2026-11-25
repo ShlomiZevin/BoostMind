@@ -54,3 +54,8 @@ Project vova-hr-1, rev 108, 33 notes all answered. Post edits on top of the fast
 - Hook = his words "פוב: העובד הוותיק הזה / שלא מבין איך ה-AI חסך לו עבודה / והארגון הוסיף לו עבודה" (size 40, y 250, 7 s timeline). Caption = Terra option 1 + the 4 high-tech tags, saved in Send; cast vova + osnat (fixed).
 - 1:05 jump: a 0.28 s pause cut inside Osnat's take 724396CE - now one continuous clip, everything after +8 frames.
 - White halo around Vova in the export only = an exporter bug (raw take + matte at the edge instead of the editor's fg copy) - sent to Studio Dialoug; his two halo notes answered with that, still open.
+
+## Round 8 (2026-11-25) - the mug and the wall patch (rev 140)
+- Mug: keep_objects on _vova-hr-1-takes (two SAM marks, t=16 from 0-90 and t=120 from 90-173); tracking fixed by Studio (7d586166).
+- Wall patch between brim / glasses arm / head: wall_cut (Studio, d64acd40) on take 19.4-26 and 161-171.
+- Both in prop matte prop079d1850 + new webm, hard-linked into vova-hr-1, asset matte switched; old webm kept as .before-mug.webm. Export halo ring fixed earlier in the exporter (852cc02e).
