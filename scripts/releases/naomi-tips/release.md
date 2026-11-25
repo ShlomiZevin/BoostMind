@@ -38,3 +38,9 @@ Songs: Enya "Caribbean Blue" (playing), Einaudi "Experience" (muted) - own pace.
 ## ROUND 3 (2026-11-25, his notes: "progress, but still a mess")
 - Her strip centred (box x 54; his zoom 1.3 / y -0.06 kept). New set S3 (`_assets/naomi-tips/sets/naomi-institute-S3.jpg`): stool in the middle under her (box x -151), no faces on the wall - diplomas only; the roll-up banner stays (he liked it).
 - All type designed by GPT Image 2.6 (design key) in the look of her first release's story posters: title = one sentence lockup, the identical "אל תצפו" header per tip (top), a brochure card per tip (bottom), end card = her invitation to organisations (מאונבורדינג לבונדינג, shlomiverse.com/dr-naomi). Hebrew read word by word; card 4's band word patched from card 2. Files: design/gfx3/, design/build3.py. Cost of round 3 ≈ $0.95.
+
+## ROUND 4 (2026-11-25, "really really good now", 6 notes)
+- Video exactly as shot: box = canvas, zoom 1, centred, one framing all the way (no dead sides, crossed-leg foot never cut). Room S4 at 1.5x (box -262,0,1536,2304): seat at her hips, footrest ring under her foot.
+- The clothes reveal at real speed (216-226), the walk 226-233.6 at 2.5x. Title v2 ("אל תצפו" = the tips' pill, the object): low while she's at the lens, gone for the reveal, back above her once seated.
+- Everything in the safe zone 225-1440: header big from her hand on gesture A, shrinks to the top on gesture B and the card opens under it (above her hair). Gestures from the matte outline: tip1 242.0/243.8, tip2 253.0/255.1, tip3 267.6 + the unfold 270.0-272.9 (6 strips following her sweep, a glow riding her hand), tip4 281.5/284.0.
+- Stars replaced by a soft glow at each reveal. design/build4.py, gfx4/. Round 4 GPT ≈ $0.26.
