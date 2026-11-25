@@ -23,3 +23,8 @@ Cost: 4 sets + 1 mock = ~$0.19 (studio key).
 
 ## When the footage lands
 Put his take on `naomi.video`: one clip over the whole length, cut-out on, framed so her head sits under the frames. No speech, so no fast_cut. Then move the cards to where he points, check the timing against his take, and leave the music to him.
+
+## Footage (2026-11-25)
+His take: Drop folder "דולה טיפים" (one 5:00 clip, three attempts in it - his words: use the LAST one). Analysed on the hidden copy _naomi-tips-1-takes (cut-out: RobustVideoMatting, the whole body; the stool is not in it).
+Built into naomi-tips-1 (rev 4): the last attempt 235.0-297.5 s (from when she has sat down to before she gets up) on naomi.video, sitting in the clinic armchair at 1.8x (her hips on the cushion), the whole body seen. Cards re-timed to her 62.5 s: title 0-5, tips 5 / 19.6 / 33 / 49.4 - 62.5, end card 62.5-65.5. No music (his, licensed).
+Seen at 3x: clean edges (hair, shawl, raised arm); a sliver of the stool's seat shows beside her leg at times.
