@@ -1191,6 +1191,18 @@ reaches them only through step 11.
   https://boostmind-b052c.web.app/links/img/fb-cover-2x.jpg - made from his real portraits (`scripts/wiki/fb-cover.html`).
 - Deep links for posts and end cards: `/c/<character>`, `/v/<video>`, `/chat?with=<character>`.
 
+## FAST CUT - the first edit from his takes, one command (his ask, 2026-11-25)
+`.venv/Scripts/python.exe tools/fast_cut.py <project> [plan.json] [--takes a,b] [--go]` - the silences that should go
+out, the clips joined, the sound pulled ~0.14 s before and after every cut (only over what was cut out, never into a
+cut-out word), no fades, no word cut, picture and voice in sync (checked), a GROUP per character (set / clips / two
+alternating voice rows / subtitles). One character = a monologue / podcast; two or more = a dialogue (turns overlap 0.1 s
+word to word at playback speed, the "What we see" strip, picture handles at every turn, `edit.ripple: false`). The plan
+(lines: who, take, a, b, keep, cut, over) and every rule with its note: the tool's header. Dry run first (the report:
+clips, length, pauses left, problems), then `--go`. **Every new monologue / dialogue from his takes starts here** - the
+example builders below are only for what it doesn't do yet (a phone call, off-screen voices, stickers, music).
+Tested 2026-11-25 against naomi-1-tight (the cut he loved): 157.9 s kept vs his 157.3 s, 150.6 s the same; it keeps a
+breath before a word when whisper hears a word starting there (never lose a word) - his "tighten" note takes it out.
+
 ## Recipes - read the one you need
 Under the hood two engines exist: `lesson.py` (one camera - almost everything) and `zoomcut.py` (a Zoom grid of
 separately filmed characters). Pick by the footage; never name things after a series in the UI.

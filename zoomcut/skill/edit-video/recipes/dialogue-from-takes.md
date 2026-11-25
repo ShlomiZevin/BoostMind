@@ -33,7 +33,11 @@ is HOW to get there. A worked builder: `dialogue-from-takes.example.py` (savta-1
 - Hard-link those files into the real project's same paths and `asset.add` the take assets (keep his `mark` / `note`);
   `node tools/mark_used.mjs <id>` after; an unused take gets a note ("earlier take of X - Y is in the video").
 
-## 3. The build (a script that writes ops - keep it in the scratchpad, rerun it each round while he hasn't touched the clips)
+## 3. The build - FIRST `tools/fast_cut.py <project> plan.json` (SKILL.md "FAST CUT", 2026-11-25): the lines in
+order (who, take, a, b), it cuts the silences, joins, overlaps the turns, builds the groups + the strip + the subtitles and
+checks all of section 4. Write a builder script (below) only for what it doesn't do (off-screen voices, parallel talk,
+a phone call, music).
+(The older way - a script that writes ops - keep it in the scratchpad, rerun it each round while he hasn't touched the clips)
 - One list of lines in order: `who, take, a, b (take seconds), set`, placed after the one before with `over` (seconds
   of WORD overlap: 0.1 at playback speed - his number since 2026-11-18, SKILL.md "THE OVERLAP"; word edges, not clip
   edges; more only for an interruption), or `with_=(back, s)` = at an earlier line's start + s (parallel

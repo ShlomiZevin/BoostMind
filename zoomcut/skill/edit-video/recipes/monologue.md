@@ -4,6 +4,9 @@ One speaker, takes in order (`IMG_*.MP4`), usually no script file: transcribe, c
 corrected by hand - the recogniser garbles Aramaic / wordplay), let `lesson.py` cut, place and subtitle. If he keeps a
 script in the Reader (episode.json `"script"`), subtitles remake from it (only the on-camera lines, ad-libs as said).
 
+**From his takes (a podcast, a rabbi, a keynote): the first cut = `tools/fast_cut.py <project> --takes a,b,c`** (or a
+plan with spans when a line was said twice - the LATER take) - SKILL.md "FAST CUT" (2026-11-25).
+
 ## In the one editor (layers) - from 2026-10-22
 Analyze (`lesson.py --preview`, the editor's Analyze button) ends by writing `project.json` through
 `pipeline/to_layers_solo.py`: lesson.py still decides the cut, the subtitles and the timing, and the editor shows the
