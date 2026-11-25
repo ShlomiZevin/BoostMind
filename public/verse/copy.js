@@ -592,6 +592,10 @@ export const T = {
   // APP SHELL: the games feed (verse/gfeed.js, mockup app-shell/3-games-feed) - one game per screen, the grid at ?view=grid
   gfeed: { title: 'משחקים', play: 'לשחק', best: 'השיא היום:', more: 'יש עוד משחקים - החליקו למעלה', last: 'ראיתם את כולם', grid: 'לכל המשחקים',
     viewFeed: 'משחק אחד במסך', viewGrid: 'כל המשחקים ברשת', view: 'תצוגה' },
+  // the home's Syncs panel (verse/syncspanel.js, his ask 2026-11-25)
+  syncsPanel: { h1: 'מסיימים ישיבה.', h2: 'מתחילים לבצע.', sub: 'ישיבה אמיתית עם הצוות של טקי-טק. בסוף: סיכום ומשימות.',
+    go: 'מתחילים ישיבה', rec: 'ישיבה', recap: 'Action items', items: ['לחזור לזה', 'עוד ישיבה', 'לסכם בכתב'],
+    aria: 'Syncs של טקי-טק - מתחילים ישיבה' },
   // APP SHELL round 2 (his 13 notes, mockups app-shell/r2)
   shell: {
     feed: 'פיד', grid: 'רשת', view: 'תצוגה',

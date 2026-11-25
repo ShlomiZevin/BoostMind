@@ -6,11 +6,15 @@
 // Nothing to set: it shows by itself when such a video is published, and goes by itself after 7 days.
 import { T } from './copy.js';
 import { esc, abs, track } from './ui.js';
+import { SYNCS_PANEL, syncsPanel } from './syncspanel.js';
 
 const DAYS = 7;
 const MEDIA = 'https://storage.googleapis.com/shlomiverse-media/wiki/';
 const NOSIG = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="16" width="3.2" height="5" rx=".8"/><rect x="7" y="12.5" width="3.2" height="8.5" rx=".8"/><rect x="12" y="9" width="3.2" height="12" rx=".8" opacity=".35"/><rect x="17" y="5" width="3.2" height="16" rx=".8" opacity=".35"/><path d="M17.2 1.6l4.6 4.6M21.8 1.6l-4.6 4.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
 const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6a1 1 0 0 0 1.5.86l11-6.8a1 1 0 0 0 0-1.72l-11-6.8A1 1 0 0 0 8 5.2z"/></svg>';
+
+// the band is taken (the Syncs panel, or a drop video this week) - the simulation band steps aside
+export const bandTaken = () => SYNCS_PANEL || !!liveVideo();
 
 // the newest drop video from the last 7 days (the list is newest first), or null
 export function liveVideo() {
@@ -23,6 +27,8 @@ const seen = new Set();
 export function mountLive() {
   const el = document.getElementById('live-band');
   if (!el) return false;
+  // the Syncs panel has the band (his ask 2026-11-25) - syncspanel.js; SYNCS_PANEL = false gives it back to the drop video
+  if (SYNCS_PANEL) { if (el.dataset.v !== 'syncs' || !el.firstElementChild) { el.dataset.v = 'syncs'; el.innerHTML = syncsPanel(); } return true; }
   const v = liveVideo();
   if (!v) { el.innerHTML = ''; return false; }
   if (el.dataset.v === v.id && el.firstElementChild) return true;

@@ -11,7 +11,7 @@ import { LOCAL } from './fb.js';
 import { isCitizen, writeBar, wireWrite } from './citizen.js';
 import { simOpen, czOpen, appShell } from './gates.js';
 import { putAbout } from './about.js';
-import { liveVideo } from './livestrip.js';
+import { bandTaken } from './livestrip.js';
 
 const API = LOCAL ? '/api/verseSim' : 'https://europe-west1-boostmind-b052c.cloudfunctions.net/verseSim';
 const S = () => T.sim;
@@ -79,7 +79,7 @@ export function mountBand() {
   const el = document.getElementById('sim-band');
   if (!el) return;
   if (!simOpen()) { el.innerHTML = ''; return; }   // no way in for now (gates.js)
-  if (liveVideo()) { el.innerHTML = ''; return; }   // the live strip has the place this week (livestrip.js, his OK 2026-11-18)
+  if (bandTaken()) { el.innerHTML = ''; return; }   // the live strip / the Syncs panel has the place (livestrip.js)
   // after the test the band is gone (plan cz-sim-r4, his note 2026-11-07): the result lives in the passport and the profile
   if (myTest()) { el.innerHTML = ''; return; }
   // signed in last time on this device: wait for Firebase before drawing - else the big signed-out band showed for a beat and
