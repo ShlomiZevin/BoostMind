@@ -304,38 +304,55 @@ norm = lambda w: re.sub(r"[^א-תA-Za-z0-9]", "", w).replace("ך", "כ").replace
 
 
 class Speller:
-    """heard words -> the script's spelling and punctuation where they match (an ad-lib keeps his words)"""
-    def __init__(self, script_path, fix):
-        self.fix, self.tok, self.ptr = fix or {}, [], 0
+    """heard words -> the script's spelling and punctuation where they are the SAME words (an ad-lib keeps his words).
+    In a dialogue each character is matched only against its own lines ("וובה: ..." in the script) - on vova-hr a
+    shared stream gave Osnat's ad-lib Vova's line and pulled the end of the script into the middle of a monologue."""
+    def __init__(self, script_path, fix, names=None):
+        self.fix, self.tok, self.ptr = fix or {}, {}, {}
+        self.names = names or {}            # who -> the name the script writes before the line
         if script_path:
             path = script_path if os.path.isabs(script_path) else os.path.join(ROOT, script_path)
             if not os.path.exists(path):
                 path = os.path.join(os.path.dirname(ROOT), script_path)
-            lines = [re.sub(r"^[^:\s]{1,20}:\s*", "", l) for l in open(path, encoding="utf-8").read().splitlines()
-                     if l.strip() and not l.lstrip().startswith(("#", "("))]
-            self.tok = " ".join(lines).replace("“", "\"").replace("”", "\"").replace("’", "'").split()
+            for l in open(path, encoding="utf-8").read().splitlines():
+                if not l.strip() or l.lstrip().startswith(("#", "(")):
+                    continue
+                m = re.match(r"^\s*([^:\s]{1,20}):\s*(.*)$", l)
+                who, text = (m.group(1), m.group(2)) if m else (None, l)
+                text = re.sub(r"\([^)]*\)", " ", text)               # stage directions in the line: (צחוק מזויף)
+                toks = text.replace("“", "\"").replace("”", "\"").replace("’", "'").split()
+                self.tok.setdefault(who, []).extend(toks)
+                self.tok.setdefault("*", []).extend(toks)
 
-    def __call__(self, ws):
+    def stream(self, who):
+        name = self.names.get(who)
+        if name and name in self.tok:
+            return name
+        return "*" if len(self.tok) <= 2 else (who if who in self.tok else "*")
+
+    def __call__(self, ws, who=None):
         ws = [[s, e, self.fix.get(w, w)] for s, e, w in ws]
         ws = [x for x in ws if x[2]]
-        if not self.tok or not ws:
+        key = self.stream(who)
+        tok, ptr = self.tok.get(key, []), self.ptr.get(key, 0)
+        if not tok or not ws:
             return ws
-        lo, hi = max(0, self.ptr - 8), min(len(self.tok), self.ptr + len(ws) + 40)
-        win = self.tok[lo:hi]
-        sm = difflib.SequenceMatcher(None, [norm(x[2]) for x in ws], [norm(x) for x in win], autojunk=False)
-        out, end = [], self.ptr
+        lo, hi = max(0, ptr - 8), min(len(tok), ptr + len(ws) + 15)
+        win = tok[lo:hi]
+        hn, wn = [norm(x[2]) for x in ws], [norm(x) for x in win]
+        sm = difflib.SequenceMatcher(None, hn, wn, autojunk=False)
+        out, end = [], ptr
+        same = lambda x, y: x == y or difflib.SequenceMatcher(None, x, y).ratio() >= 0.6
         for op, i1, i2, j1, j2 in sm.get_opcodes():
             if op == "equal":
                 out += [[ws[i1 + q][0], ws[i1 + q][1], win[j1 + q]] for q in range(i2 - i1)]
                 end = lo + j2
-            elif op == "replace" and j2 - j1 <= 2 * (i2 - i1) + 1:
-                s0, e0, n = ws[i1][0], ws[i2 - 1][1], j2 - j1
-                st = [s0 + (e0 - s0) * q / n for q in range(n + 1)]
-                out += [[st[q], st[q + 1], win[j1 + q]] for q in range(n)]
+            elif op == "replace" and i2 - i1 == j2 - j1 and all(same(hn[i1 + q], wn[j1 + q]) for q in range(i2 - i1)):
+                out += [[ws[i1 + q][0], ws[i1 + q][1], win[j1 + q]] for q in range(i2 - i1)]   # a mishear of the same word
                 end = lo + j2
             elif op in ("replace", "delete"):
-                out += ws[i1:i2]
-        self.ptr = end
+                out += ws[i1:i2]                                    # his own words (an ad-lib, a change)
+        self.ptr[key] = end
         return out
 
 
@@ -468,7 +485,7 @@ def main():
                              {"style": "solo", "box": {"x": 540, "y": c.get("subY", sub_y[ci % 4]), "w": 980, "anchor": "t"},
                               "font": "font.assistant", "size": 66, "weight": 800, "color": c.get("subColor", sub_c[ci % 4]), "stroke": 10})
 
-    speller = Speller(args.script or plan.get("script"), plan.get("fix"))
+    speller = Speller(args.script or plan.get("script"), plan.get("fix"), {w: group_name(w) for w in order})
     n = [0]
     placed = []        # (who, take, A, B, t0, link)
     spans = []         # (who, from, to) frames - for the strip
@@ -526,7 +543,7 @@ def main():
                 return nx[0][2] if nx else None
             pv = [q for q in mp if q[1] <= x]
             return pv[-1][2] + pv[-1][1] - pv[-1][0] if pv else None
-        for s, e, text in chunks(speller(heard)):
+        for s, e, text in chunks(speller(heard, w)):
             ts, te = tl(s, True), tl(e, False)
             if ts is None or te is None or te <= ts or not text.strip():
                 continue
@@ -607,6 +624,16 @@ def main():
                 merged[-1][2] = r[2]
             else:
                 merged.append(list(r))
+        # a short reaction (vova-hr: her "לא, לא שמעתי." = 0.8 s) stays on screen into the next line - we already hear
+        # the next one speak while we still see her (an L-cut), as far as her clip's picture handle reaches
+        pic = lambda w, a_, b_: all(any(i["from"] <= f < i["from"] + i["dur"] for i in R[f"{w}.video"]["items"]) for f in range(a_, b_))
+        for k in range(len(merged) - 1):
+            w, a_, b_ = merged[k]
+            nxt = merged[k + 1]
+            need = FPS - (b_ - a_)
+            if need > 0 and nxt[2] - nxt[1] - need >= FPS and pic(w, b_, b_ + need):
+                merged[k][2] += need
+                nxt[1] += need
         view = row("view", "view", "What we see", None, {})
         view["items"] = [{"id": f"w{i}", "from": a_, "dur": b_ - a_, "show": f"{w}.video"} for i, (w, a_, b_) in enumerate(merged)]
 
