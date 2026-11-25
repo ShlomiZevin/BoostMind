@@ -430,6 +430,11 @@ N options with the cost of each - and let him pick the way. Never spend on eithe
   Social Media -> "Buy & Download" (6,818 credits) - **his click, never yours** (a purchase). Then the bought file goes
   into the project / library like any bed.
 - Good searches for comedy beds: "cringe comedy", "awkward comedy", "quirky comedy", "pizzicato comedy".
+- **A TV / news bed** (a guest on a panel, an anchor - shaftel-14, 2026-11-25): he wants "the underground music of
+  news" - a real news underscore. Generated sfx `loop` beds for it ("tension underscore", "breaking-news drone") were
+  "terrible", and so was a call-center hold tune at the punchline ("no need"). Go straight to the Marketplace: "news
+  background", "breaking news tension" give many real broadcast beds (News Background Music, News Report : The
+  Developing Story...). Send them as 25 s samples mixed UNDER his voice stem at the project speed (~13 dB under).
 - ElevenMusic "Sounds" (free loops, drum / bass parts) - commercial terms not stated; not a bed.
 A character's chosen bed is HIS FIXED bed for every video of that character - write it here. Rosenblum: being chosen
 (2026-11-24) - cringe comedy, not the thriller / drill one; offered library A-D + Marketplace E1-E8 (search "cringe comedy").
