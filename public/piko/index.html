@@ -108,7 +108,8 @@ textarea:focus{outline:2px solid rgba(255,193,90,.5);border-color:transparent}
 .vm b{font-size:16px}
 .vm em{font-style:normal;font-weight:700;font-size:14px;color:var(--acc1);margin-top:2px}
 .vm small{font-size:13px;color:var(--dim);line-height:1.35}
-.go{width:100%;height:64px;border-radius:999px;background:var(--acc);color:#2a1300;font-weight:800;font-size:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;box-shadow:0 8px 30px rgba(255,123,46,.3)}
+/* the make button floats just above the tabs wherever the screen is scrolled (his ask, 2026-11-25) */
+.go{position:sticky;bottom:calc(78px + env(safe-area-inset-bottom));z-index:4;width:100%;height:64px;border-radius:999px;background:var(--acc);color:#2a1300;font-weight:800;font-size:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;box-shadow:0 8px 30px rgba(255,123,46,.3),0 14px 0 8px var(--bg)}
 .go small{font-weight:600;font-size:13px;opacity:.75}
 .go[disabled]{opacity:.45}
 .go .row{display:flex;align-items:center;gap:8px}
@@ -167,10 +168,12 @@ nav button em{position:absolute;top:10px;margin-right:30px;min-width:18px;height
 .sheet .row button.danger{background:#5a1f1a;color:#ffb3a8}
 .sheet .row button.ok{background:var(--acc);color:#2a1300}
 .sheet input{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:#171412;padding:0 14px;margin:0 0 14px;font-size:16px}
-.made{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:58dvh;overflow:auto;margin:0 0 14px}
-.made button{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#0c0a09;border:3px solid transparent}
+/* the iPhone collapsed aspect-ratio rows inside this scrolling grid - the pictures lay on top of each other (his note, 2026-11-25);
+   a height from padding works everywhere */
+.made{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:max-content;align-content:start;gap:8px;max-height:58dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 0 14px}
+.made button{position:relative;display:block;width:100%;height:0;padding:0 0 133.33%;border-radius:10px;overflow:hidden;background:#0c0a09;border:3px solid transparent}
 .made button.on{border-color:var(--acc2)}
-.made img{width:100%;height:100%;object-fit:cover;display:block}
+.made img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .pre{display:flex;gap:8px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none}
 .pre::-webkit-scrollbar{display:none}
 .pre button{flex:none;display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:15px;color:var(--dim)}
@@ -182,7 +185,7 @@ nav button em{position:absolute;top:10px;margin-right:30px;min-width:18px;height
 .plist button{width:36px;height:36px;border-radius:10px;background:#3a1d19;color:#ffb3a8;display:grid;place-items:center}
 .plist button svg{width:18px;height:18px}
 .batchgap{height:14px}
-.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2d2825;color:var(--text);border-radius:12px;padding:11px 16px;font-size:14px;z-index:30;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.toast{position:fixed;left:50%;bottom:calc(156px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2d2825;color:var(--text);border-radius:12px;padding:11px 16px;font-size:14px;z-index:30;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -339,7 +342,7 @@ function pickMade(slot) {
   const list = st.jobs.filter((j) => j.kind === 'image' && j.status === 'done' && j.url);
   const multi = slot === 'refs', has = (j) => st.refs.some((r) => r.job === j.id);
   const el = sheet(`<h3>${multi ? 'תמונות השראה מהיצירות' : slot === 'start' ? 'תמונת פתיחה מהיצירות' : 'תמונת סיום מהיצירות'}</h3>
-    ${list.length ? `<p>${multi ? 'אפשר לבחור כמה.' : 'בוחרים אחת.'}</p><div class="made">${list.map((j) => `<button data-m="${j.id}" class="${multi && has(j) ? 'on' : ''}"><img src="${esc(j.url)}" alt="" loading="lazy"></button>`).join('')}</div>`
+    ${list.length ? `<p>${multi ? 'אפשר לבחור כמה.' : 'בוחרים אחת.'}</p><div class="made">${list.map((j) => `<button data-m="${j.id}" class="${multi && has(j) ? 'on' : ''}${j.clear ? ' chk' : ''}"><img src="${esc(j.url)}" alt="" loading="lazy"></button>`).join('')}</div>`
       : '<p>עוד אין כאן תמונות שנוצרו בפיקו.</p>'}
     <div class="row one"><button data-no class="${multi && list.length ? 'ok' : ''}">${multi && list.length ? 'סיום' : 'סגירה'}</button></div>`);
   el.querySelector('.made')?.addEventListener('click', (e) => {
