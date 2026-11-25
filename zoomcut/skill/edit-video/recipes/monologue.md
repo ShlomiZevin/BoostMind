@@ -387,3 +387,15 @@ someone else (`offscreen-voice.md`).
   `_assets/demokratovich/eicha/stam-ashkenaz-marks.ttf` (the same letters + Frank Ruehl's marks x1.35, no GPOS so the
   browser places them) as the project's font asset + the subtitles layer `font`. A project made `from` an earlier rabbi
   video inherits its `sign` (Eisenkot painted on the OLD set's frames), `plaque_quad` and `cut` - clear them first.
+  Round 2 (his notes): **chanted text = `cut: {silence: false}`** (the pause cutter ate "סיגרים" and the end of "מר לה" -
+  faster-whisper's word times drift up to ~1 s early on a chant; find real ends by loudness, not by the words); keep his
+  opening (the shush, then silence) = sequence `from: 0`. **The megillah effect he loved**: a parchment scroll picture
+  (`eicha/klaf-crop.png`, GPT Image transparent) + a `karaoke` text layer on it (faded ink -> dark ink as he reads,
+  STaM-with-marks font, weight 400, stroke 0), half-verses switching ON HIS BREATHS (audio pauses mapped to the timeline;
+  the words fitted between them) - builder: `eicha/klaf.py` pattern in the session; the scroll appears only when he starts
+  reading ("it's a surprise"). Karaoke splits words on spaces: a paseq "׀" is a word of its own and needs its own timing,
+  or every later word shifts and the last one is inked from the start. The subtitles layer stays (transcript) hidden
+  BEHIND the scroll. Synagogue echo = voice custom room 0.28 / roomSize 1.6, no denoise. Moving him sideways: enlarge the
+  take with its edge pinned at 0 - shifting the box shows the take's edge ("my hand is cut"). Plaques: **lettering by GPT
+  Image** (his ask - "they are good for typographics"): a masked edit of the plate only, the mask INSIDE the bolts so the
+  frame can't touch them; never put a plaque over a flag (remove the flag in the same edit, keep all three chairs).
