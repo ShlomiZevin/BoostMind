@@ -1,14 +1,28 @@
 {
- "start": 0.45,
+ "start": 0.2,
  "script": "scripts/releases/vova-hr/script.md",
  "characters": {
   "vova": {
    "name": "וובה",
-   "subColor": "#ffffff"
+   "subColor": "#ffffff",
+   "set": "m.vova-room-A3-mirror.jpg",
+   "setBox": {
+    "x": -100,
+    "y": 0,
+    "w": 1280,
+    "h": 1920
+   }
   },
   "osnat": {
    "name": "אסנת",
-   "subColor": "#ffe7a3"
+   "subColor": "#ffe7a3",
+   "set": "m.osnat-door-B1-908d4e.jpg",
+   "setBox": {
+    "x": -1030,
+    "y": -300,
+    "w": 2048,
+    "h": 3072
+   }
   }
  },
  "lines": [
@@ -40,7 +54,8 @@
    "who": "vova",
    "take": "v1c0",
    "a": 20.32,
-   "b": 25.8
+   "b": 25.8,
+   "over": 0.7
   },
   {
    "who": "osnat",
@@ -80,21 +95,23 @@
    "who": "vova",
    "take": "v1c0",
    "a": 105.06,
-   "b": 110.58
+   "b": 109.3
   },
   {
    "who": "osnat",
-   "take": "C130A6D7"
+   "take": "C130A6D7",
+   "offscreen": true
   },
   {
    "who": "vova",
    "take": "v1c0",
-   "a": 111.02,
+   "a": 109.62,
    "b": 116.72
   },
   {
    "who": "osnat",
-   "take": "FF9A5476"
+   "take": "FF9A5476",
+   "offscreen": true
   },
   {
    "who": "vova",
@@ -104,7 +121,8 @@
   },
   {
    "who": "osnat",
-   "take": "609D69A3"
+   "take": "609D69A3",
+   "over": 1.2
   },
   {
    "who": "vova",
@@ -136,6 +154,7 @@
   "מיסטוריאן,": "מסתורין,",
   "פרינואו,": "פרינו,",
   "ל": "ל",
-  "-AI": "ה-AI"
+  "-AI": "ה-AI",
+  "אתה": "אתה"
  }
 }

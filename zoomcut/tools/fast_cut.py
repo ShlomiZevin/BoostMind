@@ -63,6 +63,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 API = f"http://127.0.0.1:{os.environ.get('ZC_PORT', '4747')}"
 TAKE_HEAD, TAKE_TAIL = 0.45, 0.35       # the selfie start / stop never shows
+TURN_H = 0.30                           # the sound before / after a LINE (a turn): longer - a cut breath there ticked (vova-hr)
 MIN_PIECE = 0.30                        # a piece shorter than this joins its neighbour over the pause
 WORD_BACK = 0.40                        # how far a word's soft onset may run before its loud speech (all of it stays)
 TAIL_FWD = 0.15                         # a word's decaying tail kept after the loud speech
@@ -144,7 +145,11 @@ class Take:
         self.d = loudness(s)
         self.words = words_of(ep, self.label, s)
         p95, noise = np.percentile(self.d, 95), np.percentile(self.d, 10)
-        self.LOUD, self.SOFT, self.QUIET, self.NOISE = p95 - 22, max(noise + 6, p95 - 36), p95 - 30, noise
+        # speech = 22 dB under its peaks - or, in a take with room echo (vova-hr Osnat: pauses only ~20 dB under her
+        # speech, never cut), 55% of the way from the room's floor to the speech; naomi-1-tight is unchanged by it
+        self.LOUD = max(p95 - 22, noise + (p95 - noise) * 0.55)
+        # a word's soft onset / tail - also lifted in an echoey take, or the onset walk crosses the whole pause
+        self.SOFT, self.QUIET, self.NOISE = max(noise + 6, p95 - 36, noise + (p95 - noise) * 0.35), p95 - 30, noise
 
     # loud speech runs (10 ms steps) in [a, b]; record taps at the edges dropped
     def runs(self, a, b):
@@ -174,10 +179,14 @@ class Take:
             runs.pop()
         return runs
 
-    def soft_word_at(self, ws):
-        """some voice right around a whisper word start (above the room's floor) - a soft word, not a drifted time"""
+    def soft_word_at(self, ws, gmin=None):
+        """some voice right around a whisper word start (above the room's floor) - a soft word, not a drifted time; it
+        must also rise 15 dB over the pause's quietest point (Naomi's "אתם": 34 dB) - room echo in a pause does not
+        (vova-hr Osnat: 8 dB, and whisper had put her next word 0.3 s early, inside the pause)"""
         seg = self.d[max(0, int((ws - 0.05) * 100)):int((ws + 0.15) * 100)]
-        return (seg > self.NOISE + 10).sum() >= 4
+        if len(seg) == 0 or (seg > self.NOISE + 10).sum() < 4:
+            return False
+        return gmin is None or seg.max() - gmin >= 15
 
     def back(self, i, limit):
         """walk the start out over the word's soft onset (up to 0.4 s of sound running on into the speech)"""
@@ -191,6 +200,15 @@ class Take:
         while j < int(limit * 100) and j - i < TAIL_FWD * 100 and self.d[j] > max(self.SOFT, self.LOUD - 5):
             j += 1
         return min(limit, j / 100 + 0.01)
+
+    def sound_span(self):
+        """where the take's sound is: from its first loud run (a laugh, an 'mm' - vova-hr: Osnat's fake laughs came
+        before her first word and were cut) to the later of its last word / last loud run; never the selfie edges"""
+        r = self.runs(TAKE_HEAD, self.dur - TAKE_TAIL)
+        fw, lw = self.first_word(), self.last_word()
+        a = min([x for x in (r[0][0] / 100 if r else None, fw) if x is not None], default=TAKE_HEAD)
+        b = max([x for x in (r[-1][1] / 100 if r else None, lw) if x is not None], default=self.dur - TAKE_TAIL)
+        return max(TAKE_HEAD, a), min(self.dur - TAKE_TAIL, b)
 
     def first_word(self, a=0, b=1e9):
         ws = [w for w in self.words if w[0] >= a - 0.05 and w[1] <= b + 0.3]
@@ -252,7 +270,8 @@ def pieces(t, a, b, min_sil, keep=(), force=()):
         tail = t.fwd(r1[1], g1)
         head = t.back(r2[0], tail)
         if not forced:
-            soft = [ws for ws, we, _ in W if g0 + 0.08 < ws < g1 - 0.08 and t.soft_word_at(ws)]
+            gmin = float(t.d[int(g0 * 100):max(int(g0 * 100) + 1, int(g1 * 100))].min())
+            soft = [ws for ws, we, _ in W if g0 + 0.08 < ws < g1 - 0.08 and t.soft_word_at(ws, gmin)]
             if soft:                                            # a soft word in the "silence" stays whole ("אתם")
                 head = min(head, min(soft) - 0.05)
             for ws, we, _ in W:                                 # a word the picture would start inside: start on it
@@ -281,19 +300,20 @@ def pieces(t, a, b, min_sil, keep=(), force=()):
     return [(round(x, 3), round(y, 3)) for x, y in out]
 
 
-def handles(t, A, B, H):
+def handles(t, A, B, H, H_post=None):
     """the sound before / after a picture cut: up to H s, only over what was cut out (never a cut-out word, never the
     loud speech of the next / previous piece), inside the recording's safe margins"""
     pe = [we for ws, we, _ in t.words if we <= A - 0.05]
     ns = [ws for ws, we, _ in t.words if ws >= B + 0.05]
     pre = min(H, A - (pe[-1] + 0.04 if pe else 0.3), A - 0.3)
-    post = min(H, (ns[0] - 0.04 if ns else t.dur - 0.25) - B, t.dur - 0.25 - B)
+    Hp = H if H_post is None else H_post
+    post = min(Hp, (ns[0] - 0.04 if ns else t.dur - 0.25) - B, t.dur - 0.25 - B)
     j = int(A * 100) - 1
     while j > 0 and t.d[j] <= t.LOUD and (A - j / 100) < H:
         j -= 1
     pre = min(pre, max(0.0, A - j / 100 - 0.02))
     j = int(B * 100) + 1
-    while j < len(t.d) - 1 and t.d[j] <= t.LOUD and (j / 100 - B) < H:
+    while j < len(t.d) - 1 and t.d[j] <= t.LOUD and (j / 100 - B) < Hp:
         j += 1
     post = min(post, max(0.0, j / 100 - B - 0.02))
     return max(0.0, pre), max(0.0, post)
@@ -432,8 +452,7 @@ def main():
     dropped, exp = [], []
     for ln in lines:
         tk = T[ln["take"]]
-        a = ln.get("a", tk.first_word() if tk.first_word() is not None else TAKE_HEAD)
-        b = ln.get("b", tk.last_word() if tk.last_word() is not None else tk.dur - TAKE_TAIL)
+        a, b = ln.get("a", tk.sound_span()[0]), ln.get("b", tk.sound_span()[1])
         if args.keep_retakes or not ln.get("retakes", plan.get("retakes", True)):
             exp.append(dict(ln, a=a, b=b))
             continue
@@ -493,20 +512,28 @@ def main():
     t_cur = float(plan.get("start", 0))
     prev_who, prev_last_word_tl = None, None
 
-    def place(w, take, A, B, t0):
+    vcount = {}
+    def place(w, take, A, B, t0, first=False, last=False, off=False):
         n[0] += 1
         lk = f"{w}.{n[0]}"
         fr, du = F(t0), F(t0 + (B - A)) - F(t0)
         tk = T[take]
+        vcount[w] = vcount.get(w, 0) + 1
+        vrow = f"voice.{w}" if vcount[w] % 2 else f"voice.{w}.2"
+        if off:   # heard only, from the next room (his note, vova-hr: "only Vova is filmed there - no cut")
+            hp, ha = handles(tk, A, B, TURN_H if first else H, TURN_H if last else H)
+            vf, ve = max(0, F(t0 - hp)), F(t0 + (B - A) + ha)
+            R[vrow]["items"].append({"id": f"v{n[0]}", "from": vf, "dur": ve - vf, "asset": take, "in": round(A - (fr - vf) / FPS, 3),
+                                     "fade_in": 0, "fade_out": 0, "link": lk, "gain": 0.8, "fx": {"room": 0.35, "roomSize": 0.7, "filter": "muffled"}})
+            placed.append((w, take, A, B, t0, lk))
+            return t0 + (B - A)
         if f"{w}.bg" in R:
             R[f"{w}.bg"]["items"].append({"id": f"b{n[0]}", "from": fr, "dur": du, "asset": SETS[w][0], "box": dict(SETS[w][1]), "link": lk})
         R[f"{w}.video"]["items"].append({"id": f"p{n[0]}", "from": fr, "dur": du, "asset": take, "in": round(A, 3),
                                          "box": dict(R[f"{w}.video"]["props"].get("box") or {"x": 0, "y": 0, "w": 1080, "h": 1920}), "link": lk})
-        hp, ha = handles(tk, A, B, H)
+        hp, ha = handles(tk, A, B, TURN_H if first else H, TURN_H if last else H)
         vf = max(0, F(t0 - hp))
         ve = F(t0 + (B - A) + ha)
-        mine = [i for i in R[f"{w}.video"]["items"]]
-        vrow = f"voice.{w}" if len(mine) % 2 else f"voice.{w}.2"
         # the voice's own start = the picture's moment, frame-exact (the sync check below holds it to 0 ms)
         R[vrow]["items"].append({"id": f"v{n[0]}", "from": vf, "dur": ve - vf, "asset": take,
                                  "in": round(A - (fr - vf) / FPS, 3), "fade_in": 0, "fade_out": 0, "link": lk})
@@ -517,8 +544,7 @@ def main():
     for li, ln in enumerate(lines):
         w, take = ln["who"], ln["take"]
         tk = T[take]
-        a = ln.get("a", tk.first_word() if tk.first_word() is not None else TAKE_HEAD)
-        b = ln.get("b", tk.last_word() if tk.last_word() is not None else tk.dur - TAKE_TAIL)
+        a, b = ln.get("a", tk.sound_span()[0]), ln.get("b", tk.sound_span()[1])
         ps = pieces(tk, a, b, min_sil, [tuple(x) for x in ln.get("keep", [])], ln.get("cut", []))
         if prev_who is not None and w != prev_who and prev_last_word_tl is not None:
             # a turn: word to word overlap at playback speed (his 0.1 s), counted on the speech, not the clip edges
@@ -529,8 +555,8 @@ def main():
         else:
             t_start = t_cur
         t0 = t_start
-        for A, B in ps:
-            t0 = place(w, take, A, B, t0)
+        for q, (A, B) in enumerate(ps):
+            t0 = place(w, take, A, B, t0, first=q == 0, last=q == len(ps) - 1, off=bool(ln.get("offscreen")))
         # subtitles of this line
         heard = [x for x in tk.words if x[1] > a + 0.05 and (x[0] + x[1]) / 2 <= b + 0.05]
         mp = [(A, B, s) for (ww, k, A, B, s, lk) in placed if ww == w and k == take and s >= t_start - 1e-6]
@@ -649,7 +675,9 @@ def main():
     for w in order:
         for rid in (f"voice.{w}", f"voice.{w}.2"):
             for v in R[rid]["items"]:
-                pv = pics[v["link"]]
+                pv = pics.get(v["link"])
+                if pv is None:
+                    continue
                 off = (v["in"] - v["from"] / FPS) - (pv["in"] - pv["from"] / FPS)
                 if not -0.040 <= off <= 0.002:      # (+2 ms = rounding to the millisecond)
                     sync_bad.append((v["link"], round(off * 1000)))
