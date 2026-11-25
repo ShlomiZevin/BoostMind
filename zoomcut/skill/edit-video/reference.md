@@ -75,8 +75,9 @@
   `"wall_cut": {"<take>": true | [{"from": s, "to": s}]}` -> Analyze. lesson.py wall_cut: inside the face box (as
   hybrid's), within 18 px (of 768) of the cut-out's edge, a pixel whose colour is the room's right next to it (Lab < 40)
   leaves the cut-out; applied to the engine's own matte BEFORE keep_objects, so a kept white mug is never cut. The fast
-  engine keeps the same gap (tested) - an engine switch doesn't fix it. Check stills of the span: an ear's edge can get
-  a hair tighter.
+  engine keeps the same gap (tested) - an engine switch doesn't fix it. Only SOLID wedges are cut (an opening + blobs of
+  30 px of 432x768 and up): cutting the thin wall-tinted slivers along the edge changed every frame and flickered like a
+  shadow. The cut-out's name carries the wall cut's version (`_wall_v`), so a code change makes it again.
   CPU tracking with marks at two moments crashed (SAM 2 keeps its memory in bfloat16) - fixed in keep.py track. The cloud
   engine (`keep_engine: cloud`, Cloud Run job keep-sam) is NOT deployed: it falls back to this computer. Cost: ~5 s of CPU per second of the take (a 37 s take ~ 5 min, in Jobs); cached
   by the marks (`work/matte/<take>.objs<hash>.mkv`), OR-ed into the matte by lesson.py prop_matte (with prop_color /

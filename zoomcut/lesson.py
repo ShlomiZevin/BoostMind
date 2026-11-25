@@ -221,6 +221,8 @@ def matte_path(ls, n):
         return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v
     k = keep_cfg(ls, n)  # (the kept desk / boxes count as him in the touch test - a new keep = a new prop matte)
     key = same({**pc, "_keep": k}) if k else same(pc)
+    if pc.get("wall"):  # (the wall cut's own version: a change to wall_cut's code = a new cut-out, never the old one reused)
+        key = {**key, "_wall_v": 2}
     return base[:-4] + ".prop" + hashlib.md5(json.dumps(key, sort_keys=True).encode()).hexdigest()[:8] + ".mkv"
 
 
@@ -359,7 +361,7 @@ def prop_matte(ls, t, n):
         os.remove(miss)
 
 
-def wall_cut(rgb, m, box, tol=40.0, depth=18):
+def wall_cut(rgb, m, box, tol=40.0, depth=18, min_area=30):
     """Around the head (the face box, wide and high as hybrid_matte's), within `depth` px of the cut-out's edge: the pixels
     whose colour is the room's right next to them (Lab distance < tol, the room = the engine's own background, averaged
     nearby) are taken out of the cut-out. A gap the engine keeps solid - the wall between a cap's brim, the glasses' arm
@@ -381,7 +383,15 @@ def wall_cut(rgb, m, box, tol=40.0, depth=18):
     head = np.zeros_like(cand)
     head[int(max(0, y0 - 0.75 * h) * MATTE_H):int(min(1, y1 + 0.15 * h) * MATTE_H),
          int(max(0, x0 - 0.45 * w) * MATTE_W):int(min(1, x1 + 0.45 * w) * MATTE_W)] = True
-    cut = cv2.GaussianBlur((cand & head).astype(np.float32), (5, 5), 0)
+    # only solid wedges: thin slivers along the edge (the rim's own wall-tinted pixels) change every frame - cutting them
+    # flickered as a "shadow following him" (vova-hr-1's last clip, 2026-11-25). An opening drops anything under ~3 px
+    # thick, then only blobs of some size stay; the export's own rim colour handles the edge.
+    c = cv2.morphologyEx((cand & head).astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
+    num, lab, stats, _ = cv2.connectedComponentsWithStats(c, connectivity=8)
+    big = np.zeros(num, bool)
+    big[1:] = stats[1:, cv2.CC_STAT_AREA] >= min_area
+    c = cv2.dilate(big[lab].astype(np.uint8), np.ones((3, 3), np.uint8))
+    cut = cv2.GaussianBlur(c.astype(np.float32), (5, 5), 0)
     return (mf * (1 - cut) * 255).clip(0, 255).astype(np.uint8)
 
 

@@ -33,7 +33,7 @@ import numpy as np
 
 from . import audio_render, cutout as cutout_fx, film_fx, layers_audio, look
 from . import project as projectlib
-from .common import FFMPEG, ROOT, Episode, ffprobe, log, run
+from .common import FFMPEG, FFPROBE, ROOT, Episode, ffprobe, log, run
 from .compose import LOW, PIECES, X264_THREADS, _look
 from .layer_geometry import backdrop_box, fit_box, image_box
 
@@ -266,6 +266,41 @@ def plan_chunks(items, total, min_len=60, max_len=300):
     return [(a, z) for a, z in zip(cuts, cuts[1:]) if z > a]
 
 
+_STEADY = {}
+_STEADY_LOCK = threading.Lock()
+
+
+def steady_take(ep, path, fps):
+    """A take with uneven frame timing (a phone that drops frames: r_frame_rate 30 but avg 29.96) -> one steady copy at
+    `fps`, made the way its cut-out (lesson.py matte) was made: the whole take from 0 through fps=<fps>. Its frame k IS
+    the cut-out's frame k. Seeking the uneven file (-ss) instead picked a frame 1-2 frames off the cut-out's after a
+    dropped frame - the cut-out lagged his moves: a white glow / "a shadow following him" in the export only, some clips
+    only (vova-hr-1, 2026-11-25; the editor plays the cut-out copy, picture and alpha in one file). Cached in work/steady/."""
+    with _STEADY_LOCK:
+        if path in _STEADY:
+            return _STEADY[path]
+        out = path
+        try:
+            r = subprocess.run([FFPROBE, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate,avg_frame_rate",
+                                "-of", "csv=p=0", path], capture_output=True, text=True).stdout.strip().split(",")
+            ev = lambda x: (lambda n, d: float(n) / float(d or 1))(*(x.split("/") + ["1"])[:2]) if x else 0.0
+            if len(r) >= 2 and abs(ev(r[0]) - ev(r[1])) > 0.01:
+                st = os.stat(path)
+                name = f"{os.path.splitext(os.path.basename(path))[0]}.{st.st_size}-{int(st.st_mtime)}.{fps}fps.mp4"
+                dst = ep.p(os.path.join("work", "steady", name))
+                if not os.path.exists(dst):
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    log(f"  · a steady {fps} fps copy of {os.path.basename(path)} (its frame timing is uneven) - once")
+                    run([FFMPEG, "-y", "-v", "error", "-i", path, "-vf", f"fps={fps}", "-an", "-c:v", "libx264", "-preset", "veryfast",
+                         "-crf", "12", "-pix_fmt", "yuv420p", dst + ".part.mp4"])
+                    os.replace(dst + ".part.mp4", dst)
+                out = dst
+        except Exception as e:  # (never stops an export: the take as it is)
+            log(f"  ! steady copy of {os.path.basename(path)} failed ({e}) - the take as it is")
+        _STEADY[path] = out
+        return out
+
+
 def _mask(ep, w, h, r):
     import cv2
     path = ep.work("layers", "masks", f"{w}x{h}r{r}.png")
@@ -355,7 +390,11 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
             src = asset.get("eyes_src") if it.get("eyes") is not False and asset.get("eyes_src") else asset["src"]
             if it.get("face") is not False and asset.get("face_src"):
                 src = asset["face_src"]
-            args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(ep.p(src))]
+            cutout = it.get("cutout") and asset.get("matte")
+            sp = os.path.normpath(ep.p(src))
+            if cutout and src == asset["src"]:  # (the raw take under a cut-out: frame for frame with its cut-out - steady_take)
+                sp = steady_take(ep, sp, fps)
+            args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", sp]
             vi = idx
             idx += 1
             bd = it.get("_bd")
@@ -379,26 +418,8 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
                 idx += kn
                 if kfc:
                     fc.append(kfc)
-                # the edge's colours from the cut-out copy the editor plays (fg / eyes_fg / face_fg - its edge colours are
-                # clean); the raw take's edge pixels carry the room behind him - a white wall = a white ring round his cap and
-                # face in the export only (vova-hr-1, 2026-11-25). Inside the person the raw take stays (sharper than the
-                # 540 px copy); only a thin rim at the edge takes the copy's colours.
-                fgk = "face_fg" if src == asset.get("face_src") and asset.get("face_src") else "eyes_fg" if src == asset.get("eyes_src") and asset.get("eyes_src") else "fg"
-                fgp = asset.get(fgk) and ep.p(asset[fgk])
                 ak_ = f"{'ak' if kfc else 'al'}{tag}"
-                if fgp and os.path.exists(fgp):
-                    args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(fgp)]
-                    gi = idx
-                    idx += 1
-                    rim = max(2, int(round(3 * sig)))
-                    fc.append(f"[{ak_}]split[a1{tag}][a2{tag}]")
-                    fc.append(f"[a2{tag}]{','.join(['erosion'] * rim)},gblur=sigma={max(1.0, rim / 2):.2f},format=gbrp[rw{tag}]")
-                    fc.append(f"[{gi}:v]{spts}{frames},{fit_wh},format=gbrp[gc{tag}]")
-                    fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh},format=gbrp[pr{tag}]")
-                    fc.append(f"[gc{tag}][pr{tag}][rw{tag}]maskedmerge,format=yuv420p[p{tag}]")
-                    ak_ = f"a1{tag}"
-                else:
-                    fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh}[p{tag}]")
+                fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh}[p{tag}]")
                 fc.append(f"[p{tag}][{ak_}]alphamerge=shortest=1[pa{tag}]")
                 img = project["assets"].get((bd or {}).get("props", {}).get("asset") or "") if bd else None
                 if img:
