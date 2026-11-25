@@ -379,8 +379,27 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
                 idx += kn
                 if kfc:
                     fc.append(kfc)
-                fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh}[p{tag}]")
-                fc.append(f"[p{tag}][{'ak' if kfc else 'al'}{tag}]alphamerge=shortest=1[pa{tag}]")
+                # the edge's colours from the cut-out copy the editor plays (fg / eyes_fg / face_fg - its edge colours are
+                # clean); the raw take's edge pixels carry the room behind him - a white wall = a white ring round his cap and
+                # face in the export only (vova-hr-1, 2026-11-25). Inside the person the raw take stays (sharper than the
+                # 540 px copy); only a thin rim at the edge takes the copy's colours.
+                fgk = "face_fg" if src == asset.get("face_src") and asset.get("face_src") else "eyes_fg" if src == asset.get("eyes_src") and asset.get("eyes_src") else "fg"
+                fgp = asset.get(fgk) and ep.p(asset[fgk])
+                ak_ = f"{'ak' if kfc else 'al'}{tag}"
+                if fgp and os.path.exists(fgp):
+                    args += ["-ss", f"{src_t:.4f}", "-t", f"{dur:.4f}", "-i", os.path.normpath(fgp)]
+                    gi = idx
+                    idx += 1
+                    rim = max(2, int(round(3 * sig)))
+                    fc.append(f"[{ak_}]split[a1{tag}][a2{tag}]")
+                    fc.append(f"[a2{tag}]{','.join(['erosion'] * rim)},gblur=sigma={max(1.0, rim / 2):.2f},format=gbrp[rw{tag}]")
+                    fc.append(f"[{gi}:v]{spts}{frames},{fit_wh},format=gbrp[gc{tag}]")
+                    fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh},format=gbrp[pr{tag}]")
+                    fc.append(f"[gc{tag}][pr{tag}][rw{tag}]maskedmerge,format=yuv420p[p{tag}]")
+                    ak_ = f"a1{tag}"
+                else:
+                    fc.append(f"[{vi}:v]{spts}{src_f},{fit_wh}[p{tag}]")
+                fc.append(f"[p{tag}][{ak_}]alphamerge=shortest=1[pa{tag}]")
                 img = project["assets"].get((bd or {}).get("props", {}).get("asset") or "") if bd else None
                 if img:
                     gx, gy, gw, gh = backdrop_box(img, vw, vh, bd["props"], (cx, cy, w, h))
