@@ -43,3 +43,9 @@ ROUND 2 (2026-11-25, his 17 notes, all answered on the notes): Osnat full width 
 
 ## HANDOFF (for a dedicated session)
 Project vova-hr-1, rev 108, 33 notes all answered. Post edits on top of the fast_cut build: subtitle fixes + censor beep (scratchpad vova-post.py logic: "בת-" heard, beep from take 163.35), 5 music rows (waiting-tiptoe playing), his framing p4 (zoom 1.13, x -0.175, y -0.21, bg box -331,-138,1758) on every Vova shot, Osnat full width side_ramp off, her last line whole from his mark. Read his notes: node zoomcut/tools/notes.mjs vova-hr-1. Never export unless he asks.
+
+## Round 6 (2026-11-25) - his 4 notes, rev 120
+- His new Drop recording rec-121723.m4a ("מה זה FROM?", audio only; it had NOT been pulled locally - check `gcloud storage ls` of the Drop folder when he says "the recording in the Drop") replaces C130 "לא, לא שמעתי.": heard only, cuts in on Vova's "כן?", +19 dB copy in Media (osnat-ma-ze-from.wav, the slider stops at 2x).
+- FF9A (seen answer): voice was 0.47 s off her lips (dragged); now in sync, picture on her first word (src 0.78 - whisper says 0.37, the energy says 0.78), turns 0.1 s; everything after -7 frames.
+- Her last line 0.37 s earlier (laugh at his note); everything after -11 more frames.
+- End plays the whole "מומחה" (+9 frames). Length 5297 frames (176.6 s timeline, 2:15.8 at 1.3x).
