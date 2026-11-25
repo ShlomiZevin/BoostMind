@@ -62,7 +62,15 @@
   10x10 grid, read the point(s) off, check with
   `tools/sam/.venv/Scripts/python.exe -I tools/sam/keep.py preview <take> <t> <fx,fy> [<fx,fy,0>] <out.jpg>` (LOOK: the
   whole thing bright, outlined in green, nothing else), add a second point on any part the outline missed (a flap, the
-  far edge), write keep_objects, Analyze. Cost: ~5 s of CPU per second of the take (a 37 s take ~ 5 min, in Jobs); cached
+  far edge), write keep_objects, Analyze.
+  **CUT AWAY = the same mark with `"cut": true`** (2026-11-25): a patch of the ROOM the cut-out keeps by mistake (the matte
+  is 255 there, matte_cut can't help) - followed the same way and SUBTRACTED from the matte, last (wins over keeps). In the
+  window each card has Keep / Cut away. **It only works on a patch big enough to follow**: vova-hr-1's white wall between
+  the cap's brim, the glasses' arm and the head (~15 px) drifted through the head turn and punched holes in his face and
+  glasses on other frames - always compare stills across the whole span, and set from / to to just the frames with the patch.
+  A failed follow leaves `<matte>.incomplete`: the next Analyze makes that cut-out again (it was reused without the marks).
+  CPU tracking with marks at two moments crashed (SAM 2 keeps its memory in bfloat16) - fixed in keep.py track. The cloud
+  engine (`keep_engine: cloud`, Cloud Run job keep-sam) is NOT deployed: it falls back to this computer. Cost: ~5 s of CPU per second of the take (a 37 s take ~ 5 min, in Jobs); cached
   by the marks (`work/matte/<take>.objs<hash>.mkv`), OR-ed into the matte by lesson.py prop_matte (with prop_color /
   props if those are set too). The colour / tracker ways below stay for a machine without tools/sam.
 - **HELD PROPS - THE ONE WAY (his ask 2026-11-02, tzvika-1: "a recurring issue - I want a constant solution in our

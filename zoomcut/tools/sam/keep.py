@@ -12,7 +12,7 @@ venv (tools/sam/.venv: torch CPU + Meta's sam2; models in tools/sam/models, not 
   keep.py track <take> <objects.json> <out.mkv> <w> <h> <fps> <frames>
       the build: every object followed through its span (SAM 2 on 10 frames a second at 512 px - CPU: ~5 s per second
       of video; the frames between follow the motion by optical flow), one grey mask a frame, <w>x<h>, ffv1.
-objects = [{"what": "cookie box", "t": 3.5, "points": [[0.72, 0.62, 1], ...], "from": s?, "to": s?}] (take seconds,
+objects = [{"what": "cookie box", "t": 3.5, "points": [[0.72, 0.62, 1], ...], "from": s?, "to": s?, "cut": true?}] (take seconds,
 fractions of the RAW take's frame - before any mirror)."""
 import base64
 import json
@@ -172,6 +172,17 @@ def track(take, objs, out, ow, oh, fps, nframes):
     nk = len(os.listdir(kdir))
     kw, kh = cv2.imread(os.path.join(kdir, "00000.jpg")).shape[1::-1]
     vp = build_sam2_video_predictor(MODEL[0], MODEL[1], device=DEVICE, hydra_overrides_extra=OV)
+    if DEVICE != "cuda":
+        # SAM 2 stores its memory as bfloat16 always (sam2_video_predictor: maskmem_features.to(torch.bfloat16)); on the GPU
+        # autocast mixes it in, on the CPU nothing does: two marks at different moments = "mat1 and mat2 must have the same
+        # dtype, BFloat16 and Float" (vova-hr-1's mug, 2026-11-25). The memory back to float32 before attention reads it.
+        ma = vp.memory_attention
+        _fwd = ma.forward
+        def _f32(*a, **k):
+            a = [x.float() if torch.is_tensor(x) and x.dtype == torch.bfloat16 else x for x in a]
+            k = {n: (x.float() if torch.is_tensor(x) and x.dtype == torch.bfloat16 else x) for n, x in k.items()}
+            return _fwd(*a, **k)
+        ma.forward = _f32
     km = np.zeros((nk, kh, kw), np.uint8)  # the keyframes' masks, every object together
     with torch.inference_mode(), _auto():
         st = vp.init_state(video_path=kdir, offload_video_to_cpu=True)
@@ -247,12 +258,15 @@ def show(ep):
     os.makedirs(out, exist_ok=True)
     p = None
     for take, objs in marks.items():
-        h = hashlib.md5(json.dumps(objs, sort_keys=True).encode()).hexdigest()[:8]
-        made = any(f.endswith(f".objs{h}.mkv") for f in os.listdir(os.path.join(ep, "work", "matte"))) if os.path.isdir(os.path.join(ep, "work", "matte")) else False
+        # (lesson.py follows the kept ones and the cut-away ones ("cut": true) as two groups - one objs<hash> matte each)
+        groups = [g for g in ([o for o in objs if not o.get("cut")], [o for o in objs if o.get("cut")]) if g]
+        mdir = os.path.join(ep, "work", "matte")
+        have = os.listdir(mdir) if os.path.isdir(mdir) else []
+        made = all(any(f.endswith(f".objs{hashlib.md5(json.dumps(g, sort_keys=True).encode()).hexdigest()[:8]}.mkv") for f in have) for g in groups)
         print(f"take {take}: {len(objs)} thing(s) - {'IN the cut-out already' if made else 'NOT in the cut-out yet (Analyze makes it)'}")
         f = files.get(take)
         for i, o in enumerate(objs):
-            line = f"  - {o.get('what') or 'a thing'}: marked at {o['t']:.1f} s, {sum(1 for q in o['points'] if len(q) < 3 or q[2])} keep / {sum(1 for q in o['points'] if len(q) > 2 and not q[2])} not-this marks"
+            line = f"  - {'CUT AWAY ' if o.get('cut') else ''}{o.get('what') or 'a thing'}: marked at {o['t']:.1f} s, {sum(1 for q in o['points'] if len(q) < 3 or q[2])} keep / {sum(1 for q in o['points'] if len(q) > 2 and not q[2])} not-this marks"
             if f and os.path.exists(f):
                 if p is None:
                     p = image_predictor()

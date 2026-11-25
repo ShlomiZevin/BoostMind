@@ -158,11 +158,17 @@ def prepare(ls):
             matte(t, mk[:-4] + ".part.mkv", ls.cfg.get("matte_engine", "fast"))
             os.replace(mk[:-4] + ".part.mkv", mk)  # a stopped run never leaves a half cut-out that looks finished
             log(f"  · cut out {n}")
-        if prop_cfg(ls, n) and not os.path.exists(matte_path(ls, n)):
+        # (a run whose marked things couldn't be followed left a ".incomplete" note: made again, never reused as it is -
+        # the next Analyze reused a cut-out without his mug, 2026-11-25)
+        if prop_cfg(ls, n) and (not os.path.exists(matte_path(ls, n)) or os.path.exists(matte_path(ls, n) + ".incomplete")):
             prop_matte(ls, t, n)
             pcn = prop_cfg(ls, n)
-            log(f"  · kept in {n}: " + ", ".join(w for w, on in (("what he marked", pcn.get("objects")), ("a prop tracked from its box", pcn.get("track")),
-                                                                ("a prop by its colour", pcn.get("hsv"))) if on))
+            kept = ", ".join(w for w, on in (("what he marked", pcn.get("objects")), ("a prop tracked from its box", pcn.get("track")),
+                                             ("a prop by its colour", pcn.get("hsv"))) if on)
+            if kept:
+                log(f"  · kept in {n}: {kept}")
+            if pcn.get("cut"):
+                log(f"  · cut away from {n}: " + ", ".join(o.get("what") or "a patch" for o in pcn["cut"]))
 
 
 def base_matte_path(ls, n):
@@ -183,10 +189,14 @@ def prop_cfg(ls, n):
     # episode.json "keep_objects": {"<take>": [{"what", "t", "points": [[fx, fy, 1|0]], "from"?, "to"?}]} - things he marked
     # to keep (the editor's "Keep things..." window, or a session: tools/sam/keep.py preview): SAM 2 finds each one's
     # edges at its marked moment and follows it through the take (keep_objects_matte)
-    ob = (ls.cfg.get("keep_objects") or {}).get(n)
-    if not col and not tr and not ob:
+    # an object marked "cut": true = cut it AWAY - a patch of the room the cut-out keeps by mistake (the white wall between a
+    # cap's brim, the glasses' arm and the head on a turn: the matte is solid there, matte_cut can't help - vova-hr-1,
+    # 2026-11-25): followed through the take the same way, and taken OUT of the cut-out (prop_matte)
+    obs = (ls.cfg.get("keep_objects") or {}).get(n) or []
+    ob, cut = [o for o in obs if not o.get("cut")], [o for o in obs if o.get("cut")]
+    if not col and not tr and not ob and not cut:
         return None
-    return {**(col or {}), **({"track": tr} if tr else {}), **({"objects": ob} if ob else {})}
+    return {**(col or {}), **({"track": tr} if tr else {}), **({"objects": ob} if ob else {}), **({"cut": cut} if cut else {})}
 
 
 def matte_path(ls, n):
@@ -264,6 +274,9 @@ def prop_matte(ls, t, n):
     om = keep_objects_matte(ls, t, n, pc["objects"]) if pc.get("objects") else None  # (what he marked: always kept)
     obj = subprocess.Popen([FFMPEG, "-v", "error", "-i", om, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE,
                            stderr=subprocess.DEVNULL) if om else None  # (it may outlast the take: its "broken pipe" at the end is fine)
+    cm = keep_objects_matte(ls, t, n, pc["cut"]) if pc.get("cut") else None  # (what he marked to cut AWAY)
+    cut = subprocess.Popen([FFMPEG, "-v", "error", "-i", cm, "-f", "rawvideo", "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE,
+                           stderr=subprocess.DEVNULL) if cm else None
     # what the take keeps (keep: desk band / boxes) counts as him: a hand reaching in over a kept box touches it, not his
     # body - it was dropped every frame (haredit-4, 2026-11-04: the hand over the kept cookie box)
     kp = keep_png(ls, n)
@@ -307,16 +320,28 @@ def prop_matte(ls, t, n):
         for tr in tracks:
             if tr["f0"] <= k <= tr["f1"]:
                 m = np.maximum(m, tracked_prop(tr, np.frombuffer(rgb, np.uint8).reshape(MATTE_H, MATTE_W, 3), m))
+        if cut:  # last: the patches cut away win over everything above (softened 2 px, so the cut edge isn't jagged)
+            cb = cut.stdout.read(size)
+            if len(cb) == size:
+                c = cv2.GaussianBlur(np.frombuffer(cb, np.uint8).reshape(MATTE_H, MATTE_W), (5, 5), 0).astype(np.uint16)
+                m = (m.astype(np.uint16) * (255 - c) // 255).astype(np.uint8)
         enc.stdin.write(m.tobytes())
         k += 1
     enc.stdin.close()
     enc.wait()
     src.wait()
     mat.wait()
-    if obj:
-        obj.stdout.close()
-        obj.wait()
+    for pr in (obj, cut):
+        if pr:
+            pr.stdout.close()
+            pr.wait()
     os.replace(part, out)
+    miss = out + ".incomplete"
+    if (pc.get("objects") and not om) or (pc.get("cut") and not cm):
+        open(miss, "w").write("the marked things weren't followed - the next Analyze makes this cut-out again")
+        log(f"  ! {n}: the cut-out was made WITHOUT the marked things (see above) - Analyze again tries them again")
+    elif os.path.exists(miss):
+        os.remove(miss)
 
 
 def tracked_prop(tr, rgb, m):

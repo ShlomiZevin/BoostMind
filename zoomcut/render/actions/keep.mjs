@@ -67,7 +67,7 @@ export default async ({ id, dir, body, runJob, pub, ROOT }) => {
     const cfg = readJson(ef, {});
     const objs = (b.objects || []).filter((o) => o?.points?.some((q) => +q[2] !== 0)).map((o) => ({
       what: String(o.what || '').slice(0, 60) || 'a thing', t: +(+o.t).toFixed(3), points: o.points.map((q) => [+(+q[0]).toFixed(4), +(+q[1]).toFixed(4), +q[2] ? 1 : 0]),
-      ...(o.from != null ? { from: +o.from } : {}), ...(o.to != null ? { to: +o.to } : {}) }));
+      ...(o.from != null ? { from: +o.from } : {}), ...(o.to != null ? { to: +o.to } : {}), ...(o.cut ? { cut: true } : {}) }));  // (cut: cut it AWAY - lesson.py)
     cfg.keep_objects = { ...(cfg.keep_objects || {}) };
     if (objs.length) cfg.keep_objects[take] = objs; else delete cfg.keep_objects[take];
     if (!Object.keys(cfg.keep_objects).length) delete cfg.keep_objects;

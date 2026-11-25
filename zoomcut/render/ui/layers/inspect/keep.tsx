@@ -12,7 +12,9 @@ import { InspectorProps } from './controls';
 import './keep.css';
 
 type Pt = [number, number, number];  // fx, fy (fractions of the take's own frame - before a mirror), 1 keep / 0 not this
-type Obj = { what: string; t: number; points: Pt[]; from?: number; to?: number; thumb?: string; mask?: string; edge?: string };
+// cut: CUT it away instead of keeping it - a patch of the room the cut-out keeps by mistake (the wall between a cap's brim
+// and the glasses' arm, vova-hr-1 2026-11-25); its outline is taken OUT of the cut-out (lesson.py prop_matte)
+type Obj = { what: string; t: number; points: Pt[]; from?: number; to?: number; cut?: boolean; thumb?: string; mask?: string; edge?: string };
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
 const Ic = {
@@ -97,7 +99,7 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
   const ask = (body: any) => callBuild(ep, { action: 'keep', asset, ...body });
   const o = objs[cur];
   const marked = (x?: Obj) => !!x?.points.some((p) => p[2]);
-  const upd = (i: number, patch: Partial<Obj>) => { if ('points' in patch || 'what' in patch || 't' in patch) setSaved(false); setObjs((all) => all.map((x, k) => (k === i ? { ...x, ...patch } : x))); };
+  const upd = (i: number, patch: Partial<Obj>) => { if ('points' in patch || 'what' in patch || 't' in patch || 'cut' in patch) setSaved(false); setObjs((all) => all.map((x, k) => (k === i ? { ...x, ...patch } : x))); };
 
   const loadFrame = async (t: number) => {
     setBusy(imgRef.current ? 'Loading the frame…' : 'Getting ready - the first time takes a few seconds…'); setErr('');
@@ -185,7 +187,7 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
   const save = async (build: boolean) => {
     setBusy('Saving…');
     try {
-      const objects = objs.filter(marked).map((x, i) => ({ what: x.what.trim() || `thing ${i + 1}`, t: x.t, points: x.points, from: x.from, to: x.to }));
+      const objects = objs.filter(marked).map((x, i) => ({ what: x.what.trim() || `thing ${i + 1}`, t: x.t, points: x.points, from: x.from, to: x.to, cut: x.cut || undefined }));
       if (build) { await P.build?.('keep', { op: 'save', asset, build: true, objects }); onDone(); }
       else { const j = await ask({ op: 'save', build: false, objects }); if (j?.error) setErr(j.error); else setSaved(true); }
     } finally { setBusy(''); }
@@ -193,16 +195,17 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
 
   if (!asset) return <div className="kp-empty">No take on this layer.</div>;
   if (ready === false) return <div className="kp-empty">The outline tool isn't installed on this computer (tools/sam) - a session can set it up.</div>;
-  const n = objs.filter(marked).length;
+  const n = objs.filter(marked).length, nc = objs.filter((x) => marked(x) && x.cut).length, nk = n - nc;
+  const goLabel = [nk && `keep ${nk === 1 ? '1 thing' : `${nk} things`}`, nc && `cut away ${nc === 1 ? '1 patch' : `${nc} patches`}`].filter(Boolean).join(', ');
   const mins = Math.max(1, Math.round((total * 8) / 60));  // (measured: a 37 s take, 5 min - following + the cut-out)
   const sh = 520, sw = img ? Math.round((sh * img.w) / img.h) : Math.round((sh * 9) / 16);
   const tShow = scrub ?? img?.t ?? atHead;
   return <div className="kp">
-    <div className="kp-intro">Mark what has to stay in the cut-out. Then make the cut-out yourself - or save the marks for Claude:
-      a session sees them and keeps exactly these.</div>
+    <div className="kp-intro">Mark what has to stay in the cut-out - or, with Cut away, a patch of the room it keeps by mistake. Then make
+      the cut-out yourself - or save the marks for Claude: a session sees them and does exactly these.</div>
     <div className="kp-body">
       <div className="kp-col kp-list">
-        <div className="kp-h">Things to keep</div>
+        <div className="kp-h">Things to keep or cut away</div>
         {objs.map((x, i) => <div key={i} className={`kp-card ${i === cur ? 'on' : ''}`} onClick={() => pick(i)}>
           <div className="kp-thumb">{x.thumb ? <img src={x.thumb} alt="" /> : <span>{i + 1}</span>}</div>
           <div className="kp-card-t">
@@ -212,6 +215,10 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
                   onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter' || e.key === 'Escape') setNaming(null); }} />
               : <b dir="auto" onDoubleClick={(e) => { e.stopPropagation(); setNaming(i); }}>{x.what || `Thing ${i + 1}`}</b>}
             <span className={`kp-state ${marked(x) ? 'ok' : ''}`}>{marked(x) ? Ic.ok : Ic.todo}{marked(x) ? 'Marked' : 'Not marked yet'}</span>
+            <span className="kp-kind" onClick={(e) => e.stopPropagation()}>
+              <button className={!x.cut ? 'on k' : ''} onClick={() => upd(i, { cut: false })}>Keep</button>
+              <button className={x.cut ? 'on n' : ''} onClick={() => upd(i, { cut: true })} title="Take this out of the cut-out - a patch of the room it keeps by mistake">Cut away</button>
+            </span>
           </div>
           <button className="kp-more" title="Rename / remove" onClick={(e) => { e.stopPropagation(); setMenu(menu === i ? null : i); }}>{Ic.more}</button>
           {menu === i && <div className="kp-menu" onClick={(e) => e.stopPropagation()}>
@@ -225,7 +232,7 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
       <div className="kp-col kp-mid">
         <div className="kp-stage" ref={stage} style={{ width: sw, height: sh }} onMouseDown={down} onContextMenu={(e) => e.preventDefault()}>
           {img && <img className="kp-frame" src={img.src} alt="" draggable={false} style={mirrored ? { transform: 'scaleX(-1)' } : undefined} />}
-          {img && o?.mask && <div className="kp-mask" style={{ WebkitMaskImage: `url(${o.mask})`, maskImage: `url(${o.mask})`, ...(mirrored ? { transform: 'scaleX(-1)' } : {}) }} />}
+          {img && o?.mask && <div className={`kp-mask${o.cut ? ' cut' : ''}`} style={{ WebkitMaskImage: `url(${o.mask})`, maskImage: `url(${o.mask})`, ...(mirrored ? { transform: 'scaleX(-1)' } : {}) }} />}
           {img && o?.edge && <img className="kp-edge" src={o.edge} alt="" draggable={false} style={mirrored ? { transform: 'scaleX(-1)' } : undefined} />}
           {o?.points.map((p, i) => <i key={i} className={`kp-pt ${p[2] ? 'k' : 'n'}`} style={{ left: `${(mirrored ? 1 - p[0] : p[0]) * 100}%`, top: `${p[1] * 100}%` }} />)}
           <span className="kp-time">{mmss(tShow)} / {mmss(total)}</span>
@@ -243,6 +250,7 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
         <div className="kp-h">How to mark</div>
         <div className="kp-tip">{Ic.keep}<div><b>Tap or paint on a thing to keep it</b><span>We'll find its exact edges automatically.</span></div></div>
         <div className="kp-tip">{Ic.not}<div><b>Mark a part to not keep</b><span>Right-click, or choose Not this and paint on what shouldn't stay.</span></div></div>
+        <div className="kp-tip">{Ic.not}<div><b>Cut away a patch of the room</b><span>The wall left between a cap and glasses? Mark it and switch its card to Cut away - it's taken out of the cut-out.</span></div></div>
         <div className="kp-tip">{Ic.many}<div><b>Several things, one clip</b><span>Name each one. Pick a moment where it is clearly seen - it's followed through the whole clip.</span></div></div>
         {err && <div className="kp-err">{err}</div>}
       </div>
@@ -260,7 +268,7 @@ export function KeepThings({ P, mirrored, onDone }: { P: InspectorProps; mirrore
           <button className="btn kp-btn kp-claude" disabled={!n || !!busy} onClick={() => save(false)}
             title="Only save the marks - a Claude session keeps them when it makes the cut-out">{saved ? <>{Ic.ok}Saved for Claude</> : 'Save for Claude'}</button>
           <button className="kp-primary" disabled={!n || !!busy} onClick={() => save(true)}>
-            {n ? `Keep ${n === 1 ? '1 thing' : `${n} things`} and make the cut-out` : 'Mark a thing to keep'}</button>
+            {n ? `${goLabel[0].toUpperCase()}${goLabel.slice(1)} and make the cut-out` : 'Mark a thing to keep'}</button>
         </div>
         <span>{saved ? 'Saved. Tell the session - it sees what you marked.' : `Make the cut-out now: about ${mins} min for this ${Math.round(total)} s clip, in the background.`}</span>
       </div>
