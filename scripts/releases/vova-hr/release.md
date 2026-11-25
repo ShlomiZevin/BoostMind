@@ -63,3 +63,6 @@ Project vova-hr-1, rev 108, 33 notes all answered. Post edits on top of the fast
 ## Round 9 (2026-11-25) - the glow, root cause (rev 143)
 - The glow + "shadow following him" = Vova's take is VFR (phone drops frames); the exporter's -ss seek picked a frame 1-2 off the matte (made via a full decode at fps=30) after a drop. Fixed in the exporter by Studio (68190b78: steady 30 fps copy of a VFR take under a cut-out, work/steady/). wall_cut now only solid wedges (no flickering slivers).
 - Rebuilt _vova-hr-1-takes -> prop65cacfe2 + new webm, linked into vova-hr-1, asset switched. Lesson: any phone take with avg_frame_rate != r_frame_rate is VFR - check before blaming the matte.
+
+## RELEASED 2026-11-25 18:46
+- Final: "באוז" subtitle, hook held 20 s of the final video (768 frames at 1.28x). Verse https://shlomiverse.com/v/vova-hr-1 (cast vova + osnat), Instagram https://www.instagram.com/reel/DgK_iIUujSb/, YouTube https://youtube.com/shorts/srvY9xjQOY8, X https://x.com/ShlomiZevin/status/2125632336083423668, TikTok in his Inbox (drafts). Event logged (release, 18:46). Lessons in edit-video SKILL.md ("Finishing vova-hr-1").

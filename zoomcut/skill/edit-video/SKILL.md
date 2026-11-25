@@ -705,6 +705,30 @@ from / dur); a one-shot or an announcement gets its own link (chime + its words)
   Short, specific, something people instantly connect to; never an explanation of the joke. When he gives the words,
   use his exact words and his format (including the "אף אחת:" line). y ≥ ~250 (in a close-up, wherever no face is -
   naomi-1 sits it on the chest); max ~3 lines so it never covers a face (smaller `size` before more lines).
+  **Hold it 20 s of the FINAL video** (his note on vova-hr-1, 2026-11-25: "פוב יותר ארוך ל-20 שניות"; adam-1 the same) -
+  `dur` = 20 x project speed x 30 frames (1.28x -> 768), not the 5 s a builder gives it.
+- **Finishing vova-hr-1 (2026-11-25) - what cost the rounds, so the next video doesn't:**
+  1. **"The recording I made in the Drop" may not be on this computer**: the studio's pull missed an audio-only `.m4a`
+     (Osnat's re-recorded line). `gcloud storage ls -l "gs://boostmind-drop/<folder>/"` and compare with
+     `Downloads\drop\<folder>` before saying it isn't there. A phone voice memo is ~20 dB quieter than the takes and the
+     clip slider stops at 2x: put in a level-raised copy (`ffmpeg -af volume=<dB>`, level only) and say so.
+  2. **A white glow / "a shadow following him" ONLY in the export = check the take for VFR first**: `ffprobe` -
+     `avg_frame_rate` != `r_frame_rate` (a phone that drops frames: 29.96 vs 30). The matte comes from a full decode at
+     fps=30; an `-ss` seek of the raw file picks a frame 1-2 off after a drop, so the matte lags his moves and the wall
+     behind shows as a ring that moves with him. Fixed in the exporter (68190b78: a steady 30 fps copy of a VFR take
+     under a cut-out, `work/steady/`). Before that we lost three rounds on blur, edge colours and the matte. A test
+     that compares frames by mean difference on small thumbnails does NOT catch a one-frame offset - score the edges.
+  3. **A white mug on a white wall** (RVM drops its white body): `keep_objects` with a mark per side it shows (the
+     handle side, the print side), each limited by `from` / `to`; check over green at the exact moments the export
+     lost it (map export time -> take time through the project: `in + t*speed - from/30`).
+  4. **A solid patch of wall the matte keeps** (between a cap brim, a glasses arm and the head on a head turn - 255 in
+     the matte, so `matte_cut` can't touch it): episode.json `wall_cut: {"<take>": [{from, to}]}` on the analysis copy
+     (solid wedges only). SAM "cut away" (`keep_objects` + `cut: true`) can't follow a 15 px patch - don't.
+  5. **The analysis copy -> the project**: Analyze runs on the hidden `_<id>-takes`; then hard-link its new
+     `work/matte/<take>.quality.prop<hash>.mkv` and `work/public/takes/<take>.webm` into the project (keep the old webm
+     as `.before-<why>.webm`) and `asset.add` the take with the new `matte` path - the editor reloads it on F5.
+  6. **Check `GET /api/jobs` busy right before EVERY build / export call** - not a minute earlier (I started an Analyze
+     under another session's export and had to cancel it).
 - **A still set has NO people in it** (rosenblum-1, 2026-11-10 - "it's a movie, so how can it be that people are
   still, don't move there? It doesn't make sense"): a crowd in a photo backdrop - even blurred, even "motion blur" -
   is frozen behind a moving person. Sets are empty places; the crowd lives in the SOUND (ambience beds, laughs,
