@@ -36,3 +36,10 @@ ROUND 2 (2026-11-25, his 17 notes, all answered on the notes): Osnat full width 
 - Vova "FROM, כן?" -> Osnat HEARD only (C130A6D7, no fx, gain 0.75, Vova not slowed) -> "את לא מכירה FROM?" -> Osnat SEEN (FF9A5476 picture + voice) -> Vova's monologue on, no gap (v29->v31 one stretch, -1.73 s).
 - Her last line whole again (laugh + "נו אז הנה וובה") from his mark, Vova's answer +1.93 s; the video ends at his mark. Rev 97, 177.57 timeline s (2:16.6 at 1.3x).
 - Lesson: his "she should start from here" = MOVE her line to start there, never trim its head.
+
+## Round 5 (2026-11-25) - FROM section by the fast_cut dialogue rules (rev 108)
+- Vova one continuous stretch 105.06-110.88 (no jump); Osnat heard (C130) over his pause; her seen answer FF9A starts 0.13 s before his last sound, picture cuts to her on her first word (in 0.353); Vova back 0.13 s over her "אנוש?", picture back on his first word. End right after "מומחה" (take 170.80), timeline 177.17.
+- plan.json updated to this structure. WHY it broke: the rest was placed by fast_cut; this section was hand-patched round after round. Next change here = by the same rules (onsets, OVER 0.13, cut on first word), or rebuild from plan.json and re-apply the post edits.
+
+## HANDOFF (for a dedicated session)
+Project vova-hr-1, rev 108, 33 notes all answered. Post edits on top of the fast_cut build: subtitle fixes + censor beep (scratchpad vova-post.py logic: "בת-" heard, beep from take 163.35), 5 music rows (waiting-tiptoe playing), his framing p4 (zoom 1.13, x -0.175, y -0.21, bg box -331,-138,1758) on every Vova shot, Osnat full width side_ramp off, her last line whole from his mark. Read his notes: node zoomcut/tools/notes.mjs vova-hr-1. Never export unless he asks.

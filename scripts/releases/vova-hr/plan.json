@@ -95,28 +95,25 @@
    "who": "vova",
    "take": "v1c0",
    "a": 105.06,
-   "b": 109.3
+   "b": 110.6,
+   "note": "one continuous stretch: 'FROM, כן?' + 'את לא מכירה FROM?' - no cut inside (his note, round 5)"
   },
   {
    "who": "osnat",
    "take": "C130A6D7",
-   "offscreen": true
-  },
-  {
-   "who": "vova",
-   "take": "v1c0",
-   "a": 109.62,
-   "b": 116.72
+   "offscreen": true,
+   "over": 1.0,
+   "note": "heard only, over Vova's pause after 'FROM, כן?' and his next words; no fx, gain 0.75"
   },
   {
    "who": "osnat",
    "take": "FF9A5476",
-   "offscreen": true
+   "note": "SEEN - her answer 'לא שמעתי על מה זה, זה קשור למשאבי אנוש?'; picture cuts to her on her first word"
   },
   {
    "who": "vova",
    "take": "v1c0",
-   "a": 116.72,
+   "a": 111.02,
    "b": 160.17
   },
   {
