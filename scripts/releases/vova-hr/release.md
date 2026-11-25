@@ -31,3 +31,8 @@ ROUND 2 (2026-11-25, his 17 notes, all answered on the notes): Osnat full width 
 - His framing from p4 (zoom 1.13, x -0.175, y -0.21 + room box) on every Vova shot.
 - FROM section: her one recorded answer FF9A5476 ("לא שמעתי על מה זה, זה קשור למשאבי אנוש?") right after "את לא מכירה FROM?", off-screen, no room/muffle fx, gain 0.72. C130A6D7 and the split piece are out. Everything after moved +2.61 s; Vova listens (take 6.07-8.69) under her line.
 - "המחלקה שלי" no comma; her last line from his mark (from "המפגש"); "בת-" heard (take 163.19-163.35), then the beep. Rev 78, 2:17 at 1.3x.
+
+## Round 4 (2026-11-25) - the FROM section as he explained it
+- Vova "FROM, כן?" -> Osnat HEARD only (C130A6D7, no fx, gain 0.75, Vova not slowed) -> "את לא מכירה FROM?" -> Osnat SEEN (FF9A5476 picture + voice) -> Vova's monologue on, no gap (v29->v31 one stretch, -1.73 s).
+- Her last line whole again (laugh + "נו אז הנה וובה") from his mark, Vova's answer +1.93 s; the video ends at his mark. Rev 97, 177.57 timeline s (2:16.6 at 1.3x).
+- Lesson: his "she should start from here" = MOVE her line to start there, never trim its head.
