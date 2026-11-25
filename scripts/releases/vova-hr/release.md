@@ -59,3 +59,7 @@ Project vova-hr-1, rev 108, 33 notes all answered. Post edits on top of the fast
 - Mug: keep_objects on _vova-hr-1-takes (two SAM marks, t=16 from 0-90 and t=120 from 90-173); tracking fixed by Studio (7d586166).
 - Wall patch between brim / glasses arm / head: wall_cut (Studio, d64acd40) on take 19.4-26 and 161-171.
 - Both in prop matte prop079d1850 + new webm, hard-linked into vova-hr-1, asset matte switched; old webm kept as .before-mug.webm. Export halo ring fixed earlier in the exporter (852cc02e).
+
+## Round 9 (2026-11-25) - the glow, root cause (rev 143)
+- The glow + "shadow following him" = Vova's take is VFR (phone drops frames); the exporter's -ss seek picked a frame 1-2 off the matte (made via a full decode at fps=30) after a drop. Fixed in the exporter by Studio (68190b78: steady 30 fps copy of a VFR take under a cut-out, work/steady/). wall_cut now only solid wedges (no flickering slivers).
+- Rebuilt _vova-hr-1-takes -> prop65cacfe2 + new webm, linked into vova-hr-1, asset switched. Lesson: any phone take with avg_frame_rate != r_frame_rate is VFR - check before blaming the matte.
