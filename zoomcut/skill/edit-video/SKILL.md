@@ -1201,7 +1201,7 @@ word to word at playback speed, the "What we see" strip, picture handles at ever
 (lines: who, take, a, b, keep, cut, over) and every rule with its note: the tool's header. Dry run first (the report:
 clips, length, pauses left, problems), then `--go`. **Every new monologue / dialogue from his takes starts here** - the
 example builders below are only for what it doesn't do yet (a phone call, off-screen voices, stickers, music).
-Tested 2026-11-25 against naomi-1-tight (the cut he loved): 157.9 s kept vs his 157.3 s, 150.6 s the same; it keeps a
+Tested 2026-11-25 against naomi-1-tight (the cut he loved) - run from scratch on her raw take he called it "perfect": 157.9 s kept vs his 157.3 s, 150.6 s the same; it keeps a
 breath before a word when whisper hears a word starting there (never lose a word) - his "tighten" note takes it out.
 
 ## Recipes - read the one you need
