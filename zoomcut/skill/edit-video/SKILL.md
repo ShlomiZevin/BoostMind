@@ -1194,7 +1194,8 @@ reaches them only through step 11.
 ## FAST CUT - the first edit from his takes, one command (his ask, 2026-11-25)
 `.venv/Scripts/python.exe tools/fast_cut.py <project> [plan.json] [--takes a,b] [--go]` - the silences that should go
 out, the clips joined, the sound pulled ~0.14 s before and after every cut (only over what was cut out, never into a
-cut-out word), no fades, no word cut, picture and voice in sync (checked), a GROUP per character (set / clips / two
+cut-out word), no fades, no word cut, a line said twice = the LATER take (found by itself, listed in the report;
+`--keep-retakes` keeps all), picture and voice in sync (checked), a GROUP per character (set / clips / two
 alternating voice rows / subtitles). One character = a monologue / podcast; two or more = a dialogue (turns overlap 0.1 s
 word to word at playback speed, the "What we see" strip, picture handles at every turn, `edit.ripple: false`). The plan
 (lines: who, take, a, b, keep, cut, over) and every rule with its note: the tool's header. Dry run first (the report:

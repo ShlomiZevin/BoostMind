@@ -12,6 +12,8 @@ Built from the cut he loved on naomi-1-tight (2026-11-24) and every note he gave
   --go             write into the project (without it: a dry run - the report + work/fastcut/ops.json only)
   --min-silence S  a pause shorter than this stays (default 0.18 s; inside a phrase 0.30 s - "השהיית תגובה")
   --handle S       the sound before / after each cut (default 0.14 s of the take, never into a cut-out word)
+  --keep-retakes   keep every attempt (default: a line said twice = the LATER take - the same 4 words said again within
+                   ~45 s drop everything from the first attempt to the second; the report lists each drop)
   --overlap S      dialogue: the next speaker's first word starts S seconds (at playback speed) before the last word
                    of the one before ends (default 0.1 - his number since 2026-11-18)
 
@@ -199,6 +201,32 @@ class Take:
         return ws[-1][1] if ws else None
 
 
+# ---------------------------------------------------------------- retakes: a line said twice = the LATER take (his rule)
+def retakes(words, a, b):
+    """earlier attempts inside [a, b]: the same 4 words said again within ~45 s -> everything from the first attempt's
+    start to the second one's start goes (a stumble, a restart). Returns [(drop_from_word_end, keep_from_word_start)]."""
+    ws = [w for w in words if w[0] >= a - 0.05 and w[1] <= b + 0.3]
+    nw = [norm(w[2]) for w in ws]
+    out, i = [], 0
+    while i < len(ws) - 4:
+        gram = nw[i:i + 4]
+        found = None
+        if len(set(gram)) >= 3 and sum(len(x) for x in gram) >= 10:
+            for j in range(i + 4, len(ws) - 3):
+                if ws[j][0] - ws[i][0] > 45:
+                    break
+                if nw[j:j + 4] == gram:
+                    found = j
+                    break
+        if found is None:
+            i += 1
+            continue
+        prev_end = ws[i - 1][1] if i else a
+        out.append((prev_end, ws[found][0], " ".join(w[2] for w in ws[i:found])))
+        i = found
+    return out
+
+
 # ---------------------------------------------------------------- the cut
 def pieces(t, a, b, min_sil, keep=(), force=()):
     """the spoken spans of [a, b] with the right silences out"""
@@ -341,6 +369,8 @@ def main():
     ap.add_argument("--min-silence", type=float)
     ap.add_argument("--handle", type=float)
     ap.add_argument("--overlap", type=float)
+    ap.add_argument("--keep-retakes", action="store_true")
+    ap.add_argument("--script", help="the script text - subtitles take its spelling (also \"script\" in the plan)")
     args = ap.parse_args()
     ep = args.episode
     plan = json.load(open(args.plan, encoding="utf-8")) if args.plan else {}
@@ -381,6 +411,24 @@ def main():
     for k in dict.fromkeys(ln["take"] for ln in lines):
         T[k] = Take(ep, k, takes[k])
 
+    # ---- retakes out: a line said twice = the later take (each kept stretch becomes its own line)
+    dropped, exp = [], []
+    for ln in lines:
+        tk = T[ln["take"]]
+        a = ln.get("a", tk.first_word() if tk.first_word() is not None else TAKE_HEAD)
+        b = ln.get("b", tk.last_word() if tk.last_word() is not None else tk.dur - TAKE_TAIL)
+        if args.keep_retakes or not ln.get("retakes", plan.get("retakes", True)):
+            exp.append(dict(ln, a=a, b=b))
+            continue
+        cur = a
+        for e, s, text in retakes(tk.words, a, b):
+            if e - cur > 0.2:
+                exp.append(dict(ln, a=cur, b=e))
+            dropped.append(f"{tk.label[:10]} {e:.2f}-{s:.2f} s: {text}")
+            cur = s
+        exp.append(dict(ln, a=cur, b=b))
+    lines = exp
+
     # ---- the rows of each character (his props / names / mutes kept)
     def group_name(w):
         if chars.get(w, {}).get("name"):
@@ -420,7 +468,7 @@ def main():
                              {"style": "solo", "box": {"x": 540, "y": c.get("subY", sub_y[ci % 4]), "w": 980, "anchor": "t"},
                               "font": "font.assistant", "size": 66, "weight": 800, "color": c.get("subColor", sub_c[ci % 4]), "stroke": 10})
 
-    speller = Speller(plan.get("script"), plan.get("fix"))
+    speller = Speller(args.script or plan.get("script"), plan.get("fix"))
     n = [0]
     placed = []        # (who, take, A, B, t0, link)
     spans = []         # (who, from, to) frames - for the strip
@@ -648,6 +696,7 @@ def main():
     print(f"{'dialogue' if dialogue else 'monologue'}: {len(clips)} clips, {END / FPS:.2f} s on the timeline = {END / FPS / SPEED:.1f} s at {SPEED}x;"
           f" clip length median {lens[len(lens) // 2]:.2f} s, shortest {lens[0]:.2f} s; {sum(len(R[f'subs.{w}']['items']) for w in order)} subtitles"
           + (f"; {len(view['items'])} shots on the strip" if view else ""))
+    print("retakes out (the earlier attempt, take seconds):", ("\n  " + "\n  ".join(dropped)) if dropped else "none")
     print("pauses >= 0.4 s left inside clips (timeline s):", left or "none")
     print("problems:", problems or "none")
     if problems:
