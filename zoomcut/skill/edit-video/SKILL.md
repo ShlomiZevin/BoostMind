@@ -481,6 +481,21 @@ one's silent seconds before his first word (`a` early + `whole`), and the turn t
 (`over` negative so each starts after the one before); (2) a short line of the other character is never cut inside
 (Omer's 3 s call had become 3 clips) - `whole: true` on his lines; (3) the whispered aside before addressing the class
 ("טוב, רגע, אני אקריא... שאלו אותי כבר") and the step back stay - a take's lead with words in it is part of the scene.
+Round 2 of his notes (rosenblum-2, 2026-11-26), each one a rule for the next long-recording dialogue:
+- **Sync: phone exports start their sound later than the picture** (ffprobe stream `start_time`: TikTok 80 ms, his other
+  file 26 ms) and lesson.py's take audio drops that delay - the voice runs ahead of the lips ("make sure the video is
+  synced"; he blamed TikTok's long videos). Check `start_time` on every take; fast_cut plan `"audioOffset": {take: s}`.
+  (The engine bug itself is the Studio session's to fix.)
+- **scdet misses restarts** at threshold 10 when the framing barely changes (one scored 8.8 - he saw himself start
+  recording). Scan again at ~5 and confirm each candidate with the words / a frame.
+- **Two recordings, two room noises** (14 dB apart here): every cut between them jumps. Measure each take's noise floor;
+  a low cut on the noisy one + ONE steady hum under the whole video (an ambience he DID ask for - no events in it).
+- **Turns overlap more than 0.1 s here** ("faster, like our quick edit"; 0.25 base, punchlines 0.6-1.0), the picture
+  switches on the speaker's first word (never on a clip edge that shows him before he talks).
+- **Laughs start ON the punch word** (its start, not its end), louder on the big ones, several files mixed; the peak
+  laugh only grows and the video ends on the punch with a cut.
+- **A held paper the cut-out loses: zoom in instead** (his idea) - the Close shot at 1.5 (person + background together)
+  on the reading clips; then move the subtitle rows below the faces (y ~1480).
 **Markers for the next shoots** (his idea): say "אקשן" before a take and "קאט" after it, or clap - the tool cuts at
 the spoken markers (`--markers אקשן,קאט`) and lists claps as boundaries; without markers it falls back to restarts + words.
 

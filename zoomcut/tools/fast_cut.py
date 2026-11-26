@@ -20,6 +20,7 @@ Built from the cut he loved on naomi-1-tight (2026-11-24) and every note he gave
 The plan (JSON) - everything optional except lines:
   {"start": 1.1,                       # timeline second the first line starts (after a knock, an intro)
    "restarts": {"<take>": [15.3, 31.6]},   # recording restarts inside a take (take_finder) - kept clear of (1 s / 0.6 s)
+   "audioOffset": {"<take>": 0.08},       # the take's sound starts this much after its picture (ffprobe start_time)
    "overlap": 0.1, "minSilence": 0.18, "handle": 0.14,
    "script": "scripts/vova-hr.txt",    # subtitles take the script's spelling where the words match
    "fix": {"heard": "right"},          # mishears, word by word
@@ -449,6 +450,9 @@ def main():
     # recording restarts inside a take (tools/take_finder.py): nothing - a hold, a sound or picture handle - comes within
     # 1.0 s before one (he looks at the phone to stop) or 0.6 s after one (the filter is off, he settles) - rosenblum-2
     RST = {take_id(k): sorted(v) for k, v in (plan.get("restarts") or {}).items()}
+    # a phone export's sound can start later than its picture (stream start_time - rosenblum-2: TikTok 80 ms); the
+    # studio's take audio drops that delay, so the voice ran 80 ms ahead of the lips - each voice clip plays it back
+    AO = {take_id(k): float(v) for k, v in (plan.get("audioOffset") or {}).items()}
     def safe(take, x0, x1):
         rs = RST.get(take, [])
         lo = max([r + 0.6 for r in rs if r <= x0 + 0.6] or [0.0])
@@ -539,7 +543,7 @@ def main():
         if off:   # heard only, from the next room (his note, vova-hr: "only Vova is filmed there - no cut")
             hp, ha = handles(tk, A, B, TURN_H if first else H, TURN_H if last else H)
             vf, ve = max(0, F(t0 - hp)), F(t0 + (B - A) + ha)
-            R[vrow]["items"].append({"id": f"v{n[0]}", "from": vf, "dur": ve - vf, "asset": take, "in": round(A - (fr - vf) / FPS, 3),
+            R[vrow]["items"].append({"id": f"v{n[0]}", "from": vf, "dur": ve - vf, "asset": take, "in": round(A - (fr - vf) / FPS - AO.get(take, 0.0), 3),
                                      "fade_in": 0, "fade_out": 0, "link": lk, "gain": 0.8, "fx": {"room": 0.35, "roomSize": 0.7, "filter": "muffled"}})
             placed.append((w, take, A, B, t0, lk))
             return t0 + (B - A)
@@ -555,7 +559,7 @@ def main():
         ve = F(t0 + (B - A) + ha)
         # the voice's own start = the picture's moment, frame-exact (the sync check below holds it to 0 ms)
         R[vrow]["items"].append({"id": f"v{n[0]}", "from": vf, "dur": ve - vf, "asset": take,
-                                 "in": round(A - (fr - vf) / FPS, 3), "fade_in": 0, "fade_out": 0, "link": lk})
+                                 "in": round(A - (fr - vf) / FPS - AO.get(take, 0.0), 3), "fade_in": 0, "fade_out": 0, "link": lk})
         placed.append((w, take, A, B, t0, lk))
         spans.append((w, fr, fr + du))
         return t0 + (B - A)
@@ -581,9 +585,14 @@ def main():
         else:
             t_start = t_cur
         t0 = t_start
+        n_spans = len(spans)
         for q, (A, B) in enumerate(ps):
             t0 = place(w, take, A, B, t0, first=q == 0, last=q == len(ps) - 1, off=bool(ln.get("offscreen")),
                        set_={"set": ln.get("set"), "setBox": ln.get("setBox")})
+        fw = tk.first_word(a, b)
+        if fw is not None and len(spans) > n_spans and 0 < fw - ps[0][0] < 1.0:   # the picture switches on his word
+            w0, f0, f1 = spans[n_spans]
+            spans[n_spans] = (w0, min(f1 - 1, f0 + F(fw - ps[0][0] - 0.04)), f1)
         # subtitles of this line
         heard = [x for x in tk.words if x[1] > a + 0.05 and (x[0] + x[1]) / 2 <= b + 0.05]
         mp = [(A, B, s) for (ww, k, A, B, s, lk) in placed if ww == w and k == take and s >= t_start - 1e-6]
@@ -711,7 +720,7 @@ def main():
                 pv = pics.get(v["link"])
                 if pv is None:
                     continue
-                off = (v["in"] - v["from"] / FPS) - (pv["in"] - pv["from"] / FPS)
+                off = (v["in"] - v["from"] / FPS) - (pv["in"] - pv["from"] / FPS) + AO.get(v["asset"], 0.0)
                 if not -0.040 <= off <= 0.002:      # (+2 ms = rounding to the millisecond)
                     sync_bad.append((v["link"], round(off * 1000)))
                 if v["dur"] <= 0:
