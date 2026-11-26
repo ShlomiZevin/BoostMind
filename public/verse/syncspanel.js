@@ -7,10 +7,9 @@ import { T } from './copy.js';
 import { esc, track } from './ui.js';
 
 export const SYNCS_PANEL = true;   // false = the band goes back to the drop video's live strip
-// into the meeting itself (his note 2026-11-26): live meetings are his only while MEETING_OPEN is false
-// (techietech-api/meeting-fn.js) - anyone else watches the recorded meeting (/syncs?demo=1); his own devices start one
-const own = () => { try { return !!localStorage.getItem('t-ignore'); } catch (e) { return false; } };
-const href = () => (own() ? '/syncs' : '/syncs?demo=1');
+// into Syncs itself, where a meeting starts (his notes 2026-11-26: not the product page, not the recording).
+// NOTE: while MEETING_OPEN is false (techietech-api/meeting-fn.js) only he can start one - anyone else gets the end of the verse
+const href = () => '/syncs';
 const PIC = (id) => `https://storage.googleapis.com/shlomiverse-media/wiki/img/c/${id}.jpg`;
 const TEAM = ['amir', 'ronit', 'ofer'];
 const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
