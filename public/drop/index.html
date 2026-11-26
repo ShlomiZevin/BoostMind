@@ -160,22 +160,32 @@ const curFolder = () => folders.find((f) => f.name === cur);
 async function refresh() {
   try { folders = (await api('list')).folders; } catch (e) { return; }
   if (cur && !folders.some((f) => f.name === cur)) folders.unshift({ name: cur, files: [], bytes: 0, updated: '' });  // (made here, nothing in it yet)
+  if ((!cur || !folders.some((f) => f.name === cur && isNew(f))) && folders.some(isNew) && store.get('drop-folder-day') !== new Date().toDateString()) cur = folders.find(isNew).name;  // (a new day: today's project, not last week's)
   if (!cur && folders.length) cur = folders[0].name;
   drawProjects(); drawFiles(); drawChips();
 }
-function pickFolder(name) { cur = name; store.set('drop-folder', name); drawProjects(); drawFiles(); if (pend.length) drawPending(); }
+function pickFolder(name) { cur = name; store.set('drop-folder', name); store.set('drop-folder-day', new Date().toDateString()); drawProjects(); drawFiles(); if (pend.length) drawPending(); }
+// only today's projects (his ask, 2026-11-26: he records, makes a folder, works in it - yesterday's are done):
+// changed since midnight or in the last 12 hours (a night shoot past midnight), and the one he is on. The rest behind
+// "Older projects"
+let showOld = false;
+const isNew = (f) => { if (!f.updated) return true; const t = new Date(f.updated), mid = new Date(); mid.setHours(0, 0, 0, 0); return t >= mid || Date.now() - t < 12 * 3600e3; };
 function drawProjects() {
-  $('folder').innerHTML = (folders.length ? '' : '<option value="">- make a project -</option>')
-    + folders.map((f) => `<option value="${esc(f.name)}" ${f.name === cur ? 'selected' : ''}>${esc(f.name)}  ·  ${f.files.length} file${f.files.length === 1 ? '' : 's'}</option>`).join('');
-  $('projects').innerHTML = folders.map((f) => `<div class="pr ${f.name === cur ? 'on' : ''}" data-f="${esc(f.name)}"><div class="pr-n">
+  const shown = showOld ? folders : folders.filter((f) => f.name === cur || isNew(f));
+  const old = folders.length - shown.length;
+  $('folder').innerHTML = (shown.length ? '' : '<option value="">- make a project -</option>')
+    + shown.map((f) => `<option value="${esc(f.name)}" ${f.name === cur ? 'selected' : ''}>${esc(f.name)}  ·  ${f.files.length} file${f.files.length === 1 ? '' : 's'}</option>`).join('')
+    + (old ? `<option value="*older*">Older projects (${old})...</option>` : '');
+  $('projects').innerHTML = (shown.map((f) => `<div class="pr ${f.name === cur ? 'on' : ''}" data-f="${esc(f.name)}"><div class="pr-n">
       <div class="pr-name" dir="auto">${esc(f.name)}</div><div class="pr-meta">${f.files.length} file${f.files.length === 1 ? '' : 's'} · ${gb(f.bytes)}${f.updated ? ' · ' + when(f.updated) : ''}</div></div></div>`).join('')
-    || '<div class="empty">No projects yet.</div>';
+    || '<div class="empty">Nothing today yet - make a project.</div>')
+    + (old ? `<button class="btn" id="oldSide" style="width:100%;margin-top:10px">Older projects (${old})</button>` : '');
   const tot = folders.reduce((s, f) => s + f.bytes, 0);
   $('sideSum').textContent = folders.length ? `${folders.length} · ${gb(tot)}` : '';
   $('curTitle').textContent = cur || '';
 }
-$('folder').onchange = () => pickFolder($('folder').value);
-$('projects').onclick = (e) => { const r = e.target.closest('.pr'); if (r) pickFolder(r.dataset.f); };
+$('folder').onchange = () => { const v = $('folder').value; if (v === '*older*') { showOld = true; drawProjects(); $('folder').value = cur; return; } pickFolder(v); };
+$('projects').onclick = (e) => { if (e.target.id === 'oldSide') { showOld = true; return drawProjects(); } const r = e.target.closest('.pr'); if (r) pickFolder(r.dataset.f); };
 async function newProject() {
   const n = cleanName(prompt('New project name (e.g. tadar-6)', ''));
   if (!n) return;

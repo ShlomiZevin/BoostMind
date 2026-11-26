@@ -72,11 +72,27 @@ const quiet = (p) => p.catch((e) => { if (!missing(e)) throw e; });
 export const clean = (s, max = 120) => String(s || '').normalize('NFC').replace(/[^\p{L}\p{N}\-_. ]+/gu, '-').replace(/^[-. ]+|[-. ]+$/g, '').slice(0, max);
 const exists = (p) => S.getMetadata(R(p)).then(() => true, (e) => { if (missing(e)) return false; throw e; });
 const urls = {};
+const forget = (path) => { try { const m = JSON.parse(localStorage.getItem('drop-meta') || '{}'); delete m[path]; localStorage.setItem('drop-meta', JSON.stringify(m)); } catch {} };
 
 export const drop = {
-  // every project with its files, newest first ("_name" folders are the studio's own, never his projects)
+  // every project with its files, newest first ("_name" folders are the studio's own, never his projects).
+  // A file's size / date never change once it is up (names are unique), so they are kept on this device
+  // (localStorage "drop-meta") and only new files are asked for - 2026-11-26: ~430 files = ~430 requests on every
+  // open made the page slow
   async list() {
     await gate();
+    let memo = {};
+    try { memo = JSON.parse(localStorage.getItem('drop-meta') || '{}'); } catch {}
+    const seen = {};
+    const meta = async (it) => {
+      const k = it.fullPath;
+      if (!memo[k]) {
+        const m = await S.getMetadata(it).catch(() => null);
+        if (!m) return null;
+        memo[k] = { size: +m.size, updated: m.updated, contentType: m.contentType || '' };
+      }
+      return (seen[k] = memo[k]);
+    };
     const top = await S.listAll(R(''));
     const folders = await Promise.all(top.prefixes.filter((p) => !p.name.startsWith('_')).map(async (pre) => {
       const fo = { name: pre.name, files: [], bytes: 0, updated: '' };
@@ -84,7 +100,7 @@ export const drop = {
       const thumbsRef = l.prefixes.find((p) => p.name === '.thumbs');
       const thumbs = new Set(thumbsRef ? (await S.listAll(thumbsRef)).items.map((i) => i.name.slice(0, -4)) : []);
       await Promise.all(l.items.map(async (it) => {
-        const m = await S.getMetadata(it).catch(() => null);
+        const m = await meta(it);
         if (!m) return;
         if (m.updated > fo.updated) fo.updated = m.updated;
         if (it.name.startsWith('.')) return;  // (".keep": a project made before its first file)
@@ -93,6 +109,7 @@ export const drop = {
       }));
       return fo;
     }));
+    try { localStorage.setItem('drop-meta', JSON.stringify(seen)); } catch {}  // (only what is still there)
     return { folders: folders.sort((a, b) => (b.updated > a.updated ? 1 : -1)) };
   },
   async mkdir({ folder }) {  // a new project: a placeholder so it shows before its first file
@@ -100,6 +117,7 @@ export const drop = {
     const f = clean(folder, 60);
     if (!f) throw new Error('Give it a name');
     await S.uploadString(R(`${f}/.keep`), '', 'raw', { contentType: 'text/plain' });
+    forget(`${f}/.keep`);
     return { folder: f };
   },
   // one file, resumable (the SDK sends it in pieces and picks up after a dropped connection). unique: a name that is
@@ -115,6 +133,7 @@ export const drop = {
     }
     const task = S.uploadBytesResumable(R(`${f}/${n}`), file, { contentType: type || file.type || 'application/octet-stream' });
     await new Promise((ok, fail) => task.on('state_changed', (s) => onProgress?.(s.bytesTransferred), fail, ok));
+    forget(`${f}/${n}`);  // (a name written over: its size / date asked for again)
     return { name: n };
   },
   // off the Drop - and a marker (<folder>/.gone/<size>~<name>), so the studio deletes the copy it already pulled too
