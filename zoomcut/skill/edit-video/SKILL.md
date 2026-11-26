@@ -1206,6 +1206,11 @@ own site, the wiki, the chat agent - tested).
   already did - built from the database each time, so it's always current.
 - **Pace** comes from the Reader by itself. Measuring a character (⏱ by the name) or typing their pace updates the
   profile. The name must match the character's `name` / `aka`.
+- **Every Reader script has a speaker on every line - monologues too** (his rule, 2026-11-26): `חני: ...` on each row,
+  one short sentence per row, no blank rows. The Reader keeps the pace per character, so a speakerless monologue loses
+  it. And a speakerless row like `והרי אמרו חז״ל: ...` (≤3 words before a colon) is taken for a speaker's name:
+  the Reader flips to dialogue mode and glues the rest into one block (greet-tzvi). `lesson.py` `script_tokens` reads
+  the same `Name:` rows, so the analysis is fine with it.
 - After a video is done, add anything new you learned about the character to their profile (a new catchphrase, a
   new set, the website's new page). The page is the one place that knows them.
 

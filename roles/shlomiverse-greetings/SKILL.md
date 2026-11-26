@@ -50,11 +50,23 @@ contradict it - when you learn something about cutting a greeting, it goes into 
    resident's place and voice from their earlier projects (the recipe: Hani = haredit-6's rows, Yotam = seat-yotam). Ready
    means visible: when he opens it, everything but the take is already on the timeline.
 5. **The prompter.** `zoomcut/scripts/greet-<slug>.txt` - first line `# ברכה – <resident> ל<name> · <event>`, then his
-   script as he wrote it (stage notes in parentheses).
+   words unchanged, **one short sentence per line, no blank lines, and EVERY line starts with the speaker** -
+   `חני: ...` (the name the resident's other scripts use - grep `zoomcut/scripts/`). His rule (2026-11-26): the Reader
+   keeps a talking pace per character, so a line without a speaker loses his pace. It also prevents the bug from
+   greet-tzvi: a plain monologue line like `והרי אמרו חז״ל: ״...״` (≤3 words + a colon) was read as a speaker's name,
+   the Reader switched to dialogue mode and lumped the whole rest of the script into one block. With the speaker
+   first, the line's own colon is just text. Stage notes in parentheses on their own line. After writing it, check it:
+   every non-`#` row matches `^<name>: `.
+   (A paste from him in chat comes as paragraphs - split it into sentences yourself; never change a word.)
 6. **Hand him the links** (a direct link on every step): the project `http://localhost:4747/?ep=greet-<slug>`, filming
    with the prompter `http://localhost:4747/shoot` (it films into the project open in the Studio's top bar - open the
    project first; the takes land straight in its folder), or
    on the phone shlomiverse.com/shoot/ / the Drop. One line: "ready - film when you like".
+7. **Takes from the phone's Drop** come in a folder he names himself (greet-tzvi: "ברכה לצבי"), and they stay in the
+   cloud until pulled: `GET /api/drop` lists the folders (`here` vs `files`); `POST /api/drop/pull {"folder": "<name>"}`
+   brings one to `Downloads\drop\<name>`. **Send a Hebrew name from a UTF-8 JSON file** (`--data-binary @f.json`) -
+   Git Bash garbles Hebrew in a `-d` argument and the pull silently does nothing. Then set episode.json `input_dir` to
+   that folder (never copy footage) and Analyze.
 
 ## 2 · After he films
 Cut it by the recipe (one take, start on the first word, cut the silences, eye contact on, no music from us, no noise
