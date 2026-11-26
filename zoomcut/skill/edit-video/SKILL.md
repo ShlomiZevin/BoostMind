@@ -474,6 +474,13 @@ rosenblum-2: `whole: true` (a whispered line - the loudness map takes whispers f
 line - a second camera angle). Whispers the recogniser dropped: take_finder re-reads them; merge those words into
 `work/words/<take>.json` before fast_cut, or their subtitles are missing. Keep the steps after `--go` (voice levels per
 clip, laughs onto their beats, subtitle fixes) in one script in the project's work/ - every rebuild needs them again.
+His notes on the first cut (rosenblum-2, 2026-11-26) - do them BEFORE he sees it next time: (1) the silent acting the
+flags point at IS the opening - "see the teacher walking in the class blowing on his tea, Omer concentrated on the exam,
+then Omer notices him and calls" (a quiet part - the cut had dropped it): the walk as a silent `whole` line, the other
+one's silent seconds before his first word (`a` early + `whole`), and the turn toward the camera kept before the reply
+(`over` negative so each starts after the one before); (2) a short line of the other character is never cut inside
+(Omer's 3 s call had become 3 clips) - `whole: true` on his lines; (3) the whispered aside before addressing the class
+("טוב, רגע, אני אקריא... שאלו אותי כבר") and the step back stay - a take's lead with words in it is part of the scene.
 **Markers for the next shoots** (his idea): say "אקשן" before a take and "קאט" after it, or clap - the tool cuts at
 the spoken markers (`--markers אקשן,קאט`) and lists claps as boundaries; without markers it falls back to restarts + words.
 
