@@ -12,6 +12,8 @@
 //        the request is marked done. + an SMS from "Shlomiverse" with the link to the request's phone (sms.cjs, Twilio).
 //   node scripts/greetings/greet.cjs public <greeting id> on|off                 shown in the verse's "ברכות" section / for stories (his call)
 //   node scripts/greetings/greet.cjs og <greeting id>                            (re)draw its link-preview card (add does it by itself)
+//   node scripts/greetings/greet.cjs requests [--all] --out r.json              the open personal-video requests (no phone / email in it)
+//   node scripts/greetings/greet.cjs request <requests doc id> --out r.json      one request
 //   node scripts/greetings/greet.cjs list
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), { execSync, execFileSync } = require('child_process');
 const API = path.join(__dirname, '..', '..', 'techietech-api');
@@ -172,6 +174,18 @@ async function send(id) {
   else if (cmd === 'send') await send(rest[0]);
   else if (cmd === 'og') { await makeOg(rest[0]); console.log('og card', rest[0]); }
   else if (cmd === 'public') { const g = await load(rest[0]); await db.collection('greetings').doc(g.id).update({ public: rest[1] === 'on' }); console.log(g.id, 'public', rest[1] === 'on'); }
+  // the requests (his ask 2026-11-26 - the greetings producer reads one before preparing the project). Hebrew -> --out (the console
+  // turns it into ????); the requester's phone / email / uid never printed (send --yes reaches them by itself)
+  else if (cmd === 'requests' || cmd === 'request') {
+    const s = cmd === 'request' ? [await db.collection('requests').doc(rest[0]).get()] : (await db.collection('requests').where('kind', '==', 'personal').get()).docs;
+    const rows = s.filter((d) => d.exists && (cmd === 'request' || rest.includes('--all') || !d.data().done)).map((d) => {
+      const { uid, email, phone, contact, of, t, ...r } = d.data();
+      return { id: d.id, at: t?.toDate ? t.toDate().toISOString() : t, hasPhone: !!phone, ...r };
+    }).sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+    const out = opt('out', 'requests.json');
+    fs.writeFileSync(out, JSON.stringify(cmd === 'request' ? rows[0] || null : rows, null, 1));
+    console.log(rows.length, cmd === 'request' ? 'request' : 'open personal requests', '->', out);
+  }
   else if (cmd === 'list') { const s = await db.collection('greetings').get(); s.docs.forEach((d) => { const x = d.data(); console.log(d.id, '|', x.char, '->', x.forWho, '|', x.event, '|', x.sentAt ? 'sent' : 'not sent', x.public ? '| public' : ''); }); }
   else die('commands: add | mail | send | public | list (see the top of this file)');
   process.exit(0);

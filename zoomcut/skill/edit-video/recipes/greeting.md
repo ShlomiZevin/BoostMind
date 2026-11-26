@@ -1,5 +1,7 @@
 # A personal greeting (ברכה אישית) - a resident blesses a real person
 
+**The whole flow - from his script to the requester and him - is the Greetings Producer role (`roles/shlomiverse-greetings`, since 2026-11-26). This recipe is the craft it follows.**
+
 His ask, 2026-11-19 (plan `greeting-send`, approved in Backstage). Someone asks on /community for a greeting for a real
 person's event (a birthday, an anniversary); a resident of the verse (Hani, Yotam...) blesses that person. One take at
 the resident's desk, no plot. Requests: Firestore `requests` (the Voice session holds the list and the ids).
