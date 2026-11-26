@@ -496,6 +496,10 @@ Round 2 of his notes (rosenblum-2, 2026-11-26), each one a rule for the next lon
   laugh only grows and the video ends on the punch with a cut.
 - **A held paper the cut-out loses: zoom in instead** (his idea) - the Close shot at 1.5 (person + background together)
   on the reading clips; then move the subtitle rows below the faces (y ~1480).
+- **VOICES AS RECORDED - no processing unless he asks** (his words, rosenblum-2 2026-11-26: "in the whispers don't raise
+  the sound - the way I film it is great, not on me and not on Omer" / "put all the sounds as they are originally, I
+  think you only did damage"): voice rows `voice: false, clean: off, level: off`, no item gains, no lift of whispers, no
+  voice chain - not even a chain he approved on an earlier video. Timing fixes (the start_time offset) are fine.
 **Markers for the next shoots** (his idea): say "אקשן" before a take and "קאט" after it, or clap - the tool cuts at
 the spoken markers (`--markers אקשן,קאט`) and lists claps as boundaries; without markers it falls back to restarts + words.
 
