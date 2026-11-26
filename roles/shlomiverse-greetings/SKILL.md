@@ -91,9 +91,10 @@ The Studio's greeting steps (the same ones as the Send window - `zoomcut/render/
 ## 4 · The story version - only to him (his asks 2026-11-25/26, first made for greet-osher)
 For OUR Instagram story, after the requester agreed (and pressed "הברכה נמסרה" - no spoiling). **It goes only to him**
 (Telegram + chat). The requester's video and the greeting page never change: no slot, no hook, nothing.
-- **Anonymous:** no name, no date anywhere. The opening card says "מזל טוב!" + the event without details
-  (`card.storyEvent`, e.g. "ליום הנישואין"). The spoken name is cut from the sound (find it by word timings: whisper on the
-  first seconds, design key). The first subtitle is redrawn without the name. The name card's second line says "ברכה אישית".
+- **Names stay** - the story keeps the name, the event and the date exactly like the greeting (cards, sound, subtitles).
+  Anonymous ONLY when that greeting's requester asked for it (greet-osher, once - his word 2026-11-26: "it was one time when
+  they asked", not a rule): then `card.anon: true` + `card.storyEvent` ("ליום הנישואין"), the spoken name cut from the
+  sound (re-transcribe the first seconds to find it), the first subtitle redrawn without it.
 - **The hook in front (2.2 s):** "רוצים להזמין ברכה מ<resident>?" / "ככה זה נראה" + the resident's portrait
   (`card.hookName` = how the hook calls them, "חני").
 - **The link slot (his OK on the mockup):** one fixed empty frame, the name card's look, at `top 1392, 660x146`,

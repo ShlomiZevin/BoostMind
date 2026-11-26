@@ -60,7 +60,8 @@ const end = (g) => `<div class="space"><div class="stars"></div></div><div class
 // during the take: transparent except the frame, the corner logo, the horizon along the bottom and the name card on it
 const name = (g) => `<div class="planet" style="top:1770px"></div><img class="corner" src="${LOGO}">${g.techy ? `<div class="ttcorner">${TT(40, .9)}</div>` : ''}
   <div class="pill"><div class="n">${g.from}</div><div class="t">${g.forWho}</div></div><div class="frame"></div>`;
-// ---- the STORY version (only to him - never the requester's video, never the greeting page): anonymous (no name, no date), opens
+// ---- the STORY version (only to him - never the requester's video, never the greeting page): names + date as in the greeting
+// (anonymous only with card.anon), opens
 // with "רוצים להזמין ברכה מ<resident>?", and every frame carries the link slot (.slot). card.hookName = how the hook calls the resident
 // ("חני"; default: the first word of `from`). Outputs story-hook.png, story-open.png, story-name.png (transparent: the slot + an
 // anonymous name card), story-slot.png (transparent: the slot alone), story-end.png. Building the story video: roles/shlomiverse-greetings.
@@ -72,9 +73,11 @@ const storyHook = (g) => `<div class="space"><div class="stars"></div></div><div
     <div class="for" style="font-size:112px;margin-top:50px;line-height:1.1">רוצים להזמין<br>ברכה מ${g.hookName || String(g.from || '').split(' ')[0]}?</div>
     <div class="rule" style="margin:34px 0 28px"></div><div class="ev" style="font-size:78px">ככה זה נראה</div></div>
   ${g.techy ? `<div class="c" style="top:1735px">${TT(46, .9)}</div>` : ''}<div class="frame"></div>${SLOT}`;
+// The story keeps the names and the date like the greeting itself. Anonymous ONLY when that greeting's requester asked for it
+// (card.anon: true - greet-osher, once; his word 2026-11-26: "it was one time when they asked", not a rule).
 const anon = (g) => ({ ...g, forWho: 'מזל טוב!', event: g.storyEvent || g.event, date: '' });   // card.storyEvent: the event without details ("ליום הנישואין")
-const STORY = [['story-hook', storyHook, false], ['story-open', (g) => open(anon(g)) + SLOT, false],
-  ['story-name', (g) => name({ ...g, forWho: 'ברכה אישית' }) + SLOT, true], ['story-slot', () => SLOT, true], ['story-end', (g) => end(g) + SLOT, false]];
+const STORY = [['story-hook', storyHook, false], ['story-open', (g) => open(g.anon ? anon(g) : g) + SLOT, false],
+  ['story-name', (g) => name(g.anon ? { ...g, forWho: 'ברכה אישית' } : g) + SLOT, true], ['story-slot', () => SLOT, true], ['story-end', (g) => end(g) + SLOT, false]];
 (async () => {
   const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
   const p = await b.newPage(); await p.setViewport({ width: 1080, height: 1920 });
