@@ -58,6 +58,12 @@ the resident's own voice setting from earlier projects. Keep it short - a greeti
   hardlink them (no copy) under ordered names into `Downloads\drop\greet-<slug>` (`New-Item -ItemType HardLink
   1-<x>.mov`, `2-<y>.mov`) and point `input_dir` there. A take that starts by repeating the end of the previous one:
   `cut.removes {"2-<y>": [[0, <sec>]]}` at the dip between the words.
+- **Joining two takes mid-sentence** (greet-tzvi, "בנך" swallowed three times): the next piece starts `cut.join` (0.2 s)
+  BEFORE the previous one's `end_at`, and on the voice row the later clip wins - so the audible cut = `end_at - join`.
+  Put `end_at` in the silence AFTER the word + the join. Never pick the word from the bursts in the dB curve or the
+  take's word list (Whisper shifts word times a word early around short words) - re-transcribe 2 s around the cut with
+  `pipeline.transcribe._get_model()` + `word_timestamps=True`, and check the end of the word, not its start.
+  Never a fade on the voice at a join (the builder's 0.2 s `fade_out` on the first piece ate the word end - set 0.012).
 - **The place layers go UNDER the person**: a project made from the last greeting + a fresh Analyze puts the builder's
   `person` / `subs` / `voice` rows first and the copied `hani.bg/kids/family` above them - the wall covers her and he
   sees nothing. `layer.move` them to just above `set`, stretch them (and `namepill`) from 52 to the speech end.
