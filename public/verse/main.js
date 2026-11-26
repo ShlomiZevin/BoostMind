@@ -5,7 +5,7 @@ import { loader } from './ui.js';
 import { st, onState, needFan } from './state.js';
 import { openPlayer, openGame, closePlayer, followBtn, paintFollow, setBack } from './player.js';
 import { openStory, closeStory, storyRing, onStories, setStoryBack, paintStoryRing } from './stories.js';
-import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest, chatIdeaCard } from './community.js';
+import { communityPage, businessPage, homeBand, onIdeas, stickerCard, nearest, chatIdeaCard, personalCard } from './community.js';
 import { renderTop, yourVerse, homeSlot, stickersSlot, heroHi, notesPage, mePage, savedPage, myCharactersPage, myStickersPage, requestCard, signinCard, refresh, setCurrent } from './pages.js';
 import { installPage } from './push.js';
 import { mountHome as recordsHome, unmountHome as recordsOff, recordsPage } from './records.js';
@@ -49,6 +49,7 @@ Object.assign(HOOK, {
   signinCard,
   stickerCard,   // [[sticker:ID]] in a chat reply
   ideaCard: chatIdeaCard,   // [[idea:KIND|TEXT]] in a chat reply: the visitor's idea, ready to send
+  personalCard,  // [[personal:ID]] in a chat reply: ask that resident for a personal video (community.js)
   quizCard,      // [[quiz]] in a chat reply: the character suggests the simulation test (sim.js)
   archiveCard,   // [[archive]] in a chat reply: a video it didn't find - the archive (archive.js)
   nearestId: nearest,

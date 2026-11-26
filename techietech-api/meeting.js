@@ -110,7 +110,7 @@ async function organize(M, inAir) {
   if (inAir && inAir.who === DANIEL && M.room.includes(HOST) && !inAir.leaving)
     return { next: HOST, cut: true, leave: false, end: false, forced: true, cue: `${nameOf(cur, HOST)} cuts ${nameOf(cur, DANIEL)} off before he finishes and picks up his last words`, why: 'Daniel never finishes a sentence (his rule)' };
   const room = M.room.filter((id) => !(inAir && inAir.leaving && id === inAir.who));   // the one leaving now is not on the call after their line
-  const user = `Team lines since the visitor's last turn: ${M.run}.${M.left.length ? `\nLeft the call (gone): ${M.left.map((id) => nameOf(cur, id)).join(', ')}.` : ''}
+  const user = `${M.topic ? invite(M) + '\n' : ''}Team lines since the visitor's last turn: ${M.run}.${M.left.length ? `\nLeft the call (gone): ${M.left.map((id) => nameOf(cur, id)).join(', ')}.` : ''}
 The meeting so far:
 ${transcript(cur, log)}
 ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAir.say}${inAir.leaving ? `\n(${nameOf(cur, inAir.who)} drops off the call after this line.)` : ''}\n\nWho speaks after ${nameOf(cur, inAir.who)}?` : '\nWho speaks now?'}`;
@@ -141,7 +141,7 @@ function scene(cur, M, id) {
   const rel = relIn(cur, id, M.room).map((r) => `${nameOf(cur, r.id)} - ${r.relation}`).join(' · ');
   return `A Zoom call of טקי-טק, on camera. On the call: ${M.room.map((x) => `${nameOf(cur, x)}${x === id ? ' (you)' : ''} - ${cur.byId[x].role || ''}`).join(' · ')} · ${nameOf(cur, 'user')} (from outside the team).${outsider(cur, id, M.room) ? ` ${c.name} knows them from work but doesn't work with them; someone added ${c.name} to this call and ${c.name} has no idea why.` : ` ${c.name} knows the team well.`}${cur.titled ? ` (${nameOf(cur, 'user')}'s title is the one they introduced themselves with when they joined, in their own words - nobody on the team gave it to them, and ${c.name} never makes up another one or describes them in their own words.)` : ''}${M.visitorNote ? `
 What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`}${cur.titled ? ` The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.` : ''}
-${M.topic ? `The meeting invite: "${M.topic.title}"${M.topic.desc ? ` - ${M.topic.desc}` : ''}
+${M.topic ? `${invite(M)}
 ` : ''}${genderLine(M)}
 How ${c.name} stands with each of them: ${rel || '-'}
 The others, and how they stand with everyone here:
@@ -258,13 +258,17 @@ async function subject(M) {
 The team's history - what its meetings were about:
 ${history || '-'}
 
-Write the meeting's calendar invite - a regular one, the way it shows in a calendar. ${title ? `What the meeting is about comes first from the visitor's title ("${title}"): why someone like that is on this call, in light of the team's history above.` : 'What the meeting is about comes from the team\'s history above.'}
-Answer JSON only: {"title": "2 to 6 words, Hebrew", "desc": "one short plain Hebrew line, or \\"\\""}`;
+Write the meeting's calendar invite - a regular one, the way it shows in a calendar. ${title ? `The meeting was set up because of the visitor: what it is for comes first from who they are by their title ("${title}") - why the team set up a meeting with someone like that now, in light of the team's history above.` : 'What the meeting is about comes from the team\'s history above.'}
+Answer JSON only: {"title": "2 to 6 words, Hebrew", "desc": "one short plain Hebrew line, or \\"\\"", "why": "why this meeting was set up${title ? ' with the visitor - what the team wants from this meeting with them' : ''}, one plain Hebrew sentence"}`;
   const r = await call(M.key, 'direct', "You write calendar invites for a company's meetings. Plain and ordinary, like any work calendar.", [{ role: 'user', content: ask }], { max: 400 });
   spend(M, r);
   const o = r.out || {}, t = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
-  return t(o.title, 80) ? { title: t(o.title, 80), desc: t(o.desc, 160) } : null;
+  return t(o.title, 80) ? { title: t(o.title, 80), desc: t(o.desc, 160), why: t(o.why, 240) } : null;
 }
+// the invite as everyone on the call knows it - and why the meeting was set up (his note 2026-11-26: a meeting called to meet the
+// new CFO went on about a budget; everyone should know what the meeting with the visitor is for - what they do with it, the
+// director decides)
+const invite = (M) => `The meeting invite: "${M.topic.title}"${M.topic.desc ? ` - ${M.topic.desc}` : ''}${M.topic.why ? `\nWhy this meeting was set up (everyone on the call knows it): ${M.topic.why}` : ''}`;
 const stateOf = (M) => Object.fromEntries(STATE.map((k) => [k, M[k] ?? null]));
 const fromState = (s, { cur, key, akey }) => ({ cur: withVisitor(cur, s.visitor || {}), key, akey, visitor: {}, room: [], all: [], left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, recap: null,
   ...Object.fromEntries(STATE.filter((k) => s[k] != null).map((k) => [k, s[k]])), costBy: s.costBy || { openai: 0, anthropic: 0, unsplit: s.cost || 0 }, next: null });

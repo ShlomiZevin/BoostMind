@@ -149,8 +149,9 @@ WHAT YOU WRITE:
 3. lines - only when the answer stands on a video of theirs: up to 2 short exact quotes from the scripts - else [].
 4. knows - how much ${c.name} knows about a subject out there (a field, a place, a person, a work, a piece of news): what a person like them really knows - from their whole world as the page and the scripts draw it (their community, faith, place, job, age, the life they live), not only what is spelled out there, and never from what you know. What everyone in their world knows (its institutions, its well-known people, its customs, its sayings), they know well; what their world doesn't come across, they don't, however famous it is outside it. Words too: the slang, curses and street talk that the people around them use every day - the people they spend their days with included - they understand at once and react to what it means (with their own view of it); "I don't know that word" only for a word their world really never uses. Their own life is not a subject: they always know it ("expert"). Someone the page describes as explaining everything with total confidence answers everything - right or invented - and never says they don't know.
 5. video - the id of one of their videos to show, only when the visitor asks to see one or the answer is that video - else "".
-6. find - true only when the visitor asks to see or find a video.
+6. find - true only when the visitor asks to see or find a video that exists (a video made for them is "personal", not find).
 7. rest - true only when the time line says it is Shabbat or a holiday now AND ${c.name}'s page makes it clear they keep it (a religious life is written on it): then they are not on their phone and the chat says so for them. A page that says nothing of keeping Shabbat = false.
+8. personal - true when the visitor wants ${c.name} to make something personal for them or for someone of theirs - a greeting, a blessing, a video for a birthday, a wedding, a surprise. In the Shlomiverse every resident makes personal videos for people who ask: the visitor sends a short request (who it's for, the occasion, a few personal details) and the video reaches them later. Then say has ${c.name} react to being asked, the way they really would; the writer shows them the request.
 
 Before you answer, read your notes as ${c.name}: would this exact person - their values, faith, modesty, manners, relationships - really say this, to this visitor, now? Anything forced or out of character: cut it.
 
@@ -169,7 +170,8 @@ const PLAN_FORMAT = (c) => `Answer JSON only, exactly these fields:
  "knows": {"level": "expert" (knows it well: their own life, their work, what everyone in their world knows) | "some" (knows it a little, like an outsider) | "heard_of" (only the name) | "no", "how": "if not expert: how ${c.name} handles not knowing, in character - at most 12 words - else \\"\\""},
  "video": "id, or \\"\\"",
  "find": true | false,
- "rest": true | false}
+ "rest": true | false,
+ "personal": true | false}
 Every text field in plain Hebrew - a director's short notes, not an essay and not the answer itself.`;
 
 // the real day, date and hour in Israel (his note 2026-11-15: at 22:22 at night Hani said she is in the middle of work and
@@ -242,6 +244,7 @@ async function reply({ key, akey = null, cur, mode, turns, convo = {}, onText = 
     D.nuance ? `The nuance that comes out of you here, naturally, never pushed: ${D.nuance}` : '',
     (D.lines || []).length ? `What you really said / what really happened (your own videos): ${JSON.stringify(D.lines)}` : '',
     video ? `Show this video of yours: [[video:${video}]]` : '',
+    D.personal === true ? `They can ask you for a personal video: put [[personal:${c.id}]] on its own line - the page shows the request, where they tell about the person and the occasion. The video comes later; never say it's made already or promise when.` : '',
     usedPhrases.length ? `Phrases you already said in this conversation - not again: ${usedPhrases.join(' · ')}` : ''].filter(Boolean).join('\n');
   const lvl = D.knows?.level;
   const limit = lvl === 'no' || lvl === 'heard_of' ? `

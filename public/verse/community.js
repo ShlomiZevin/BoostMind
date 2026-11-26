@@ -68,7 +68,7 @@ let doOnce = '';
 export function communityPage(q = {}) {
   // "לבקש ברכה" from a greeting's page / mail (/community?do=personal) - once: the page re-renders as the data arrives, and
   // every render opened another sheet (5 stacked on the live site, 2026-11-19)
-  if (q.do === 'personal' && doOnce !== location.href) { doOnce = location.href; setTimeout(() => personalSheet(), 250); }
+  if (q.do === 'personal' && doOnce !== location.href) { doOnce = location.href; setTimeout(() => personalSheet(q.char || ''), 250); }
   if (q.idea) { focusIdea = q.idea; setTimeout(() => document.getElementById('idea-' + q.idea)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120); }
   const top = appShell() ? lovedFaces() : W.characters.filter((c) => c.img && !NOT_IN_HERO.has(c.id)).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0)).slice(0, 5);
   const list = sorted();
@@ -237,6 +237,14 @@ document.addEventListener('click', async (e) => {
 
 // ---------- an idea a visitor came up with in the chat: [[idea:KIND|TEXT]] - the character hands it over written up, one
 // tap opens the idea sheet filled in (his ask, 2026-11-06: "like a box already filled with their idea, and submit") ----------
+// [[personal:ID]] in a chat reply: ask that resident for a personal video - the request form, the resident already picked
+export function personalCard(id) {
+  const c = C[id];
+  if (!c) return '';
+  return `<div class="mi"><small>${esc(T.pv.title)}</small><blockquote>${esc(T.pv.chatLine)}</blockquote>
+    <button class="vx-btn main small" data-pv-chat="${esc(id)}">${esc(T.pv.chatGo)}</button></div>`;
+}
+
 export function chatIdeaCard(kind, text, mode) {
   const t = String(text || '').trim().slice(0, 300);
   if (t.length < 4) return '';
@@ -342,7 +350,9 @@ async function vote(b) {
 // and scrolls into view.
 // The phone is a must (his rule 2026-11-19): the ready greeting goes to them on WhatsApp too - an email alone can land in spam.
 const PHONE = /^\+?\d{9,15}$/;
-function personalSheet() {
+// pre = a resident's id: the form opens with them picked (the chat's [[personal:ID]] card - his note 2026-11-26: Hani and the
+// guide didn't know a visitor can ask a resident for a personal video)
+function personalSheet(pre = '') {
   const chars = W.characters.filter((c) => c.img).sort((a, b) => (b.videos?.length || 0) - (a.videos?.length || 0));
   let pick = '';
   const today = new Date().toISOString().slice(0, 10);
@@ -384,6 +394,8 @@ function personalSheet() {
       if (other) f.event.focus(); else ok('event');
     }
   };
+  const preBtn = pre && C[pre] ? f.querySelector(`[data-pv="${pre}"]`) : null;
+  if (preBtn) { preBtn.click(); setTimeout(() => preBtn.scrollIntoView({ inline: 'center', block: 'nearest' }), 60); }   // the row scrolls sideways: show the one picked
   f.addEventListener('input', (e) => {
     const n = e.target.name;
     if (n === 'text') f.querySelector('.pv-count span').textContent = e.target.value.length;
@@ -529,7 +541,7 @@ document.addEventListener('submit', async (e) => {
 
 // ---------- one place for the clicks ----------
 document.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-do], [data-idea-new], [data-idea-chat], [data-vote], [data-share-idea], [data-idea-sort], [data-form], [data-ask-char], [data-copy-idea]');
+  const b = e.target.closest('[data-do], [data-idea-new], [data-idea-chat], [data-vote], [data-share-idea], [data-idea-sort], [data-form], [data-ask-char], [data-copy-idea], [data-pv-chat]');
   if (!b) return;
   e.preventDefault();
   if (b.matches('[data-do]')) canDo(b.dataset.do, storyFaces());
@@ -540,6 +552,7 @@ document.addEventListener('click', (e) => {
   else if (b.matches('[data-idea-sort]')) { sort = b.dataset.ideaSort; emit(); }
   else if (b.matches('[data-form]')) formSheet(b.dataset.form);
   else if (b.matches('[data-ask-char]')) openChat('guide');
+  else if (b.matches('[data-pv-chat]')) { track('personal_chat', b.dataset.pvChat); personalSheet(b.dataset.pvChat); }
   else if (b.matches('[data-copy-idea]')) navigator.clipboard?.writeText(ideaUrl(b.dataset.copyIdea)).then(() => toast(T.ideaCopied));
 });
 export const signedInNow = signedIn;
