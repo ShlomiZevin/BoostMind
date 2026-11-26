@@ -27,7 +27,11 @@ The plan (JSON) - everything optional except lines:
    "lines": [{"who": "osnat", "take": "B1C2", "a": 1.2, "b": 8.4,     # a / b = take seconds (default: its words)
               "keep": [[3.1, 3.9]],     # never cut inside these take seconds (his "no cut here")
               "cut": [5.2],             # always cut the pause at this take second (his "tighten")
-              "over": 0.3}]}            # this turn only: more overlap (an interruption), negative = a pause
+              "over": 0.3,              # this turn only: more overlap (an interruption), negative = a pause
+              "set": "m.other.jpg",     # this line only: another set behind the character (a second camera angle)
+              "hold": 1.5,              # keep 1.5 s of the take after the last word (a laugh beat, a stare); the next
+                                        # line starts after it. A line with NO speech in a..b = a silent clip (a cutaway)
+              "whole": true}]}          # exactly a..b, nothing cut inside (whispers the loudness map takes for silence)
   A character with no set in the plan keeps the set on its `<who>.bg` row (the sets you laid before the footage).
 
 What it writes (each character = one group, named as the character): `<who>.bg` (its set, one picture per clip, linked),
@@ -246,8 +250,9 @@ def retakes(words, a, b):
 
 
 # ---------------------------------------------------------------- the cut
-def pieces(t, a, b, min_sil, keep=(), force=()):
-    """the spoken spans of [a, b] with the right silences out"""
+def pieces(t, a, b, min_sil, keep=(), force=(), hold=0.0):
+    """the spoken spans of [a, b] with the right silences out; hold = seconds of the take kept after the last word (a
+    beat: the class laughs, he waits - rosenblum-2)"""
     lo, hi = max(TAKE_HEAD, a - 0.1), min(t.dur - TAKE_TAIL, b + 0.3)
     runs = t.runs(a, b)
     if not runs:
@@ -297,6 +302,8 @@ def pieces(t, a, b, min_sil, keep=(), force=()):
             k = 0
             continue
         k += 1
+    if hold:
+        out[-1][1] = min(t.dur - TAKE_TAIL, out[-1][1] + hold)
     return [(round(x, 3), round(y, 3)) for x, y in out]
 
 
@@ -513,7 +520,7 @@ def main():
     prev_who, prev_last_word_tl = None, None
 
     vcount = {}
-    def place(w, take, A, B, t0, first=False, last=False, off=False):
+    def place(w, take, A, B, t0, first=False, last=False, off=False, set_=None):
         n[0] += 1
         lk = f"{w}.{n[0]}"
         fr, du = F(t0), F(t0 + (B - A)) - F(t0)
@@ -528,7 +535,8 @@ def main():
             placed.append((w, take, A, B, t0, lk))
             return t0 + (B - A)
         if f"{w}.bg" in R:
-            R[f"{w}.bg"]["items"].append({"id": f"b{n[0]}", "from": fr, "dur": du, "asset": SETS[w][0], "box": dict(SETS[w][1]), "link": lk})
+            sa_, sb_ = (set_ or {}).get("set") or SETS[w][0], (set_ or {}).get("setBox") or SETS[w][1]
+            R[f"{w}.bg"]["items"].append({"id": f"b{n[0]}", "from": fr, "dur": du, "asset": sa_, "box": dict(sb_), "link": lk})
         R[f"{w}.video"]["items"].append({"id": f"p{n[0]}", "from": fr, "dur": du, "asset": take, "in": round(A, 3),
                                          "box": dict(R[f"{w}.video"]["props"].get("box") or {"x": 0, "y": 0, "w": 1080, "h": 1920}), "link": lk})
         hp, ha = handles(tk, A, B, TURN_H if first else H, TURN_H if last else H)
@@ -545,18 +553,24 @@ def main():
         w, take = ln["who"], ln["take"]
         tk = T[take]
         a, b = ln.get("a", tk.sound_span()[0]), ln.get("b", tk.sound_span()[1])
-        ps = pieces(tk, a, b, min_sil, [tuple(x) for x in ln.get("keep", [])], ln.get("cut", []))
+        if ln.get("whole"):                # a whispered / acted line: exactly a..b, nothing cut (rosenblum-2: whispers sit
+            ps = [(round(max(TAKE_HEAD, a), 3), round(min(tk.dur - TAKE_TAIL, b + ln.get("hold", 0.0)), 3))]   # under LOUD)
+        else:
+            ps = pieces(tk, a, b, min_sil, [tuple(x) for x in ln.get("keep", [])], ln.get("cut", []), ln.get("hold", 0.0))
         if prev_who is not None and w != prev_who and prev_last_word_tl is not None:
             # a turn: word to word overlap at playback speed (his 0.1 s), counted on the speech, not the clip edges
             runs = tk.runs(ps[0][0], ps[0][1])
             onset = runs[0][0] / 100 if runs else ps[0][0]
+            if ln.get("whole"):            # whispers: the words say where the speech is, not the loudness
+                onset = tk.first_word(a, b) or ps[0][0]
             o = ln.get("over", over) * SPEED
             t_start = max(0.0, prev_last_word_tl - o - (onset - ps[0][0]))
         else:
             t_start = t_cur
         t0 = t_start
         for q, (A, B) in enumerate(ps):
-            t0 = place(w, take, A, B, t0, first=q == 0, last=q == len(ps) - 1, off=bool(ln.get("offscreen")))
+            t0 = place(w, take, A, B, t0, first=q == 0, last=q == len(ps) - 1, off=bool(ln.get("offscreen")),
+                       set_={"set": ln.get("set"), "setBox": ln.get("setBox")})
         # subtitles of this line
         heard = [x for x in tk.words if x[1] > a + 0.05 and (x[0] + x[1]) / 2 <= b + 0.05]
         mp = [(A, B, s) for (ww, k, A, B, s, lk) in placed if ww == w and k == take and s >= t_start - 1e-6]
@@ -577,7 +591,11 @@ def main():
             R[f"subs.{w}"]["items"].append({"id": f"s{w}{len(R[f'subs.{w}']['items'])}", "from": F(ts), "dur": max(12, F(te) - F(ts)), "text": text, "link": lk})
         runs = tk.runs(ps[-1][0], ps[-1][1])
         last_off = runs[-1][1] / 100 if runs else ps[-1][1]
+        if ln.get("whole"):
+            last_off = tk.last_word(a, b) or ps[-1][1]
         prev_last_word_tl = t0 - (ps[-1][1] - last_off)
+        if ln.get("hold"):                 # a held beat: the next one starts after it, not over it
+            prev_last_word_tl = t0
         prev_who = w
         t_cur = max(t_cur, t0)
         report.append(f"{li + 1:>2} {w:<8} {tk.label[:14]:<14} {len(ps):>2} clips  {sum(B - A for A, B in ps):6.2f} s of {b - a:6.2f}  at {t_start:7.2f}-{t0:7.2f}")

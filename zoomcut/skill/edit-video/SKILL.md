@@ -457,6 +457,26 @@ can play off (last call for HIS flight) goes on its own row, louder, in versions
 on their own row (small room). Script: `_assets/frankfurt/pa/gen.mjs` + `lines.json`. **Link** = a set + its bed (same
 from / dur); a one-shot or an announcement gets its own link (chime + its words) - never the place's, or he can't move it alone.
 
+## ONE LONG RECORDING WITH MANY TAKES - find the real scenes first (his ask, rosenblum-2, 2026-11-26)
+"A long shot with several clips, several takes - find when a clip is starting and when it is ending ... remove the areas
+where I'm starting the camera or moving toward the camera." The general script, for ANY video like this:
+`.venv/Scripts/python.exe tools/take_finder.py <video> --script scripts/<id>.txt --who <name> --take <asset label>
+ --words episodes/<id>/work/words/<label>.json --plan work/plan.json`
+It lists every recording restart (hard picture jumps - nothing is taken across one), cuts each recording to its scene
+(0.30 s before the first word to 0.25 s after the last, never the 0.45 s / 0.35 s phone-tap edges), FLAGS more than
+1.5 s of silence before / after the words (silent acting, or him walking to the camera - decide from the sheet, never
+cut it blindly), matches each scene to the script lines, marks a line said again later as a RETAKE (the later one
+wins), and lists script lines it found in no scene. Out: report.txt + sheet.jpg (first / middle / last frame of every
+scene - LOOK at it) + scenes.json, and with --plan a ready `tools/fast_cut.py` plan of the kept scenes.
+Then the dialogue: `tools/fast_cut.py <ep> plan.json` (dry run, then `--go`) with the plan's line options learned on
+rosenblum-2: `whole: true` (a whispered line - the loudness map takes whispers for silence and cut them away), `hold: S`
+(keep S s after the last word - the class laughs, he waits; the next line starts after it), `set` (another set for that
+line - a second camera angle). Whispers the recogniser dropped: take_finder re-reads them; merge those words into
+`work/words/<take>.json` before fast_cut, or their subtitles are missing. Keep the steps after `--go` (voice levels per
+clip, laughs onto their beats, subtitle fixes) in one script in the project's work/ - every rebuild needs them again.
+**Markers for the next shoots** (his idea): say "אקשן" before a take and "קאט" after it, or clap - the tool cuts at
+the spoken markers (`--markers אקשן,קאט`) and lists claps as boundaries; without markers it falls back to restarts + words.
+
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
    another heavy job while ANY job runs, test (`_`) projects too: `GET /api/jobs` → `busy` must be empty.
