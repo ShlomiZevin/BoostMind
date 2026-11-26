@@ -3,15 +3,17 @@
 // name card (two lines) sitting on it, the frame around; the end card "זו היתה ברכה אישית מתושב/ת שלומיוורס · כדי לבקש ברכה כזו:"
 // + a glowing address. 1080x1920 PNG -> zoomcut/episodes/_assets/greetings/<slug>/ (open.png, name.png = transparent overlay, end.png)
 const fs = require('fs'), path = require('path');
-const puppeteer = require('c:/workspace/BoostMind/zoomcut/render/node_modules/puppeteer-core');
+const puppeteer = require('module').createRequire('c:/workspace/BoostMind/zoomcut/render/package.json')('puppeteer-core');
 const ROOT = 'c:/workspace/BoostMind';
 const LOGO = 'data:image/png;base64,' + fs.readFileSync(path.join(ROOT, 'public/verse/logo-512.png')).toString('base64');
 // the greetings to draw: every _assets/greetings/<slug>/greeting.json with a "card" part (private - real people's names never
 // go into this public repo):  "card": { forWho: "לדנה", event, date: "1.1.2027", from: "חנה פרידמן", she: true, techy: true }
 //   node scripts/greetings/cards.cjs [slug]      (no slug = all of them)
 const GDIR = path.join(ROOT, 'zoomcut/episodes/_assets/greetings');
-const G = fs.readdirSync(GDIR).filter((s) => !process.argv[2] || s === process.argv[2])
-  .map((s) => { try { const j = JSON.parse(fs.readFileSync(path.join(GDIR, s, 'greeting.json'), 'utf8')); return j.card ? { slug: s, ...j.card } : null; } catch { return null; } })
+//   node scripts/greetings/cards.cjs <slug> --story   only the story version's cards (the greeting's own cards untouched)
+const ARGS = process.argv.slice(2), ONLY = ARGS.find((x) => !x.startsWith('--')), STORY_ONLY = ARGS.includes('--story');
+const G = fs.readdirSync(GDIR).filter((s) => !ONLY || s === ONLY)
+  .map((s) => { try { const j = JSON.parse(fs.readFileSync(path.join(GDIR, s, 'greeting.json'), 'utf8')); return j.card ? { slug: s, char: j.char, ...j.card } : null; } catch { return null; } })
   .filter(Boolean);
 // a fixed star field (same on every card)
 let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
@@ -41,6 +43,10 @@ html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:Heebo;
 .ttcorner{position:absolute;top:118px;left:76px}
 .pill{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);min-width:470px;padding:26px 56px 30px;border-radius:44px 44px 30px 30px;background:linear-gradient(180deg,rgba(40,24,18,.86),rgba(14,9,7,.92));border:2.5px solid rgba(255,160,90,.8);box-shadow:0 0 30px rgba(255,120,40,.55);text-align:center}
 .pill .n{font:800 66px/1.15 Heebo;color:#fff}.pill .t{font:800 64px/1.15 Heebo;color:#ffb074}
+/* the STORY version's link slot (his ask + OK 2026-11-26): one fixed empty frame through the whole story, between the subtitles
+   (raised to end at y 1370 in the story) and the name card - he puts Instagram's link sticker on it and it covers nothing */
+.slot{position:absolute;left:50%;top:1392px;transform:translateX(-50%);width:660px;height:146px;border-radius:999px;border:3px solid rgba(255,160,90,.85);
+  background:linear-gradient(180deg,rgba(40,24,18,.62),rgba(14,9,7,.7));box-shadow:0 0 30px rgba(255,120,40,.5),inset 0 0 20px rgba(255,140,60,.25)}
 </style>`;
 const open = (g) => `<div class="space"><div class="stars"></div></div><div class="planet" style="top:1440px"></div>
   <div class="c" style="top:120px"><img class="logo" src="${LOGO}" style="width:640px"></div>
@@ -54,12 +60,27 @@ const end = (g) => `<div class="space"><div class="stars"></div></div><div class
 // during the take: transparent except the frame, the corner logo, the horizon along the bottom and the name card on it
 const name = (g) => `<div class="planet" style="top:1770px"></div><img class="corner" src="${LOGO}">${g.techy ? `<div class="ttcorner">${TT(40, .9)}</div>` : ''}
   <div class="pill"><div class="n">${g.from}</div><div class="t">${g.forWho}</div></div><div class="frame"></div>`;
+// ---- the STORY version (only to him - never the requester's video, never the greeting page): anonymous (no name, no date), opens
+// with "רוצים להזמין ברכה מ<resident>?", and every frame carries the link slot (.slot). card.hookName = how the hook calls the resident
+// ("חני"; default: the first word of `from`). Outputs story-hook.png, story-open.png, story-name.png (transparent: the slot + an
+// anonymous name card), story-slot.png (transparent: the slot alone), story-end.png. Building the story video: roles/shlomiverse-greetings.
+const PIC = (id) => `https://storage.googleapis.com/shlomiverse-media/wiki/img/c/${id}.jpg`;
+const SLOT = '<div class="slot"></div>';
+const storyHook = (g) => `<div class="space"><div class="stars"></div></div><div class="streak"></div><div class="planet" style="top:1500px"></div>
+  <div class="c" style="top:100px"><img class="logo" src="${LOGO}" style="width:380px"></div>
+  <div class="c" style="top:500px">${g.char ? `<div style="width:340px;height:340px;border-radius:50%;background:url(${PIC(g.char)}) 50% 20%/cover;border:6px solid #ffb27a;box-shadow:0 0 50px rgba(255,120,40,.75)"></div>` : ''}
+    <div class="for" style="font-size:112px;margin-top:50px;line-height:1.1">רוצים להזמין<br>ברכה מ${g.hookName || String(g.from || '').split(' ')[0]}?</div>
+    <div class="rule" style="margin:34px 0 28px"></div><div class="ev" style="font-size:78px">ככה זה נראה</div></div>
+  ${g.techy ? `<div class="c" style="top:1735px">${TT(46, .9)}</div>` : ''}<div class="frame"></div>${SLOT}`;
+const anon = (g) => ({ ...g, forWho: 'מזל טוב!', event: g.storyEvent || g.event, date: '' });   // card.storyEvent: the event without details ("ליום הנישואין")
+const STORY = [['story-hook', storyHook, false], ['story-open', (g) => open(anon(g)) + SLOT, false],
+  ['story-name', (g) => name({ ...g, forWho: 'ברכה אישית' }) + SLOT, true], ['story-slot', () => SLOT, true], ['story-end', (g) => end(g) + SLOT, false]];
 (async () => {
   const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
   const p = await b.newPage(); await p.setViewport({ width: 1080, height: 1920 });
   for (const g of G) {
     const dir = path.join(ROOT, 'zoomcut/episodes/_assets/greetings', g.slug); fs.mkdirSync(dir, { recursive: true });
-    for (const [k, f, clear] of [['open', open, false], ['name', name, true], ['end', end, false]]) {
+    for (const [k, f, clear] of STORY_ONLY ? STORY : [['open', open, false], ['name', name, true], ['end', end, false], ...STORY]) {
       await p.setContent(`<html dir="rtl"><head>${CSS}</head><body style="background:${clear ? 'transparent' : '#0a0807'}">${f(g)}</body></html>`, { waitUntil: 'load', timeout: 90000 });
       await p.evaluate(() => document.fonts.ready);
       await p.screenshot({ path: path.join(dir, `${k}.png`), omitBackground: clear });

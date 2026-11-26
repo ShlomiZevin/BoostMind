@@ -88,6 +88,34 @@ The Studio's greeting steps (the same ones as the Send window - `zoomcut/render/
    Without the Studio running: `node scripts/greetings/greet.cjs add --video <export.mp4> --char <id> --request <id>
    --for "<name>" --event "<event>"`, then `send <gid> --test`, then `send <gid> --yes` - the same steps.
 
+## 4 · The story version - only to him (his asks 2026-11-25/26, first made for greet-osher)
+For OUR Instagram story, after the requester agreed (and pressed "הברכה נמסרה" - no spoiling). **It goes only to him**
+(Telegram + chat). The requester's video and the greeting page never change: no slot, no hook, nothing.
+- **Anonymous:** no name, no date anywhere. The opening card says "מזל טוב!" + the event without details
+  (`card.storyEvent`, e.g. "ליום הנישואין"). The spoken name is cut from the sound (find it by word timings: whisper on the
+  first seconds, design key). The first subtitle is redrawn without the name. The name card's second line says "ברכה אישית".
+- **The hook in front (2.2 s):** "רוצים להזמין ברכה מ<resident>?" / "ככה זה נראה" + the resident's portrait
+  (`card.hookName` = how the hook calls them, "חני").
+- **The link slot (his OK on the mockup):** one fixed empty frame, the name card's look, at `top 1392, 660x146`,
+  centred, on EVERY frame of the story (hook, cards, take). He puts Instagram's link sticker on it and it covers nothing.
+  The subtitles move up to end at y 1370, above it.
+- **No background music** ("send me Hani with no bg music") - he adds music in Instagram. The sound = the voice layers
+  only, through the Studio's own mixer, so her voice treatment (pitch, voice chain) stays exactly as exported: a
+  scratchpad copy of the project (never his project, never under `episodes/`) with the music layer REMOVED (muting isn't
+  enough - its file is still decoded), then `pipeline.layers_audio.mix(Episode(<copy>), project, voice.wav)` from
+  `zoomcut/`, then `atempo=<project speed>` (what the export does), the same name cut, silence under the hook.
+  The source wav comes from `gs://shlomiverse-studio/projects/greet-<slug>/media/`. Check it against the export:
+  envelope correlation, the lag must be 0 ms.
+- **The cards:** `node scripts/greetings/cards.cjs <slug> --story` -> story-hook / story-open / story-end (opaque, with the
+  slot), story-slot (transparent, the slot alone - over the take), story-name (the anonymous name card + the slot). Their
+  own cards are not touched by `--story`.
+- **Put together with ffmpeg on the exported mp4** (never a Studio export from the session): a feathered blur band
+  (1040x250 at 20,1310) over the old subtitles during the take, story-slot over the take, the subtitles redrawn
+  (Assistant 800 66px, white, black 10px stroke, bottom at 1370; their times = Studio frame / 30 / speed, shifted by the
+  cut and the hook), the cards over their spans. Look at a frame of every subtitle (a two-line one too) before sending.
+- Saved as `zoomcut/episodes/_assets/greetings/<slug>/story-no-details.mp4`. Sent to his Telegram (`render/share.mjs`
+  sendTelegram).
+
 ## Report
 The bottom line only: "ready to film + link", "first cut + link", "sent to <first name> (email + SMS) + page link". And
 what you need from him. Paid steps (none are, normally) end with the running total.
