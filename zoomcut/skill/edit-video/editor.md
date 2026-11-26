@@ -103,6 +103,12 @@ One format, one composition, one editor, one export. The format and the API: `la
   110-195 s), Quick 103 s total. Gotchas it already met: NTFS allows 1023 hard links per file (the held graphics
   frames copy every 1000); a fully opaque frame comes out of the PNG encoder as RGB - ffmpeg re-inits mid-stream and
   deadlocks (`-reinit_filter 0` + `format=rgba` on the graphics inputs).
+  **The bottom graphics run is drawn as JPEG** (2026-11-26, his "why is the export so slow, CapCut is much faster"):
+  the run with only the canvas colour under it is drawn ON that colour (`bg` prop in Layers.tsx) as JPEG q95 - no
+  alpha needed. A 95 s photo slideshow (demokratovich-avel-slides) was 2,665 lossless 1080x1920 PNGs = 8.3 GB, drawn
+  at ~4 a second (Chrome compressing ~3 MB PNGs): 692 s of a 751 s export. Bench, 10 s of it: PNG 77.6 s / 1 GB ->
+  JPEG 14.5 s / 161 MB, same picture (PSNR 43 dB after x264). Runs ABOVE footage stay PNG (they need alpha; mostly
+  transparent text, small and fast).
 - **Sound**: `pipeline/layers_audio.py` - tracks per layer (= audio.mix math; null test on gilad-joins -46 dB), one
   gain to -14 LUFS, stems + prepared sources (`<layer>|<asset>` urls) for the editor. Item moves / trims / gains are
   live in the editor; only a new source (an added sound, a filter change) is re-made (seconds).

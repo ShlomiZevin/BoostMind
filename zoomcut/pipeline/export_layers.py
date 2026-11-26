@@ -188,8 +188,11 @@ def rgba_only(folder, pngs):
             Image.open(p).convert("RGBA").save(p, compress_level=1)
 
 
-def render_graphics(ep, project, k, layers, scale, total, step=1):
-    """One graphics run -> work/layers/g<k>/f-000000.png .. one picture per video frame (held frames hard-linked)."""
+def render_graphics(ep, project, k, layers, scale, total, step=1, opaque=False):
+    """One graphics run -> work/layers/g<k>/f-000000.png .. one picture per video frame (held frames hard-linked).
+    opaque: the bottom run (only the canvas colour under it) - drawn ON the canvas colour as JPEG (.jpg), no alpha.
+    2026-11-26, his "why is the export so slow, CapCut is much faster": a 95 s slideshow of photos was 2,665 lossless
+    1080x1920 PNGs, 8.3 GB, drawn at 4 a second (Chrome compressing ~3 MB PNGs) - then all read back by ffmpeg."""
     fps = project["canvas"]["fps"]
     keys = changes(layers, fps, total, step)
     out = ep.work("layers", f"g{k}", "x")[:-2]
@@ -205,25 +208,27 @@ def render_graphics(ep, project, k, layers, scale, total, step=1):
     urls = asset_public(ep, project, used, pub)
     props_file = ep.work("layers", f"g{k}.props.json")
     with open(props_file, "w", encoding="utf-8") as fh:
-        json.dump({"project": project, "urls": urls, "static": True, "mode": "graphics", "only": [l["id"] for l in layers], "frameMap": keys},
-                  fh, ensure_ascii=False)
+        json.dump({"project": project, "urls": urls, "static": True, "mode": "graphics", "only": [l["id"] for l in layers], "frameMap": keys,
+                   **({"bg": project["canvas"].get("color") or "#000000"} if opaque else {})}, fh, ensure_ascii=False)
     log(f"  · drawing layers {', '.join(l['id'] for l in layers[:4])}{'…' if len(layers) > 4 else ''}: {len(keys)} of {total} frames change")
-    r = subprocess.run(["node", REMOTION, "render", "src/index.ts", "Layers", raw, "--sequence", "--image-format=png", f"--props={props_file}",
+    r = subprocess.run(["node", REMOTION, "render", "src/index.ts", "Layers", raw, "--sequence", *(["--image-format=jpeg", "--jpeg-quality=95"] if opaque else ["--image-format=png"]), f"--props={props_file}",
                         f"--public-dir={pub}", "--concurrency=4", "--log=error", "--timeout=120000"] + ([f"--scale={scale}"] if scale != 1 else []),
                        cwd=os.path.join(ROOT, "render"), creationflags=LOW)
     if r.returncode:
         raise RuntimeError("drawing the layers failed")
-    pngs = sorted(f for f in os.listdir(raw) if f.endswith(".png"))
+    ext = ".jpg" if opaque else ".png"
+    pngs = sorted(f for f in os.listdir(raw) if f.endswith((".jpeg", ".jpg") if opaque else ".png"))
     if len(pngs) != len(keys):
         raise RuntimeError(f"drew {len(pngs)} frames, expected {len(keys)}")
-    rgba_only(raw, pngs)
+    if not opaque:
+        rgba_only(raw, pngs)
     for i, key in enumerate(keys):
         nxt = keys[i + 1] if i + 1 < len(keys) else total
         src = os.path.join(raw, pngs[i])
         for f in range(key, nxt):
             if (f - key) % 1000 == 999:  # NTFS allows 1023 links to one file: a fresh copy every 1000 frames held
-                shutil.copy2(os.path.join(raw, pngs[i]), src := os.path.join(raw, f"hold-{i}-{f}.png"))
-            os.link(src, os.path.join(out, f"f-{f:06d}.png"))
+                shutil.copy2(os.path.join(raw, pngs[i]), src := os.path.join(raw, f"hold-{i}-{f}{ext}"))
+            os.link(src, os.path.join(out, f"f-{f:06d}{ext}"))
     return out
 
 
@@ -350,7 +355,8 @@ def render_chunk(ep, project, k, c0, c1, runs, gdirs, scale, base=None, name=Non
     gin = {}
     for ri, run_ in enumerate(runs):
         if not run_["video"]:
-            args += ["-reinit_filter", "0", "-framerate", str(fps), "-start_number", str(c0), "-i", os.path.join(gdirs[ri], "f-%06d.png")]
+            ext = ".jpg" if os.path.exists(os.path.join(gdirs[ri], f"f-{c0:06d}.jpg")) else ".png"  # (the bottom run: JPEG - render_graphics)
+            args += ["-reinit_filter", "0", "-framerate", str(fps), "-start_number", str(c0), "-i", os.path.join(gdirs[ri], f"f-%06d{ext}")]
             gin[ri], idx = idx, idx + 1
     for ri, run_ in enumerate(runs):
         if not run_["video"]:
@@ -552,17 +558,17 @@ def export(ep, quick=False, test=False, project=None, out=None):
     sound = sound_pool.submit(layers_audio.mix, ep, project, ep.work("layers", "export.wav"))
     # the graphics runs are drawn two at a time (a still one - the set - doesn't wait for the long one)
     gdirs, todo, gk = [], [], 0
-    for runs in passes:
+    for pi, runs in enumerate(passes):
         g = {}
         for ri, r_ in enumerate(runs):
             if r_["video"]:
                 r_["items"] = video_items(project, r_["layers"])
-            else:
-                todo.append((g, ri, gk, r_["layers"]))
+            else:  # (the first run of the first pass has only the canvas colour under it: opaque, JPEG)
+                todo.append((g, ri, gk, r_["layers"], pi == 0 and ri == 0))
                 gk += 1
         gdirs.append(g)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        futs = [(g, ri, pool.submit(render_graphics, ep, project, k, ls, scale, total, 3 if test else 1)) for g, ri, k, ls in todo]
+        futs = [(g, ri, pool.submit(render_graphics, ep, project, k, ls, scale, total, 3 if test else 1, op)) for g, ri, k, ls, op in todo]
         for g, ri, fu in futs:
             g[ri] = fu.result()
     runs = [r_ for rs in passes for r_ in rs]

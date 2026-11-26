@@ -18,6 +18,7 @@ export type LayersProps = {
   mode?: 'full' | 'graphics';        // graphics: only picture / text / shape layers, transparent elsewhere (the export)
   only?: string[];                   // graphics: just these layers
   frameMap?: number[];               // graphics: output frame i draws project frame frameMap[i] (only the frames that change)
+  bg?: string;                       // graphics: paint this under the layers instead of transparent (the export's bottom run - drawn as JPEG, no alpha needed)
   stems?: { layer: string; src: string }[];  // the editor: one sound file per audio layer (the studio mixes them)
   playing?: boolean;                 // the editor: the Player is playing (video / sound copies follow it)
   playbackRate?: number;
@@ -154,7 +155,7 @@ export const Layers: React.FC<LayersProps> = (p0) => {
   const below = k >= 0 ? layers.filter((l: any) => all.indexOf(l) < k) : [];
   const above = k >= 0 ? layers.filter((l: any) => all.indexOf(l) > k) : layers;
   return (
-    <AbsoluteFill style={{ background: graphics ? 'transparent' : pr.canvas.color || '#000', overflow: 'hidden' }}>
+    <AbsoluteFill style={{ background: graphics ? (p.bg || 'transparent') : pr.canvas.color || '#000', overflow: 'hidden' }}>
       {/* sound: each audio layer plays item by item, live (render/src/layers/AudioTrack.tsx) - the export mixes the same */}
       {!graphics && all.filter((l: any) => l.kind === 'audio').map((l: any) => <AudioTrack key={l.id} p={p} layer={l} />)}
       {k >= 0 && <EffectWrap p={p} f={f} below={(lag) => <AbsoluteFill style={{ background: pr.canvas.color || '#000' }}>{draw(below, Math.max(0, f - lag), lag)}</AbsoluteFill>} />}
