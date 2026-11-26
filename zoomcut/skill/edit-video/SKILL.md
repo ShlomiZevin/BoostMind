@@ -457,6 +457,31 @@ can play off (last call for HIS flight) goes on its own row, louder, in versions
 on their own row (small room). Script: `_assets/frankfurt/pa/gen.mjs` + `lines.json`. **Link** = a set + its bed (same
 from / dur); a one-shot or an announcement gets its own link (chime + its words) - never the place's, or he can't move it alone.
 
+## THE CUT-OUT IS BAD - offer the cloud cut-out (his ask, demokratovich-nechamta, 2026-11-26)
+"The cut-out is terrible... go clip by clip, frame by frame." **He decides: say what is wrong and OFFER it ("Do you want
+the cloud cut-out? ~N min, ~N cents") - never run it unasked, never a button.** When he says yes:
+1. **Look first, over green, at the frames it fails** (decode the take and the matte the same way: `scale=432:768:flags=area,fps=30`,
+   same frame index - never `-ss` on a VFR take). Usual causes: a white wall / ceiling behind the head (the bald top
+   vanishes), something round behind the head (a wall clock -> a grey blob on the kippah - `hybrid` brings it in), fast
+   hands (ghosts / dropped), a face filter (the AI beard). Local fixes (`hybrid`, `body`, `matte_cut`, `keep_objects`,
+   `wall_cut`, SAM points) are small patches; SAM 2 can't take a filtered face as one piece.
+2. **The cloud cut-out = BiRefNet-portrait on every frame**, a Cloud Run JOB `matte-birefnet` (NVIDIA L4, europe-west4,
+   boostmind-b052c; image `europe-west4-docker.pkg.dev/boostmind-b052c/studio-jobs/birefnet`). Code: `tools/birefnet/`
+   (Dockerfile + run.py = the job, cloud.py = the command). One command uploads the takes, runs the job, brings the mattes:
+   `python tools/birefnet/cloud.py <episode id> [take ...]` -> `work/matte/<take>.birefnet.mkv`. ~4 frames a second, ~$1
+   an hour of job time: nechamta's 5 takes (4,040 frames, 2:14) = 17.5 min, ~30 cents. It cuts every frame of the takes.
+   On his CPU (no GPU) the same model is ~13 s a frame - hours, full load (his PC blue-screens) - never locally.
+3. **Into the project:** episode.json `"matte_engine": "birefnet"` -> Analyze (it finds the mattes, remakes the cut-out
+   previews `work/public/takes/<take>.webm`). Analyze rebuilds project.json: **re-check everything changed by ops since the
+   last build** - it put the length back (an end card added by ops became 1 frame long), and a phone take with a rotate
+   flag came back as 1280x720 (`fit: cover` zooms it - fix the asset's w / h to 720x1280 by `asset.add`; a tool bug).
+4. Check over green again at the same frames, then the test export. Left: a very fast-blurred hand is soft; the kippah
+   top can clip a little on a head turn.
+Changing the job: edit `tools/birefnet/run.py` -> `python tools/birefnet/cloud.py --build` (Cloud Build, ~5-10 min, new
+tag in `image-tag.txt`, the job pointed at it). Logs: `gcloud logging read "resource.type=cloud_run_job AND
+resource.labels.job_name=matte-birefnet" --project boostmind-b052c --limit 30`. Hosted alternative if it ever isn't
+enough: fal.ai Bria video background removal (~$0.05-0.14 a second of video, an account he'd open) - not tried.
+
 ## ONE LONG RECORDING WITH MANY TAKES - find the real scenes first (his ask, rosenblum-2, 2026-11-26)
 "A long shot with several clips, several takes - find when a clip is starting and when it is ending ... remove the areas
 where I'm starting the camera or moving toward the camera." The general script, for ANY video like this:
