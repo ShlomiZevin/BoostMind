@@ -52,6 +52,18 @@ the resident's own voice setting from earlier projects. Keep it short - a greeti
   both Hani greetings. Measure the onset in the db10, not the transcript's word start. Laying the separated song as its own row did
   NOT work for him.
 - **No noise cleaning on the voice** (he removed `clean` from both of Hani's voice rows on greet-maya, 2026-11-19).
+- **Several takes = the analysis plays them in FILENAME order** (`lesson.py` sorts the glob). Phone files are UUIDs, so
+  the second half can come first (greet-tzvi: DD7D... was the opening, 4F69... the rest - the first build put them backwards
+  and squashed 10 subtitles into half a second). Read each take's first words BEFORE Analyze; when the order is wrong,
+  hardlink them (no copy) under ordered names into `Downloads\drop\greet-<slug>` (`New-Item -ItemType HardLink
+  1-<x>.mov`, `2-<y>.mov`) and point `input_dir` there. A take that starts by repeating the end of the previous one:
+  `cut.removes {"2-<y>": [[0, <sec>]]}` at the dip between the words.
+- **The place layers go UNDER the person**: a project made from the last greeting + a fresh Analyze puts the builder's
+  `person` / `subs` / `voice` rows first and the copied `hani.bg/kids/family` above them - the wall covers her and he
+  sees nothing. `layer.move` them to just above `set`, stretch them (and `namepill`) from 52 to the speech end.
+- **The end card after the last word**: every replan (a trim, Analyze) sets `duration` back to the take's end, and the
+  `pin: end` card then covers the last ~2 s of speech. After the last replan: `project set duration = speech end + 69`,
+  `end1.from = speech end`, the music row's `dur` = duration.
 - A mic pop on a plosive (a "ת" 4x his speech in the raw) clips after the voice chain = a "boom": that 0.15 s as its own
   voice clip at gain ~0.3 (greet-lior).
 
