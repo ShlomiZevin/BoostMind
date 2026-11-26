@@ -19,6 +19,7 @@ Built from the cut he loved on naomi-1-tight (2026-11-24) and every note he gave
 
 The plan (JSON) - everything optional except lines:
   {"start": 1.1,                       # timeline second the first line starts (after a knock, an intro)
+   "restarts": {"<take>": [15.3, 31.6]},   # recording restarts inside a take (take_finder) - kept clear of (1 s / 0.6 s)
    "overlap": 0.1, "minSilence": 0.18, "handle": 0.14,
    "script": "scripts/vova-hr.txt",    # subtitles take the script's spelling where the words match
    "fix": {"heard": "right"},          # mishears, word by word
@@ -445,6 +446,14 @@ def main():
     for ln in lines:
         ln["take"] = take_id(ln["take"])
     chars = plan.get("characters", {})
+    # recording restarts inside a take (tools/take_finder.py): nothing - a hold, a sound or picture handle - comes within
+    # 1.0 s before one (he looks at the phone to stop) or 0.6 s after one (the filter is off, he settles) - rosenblum-2
+    RST = {take_id(k): sorted(v) for k, v in (plan.get("restarts") or {}).items()}
+    def safe(take, x0, x1):
+        rs = RST.get(take, [])
+        lo = max([r + 0.6 for r in rs if r <= x0 + 0.6] or [0.0])
+        hi = min([r - 1.0 for r in rs if r >= x1 - 1.0 and r > x0] or [1e9])
+        return lo, hi
     order = []
     for ln in lines:
         if ln["who"] not in order:
@@ -540,6 +549,8 @@ def main():
         R[f"{w}.video"]["items"].append({"id": f"p{n[0]}", "from": fr, "dur": du, "asset": take, "in": round(A, 3),
                                          "box": dict(R[f"{w}.video"]["props"].get("box") or {"x": 0, "y": 0, "w": 1080, "h": 1920}), "link": lk})
         hp, ha = handles(tk, A, B, TURN_H if first else H, TURN_H if last else H)
+        lo_, hi_ = safe(take, A, B)                     # the sound never reaches a restart's click
+        hp, ha = max(0.0, min(hp, A - (lo_ - 0.5))), max(0.0, min(ha, hi_ + 0.9 - B))
         vf = max(0, F(t0 - hp))
         ve = F(t0 + (B - A) + ha)
         # the voice's own start = the picture's moment, frame-exact (the sync check below holds it to 0 ms)
@@ -557,6 +568,8 @@ def main():
             ps = [(round(max(TAKE_HEAD, a), 3), round(min(tk.dur - TAKE_TAIL, b + ln.get("hold", 0.0)), 3))]   # under LOUD)
         else:
             ps = pieces(tk, a, b, min_sil, [tuple(x) for x in ln.get("keep", [])], ln.get("cut", []), ln.get("hold", 0.0))
+        lo_, hi_ = safe(take, ps[0][0], ps[-1][1])
+        ps = [(max(A, lo_), min(B, hi_)) for A, B in ps if min(B, hi_) - max(A, lo_) > 0.1] or ps
         if prev_who is not None and w != prev_who and prev_last_word_tl is not None:
             # a turn: word to word overlap at playback speed (his 0.1 s), counted on the speech, not the clip edges
             runs = tk.runs(ps[0][0], ps[0][1])
@@ -613,9 +626,11 @@ def main():
                 tk = T[it["asset"]]
                 prev_end = its[k - 1]["from"] + its[k - 1]["dur"] if k else 0
                 nxt = its[k + 1]["from"] if k + 1 < len(its) else None
-                head = min(F(1.0), int((it["in"] - 0.7) * FPS), it["from"] - prev_end)
                 end_src = it["in"] + it["dur"] / FPS
-                tail = min(F(1.0), int((tk.dur - 0.45 - end_src) * FPS), (nxt - it["from"] - it["dur"]) if nxt is not None else F(1.0))
+                slo, shi = safe(it["asset"], it["in"], end_src)
+                head = min(F(1.0), int((it["in"] - 0.7) * FPS), it["from"] - prev_end, int((it["in"] - slo) * FPS))
+                tail = min(F(1.0), int((tk.dur - 0.45 - end_src) * FPS), (nxt - it["from"] - it["dur"]) if nxt is not None else F(1.0),
+                           int((shi - end_src) * FPS))
                 tail = min(tail, END - it["from"] - it["dur"])
                 head, tail = max(0, head), max(0, tail)
                 it["from"] -= head
