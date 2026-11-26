@@ -183,7 +183,7 @@ When he approves the video and says to put it out, do ALL of it, in this order, 
    `node scripts/verse/drop-frames.mjs <id>` (the frames for the home's live strip).
 4. **The socials** - the file he approved: `POST /api/ep/<id>/publish {platforms, caption, title, options, useLast:true}`
    (the socials' version goes by itself when there is a split). High-tech = exactly the four hashtags; `options.x.text`
-   without the link. Wait for every platform's `done` + link; TikTok's caption reaches his Telegram by itself.
+   without the link and with NO hashtags (his rule, 2026-11-26). Wait for every platform's `done` + link; TikTok's caption reaches his Telegram by itself.
 5. **A new character's site** - live, in /all/, the links page's sites strip, the record's `site`, wiki.md's table
    (CLAUDE.md "A new page or site"). Check, don't redo.
 6. **The stories - only in a release / when he asks** (not this skill's default, 2026-11-24): a verse story from the

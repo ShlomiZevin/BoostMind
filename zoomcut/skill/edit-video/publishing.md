@@ -13,8 +13,9 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
    these itself, the API does not: empty `options` = YouTube uploads PRIVATE (the safe fallback). sagi-1 (2026-11-05)
    went up private that way - he: "usually through the studio itself it's going public".
    (or `{afterExport: true, ...}` when he wants it out as soon as an export ends).
-   **The hashtags always end with #שלומיוורס** (his rule, 2026-11-02 - "don't forget #שלומיוורס"), in the caption AND
-   in `options.x.text`.
+   **The hashtags always end with #שלומיוורס** (his rule, 2026-11-02 - "don't forget #שלומיוורס"), in the caption.
+   **X takes NO hashtags** (his rule, 2026-11-26 - "no need for # in twitter"): `options.x.text` = the hook / the caption's
+   words without the hashtag line - always set it, or X gets the caption (with its hashtags) cut at 280.
    **The caption is never the character's first person** (adam-1, 2026-11-08 - he rewrote "אני שמח לשתף שסגרנו סבב
    גיוס" to "כשהשותף המייסד שמח לבשר…": "זה אף פעם לא אני. זו הדמות"): the post goes out on HIS account, so an "I"
    reads as Shlomi announcing it. Point at the character from outside - a "when <the character> ..." setup line - and
@@ -56,7 +57,7 @@ do** - a post is public and the APIs can't delete it (Instagram refused a delete
 | **Facebook** | his personal profile - **no API can post there** | - | - | pick it with Instagram: once the Reel is up the studio sends him a **Telegram reminder** (the Reel link + "⋯ → Share to Facebook") and he shares it |
 | **TikTok** | his **drafts** (sandbox app - public posting would need TikTok's audit) | **not with a draft** - the studio sends the caption to his Telegram to paste | in the pasted caption | ≤10 min. He adds a sound in the app |
 | **YouTube** | Short (vertical, ≤3 min) on @shlomizevin (owned by shlomi@boostart.io) | description = caption (+ #Shorts added) | in the description | title ≤100 (`title`), `options.youtube.privacy` public / unlisted / private. Public uploads are NOT locked (tested). A new upload can sit under Videos for a while before YouTube files it under Shorts. The API can't edit or delete - he does it in Studio |
-| **X** | a post with the video on @ShlomiZevin (his own X app "Sketch Studio", **Pay Per Use** credits, ~1.5¢ a post) | ≤280 (`options.x.text` = its own text, else the caption cut at 280) | 1-2, inside the 280 | ≤2:20 on a regular account. **No links** - the studio strips them (a link makes a post ~20¢) |
+| **X** | a post with the video on @ShlomiZevin (his own X app "Sketch Studio", **Pay Per Use** credits, ~1.5¢ a post) | ≤280 (`options.x.text` = its own text, else the caption cut at 280) | **none** (his rule, 2026-11-26) | ≤2:20 on a regular account. **No links** - the studio strips them (a link makes a post ~20¢) |
 Connected = its keys in zoomcut/.env (`GET /api/publish/platforms` says which).
 
 ## Writing the post
@@ -66,12 +67,12 @@ Connected = its keys in zoomcut/.env (`GET /api/publish/platforms` says which).
   one more line. No emoji walls - one or two at most.
 - **Hashtags at the end, 3-5 (never more than 5)**: the character / series (e.g. #טקיטק, #איילתהשחר, #דמוקרטוביץ), the topic of THIS
   video, one or two broad ones (#קומדיה, #סאטירה, #הומור). No #fyp spam, no 20-tag blocks.
-- **#שלומיוורס on EVERY video, every platform** (his rule, 2026-11-01) - in the caption's hashtags, in X's short text
-  too (it's one of its 1-2), in YouTube's description. Always spelled exactly #שלומיוורס. A caption without it isn't done.
+- **#שלומיוורס on EVERY video** (his rule, 2026-11-01) - in the caption's hashtags and YouTube's description. NOT on X:
+  X has no hashtags at all (his rule, 2026-11-26). Always spelled exactly #שלומיוורס. A caption without it isn't done.
 - **A site link only where it works**: Instagram / TikTok captions don't link - write "הלינק בביו" if the video points
   to the character's site; YouTube's description can hold the URL.
 - **Per platform**: Instagram + TikTok take the full caption; X gets its own short version (`options.x.text`) - the
-  hook + 1-2 hashtags (#שלומיוורס one of them); YouTube gets a title (the hook, ≤100) and the caption as its description.
+  hook / the caption's words, NO hashtags (2026-11-26); YouTube gets a title (the hook, ≤100) and the caption as its description.
 - Show him the caption before saving it when it's the first post of a series; afterwards follow what he approved.
 
 ## A backlog of videos (2026-10-24: his first 16 Shorts)
