@@ -73,6 +73,9 @@ and git stuff where we don't need it"):
   (the whole record). `content.mjs log character <id>` = who changed what.
 - Fan copy for new characters (Terra): `copy_brief.py --only-missing` -> openai.js -> `merge_copy.py <answer.md>` puts it
   onto the records.
+- A NEW resident also needs their gender for the chat's Hebrew ("הצטרף/הצטרפה", "מקליד/מקלידה"): `node
+  scripts/v2-design/genders.mjs` (Terra reads only the new ones -> `v2/site/verse/genders.json`), copy it to
+  `public/verse/`, commit, `bash scripts/deploy.sh`. Skipped = a woman "הצטרף" (his catch 2026-11-24 on Naomi).
 
 **A portrait / profile picture:** `node scripts/verse/content.mjs portrait <id> <image>` - cropped 4:5 from the top to
 480x600, live at once. Keep the original in `zoomcut/characters/<id>/portrait.jpg` on the computer that made it (git
