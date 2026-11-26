@@ -794,7 +794,14 @@ the spoken markers (`--markers אקשן,קאט`) and lists claps as boundaries; 
   deep voices, pick by measuring the pitch). **Round 2 (rosenblum-2, 2026-11-24):** "18-year-olds / deep voices" came out too OLD;
   of 6 he kept only `laugh-adult3` ("a crowd of adult university students in a lecture hall laughing out loud together,
   deep voices, big burst of laughter that dies down" - a bit too old) and `laugh-big` (desks slapped, one guy wheezing -
-  "someone laughs funny, maybe not bad"); murmur / snicker / 'losing it' prompts were "terrible". **A bigger laugh = stack
+  "someone laughs funny, maybe not bad"); murmur / snicker / 'losing it' prompts were "terrible". **Every real laugh = 3-4 of his APPROVED laughs together** (his ask, 2026-11-26: "are you adding like 3-4 laughs
+together from the laughs I approved"), 0 / 0.25 / 0.5 / 0.8 s apart, the lead ~-17..-18 LUFS, the others 3-6 dB under.
+**A background bed he asks for ("one constant hum"): show OPTIONS as muted rows** ("show me many options, put them as
+layers") - first the room noise of HIS OWN takes (the quiet frames of each take, looped - the most natural match for
+cuts between two recordings), then our library (`library/index.json` - he asked "are you checking our assets?"), then a
+few generated steady beds; all at one level (-44 dB), one row unmuted. ElevenLabs' free room-tone pages are 1-4 s clips -
+too short to loop.
+**A bigger laugh = stack
   the good ones** (his idea): 2-3 OK laughs offset 0.4-1.1 s, one a little higher - never a new 'huge' prompt. Real ones
   are worth trying too: Mixkit (free, no credit) "Laughing teenagers" `assets.mixkit.co/active_storage/sfx/429/429-preview.mp3`.
   His picks from round 2 go here. (5) Measure the balance from the layer stems (work/public/layers/stems, never an export - 2026-11-16) (music ~12-14 dB under the
