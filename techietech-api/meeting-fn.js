@@ -30,7 +30,7 @@ const guard = require('./guard');
 const ag = require('./ai-guard');   // the preview key's door, rounds per account / network / meeting, Syncs' money for the day (2026-11-22)
 
 if (!admin.apps.length) admin.initializeApp();
-const MEETING_OPEN = false;
+const MEETING_OPEN = true;   // opened 2026-11-26 (his call): any signed-in resident, one meeting a day
 const OPENAI = defineSecret('WIKI_OPENAI_KEY'), ANTHROPIC = defineSecret('VERSE_ANTHROPIC_KEY');
 const KEEP_DAYS = 7, DAY_MEETINGS = 1;
 // the preview key (his ask 2026-11-20: a Marketing session with no Google account uses the live tool while Syncs is closed): sent as the

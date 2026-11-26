@@ -58,7 +58,7 @@
     return { token, email: u.email, name: u.displayName || '', photo: u.photoURL || '', uid: u.uid };
   }
 
-  function sheet(site) {
+  function sheet(site, opt = {}) {
     return new Promise((resolve) => {
       if (!document.getElementById('ssi-css')) document.head.insertAdjacentHTML('beforeend', `<style id="ssi-css">${css}</style>`);
       const back = document.createElement('div');
@@ -68,10 +68,11 @@
       const safe = (v) => String(v).replace(/[<>&"']/g, '');
       let email = '';
       // Google (outside the apps) - email first inside them, where Google refuses to sign in
-      const google = () => `${X}<b>רגע לפני ששולחים</b><p>מתחברים, וככה יש לנו איך לחזור אליכם.</p>
+      const H = safe(opt.title || 'רגע לפני ששולחים'), L = safe(opt.line || 'מתחברים, וככה יש לנו איך לחזור אליכם.');
+      const google = () => `${X}<b>${H}</b><p>${L}</p>
         <button class="ssi-g" data-google>${G}<span>המשך עם Google</span></button>
         <button class="ssi-l" data-mail>או עם מייל רגיל</button><small>בלי סיסמאות. בלי ספאם.</small>`;
-      const mail = () => `${X}<b>רגע לפני ששולחים</b><p>משאירים מייל, מקבלים קוד, וזהו. כל מייל עובד, לא רק Gmail.</p>
+      const mail = () => `${X}<b>${H}</b><p>משאירים מייל, מקבלים קוד, וזהו. כל מייל עובד, לא רק Gmail.</p>
         <form class="ssi-f" data-f1><input class="ssi-in" type="email" inputmode="email" autocomplete="email" required placeholder="כתובת המייל שלכם" value="${safe(email)}">
         <button class="ssi-go">שלחו קוד</button></form><small></small>
         ${inApp() ? '<button class="ssi-l" data-copy>מעדיפים Google? העתיקו את הקישור ופתחו בדפדפן</button>' : '<button class="ssi-l" data-back>חזרה ל-Google</button>'}`;
@@ -148,9 +149,10 @@
   window.SiteSignIn = {
     ready,
     // signed in already -> the account at once; otherwise the sheet first. null = they walked away (or it can't load)
-    async ensure(site) {
+    // opt = { title, line }: the sheet's own words (Syncs: "before the meeting starts") - default: before sending
+    async ensure(site, opt) {
       try { await ready; } catch { alert('משהו לא נטען. רעננו את הדף ונסו שוב.'); return null; }
-      if (!auth.currentUser && !(await sheet(site))) return null;
+      if (!auth.currentUser && !(await sheet(site, opt || {}))) return null;
       return who(site);
     },
     user: () => (auth && auth.currentUser ? { email: auth.currentUser.email, name: auth.currentUser.displayName || '' } : null),

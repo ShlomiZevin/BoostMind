@@ -11,7 +11,8 @@
 // on the tile: "על השתק"), "<who> שם את <who> על השתק" the moment a line is cut, the history pinned to its last line, the action
 // items as their own block, the end = back to the Shlomiverse + share (a link to THIS meeting: /syncs/m/<id>, a public read-only page
 // with its own WhatsApp preview - verseMeeting renders it), a recording plays with a playback bar.
-// Modes: live (signed in, owner only for now - anyone else gets the end of the verse), demo (?demo=1: a recorded meeting, demo.json,
+// Modes: live (open since 2026-11-26, his call: anyone picks the room; "start" asks a signed-out visitor to sign in first - only a signed-in
+// resident starts a meeting, one a day), demo (?demo=1: a recorded meeting, demo.json,
 // no sign-in, no server), shared (/syncs/m/<id>: the server puts the meeting in #s-data).
 import { T } from '/verse/copy.js';
 import { I, esc, toast } from '/verse/ui.js';
@@ -100,7 +101,8 @@ async function boot() {
   const [{ st, onState }] = await Promise.all([import('/verse/state.js')]);
   auth = { st };
   if (!st.ready) await new Promise((ok) => { const off = onState(() => { if (st.ready) { off(); ok(); } }); });
-  if (!st.user) return notFound();
+  // signed out: they pick everything; the sign-in comes on "start" (signInFirst)
+  if (!st.user) { S = { mode: 'live', owner: false, booked: false, guest: true, visitor: { name: '', photo: '' } }; track('meeting', 'guest'); return pick(); }
   let r = null;
   try { r = await api({ op: 'peek' }); } catch (e) { r = null; }
   if (!r || !r.ok) return notFound();
@@ -181,7 +183,27 @@ function pick() {
   const faces = () => { el.querySelector('#mt-faces').innerHTML = picked().map((id) => `<img src="${esc(PIC(id))}" alt="">`).join(''); };
   el.querySelector('.mt-pk-list').addEventListener('change', faces);
   faces();
-  el.querySelector('#mt-go').onclick = () => titleCard(picked());
+  el.querySelector('#mt-go').onclick = async () => { const room = picked(); if (S.guest && !(await signInFirst())) return; titleCard(room); };
+}
+
+// a signed-out visitor pressed "start": the Shlomiverse's sign-in (the sites' sheet - this page has no verse styles), then the server is
+// asked again (one meeting a day: booked = the room is taken); true = go on to the title card
+async function signInFirst() {
+  track('meeting', 'signin-ask');
+  if (!window.SiteSignIn) await new Promise((ok) => { const s = document.createElement('script'); s.src = '/verse/site-signin.js'; s.onload = ok; s.onerror = ok; document.head.append(s); });
+  if (!window.SiteSignIn) { toast(M_().signFail); return false; }
+  const who = await window.SiteSignIn.ensure('syncs', { title: M_().signTitle, line: M_().signLine });
+  if (!who) { track('meeting', 'signin-closed'); return false; }
+  const t0 = Date.now();
+  while (!(auth.st.user && auth.st.ready) && Date.now() - t0 < 8000) await new Promise((r) => setTimeout(r, 120));
+  let r = null;
+  try { r = await api({ op: 'peek' }); } catch (e) { r = null; }
+  if (!r || !r.ok) { toast(M_().signFail); return false; }
+  const p = await r.json().catch(() => ({}));
+  Object.assign(S, { guest: false, owner: !!(p.more || p.owner), booked: !!p.booked, visitor: me0() });
+  track('meeting', 'signin-ok');
+  if (S.booked) { booked(); return false; }
+  return true;
 }
 
 // ---------- the title step (his ask 2026-11-21; his pick: design B - "I like to isolate steps") ----------

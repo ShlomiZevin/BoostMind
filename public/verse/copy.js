@@ -620,6 +620,7 @@ export const T = {
     roleFull: { amir: 'סמנכ"ל אסטרטגיה וחדשנות', ofer: 'סמנכ"ל פיתוח עסקי', daniel: 'AI Technology Enablement Specialist II', ronit: 'סמנכ"לית תפעול וניהול סיכונים', gilad: 'מנכ"ל ונשיא', yaniv: 'מהנדס אבטחת מידע' },
     // the app bar's state (his note round 4: a live meeting you are in vs a recording)
     live: 'פגישה פעילה', recorded: 'הקלטה', endedBadge: 'הסתיימה',
+    signTitle: 'רגע לפני שהישיבה מתחילה', signLine: 'מסדירים תושבות בשלומיוורס, ונכנסים לישיבה עם הצוות של טקי-טק.', signFail: 'משהו השתבש. נסו שוב.',
     pickTitle: 'מי בישיבה?', start: 'להתחיל את הישיבה', starting: 'הישיבה מתחילה', joining: 'מחברים אתכם לישיבה…',
     you: 'אתם',
     // the title step (his ask 2026-11-21: "you join a meeting, you must give a title" - theirs, not the AI's; his pick: design B,

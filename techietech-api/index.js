@@ -21,7 +21,7 @@ const CORS = [/^https:\/\/boostmind-b052c(--[\w-]+)?\.web\.app$/, /^https:\/\/(w
 // Sending anything from a Shlomiverse site needs a Google account (his rule, 2026-11-01: he wants the email of everyone
 // who plays with his sites). The page signs in with the Shlomiverse's Firebase Auth (public/verse/site-signin.js) and
 // sends its ID token; the person is kept in siteUsers and the request in `requests` - both show in /backstage/.
-const SITE_NAMES = { 'dr-naomi': 'ד״ר נעמי־ציפורה', ksa: 'KSA GROUP', archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
+const SITE_NAMES = { syncs: 'Syncs', 'dr-naomi': 'ד״ר נעמי־ציפורה', ksa: 'KSA GROUP', archive: 'הארכיון', tziftzif: 'ציפציפ', charadot: 'ח24', ayelet: 'איילת השחר', hindsight: 'HINDSIGHT VIP', demokratovich: 'שערי בג״ץ', dorit: 'דורית מרקורי',
   'ofnat-hani': 'אופנת חני', 'avi-balloons': 'אבי בלונים', 'neve-tidhar': 'המקיף נווה תדהר', techietech: 'טקי-טק', yotamverse: 'YOTAMVERSE' };
 // Security (his ask after the 22.11 scripted probe - 11 CVs with shell-injection file names from 5 fresh accounts, because the old
 // limit counted per instance in memory): every send is counted in Firestore across instances (guard.js) per account, per address
