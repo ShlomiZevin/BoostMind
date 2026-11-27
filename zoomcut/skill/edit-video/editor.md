@@ -261,6 +261,10 @@ One format, one composition, one editor, one export. The format and the API: `la
   change is written to the script file at once, Undo / Ctrl+Z takes it back (a toast offers it too). Each parsed line
   keeps its file rows (`rows`), so a change touches only that line's rows - notes (#), blank rows and layout stay.
   Entering Edit re-reads the file first (another session may have changed it).
+- **The Reader's parser = `render/reader/parse.js`** (one copy: the page loads it, `tools/reader_check.mjs` runs it for
+  sessions). Since 2026-11-27 a direction never counts as a `Name:` row, and a script is a dialogue only when `Name:` rows
+  are at least a quarter of the spoken rows (a colon in a direction had hidden every line of a monologue). Checked against
+  all 59 scripts then: no other script changed.
 - **Directions (הוראות בימוי) in the Reader:** a row in (parentheses) or [brackets] is a note to SEE while filming, never a
   line to say: a dashed box labelled הוראת בימוי; Play, ↑/↓ and clicks pass it by (the cursor never stops on one), the
   line count leaves it out. A note inside a spoken line, "אמיר: שלום (בלחש) לכולם", shows small and grey and isn't

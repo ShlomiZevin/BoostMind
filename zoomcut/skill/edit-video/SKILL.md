@@ -552,6 +552,24 @@ Round 2 of his notes (rosenblum-2, 2026-11-26), each one a rule for the next lon
 **Markers for the next shoots** (his idea): say "אקשן" before a take and "קאט" after it, or clap - the tool cuts at
 the spoken markers (`--markers אקשן,קאט`) and lists claps as boundaries; without markers it falls back to restarts + words.
 
+## THE READER - every script a session writes or changes (his words, 2026-11-27: "fix the reader I don't have any text
+## and make it clear how to work with the reader - it's the second time this week")
+He films from the Reader (localhost:4747/reader/). A script that reads wrong there = he stands in front of the camera with
+no text. The file is the project's script (`episodes/<id>/script.txt`, or `scripts/<name>.txt` when episode.json has
+`script`); write it through `/api/new-from-script`, or edit that file and keep the rest as it was.
+- **One person (a monologue):** every spoken line on its own row, plain - no names. That makes the Reader a prompter.
+- **A dialogue:** EVERY spoken row `Name: text` (the same spelling of each name every time).
+- **A direction (הוראת בימוי):** its own row, whole in `(…)` or `[…]` - where we are, what he does, what is heard
+  (`(בגייט, ליד שער העלייה)`, `(מתיישב)`, `(ברקע - כריזה, קריאה אחרונה...)`). Never inside a spoken row, never `**`.
+- `#` rows are not shown (the title `# ...` on row 1).
+- **Then ALWAYS run `node tools/reader_check.mjs <project>`** - the Reader's own parser (`render/reader/parse.js`):
+  it prints monologue / dialogue, the count of spoken lines and every line as he will see it; exit 1 = rows he won't see.
+  The count must equal the lines you wrote. Only then tell him "refresh the Reader".
+- What broke it (frankfurt-flight): I added `(ברקע: כריזה ...)` - the colon made the Reader take it for a `Name:` line,
+  the script became a dialogue and every plain spoken row vanished; he saw only the directions. The parser is fixed
+  (a direction never counts as a speaker; a dialogue needs `Name:` rows to be at least a quarter of what's said), and
+  the check above catches anything else.
+
 ## The workflow (every video)
 1. **Studio up?** `cd c:\workspace\BoostMind\zoomcut\render && node server.mjs` (background). Never restart it or start
    another heavy job while ANY job runs, test (`_`) projects too: `GET /api/jobs` → `busy` must be empty.
