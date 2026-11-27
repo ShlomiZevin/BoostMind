@@ -220,7 +220,10 @@ exports.verseMeeting = onRequest({
     if (!(await takeDay(who))) return res.status(429).json({ error: 'booked' });
     ref = db().collection('meetings').doc();
     // the visitor's Shlomiverse name (their fans record) - the team calls them by it, with the title they gave themselves
-    const nick = who.preview ? PREVIEW_NAME : await db().collection('fans').doc(who.uid).get().then((g) => String((g.data() || {}).nick || '')).catch(() => '');
+    // no Shlomiverse name yet -> the Google account's name (his note 2026-11-27: the page showed the visitor as Daniel, the team only
+    // knew "חוקר אבטחה" and never called them by name)
+    const nick = who.preview ? PREVIEW_NAME : await db().collection('fans').doc(who.uid).get().then((g) => String((g.data() || {}).nick || '')).catch(() => '')
+      || await require('firebase-admin').auth().getUser(who.uid).then((u) => String(u.displayName || '').trim()).catch(() => '');
     // what the residents know about this person - the chat's own note (wiki.js visitorLine), its facts part (the meeting has its own scene)
     const note = who.preview ? '' : await require('./wiki')._visitorLine(who).then((t) => (String(t || '').split('What you know about them:')[1] || '').trim()).catch(() => '');
     M = meeting.newMeeting({ ...keys, room, visitor: { name: nick, title }, visitorNote: note });

@@ -34,9 +34,12 @@ const ender = (room) => (room.includes(BOSS) ? BOSS : HOST);
 // are signed in) and the title THEY typed for this meeting (his ask 2026-11-21: "he chooses his title, and Amir only refers to it" -
 // the AI-made titles were weird); everyone calls them by it. Nobody makes up a title or describes them in their own words.
 // Each meeting reads the brain through its own thin copy (Object.create) that knows how to call the visitor.
+// a visitor whose first name is a team member's on the call (his note 2026-11-27: a visitor named Daniel, with Daniel on the team)
+// is called by their full name - never the bare first name, so nobody mixes them up
+const clash = (cur, v, room = []) => { const f = String(v.name || '').trim().split(/\s+/)[0]; return !!f && room.some((id) => String(cur.byId[id]?.name || '').split(/\s+/)[0] === f); };
 const label = (v = {}) => [v.name, v.title].filter(Boolean).join(', ') || 'the visitor';
 // titled: they gave themselves a title when they joined (an older page sends none - then they are just their name)
-const withVisitor = (cur, v) => Object.assign(Object.create(cur), { visitor: label(v), titled: !!v.title });
+const withVisitor = (cur, v, room = []) => Object.assign(Object.create(cur), { visitor: label(v), titled: !!v.title, clash: clash(cur, v, room) });
 const nameOf = (cur, id) => (id === 'user' ? cur.visitor || 'the visitor' : cur.byId[id]?.name || id);
 const relIn = (cur, id, room) => (cur.byId[id].relations || []).filter((r) => room.includes(r.id) && r.id !== id);
 // someone with no relation to anyone in the room (Yaniv): an outsider who was added to the call and doesn't get why
@@ -91,7 +94,7 @@ ${room.includes(BOSS) ? `- ${nameOf(cur, BOSS)} is the boss in this room, and th
 How you choose who speaks next:
 - whoever was just addressed by name, asked, blamed, contradicted or put on the spot answers.
 - otherwise whoever the line pulls in by their relation (the one who always agrees, the one who corrects, the boss).
-- the visitor (next = "user") gets the floor when a line turns to them or asks them something, when the exchange came to a natural rest, or when the team has talked among themselves for a while - the meeting is with the visitor, not a show for them. Two or three lines among the team is the fun; more and the visitor is a spectator. You are told how many team lines went by since the visitor last spoke.
+- the visitor (next = "user") gets the floor only through a line that turns to them by name or asks them something - never silently. When it is time for the visitor (the exchange came to a natural rest, or the team has talked among themselves for a while) and the line being said doesn't turn to them, the next speaker is the one who would turn to them (usually ${nameOf(cur, HOST)}), with a cue to turn to the visitor by name and ask them something about what was just said. The meeting is with the visitor, not a show for them. Two or three lines among the team is the fun; more and the visitor is a spectator. You are told how many team lines went by since the visitor last spoke.
 - everyone on the call is there for a reason: someone who hasn't said a word for a while gets pulled in when a line touches their part (their job, their relation to who just spoke) - by ${nameOf(cur, HOST)} turning to them, or by them jumping in.
 - never the one who is speaking now.
 ${room.includes(DANIEL) ? `- ${nameOf(cur, DANIEL)} never finishes a sentence: whenever he speaks, ${nameOf(cur, HOST)} cuts him off and picks up his last words (that part is set for you - after his line you are not asked).\n` : ''}- cut: the next speaker cuts the line being said off in the middle. That is ${room.includes(BOSS) ? nameOf(cur, BOSS) + "'s way; anyone else only very rarely" : 'rare in this meeting'}.
@@ -101,6 +104,7 @@ ${room.includes(DANIEL) ? `- ${nameOf(cur, DANIEL)} never finishes a sentence: w
 
 Answer JSON only:
 {"next": "<a team member's id> | user", "cut": true|false, "leave": true|false, "end": true|false, "closes": true|false,
+ "to_visitor": true | false (the line being said right now - or, with nobody speaking, the last line - turns to the visitor by name or asks them something),
  "cue": "for the next speaker: what they react to and what they do now, as content - one plain Hebrew sentence (never the wording). \\"\\" when next is user",
  "why": "one short English reason"}`;
 }
@@ -122,6 +126,11 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
   const speaking = inAir ? inAir.who : (log[log.length - 1] || {}).who;
   let next = room.includes(o.next) && o.next !== speaking ? o.next : 'user';
   if (M.run + (inAir ? 1 : 0) >= MAX_RUN) next = 'user';   // the guard: the floor goes back to the visitor
+  // the floor never passes to the visitor in silence (his note 2026-11-27: nobody turned to the guest, who never spoke): when the line
+  // doesn't turn to them, the host does - by name, with a question - and the floor is theirs after his line (one line past the guard)
+  const turner = speaking !== HOST && room.includes(HOST) ? HOST : room.find((id) => id !== speaking);
+  if (next === 'user' && o.to_visitor !== true && !silentLast(log) && turner && M.run + (inAir ? 1 : 0) <= MAX_RUN)
+    return { next: turner, cut: false, leave: false, end: false, cue: `${nameOf(cur, turner)} turns to ${nameOf(cur, 'user')} by name and asks them something about what was just said - the floor is theirs after this line`, why: 'the floor goes to the visitor only through someone turning to them', ms: r.ms };
   // the floor was the visitor's and they let it pass (the page's nudge): it doesn't go straight back to them with nobody saying a word -
   // the room goes on; when the organizer still names the visitor, the host (he drives the meeting) takes it
   if (!inAir && next === 'user' && silentLast(log) && room.includes(HOST))
@@ -140,7 +149,7 @@ function scene(cur, M, id) {
   const c = cur.byId[id], others = M.room.filter((x) => x !== id).map((x) => nameOf(cur, x));
   const rel = relIn(cur, id, M.room).map((r) => `${nameOf(cur, r.id)} - ${r.relation}`).join(' · ');
   return `A Zoom call of טקי-טק, on camera. On the call: ${M.room.map((x) => `${nameOf(cur, x)}${x === id ? ' (you)' : ''} - ${cur.byId[x].role || ''}`).join(' · ')} · ${nameOf(cur, 'user')} (from outside the team).${outsider(cur, id, M.room) ? ` ${c.name} knows them from work but doesn't work with them; someone added ${c.name} to this call and ${c.name} has no idea why.` : ` ${c.name} knows the team well.`}${cur.titled ? ` (${nameOf(cur, 'user')}'s title is the one they introduced themselves with when they joined, in their own words - nobody on the team gave it to them, and ${c.name} never makes up another one or describes them in their own words.)` : ''}${M.visitorNote ? `
-What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`}${cur.titled ? ` The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.` : ''}
+What ${c.name} knows about this visitor from before (the same as in the chat - it lives in how ${c.name} sees them and comes up when the talk reaches it): ${M.visitorNote}` : ` ${c.name} doesn't know them.`}${cur.titled ? ` The way people really use a title like that: the full title once in a while (greeting them, introducing them, a formal moment), otherwise ${c.name} calls them by their first name - never the whole title in every line.` : ''}${cur.clash ? ` ${nameOf(cur, 'user')} has the same first name as someone on the team: ${c.name} always calls them by their full name, never the first name alone - so it's clear who is meant.` : ''}
 ${M.topic ? `${invite(M)}
 ` : ''}${genderLine(M)}
 How ${c.name} stands with each of them: ${rel || '-'}
@@ -168,7 +177,7 @@ async function speak(M, plan, emit, handNow) {
   const now = nowIL();
   const prev = M.log.filter(spoken).slice(-1)[0];
   const why = plan.opening
-    ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - ${cur.titled ? `greeting them by their name and referring naturally to the title they introduced themselves with when they joined (${nameOf(cur, 'user')}): what they wrote, fitted into his sentence the way people say someone's title out loud (never recited word for word; their own first-person words like "באתי ל..." turn into "שבאו ל..."), never a new title or ${c.name}'s own description of who they are` : `greeting them by their name, ${nameOf(cur, 'user')} - never a title or ${c.name}'s own description of who they are`} - and he opens the meeting's subject.`
+    ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - ${cur.titled ? `greeting them by their name and referring naturally to the title they introduced themselves with when they joined (${nameOf(cur, 'user')}): what they wrote, fitted into his sentence the way people say someone's title out loud - in correct Hebrew, never recited word for word, never a new title or ${c.name}'s own description of who they are` : `greeting them by their name, ${nameOf(cur, 'user')} - never a title or ${c.name}'s own description of who they are`} - he opens the meeting's subject, and ends by turning to the visitor by name and handing them the floor: a question that opens what this meeting with them is for (the way a host opens a Zoom with the guest it was set up for).`
     : `Why ${c.name} speaks now: ${plan.cue || 'the line that was just said'}`
       + (plan.cut && prev ? (prev.who === DANIEL
         ? `\n${c.name} cuts ${nameOf(cur, DANIEL)} off before he finishes the sentence - as always - and picks up his last words ("${lastWords(prev.text)}"): ${c.name}'s line starts from exactly those words and reacts to them.`
@@ -241,7 +250,7 @@ ${PLAN_FORMAT(c)}`;
 function newMeeting({ cur, key, akey, room, visitor = {}, visitorNote = '' }) {
   const r = [HOST, ...TEAM.filter((id) => id !== HOST && (room || []).includes(id) && cur.byId[id])];
   const v = { name: String(visitor.name || '').trim().slice(0, 40), title: String(visitor.title || '').replace(/\s+/g, ' ').trim().slice(0, 40) };
-  return { cur: withVisitor(cur, v), visitor: v, visitorNote: String(visitorNote || '').slice(0, 3000), key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, costBy: { openai: 0, anthropic: 0, unsplit: 0 }, next: null, recap: null };
+  return { cur: withVisitor(cur, v, r), visitor: v, visitorNote: String(visitorNote || '').slice(0, 3000), key, akey, room: r, all: r.slice(), left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, costBy: { openai: 0, anthropic: 0, unsplit: 0 }, next: null, recap: null };
 }
 // what is kept between requests (meeting-fn.js puts it in Firestore) and how it comes back
 const STATE = ['room', 'all', 'left', 'log', 'run', 'phrases', 'hand', 'ended', 'cost', 'costBy', 'recap', 'visitor', 'visitorNote', 'topic'];
@@ -270,7 +279,7 @@ Answer JSON only: {"title": "2 to 6 words, Hebrew", "desc": "one short plain Heb
 // director decides)
 const invite = (M) => `The meeting invite: "${M.topic.title}"${M.topic.desc ? ` - ${M.topic.desc}` : ''}${M.topic.why ? `\nWhy this meeting was set up (everyone on the call knows it): ${M.topic.why}` : ''}`;
 const stateOf = (M) => Object.fromEntries(STATE.map((k) => [k, M[k] ?? null]));
-const fromState = (s, { cur, key, akey }) => ({ cur: withVisitor(cur, s.visitor || {}), key, akey, visitor: {}, room: [], all: [], left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, recap: null,
+const fromState = (s, { cur, key, akey }) => ({ cur: withVisitor(cur, s.visitor || {}, s.all || s.room || []), key, akey, visitor: {}, room: [], all: [], left: [], log: [], run: 0, phrases: {}, hand: false, ended: false, cost: 0, recap: null,
   ...Object.fromEntries(STATE.filter((k) => s[k] != null).map((k) => [k, s[k]])), costBy: s.costBy || { openai: 0, anthropic: 0, unsplit: s.cost || 0 }, next: null });
 
 async function round(M, emit, opts = {}) {
