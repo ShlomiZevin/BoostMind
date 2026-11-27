@@ -97,8 +97,8 @@ For OUR Instagram story, after the requester agreed (and pressed "הברכה נ�
   sound (re-transcribe the first seconds to find it), the first subtitle redrawn without it.
 - **The hook in front (2.2 s):** "רוצים להזמין ברכה מ<resident>?" / "ככה זה נראה" + the resident's portrait
   (`card.hookName` = how the hook calls them, "חני").
-- **The link slot (his OK on the mockup):** one fixed empty frame, the name card's look, at `top 1392, 660x146`,
-  centred, on EVERY frame of the story (hook, cards, take). He puts Instagram's link sticker on it and it covers nothing.
+- **The link slot (his OK on the mockup):** one fixed empty frame, the name card's look, shaped like Instagram's link
+  sticker (a rounded rectangle, not a capsule - his ask 2026-11-27) at `top 1400, 640x132, radius 28`, centred, on EVERY frame of the story (hook, cards, take). He puts Instagram's link sticker on it and it covers nothing.
   The subtitles move up to end at y 1370, above it.
 - **No background music** ("send me Hani with no bg music") - he adds music in Instagram. The sound = the voice layers
   only, through the Studio's own mixer, so her voice treatment (pitch, voice chain) stays exactly as exported: a

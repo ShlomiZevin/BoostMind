@@ -44,8 +44,9 @@ html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:Heebo;
 .pill{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);min-width:470px;padding:26px 56px 30px;border-radius:44px 44px 30px 30px;background:linear-gradient(180deg,rgba(40,24,18,.86),rgba(14,9,7,.92));border:2.5px solid rgba(255,160,90,.8);box-shadow:0 0 30px rgba(255,120,40,.55);text-align:center}
 .pill .n{font:800 66px/1.15 Heebo;color:#fff}.pill .t{font:800 64px/1.15 Heebo;color:#ffb074}
 /* the STORY version's link slot (his ask + OK 2026-11-26): one fixed empty frame through the whole story, between the subtitles
-   (raised to end at y 1370 in the story) and the name card - he puts Instagram's link sticker on it and it covers nothing */
-.slot{position:absolute;left:50%;top:1392px;transform:translateX(-50%);width:660px;height:146px;border-radius:999px;border:3px solid rgba(255,160,90,.85);
+   (raised to end at y 1370 in the story) and the name card - he puts Instagram's link sticker on it and it covers nothing.
+   Shaped like that sticker (his ask 2026-11-27): a rounded rectangle (~1:4.8, corners ~21% of the height), not a capsule */
+.slot{position:absolute;left:50%;top:1400px;transform:translateX(-50%);width:640px;height:132px;border-radius:28px;border:3px solid rgba(255,160,90,.85);
   background:linear-gradient(180deg,rgba(40,24,18,.62),rgba(14,9,7,.7));box-shadow:0 0 30px rgba(255,120,40,.5),inset 0 0 20px rgba(255,140,60,.25)}
 </style>`;
 const open = (g) => `<div class="space"><div class="stars"></div></div><div class="planet" style="top:1440px"></div>
