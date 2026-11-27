@@ -648,7 +648,9 @@ no text. The file is the project's script (`episodes/<id>/script.txt`, or `scrip
 6b. **THE FIRST PASS ALREADY HAS ALL OF THESE** (his rule, 2026-11-27: "in the first pass you already arrange the text on
    the video, the caption, the tags and the character in the export window") - never left for a later round:
    - **the text on the video** - the hook (פוב, in Hebrew - never "POV") as a text layer on top, his words when he gives
-     them (else write one in his style and say so);
+     them (else write one in his style and say so). **His text goes on EXACTLY as he wrote it - not one letter changed**
+     (2026-11-27: I "fixed" his "הזיה" to "ההזוי" - "אל תשנה שום דבר בטקסט שלי"), and the same words in the X text /
+     title when they reuse it. Font: Assistant (`font.assistant`), like every hook of his - never the default font;
    - **the caption + hashtags + YouTube title + X text** saved in the Send window (step 7 below, `publishing.md`);
    - **the cast** - every character in it on the Send window's "Who's in this video?" (`/api/ep/<id>/cast` + project
      `characters`; a character already fixed there shows as fixed).
