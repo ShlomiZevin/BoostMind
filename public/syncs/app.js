@@ -584,8 +584,9 @@ async function say(text) {
 // on (the director decides: someone turns to them, or the team carries on). Only from the page (a visitor who left never makes the
 // server talk), once per silence (again only after they sent something), never once it ends or in a recording, never while the tab is
 // hidden or the box has anything in it (typing = a raised hand).
-const NUDGE_MS = 10000;
-const nudgeOk = (me) => !!me && S === me && me.mode === 'live' && !!me.id && me.floor && !me.ended && !me.nudged && !me.pending && !document.hidden
+// OFF since 2026-11-27 (his rule: "when the customer is addressed and doesn't reply, do nothing - we wait for him, probably he went out")
+const NUDGE_ON = false, NUDGE_MS = 10000;
+const nudgeOk = (me) => NUDGE_ON && !!me && S === me && me.mode === 'live' && !!me.id && me.floor && !me.ended && !me.nudged && !me.pending && !document.hidden
   && !(root()?.querySelector('#mt-in')?.value || '').trim();
 function armNudge(me) {
   if (!me) return;

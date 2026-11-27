@@ -98,14 +98,15 @@ How you choose who speaks next:
 - the visitor (next = "user") gets the floor only through a line that turns to them by name or asks them something - never silently. When it is time for the visitor (the exchange came to a natural rest, or the team has talked among themselves for a while) and the line being said doesn't turn to them, the next speaker is the one who would turn to them (usually ${nameOf(cur, HOST)}), with a cue to turn to the visitor by name and ask them something about what was just said. The meeting is with the visitor, not a show for them. Two or three lines among the team is the fun; more and the visitor is a spectator. You are told how many team lines went by since the visitor last spoke.
 - everyone on the call is there for a reason: someone who hasn't said a word for a while gets pulled in when a line touches their part (their job, their relation to who just spoke) - by ${nameOf(cur, HOST)} turning to them, or by them jumping in.
 - never the one who is speaking now.
-${room.includes(DANIEL) ? `- ${nameOf(cur, DANIEL)} never finishes a sentence: whenever he speaks, ${nameOf(cur, HOST)} cuts him off (that part is set for you - after his line you are not asked).\n` : ''}- cut: the next speaker cuts the line being said off in the middle. That is ${room.includes(BOSS) ? nameOf(cur, BOSS) + "'s way; anyone else only very rarely" : 'rare in this meeting'}.
+${room.includes(DANIEL) ? `- ${nameOf(cur, DANIEL)} speaks only when someone asks him a question (the visitor or anyone on the team) - he never starts anything, never jumps in, never turns to anyone on his own. And he never finishes a sentence: whenever he speaks, ${nameOf(cur, HOST)} cuts him off (that part is set for you - after his line you are not asked).\n` : ''}- cut: the next speaker cuts the line being said off in the middle. That is ${room.includes(BOSS) ? nameOf(cur, BOSS) + "'s way; anyone else only very rarely" : 'rare in this meeting'}.
 - leave: true when the next speaker says their line and drops off the call right after it.
 - end: true only together with next = "${ender(room)}", when ${E} ends the meeting now.
 - closes: true when the line being said right now is ${E} closing the meeting ("we're synced, closing", "thanks everyone, that's it", a goodbye) - then the meeting ends after it, whatever comes next. Only ${E}'s line can close it.
 
 Answer JSON only:
 {"next": "<a team member's id> | user", "cut": true|false, "leave": true|false, "end": true|false, "closes": true|false,
- "to_visitor": true | false (the line being said right now - or, with nobody speaking, the last line - turns to the visitor by name or asks them something),
+ "to_visitor": true | false (the line being said right now - or, with nobody speaking, the last line - turns to the visitor by name or asks them something),${room.includes(DANIEL) ? `
+ "asks_daniel": true | false (the line being said right now - or, with nobody speaking, the last line - asks ${nameOf(cur, DANIEL)} a question),` : ''}
  "cue": "for the next speaker: what they react to and what they do now, as content - one plain Hebrew sentence (never the wording). \\"\\" when next is user",
  "why": "one short English reason"}`;
 }
@@ -126,12 +127,14 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
   const o = r.out || {};
   const speaking = inAir ? inAir.who : (log[log.length - 1] || {}).who;
   let next = room.includes(o.next) && o.next !== speaking ? o.next : 'user';
+  // Daniel only answers questions (his rule 2026-11-27: "he never starts something if not being asked") - not asked = not him;
+  // the host takes it (he drives the meeting), else the floor is the visitor's
+  if (next === DANIEL && o.asks_daniel !== true) next = speaking !== HOST && room.includes(HOST) ? HOST : 'user';
   if (M.run + (inAir ? 1 : 0) >= MAX_RUN) next = 'user';   // the guard: the floor goes back to the visitor
   // the floor never passes to the visitor in silence (his note 2026-11-27: nobody turned to the guest, who never spoke): when the line
-  // doesn't turn to them, the host does - by name, with a question - and the floor is theirs after his line (one line past the guard)
-  // never Daniel while Amir is on the call - he is cut before he can turn to anyone (2026-11-27: he was sent again and again); nobody left
-  // to turn to them -> the floor is simply theirs
-  const turner = speaking !== HOST && room.includes(HOST) ? HOST : room.find((id) => id !== speaking && !(id === DANIEL && room.includes(HOST)));
+  // doesn't turn to them, the host does - by name, with a question - and the floor is theirs after his line (one line past the guard).
+  // Never Daniel (he only answers questions); nobody to turn to them -> the floor is simply theirs
+  const turner = speaking !== HOST && room.includes(HOST) ? HOST : room.find((id) => id !== speaking && id !== DANIEL);
   if (next === 'user' && o.to_visitor !== true && !silentLast(log) && turner && M.run + (inAir ? 1 : 0) <= MAX_RUN)
     return { next: turner, cut: false, leave: false, end: false, cue: `${nameOf(cur, turner)} turns to ${nameOf(cur, 'user')} by name and asks them something about what was just said - the floor is theirs after this line`, why: 'the floor goes to the visitor only through someone turning to them', ms: r.ms };
   // the floor was the visitor's and they let it pass (the page's nudge): it doesn't go straight back to them with nobody saying a word -
@@ -160,8 +163,6 @@ The others, and how they stand with everyone here:
 ${forces(cur, M.room, id)}
 
 Everyone listed above is on the call: ${c.name} talks to them directly, never behind their back. People who are not on the call ${c.name} may talk about, never to.
-${c.name}'s own earlier lines are in the meeting below: the same person, never the same line - a move ${c.name} already made in this meeting never comes back in the same words or the same sentence shape (his note 2026-11-27: a formula said again and again kills the talk).
-
 The meeting so far:
 ${transcript(cur, M.log)}`;
 }
