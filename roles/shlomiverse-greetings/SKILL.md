@@ -88,34 +88,20 @@ The Studio's greeting steps (the same ones as the Send window - `zoomcut/render/
    Without the Studio running: `node scripts/greetings/greet.cjs add --video <export.mp4> --char <id> --request <id>
    --for "<name>" --event "<event>"`, then `send <gid> --test`, then `send <gid> --yes` - the same steps.
 
-## 4 · The story version - only to him (his asks 2026-11-25/26, first made for greet-osher)
-For OUR Instagram story, after the requester agreed (and pressed "הברכה נמסרה" - no spoiling). **It goes only to him**
-(Telegram + chat). The requester's video and the greeting page never change: no slot, no hook, nothing.
-- **Names stay** - the story keeps the name, the event and the date exactly like the greeting (cards, sound, subtitles).
-  Anonymous ONLY when that greeting's requester asked for it (greet-osher, once - his word 2026-11-26: "it was one time when
-  they asked", not a rule): then `card.anon: true` + `card.storyEvent` ("ליום הנישואין"), the spoken name cut from the
-  sound (re-transcribe the first seconds to find it), the first subtitle redrawn without it.
-- **The hook in front (2.2 s):** "רוצים להזמין ברכה מ<resident>?" / "ככה זה נראה" + the resident's portrait
-  (`card.hookName` = how the hook calls them, "חני").
-- **The link slot (his OK on the mockup):** one fixed empty frame, the name card's look, shaped like Instagram's link
-  sticker (a rounded rectangle, not a capsule - his ask 2026-11-27) at `top 1400, 640x132, radius 28`, centred, on EVERY frame of the story (hook, cards, take). He puts Instagram's link sticker on it and it covers nothing.
-  The subtitles move up to end at y 1370, above it.
-- **No background music** ("send me Hani with no bg music") - he adds music in Instagram. The sound = the voice layers
-  only, through the Studio's own mixer, so her voice treatment (pitch, voice chain) stays exactly as exported: a
-  scratchpad copy of the project (never his project, never under `episodes/`) with the music layer REMOVED (muting isn't
-  enough - its file is still decoded), then `pipeline.layers_audio.mix(Episode(<copy>), project, voice.wav)` from
-  `zoomcut/`, then `atempo=<project speed>` (what the export does), the same name cut, silence under the hook.
-  The source wav comes from `gs://shlomiverse-studio/projects/greet-<slug>/media/`. Check it against the export:
-  envelope correlation, the lag must be 0 ms.
-- **The cards:** `node scripts/greetings/cards.cjs <slug> --story` -> story-hook / story-open / story-end (opaque, with the
-  slot), story-slot (transparent, the slot alone - over the take), story-name (the anonymous name card + the slot). Their
-  own cards are not touched by `--story`.
-- **Put together with ffmpeg on the exported mp4** (never a Studio export from the session): a feathered blur band
-  (1040x250 at 20,1310) over the old subtitles during the take, story-slot over the take, the subtitles redrawn
-  (Assistant 800 66px, white, black 10px stroke, bottom at 1370; their times = Studio frame / 30 / speed, shifted by the
-  cut and the hook), the cards over their spans. Look at a frame of every subtitle (a two-line one too) before sending.
-- Saved in `zoomcut/episodes/_assets/greetings/<slug>/` as `story.mp4` (named; `story-song.mp4` when a song is mixed in, greet-tzvi), or `story-no-details.mp4` only for an anonymous one (`card.anon`, greet-osher). Sent to his Telegram (`render/share.mjs`
-  sendTelegram).
+## 4 · Our Instagram story = the same video (his call 2026-11-27)
+**One video for everyone**: the requester, the greeting page and his own story get the same export. No story version, no hook,
+no separate sound.
+- **The link space is built into every greeting**: the subtitles end at y 1370 (the `subs` layer's box
+  `{"x": 540, "y": 1370, "w": 980, "anchor": "b"}`), and the band between them and the name card (y ~1392-1538) stays
+  EMPTY - no frame, nothing. He puts Instagram's link sticker there and it covers nothing. Set the box after the LAST
+  Analyze (a fresh build brings its own `subs` row), and look at a frame with a two-line subtitle.
+- **Names, event, date: case by case** - his call per greeting, never a standing rule either way. If he asks for one
+  without them on our story, he says so for that greeting (greet-osher, 2026-11-26: `card.anon: true` + `card.storyEvent`,
+  `cards.cjs <slug> --story` draws story-open / story-name without them, the spoken name cut from the sound - re-transcribe
+  the first seconds to find it). Only then is there a second file.
+- **Our story only after the requester pressed "הברכה נמסרה"** on the page (no spoiling) - he gets a Telegram when they do;
+  the Make step already sent him the video.
+- Earlier greetings (maya, lior, osher, tzvi) keep what they have - their stories were already handled.
 
 ## Report
 The bottom line only: "ready to film + link", "first cut + link", "sent to <first name> (email + SMS) + page link". And

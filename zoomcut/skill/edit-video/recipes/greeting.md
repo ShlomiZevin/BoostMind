@@ -21,6 +21,9 @@ Light, gentle, subtle: the message is the main thing. Every part a layer in the 
 1. **Opening card ~1.5 s**: the Shlomiverse logo + one line "למאיה · שנתיים ביחד · 28.11.2026" (for · event · date).
 2. **The take**: the resident at the desk, with subtitles and only a small name line at the bottom
    ("חנה פרידמן · למאיה" - who blesses · for whom). Nothing else on the picture: no POV band, no stickers.
+   **The subtitles end at y 1370** (`subs` box `{"x": 540, "y": 1370, "w": 980, "anchor": "b"}`, set after the last
+   Analyze) and the band down to the name card (y ~1392-1538) stays EMPTY: the same export is his Instagram story, and he
+   puts the link sticker there (his call 2026-11-27 - one video for the requester, the page and the story).
 3. **End card**: "ברכה אישית מתושב בשלומיוורס" + "shlomiverse.com".
 - A resident of Techy-Tech (Hani, Yotam, the team) = the Techy-Tech logo next to the Shlomiverse one on the cards.
 - **Hani signs as "חנה פרידמן"**, never חני.
