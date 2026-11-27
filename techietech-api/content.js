@@ -25,7 +25,7 @@ const KINDS = {
     'catchphrases', 'color', 'site', 'relations', 'brief', 'personality', 'speech', 'behavior', 'comedy', 'themes', 'dont', 'look', 'writing_rules',
     // the studio's own (since 2026-11-06 the record is the ONLY copy - no character.json in git): the voice preset, the
     // Reader's pace, links, the projects it's in, sources, and paths to its pictures / sounds on the computers
-    'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes',   // site_notes: the studio's site.notes (site = its url)
+    'voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes', 'filter',   // site_notes: the studio's site.notes (site = its url)
     // the character sheet (Backstage → דמויות, 2026-11-11, his ask: "people, not replicas"): who they are, how they talk, what is
     // funny, the parody, the nuance, the dissonance, a few catchphrases (sheet); how loveable 1-10 (love); their life, one event
     // per video (life: [{v, d, e}]) - what the chat's chain answers from; how viral right now 1-10 (viral - a much-loved
@@ -36,7 +36,9 @@ const KINDS = {
   game: { col: 'catalogGames', need: ['url', 'title'], fields: ['url', 'title', 'tagline', 'img', 'chars', 'site', 'date', 'record', 'cover_text'] },
   site: { col: 'catalogSites', need: ['url'], fields: ['order', 'url', 'title', 'about', 'img', 'host', 'whose', 'in', 'topic', 'tagline', 'mainOf'] },
 };
-const STUDIO = ['voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes'];   // not on the site
+// filter (his ask 2026-11-27, management only - never on the site): the camera filter the character is filmed with, so it is never lost -
+// { app: 'snapchat' | 'tiktok' | ..., url (a TikTok filter has none), name, note }
+const STUDIO = ['voice', 'pace', 'links', 'videos', 'sources', 'portrait', 'assets', 'tier', 'site_notes', 'filter'];   // not on the site
 const ID = /^[a-z0-9][a-z0-9_-]{0,80}$/i;
 const db = () => admin.firestore();
 const hash = (v) => crypto.createHash('md5').update(JSON.stringify(v ?? null)).digest('hex').slice(0, 12);

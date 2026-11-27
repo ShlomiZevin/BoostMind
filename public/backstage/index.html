@@ -1308,6 +1308,13 @@ function crNotesHtml(c, anchor, open) {
     <div><button class="btn main" data-csend="${esc(anchor)}">שליחה</button>${anchor ? '<button class="btn" data-cclose="' + esc(anchor) + '">סגירה</button>' : ''}<small class="ch-saved">נשמר כטיוטה עד שתשלח</small></div></div>` : '';
   return rows || comp ? `<div class="ch-notes">${rows}${comp}</div>` : '';
 }
+// the camera filter the character is filmed with (his ask 2026-11-27 - management only, so it is never lost): content.js 'filter'
+function crFilter(c) {
+  const f = c.filter || {};
+  if (!f.url && !f.name && !f.note) return '<small style="color:var(--faint)">פילטר: עוד לא נשמר</small>';
+  const what = [f.app === 'tiktok' ? 'TikTok' : f.app === 'snapchat' ? 'Snapchat' : f.app, f.name].filter(Boolean).join(' · ') || 'הפילטר';
+  return `<small>פילטר: ${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(what)}</a>` : esc(what)}${f.note ? ` · ${esc(f.note)}` : ''}</small>`;
+}
 function crView() {
   const c = CR.chars.find((x) => x.id === crId);
   if (!c) { crId = null; return chars(); }
@@ -1317,7 +1324,7 @@ function crView() {
     return `<div class="ch-f"><div class="ch-r ${fresh('life') ? 'new' : ''}"><div class="v ch-v"><span class="d"><b>${i + 1}</b><br>${esc(x.d ? dm(x.d) : '')}</span><span>${esc(x.e)}${v ? `<small>${esc(v.title)}</small>` : ''}</span></div>
       <button class="ch-nb ${k ? 'has' : ''}" data-crrow="${esc(a)}">${IC.comment}${k || 'הערה'}</button></div>${crNotesHtml(c, a, crOpenRows.has(a))}</div>`; }).join('');
   paint(`<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
-    <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}</div></div>
+    <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}${crFilter(c)}</div></div>
     ${(c.id === CR_GUIDE ? [] : [['love', 'כמה אהוב'], ['viral', 'כמה ויראלי כרגע']]).map(([f, l]) => `<div class="ch-love"><b>${l}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crscore="${f}" data-v="${i + 1}" class="${i + 1 <= (c[f] || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>`).join('')}
     <div class="ch-sec"><h3>ההערות שלך על ${esc(c.name)}</h3>${crNotesHtml(c, '', true)}</div>
     ${crHasSheet(c) ? `<div class="ch-sec ${fresh('sheet') ? 'fresh' : ''}">${fresh('sheet') ? '<span class="tag ok">הדף עודכן מאז שראית</span>' : ''}

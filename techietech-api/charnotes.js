@@ -14,7 +14,7 @@ const clip = (s, n) => String(s ?? '').slice(0, n);
 const ms = (t) => (t && t.toMillis ? t.toMillis() : null);
 const pub = (u) => String(u || '').replace('https://boostmind-b052c.web.app', 'https://shlomiverse.com');
 // the parts of a record shown and noted on (the rest - colour, order, questions, sources - isn't about who they are)
-const FIELDS = ['name', 'name_en', 'aka', 'world', 'role', 'tagline', 'brief', 'bio', 'personality', 'speech', 'behavior', 'themes', 'look',
+const FIELDS = ['filter', 'name', 'name_en', 'aka', 'world', 'role', 'tagline', 'brief', 'bio', 'personality', 'speech', 'behavior', 'themes', 'look',
   'comedy', 'catchphrases', 'writing_rules', 'dont', 'relations', 'site', 'hidden', 'sheet', 'love', 'viral', 'life'];
 
 const note = (d) => ({ id: d.id, ...d.data(), t: ms(d.data().t) });
