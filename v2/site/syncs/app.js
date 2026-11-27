@@ -213,9 +213,14 @@ async function signInFirst() {
 const TITLE_MAX = 40, TITLE_KEY = 'syncs-title';
 const lastTitle = () => { try { return localStorage.getItem(TITLE_KEY) || ''; } catch (e) { return ''; } };
 const keepTitle = (t) => { try { localStorage.setItem(TITLE_KEY, t); } catch (e) { /* no storage - it is asked again next time */ } };
+const NAME_MAX = 24, NAME_KEY = 'syncs-name';
+const lastName = () => { try { return localStorage.getItem(NAME_KEY) || ''; } catch (e) { return ''; } };
+const keepName = (t) => { try { localStorage.setItem(NAME_KEY, t); } catch (e) { /* no storage - it is asked again next time */ } };
 const XMARK = svg('<path d="M6 6l12 12M18 6 6 18"/>', 2.2);
 function titleCard(picked) {
   const el = root(); if (!el || el.querySelector('#mt-dim')) return;
+  // an email sign-in has no name (his note 2026-11-27: the team called a visitor by their title) - then the card asks for one too
+  const known = vName() || String((auth && auth.st.user && auth.st.user.displayName) || '').trim();
   const top = el.querySelector('.mt-bar');
   const dim = document.createElement('div');
   dim.className = 'mt-dim'; dim.id = 'mt-dim';
@@ -223,14 +228,17 @@ function titleCard(picked) {
   dim.innerHTML = `<div class="mt-tt-card" role="dialog" aria-modal="true" aria-labelledby="mt-tt-h">
     <button type="button" class="mt-tt-x" id="mt-tt-x" aria-label="${esc(M_().meClose)}">${XMARK}</button>
     <h2 id="mt-tt-h">${esc(M_().meAsk)}</h2>
-    <div class="mt-tt-me">${meFace('mt-tt-face')}<b>${esc(vName() || M_().you)}</b></div>
+    <div class="mt-tt-me">${meFace('mt-tt-face')}<b>${esc(known || M_().you)}</b></div>
+    ${known ? '' : `<label class="mt-tt-l" for="mt-name">${esc(M_().meName)}</label>
+    <input id="mt-name" class="mt-tt-name" maxlength="${NAME_MAX}" enterkeyhint="next" autocomplete="given-name" placeholder="${esc(M_().meNamePh)}">`}
     <label class="mt-tt-l" for="mt-title">${esc(M_().meTitle)}</label>
     <input id="mt-title" maxlength="${TITLE_MAX}" enterkeyhint="go" autocomplete="off" placeholder="${esc(M_().meTitlePh)}">
     <button type="button" class="mt-btn go" id="mt-enter">${esc(M_().meEnter)}</button></div>`;
   el.append(dim);
-  const ti = dim.querySelector('#mt-title'), enter = dim.querySelector('#mt-enter');
+  const ti = dim.querySelector('#mt-title'), enter = dim.querySelector('#mt-enter'), ni = dim.querySelector('#mt-name');
   const title = () => ti.value.replace(/\s+/g, ' ').trim().slice(0, TITLE_MAX);
-  const ready = () => { enter.disabled = !title(); };
+  const name = () => (ni ? ni.value.replace(/\s+/g, ' ').trim().slice(0, NAME_MAX) : '');
+  const ready = () => { enter.disabled = !title() || (!!ni && !name()); };
   const onKey = (e) => { if (e.key === 'Escape') close(); };
   const close = () => { removeEventListener('keydown', onKey); dim.remove(); };
   addEventListener('keydown', onKey);
@@ -238,12 +246,15 @@ function titleCard(picked) {
   dim.querySelector('#mt-tt-x').onclick = close;
   ti.value = (S.title || lastTitle()).slice(0, TITLE_MAX);
   ti.addEventListener('input', ready);
+  if (ni) { ni.value = (S.name || lastName()).slice(0, NAME_MAX); ni.addEventListener('input', ready); ni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); ti.focus(); } }); }
   ti.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); enter.click(); } });
   ready();
   enter.onclick = () => {
     const t = title();
+    if (ni && !name()) { ni.focus(); return; }
     if (!t) { ti.focus(); return; }
     S.title = t; keepTitle(t);
+    if (ni) { S.name = name(); keepName(S.name); S.visitor = { ...VIS(), name: S.name }; }
     removeEventListener('keydown', onKey);
     track('meeting', 'start:' + picked.join(','));
     live([HOST, ...TEAM.filter((id) => id !== HOST && picked.includes(id))]);
@@ -279,7 +290,7 @@ function live(room, opts = {}) {
   inp.addEventListener('input', () => { el.querySelector('#mt-box').classList.toggle('has', !!inp.value.trim()); if (inp.value.trim()) raise(); armNudge(S); });
   el.querySelector('#mt-hand').onclick = () => { raise(); inp.focus(); };
   el.querySelector('#mt-box').onsubmit = (e) => { e.preventDefault(); const t = inp.value.trim(); if (!t || S.ended || S.pending) return; inp.value = ''; el.querySelector('#mt-box').classList.remove('has'); say(t); };
-  stream({ op: 'start', room, title: S.title || '' });
+  stream({ op: 'start', room, title: S.title || '', ...(S.name ? { name: S.name } : {}) });
 }
 // a tile: the face, the name; a tag on top (next) and a band over the face for what they are doing right now
 const tile = (id) => `<div class="mt-tile" data-id="${id}"><img src="${esc(PIC(id))}" alt=""><span class="mt-tag"></span><span class="mt-un"></span><span class="mt-ic"></span><span class="mt-nm"><b>${esc(NAME(id))}</b></span></div>`;

@@ -626,7 +626,7 @@ export const T = {
     you: 'אתם',
     // the title step (his ask 2026-11-21: "you join a meeting, you must give a title" - theirs, not the AI's; his pick: design B,
     // a card of its own after the picker - "I like to isolate steps")
-    meAsk: 'איך להציג אותך?', meTitle: 'התפקיד שלך בפגישה', meTitlePh: 'למשל: משקיע שבא לשמוע על המוצר', meEnter: 'להיכנס לפגישה',
+    meAsk: 'איך להציג אותך?', meName: 'השם שלך', meNamePh: 'איך לקרוא לך בפגישה', meTitle: 'התפקיד שלך בפגישה', meTitlePh: 'למשל: משקיע שבא לשמוע על המוצר', meEnter: 'להיכנס לפגישה',
     meClose: 'סגירה', meTitleNeed: 'צריך לכתוב את התפקיד שלך בפגישה',
     // the moment before someone talks, like on Zoom - on their tile in the row (the speakers queue) - f = Ronit
     pre: [

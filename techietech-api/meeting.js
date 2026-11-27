@@ -28,7 +28,8 @@ const TEAM = ['amir', 'ofer', 'daniel', 'ronit', 'gilad', 'yaniv'];
 const HOST = 'amir', BOSS = 'gilad';
 const MAX_RUN = 4;          // resident lines in a row before the floor is the visitor's (a guard, not the organizer's taste)
 const SILENT_S = 10;        // the visitor's silence on their own floor before the page asks the room to go on (the page's nudge)
-const DANIEL = 'daniel';   // never finishes a sentence: Amir always cuts him off and picks up his last words (his rule, 2026-11-20)
+const DANIEL = 'daniel';   // never finishes a sentence: Amir always cuts him off, early, at a random word (his rules 2026-11-20, 2026-11-27);
+                           // how Amir answers it is his own (his page + the director) - nothing outside tells him what to do with Daniel's words
 const ender = (room) => (room.includes(BOSS) ? BOSS : HOST);
 // the visitor: no "guest" anywhere (his note 2026-11-20, "a real product"). They join with their Shlomiverse name (we have it - they
 // are signed in) and the title THEY typed for this meeting (his ask 2026-11-21: "he chooses his title, and Amir only refers to it" -
@@ -97,7 +98,7 @@ How you choose who speaks next:
 - the visitor (next = "user") gets the floor only through a line that turns to them by name or asks them something - never silently. When it is time for the visitor (the exchange came to a natural rest, or the team has talked among themselves for a while) and the line being said doesn't turn to them, the next speaker is the one who would turn to them (usually ${nameOf(cur, HOST)}), with a cue to turn to the visitor by name and ask them something about what was just said. The meeting is with the visitor, not a show for them. Two or three lines among the team is the fun; more and the visitor is a spectator. You are told how many team lines went by since the visitor last spoke.
 - everyone on the call is there for a reason: someone who hasn't said a word for a while gets pulled in when a line touches their part (their job, their relation to who just spoke) - by ${nameOf(cur, HOST)} turning to them, or by them jumping in.
 - never the one who is speaking now.
-${room.includes(DANIEL) ? `- ${nameOf(cur, DANIEL)} never finishes a sentence: whenever he speaks, ${nameOf(cur, HOST)} cuts him off and picks up his last words (that part is set for you - after his line you are not asked).\n` : ''}- cut: the next speaker cuts the line being said off in the middle. That is ${room.includes(BOSS) ? nameOf(cur, BOSS) + "'s way; anyone else only very rarely" : 'rare in this meeting'}.
+${room.includes(DANIEL) ? `- ${nameOf(cur, DANIEL)} never finishes a sentence: whenever he speaks, ${nameOf(cur, HOST)} cuts him off (that part is set for you - after his line you are not asked).\n` : ''}- cut: the next speaker cuts the line being said off in the middle. That is ${room.includes(BOSS) ? nameOf(cur, BOSS) + "'s way; anyone else only very rarely" : 'rare in this meeting'}.
 - leave: true when the next speaker says their line and drops off the call right after it.
 - end: true only together with next = "${ender(room)}", when ${E} ends the meeting now.
 - closes: true when the line being said right now is ${E} closing the meeting ("we're synced, closing", "thanks everyone, that's it", a goodbye) - then the meeting ends after it, whatever comes next. Only ${E}'s line can close it.
@@ -112,7 +113,7 @@ async function organize(M, inAir) {
   const { cur, log } = M;
   // his rule: Daniel never finishes a sentence - Amir cuts him off, always (no organizer call, the guards don't apply)
   if (inAir && inAir.who === DANIEL && M.room.includes(HOST) && !inAir.leaving)
-    return { next: HOST, cut: true, leave: false, end: false, forced: true, cue: `${nameOf(cur, HOST)} cuts ${nameOf(cur, DANIEL)} off before he finishes and picks up his last words`, why: 'Daniel never finishes a sentence (his rule)' };
+    return { next: HOST, cut: true, leave: false, end: false, forced: true, cue: `${nameOf(cur, HOST)} cuts ${nameOf(cur, DANIEL)} off`, why: 'Daniel never finishes a sentence (his rule)' };
   const room = M.room.filter((id) => !(inAir && inAir.leaving && id === inAir.who));   // the one leaving now is not on the call after their line
   const user = `${M.topic ? invite(M) + '\n' : ''}Team lines since the visitor's last turn: ${M.run}.${M.left.length ? `\nLeft the call (gone): ${M.left.map((id) => nameOf(cur, id)).join(', ')}.` : ''}
 The meeting so far:
@@ -128,7 +129,9 @@ ${inAir ? `\nRight now ${nameOf(cur, inAir.who)} is saying (its content): ${inAi
   if (M.run + (inAir ? 1 : 0) >= MAX_RUN) next = 'user';   // the guard: the floor goes back to the visitor
   // the floor never passes to the visitor in silence (his note 2026-11-27: nobody turned to the guest, who never spoke): when the line
   // doesn't turn to them, the host does - by name, with a question - and the floor is theirs after his line (one line past the guard)
-  const turner = speaking !== HOST && room.includes(HOST) ? HOST : room.find((id) => id !== speaking);
+  // never Daniel while Amir is on the call - he is cut before he can turn to anyone (2026-11-27: he was sent again and again); nobody left
+  // to turn to them -> the floor is simply theirs
+  const turner = speaking !== HOST && room.includes(HOST) ? HOST : room.find((id) => id !== speaking && !(id === DANIEL && room.includes(HOST)));
   if (next === 'user' && o.to_visitor !== true && !silentLast(log) && turner && M.run + (inAir ? 1 : 0) <= MAX_RUN)
     return { next: turner, cut: false, leave: false, end: false, cue: `${nameOf(cur, turner)} turns to ${nameOf(cur, 'user')} by name and asks them something about what was just said - the floor is theirs after this line`, why: 'the floor goes to the visitor only through someone turning to them', ms: r.ms };
   // the floor was the visitor's and they let it pass (the page's nudge): it doesn't go straight back to them with nobody saying a word -
@@ -157,14 +160,16 @@ The others, and how they stand with everyone here:
 ${forces(cur, M.room, id)}
 
 Everyone listed above is on the call: ${c.name} talks to them directly, never behind their back. People who are not on the call ${c.name} may talk about, never to.
+${c.name}'s own earlier lines are in the meeting below: the same person, never the same line - a move ${c.name} already made in this meeting never comes back in the same words or the same sentence shape (his note 2026-11-27: a formula said again and again kills the talk).
 
 The meeting so far:
 ${transcript(cur, M.log)}`;
 }
 // the line someone cut off: what was said until the cut - a little past the middle, at a word, with a dash; never shorter than
 // what already went out (`said` - the stream was already past the middle)
-function cutOff(text, said = '', force = false) {
+function cutOff(text, said = '', force = false, at = 0) {
   const words = text.replace(/<[^<>]*>/g, '').trim().split(/\s+/);
+  if (at) { const k = Math.min(at, words.length - 1); return k < 1 ? text : words.slice(0, k).join(' ').replace(/[,.;:!?-]+$/, '') + '—'; }
   if (words.length < (force ? 3 : 6)) return text;
   const out = said ? said.replace(/<[^<>]*>?/g, '').trim().split(/\s+/).filter(Boolean).length : 0;
   const n = Math.min(words.length - 1, Math.max(3, Math.round(words.length * 0.55), out));
@@ -177,10 +182,10 @@ async function speak(M, plan, emit, handNow) {
   const now = nowIL();
   const prev = M.log.filter(spoken).slice(-1)[0];
   const why = plan.opening
-    ? `The meeting is just starting and ${c.name} opens it, as always: glad everyone is here, a word to the visitor who joined - ${cur.titled ? `greeting them by their name and referring naturally to the title they introduced themselves with when they joined (${nameOf(cur, 'user')}): what they wrote, fitted into his sentence the way people say someone's title out loud - in correct Hebrew, never recited word for word, never a new title or ${c.name}'s own description of who they are` : `greeting them by their name, ${nameOf(cur, 'user')} - never a title or ${c.name}'s own description of who they are`} - he opens the meeting's subject, and ends by turning to the visitor by name and handing them the floor: a question that opens what this meeting with them is for (the way a host opens a Zoom with the guest it was set up for).`
+    ? `The meeting is just starting and ${c.name} opens it the way a Zoom is opened - short, straight to it: thanks ${nameOf(cur, 'user')} for joining, says in one sentence who they are and what they came to help with (why this meeting was set up), then turns to them by name and hands them the floor with a question. Like: "טוב, אז תודה ל<name> שהצטרף אלינו. <name> הוא <who they are> ובא לעזור לנו ב<what for>. <name>, ..." - when nobody knows the visitor's gender, the same without a gendered word: "טוב, אז תודה ל<name> על ההצטרפות. <name>, <who they are>, כאן כדי לעזור לנו ב<what for>. <name>, ...". No "ברוכים הבאים", no welcome speech - it's a Zoom, not a reception. ${cur.titled ? `Who they are = the title they introduced themselves with when they joined (${nameOf(cur, 'user')}), fitted into his sentence the way people say someone's title out loud - in correct Hebrew, never recited word for word, never a new title or ${c.name}'s own description of them.` : `Who they are: only what is known - never a title or ${c.name}'s own description of them.`}`
     : `Why ${c.name} speaks now: ${plan.cue || 'the line that was just said'}`
       + (plan.cut && prev ? (prev.who === DANIEL
-        ? `\n${c.name} cuts ${nameOf(cur, DANIEL)} off before he finishes the sentence - as always - and picks up his last words ("${lastWords(prev.text)}"): ${c.name}'s line starts from exactly those words and reacts to them.`
+        ? `\n${c.name} cuts ${nameOf(cur, DANIEL)} off - his line above stops where ${c.name} came in.`
         : `\n${c.name} cuts ${nameOf(cur, prev.who)} off in the middle of the sentence.`) : '')
       + (plan.leave ? `\nAfter this line ${c.name} drops off the call - says it their own way (they don't get why they are on this call, they have had enough) and leaves.`
         : outsider(cur, id, M.room) ? `\n${c.name} stays on the call after this line, however little they want to be on it - they don't announce leaving now.` : '')
@@ -218,7 +223,17 @@ ${PLAN_FORMAT(c)}`;
   // hold = the deltas stop (the line is cut there); a forced cut (Daniel) lets the first words out, then stops
   let sent = '', hold = false, forced = false;
   const words = (t) => t.replace(/<[^<>]*>?/g, ' ').trim().split(/\s+/).filter(Boolean).length;
-  const onText = (dt) => { if (hold) return; sent += dt; emit({ t: 'delta', who: id, text: dt }); if (forced && words(sent) >= 9) hold = true; };
+  // Daniel (his rule 2026-11-27, as in his videos): cut early, at a random word - sometimes after one or two words
+  const cutAt = id === DANIEL && M.room.includes(HOST) && !plan.leave ? [1, 2, 2, 3, 3, 4, 4, 5, 6, 7][Math.floor(Math.random() * 10)] : 0;
+  const onText = (dt) => {
+    if (hold) return;
+    if (cutAt) {   // stop right after the cutAt-th word is complete (the next word started)
+      const m = (sent + dt).match(new RegExp(`^\\s*(?:\\S+\\s+){${cutAt}}`));
+      if (m) { dt = m[0].slice(sent.length).replace(/\s+$/, ''); hold = true; }
+    }
+    sent += dt; if (dt) emit({ t: 'delta', who: id, text: dt });
+    if (forced && !cutAt && words(sent) >= 9) hold = true;
+  };
   // how much they know about the subject (the chat's own words, wiki-deep reply())
   const lvl = D.knows?.level;
   const limit = lvl === 'no' || lvl === 'heard_of' ? `\n\nYou (${c.name}) ${lvl === 'no' ? "don't know what this is at all" : 'know this only by name'} - you do NOT know its content. Don't explain it, don't state any detail of it (not even what the visitor's question hints at), however well the writer behind you knows it. ${D.knows.how || ''}`
@@ -240,7 +255,7 @@ ${PLAN_FORMAT(c)}`;
   spend(M, t);
   const text = clean(t.out);
   M.phrases[id] = [...new Set([...phrases, ...(c.sheet?.catchphrases || []).filter((p) => text.includes(p))])];
-  return { text, after, sent, cut: hold || forced, plan: D };
+  return { text, after, sent, cut: hold || forced, cutAt, plan: D };
 }
 
 // ---------- one round: residents speak until the floor is the visitor's (or the meeting ended) ----------
@@ -305,7 +320,7 @@ async function round(M, emit, opts = {}) {
     const line = { who: plan.next, text: s.text, cut: false };
     const after = s.after;
     if (s.cut) {
-      const said = cutOff(s.text, s.sent, !!after.forced);
+      const said = cutOff(s.text, s.sent, !!after.forced, s.cutAt);
       if (said !== s.text) { line.cut = true; line.text = said; emit({ t: 'cut', who: line.who, by: after.next, text: said }); }
       else after.cut = false;   // too short to cut: the next speaker just answers
     }
@@ -334,9 +349,8 @@ const genderLine = (M) => {
   const g = (M.visitor || {}).gender;
   if (g === 'm') return 'The visitor is a man: speak to him in the masculine singular.';
   if (g === 'f') return 'The visitor is a woman: speak to her in the feminine singular.';
-  return "Nobody knows the visitor's gender (never guess it from their name or title): speak to them in the PLURAL - אתם, ברוכים הבאים, לפני שאתם זזים, תגידו, איתכם - never a masculine or feminine singular form for them.";
+  return "Nobody knows the visitor's gender (never guess it from their name or title): speak to them in the PLURAL - אתם, תודה שהצטרפתם, לפני שאתם זזים, תגידו, איתכם - never a masculine or feminine singular form for them.";
 };
-const lastWords = (t, n = 4) => String(t || '').replace(/<[^<>]*>/g, '').replace(/[—-]\s*$/, '').trim().split(/\s+/).slice(-n).join(' ');
 
 // the visitor says something: on the log, the count starts again, and the next round answers it (hand: they raised a hand before
 // the floor was theirs - the shared page shows it)
