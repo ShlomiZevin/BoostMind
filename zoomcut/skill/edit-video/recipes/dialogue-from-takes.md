@@ -55,7 +55,7 @@ a phone call, music).
   "לא, לולה,"): a new subtitle at `.?!`, at a comma once it has 3 words, or at 4 words; a 1-2 word end joins the
   subtitle before it (no flashes). One subtitles row per character, each its colour / height, so parallel talk reads.
 - **Keep what he set**: read the project first and carry every row's props (volumes, mutes, cut-out on/off, speed), his
-  framing of a set (he fixes ONE clip's set - copy that box to every clip of that set), his texts. Before each rebuild
+  framing of a set (he fixes ONE clip's set - copy that box to every clip of that set: x, y, w AND h by the picture's proportions - an item.update box MERGES, so an old h stays and squashes the picture; frankfurt-flight 2026-11-27, three clips came out stretched), his texts. Before each rebuild
   read `work/history/log.jsonl` since your last rev: only notes / volumes / speed = safe; clip edits = targeted ops instead.
 
 ## 4. After every build - the checks (all must pass before you say "ready")
