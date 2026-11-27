@@ -482,6 +482,30 @@ tag in `image-tag.txt`, the job pointed at it). Logs: `gcloud logging read "reso
 resource.labels.job_name=matte-birefnet" --project boostmind-b052c --limit 30`. Hosted alternative if it ever isn't
 enough: fal.ai Bria video background removal (~$0.05-0.14 a second of video, an account he'd open) - not tried.
 
+## PREPARE CLIPS FIRST - footage -> natural clips, before any editing (his ask, 2026-11-26)
+"Editing goes well when the clips arrive clean" - rosenblum-2 lost hours because splitting, trimming and whispers were
+found inside the edit. So the FIRST step of every video with footage, before any cut: he says "prepare the clips" (or
+you do it as step one) -> the session runs, after Analyze made the takes' cut-outs + words:
+`curl -X POST localhost:4747/api/p/<id>/build -H "content-type: application/json" -d '{"action":"prepare"}'`
+(a studio job - check `GET /api/jobs` busy first; `{"assets": [...], "script": "scripts/x.txt", "dry": true}` optional),
+or straight `.venv/Scripts/python.exe tools/prepare_clips.py episodes/<id> [--dry]`. What it does, per take:
+split at every recording restart (scdet >= 10; 5-10 only when no real word spans it and the face jumps - rosenblum-2's
+hidden restart at 297.25 s scored 8.8), trim the phone at each recording's start / end (face gone, too close, off its
+place, eyes aside, the reach - MediaPipe; a "phone" moment longer than 2 s = probably acting: KEPT and asked), never
+within 0.6 s after / 1.0 s before a restart, silence before the first word KEPT and asked (the tea walk), markers
+(אקשן / קאט) and claps cut exactly there, whispers re-read, the script lines per clip (the take's own speaker only;
+a broken-off try counts; lines the script repeats word for word are no retakes), retakes (the LATER kept), the sound
+offset and the room-noise floor per clip. Out: one asset per clip in Media -> **Clips** (named "רוזנבלום · line 7 ·
+take 2/3", pointing at the original take with clip.in / clip.out - placed, its edge drags out to the whole take),
+grouped under its take, the questions in gold on the clip; work/prepare/report.txt (questions first), sheet.jpg (LOOK
+at it), plan.json = a ready `tools/fast_cut.py` plan of the kept clips in script order (+ restarts, audioOffset).
+**Bring him only the questions** (one line each, with the clip's name) - every other clip needs nothing from him; his
+answers go on the clip (Media's Use / Don't use + note, or fix in / out) before fast_cut. A re-run replaces that take's
+clips and keeps his marks. Not seen yet: a hand reaching for the phone while the face stays still (a face filter moves
+the picture all the time - demokratovich-shut's ends) - fast_cut ends a line on its words anyway; tell him if a clip's
+last second shows the hand. Held things in the cut-out: tools/sam/keep.py tracks in 30 s pieces now (KEEP_CHUNK) - a
+long span no longer runs out of memory.
+
 ## ONE LONG RECORDING WITH MANY TAKES - find the real scenes first (his ask, rosenblum-2, 2026-11-26)
 "A long shot with several clips, several takes - find when a clip is starting and when it is ending ... remove the areas
 where I'm starting the camera or moving toward the camera." The general script, for ANY video like this:

@@ -425,7 +425,7 @@ def main():
     F = lambda s: int(round(s * FPS))
     SPEED = p.get("speed") or 1
     lay = {l["id"]: l for l in p["layers"]}
-    takes = {k: a for k, a in p["assets"].items() if a.get("kind") == "video"}
+    takes = {k: a for k, a in p["assets"].items() if a.get("kind") == "video" and not a.get("clip")}  # (prepared clips are not takes)
     min_sil = args.min_silence or plan.get("minSilence", 0.18)
     H = args.handle if args.handle is not None else plan.get("handle", 0.14)
     over = args.overlap if args.overlap is not None else plan.get("overlap", 0.1)

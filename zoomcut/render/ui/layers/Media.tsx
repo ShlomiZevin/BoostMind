@@ -35,7 +35,7 @@ const Dot = ({ a }: { a: any }) => (a.mark ? <span className={`mk-dot ${a.mark}`
   : a.note ? <span className="mk-dot note">•</span> : null);
 
 const SECTIONS: [string, string, (a: any) => boolean][] = [
-  ['video', 'Footage', (a) => a.kind === 'video'],
+  ['video', 'Footage', (a) => a.kind === 'video' && !a.clip],
   ['bg', 'Backgrounds', (a) => a.kind === 'image' && (a.tag === 'background' || /^backgrounds\//.test(a.src))],
   ['image', 'Pictures', (a) => a.kind === 'image' && !(a.tag === 'background' || /^backgrounds\//.test(a.src))],
   ['audio', 'Sounds', (a) => a.kind === 'audio'],
@@ -57,6 +57,9 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
   // Footage: all, or only the videos not on the timeline yet (his ask, 2026-10-28) - remembered
   const [onlyNew, setOnlyNew] = useState(() => { try { return localStorage.getItem('zc-media-new') === '1'; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem('zc-media-new', onlyNew ? '1' : '0'); } catch {} }, [onlyNew]);
+  // Clips: all, or only the ones with a question for him (tools/prepare_clips.py) - remembered
+  const [onlyQ, setOnlyQ] = useState(() => { try { return localStorage.getItem('zc-media-q') === '1'; } catch { return false; } });
+  useEffect(() => { try { localStorage.setItem('zc-media-q', onlyQ ? '1' : '0'); } catch {} }, [onlyQ]);
   const when = (id: string) => (dates[id] ? new Date(dates[id]).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
   const W = project.canvas.w, H = project.canvas.h, fps = project.canvas.fps;
   const add = async (files: FileList | null) => {
@@ -72,18 +75,28 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
   const place = (id: string, a: any) => {
     const lid = newId(a.kind === 'audio' ? 'sound.' : a.kind === 'image' ? 'image.' : 'video.');
     const dur = a.kind === 'image' ? 3 * fps : Math.max(1, Math.round((a.duration || 3) * fps));
-    const item: any = { id: 'i1', from: frame, dur: Math.min(dur, project.duration - frame), asset: id };
+    const c = a.clip;  // a prepared clip: its piece of the take (the edge can still be dragged out to the whole take)
+    const cdur = c ? Math.max(1, Math.round((c.out - c.in) * fps)) : dur;
+    const item: any = { id: 'i1', from: frame, dur: Math.min(cdur, project.duration - frame), asset: id };
     let layer: any;
     if (a.kind === 'image') layer = { id: lid, kind: 'image', name: (a.label || a.src.split('/').pop()).replace(/\.[^.]+$/, ''), group: 'Pictures', props: {},
       items: [{ ...item, fade_in: 0.2, box: { x: W / 2, y: H / 2, w: Math.min(W * 0.8, a.w || W), anchor: 'c' } }] };
     else if (a.kind === 'audio') layer = { id: lid, kind: 'audio', name: (a.label || a.src.split('/').pop()).replace(/\.[^.]+$/, ''), group: 'Sound', props: { volume: 1 }, items: [{ ...item, in: 0 }] };
     else if (a.kind === 'video') layer = { id: lid, kind: 'video', name: a.label || a.src.split('/').pop(), group: 'Video', props: { fit: 'cover' },
-      items: [{ ...item, in: 0, box: { x: 0, y: 0, w: W, h: H } }] };
+      items: [{ ...item, in: c ? c.in : 0, box: { x: 0, y: 0, w: W, h: H } }] };
     else return;
     const index = a.kind === 'audio' ? project.layers.length : project.layers.length - project.layers.slice().reverse().findIndex((l: any) => l.kind !== 'audio');
     send([{ op: 'layer.add', layer, index }], { label: 'add ' + a.kind });
   };
   const used = new Set(project.layers.flatMap((l: any) => [l.props?.asset, ...(l.items || []).map((i: any) => i.asset), ...(l.items || []).map((i: any) => i.font)]));
+  // CLIPS (tools/prepare_clips.py - "prepare the clips first"): the natural clips cut from the takes, in recording order
+  // under each take; a clip the tool wasn't sure about carries its question(s) - only those need his eye
+  const clips = (Object.entries(project.assets || {}) as [string, any][]).filter(([, a]) => a.kind === 'video' && a.clip);
+  const qs = clips.filter(([, a]) => a.clip.flags?.length).length;
+  const byTake = new Map<string, [string, any][]>();
+  for (const e of clips) { const t = e[1].clip.take; byTake.set(t, [...(byTake.get(t) || []), e]); }
+  for (const g of byTake.values()) g.sort(([, x], [, y]) => x.clip.in - y.clip.in);
+  const takeOrder = [...byTake.keys()].sort((x, y) => (dates[x] || 0) - (dates[y] || 0));
   return (
     <div className="media">
       <div style={{ display: 'flex', gap: 8, padding: '10px 12px 0' }}>
@@ -92,6 +105,37 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
       </div>
       {busy && <div className="help" style={{ padding: '8px 14px 0' }}>{busy}</div>}
       {pick && <div className="note">Pick a {pick.kind === 'image' ? 'picture' : pick.kind} below</div>}
+      {clips.length > 0 && (
+        <div>
+          <div className="m-sec">Clips<span className="m-show">
+            <button className={onlyQ ? '' : 'on'} onClick={() => setOnlyQ(false)} title="Every clip">All {clips.length}</button>
+            <button className={onlyQ ? 'on' : ''} onClick={() => setOnlyQ(true)} title="Only the clips with a question for you">Questions {qs}</button>
+          </span></div>
+          {onlyQ && !qs && <div className="help" style={{ padding: '4px 14px 8px' }}>No questions - every clip is clean.</div>}
+          {takeOrder.map((t) => {
+            const g = (byTake.get(t) || []).filter(([, a]) => !onlyQ || a.clip.flags?.length);
+            if (!g.length) return null;
+            const all = byTake.get(t) || [];
+            const who = all.find(([, a]) => a.clip.who)?.[1].clip.who;
+            return (
+              <div key={t}>
+                <div className="m-take" title={project.assets[t]?.label || t}>{who ? <bdi>{who}</bdi> : 'Take'} · {all.length} clips{when(t) ? ` · ${when(t)}` : ''}</div>
+                {g.map(([id, a]) => (
+                  <div key={id} className={`m-row m-clip ${a.clip.kept === false ? 'aside' : ''}`} onClick={() => (pick && pick.kind === 'video' ? pick.onPick(id) : null)}>
+                    <span className="mk-wrap"><PeekThumb src={`/api/p/${ep}/thumb?asset=${encodeURIComponent(id)}`} onPlay={() => (pick ? pick.kind === 'video' && pick.onPick(id) : setPeek(id))} /><Dot a={a} /></span>
+                    <div className="m-main">
+                      <div className="m-name" dir="ltr">{a.label.split(' · ').map((w: string, i: number) => <React.Fragment key={i}>{i ? ' · ' : ''}<bdi>{w}</bdi></React.Fragment>)}</div>
+                      <div className="m-sub">{(a.clip.out - a.clip.in).toFixed(1)} s{a.clip.kept === false ? ' · set aside' : ''}{used.has(id) ? ' · in use' : ''}</div>
+                      {(a.clip.flags || []).map((f: string, i: number) => <div key={i} className="m-q">? {f}</div>)}
+                    </div>
+                    {!pick && <button className="pm-use" style={{ width: 70 }} onClick={(e) => { e.stopPropagation(); place(id, a); }}>+ timeline</button>}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
       {SECTIONS.map(([k, title, test]) => {
         // one entry per FILE: a builder makes an asset per placement of a sound (its own filter / pitch), all the same
         // file - he saw house-bed.mp3 12 times in haredit-2 (2026-10-27). "In use" = any of them is on the timeline
@@ -144,9 +188,11 @@ export function Media({ ep, project, urls, frame, send, onLoaded, pick }: {
       {peek && project.assets?.[peek] && (() => {
         const a = project.assets[peek];
         return <VideoPeek kind={a.kind} src={a.kind === 'image' ? urls[peek] : `/api/p/${ep}/asset?a=${encodeURIComponent(peek)}`}
+          start={a.clip?.in} end={a.clip?.out}
           audio={a.kind === 'video' && a.audio ? `/api/p/${ep}/asset-sound?a=${encodeURIComponent(peek)}` : undefined} name={a.label || a.src.split('/').pop()} onClose={() => setPeek(null)}
-          sub={[a.duration ? a.duration.toFixed(1) + ' s' : '', a.w ? `${a.w}×${a.h}` : '', used.has(peek) ? 'in use' : ''].filter(Boolean).join(' · ')}
+          sub={[a.clip ? `${(a.clip.out - a.clip.in).toFixed(1)} s, ${a.clip.in.toFixed(1)}-${a.clip.out.toFixed(1)} s of the take${a.clip.kept === false ? ' · set aside' : ''}` : a.duration ? a.duration.toFixed(1) + ' s' : '',a.w ? `${a.w}×${a.h}` : '', used.has(peek) ? 'in use' : ''].filter(Boolean).join(' · ')}
           actions={<button className="btn" onClick={() => { place(peek, a); setPeek(null); }}>{used.has(peek) ? '+ Timeline again' : '+ Timeline'}</button>}>
+          {a.clip?.flags?.length > 0 && <div className="m-qs">{a.clip.flags.map((f: string, i: number) => <div key={i} className="m-q">? {f}</div>)}</div>}
           <Marks id={peek} a={a} send={send} /></VideoPeek>;
       })()}
     </div>

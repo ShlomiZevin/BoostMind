@@ -188,6 +188,14 @@ One format, one composition, one editor, one export. The format and the API: `la
 - **Subtitles tab** (left panel, 2026-10-28 - he missed the old one-camera editor's list): `layers/Subtitles.tsx` - every
   subtitle of every subtitles layer in time order, the one on screen lit and kept in view, a click picks it (the video
   jumps there), **Copy all** (words, one per line) / **with times**.
+- **Media Clips** (2026-11-26, "prepare the clips first" - `tools/prepare_clips.py`, builder action `prepare`
+  = `render/actions/prepare.mjs`): a prepared clip is a video asset with `clip: {take, in, out, rec, lines, who, kept,
+  flags, text, noise_db, audio_offset, take_no, takes}` that shares its take's src / matte / fg / audio / preview. Media
+  shows them above Footage (Footage leaves them out), grouped under their take (speaker · N clips · recorded), All /
+  Questions (only clips with flags; localStorage zc-media-q); a clip's flags = gold questions under its name and in its
+  window; the window plays only its piece (start / end); "+ timeline" places it with `in` = clip.in, its length - the
+  item is a window on the whole take, so its edge drags out (takeRoom). Thumbnails are written by the tool into
+  work/layers/thumbs/<id>.jpg (the thumb route serves an existing file). fast_cut ignores clip assets as takes.
 - **Media Footage is newest first** (his ask, 2026-10-28: "I want last to be first"): by the recording time inside each
   file (ffprobe `com.apple.quicktime.creationdate` / `creation_time`, else the file's date) from the `dates` action
   (`render/actions/dates.mjs`, read only, cached in `work/dates.json`), shown on each row ("28 Oct, 10:57"). Keep this

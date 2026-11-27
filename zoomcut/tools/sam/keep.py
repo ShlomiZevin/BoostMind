@@ -12,6 +12,8 @@ venv (tools/sam/.venv: torch CPU + Meta's sam2; models in tools/sam/models, not 
   keep.py track <take> <objects.json> <out.mkv> <w> <h> <fps> <frames>
       the build: every object followed through its span (SAM 2 on 10 frames a second at 512 px - CPU: ~5 s per second
       of video; the frames between follow the motion by optical flow), one grey mask a frame, <w>x<h>, ffv1.
+      In pieces of KEEP_CHUNK s (default 30) from the marked frame out, each piece started from the last mask of the one
+      before - SAM 2 keeps every frame's state, so one 242 s span ran out of memory (rosenblum-2, 2026-11-26).
 objects = [{"what": "cookie box", "t": 3.5, "points": [[0.72, 0.62, 1], ...], "from": s?, "to": s?, "cut": true?}] (take seconds,
 fractions of the RAW take's frame - before any mirror)."""
 import base64
@@ -184,25 +186,61 @@ def track(take, objs, out, ow, oh, fps, nframes):
             return _fwd(*a, **k)
         ma.forward = _f32
     km = np.zeros((nk, kh, kw), np.uint8)  # the keyframes' masks, every object together
+    # IN CHUNKS (prepare clips, 2026-11-26): SAM 2 keeps every frame's state of a video in memory - rosenblum-2's 242 s
+    # span died out of memory on 64 GB. Each object is followed in pieces of CHUNK s: from its marked frame forward, piece
+    # by piece, each piece started from the last mask of the one before (add_new_mask), then the same backward.
+    step = max(20, int(float(os.environ.get("KEEP_CHUNK", 30)) * KFPS))
+    frames = sorted(os.listdir(kdir))
+    done, total = 0, 0
+    for oi, o in enumerate(objs):
+        a, b = spans[oi]
+        ka, kb = max(0, int(np.floor((a - t0) * KFPS))), min(nk - 1, int(np.ceil((b - t0) * KFPS)))
+        total += kb - ka + 1
     with torch.inference_mode(), _auto():
-        st = vp.init_state(video_path=kdir, offload_video_to_cpu=True)
         for oi, o in enumerate(objs):
-            ki = int(round((float(o["t"]) - t0) * KFPS))
-            ki = max(0, min(nk - 1, ki))
+            a, b = spans[oi]
+            ka, kb = max(0, int(np.floor((a - t0) * KFPS))), min(nk - 1, int(np.ceil((b - t0) * KFPS)))
+            km0 = max(ka, min(kb, int(round((float(o["t"]) - t0) * KFPS))))
             pts = np.array([[x * kw, y * kh] for x, y, *_ in o["points"]], np.float32)
             lab = np.array([int(q[2]) if len(q) > 2 else 1 for q in o["points"]], np.int32)
-            vp.add_new_points_or_box(st, frame_idx=ki, obj_id=oi + 1, points=pts, labels=lab)
-        done = 0
-        for rev in (False, True):  # (after the marked frame, then before it)
-            for fi, ids, logits in vp.propagate_in_video(st, reverse=rev):
-                for j, oid in enumerate(ids):
-                    a, b = spans[oid - 1]
-                    tt = t0 + fi / KFPS
-                    if a - 0.05 <= tt <= b + 0.05:
-                        km[fi] = np.maximum(km[fi], (logits[j, 0] > 0).cpu().numpy().astype(np.uint8) * 255)
-                done += 1
-                if done % 10 == 0:
-                    print(f"followed {done}/{nk * 2}", flush=True)
+            for rev in (False, True):  # (after the marked frame, then before it)
+                if rev and km0 <= ka:
+                    continue
+                seed, cur = None, km0
+                while True:
+                    lo, hi = (cur, min(kb, cur + step)) if not rev else (max(ka, cur - step), cur)
+                    cdir = os.path.join(tmp, f"c{oi}_{int(rev)}_{lo}")
+                    os.makedirs(cdir)
+                    for i in range(lo, hi + 1):  # (a piece's own folder: hard links, no copies)
+                        src, dst = os.path.join(kdir, frames[i]), os.path.join(cdir, f"{i - lo:05d}.jpg")
+                        try:
+                            os.link(src, dst)
+                        except OSError:
+                            import shutil
+                            shutil.copyfile(src, dst)
+                    st = vp.init_state(video_path=cdir, offload_video_to_cpu=True)
+                    at = 0 if not rev else hi - lo
+                    if seed is None:
+                        vp.add_new_points_or_box(st, frame_idx=at, obj_id=1, points=pts, labels=lab)
+                    else:
+                        vp.add_new_mask(st, frame_idx=at, obj_id=1, mask=seed)
+                    last = None
+                    for fi, ids, logits in vp.propagate_in_video(st, reverse=rev):
+                        m = (logits[0, 0] > 0).cpu().numpy()
+                        g = lo + fi
+                        km[g] = np.maximum(km[g], m.astype(np.uint8) * 255)
+                        last = m
+                        done += 1
+                        if done % 10 == 0:
+                            print(f"followed {done}/{total}", flush=True)
+                    vp.reset_state(st)
+                    del st
+                    if last is None or not last.any():
+                        break  # (lost it: nothing to start the next piece from)
+                    if (not rev and hi >= kb) or (rev and lo <= ka):
+                        break
+                    seed = torch.from_numpy(last)
+                    cur = hi if not rev else lo
     for i in range(nk):
         km[i] = clean(km[i] > 127)
     # every frame of the take: the keyframes' masks moved with the picture (optical flow) between them
