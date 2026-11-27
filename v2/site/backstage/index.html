@@ -68,6 +68,7 @@
   .btn.main { background: var(--accent); border-color: transparent; color: #fff; box-shadow: 0 10px 30px rgba(255,106,31,.35); }
   .btn svg { width: 20px; height: 20px; }
   .btn:disabled { opacity: .5; cursor: default; }
+  .ch-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin: 12px 0 6px; } .ch-filter .l { color: var(--dim); font-weight: 700; } .ch-filter .btn { height: 42px; } .ch-filter .i { color: var(--dim); font-size: .9rem; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px; backdrop-filter: blur(10px); }
   .card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
   .card-h h2 { font-size: 1.25rem; font-weight: 900; }
@@ -1310,10 +1311,11 @@ function crNotesHtml(c, anchor, open) {
 }
 // the camera filter the character is filmed with (his ask 2026-11-27 - management only, so it is never lost): content.js 'filter'
 function crFilter(c) {
-  const f = c.filter || {};
-  if (!f.url && !f.name && !f.note) return '<small style="color:var(--faint)">פילטר: עוד לא נשמר</small>';
-  const what = [f.app === 'tiktok' ? 'TikTok' : f.app === 'snapchat' ? 'Snapchat' : f.app, f.name].filter(Boolean).join(' · ') || 'הפילטר';
-  return `<small>פילטר: ${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(what)}</a>` : esc(what)}${f.note ? ` · ${esc(f.note)}` : ''}</small>`;
+  const f = c.filter || {}, app = f.app === 'tiktok' ? 'TikTok' : f.app === 'snapchat' ? 'Snapchat' : (f.app || '');
+  if (!f.url && !f.name && !f.note) return '<div class="ch-filter"><span class="l">הפילטר: עוד לא נשמר</span></div>';
+  const info = [f.name, f.note].filter(Boolean).join(' · ');
+  return `<div class="ch-filter"><span class="l">הפילטר${app ? ' · ' + esc(app) : ''}</span>${f.url
+    ? `<a class="btn main" href="${esc(f.url)}" target="_blank" rel="noopener">${IC.out}פתיחת הפילטר</a>` : ''}${info ? `<span class="i">${esc(info)}</span>` : ''}</div>`;
 }
 function crView() {
   const c = CR.chars.find((x) => x.id === crId);
@@ -1324,7 +1326,7 @@ function crView() {
     return `<div class="ch-f"><div class="ch-r ${fresh('life') ? 'new' : ''}"><div class="v ch-v"><span class="d"><b>${i + 1}</b><br>${esc(x.d ? dm(x.d) : '')}</span><span>${esc(x.e)}${v ? `<small>${esc(v.title)}</small>` : ''}</span></div>
       <button class="ch-nb ${k ? 'has' : ''}" data-crrow="${esc(a)}">${IC.comment}${k || 'הערה'}</button></div>${crNotesHtml(c, a, crOpenRows.has(a))}</div>`; }).join('');
   paint(`<button class="pill" data-crback>${IC.prev}כל הדמויות</button>
-    <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}${crFilter(c)}</div></div>
+    <div class="ch-head">${crFace(c)}<div><b>${esc(c.name)}</b><small>${esc(c.world || '')}</small><small>${esc(c.tagline || '')}</small>${c.site ? `<small><a href="${esc(c.site)}" target="_blank">${esc(c.site.replace('https://', ''))}</a></small>` : ''}</div></div>${crFilter(c)}
     ${(c.id === CR_GUIDE ? [] : [['love', 'כמה אהוב'], ['viral', 'כמה ויראלי כרגע']]).map(([f, l]) => `<div class="ch-love"><b>${l}${fresh(f) ? ' <span class="tag ok">עודכן</span>' : ''}</b><div>${Array.from({ length: 10 }, (_, i) => `<button data-crscore="${f}" data-v="${i + 1}" class="${i + 1 <= (c[f] || 0) ? 'on' : ''}">${i + 1}</button>`).join('')}</div></div>`).join('')}
     <div class="ch-sec"><h3>ההערות שלך על ${esc(c.name)}</h3>${crNotesHtml(c, '', true)}</div>
     ${crHasSheet(c) ? `<div class="ch-sec ${fresh('sheet') ? 'fresh' : ''}">${fresh('sheet') ? '<span class="tag ok">הדף עודכן מאז שראית</span>' : ''}
