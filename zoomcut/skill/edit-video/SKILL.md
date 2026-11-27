@@ -645,6 +645,13 @@ no text. The file is the project's script (`episodes/<id>/script.txt`, or `scrip
    (he saw "a glitch of empty Hani for a micro second" on some cuts, 2026-10-28: the exporter placed a third of the
    clips a rounding-hair late, fixed in pipeline/export_layers.py; the check stays). Exit 1 = don't send it.
    After a rebuild, the picture lane: no two items overlapping, no gaps. Fix what you find first.
+6b. **THE FIRST PASS ALREADY HAS ALL OF THESE** (his rule, 2026-11-27: "in the first pass you already arrange the text on
+   the video, the caption, the tags and the character in the export window") - never left for a later round:
+   - **the text on the video** - the hook (פוב, in Hebrew - never "POV") as a text layer on top, his words when he gives
+     them (else write one in his style and say so);
+   - **the caption + hashtags + YouTube title + X text** saved in the Send window (step 7 below, `publishing.md`);
+   - **the cast** - every character in it on the Send window's "Who's in this video?" (`/api/ep/<id>/cast` + project
+     `characters`; a character already fixed there shows as fixed).
 7. **Hand over:** the link, the length, the lines you fixed or could not find, 2-4 timestamps worth his ear, one line
    that he can drag any cut edge to pull footage back. **And the post is already written** (his rule, 2026-10-25):
    every video you make comes with its DEFAULT caption - a hook line + 3-6 hashtags, in the character's voice
