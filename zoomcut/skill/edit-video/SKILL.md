@@ -834,6 +834,22 @@ no text. The file is the project's script (`episodes/<id>/script.txt`, or `scrip
   naomi-1 sits it on the chest); max ~3 lines so it never covers a face (smaller `size` before more lines).
   **Hold it 20 s of the FINAL video** (his note on vova-hr-1, 2026-11-25: "פוב יותר ארוך ל-20 שניות"; adam-1 the same) -
   `dur` = 20 x project speed x 30 frames (1.28x -> 768), not the 5 s a builder gives it.
+  **HOW A פוב IS WRITTEN AND PLACED - his rules, agreed on frankfurt-flight (2026-11-27), every video:**
+  - **His words, letter for letter** (he wrote "האיש הזיה הזה" - I "fixed" it to "ההזוי" and he said "אל תשנה שום דבר
+    בטקסט שלי"). "פוב" in Hebrew, never "POV". No line breaks added, no punctuation fixed.
+  - **The look**: a text layer `hook` on top of everything, style `pov`, theme `dark` - white letters on a black box,
+    `box_opacity` 0.7 (faded a little), font Assistant (`font.assistant`, asset `../../fonts/Assistant.ttf`), `size` 60
+    (not small), `w` 940, centred (`x` 540, `anchor` "t"), at most ~3 lines.
+  - **The place**: high, out of the socials' bars - he asked for "about two thirds up from the bottom"; in his close
+    selfies two thirds covered his eyes, so the box sits at `y` 300 (above his head, under the apps' top bar). Never over
+    a face: look at a still of the first seconds.
+  - **20 s of the final video, whatever the speed** - after he changes the project speed (he does, 1.15 -> 1.17),
+    re-set `dur` = 20 x speed x 30 before any export. (A "stay 20 s at any speed" flag on a text clip is tool work he
+    asked for - not built yet.)
+  - **The same words everywhere the video goes**: the caption's first line = the פוב exactly, then the hashtags (no
+    "tag a friend" / extra call to action - he took one out); the YouTube title = the פוב; X text = the פוב (no hashtags);
+    on the Shlomiverse (the video's record) the פוב is the video's line too - check `content.mjs get video <id>` after
+    the site job and that the verse shows his words, not a rewrite (words.md -> "פוב").
 - **Finishing vova-hr-1 (2026-11-25) - what cost the rounds, so the next video doesn't:**
   1. **"The recording I made in the Drop" may not be on this computer**: the studio's pull missed an audio-only `.m4a`
      (Osnat's re-recorded line). `gcloud storage ls -l "gs://boostmind-drop/<folder>/"` and compare with

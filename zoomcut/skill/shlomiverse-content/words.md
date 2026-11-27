@@ -30,5 +30,11 @@ app for now (his call).
   brought to these words on 2026-11-17. The residents' own lines inside their games and sites are their voice and stay
   (Osnat's "אני לא בדיוק הדמות המוסמכת" is hers). The URLs (/characters, /series) stay as they are.
 
+## פוב - a video's hook line (his rule, 2026-11-27)
+A video's hook (the text on the video) is HIS line, letter for letter - "פוב: ..." (Hebrew, never "POV"), "אף אחד: ...",
+"הבחור הזה ש...". Wherever the verse shows that video's line - its page, its card, a story about it, the caption, the
+title - it is his exact words, never a rewrite or a "fixed" spelling ("האיש הזיה הזה" stays "הזיה"). The look and place
+on the video: edit-video SKILL.md -> "HOW A פוב IS WRITTEN AND PLACED".
+
 ## Before shipping copy
 Grep what you wrote for: דמות|דמויות|מעריצ|מערכון|פרודיה|פרק|סדרה|לשלומי|שלומי זו. Brief Terra with this table.
