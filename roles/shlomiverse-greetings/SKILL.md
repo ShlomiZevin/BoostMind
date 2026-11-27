@@ -114,7 +114,7 @@ For OUR Instagram story, after the requester agreed (and pressed "הברכה נ�
   (1040x250 at 20,1310) over the old subtitles during the take, story-slot over the take, the subtitles redrawn
   (Assistant 800 66px, white, black 10px stroke, bottom at 1370; their times = Studio frame / 30 / speed, shifted by the
   cut and the hook), the cards over their spans. Look at a frame of every subtitle (a two-line one too) before sending.
-- Saved as `zoomcut/episodes/_assets/greetings/<slug>/story-no-details.mp4`. Sent to his Telegram (`render/share.mjs`
+- Saved in `zoomcut/episodes/_assets/greetings/<slug>/` as `story.mp4` (named; `story-song.mp4` when a song is mixed in, greet-tzvi), or `story-no-details.mp4` only for an anonymous one (`card.anon`, greet-osher). Sent to his Telegram (`render/share.mjs`
   sendTelegram).
 
 ## Report
